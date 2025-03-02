@@ -1,8 +1,9 @@
+
+import 'package:ascend_app/features/home/presentation/bloc/search_bloc.dart';
+import 'package:ascend_app/features/home/presentation/bloc/search_event.dart';
+import 'package:ascend_app/features/home/presentation/bloc/search_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/Home/Bloc/search_bloc.dart';
-import 'package:ascend_app/Home/Event/search_event.dart';
-import 'package:ascend_app/Home/States/search_state.dart';
 
 class Home extends StatelessWidget {
   @override

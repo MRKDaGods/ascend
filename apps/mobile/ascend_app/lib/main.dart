@@ -1,10 +1,8 @@
-import 'package:ascend_app/Home/Bloc/search_bloc.dart';
-import 'package:ascend_app/Home/Event/search_event.dart';
-import 'package:ascend_app/Home/States/search_state.dart';
-import 'package:ascend_app/Networks/networks.dart';
+
+import 'package:ascend_app/features/Home/home.dart';
+import 'package:ascend_app/features/Networks/networks.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/Home/home.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 
 void main() {
