@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/widgets/custom_sliver_appbar.dart';
+
 class Networks extends StatelessWidget {
   const Networks({super.key});
 
@@ -8,36 +10,28 @@ class Networks extends StatelessWidget {
     return Scaffold(
       body: DefaultTabController(
         length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            bottom: const TabBar(
-              tabs: [
-                Tab(
-                  text: "Grow",
-                ),
-                Tab(
-                  text: "Catchup",
-                ),
-              ],
+        child: CustomScrollView(
+          slivers: [
+            const CustomSliverAppBar(showTabBar: true,floating: false,),
+            SliverFillRemaining(
+              child: TabBarView(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text('Grow'),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text('Catchup'),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            
-          ),
-          body: TabBarView(
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text('Grow'),
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text('Catchup'),
-                ],
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
