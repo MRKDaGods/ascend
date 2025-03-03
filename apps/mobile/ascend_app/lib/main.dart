@@ -1,6 +1,5 @@
-
-import 'package:ascend_app/features/Home/home.dart';
-import 'package:ascend_app/features/Networks/networks.dart';
+import 'package:ascend_app/features/home/presentation/pages/home.dart';
+import 'package:ascend_app/features/networks/presentation/networks.dart';
 import 'package:flutter/material.dart';
 
 
