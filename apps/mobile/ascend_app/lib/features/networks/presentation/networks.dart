@@ -12,7 +12,7 @@ class Networks extends StatelessWidget {
         length: 2,
         child: CustomScrollView(
           slivers: [
-            const CustomSliverAppBar(showTabBar: true,floating: false,),
+            const CustomSliverAppBar(floating: false,showTabBar: true,),
             SliverFillRemaining(
               child: TabBarView(
                 children: [
