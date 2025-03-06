@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/home/presentation/widgets/post.dart';
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/home/presentation/models/post_model.dart';
 
 import '../../../../shared/widgets/custom_sliver_appbar.dart';
 
@@ -9,7 +10,20 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<String> _items = List.generate(20, (index) => 'Item $index');
+  final List<PostModel> _posts = List.generate(
+    20,
+    (index) => PostModel(
+      title: 'Title $index',
+      description: 'Description of Title $index',
+      images: [
+        "assets/images_posts/Screenshot 2023-08-06 150447.png",
+        "assets/images_posts/Screenshot 2023-12-31 100011.png",
+        "assets/images_posts/Screenshot 2024-05-01 174349.png",
+        "assets/images_posts/Screenshot 2024-09-20 152333.png",
+        "assets/images_posts/Screenshot 2024-10-04 102509.png",
+      ],
+    ),
+  );
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -25,16 +39,29 @@ class _HomeState extends State<Home> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
       _loadMoreItems();
     }
   }
 
-  void _loadMoreItems() {
-    setState(() {
-      _items.addAll(List.generate(20, (index) => 'Item ${_items.length + index}'));
-    });
-  }
+void _loadMoreItems() {
+  setState(() {
+    _posts.addAll(
+      List.generate(
+        20,
+        (index) => PostModel(
+          title: 'Title ${_posts.length + index}',
+          description: 'Description of Title ${_posts.length + index}',
+          images: [
+            "assets/images_posts/Screenshot 2023-08-06 150447.png",
+          ],
+        ),
+      ),
+    );
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +72,14 @@ class _HomeState extends State<Home> {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
+              final post = _posts[index];
               return Post(
-                title: _items[index],
-                description: 'Description of ${_items[index]}',
+                title: post.title,
+                description: post.description,
+                images: post.images,
               );
             },
-            childCount: _items.length,
+            childCount: _posts.length,
           ),
         ),
       ],
