@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:readmore/readmore.dart';
 
 class Post extends StatelessWidget {
   final String title;
@@ -30,7 +31,25 @@ class Post extends StatelessWidget {
             /// **Description**
             if (description.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(description),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: ReadMoreText(
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
+                  description,
+                  trimMode: TrimMode.Line,
+                  trimLines: 4,
+                  trimCollapsedText: 'Show more',
+                  trimExpandedText: 'Show less',
+                  moreStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  lessStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ],
 
             /// **Image Grid (if there are images)**
@@ -74,10 +93,7 @@ class Post extends StatelessWidget {
           if (imageCount == 3)
             Row(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildImage(images[0], height: 250),
-                ),
+                Expanded(flex: 2, child: _buildImage(images[0], height: 250)),
                 const SizedBox(width: 4),
                 Expanded(
                   flex: 1,
@@ -94,10 +110,7 @@ class Post extends StatelessWidget {
           if (imageCount == 4)
             Row(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildImage(images[0], height: 250),
-                ),
+                Expanded(flex: 2, child: _buildImage(images[0], height: 250)),
                 const SizedBox(width: 4),
                 Expanded(
                   flex: 1,
@@ -116,10 +129,7 @@ class Post extends StatelessWidget {
           if (imageCount >= 5)
             Row(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildImage(images[0], height: 250),
-                ),
+                Expanded(flex: 2, child: _buildImage(images[0], height: 250)),
                 const SizedBox(width: 4),
                 Expanded(
                   flex: 1,
@@ -133,14 +143,13 @@ class Post extends StatelessWidget {
                           if (imageCount > 4)
                             Positioned.fill(
                               child: Container(
-                                color: Colors.black.withOpacity(0.5),
                                 alignment: Alignment.center,
                                 child: Text(
                                   "+${imageCount - 4}",
                                   style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
@@ -163,9 +172,10 @@ class Post extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         image: DecorationImage(
-          image: image.startsWith("http")
-              ? NetworkImage(image)
-              : AssetImage(image) as ImageProvider,
+          image:
+              image.startsWith("http")
+                  ? NetworkImage(image)
+                  : AssetImage(image) as ImageProvider,
           fit: BoxFit.cover,
         ),
       ),
@@ -175,35 +185,36 @@ class Post extends StatelessWidget {
   /// **💙 Post Bottom Row**
   Widget _buildReactionRow(BuildContext context) {
     return Builder(
-      builder: (context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onLongPress: () => _showReactionPopup(context),
-            child: _postButton(Icons.thumb_up, "Like"),
+      builder:
+          (context) => Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                onLongPress: () => _showReactionPopup(context),
+                child: _postButton(Icons.thumb_up, "Like"),
+              ),
+              _postButton(Icons.comment, "Comment"),
+              _postButton(Icons.repeat, "Repost"),
+              _postButton(Icons.send, "Send"),
+            ],
           ),
-          _postButton(Icons.comment, "Comment"),
-          _postButton(Icons.repeat, "Repost"),
-          _postButton(Icons.send, "Send"),
-        ],
-      ),
     );
   }
 
   /// **🏷 Single Reaction Button**
-  Widget _postButton(IconData icon, String label, {Color color = Colors.grey}) {
+  Widget _postButton(IconData icon, String label) {
     return GestureDetector(
       onTap: () => print("$label tapped"),
       child: Column(
         mainAxisSize:
             MainAxisSize.min, // Ensures the column takes minimal height
         children: [
-          Icon(icon,
-              color: color, size: 24), // Adjusted size for a compact layout
+          Icon(icon, size: 24), // Adjusted size for a compact layout
           const SizedBox(height: 2), // Reduced spacing
-          Text(label,
-              style:
-                  TextStyle(fontSize: 12)), // Smaller font for better alignment
+          Text(
+            label,
+            style: TextStyle(fontSize: 12),
+          ), // Smaller font for better alignment
         ],
       ),
     );
@@ -227,23 +238,30 @@ class Post extends StatelessWidget {
               children: [
                 ReactionButton(icon: Icons.thumb_up, label: "Like"),
                 ReactionButton(
-                    icon: Icons.celebration,
-                    label: "Celebrate",
-                    color: Colors.purple),
+                  icon: Icons.celebration,
+                  label: "Celebrate",
+                  color: Colors.purple,
+                ),
                 ReactionButton(
-                    icon: Icons.volunteer_activism,
-                    label: "Support",
-                    color: Colors.green),
+                  icon: Icons.volunteer_activism,
+                  label: "Support",
+                  color: Colors.green,
+                ),
                 ReactionButton(
-                    icon: Icons.favorite, label: "Love", color: Colors.red),
+                  icon: Icons.favorite,
+                  label: "Love",
+                  color: Colors.red,
+                ),
                 ReactionButton(
-                    icon: Icons.lightbulb,
-                    label: "Insightful",
-                    color: Colors.yellow),
+                  icon: Icons.lightbulb,
+                  label: "Insightful",
+                  color: Colors.blue,
+                ),
                 ReactionButton(
-                    icon: Icons.emoji_emotions,
-                    label: "Funny",
-                    color: Colors.orange),
+                  icon: Icons.emoji_emotions,
+                  label: "Funny",
+                  color: Colors.orange,
+                ),
               ],
             ),
           ),
@@ -258,11 +276,8 @@ class ReactionButton extends StatefulWidget {
   final String label;
   final Color color;
 
-  const ReactionButton({
-    required this.icon,
-    required this.label,
-    this.color = Colors.grey,
-  });
+  const ReactionButton({required this.icon, required this.label, Color? color})
+    : this.color = color ?? Colors.grey;
 
   @override
   _ReactionButtonState createState() => _ReactionButtonState();
@@ -303,8 +318,7 @@ class _ReactionButtonState extends State<ReactionButton> {
           AnimatedOpacity(
             duration: Duration(milliseconds: 150),
             opacity: _showLabel ? 1.0 : 0.0,
-            child: Text(widget.label,
-                style: TextStyle(color: widget.color, fontSize: 12)),
+            child: Text(widget.label, style: TextStyle(fontSize: 12)),
           ),
         ],
       ),

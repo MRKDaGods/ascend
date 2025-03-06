@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/networks/presentation/networks.dart';
+import 'package:ascend_app/theme.dart';
 import 'package:flutter/material.dart';
 
 
@@ -34,13 +35,15 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: _pages.elementAt(_selectedIndex),
+        body: SafeArea(child: _pages.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomNavigationBar(
           
-          fixedColor: Color.fromARGB(255, 0, 0, 0),
-          unselectedItemColor: const Color.fromARGB(255, 88, 88, 88),
+          
+          
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: const [
