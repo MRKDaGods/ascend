@@ -35,7 +35,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      
       pinned: widget.pinned,
       floating: widget.floating,
       leading: GestureDetector(
@@ -51,7 +51,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
         child: BlocBuilder<SearchBloc, SearchState>(
           builder: (context, state) {
             return Card.outlined(
-              color: const Color.fromARGB(255, 228, 230, 230),
+              
               child: TextField(
                 onChanged: (value) {
                   context.read<SearchBloc>().add(SearchTextChanged(value));
@@ -130,14 +130,10 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
                       'All',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: selectedButton == 'All' ? Colors.white : Colors.black,
+                        
                       ),
                     ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        selectedButton == 'All' ? Colors.green : Colors.blue[100],
-                      ),
-                    ),
+                    
                   ),
                   FilledButton(
                     onPressed: () {
@@ -147,15 +143,9 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
                     },
                     child: Text(
                       'Jobs',
-                      style: TextStyle(
-                        color: selectedButton == 'Jobs' ? Colors.white : Colors.black,
-                      ),
+                      
                     ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        selectedButton == 'Jobs' ? Colors.green : Colors.blue[100],
-                      ),
-                    ),
+                    
                   ),
                   FilledButton(
                     onPressed: () {
@@ -165,14 +155,10 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
                     },
                     child: Text(
                       'My posts',
-                      style: TextStyle(
-                        color: selectedButton == 'My posts' ? Colors.white : Colors.black,
-                      ),
+                      
                     ),
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        selectedButton == 'My posts' ? Colors.green : Colors.blue[100],
-                      ),
+                      
                     ),
                   ),
                   FilledButton(
@@ -183,15 +169,9 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
                     },
                     child: Text(
                       'Mentions',
-                      style: TextStyle(
-                        color: selectedButton == 'Mentions' ? Colors.white : Colors.black,
-                      ),
+                      
                     ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                        selectedButton == 'Mentions' ? Colors.green : Colors.blue[100],
-                      ),
-                    ),
+                    
                   ),
                 ],
               ),
