@@ -1,3 +1,5 @@
+import 'package:ascend_app/features/home/presentation/widgets/post_images_grid_shape.dart';
+import 'package:ascend_app/features/home/presentation/widgets/reactions_post.dart';
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
 
@@ -73,112 +75,7 @@ class Post extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
-      child: Column(
-        children: [
-          if (imageCount == 1) _buildImage(images[0], height: 250),
-          if (imageCount == 2)
-            Row(
-              children: [
-                Expanded(
-                  flex: 7, // 70% of the width
-                  child: _buildImage(images[0], height: 250),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  flex: 3, // 30% of the width
-                  child: _buildImage(images[1], height: 250),
-                ),
-              ],
-            ),
-          if (imageCount == 3)
-            Row(
-              children: [
-                Expanded(flex: 2, child: _buildImage(images[0], height: 250)),
-                const SizedBox(width: 4),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      _buildImage(images[1], height: 120),
-                      const SizedBox(height: 4),
-                      _buildImage(images[2], height: 120),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          if (imageCount == 4)
-            Row(
-              children: [
-                Expanded(flex: 2, child: _buildImage(images[0], height: 250)),
-                const SizedBox(width: 4),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      _buildImage(images[1], height: 80),
-                      const SizedBox(height: 4),
-                      _buildImage(images[2], height: 80),
-                      const SizedBox(height: 4),
-                      _buildImage(images[3], height: 80),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          if (imageCount >= 5)
-            Row(
-              children: [
-                Expanded(flex: 2, child: _buildImage(images[0], height: 250)),
-                const SizedBox(width: 4),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      _buildImage(images[1], height: 120),
-                      const SizedBox(height: 4),
-                      Stack(
-                        children: [
-                          _buildImage(images[2], height: 120),
-                          if (imageCount > 4)
-                            Positioned.fill(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "+${imageCount - 4}",
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// **🖼 Image Loader with Fixes**
-  Widget _buildImage(String image, {double height = 100}) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        image: DecorationImage(
-          image:
-              image.startsWith("http")
-                  ? NetworkImage(image)
-                  : AssetImage(image) as ImageProvider,
-          fit: BoxFit.cover,
-        ),
-      ),
+      child: ImagesGridShape(imageCount: imageCount, images: images),
     );
   }
 
@@ -225,103 +122,11 @@ class Post extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final popupWidth =
         screenWidth < 300 ? screenWidth - 40 : 300; // 40 for padding
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          content: Container(
-            width: popupWidth.toDouble(),
-            height: 51, // Adjust height as needed
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ReactionButton(icon: Icons.thumb_up, label: "Like"),
-                ReactionButton(
-                  icon: Icons.celebration,
-                  label: "Celebrate",
-                  color: Colors.purple,
-                ),
-                ReactionButton(
-                  icon: Icons.volunteer_activism,
-                  label: "Support",
-                  color: Colors.green,
-                ),
-                ReactionButton(
-                  icon: Icons.favorite,
-                  label: "Love",
-                  color: Colors.red,
-                ),
-                ReactionButton(
-                  icon: Icons.lightbulb,
-                  label: "Insightful",
-                  color: Colors.blue,
-                ),
-                ReactionButton(
-                  icon: Icons.emoji_emotions,
-                  label: "Funny",
-                  color: Colors.orange,
-                ),
-              ],
-            ),
-          ),
-        );
+        return ReactionsPost(popupWidth: popupWidth);
       },
-    );
-  }
-}
-
-class ReactionButton extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const ReactionButton({required this.icon, required this.label, Color? color})
-    : this.color = color ?? Colors.grey;
-
-  @override
-  _ReactionButtonState createState() => _ReactionButtonState();
-}
-
-class _ReactionButtonState extends State<ReactionButton> {
-  bool _showLabel = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Normal tap - Just react (no label)
-        print("${widget.label} tapped");
-      },
-      onTapDown: (_) {
-        // Long press starts - Show label
-        setState(() {
-          _showLabel = true;
-        });
-      },
-      onTapUp: (_) {
-        // Released - Hide label
-        setState(() {
-          _showLabel = false;
-        });
-      },
-      onTapCancel: () {
-        // If touch is canceled, hide the label
-        setState(() {
-          _showLabel = false;
-        });
-      },
-      child: Column(
-        children: [
-          Icon(widget.icon, size: 30, color: widget.color),
-          const SizedBox(height: 4),
-          AnimatedOpacity(
-            duration: Duration(milliseconds: 150),
-            opacity: _showLabel ? 1.0 : 0.0,
-            child: Text(widget.label, style: TextStyle(fontSize: 12)),
-          ),
-        ],
-      ),
     );
   }
 }

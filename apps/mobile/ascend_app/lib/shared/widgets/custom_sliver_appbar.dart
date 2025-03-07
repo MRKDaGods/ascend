@@ -153,11 +153,11 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
                         selectedButton = 'My posts';
                       });
                     },
-                    child: Text(
-                      'My posts',
+                    style: ButtonStyle(
                       
                     ),
-                    style: ButtonStyle(
+                    child: Text(
+                      'My posts',
                       
                     ),
                   ),
