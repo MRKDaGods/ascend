@@ -24,3 +24,9 @@ flutter:
   assets:
     - assets/logo.jpg
     - assets/images_posts/
+    - assets/
+    - assets/logo/
+  fonts:
+    - family: Trocchi
+      fonts:
+        - asset: assets/fonts/Trocchi-Regular.ttf

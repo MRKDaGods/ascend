@@ -1,0 +1,2 @@
+C:/DDrive/College/ascend/apps/mobile/ascend_app/android/app/.cxx/Debug/24123q6e/x86/CMakeFiles/edit_cache.dir
+C:/DDrive/College/ascend/apps/mobile/ascend_app/android/app/.cxx/Debug/24123q6e/x86/CMakeFiles/rebuild_cache.dir
