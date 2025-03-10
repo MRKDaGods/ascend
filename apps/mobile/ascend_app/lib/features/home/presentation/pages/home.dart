@@ -27,6 +27,11 @@ class _HomeState extends State<Home> {
     ],
     isSponsored: true,
     useCarousel: true, // Use carousel layout for sponsored post
+    ownerName: 'Ascend Marketing',
+    ownerImageUrl: 'assets/images_posts/Screenshot 2024-05-01 174349.png',//'assets/sponsors/ascend_logo.png',
+    timePosted: 'Sponsored',
+    initialLikes: 128,
+    initialComments: 32,
   );
 
   @override
@@ -60,6 +65,11 @@ class _HomeState extends State<Home> {
         // Explicitly set these values to avoid null errors
         isSponsored: false,
         useCarousel: false,
+        ownerName: 'User ${index + 1}',
+        ownerImageUrl: 'assets/logo.jpg',//'assets/avatars/avatar$index.png', // You'll need appropriate images
+        timePosted: '${index + 1}h ago',
+        initialLikes: index * 5,
+        initialComments: index * 2,
       ),
     );
 
@@ -110,6 +120,11 @@ class _HomeState extends State<Home> {
           // Explicitly set these values to avoid null errors  
           isSponsored: false,
           useCarousel: false,
+          ownerName: 'User ${newIndex + 1}',
+          ownerImageUrl: 'assets/logo.jpg',//'assets/avatars/avatar${newIndex % 10}.png',
+          timePosted: '${(newIndex % 12) + 1}h ago',
+          initialLikes: newIndex * 3,
+          initialComments: newIndex,
         );
       },
     );
@@ -174,6 +189,11 @@ class _HomeState extends State<Home> {
                   images: post.images,
                   useCarousel: post.useCarousel,
                   isSponsored: post.isSponsored,
+                  ownerName: post.ownerName,
+                  ownerImageUrl: post.ownerImageUrl,
+                  timePosted: post.timePosted,
+                  initialLikes: post.initialLikes,
+                  initialComments: post.initialComments,
                 );
               }
             }, childCount: _getDisplayItemCount() + 1), // +1 for loading indicator
