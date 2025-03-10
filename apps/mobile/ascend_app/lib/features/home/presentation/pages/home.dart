@@ -12,87 +12,181 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<PostModel> _posts = List.generate(
-    20,
-    (index) => PostModel(
-      title: 'Title $index',
-      description: 'Description of Title $index',
-      images: [
-        "assets/images_posts/Screenshot 2023-08-06 150447.png",
-        "assets/images_posts/Screenshot 2023-12-31 100011.png",
-        "assets/images_posts/Screenshot 2024-05-01 174349.png",
-        "assets/images_posts/Screenshot 2024-09-20 152333.png",
-        "assets/images_posts/Screenshot 2024-10-04 102509.png",
-      ],
-    ),
-  );
+  List<PostModel> _posts = [];
   final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
+  
+  // Sponsored post content
+  final PostModel _sponsoredPost = PostModel(
+    title: '✨ Sponsored: Premium Content',
+    description: 'Check out our featured products and services tailored just for you! Our premium offerings provide exceptional value and quality.',
+    images: [
+      "assets/images_posts/Screenshot 2024-05-01 174349.png",
+      "assets/images_posts/Screenshot 2024-09-20 152333.png",
+      "assets/images_posts/Screenshot 2024-10-04 102509.png",
+    ],
+    isSponsored: true,
+    useCarousel: true, // Use carousel layout for sponsored post
+  );
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _loadInitialItems();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll); // Remove listener first
     _scrollController.dispose();
     super.dispose();
   }
 
+  void _loadInitialItems() {
+    // Load initial batch of items
+    final initialPosts = List.generate(
+      10, // Start with 10 regular items initially
+      (index) => PostModel(
+        title: 'Title $index',
+        description: 'Description of Title $index',
+        images: [
+          "assets/images_posts/Screenshot 2023-08-06 150447.png",
+          "assets/images_posts/Screenshot 2023-12-31 100011.png",
+          "assets/images_posts/Screenshot 2024-05-01 174349.png",
+          "assets/images_posts/Screenshot 2024-09-20 152333.png",
+          "assets/images_posts/Screenshot 2024-10-04 102509.png",
+        ],
+        // Explicitly set these values to avoid null errors
+        isSponsored: false,
+        useCarousel: false,
+      ),
+    );
+
+    // Set state with initial posts
+    _posts = initialPosts;
+  }
+
   void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
+    // Check if we're at the bottom of the list
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoading) {
       _loadMoreItems();
     }
   }
 
-  void _loadMoreItems() {
+  void _loadMoreItems() async {
+    if (_isLoading) return; // Prevent multiple simultaneous loads
+
+    if (!mounted) return; // Check if widget is still mounted
+
     setState(() {
-      _posts.addAll(
-        List.generate(
-          20,
-          (index) => PostModel(
-            title: 'Title ${_posts.length + index}',
-            description:
-                """Description of Title ${_posts.length + index} Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ac orci lorem. Donec consectetur ac arcu a elementum. In justo elit, sollicitudin id nulla vitae, finibus consequat mauris. Donec quis arcu sed nibh dapibus euismod. Phasellus scelerisque, arcu non convallis pharetra, elit elit dictum justo, in finibus erat metus a velit. Aenean aliquet neque at est eleifend viverra. Quisque sed turpis enim. Praesent ex nisl, fringilla eu nulla et, tempus dictum lorem. Nam sed nulla mi. Aenean ut sollicitudin massa.
+      _isLoading = true;
+    });
 
-In non lectus eu diam porta rutrum. Ut volutpat magna non quam congue, quis semper dui pellentesque. Suspendisse a sapien pellentesque, tincidunt nibh in, maximus nisi. Nullam viverra, libero sit amet viverra pulvinar, arcu turpis consequat ligula, sed pretium elit odio ut metus. Fusce imperdiet tortor metus, sed ultricies lacus auctor sed. Vivamus dolor sapien, semper vel fermentum sit amet, porta eu erat. Nunc egestas mauris fringilla urna eleifend, at hendrerit nisi pellentesque. Praesent erat erat, suscipit sed arcu ut, suscipit efficitur nulla. Curabitur consectetur diam eros, vitae vehicula libero rutrum sed.
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
 
-Quisque ultrices tincidunt faucibus. Nulla dui augue, pretium at pretium sit amet, euismod sit amet mi. Donec vitae tortor ut lorem vehicula suscipit sit amet sed lectus. In finibus scelerisque libero mattis tempus. Suspendisse finibus ipsum in ex aliquet, sed pellentesque nunc pulvinar. Sed fringilla sollicitudin purus mattis porta. Sed in fermentum ligula. In hac habitasse platea dictumst. Vestibulum justo mi, condimentum eget mi ut, congue scelerisque ex. Aliquam id venenatis enim. Suspendisse molestie ante id turpis dignissim, a finibus dolor sodales. Vestibulum sagittis aliquet diam, vel placerat lacus consectetur eget. Cras a interdum quam. Nam aliquet erat tellus, sit amet rhoncus turpis commodo in. Ut nulla augue, condimentum et faucibus non, ullamcorper venenatis lorem.
+    // Check again after the delay if widget is still mounted
+    if (!mounted) return;
 
-Interdum et malesuada fames ac ante ipsum primis in faucibus. Curabitur id diam lorem. Etiam vitae tellus gravida, porttitor diam et, varius tortor. Vestibulum lobortis luctus diam, at efficitur lectus ultrices eu. Quisque quis ipsum ut lacus volutpat sollicitudin. In posuere eget nulla a lobortis. Morbi id suscipit felis. Sed fermentum, dui at molestie convallis, nisi quam hendrerit nibh, sed pharetra lectus mi at enim. Ut ut nunc nunc.
+    // Generate more items - now loading 10 instead of 5
+    final currentLength = _posts.length;
+    final moreItems = List.generate(
+      10, // Load 10 more items at a time
+      (index) {
+        final newIndex = currentLength + index;
+        return PostModel(
+          title: 'Title $newIndex',
+          description: '''Description of Title $newIndex
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque suscipit porta ex id tincidunt. Pellentesque vitae tellus lacinia, mattis magna vitae, scelerisque dolor. Quisque lacinia nulla lectus, eu fermentum quam tristique in. Vestibulum convallis id mauris nec pretium. Vestibulum in erat neque. Phasellus vel justo sagittis, vehicula dolor eu, accumsan nulla. Mauris ligula velit, euismod eu turpis non, ultricies fringilla nunc. Donec tincidunt efficitur pulvinar. Praesent vehicula mattis ligula congue ultrices.''',
+          images: [
+            "assets/images_posts/Screenshot 2023-08-06 150447.png",
+            "assets/images_posts/Screenshot 2023-12-31 100011.png",
+            "assets/images_posts/Screenshot 2024-09-20 152333.png",
+            "assets/images_posts/Screenshot 2024-10-04 102509.png",
+          ],
+          // Explicitly set these values to avoid null errors  
+          isSponsored: false,
+          useCarousel: false,
+        );
+      },
+    );
 
-Vivamus ut vehicula turpis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam mauris mauris, porta ac nisi non, aliquet commodo mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed egestas faucibus urna, id mattis dolor gravida vel. Maecenas iaculis convallis diam egestas molestie. Quisque nec tincidunt dolor, eu interdum urna. Nam dictum dui viverra, aliquet metus nec, egestas orci. Morbi cursus leo ipsum, vitae feugiat quam porta a. Pellentesque viverra neque et nulla varius condimentum eu id metus. Phasellus consequat elit vitae leo gravida, sed malesuada eros aliquet. """,
-            images: [
-              "assets/images_posts/Screenshot 2023-08-06 150447.png",
-              "assets/images_posts/Screenshot 2024-10-04 102509.png",
-              "assets/images_posts/Screenshot 2024-09-20 152333.png",
-              "assets/images_posts/Screenshot 2023-12-31 100011.png",
-            ],
-          ),
-        ),
-      );
+    // Check again before final setState
+    if (!mounted) return;
+
+    setState(() {
+      _posts.addAll(moreItems);
+      _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        const CustomSliverAppBar(pinned: false, floating: false, addpost: true),
-        SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final post = _posts[index];
-            return Post(
-              title: post.title,
-              description: post.description,
-              images: post.images,
-            );
-          }, childCount: _posts.length),
-        ),
-      ],
+    return SafeArea(
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          const CustomSliverAppBar(
+            pinned: false,
+            floating: false,
+            addpost: true,
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              // If we've reached the end of the list, show a loading indicator
+              if (index == _getDisplayItemCount()) {
+                return _isLoading
+                    ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                    : const SizedBox.shrink();
+              }
+
+              // Determine if this is a position for a sponsored post (every 10 posts)
+              final isPositionForSponsoredPost = 
+                  index > 0 && (index % 11 == 0 || index == 5); // First at index 5, then every 11 positions
+              
+              if (isPositionForSponsoredPost) {
+                // Show sponsored post
+                return Post(
+                  title: _sponsoredPost.title,
+                  description: _sponsoredPost.description,
+                  images: _sponsoredPost.images,
+                  useCarousel: _sponsoredPost.useCarousel,
+                );
+              } else {
+                // Calculate the actual post index accounting for sponsored posts
+                final actualPostIndex = index - (index ~/ 11) - (index > 5 ? 1 : 0);
+                if (actualPostIndex >= _posts.length) {
+                  return const SizedBox.shrink();
+                }
+                
+                final post = _posts[actualPostIndex];
+                return Post(
+                  title: post.title,
+                  description: post.description,
+                  images: post.images,
+                  useCarousel: post.useCarousel,
+                  isSponsored: post.isSponsored,
+                );
+              }
+            }, childCount: _getDisplayItemCount() + 1), // +1 for loading indicator
+          ),
+        ],
+      ),
     );
+  }
+  
+  // Calculate total display count (including regular and sponsored posts)
+  int _getDisplayItemCount() {
+    final regularPostsCount = _posts.length;
+    final sponsoredPostsCount = (regularPostsCount / 10).floor();
+    return regularPostsCount + sponsoredPostsCount;
   }
 }

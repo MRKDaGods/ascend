@@ -114,78 +114,76 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
           ],
         ),
       ],
-      bottom: widget.showAppBar
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(50.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedButton = 'All';
-                      });
-                    },
-                    child: Text(
-                      'All',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
+      bottom: widget.showTabBar
+          ? TabBar(
+              tabs: const [
+                Tab(text: "Grow"),
+                Tab(text: "Catchup"),
+              ],
+              indicatorColor: Theme.of(context).colorScheme.primary,
+              labelColor: Theme.of(context).colorScheme.primary,
+            )
+          : (widget.showAppBar
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(50.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedButton = 'All';
+                          });
+                        },
+                        child: Text(
+                          'All',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            
+                          ),
+                          
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedButton = 'Jobs';
+                          });
+                        },
+                        child: Text(
+                          'Jobs',
+                          
+                        ),
                         
                       ),
-                    ),
-                    
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedButton = 'My posts';
+                          });
+                        },
+                        style: ButtonStyle(
+                          
+                        ),
+                        child: Text(
+                          'My posts',
+                          
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedButton = 'Mentions';
+                          });
+                        },
+                        child: Text(
+                          'Mentions',
+                          
+                        ),
+                        
+                      ),
+                    ],
                   ),
-                  FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedButton = 'Jobs';
-                      });
-                    },
-                    child: Text(
-                      'Jobs',
-                      
-                    ),
-                    
-                  ),
-                  FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedButton = 'My posts';
-                      });
-                    },
-                    style: ButtonStyle(
-                      
-                    ),
-                    child: Text(
-                      'My posts',
-                      
-                    ),
-                  ),
-                  FilledButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedButton = 'Mentions';
-                      });
-                    },
-                    child: Text(
-                      'Mentions',
-                      
-                    ),
-                    
-                  ),
-                ],
-              ),
-            )
-          : (widget.showTabBar
-              ? const TabBar(
-                  tabs: [
-                    Tab(
-                      text: "Grow",
-                    ),
-                    Tab(
-                      text: "Catchup",
-                    ),
-                  ],
                 )
               : null),
     );

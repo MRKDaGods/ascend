@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/home/presentation/widgets/post_images_grid_shape.dart';
 import 'package:ascend_app/features/home/presentation/widgets/reactions_post.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
 
@@ -7,12 +8,16 @@ class Post extends StatelessWidget {
   final String title;
   final String description;
   final List<String> images; // List of image URLs or asset paths
+  final bool useCarousel; // Flag to determine if carousel should be used
+  final bool isSponsored;
 
   const Post({
     super.key,
     required this.title,
     required this.description,
     this.images = const [],
+    this.useCarousel = false, // Default to grid layout
+    this.isSponsored = false,
   });
 
   @override
@@ -24,29 +29,50 @@ class Post extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// **Title**
-            Text(
-              title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            /// **Title with Sponsored badge if necessary**
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (isSponsored)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'Sponsored',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+              ],
             ),
 
-            /// **Description**
+            /// **Description with Read More**
             if (description.isNotEmpty) ...[
               const SizedBox(height: 8),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: ReadMoreText(
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
                   description,
                   trimMode: TrimMode.Line,
                   trimLines: 4,
                   trimCollapsedText: 'Show more',
                   trimExpandedText: 'Show less',
-                  moreStyle: TextStyle(
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
+                  moreStyle: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
-                  lessStyle: TextStyle(
+                  lessStyle: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -54,7 +80,7 @@ class Post extends StatelessWidget {
               ),
             ],
 
-            /// **Image Grid (if there are images)**
+            /// **Images - Either Grid or Carousel based on choice**
             if (images.isNotEmpty) ...[
               const SizedBox(height: 10),
               _buildImageSection(),
@@ -69,32 +95,62 @@ class Post extends StatelessWidget {
     );
   }
 
-  /// **📸 Image Grid with Fixed Layout Issues**
+  /// **📸 Image Grid or Carousel based on useCarousel flag**
   Widget _buildImageSection() {
-    int imageCount = images.length;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: ImagesGridShape(imageCount: imageCount, images: images),
-    );
+    if (useCarousel) {
+      return CarouselSlider(
+        options: CarouselOptions(
+          height: 200,
+          viewportFraction: 0.9,
+          enlargeCenterPage: true,
+          enableInfiniteScroll: images.length > 1,
+          autoPlay: false,
+        ),
+        items: images.map((imageUrl) {
+          return Builder(
+            builder: (BuildContext context) {
+              return Container(
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      );
+    } else {
+      // Use grid layout
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: ImagesGridShape(imageCount: images.length, images: images),
+      );
+    }
   }
 
   /// **💙 Post Bottom Row**
   Widget _buildReactionRow(BuildContext context) {
     return Builder(
-      builder:
-          (context) => Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                onLongPress: () => _showReactionPopup(context),
-                child: _postButton(Icons.thumb_up, "Like"),
-              ),
-              _postButton(Icons.comment, "Comment"),
-              _postButton(Icons.repeat, "Repost"),
-              _postButton(Icons.send, "Send"),
-            ],
+      builder: (context) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onLongPress: () => _showReactionPopup(context),
+            child: _postButton(Icons.thumb_up, "Like"),
           ),
+          _postButton(Icons.comment, "Comment"),
+          _postButton(Icons.repeat, "Repost"),
+          _postButton(Icons.send, "Send"),
+        ],
+      ),
     );
   }
 
@@ -103,14 +159,13 @@ class Post extends StatelessWidget {
     return GestureDetector(
       onTap: () => print("$label tapped"),
       child: Column(
-        mainAxisSize:
-            MainAxisSize.min, // Ensures the column takes minimal height
+        mainAxisSize: MainAxisSize.min, // Ensures the column takes minimal height
         children: [
           Icon(icon, size: 24), // Adjusted size for a compact layout
           const SizedBox(height: 2), // Reduced spacing
           Text(
             label,
-            style: TextStyle(fontSize: 12),
+            style: const TextStyle(fontSize: 12),
           ), // Smaller font for better alignment
         ],
       ),
@@ -120,8 +175,7 @@ class Post extends StatelessWidget {
   /// **💬 Show Reaction Popup**
   void _showReactionPopup(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final popupWidth =
-        screenWidth < 300 ? screenWidth - 40 : 300; // 40 for padding
+    final popupWidth = screenWidth < 300 ? screenWidth - 40 : 300; // 40 for padding
     showDialog(
       context: context,
       builder: (BuildContext context) {
