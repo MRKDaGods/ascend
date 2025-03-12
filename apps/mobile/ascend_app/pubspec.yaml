@@ -12,6 +12,7 @@ dependencies:
   flutter_bloc: ^9.0.0
   readmore: ^3.0.0
   flex_color_scheme: ^8.0.0
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:
