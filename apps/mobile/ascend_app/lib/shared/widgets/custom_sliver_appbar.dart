@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../features/home/presentation/bloc/search_bloc.dart';
-import '../../features/home/presentation/bloc/search_event.dart';
-import '../../features/home/presentation/bloc/search_state.dart';
+import 'bloc/search_bloc.dart';
+import 'bloc/search_event.dart';
+import 'bloc/search_state.dart';
 
 class CustomSliverAppBar extends StatefulWidget {
   final bool showTabBar;

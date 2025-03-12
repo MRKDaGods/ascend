@@ -1,8 +1,15 @@
-import 'package:ascend_app/features/home/presentation/widgets/post_images_grid_shape.dart';
-import 'package:ascend_app/features/home/presentation/widgets/reactions_post.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
+import 'package:ascend_app/features/home/presentation/models/post_model.dart'; // Add this import
+import 'package:ascend_app/features/home/presentation/widgets/comment_form.dart';
+import 'package:ascend_app/features/home/presentation/widgets/comment_item.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_action_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_content.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_engagement_stats.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_header.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_image_section.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_reactions_popup.dart';
 import 'package:flutter/material.dart';
-import 'package:readmore/readmore.dart';
 
 class Post extends StatefulWidget {
   final String title;
@@ -12,22 +19,26 @@ class Post extends StatefulWidget {
   final bool isSponsored;
   final String ownerName;
   final String ownerImageUrl;
+  final String ownerOccupation;
   final String timePosted;
   final int initialLikes;
   final int initialComments;
+  final int followers; // Add followers field
   
   const Post({
     super.key,
-    this.title = '',  // Default empty string
-    this.description = '',  // Default empty string
-    this.images = const [],  // Default empty list
-    this.useCarousel = false,  // Default false
-    this.isSponsored = false,  // Default false
-    this.ownerName = 'Anonymous User',  // Default name
-    this.ownerImageUrl = 'assets/logo.jpg',  // Default avatar
-    this.timePosted = '2h ago',  // Default time
-    this.initialLikes = 0,  // Default 0
-    this.initialComments = 0,  // Default 0
+    this.title = '',
+    this.description = '',
+    this.images = const [],
+    this.useCarousel = false,
+    this.isSponsored = false,
+    this.ownerName = 'Anonymous User',
+    this.ownerImageUrl = 'assets/logo.jpg',
+    this.ownerOccupation = '',
+    this.timePosted = '2h ago',
+    this.initialLikes = 0,
+    this.initialComments = 0,
+    this.followers = 0, // Default to 0
   });
 
   @override
@@ -35,12 +46,16 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
+  // Add a static property to track the currently active post
+  static _PostState? _currentActivePost;
+  
   bool _isLiked = false;
   bool _showComments = false;
   late int _likesCount;
   late int _commentsCount;
   final TextEditingController _commentController = TextEditingController();
   final List<Comment> _comments = [];
+  final FocusNode _commentFocusNode = FocusNode();
   
   // Add a variable to track the current reaction
   String _currentReaction = 'like'; // Default reaction type
@@ -60,8 +75,8 @@ class _PostState extends State<Post> {
     'like': Colors.blue,
     'love': Colors.red,
     'laugh': Colors.amber,
-    'wow': Colors.amber,
-    'sad': Colors.amber,
+    'wow': Colors.orange,
+    'sad': Colors.blueGrey,
     'angry': Colors.deepOrange,
   };
 
@@ -91,6 +106,7 @@ class _PostState extends State<Post> {
   @override
   void dispose() {
     _commentController.dispose();
+    _commentFocusNode.dispose();
     super.dispose();
   }
 
@@ -133,6 +149,71 @@ class _PostState extends State<Post> {
     }
   }
 
+  void _showReactionsPopup() {
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return PostReactionsPopup(
+          reactionIcons: _reactionIcons,
+          reactionColors: _reactionColors,
+          position: position,
+          onReactionSelected: (type) {
+            Navigator.of(context).pop();
+            _toggleReaction(type);
+          },
+        );
+      },
+    );
+  }
+
+  // Update the _toggleComments method:
+  void _toggleComments() {
+    setState(() {
+      _showComments = !_showComments;
+      
+      // If comments are now showing
+      if (_showComments) {
+        // If there's another active post, close its comments
+        if (_currentActivePost != null && _currentActivePost != this) {
+          _currentActivePost!._showComments = false;
+          _currentActivePost!.setState(() {});
+        }
+        
+        // Set this as the current active post
+        _currentActivePost = this;
+        
+        // Focus the comment field after rendering
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            _commentFocusNode.requestFocus();
+          }
+        });
+      } else {
+        // If comments are hidden and this was the active post, clear it
+        if (_currentActivePost == this) {
+          _currentActivePost = null;
+        }
+        
+        // Ensure the keyboard is dismissed when comments are closed
+        _commentFocusNode.unfocus();
+      }
+    });
+  }
+  
+  // Add a tap handler for the comment area to allow clicking without focusing
+  void _handleCommentAreaTap() {
+    // Only set current active post, but don't focus input
+    if (_currentActivePost != null && _currentActivePost != this) {
+      _currentActivePost!._showComments = false;
+      _currentActivePost!.setState(() {});
+    }
+    _currentActivePost = this;
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -142,459 +223,98 @@ class _PostState extends State<Post> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// **Post Owner Info**
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundImage: AssetImage(widget.ownerImageUrl),
-                  radius: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.ownerName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        widget.timePosted,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (widget.isSponsored)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'Sponsored',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-              ],
+            // Post Header with followers for sponsored posts
+            PostHeader(
+              ownerName: widget.ownerName,
+              ownerImageUrl: widget.ownerImageUrl,
+              ownerOccupation: widget.ownerOccupation,
+              timePosted: widget.timePosted,
+              isSponsored: widget.isSponsored,
+              followers: widget.followers, // Pass followers count
+            ),
+            
+            // Post Content (Title and Description)
+            PostContent(
+              title: widget.title,
+              description: widget.description,
             ),
 
-            /// **Title**
-            if (widget.title.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Text(
-                widget.title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-
-            /// **Description with Read More**
-            if (widget.description.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: ReadMoreText(
-                  widget.description,
-                  trimMode: TrimMode.Line,
-                  trimLines: 4,
-                  trimCollapsedText: 'Show more',
-                  trimExpandedText: 'Show less',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
-                  moreStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  lessStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-
-            /// **Images - Either Grid or Carousel based on choice**
+            // Images Section
             if (widget.images.isNotEmpty) ...[
               const SizedBox(height: 10),
-              _buildImageSection(),
-            ],
-
-            /// **Engagement Stats**
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                children: [
-                  Icon(
-                    _isLiked ? _reactionIcons[_currentReaction] : Icons.thumb_up,
-                    size: 16,
-                    color: _isLiked ? _reactionColors[_currentReaction] : Colors.grey[600],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$_likesCount likes',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '$_commentsCount comments',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-
-            /// **Divider**
-            Divider(color: Colors.grey[300], height: 1),
-            
-            /// **Reaction Buttons**
-            _buildReactionRow(context),
-            
-            /// **Divider**
-            Divider(color: Colors.grey[300], height: 1),
-
-            /// **Comments Section**
-            if (_showComments) ...[
-              const SizedBox(height: 10),
-              ..._comments.map((comment) => _buildCommentItem(comment)),
-              
-              /// **Add Comment Form**
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundImage: AssetImage('assets/logo.jpg'),
-                      radius: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _commentController,
-                        decoration: const InputDecoration(
-                          hintText: 'Add a comment...',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            vertical: 8.0,
-                            horizontal: 12.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: _addComment,
-                    ),
-                  ],
-                ),
+              PostImageSection(
+                images: widget.images,
+                useCarousel: widget.useCarousel,
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
 
-  /// **📸 Image Grid or Carousel based on useCarousel flag**
-  Widget _buildImageSection() {
-    if (widget.useCarousel) {
-      return CarouselSlider(
-        options: CarouselOptions(
-          height: 200,
-          viewportFraction: 0.9,
-          enlargeCenterPage: true,
-          enableInfiniteScroll: widget.images.length > 1,
-          autoPlay: false,
-        ),
-        items: widget.images.map((imageUrl) {
-          return Builder(
-            builder: (BuildContext context) {
-              return Container(
-                width: MediaQuery.of(context).size.width,
-                margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          );
-        }).toList(),
-      );
-    } else {
-      // Use grid layout
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: ImagesGridShape(imageCount: widget.images.length, images: widget.images),
-      );
-    }
-  }
-
-  /// **💙 Post Bottom Row with Reaction Buttons**
-  Widget _buildReactionRow(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildReactionButton(),
-        _postButton(
-          Icons.comment_outlined,
-          "Comment",
-          null,
-          () => setState(() => _showComments = !_showComments),
-        ),
-        _postButton(Icons.repeat, "Repost", null, () {}),
-        _postButton(Icons.send, "Send", null, () {}),
-      ],
-    );
-  }
-
-  /// **👍 Reaction Button with Popup**
-  Widget _buildReactionButton() {
-    return GestureDetector(
-      onTap: () => _toggleReaction(_currentReaction),
-      onLongPress: _showReactionsPopup,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: [
-            Icon(
-              _isLiked ? _reactionIcons[_currentReaction] : Icons.thumb_up_outlined,
-              size: 20,
-              color: _isLiked ? _reactionColors[_currentReaction] : null,
+            // Engagement Stats
+            PostEngagementStats(
+              likesCount: _likesCount,
+              commentsCount: _commentsCount,
+              reactionIcon: _isLiked ? _reactionIcons[_currentReaction]! : Icons.thumb_up,
+              reactionColor: _isLiked ? _reactionColors[_currentReaction] : null,
             ),
-            const SizedBox(width: 4),
-            Text(
-              _isLiked ? _currentReaction.capitalize() : "Like",
-              style: TextStyle(
-                fontSize: 12,
-                color: _isLiked ? _reactionColors[_currentReaction] : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  /// **🏷 Single Action Button**
-  Widget _postButton(IconData icon, String label, Color? color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: color),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(fontSize: 12, color: color),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// **💬 Show Reactions Popup**
-  void _showReactionsPopup() {
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    
-    // Show reactions popup
-    showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      builder: (BuildContext context) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        
-        return Stack(
-          children: [
-            Positioned(
-              // Center horizontally on the screen, but with some constraints
-              // This will make it dynamically sized but centered
-              left: 0,
-              right: 0,
-              // Position above the like button with some spacing
-              top: position.dy +280,
-              child: Center(
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-                    height: 71, // Fixed height for better visual appearance
-                    constraints: BoxConstraints(
-                      maxWidth: screenWidth * 0.9, // Maximum of 90% of screen width
-                      minWidth: screenWidth * 0.6, // Minimum of 60% of screen width
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _buildReactionOption('like', Icons.thumb_up),
-                        _buildReactionOption('love', Icons.favorite),
-                        _buildReactionOption('laugh', Icons.sentiment_very_satisfied),
-                        _buildReactionOption('wow', Icons.sentiment_satisfied_alt),
-                        _buildReactionOption('sad', Icons.sentiment_dissatisfied),
-                        _buildReactionOption('angry', Icons.sentiment_very_dissatisfied),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// **😄 Individual Reaction Option with Animation**
-  Widget _buildReactionOption(String type, IconData icon) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pop(); // Close the popup
-        _toggleReaction(type);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey[100],
-              ),
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                icon,
-                color: _reactionColors[type],
-                size: 20,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              type.capitalize(),
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                color: _reactionColors[type],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// **💬 Comment Item Widget**
-  Widget _buildCommentItem(Comment comment) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            backgroundImage: AssetImage(comment.authorImage),
-            radius: 16,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // Divider
+            Divider(color: Colors.grey[300], height: 1),
+            
+            // Reaction Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        comment.authorName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(comment.text),
-                    ],
-                  ),
+                PostReactionButton(
+                  isLiked: _isLiked,
+                  currentReaction: _currentReaction,
+                  onTap: () => _toggleReaction(_currentReaction),
+                  onLongPress: _showReactionsPopup,
+                  reactionIcons: _reactionIcons,
+                  reactionColors: _reactionColors,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0, left: 8.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        comment.timePosted,
-                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Like',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        'Reply',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
+                PostActionButton(
+                  icon: Icons.comment_outlined,
+                  label: "Comment",
+                  onTap: _toggleComments, // Use the new method
+                ),
+                PostActionButton(
+                  icon: Icons.repeat,
+                  label: "Repost",
+                  onTap: () {},
+                ),
+                PostActionButton(
+                  icon: Icons.send,
+                  label: "Send",
+                  onTap: () {},
                 ),
               ],
             ),
-          ),
-        ],
+            
+            // Divider
+            Divider(color: Colors.grey[300], height: 1),
+
+            // Comments Section
+            if (_showComments) ...[
+              const SizedBox(height: 10),
+              GestureDetector(
+                // This allows tapping on the comments area without focusing the input
+                onTap: _handleCommentAreaTap,
+                // Make sure it doesn't interfere with actual comment interaction
+                behavior: HitTestBehavior.translucent,
+                child: Column(
+                  children: _comments.map((comment) => CommentItem(comment: comment)).toList(),
+                ),
+              ),
+              
+              // Add Comment Form
+              CommentForm(
+                controller: _commentController,
+                focusNode: _commentFocusNode, // Add this line
+                onSubmit: _addComment,
+              ),
+            ],
+          ],
+        ),
       ),
     );
-  }
-}
-
-/// **📝 Comment Model Class**
-class Comment {
-  final String authorName;
-  final String authorImage;
-  final String text;
-  final String timePosted;
-
-  Comment({
-    required this.authorName,
-    required this.authorImage,
-    required this.text,
-    required this.timePosted,
-  });
-}
-
-/// **🔤 String Extension**
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
   }
 }

@@ -1,8 +1,8 @@
-import 'package:ascend_app/features/home/presentation/widgets/post.dart';
-import 'package:flutter/material.dart';
+import 'package:ascend_app/features/home/presentation/data/sample_posts.dart';
 import 'package:ascend_app/features/home/presentation/models/post_model.dart';
-
-import '../../../../shared/widgets/custom_sliver_appbar.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart'; // Add this import
+import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -15,174 +15,119 @@ class _HomeState extends State<Home> {
   List<PostModel> _posts = [];
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  int _sponsoredPostCounter = 0;
   
-  // Sponsored post content
-  final PostModel _sponsoredPost = PostModel(
-    title: '✨ Sponsored: Premium Content',
-    description: 'Check out our featured products and services tailored just for you! Our premium offerings provide exceptional value and quality.',
-    images: [
-      "assets/images_posts/Screenshot 2024-05-01 174349.png",
-      "assets/images_posts/Screenshot 2024-09-20 152333.png",
-      "assets/images_posts/Screenshot 2024-10-04 102509.png",
-    ],
-    isSponsored: true,
-    useCarousel: true, // Use carousel layout for sponsored post
-    ownerName: 'Ascend Marketing',
-    ownerImageUrl: 'assets/images_posts/Screenshot 2024-05-01 174349.png',//'assets/sponsors/ascend_logo.png',
-    timePosted: 'Sponsored',
-    initialLikes: 128,
-    initialComments: 32,
-  );
-
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _loadInitialItems();
   }
-
+  
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll); // Remove listener first
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-
+  
   void _loadInitialItems() {
-    // Load initial batch of items
-    final initialPosts = List.generate(
-      10, // Start with 10 regular items initially
-      (index) => PostModel(
-        title: 'Title $index',
-        description: 'Description of Title $index',
-        images: [
-          "assets/images_posts/Screenshot 2023-08-06 150447.png",
-          "assets/images_posts/Screenshot 2023-12-31 100011.png",
-          "assets/images_posts/Screenshot 2024-05-01 174349.png",
-          "assets/images_posts/Screenshot 2024-09-20 152333.png",
-          "assets/images_posts/Screenshot 2024-10-04 102509.png",
-        ],
-        // Explicitly set these values to avoid null errors
-        isSponsored: false,
-        useCarousel: false,
-        ownerName: 'User ${index + 1}',
-        ownerImageUrl: 'assets/logo.jpg',//'assets/avatars/avatar$index.png', // You'll need appropriate images
-        timePosted: '${index + 1}h ago',
-        initialLikes: index * 5,
-        initialComments: index * 2,
-      ),
-    );
-
-    // Set state with initial posts
-    _posts = initialPosts;
+    // Load initial batch of regular posts
+    setState(() {
+      _posts = SamplePosts.generateMixedPosts(10);
+    });
   }
-
+  
   void _onScroll() {
-    // Check if we're at the bottom of the list
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
       _loadMoreItems();
     }
   }
-
+  
   void _loadMoreItems() async {
-    if (_isLoading) return; // Prevent multiple simultaneous loads
-
-    if (!mounted) return; // Check if widget is still mounted
-
+    if (_isLoading) return;
+    
     setState(() {
       _isLoading = true;
     });
-
+    
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 1));
-
-    // Check again after the delay if widget is still mounted
-    if (!mounted) return;
-
-    // Generate more items - now loading 10 instead of 5
-    final currentLength = _posts.length;
-    final moreItems = List.generate(
-      10, // Load 10 more items at a time
-      (index) {
-        final newIndex = currentLength + index;
-        return PostModel(
-          title: 'Title $newIndex',
-          description: '''Description of Title $newIndex
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque suscipit porta ex id tincidunt. Pellentesque vitae tellus lacinia, mattis magna vitae, scelerisque dolor. Quisque lacinia nulla lectus, eu fermentum quam tristique in. Vestibulum convallis id mauris nec pretium. Vestibulum in erat neque. Phasellus vel justo sagittis, vehicula dolor eu, accumsan nulla. Mauris ligula velit, euismod eu turpis non, ultricies fringilla nunc. Donec tincidunt efficitur pulvinar. Praesent vehicula mattis ligula congue ultrices.''',
-          images: [
-            "assets/images_posts/Screenshot 2023-08-06 150447.png",
-            "assets/images_posts/Screenshot 2023-12-31 100011.png",
-            "assets/images_posts/Screenshot 2024-09-20 152333.png",
-            "assets/images_posts/Screenshot 2024-10-04 102509.png",
-          ],
-          // Explicitly set these values to avoid null errors  
-          isSponsored: false,
-          useCarousel: false,
-          ownerName: 'User ${newIndex + 1}',
-          ownerImageUrl: 'assets/logo.jpg',//'assets/avatars/avatar${newIndex % 10}.png',
-          timePosted: '${(newIndex % 12) + 1}h ago',
-          initialLikes: newIndex * 3,
-          initialComments: newIndex,
-        );
-      },
-    );
-
-    // Check again before final setState
-    if (!mounted) return;
-
-    setState(() {
-      _posts.addAll(moreItems);
-      _isLoading = false;
-    });
+    
+    if (mounted) {
+      setState(() {
+        // Add 5 more posts
+        _posts.addAll(SamplePosts.generateMixedPosts(5));
+        _isLoading = false;
+      });
+    }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
+          // Replace SliverAppBar with your CustomSliverAppBar
           const CustomSliverAppBar(
             pinned: false,
-            floating: false,
-            addpost: true,
-          ),
+            floating: true,
+            addpost: true,   // Show the post button
+            ),
           SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              // If we've reached the end of the list, show a loading indicator
-              if (index == _getDisplayItemCount()) {
-                return _isLoading
-                    ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                    : const SizedBox.shrink();
-              }
-
-              // Determine if this is a position for a sponsored post (every 10 posts)
-              final isPositionForSponsoredPost = 
-                  index > 0 && (index % 11 == 0 || index == 5); // First at index 5, then every 11 positions
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                // Show loading indicator at the end
+                if (index == _getDisplayItemCount()) {
+                  return _isLoading
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : const SizedBox.shrink();
+                }
               
-              if (isPositionForSponsoredPost) {
-                // Show sponsored post
-                return Post(
-                  title: _sponsoredPost.title,
-                  description: _sponsoredPost.description,
-                  images: _sponsoredPost.images,
-                  useCarousel: _sponsoredPost.useCarousel,
-                );
-              } else {
-                // Calculate the actual post index accounting for sponsored posts
-                final actualPostIndex = index - (index ~/ 11) - (index > 5 ? 1 : 0);
+                // Check if this position should show a sponsored post
+                // Show sponsored posts at positions 2, 8, 15, etc.
+                if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
+                  _sponsoredPostCounter++;
+                  final sponsoredPost = SamplePosts.getNextSponsoredPost(_sponsoredPostCounter - 1);
+                  
+                  return Post(
+                    title: sponsoredPost.title,
+                    description: sponsoredPost.description,
+                    images: sponsoredPost.images,
+                    useCarousel: sponsoredPost.useCarousel,
+                    isSponsored: sponsoredPost.isSponsored,
+                    ownerName: sponsoredPost.ownerName,
+                    ownerImageUrl: sponsoredPost.ownerImageUrl,
+                    ownerOccupation: sponsoredPost.ownerOccupation,
+                    timePosted: sponsoredPost.timePosted,
+                    initialLikes: sponsoredPost.initialLikes,
+                    initialComments: sponsoredPost.initialComments,
+                    followers: sponsoredPost.followers,
+                  );
+                }
+                
+                // Calculate the actual post index, accounting for sponsored posts
+                int actualPostIndex = index;
+                if (index > 2) actualPostIndex--;
+                if (index > 8) actualPostIndex--;
+                if (index > 10) {
+                  actualPostIndex -= ((index - 10) / 7).floor();
+                }
+                
                 if (actualPostIndex >= _posts.length) {
                   return const SizedBox.shrink();
                 }
                 
                 final post = _posts[actualPostIndex];
+                
                 return Post(
                   title: post.title,
                   description: post.description,
@@ -191,22 +136,34 @@ class _HomeState extends State<Home> {
                   isSponsored: post.isSponsored,
                   ownerName: post.ownerName,
                   ownerImageUrl: post.ownerImageUrl,
+                  ownerOccupation: post.ownerOccupation,
                   timePosted: post.timePosted,
                   initialLikes: post.initialLikes,
                   initialComments: post.initialComments,
+                  followers: post.followers,
                 );
-              }
-            }, childCount: _getDisplayItemCount() + 1), // +1 for loading indicator
+              },
+              childCount: _getDisplayItemCount() + 1, // +1 for loading indicator
+            ),
           ),
         ],
       ),
     );
   }
   
-  // Calculate total display count (including regular and sponsored posts)
   int _getDisplayItemCount() {
+    // Calculate total items including sponsored posts
     final regularPostsCount = _posts.length;
-    final sponsoredPostsCount = (regularPostsCount / 10).floor();
-    return regularPostsCount + sponsoredPostsCount;
+    
+    // Add sponsored posts: one after first 2 posts, another after 8 posts,
+    // then every 7 posts after the first 10
+    int sponsoredCount = 0;
+    if (regularPostsCount > 2) sponsoredCount++;
+    if (regularPostsCount > 8) sponsoredCount++;
+    if (regularPostsCount > 10) {
+      sponsoredCount += ((regularPostsCount - 10) / 7).ceil();
+    }
+    
+    return regularPostsCount + sponsoredCount;
   }
 }
