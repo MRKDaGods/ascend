@@ -1,8 +1,8 @@
-import 'package:ascend_app/features/home/presentation/widgets/post.dart';
-import 'package:flutter/material.dart';
+import 'package:ascend_app/features/home/presentation/data/sample_posts.dart';
 import 'package:ascend_app/features/home/presentation/models/post_model.dart';
-
-import '../../../../shared/widgets/custom_sliver_appbar.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart'; // Add this import
+import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -12,87 +12,158 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<PostModel> _posts = List.generate(
-    20,
-    (index) => PostModel(
-      title: 'Title $index',
-      description: 'Description of Title $index',
-      images: [
-        "assets/images_posts/Screenshot 2023-08-06 150447.png",
-        "assets/images_posts/Screenshot 2023-12-31 100011.png",
-        "assets/images_posts/Screenshot 2024-05-01 174349.png",
-        "assets/images_posts/Screenshot 2024-09-20 152333.png",
-        "assets/images_posts/Screenshot 2024-10-04 102509.png",
-      ],
-    ),
-  );
+  List<PostModel> _posts = [];
   final ScrollController _scrollController = ScrollController();
-
+  bool _isLoading = false;
+  int _sponsoredPostCounter = 0;
+  
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _loadInitialItems();
   }
-
+  
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-
+  
+  void _loadInitialItems() {
+    // Load initial batch of regular posts
+    setState(() {
+      _posts = SamplePosts.generateMixedPosts(10);
+    });
+  }
+  
   void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200 &&
+        !_isLoading) {
       _loadMoreItems();
     }
   }
-
-  void _loadMoreItems() {
+  
+  void _loadMoreItems() async {
+    if (_isLoading) return;
+    
     setState(() {
-      _posts.addAll(
-        List.generate(
-          20,
-          (index) => PostModel(
-            title: 'Title ${_posts.length + index}',
-            description:
-                """Description of Title ${_posts.length + index} Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ac orci lorem. Donec consectetur ac arcu a elementum. In justo elit, sollicitudin id nulla vitae, finibus consequat mauris. Donec quis arcu sed nibh dapibus euismod. Phasellus scelerisque, arcu non convallis pharetra, elit elit dictum justo, in finibus erat metus a velit. Aenean aliquet neque at est eleifend viverra. Quisque sed turpis enim. Praesent ex nisl, fringilla eu nulla et, tempus dictum lorem. Nam sed nulla mi. Aenean ut sollicitudin massa.
-
-In non lectus eu diam porta rutrum. Ut volutpat magna non quam congue, quis semper dui pellentesque. Suspendisse a sapien pellentesque, tincidunt nibh in, maximus nisi. Nullam viverra, libero sit amet viverra pulvinar, arcu turpis consequat ligula, sed pretium elit odio ut metus. Fusce imperdiet tortor metus, sed ultricies lacus auctor sed. Vivamus dolor sapien, semper vel fermentum sit amet, porta eu erat. Nunc egestas mauris fringilla urna eleifend, at hendrerit nisi pellentesque. Praesent erat erat, suscipit sed arcu ut, suscipit efficitur nulla. Curabitur consectetur diam eros, vitae vehicula libero rutrum sed.
-
-Quisque ultrices tincidunt faucibus. Nulla dui augue, pretium at pretium sit amet, euismod sit amet mi. Donec vitae tortor ut lorem vehicula suscipit sit amet sed lectus. In finibus scelerisque libero mattis tempus. Suspendisse finibus ipsum in ex aliquet, sed pellentesque nunc pulvinar. Sed fringilla sollicitudin purus mattis porta. Sed in fermentum ligula. In hac habitasse platea dictumst. Vestibulum justo mi, condimentum eget mi ut, congue scelerisque ex. Aliquam id venenatis enim. Suspendisse molestie ante id turpis dignissim, a finibus dolor sodales. Vestibulum sagittis aliquet diam, vel placerat lacus consectetur eget. Cras a interdum quam. Nam aliquet erat tellus, sit amet rhoncus turpis commodo in. Ut nulla augue, condimentum et faucibus non, ullamcorper venenatis lorem.
-
-Interdum et malesuada fames ac ante ipsum primis in faucibus. Curabitur id diam lorem. Etiam vitae tellus gravida, porttitor diam et, varius tortor. Vestibulum lobortis luctus diam, at efficitur lectus ultrices eu. Quisque quis ipsum ut lacus volutpat sollicitudin. In posuere eget nulla a lobortis. Morbi id suscipit felis. Sed fermentum, dui at molestie convallis, nisi quam hendrerit nibh, sed pharetra lectus mi at enim. Ut ut nunc nunc.
-
-Vivamus ut vehicula turpis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam mauris mauris, porta ac nisi non, aliquet commodo mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed egestas faucibus urna, id mattis dolor gravida vel. Maecenas iaculis convallis diam egestas molestie. Quisque nec tincidunt dolor, eu interdum urna. Nam dictum dui viverra, aliquet metus nec, egestas orci. Morbi cursus leo ipsum, vitae feugiat quam porta a. Pellentesque viverra neque et nulla varius condimentum eu id metus. Phasellus consequat elit vitae leo gravida, sed malesuada eros aliquet. """,
-            images: [
-              "assets/images_posts/Screenshot 2023-08-06 150447.png",
-              "assets/images_posts/Screenshot 2024-10-04 102509.png",
-              "assets/images_posts/Screenshot 2024-09-20 152333.png",
-              "assets/images_posts/Screenshot 2023-12-31 100011.png",
-            ],
-          ),
-        ),
-      );
+      _isLoading = true;
     });
+    
+    // Simulate network delay
+    await Future.delayed(const Duration(seconds: 1));
+    
+    if (mounted) {
+      setState(() {
+        // Add 5 more posts
+        _posts.addAll(SamplePosts.generateMixedPosts(5));
+        _isLoading = false;
+      });
+    }
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        const CustomSliverAppBar(pinned: false, floating: false, addpost: true),
-        SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final post = _posts[index];
-            return Post(
-              title: post.title,
-              description: post.description,
-              images: post.images,
-            );
-          }, childCount: _posts.length),
-        ),
-      ],
+    return SafeArea(
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // Replace SliverAppBar with your CustomSliverAppBar
+          const CustomSliverAppBar(
+            pinned: false,
+            floating: true,
+            addpost: true,   // Show the post button
+            ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                // Show loading indicator at the end
+                if (index == _getDisplayItemCount()) {
+                  return _isLoading
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : const SizedBox.shrink();
+                }
+              
+                // Check if this position should show a sponsored post
+                // Show sponsored posts at positions 2, 8, 15, etc.
+                if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
+                  _sponsoredPostCounter++;
+                  final sponsoredPost = SamplePosts.getNextSponsoredPost(_sponsoredPostCounter - 1);
+                  
+                  return Post(
+                    title: sponsoredPost.title,
+                    description: sponsoredPost.description,
+                    images: sponsoredPost.images,
+                    useCarousel: sponsoredPost.useCarousel,
+                    isSponsored: sponsoredPost.isSponsored,
+                    ownerName: sponsoredPost.ownerName,
+                    ownerImageUrl: sponsoredPost.ownerImageUrl,
+                    ownerOccupation: sponsoredPost.ownerOccupation,
+                    timePosted: sponsoredPost.timePosted,
+                    initialLikes: sponsoredPost.initialLikes,
+                    initialComments: sponsoredPost.initialComments,
+                    followers: sponsoredPost.followers,
+                  );
+                }
+                
+                // Calculate the actual post index, accounting for sponsored posts
+                int actualPostIndex = index;
+                if (index > 2) actualPostIndex--;
+                if (index > 8) actualPostIndex--;
+                if (index > 10) {
+                  actualPostIndex -= ((index - 10) / 7).floor();
+                }
+                
+                if (actualPostIndex >= _posts.length) {
+                  return const SizedBox.shrink();
+                }
+                
+                final post = _posts[actualPostIndex];
+                
+                return Post(
+                  title: post.title,
+                  description: post.description,
+                  images: post.images,
+                  useCarousel: post.useCarousel,
+                  isSponsored: post.isSponsored,
+                  ownerName: post.ownerName,
+                  ownerImageUrl: post.ownerImageUrl,
+                  ownerOccupation: post.ownerOccupation,
+                  timePosted: post.timePosted,
+                  initialLikes: post.initialLikes,
+                  initialComments: post.initialComments,
+                  followers: post.followers,
+                );
+              },
+              childCount: _getDisplayItemCount() + 1, // +1 for loading indicator
+            ),
+          ),
+        ],
+      ),
     );
+  }
+  
+  int _getDisplayItemCount() {
+    // Calculate total items including sponsored posts
+    final regularPostsCount = _posts.length;
+    
+    // Add sponsored posts: one after first 2 posts, another after 8 posts,
+    // then every 7 posts after the first 10
+    int sponsoredCount = 0;
+    if (regularPostsCount > 2) sponsoredCount++;
+    if (regularPostsCount > 8) sponsoredCount++;
+    if (regularPostsCount > 10) {
+      sponsoredCount += ((regularPostsCount - 10) / 7).ceil();
+    }
+    
+    return regularPostsCount + sponsoredCount;
   }
 }
