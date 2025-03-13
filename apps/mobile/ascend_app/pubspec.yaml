@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  dio: ^5.4.0  # Use the latest version from pub.dev
   flutter_bloc: ^9.0.0
   readmore: ^3.0.0
   flex_color_scheme: ^8.0.0
@@ -26,7 +27,3 @@ flutter:
     - assets/images_posts/
     - assets/
     - assets/logo/
-  fonts:
-    - family: Trocchi
-      fonts:
-        - asset: assets/fonts/Trocchi-Regular.ttf
