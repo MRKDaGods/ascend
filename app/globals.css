@@ -1,7 +1,9 @@
+/* Ensure Tailwind CSS is installed and configured correctly */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Add any custom styles below this line */
 :root {
   --background: #ffffff;
   --foreground: #171717;
