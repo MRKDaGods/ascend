@@ -1,9 +1,7 @@
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
-import 'package:ascend_app/features/networks/presentation/networks.dart';
+import 'package:ascend_app/features/networks/pages/networks.dart';
 import 'package:ascend_app/theme.dart';
 import 'package:flutter/material.dart';
-
-
 
 void main() {
   runApp(const MainApp());
@@ -41,16 +39,10 @@ class _MainAppState extends State<MainApp> {
       home: Scaffold(
         body: SafeArea(child: _pages.elementAt(_selectedIndex)),
         bottomNavigationBar: BottomNavigationBar(
-          
-          
-          
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(
               icon: Icon(Icons.video_library),
               label: 'Video',

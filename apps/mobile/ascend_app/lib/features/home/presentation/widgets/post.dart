@@ -230,7 +230,7 @@ class Post extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: Container(
+          content: SizedBox(
             width: popupWidth.toDouble(),
             height: 51, // Adjust height as needed
             child: Row(
@@ -276,8 +276,12 @@ class ReactionButton extends StatefulWidget {
   final String label;
   final Color color;
 
-  const ReactionButton({required this.icon, required this.label, Color? color})
-    : this.color = color ?? Colors.grey;
+  const ReactionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    Color? color,
+  }) : color = color ?? Colors.grey;
 
   @override
   _ReactionButtonState createState() => _ReactionButtonState();

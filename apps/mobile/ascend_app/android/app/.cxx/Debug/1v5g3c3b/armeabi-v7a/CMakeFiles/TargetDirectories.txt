@@ -1,0 +1,2 @@
+D:/SWFlutter/ascend/apps/mobile/ascend_app/android/app/.cxx/Debug/1v5g3c3b/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/SWFlutter/ascend/apps/mobile/ascend_app/android/app/.cxx/Debug/1v5g3c3b/armeabi-v7a/CMakeFiles/rebuild_cache.dir
