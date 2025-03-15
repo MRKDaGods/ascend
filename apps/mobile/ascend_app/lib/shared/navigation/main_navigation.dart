@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
-import 'package:ascend_app/features/networks/presentation/networks.dart';
+import 'package:ascend_app/features/networks/pages/networks.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -11,7 +11,7 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  
+
   final List<Widget> _pages = const [
     Home(),
     Center(child: Text("Video")),
@@ -29,35 +29,23 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.video_library),
             label: 'Video',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.groups),
-            label: 'Networks',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Networks'),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
             label: 'Notifications',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work),
-            label: 'Jobs',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Jobs'),
         ],
       ),
     );
