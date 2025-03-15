@@ -7,31 +7,41 @@ class Networks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DefaultTabController(
-        length: 2,
-        child: CustomScrollView(
-          slivers: [
-            const CustomSliverAppBar(floating: false,showTabBar: true,),
-            SliverFillRemaining(
-              child: TabBarView(
-                children: [
-                  Column(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        body: SafeArea(
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                CustomSliverAppBar(
+                  pinned: true,
+                  
+                  showTabBar: true,
+                ),
+              ];
+            },
+            body: TabBarView(
+              children: [
+                Center(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Text('Grow'),
+                      Text('Grow', style: TextStyle(fontSize: 18)),
                     ],
                   ),
-                  Column(
+                ),
+                Center(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Text('Catchup'),
+                      Text('Catchup', style: TextStyle(fontSize: 18)),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
