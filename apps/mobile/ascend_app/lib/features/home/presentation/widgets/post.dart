@@ -1,5 +1,5 @@
 import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
-import 'package:ascend_app/features/home/presentation/models/post_model.dart'; // Add this import
+// Add this import
 import 'package:ascend_app/features/home/presentation/widgets/comment_form.dart';
 import 'package:ascend_app/features/home/presentation/widgets/comment_item.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_action_button.dart';
