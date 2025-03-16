@@ -156,7 +156,8 @@ export default function LoginBox() {
               textAlign: "left", 
               mt: 1, 
               display: "flex", 
-              justifyContent: "flex-start" 
+              justifyContent: "flex-start",
+              textTransform: "none"
             }}
             onClick={() => router.push("/ForgetPassword")}
           >

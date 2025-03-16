@@ -38,6 +38,7 @@ const ForgotPasswordForm = () => {
           fontWeight: "bold",
           "&:hover": { bgcolor: "#004182" },
           mt: 1,
+          textTransform: "none",
         }}
       >
         Next
@@ -49,6 +50,7 @@ const ForgotPasswordForm = () => {
           mt: 2,
           color: "gray",
           fontWeight: "bold",
+          textTransform: "none",
         }}
       >
         Back
