@@ -2,20 +2,17 @@
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { ReactNode } from "react";
-import { useClientTheme } from "../store/useThemeStore";
+import { ReactNode, useEffect, useState } from "react";
+import { useThemeStore } from "../store/useThemeStore";
 
 const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
-  const { theme, isClient, toggleTheme } = useClientTheme();
+  const { theme } = useThemeStore();
+  const [muiTheme, setMuiTheme] = useState(createTheme({ palette: { mode: theme } }));
 
-  // Ensure the component only renders after hydration
-  if (!isClient) return null;
-
-  const muiTheme = createTheme({
-    palette: {
-      mode: theme,
-    },
-  });
+  useEffect(() => {
+    // ✅ Listen for theme changes & update MUI theme dynamically
+    setMuiTheme(createTheme({ palette: { mode: theme } }));
+  }, [theme]);
 
   return (
     <ThemeProvider theme={muiTheme}>

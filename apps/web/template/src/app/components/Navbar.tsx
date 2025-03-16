@@ -9,10 +9,7 @@ import {
   Box,
   Avatar,
   Badge,
-  Menu,
-  MenuItem,
   Button,
-  Divider,
   Tooltip,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
@@ -30,7 +27,7 @@ import {
 } from "@mui/icons-material";
 import { useThemeStore } from "../store/useThemeStore";
 
-// Custom Styles for Search Bar
+// ✅ Custom Styles for Search Bar
 const SearchBar = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -59,7 +56,7 @@ const Navbar: React.FC = () => {
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {/* Left Section (Logo + Search Bar) */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <img src="/initial logo.jpg" alt="Ascend" style={{ height: 35 }} />
+          <img src="/initial-logo.jpg" alt="Ascend" style={{ height: 35 }} />
           <SearchBar>
             <Search sx={{ color: muiTheme.palette.text.primary, marginRight: 1 }} />
             <InputBase placeholder="Search" sx={{ color: muiTheme.palette.text.primary, width: "100%" }} />
@@ -97,36 +94,34 @@ const Navbar: React.FC = () => {
           </Tooltip>
         </Box>
 
-        {/* Right Section (Profile, Business Menu, Theme Toggle, Premium Button) */}
+        {/* Right Section (Profile, Theme Toggle, Business, Premium) */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {/* Theme Toggle Button */}
+          {/* ✅ Theme Toggle Button */}
           <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             <IconButton onClick={toggleTheme}>
               {theme === "dark" ? <LightMode sx={{ color: "#ffea00" }} /> : <DarkMode sx={{ color: "#555" }} />}
             </IconButton>
           </Tooltip>
 
-          {/* Profile Avatar with Border */}
-          <IconButton>
-            <Avatar
-              src="/profile.jpg"
-              sx={{
-                border: `2px solid ${theme === "dark" ? "#fff" : "#000"}`,
-              }}
-            />
-          </IconButton>
+          {/* ✅ Profile Avatar */}
+          <Avatar
+            src="/profile.jpg"
+            sx={{
+              border: `2px solid ${theme === "dark" ? "#fff" : "#000"}`,
+            }}
+          />
 
-          {/* Business Menu */}
+          {/* ✅ Business Menu */}
           <Button sx={{ color: muiTheme.palette.text.primary, textTransform: "none" }} endIcon={<ExpandMore />}>
             For Business
           </Button>
 
-          {/* Premium Button */}
+          {/* ✅ Premium Button */}
           <Button variant="text" sx={{ color: theme === "dark" ? "#ffcc80" : "#915907", textTransform: "none" }}>
             Try Premium for EGP0
           </Button>
 
-          {/* Apps Grid Icon */}
+          {/* ✅ Apps Grid Icon */}
           <IconButton>
             <Apps sx={{ color: muiTheme.palette.text.secondary }} />
           </IconButton>

@@ -1,38 +1,27 @@
+"use client";
+
 import { create } from "zustand";
-import { useEffect, useState } from "react";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-
-// ✅ Zustand Store for Theme Management
-export const useThemeStore = create<{
+// ✅ Define ThemeStoreState
+interface ThemeStoreState {
   theme: "light" | "dark";
   toggleTheme: () => void;
-}>((set) => ({
-  theme: "dark", // Default to dark mode
-  toggleTheme: () =>
-    set((state) => {
-      const newTheme = state.theme === "light" ? "dark" : "light";
-      localStorage.setItem("theme", newTheme);
-      return { theme: newTheme };
+}
+
+// ✅ Zustand Store with Explicit Typing
+export const useThemeStore = create<ThemeStoreState>()(
+  persist(
+    (set) => ({
+      theme: "dark", // ✅ Default to dark mode
+      toggleTheme: () =>
+        set((state: ThemeStoreState) => ({
+          theme: state.theme === "dark" ? "light" : "dark",
+        })),
     }),
-}));
-
-export const useClientTheme = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("dark"); // Default to dark mode
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "light" || savedTheme === "dark") {
-      setTheme(savedTheme);
+    {
+      name: "theme-storage", // ✅ Key for `localStorage`
+      storage: createJSONStorage(() => localStorage), // ✅ Ensures Zustand uses localStorage
     }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
-  return { theme, toggleTheme, isClient };
-};
+  )
+);
