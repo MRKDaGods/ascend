@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
+import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
+
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -17,7 +19,7 @@ class _MainNavigationState extends State<MainNavigation> {
     Center(child: Text("Video")),
     Networks(),
     Center(child: Text("Notifications")),
-    Center(child: Text("Jobs")),
+    JobApp(),
   ];
 
   void _onItemTapped(int index) {
