@@ -1,16 +1,17 @@
 import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
 import 'package:ascend_app/features/home/presentation/widgets/full_screen_image_viewer.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_action_button.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_content.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_header.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_image_section.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_reactions_popup.dart';
 import 'package:ascend_app/features/home/presentation/managers/reaction_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/data/sample_comments.dart';
 import 'package:ascend_app/features/home/presentation/pages/post_detail_page.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_header.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_content.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_image_section.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_feedback_options.dart';
 
 class Post extends StatefulWidget {
   final String title;
@@ -25,6 +26,7 @@ class Post extends StatefulWidget {
   final int initialLikes;
   final int initialComments;
   final int followers;
+  final VoidCallback? onRemove;
   
   const Post({
     super.key,
@@ -40,6 +42,7 @@ class Post extends StatefulWidget {
     this.initialLikes = 0,
     this.initialComments = 0,
     this.followers = 0,
+    this.onRemove,
   });
 
   @override
@@ -47,6 +50,7 @@ class Post extends StatefulWidget {
 }
 
 class _PostState extends State<Post> {
+  bool _showFeedbackOptions = false;
   bool _isLiked = false;
   late int _likesCount;
   late int _commentsCount;
@@ -141,6 +145,29 @@ class _PostState extends State<Post> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showFeedbackOptions) {
+      // Show feedback options when X is clicked
+      return PostFeedbackOptions(
+        ownerName: widget.ownerName,
+        onFeedbackSubmitted: (reason) {
+          // Handle feedback submission
+          print('Feedback submitted: $reason');
+          
+          // Call the parent's onRemove callback if it exists
+          if (widget.onRemove != null) {
+            widget.onRemove!();
+          }
+        },
+        onUndo: () {
+          // Restore the post to its original state
+          setState(() {
+            _showFeedbackOptions = false;
+          });
+        },
+      );
+    }
+
+    // Show normal post
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Padding(
@@ -148,7 +175,7 @@ class _PostState extends State<Post> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Post Header with followers for sponsored posts
+            // Post Header with options and remove functionality
             PostHeader(
               ownerName: widget.ownerName,
               ownerImageUrl: widget.ownerImageUrl,
@@ -156,6 +183,21 @@ class _PostState extends State<Post> {
               timePosted: widget.timePosted,
               isSponsored: widget.isSponsored,
               followers: widget.followers,
+              // onOptionsPressed removed to use default behavior
+              onFeedbackSubmitted: (reason) {
+                print("Post removed due to: $reason");
+                // Handle the removal based on the reason
+                
+                // Call the parent's onRemove callback if it exists
+                if (widget.onRemove != null) {
+                  widget.onRemove!();
+                }
+              },
+              onShowFeedbackOptions: () {
+                setState(() {
+                  _showFeedbackOptions = true;
+                });
+              },
             ),
             
             // Post Content (Title and Description)
