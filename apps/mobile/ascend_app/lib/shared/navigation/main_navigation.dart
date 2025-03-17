@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
-import 'package:ascend_app/features/networks/presentation/networks.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
+import 'package:ascend_app/features/networks/pages/networks.dart';
+
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
