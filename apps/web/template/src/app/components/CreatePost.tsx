@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Avatar,
   Button,
@@ -15,41 +15,45 @@ import {
   useTheme,
 } from "@mui/material";
 import { Close, Image, VideoLibrary, CalendarMonth, AddReaction } from "@mui/icons-material";
-import ImageIcon from "@mui/icons-material/Image";
-import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
-import ArticleIcon from "@mui/icons-material/Article";
 import { usePostStore } from "../store/usePostStore";
+import UserPost from "./UserPost";
 
 const CreatePost: React.FC = () => {
-  const { open, postText, setOpen, setPostText, resetPost } = usePostStore();
-  const theme = useTheme(); // Get theme values dynamically
+  const { open, postText, setOpen, setPostText, resetPost, addPost, posts } = usePostStore();
+  const theme = useTheme();
+  const [media, setMedia] = useState<string | null>(null);
+
+  // ✅ Handle new post submission
+  const handlePost = () => {
+    if (postText.trim()) {
+      addPost(postText, media || undefined);
+      resetPost();
+      setMedia(null);
+    }
+  };
 
   return (
     <div>
+      {/* ✅ Main Box for "Start a Post" Section */}
       <Box
         component="section"
         sx={{
           p: 2,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
-          // width: "700px",
-          width: "100%", // ✅ Ensure Full Width
-          maxWidth: "700px", // ✅ Restrict to Feed Width
-          backgroundColor: theme.palette.background.default, // Adjusts dynamically
+          width: "100%",
+          maxWidth: "700px",
+          backgroundColor: theme.palette.background.default,
           transition: "background-color 0.05s ease-in-out",
-          display: "flex", flexDirection: "column", alignItems: "center", mt: 2 
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          mt: 2,
         }}
       >
+        {/* ✅ Avatar & Input Section */}
         <Stack direction="row" spacing={2}>
-          <Avatar
-            alt="avatar image"
-            src="/man.jpg"
-            sx={{
-              width: 80,
-              height: 80,
-              border: `2px solid ${theme.palette.mode === "dark" ? "#fff" : "#000"}`,
-            }}
-          />
+          <Avatar alt="User Profile" src="/man.jpg" sx={{ width: 80, height: 80 }} />
           <Box
             component="section"
             sx={{
@@ -85,31 +89,21 @@ const CreatePost: React.FC = () => {
           </Box>
         </Stack>
 
-        <Stack direction="row" justifyContent="space-between">
-          <Button
-            startIcon={<ImageIcon sx={{ color: "#0073b1" }} />}
-            sx={{ textTransform: "none", color: theme.palette.text.primary, fontWeight: "bold", fontSize: "18px", padding: "15px 45px"}}
-          >
+        {/* ✅ Media Upload Buttons (Outside Modal) */}
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2, width: "100%" }}>
+          <Button startIcon={<Image sx={{ color: "#0073b1" }} />} sx={{ textTransform: "none" }}>
             Photo
           </Button>
-
-          <Button
-            startIcon={<OndemandVideoIcon sx={{ color: "#228B22" }} />}
-            sx={{ textTransform: "none", color: theme.palette.text.primary, fontWeight: "bold", fontSize: "18px", padding: "15px 45px" }}
-          >
+          <Button startIcon={<VideoLibrary sx={{ color: "#228B22" }} />} sx={{ textTransform: "none" }}>
             Video
           </Button>
-
-          <Button
-            startIcon={<ArticleIcon sx={{ color: "#D9534F" }} />}
-            sx={{ textTransform: "none", color: theme.palette.text.primary, fontWeight: "bold", fontSize: "18px", padding: "15px 45px" }}
-          >
+          <Button startIcon={<CalendarMonth sx={{ color: "#D9534F" }} />} sx={{ textTransform: "none" }}>
             Write article
           </Button>
         </Stack>
       </Box>
 
-      {/* Post Modal (Dialog) */}
+      {/* ✅ Post Modal (Popup) */}
       <Dialog
         open={open}
         onClose={resetPost}
@@ -117,7 +111,7 @@ const CreatePost: React.FC = () => {
         maxWidth="md"
         sx={{
           "& .MuiDialog-paper": {
-            backgroundColor: theme.palette.background.paper, // Ensures modal follows theme
+            backgroundColor: theme.palette.background.paper,
             color: theme.palette.text.primary,
           },
         }}
@@ -128,8 +122,10 @@ const CreatePost: React.FC = () => {
             <Stack direction="row" spacing={2} alignItems="center">
               <Avatar src="/profile.jpg" />
               <Box>
-                <strong>Habiba Hammouda</strong>
-                <p style={{ margin: 0, fontSize: "0.8rem", color: theme.palette.text.secondary }}>Post to Anyone</p>
+                <strong>Ascend Developer • You</strong>
+                <p style={{ margin: 0, fontSize: "0.8rem", color: theme.palette.text.secondary }}>
+                  Software Engineer at Microsoft
+                </p>
               </Box>
             </Stack>
             <IconButton onClick={resetPost}>
@@ -156,7 +152,7 @@ const CreatePost: React.FC = () => {
           />
         </DialogContent>
 
-        {/* Post Actions (Emoji, Media, Calendar, etc.) */}
+        {/* ✅ Media Upload Options Inside Modal */}
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={2}>
             <IconButton color="primary"><AddReaction /></IconButton>
@@ -164,18 +160,16 @@ const CreatePost: React.FC = () => {
             <IconButton color="primary"><VideoLibrary /></IconButton>
             <IconButton color="primary"><CalendarMonth /></IconButton>
           </Stack>
-          <Button
-            variant="contained"
-            disabled={!postText.trim()}
-            onClick={() => {
-              console.log("Post Submitted:", postText);
-              resetPost();
-            }}
-          >
+          <Button variant="contained" disabled={!postText.trim()} onClick={handlePost}>
             Post
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ✅ User Posts Appearing in Feed Using `UserPost.tsx` */}
+      {posts.map((post) => (
+        <UserPost key={post.id} post={post} />
+      ))}
     </div>
   );
 };

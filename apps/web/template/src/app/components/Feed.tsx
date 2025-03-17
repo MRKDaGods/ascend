@@ -1,26 +1,24 @@
-"use client";
-
 import React from "react";
-import { Box, Stack } from "@mui/material";
-import Post from "./Post";
-import { usePostStore, PostType } from "../store/usePostStore"; // ✅ Correct Import
+import { Box } from "@mui/material";
+import CreatePost from "./CreatePost";
+import Post from "./Post"; // ✅ For followed users' posts
+import UserPost from "./UserPost"; // ✅ For user-created posts
+import { usePostStore } from "../store/usePostStore";
 
 const Feed: React.FC = () => {
-  const { posts } = usePostStore(); // ✅ Fetch posts from Zustand store
+  const { posts } = usePostStore();
 
   return (
-    <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mt: 2 }}>
-      
-      {/* ❌ Do NOT include <CreatePost /> here! It is handled in page.tsx */}
-      
-      {/* ✅ Posts List (Only Rendering Posts) */}
-      <Stack spacing={2} sx={{ width: "100%", maxWidth: "700px", mt: 2 }}>
-        {posts.length > 0 ? (
-          posts.map((post: PostType) => <Post key={post.id} post={post} />)
+    <Box sx={{ width: "100%", maxWidth: 700, mx: "auto", mt: 3 }}>
+      <CreatePost />
+
+      {posts.map((post) =>
+        post.username === "Ascend Developer" ? (
+          <UserPost key={post.id} post={post} /> // ✅ Use `UserPost.tsx` for user-created posts
         ) : (
-          <Box sx={{ textAlign: "center", p: 3, color: "gray" }}>No posts to show. Follow users to see posts.</Box>
-        )}
-      </Stack>
+          <Post key={post.id} post={post} /> // ✅ Use `Post.tsx` for followed users' posts
+        )
+      )}
     </Box>
   );
 };
