@@ -177,6 +177,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 timePosted: widget.timePosted,
                 isSponsored: widget.isSponsored,
                 followers: widget.followers,
+                onFeedbackSubmitted: (reason) {
+                  print("Post removed due to: $reason");
+                  Navigator.pop(context); // Close the detail page if post is removed
+                },
               ),
               
               // Post Content (Title and Description) - show full description without truncation
