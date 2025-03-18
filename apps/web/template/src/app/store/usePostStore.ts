@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-// ✅ Define PostType
+// ✅ Define Post Type
 export interface PostType {
   id: number;
   profilePic: string;
@@ -9,14 +9,12 @@ export interface PostType {
   followers: string;
   timestamp: string;
   content: string;
-  image?: string; // ✅ Ensure this is optional
-  media?: string; // ✅ Supports images, videos, documents
+  image?: string;
   likes: number;
   comments: number;
   reposts: number;
   commentsList: string[];
-  isUserPost?: boolean; // ✅ New Field
-
+  isUserPost: boolean; // ✅ Distinguishes user-created posts
 }
 
 // ✅ Define Zustand Store Type
@@ -30,7 +28,10 @@ interface PostStoreState {
   posts: PostType[];
   likedPosts: number[];
   repostedPosts: number[];
-  addPost: (content: string, media?: string) => void;
+  
+  addPost: (content: string, image?: string) => void;
+  deletePost: (postId: number) => void;
+
   likePost: (id: number) => void;
   repostPost: (id: number) => void;
   commentOnPost: (id: number, comment: string) => void;
@@ -43,11 +44,10 @@ export const usePostStore = create<PostStoreState>()(
     (set, get) => ({
       open: false,
       postText: "",
-      setOpen: (open: boolean) => set({ open }),
-      setPostText: (text: string) => set({ postText: text }),
-      resetPost: () => set({ open: false, postText: "" }),
+      setOpen: (open) => set(() => ({ open })),
+      setPostText: (text) => set(() => ({ postText: text })),
+      resetPost: () => set(() => ({ open: false, postText: "" })),
 
-      // ✅ Dummy Posts
       posts: [
         {
           id: 1,
@@ -56,11 +56,12 @@ export const usePostStore = create<PostStoreState>()(
           followers: "500+ connections",
           timestamp: "2h ago",
           content: "Excited to share my latest project! 🚀",
-          media: "/post.jpg",
+          image: "/post.jpg",
           likes: 34,
           comments: 12,
           reposts: 5,
           commentsList: ["Awesome work!", "Looks great!"],
+          isUserPost: false,
         },
         {
           id: 2,
@@ -69,42 +70,50 @@ export const usePostStore = create<PostStoreState>()(
           followers: "1,200 followers",
           timestamp: "1d ago",
           content: "Had an amazing time at the tech conference! 🔥",
-          media: "/mock-image2.jpg",
+          image: "/mock-image2.jpg",
           likes: 89,
           comments: 23,
           reposts: 10,
           commentsList: ["Looks like fun!", "Wish I was there!"],
+          isUserPost: false,
         },
       ],
       likedPosts: [],
       repostedPosts: [],
 
-      // ✅ Add Post (Supports Media)
-      addPost: (content: string, media?: string) =>
+      // ✅ Add a new post
+      addPost: (content: string, image?: string) =>
+        set((state) => {
+          const newPost: PostType = {
+            id: Date.now(),
+            profilePic: "/profile.jpg",
+            username: "User",
+            followers: "You",
+            timestamp: "Just now",
+            content,
+            image: image || "",
+            likes: 0,
+            comments: 0,
+            reposts: 0,
+            commentsList: [],
+            isUserPost: true, // ✅ Mark as user-created
+          };
+          return { ...state, posts: [newPost, ...state.posts] };
+        }),
+
+      // ✅ Delete only user-created posts
+      deletePost: (postId: number) =>
         set((state) => ({
-          posts: [
-            {
-              id: Date.now(),
-              profilePic: "/profile.jpg",
-              username: "Ascend Developer",
-              followers: "You",
-              timestamp: "Just now",
-              content,
-              media: media || "", // ✅ Store media if available
-              likes: 0,
-              comments: 0,
-              reposts: 0,
-              commentsList: [],
-            },
-            ...state.posts, // ✅ Newest posts appear first
-          ],
+          ...state,
+          posts: state.posts.filter((post) => !(post.id === postId && post.isUserPost)),
         })),
 
-      // ✅ Like/Unlike Post
+      // ✅ Like/Unlike a post
       likePost: (id: number) =>
         set((state) => {
           const isLiked = state.likedPosts.includes(id);
           return {
+            ...state,
             likedPosts: isLiked
               ? state.likedPosts.filter((postId) => postId !== id)
               : [...state.likedPosts, id],
@@ -116,11 +125,12 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      // ✅ Repost/Unrepost Post
+      // ✅ Repost/Undo repost
       repostPost: (id: number) =>
         set((state) => {
           const isReposted = state.repostedPosts.includes(id);
           return {
+            ...state,
             repostedPosts: isReposted
               ? state.repostedPosts.filter((postId) => postId !== id)
               : [...state.repostedPosts, id],
@@ -132,9 +142,10 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      // ✅ Add Comment to Post
+      // ✅ Add a comment
       commentOnPost: (id: number, comment: string) =>
         set((state) => ({
+          ...state,
           posts: state.posts.map((post) =>
             post.id === id
               ? { ...post, comments: post.comments + 1, commentsList: [...post.commentsList, comment] }
@@ -142,9 +153,10 @@ export const usePostStore = create<PostStoreState>()(
           ),
         })),
 
-      // ✅ Delete Comment from Post
+      // ✅ Delete a comment
       deleteComment: (postId: number, commentIndex: number) =>
         set((state) => ({
+          ...state,
           posts: state.posts.map((post) =>
             post.id === postId
               ? {
@@ -155,13 +167,10 @@ export const usePostStore = create<PostStoreState>()(
               : post
           ),
         })),
-
-        
     }),
     {
-      name: "post-storage", // ✅ Persist data in `localStorage`
-      storage: createJSONStorage(() => localStorage), // ✅ JSON format storage
+      name: "post-storage",
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
-

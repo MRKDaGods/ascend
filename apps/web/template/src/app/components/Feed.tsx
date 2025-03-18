@@ -1,25 +1,23 @@
 import React from "react";
-import { Box } from "@mui/material";
-import CreatePost from "./CreatePost";
-import Post from "./Post"; // ✅ For followed users' posts
-import UserPost from "./UserPost"; // ✅ For user-created posts
 import { usePostStore } from "../store/usePostStore";
+import Post from "./Post";
+import UserPost from "./UserPost";
+import CreatePost from "./CreatePost";
 
 const Feed: React.FC = () => {
   const { posts } = usePostStore();
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 700, mx: "auto", mt: 3 }}>
+    <div>
       <CreatePost />
-
-      {posts.map((post) =>
-        post.username === "Ascend Developer" ? (
-          <UserPost key={post.id} post={post} /> // ✅ Use `UserPost.tsx` for user-created posts
-        ) : (
-          <Post key={post.id} post={post} /> // ✅ Use `Post.tsx` for followed users' posts
+      {posts.length === 0 ? (
+        <p>No posts available</p>
+      ) : (
+        posts.map((post) =>
+          post.isUserPost ? <UserPost key={post.id} post={post} /> : <Post key={post.id} post={post} />
         )
       )}
-    </Box>
+    </div>
   );
 };
 
