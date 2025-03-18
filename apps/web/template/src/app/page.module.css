@@ -1,4 +1,5 @@
 .page {
+  background-color: #f3f2ef; /* LinkedIn's off-white background */
   --gray-rgb: 0, 0, 0;
   --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
   --gray-alpha-100: rgba(var(--gray-rgb), 0.05);

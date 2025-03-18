@@ -40,3 +40,8 @@ a {
     color-scheme: dark;
   }
 }
+body, html {
+  background-color: #f3f2ef !important; /* LinkedIn's off-white background */
+  margin: 0;
+  padding: 0;
+}
