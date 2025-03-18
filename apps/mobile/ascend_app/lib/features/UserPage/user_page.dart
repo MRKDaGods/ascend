@@ -48,6 +48,7 @@ class UserProfilePage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
+
           onPressed: () {
             Navigator.pop(context);
           },
@@ -81,6 +82,7 @@ class UserProfilePage extends StatelessWidget {
               clipBehavior: Clip.none,
               alignment: Alignment.bottomLeft,
               children: [
+
                 GestureDetector(
                   onTap: () {
                     _showFullScreenImage(context, coverImageUrl);
@@ -114,7 +116,6 @@ class UserProfilePage extends StatelessWidget {
                 ),
               ],
             ),
-
             SizedBox(height: 50),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -122,6 +123,7 @@ class UserProfilePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+
                     name,
                     style: TextStyle(
                       color: Colors.white,
@@ -130,6 +132,7 @@ class UserProfilePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 5),
+
                   Text(bio, style: TextStyle(color: Colors.white70)),
                   SizedBox(height: 5),
                   Text(
@@ -209,6 +212,7 @@ class UserProfilePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
+
           section.title,
           style: TextStyle(
             color: Colors.white,
@@ -216,6 +220,7 @@ class UserProfilePage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+
         for (var item in section.content) ...[
           SizedBox(height: 5),
           item,
@@ -226,4 +231,5 @@ class UserProfilePage extends StatelessWidget {
       ],
     );
   }
+
 }

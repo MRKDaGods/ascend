@@ -1,6 +1,8 @@
 import 'package:ascend_app/features/UserPage/user_page.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
+import 'package:ascend_app/features/Jobs/jobapp.dart';
+import 'package:ascend_app/features/networks/pages/networks.dart';
 import 'package:ascend_app/features/networks/presentation/networks.dart';
 import 'package:ascend_app/features/UserPage/models/profile_section.dart';
 
@@ -49,6 +51,7 @@ final List<ProfileSection> sectionss = [
   ),
 ];
 
+
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -58,8 +61,10 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+    
 
-  final List<Widget> _pages = [
+  final List<Widget> _pages = const [
+
     UserProfilePage(
       name: "Maged Amgad",
       bio: "sw",
@@ -71,7 +76,7 @@ class _MainNavigationState extends State<MainNavigation> {
     Center(child: Text("Video")),
     Networks(),
     Center(child: Text("Notifications")),
-    Center(child: Text("Jobs")),
+    JobApp(),
   ];
 
   void _onItemTapped(int index) {
