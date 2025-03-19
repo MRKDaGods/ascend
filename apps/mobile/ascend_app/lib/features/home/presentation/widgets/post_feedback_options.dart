@@ -1,105 +1,87 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/home/domain/entities/post.dart';
-import 'package:ascend_app/features/home/presentation/bloc/post/feed_post_bloc.dart';
-import 'package:ascend_app/features/home/presentation/bloc/post/feed_post_event.dart';
 
 class PostFeedbackOptions extends StatelessWidget {
-  final Post post;
-  
+  final String ownerName;
+  final Function(String)? onFeedbackSubmitted;
+  final VoidCallback? onUndo;
+
   const PostFeedbackOptions({
     super.key,
-    required this.post,
+    required this.ownerName,
+    this.onFeedbackSubmitted,
+    this.onUndo,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Tell us why you don't want to see this",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16.0,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            
-            _buildFeedbackOption(
-              context, 
-              "I'm not interested in this content",
-              () {
-                context.read<FeedPostBloc>().add(
-                  MarkFeedPostNotInterested(postId: post.id)
-                );
-              }
-            ),
-            
-            _buildFeedbackOption(
-              context, 
-              "Unfollow ${post.authorName}",
-              () {
-                context.read<FeedPostBloc>().add(
-                  UnfollowFeedPostOwner(
-                    postId: post.id,
-                    ownerName: post.authorName,
-                  )
-                );
-              }
-            ),
-            
-            _buildFeedbackOption(
-              context,
-              "Report this post",
-              () {
-                context.read<FeedPostBloc>().add(
-                  ReportFeedPost(postId: post.id)
-                );
-              }
-            ),
-            
-            const SizedBox(height: 12.0),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                const Text(
+                  'Help us improve your feed',
+                  style: TextStyle(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 TextButton(
-                  onPressed: () {
-                    context.read<FeedPostBloc>().add(
-                      const HideFeedPostFeedbackOptions()
-                    );
-                  },
-                  child: const Text("Cancel"),
+                  onPressed: onUndo,
+                  child: const Text('UNDO'),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            const Text('Why don\'t you want to see this?'),
+            const SizedBox(height: 16),
+            _buildFeedbackOption(
+              context,
+              'Not interested in this topic',
+              'topic',
+            ),
+            const SizedBox(height: 8),
+            _buildFeedbackOption(
+              context,
+              'Not interested in posts from $ownerName',
+              'author',
+            ),
+            const SizedBox(height: 8),
+            _buildFeedbackOption(
+              context,
+              'Not appropriate for LinkedIn',
+              'inappropriate',
             ),
           ],
         ),
       ),
     );
   }
-  
-  Widget _buildFeedbackOption(
-    BuildContext context, 
-    String text, 
-    VoidCallback onTap
-  ) {
+
+  Widget _buildFeedbackOption(BuildContext context, String text, String reason) {
     return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(text),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
+      onTap: () {
+        if (onFeedbackSubmitted != null) {
+          onFeedbackSubmitted!(reason);
+        }
+        
+        // Show a snackbar to confirm
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post removed from your feed')),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
         ),
+        child: Text(text),
       ),
     );
   }

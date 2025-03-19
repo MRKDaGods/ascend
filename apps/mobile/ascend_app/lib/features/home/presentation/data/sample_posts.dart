@@ -2,23 +2,10 @@ import 'package:ascend_app/features/home/presentation/models/post_model.dart';
 
 /// Sample data for posts used throughout the app
 class SamplePosts {
-  static List<PostModel> getPosts() {
-    return [
-      sponsoredMarketingPost,
-      sponsoredFitnessPost,
-      sponsoredTechPost,
-      ...textOnlyPosts,
-      ...singleImagePosts,
-      ...multiImageGridPosts,
-      ...carouselImagePosts,
-    ];
-  }
-
   /// Pre-defined sponsored post example for marketing
   static final PostModel sponsoredMarketingPost = PostModel(
-    id: '1',
-    title: 'Boost Your Marketing Strategy',
-    description: 'Learn how to leverage social media to increase your brand visibility...',
+    title: '✨ Sponsored: Premium Content',
+    description: 'Check out our featured products and services tailored just for you! Our team of experts has curated special offers exclusive to Ascend users.',
     images: [
       "assets/images_posts/Screenshot 2024-05-01 174349.png",
       "assets/images_posts/Screenshot 2024-09-20 152333.png",
@@ -37,9 +24,8 @@ class SamplePosts {
 
   /// Pre-defined sponsored post example for fitness
   static final PostModel sponsoredFitnessPost = PostModel(
-    id: '2',
     title: '💪 Transform Your Fitness Journey',
-    description: 'Discover our new workout programs designed for busy professionals...',
+    description: 'Discover our new workout programs designed for busy professionals. Get in shape without spending hours at the gym!',
     images: [
       "assets/images_posts/Screenshot 2023-08-06 150447.png",
       "assets/images_posts/Screenshot 2023-12-31 100011.png",
@@ -57,7 +43,6 @@ class SamplePosts {
 
   /// Pre-defined sponsored post example for technology
   static final PostModel sponsoredTechPost = PostModel(
-    id: '3',
     title: '🚀 The Future of AI is Here',
     description: 'Introducing our latest AI-powered tools that will revolutionize how you work. Boost productivity and creativity with one simple platform.',
     images: [
@@ -77,7 +62,6 @@ class SamplePosts {
   /// Regular post examples (without images)
   static final List<PostModel> textOnlyPosts = [
     PostModel(
-      id: '4',
       title: 'Morning Thoughts on Design',
       description: 'I\'ve been thinking about the evolution of UI/UX over the past decade. The shift from skeuomorphic designs to flat interfaces and now to more nuanced approaches with subtle depth cues is fascinating. What design trends do you think will emerge next?',
       ownerName: 'Sarah Chen',
@@ -88,7 +72,6 @@ class SamplePosts {
       initialComments: 7,
     ),
     PostModel(
-      id: '5',
       title: 'Career Reflections',
       description: 'After 5 years in the industry, I\'ve learned that technical skills only get you so far. The ability to communicate effectively, especially with non-technical stakeholders, has been the most valuable skill I\'ve developed.',
       ownerName: 'Marcus Johnson',
@@ -103,7 +86,6 @@ class SamplePosts {
   /// Posts with single images
   static final List<PostModel> singleImagePosts = [
     PostModel(
-      id: '6',
       title: 'My Latest Project',
       description: 'Just finished this dashboard design for a fintech client. Focused on clarity and data visualization while maintaining brand identity.',
       images: ["assets/images_posts/Screenshot 2024-05-01 174349.png"],
@@ -115,7 +97,6 @@ class SamplePosts {
       initialComments: 12,
     ),
     PostModel(
-      id: '7',
       title: 'Office Views Today',
       description: 'Working remotely has its perks. This is my office for the day!',
       images: ["assets/images_posts/Screenshot 2023-08-06 150447.png"],
@@ -131,7 +112,6 @@ class SamplePosts {
   /// Posts with multiple images (grid view)
   static final List<PostModel> multiImageGridPosts = [
     PostModel(
-      id: '8',
       title: 'Design Exploration',
       description: 'Some explorations for our new mobile app. We\'re trying different color schemes and typography combinations.',
       images: [
@@ -149,7 +129,6 @@ class SamplePosts {
       initialComments: 28,
     ),
     PostModel(
-      id: '9',
       title: 'Team Building Event',
       description: 'Had an amazing time with the team yesterday. Games, food, and great conversations!',
       images: [
@@ -170,7 +149,6 @@ class SamplePosts {
   /// Posts with carousel images
   static final List<PostModel> carouselImagePosts = [
     PostModel(
-      id: '10',
       title: 'Product Design Process',
       description: 'A glimpse into our design process for the new feature. From sketches to wireframes to high-fidelity prototypes.',
       images: [
@@ -189,7 +167,6 @@ class SamplePosts {
       initialComments: 34,
     ),
     PostModel(
-      id: '11',
       title: 'Conference Highlights',
       description: 'Some highlights from the UX Conference 2024. So many inspiring talks and great networking opportunities!',
       images: [
@@ -220,23 +197,7 @@ class SamplePosts {
     
     for (int i = 0; i < count; i++) {
       int index = i % allSamplePosts.length;
-      // Create a copy with a unique ID for each generated post
-      PostModel original = allSamplePosts[index];
-      result.add(PostModel(
-        id: 'generated_${i + 100}', // Ensure unique IDs
-        title: original.title,
-        description: original.description,
-        images: original.images,
-        useCarousel: original.useCarousel,
-        isSponsored: original.isSponsored,
-        ownerName: original.ownerName,
-        ownerImageUrl: original.ownerImageUrl,
-        ownerOccupation: original.ownerOccupation,
-        timePosted: original.timePosted,
-        initialLikes: original.initialLikes,
-        initialComments: original.initialComments,
-        followers: original.followers,
-      ));
+      result.add(allSamplePosts[index]);
     }
     
     return result;
