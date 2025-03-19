@@ -60,10 +60,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                               invitation.bio,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 12,
-                              ),
+                              style: TextStyle(fontSize: 12),
                             ),
                             Text(
                               connectionRequest.timestamp,
