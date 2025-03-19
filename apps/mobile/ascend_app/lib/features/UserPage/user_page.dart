@@ -72,6 +72,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     });
   }
 
+  //makes full screen image
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     Navigator.push(
       context,
@@ -218,6 +219,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 }
 
 Widget _buildSection(ProfileSection section) {
+  final int contentCount = section.content.length;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
