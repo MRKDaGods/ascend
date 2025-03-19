@@ -6,7 +6,11 @@ class PostHeader extends StatelessWidget {
   final String ownerOccupation;
   final String timePosted;
   final bool isSponsored;
-  final int followers; // Add followers parameter
+  final int followers;
+  final VoidCallback? onRemove;
+  final VoidCallback? onOptionsPressed;
+  final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
+  final VoidCallback? onShowFeedbackOptions; // New callback to show feedback options
 
   const PostHeader({
     super.key,
@@ -15,8 +19,103 @@ class PostHeader extends StatelessWidget {
     this.ownerOccupation = '',
     required this.timePosted,
     this.isSponsored = false,
-    this.followers = 0, // Default value
+    this.followers = 0,
+    this.onRemove,
+    this.onOptionsPressed,
+    this.onFeedbackSubmitted,
+    this.onShowFeedbackOptions,
   });
+
+  void _showOptionsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.bookmark_border),
+                title: const Text('Save'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Post saved')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.share),
+                title: const Text('Share via'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Implement share functionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sharing...')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.not_interested),
+                title: const Text('Not interested'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('We\'ll show fewer posts like this')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person_remove_outlined),
+                title: Text('Unfollow $ownerName'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Unfollowed $ownerName')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.flag_outlined),
+                title: const Text('Report post'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Show report dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Report post'),
+                        content: const Text('Why are you reporting this post?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Post reported')),
+                              );
+                            },
+                            child: const Text('Submit'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +162,21 @@ class PostHeader extends StatelessWidget {
             ],
           ),
         ),
+        // Options button
+        IconButton(
+          icon: const Icon(Icons.more_horiz),
+          splashRadius: 24,
+          onPressed: () => onOptionsPressed != null 
+                          ? onOptionsPressed!() 
+                          : _showOptionsBottomSheet(context),
+        ),
+        // X button to remove post - only show for non-sponsored posts
+        if (!isSponsored)
+          IconButton(
+            icon: const Icon(Icons.close),
+            splashRadius: 24,
+            onPressed: onShowFeedbackOptions, // Call the new callback instead
+          ),
         if (isSponsored)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -93,3 +207,4 @@ class PostHeader extends StatelessWidget {
     }
   }
 }
+
