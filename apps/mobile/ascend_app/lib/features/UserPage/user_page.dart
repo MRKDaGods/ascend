@@ -3,21 +3,25 @@ import 'models/profile_section.dart';
 import 'full_screen_image.dart';
 import 'buttons.dart';
 import 'withdraw_request.dart';
+import 'profile_main_images.dart';
+import 'Data/dummy_profile_sections.dart';
+import 'section_builder.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({
     super.key,
-    this.name = 'Hamada Helal',
-    this.bio = "zzz",
+    this.name = 'Maged Amgad',
+    this.bio = "Computer engineering student at Cairo University",
     this.profileImageUrl = 'https://picsum.photos/150/150',
     this.coverImageUrl = 'https://picsum.photos/1500/500',
     this.location = 'Cairo, Cairo, Egypt',
     this.latestEducation = 'Cairo University',
-    this.sections = const [],
+    this.sections = sectionss,
     this.isconnect = false,
     this.isfollow = false,
     this.isPending = false,
     this.connections = 15,
+    this.verified = false,
   });
 
   final String name;
@@ -31,6 +35,7 @@ class UserProfilePage extends StatefulWidget {
   final String coverImageUrl;
   final String location;
   final List<ProfileSection> sections;
+  final bool verified;
 
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
@@ -95,9 +100,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.black87,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.black87,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -128,43 +133,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.bottomLeft,
-              children: [
-                GestureDetector(
-                  onTap:
-                      () => _showFullScreenImage(context, widget.coverImageUrl),
-                  child: Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(widget.coverImageUrl),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 20,
-                  bottom: -40,
-                  child: GestureDetector(
-                    onTap:
-                        () => _showFullScreenImage(
-                          context,
-                          widget.profileImageUrl,
-                        ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black,
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: NetworkImage(widget.profileImageUrl),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            ProfileMainImages(
+              profilePic: widget.profileImageUrl,
+              coverPic: widget.coverImageUrl,
             ),
             SizedBox(height: 50),
             Padding(
@@ -207,7 +178,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     _showWithdrawDialog,
                   ),
                   SizedBox(height: 30),
-                  for (var section in widget.sections) _buildSection(section),
+                  for (var section in widget.sections)
+                    buildSection(context, section),
                 ],
               ),
             ),
@@ -216,27 +188,4 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
     );
   }
-}
-
-Widget _buildSection(ProfileSection section) {
-  final int contentCount = section.content.length;
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        section.title,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      for (var item in section.content) ...[
-        SizedBox(height: 5),
-        item,
-        Divider(color: Colors.white38),
-      ],
-      SizedBox(height: 20),
-    ],
-  );
 }
