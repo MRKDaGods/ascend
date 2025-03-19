@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/StartPages/JoinAscend.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/SignIn.dart';
 import 'package:ascend_app/features/StartPages/Widget/ContinueButton.dart';
@@ -54,7 +55,16 @@ class _WelcomeState extends State<Welcome> {
                 children: [
                   buildTextButton(
                     label: 'Join Now',
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return const Joinascend();
+                          },
+                        ),
+                      );
+                    },
                     backgroundColor: Colors.blue,
                     textColor: Colors.white,
                   ),
