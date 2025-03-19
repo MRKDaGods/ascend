@@ -2,6 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
+<<<<<<< Updated upstream
+
+=======
+import 'package:ascend_app/features/networks/presentation/networks.dart';
+<<<<<<< HEAD
+=======
+//import 'package:ascend_app/features/networks/presentation/networks.dart';
+>>>>>>> parent of 2a73c5c (zz)
+import 'package:ascend_app/features/UserPage/models/profile_section.dart';
+
+final List<ProfileSection> sectionss = [
+  ProfileSection(
+    title: 'Highlights',
+    content: [
+      Text(
+        'You both studied at Cairo University from 2021 to 2026',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+  ProfileSection(
+    title: 'Activity',
+    content: [
+      Text(
+        'Hamada hasn’t posted yet',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+  ProfileSection(
+    title: 'Education',
+    content: [
+      Text(
+        'Cairo University\nBachelor of Engineering - Computer Engineering\nOct 2021 - Jun 2026',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      Text(
+        'Pioneers Language School\nHigh School\nSep 20 14 - Jun 2021',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+  ProfileSection(
+    title: 'Interests',
+    content: [
+      Text(
+        'Cairo University',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      Text('Microsoft', style: TextStyle(color: Colors.white, fontSize: 14)),
+      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
+    ],
+  ),
+];
+>>>>>>> Stashed changes
 
 
 class MainNavigation extends StatefulWidget {
@@ -13,8 +68,21 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+    
 
   final List<Widget> _pages = const [
+
+<<<<<<< Updated upstream
+  final List<Widget> _pages = const [
+=======
+    UserProfilePage(
+      name: "Maged Amgad",
+      bio: "sw",
+      location: "Cairo,Egypt",
+      latestEducation: "Cairo university",
+      sections: sectionss,
+    ),
+>>>>>>> Stashed changes
     Home(),
     Center(child: Text("Video")),
     Networks(),
