@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
 import 'full_screen_image.dart';
+import 'buttons.dart';
+import 'withdraw_request.dart';
 
 class UserProfilePage extends StatefulWidget {
-  UserProfilePage({
+  const UserProfilePage({
     super.key,
     this.name = 'Hamada Helal',
     this.bio = "zzz",
@@ -14,12 +16,14 @@ class UserProfilePage extends StatefulWidget {
     this.sections = const [],
     this.isconnect = false,
     this.isfollow = false,
+    this.isPending = false,
     this.connections = 15,
   });
 
   final String name;
   final bool isconnect;
   final bool isfollow;
+  final bool isPending;
   final int connections;
   final String latestEducation;
   final String bio;
@@ -35,17 +39,24 @@ class UserProfilePage extends StatefulWidget {
 class _UserProfilePageState extends State<UserProfilePage> {
   late bool _isConnect;
   late bool _isFollow;
+  late bool _isPending;
 
   @override
   void initState() {
     super.initState();
     _isConnect = widget.isconnect;
     _isFollow = widget.isfollow;
+    _isPending = widget.isPending;
   }
 
   void _toggleConnect() {
     setState(() {
-      _isConnect = !_isConnect;
+      if (!_isConnect && !_isPending) {
+        _isPending = true; // Change to "Pending"
+      } else if (_isPending) {
+        _isPending = false;
+        _isConnect = true; // Change to "Connected"
+      }
     });
   }
 
@@ -55,12 +66,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
     });
   }
 
+  void _toggleisPending() {
+    setState(() {
+      _isPending = !_isPending;
+    });
+  }
+
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FullScreenImage(imageUrl: imageUrl),
       ),
+    );
+  }
+
+  // Function to show withdraw confirmation dialog
+  void _showWithdrawDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return WithdrawRequest(toggleIspending: _toggleisPending);
+      },
     );
   }
 
@@ -84,12 +111,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
             decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search, color: Colors.white38),
+              prefixIcon: Icon(
+                Icons.search,
+                color: const Color.fromARGB(179, 0, 0, 0),
+              ),
               border: InputBorder.none,
               hintText: 'Search',
-              hintStyle: TextStyle(color: Colors.white38),
+              hintStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
             ),
           ),
         ),
@@ -169,50 +199,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       style: TextStyle(color: Colors.white70),
                     ),
                   SizedBox(height: 15),
-                  Row(
-                    children:
-                        _isConnect
-                            ? [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () {},
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.white70),
-                                    padding: EdgeInsets.symmetric(vertical: 15),
-                                  ),
-                                  child: Text(
-                                    'Message',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ]
-                            : [
-                              ElevatedButton.icon(
-                                label: Text(
-                                  _isConnect ? 'Connected' : 'Connect',
-                                ),
-                                icon: Icon(
-                                  _isConnect ? Icons.check : Icons.add,
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      _isConnect ? Colors.grey : Colors.blue,
-                                ),
-                                onPressed: _toggleConnect,
-                              ),
-                              SizedBox(width: 10),
-                              OutlinedButton(
-                                onPressed: () {},
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: Colors.white70),
-                                ),
-                                child: Text(
-                                  'Message',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
+                  ProfileButtons(
+                    _isConnect,
+                    _isPending,
+                    _toggleConnect,
+                    _showWithdrawDialog,
                   ),
                   SizedBox(height: 30),
                   for (var section in widget.sections) _buildSection(section),
@@ -224,26 +215,26 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
     );
   }
+}
 
-  Widget _buildSection(ProfileSection section) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          section.title,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+Widget _buildSection(ProfileSection section) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        section.title,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
         ),
-        for (var item in section.content) ...[
-          SizedBox(height: 5),
-          item,
-          Divider(color: Colors.white38),
-        ],
-        SizedBox(height: 20),
+      ),
+      for (var item in section.content) ...[
+        SizedBox(height: 5),
+        item,
+        Divider(color: Colors.white38),
       ],
-    );
-  }
+      SizedBox(height: 20),
+    ],
+  );
 }
