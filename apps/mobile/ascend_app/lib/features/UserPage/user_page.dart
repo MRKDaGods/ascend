@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
-import 'package:ascend_app/features/home/presentation/pages/home.dart';
-import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 import 'full_screen_image.dart';
 
+class UserProfilePage extends StatefulWidget {
   UserProfilePage({
     super.key,
     this.name = 'Hamada Helal',
@@ -27,7 +26,35 @@ import 'full_screen_image.dart';
   final String profileImageUrl;
   final String coverImageUrl;
   final String location;
-  List<ProfileSection> sections;
+  final List<ProfileSection> sections;
+
+  @override
+  _UserProfilePageState createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends State<UserProfilePage> {
+  late bool _isConnect;
+  late bool _isFollow;
+
+  @override
+  void initState() {
+    super.initState();
+    _isConnect = widget.isconnect;
+    _isFollow = widget.isfollow;
+  }
+
+  void _toggleConnect() {
+    setState(() {
+      _isConnect = !_isConnect;
+    });
+  }
+
+  void _toggleFollow() {
+    setState(() {
+      _isFollow = !_isFollow;
+    });
+  }
+
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     Navigator.push(
       context,
