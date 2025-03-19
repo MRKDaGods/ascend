@@ -1,47 +1,29 @@
-import 'package:ascend_app/features/home/presentation/widgets/post_reactions_popup.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ascend_app/core/di/service_locator.dart';
+import 'package:ascend_app/features/home/domain/models/post_model.dart';
+import 'package:ascend_app/features/home/domain/repositories/post_repository.dart';
+import 'package:ascend_app/features/home/presentation/bloc/post/post_bloc.dart';
+import 'package:ascend_app/features/home/presentation/bloc/post/post_event.dart';
+import 'package:ascend_app/features/home/presentation/bloc/post/post_state.dart';
 import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_header.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_content.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_image_section.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_action_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post_comments_section.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post_reactions_popup.dart';
+import 'package:ascend_app/features/home/presentation/widgets/full_screen_image_viewer.dart';
 import 'package:ascend_app/features/home/presentation/managers/comment_manager.dart';
 import 'package:ascend_app/features/home/presentation/managers/reaction_manager.dart';
-import 'package:ascend_app/features/home/presentation/widgets/full_screen_image_viewer.dart';
 
 class PostDetailPage extends StatefulWidget {
-  final String title;
-  final String description;
-  final List<String> images;
-  final bool useCarousel;
-  final bool isSponsored;
-  final String ownerName;
-  final String ownerImageUrl;
-  final String ownerOccupation;
-  final String timePosted;
-  final int initialLikes;
-  final int initialComments;
-  final int followers;
-  final List<Comment> comments;
+  final String postId;
   
   const PostDetailPage({
     super.key,
-    required this.title,
-    required this.description,
-    required this.images,
-    required this.useCarousel,
-    required this.isSponsored,
-    required this.ownerName,
-    required this.ownerImageUrl,
-    required this.ownerOccupation,
-    required this.timePosted,
-    required this.initialLikes,
-    required this.initialComments,
-    required this.followers,
-    required this.comments,
+    required this.postId,
   });
 
   @override
@@ -49,58 +31,42 @@ class PostDetailPage extends StatefulWidget {
 }
 
 class _PostDetailPageState extends State<PostDetailPage> {
-  bool _isLiked = false;
-  late int _likesCount;
-  late int _commentsCount;
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
-  late List<Comment> _comments;
-  
-  // Reaction state
-  String _currentReaction = 'like';
-  
-  // Create managers
   late CommentManager _commentManager;
-  late ReactionManager _reactionManager;
-
+  
+  List<Comment> _comments = [];
+  bool _isLiked = false;
+  String _currentReaction = 'like';
+  int _likesCount = 0;
+  int _commentsCount = 0;
+  
   @override
   void initState() {
     super.initState();
-    _likesCount = widget.initialLikes;
-    _commentsCount = widget.initialComments;
-    _comments = List<Comment>.from(widget.comments);
-    
-    // Initialize managers
     _commentManager = CommentManager(
       comments: _comments,
       onCommentsChanged: (updatedComments) {
         setState(() {
-          _comments.clear();
-          _comments.addAll(updatedComments);
+          _comments = updatedComments;
           _commentsCount = _getCommentCount(_comments);
         });
       },
     );
     
-    _reactionManager = ReactionManager(
-      isLiked: _isLiked,
-      currentReaction: _currentReaction,
-      likesCount: _likesCount,
-      onReactionChanged: (isLiked, reaction, count) {
-        setState(() {
-          _isLiked = isLiked;
-          _currentReaction = reaction;
-          _likesCount = count;
-        });
-      },
-    );
-    
-    // Auto-focus comment field
+    // Initial focus for comment field (optional)
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         _commentFocusNode.requestFocus();
       }
     });
+  }
+  
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _commentFocusNode.dispose();
+    super.dispose();
   }
   
   // Calculate total comments including replies
@@ -112,14 +78,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return count;
   }
   
-  @override
-  void dispose() {
-    _commentController.dispose();
-    _commentFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _showReactionsPopup() {
+  void _showReactionsPopup(BuildContext context) {
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero);
     
@@ -133,20 +92,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
           position: position,
           onReactionSelected: (type) {
             Navigator.of(context).pop();
-            _reactionManager.toggleReaction(type);
+            context.read<PostBloc>().add(LikePost(
+              postId: widget.postId,
+              reactionType: type,
+            ));
           },
         );
       },
     );
   }
   
-  // Add this new method to handle image taps
-  void _handleImageTap(int index) {
-    print("Image tapped at index: $index in detail page");
+  void _handleImageTap(int index, List<String> images) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => FullScreenImageViewer(
-          images: widget.images,
+          images: images,
           initialIndex: index,
         ),
       ),
@@ -155,122 +115,214 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+    return BlocProvider(
+      create: (context) => PostBloc(
+        postRepository: serviceLocator<PostRepository>(),
+      )..add(FetchPosts()),
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Post'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: BlocBuilder<PostBloc, PostState>(
+              builder: (context, state) {
+                if (state is PostsLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is PostsLoaded) {
+                  // Find the post with the matching ID
+                  final post = state.posts.firstWhere(
+                    (p) => p.id == widget.postId,
+                    orElse: () => throw Exception('Post not found'),
+                  );
+                  
+                  // Update local state from post
+                  _isLiked = post.isLiked;
+                  _currentReaction = post.currentReaction;
+                  _likesCount = post.likesCount;
+                  _commentsCount = post.commentsCount;
+                  
+                  return _buildPostDetail(context, post);
+                } else if (state is PostError) {
+                  return Center(child: Text('Error: ${state.message}'));
+                }
+                return const Center(child: Text('Loading post...'));
+              },
+            ),
+          );
+        }
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Post Header
-              PostHeader(
-                ownerName: widget.ownerName,
-                ownerImageUrl: widget.ownerImageUrl,
-                ownerOccupation: widget.ownerOccupation,
-                timePosted: widget.timePosted,
-                isSponsored: widget.isSponsored,
-                followers: widget.followers,
-                onFeedbackSubmitted: (reason) {
-                  print("Post removed due to: $reason");
-                  Navigator.pop(context); // Close the detail page if post is removed
-                },
-              ),
-              
-              // Post Content (Title and Description) - show full description without truncation
-              PostContent(
-                title: widget.title,
-                description: widget.description,
-                showFullDescription: true,
-              ),
+    );
+  }
+  
+  Widget _buildPostDetail(BuildContext context, PostModel post) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Post Header
+            PostHeader(
+              post: post,
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Post Content
+            PostContent(
+              title: post.title,
+              description: post.description,
+              showFullDescription: true,
+            ),
 
-              // Images Section - Make sure to pass the _handleImageTap callback
-              if (widget.images.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                PostImageSection(
-                  images: widget.images,
-                  useCarousel: widget.useCarousel,
-                  isSponsored: widget.isSponsored, // Pass the isSponsored flag
-                  onTap: _handleImageTap, // Pass the handler here
-                ),
-              ],
-
-              // Engagement Stats
-              PostEngagementStats(
-                likesCount: _likesCount,
-                commentsCount: _commentsCount,
-                reactionIcon: _reactionManager.getCurrentReactionIcon(),
-                reactionColor: _reactionManager.getCurrentReactionColor(),
-              ),
-
-              // Divider
-              Divider(color: Colors.grey[300], height: 1),
-              
-              // Reaction Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  PostReactionButton(
-                    isLiked: _isLiked,
-                    currentReaction: _currentReaction,
-                    onTap: () => _reactionManager.toggleReaction(_currentReaction),
-                    onLongPress: _showReactionsPopup,
-                    reactionIcons: ReactionManager.reactionIcons,
-                    reactionColors: ReactionManager.reactionColors,
-                  ),
-                  PostActionButton(
-                    icon: Icons.comment_outlined,
-                    label: "Comment",
-                    onTap: () {
-                      _commentFocusNode.requestFocus();
-                    },
-                  ),
-                  PostActionButton(
-                    icon: Icons.repeat,
-                    label: "Repost",
-                    onTap: () {},
-                  ),
-                  PostActionButton(
-                    icon: Icons.send,
-                    label: "Send",
-                    onTap: () {},
-                  ),
-                ],
-              ),
-              
-              // Divider
-              Divider(color: Colors.grey[300], height: 1),
-
-              // Comments Section - always visible on detail page
-              PostCommentsSection(
-                comments: _comments,
-                commentController: _commentController,
-                commentFocusNode: _commentFocusNode,
-                onAddComment: () {
-                  if (_commentController.text.trim().isNotEmpty) {
-                    _commentManager.addComment(_commentController.text);
-                    _commentController.clear();
-                  }
-                },
-                onAddReply: (text, parentId) {
-                  if (parentId != null && text.trim().isNotEmpty) {
-                    _commentManager.addReply(text, parentId);
-                  }
-                },
-                onTapCommentArea: () {
-                  _commentFocusNode.requestFocus();
-                },
+            // Images Section
+            if (post.images.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              PostImageSection(
+                images: post.images,
+                useCarousel: post.useCarousel,
+                isSponsored: post.isSponsored,
+                onTap: (index) => _handleImageTap(index, post.images),
               ),
             ],
-          ),
+
+            const SizedBox(height: 16),
+            
+            // Engagement Stats
+            PostEngagementStats(
+              likesCount: post.likesCount,
+              commentsCount: post.commentsCount,
+              reactionIcon: _getReactionIcon(post.currentReaction),
+              reactionColor: _getReactionColor(post.currentReaction),
+            ),
+
+            // Divider
+            Divider(color: Colors.grey[300], height: 1),
+            
+            // Reaction Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // Like/React button
+                GestureDetector(
+                  onTap: () {
+                    context.read<PostBloc>().add(LikePost(
+                      postId: post.id,
+                      reactionType: post.currentReaction,
+                    ));
+                  },
+                  onLongPress: () => _showReactionsPopup(context),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getReactionIcon(post.currentReaction),
+                          color: post.isLiked 
+                            ? _getReactionColor(post.currentReaction) 
+                            : Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          post.isLiked 
+                            ? post.currentReaction.capitalize() 
+                            : 'Like',
+                          style: TextStyle(
+                            color: post.isLiked 
+                              ? _getReactionColor(post.currentReaction) 
+                              : Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                // Comment button
+                PostActionButton(
+                  icon: Icons.comment_outlined,
+                  label: "Comment",
+                  onTap: () {
+                    _commentFocusNode.requestFocus();
+                  },
+                ),
+                
+                // Repost button
+                PostActionButton(
+                  icon: Icons.repeat,
+                  label: "Repost",
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Repost feature coming soon')),
+                    );
+                  },
+                ),
+                
+                // Share button
+                PostActionButton(
+                  icon: Icons.send,
+                  label: "Send",
+                  onTap: () {
+                    context.read<PostBloc>().add(SharePost(postId: post.id));
+                  },
+                ),
+              ],
+            ),
+            
+            // Divider
+            Divider(color: Colors.grey[300], height: 1),
+
+            // Comments Section
+            PostCommentsSection(
+              comments: _comments,
+              commentController: _commentController,
+              commentFocusNode: _commentFocusNode,
+              onAddComment: () {
+                if (_commentController.text.trim().isNotEmpty) {
+                  // Add comment through BLoC
+                  context.read<PostBloc>().add(AddComment(
+                    postId: post.id,
+                    comment: _commentController.text,
+                  ));
+                  
+                  // Also update local state through manager
+                  _commentManager.addComment(_commentController.text);
+                  _commentController.clear();
+                }
+              },
+              onAddReply: (text, parentId) {
+                if (parentId != null && text.trim().isNotEmpty) {
+                  _commentManager.addReply(text, parentId);
+                }
+              },
+              onTapCommentArea: () {
+                _commentFocusNode.requestFocus();
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+  
+  // Helper methods for reactions
+  IconData _getReactionIcon(String reaction) {
+    return ReactionManager.reactionIcons[reaction] ?? ReactionManager.reactionIcons['like']!;
+  }
+  
+  Color _getReactionColor(String reaction) {
+    return ReactionManager.reactionColors[reaction] ?? ReactionManager.reactionColors['like']!;
+  }
+}
+
+// String utility extension
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
