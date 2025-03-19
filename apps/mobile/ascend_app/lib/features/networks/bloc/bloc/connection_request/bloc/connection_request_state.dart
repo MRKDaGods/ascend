@@ -23,17 +23,4 @@ final class ConnectionRequestSuccess extends ConnectionRequestState {
     required this.pendingRequestsSent,
     required this.acceptedConnections,
   });
-
-  ConnectionRequestSuccess copyWith({
-    pendingRequestsReceived,
-    pendingRequestsSent,
-    acceptedConnections,
-  }) {
-    return ConnectionRequestSuccess(
-      pendingRequestsReceived:
-          pendingRequestsReceived ?? this.pendingRequestsReceived,
-      pendingRequestsSent: pendingRequestsSent ?? this.pendingRequestsSent,
-      acceptedConnections: acceptedConnections ?? this.acceptedConnections,
-    );
-  }
 }

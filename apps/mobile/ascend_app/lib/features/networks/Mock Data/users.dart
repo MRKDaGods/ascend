@@ -67,7 +67,8 @@ List<UserModel> generateUsers() {
       industry: 'Industry G',
       profilePic: 'assets/pexels-karymefranca-1535907.jpg',
       coverpic: 'assets/image 4.jpg',
-      bio: 'HR at Company G',
+      bio:
+          'HR at Company G lorem ipsum dolor sit amet consectetur adipiscing elit',
     ),
     UserModel(
       id: '8',
@@ -76,7 +77,8 @@ List<UserModel> generateUsers() {
       industry: 'Industry H',
       profilePic: 'assets/pexels-karymefranca-1535907.jpg',
       coverpic: 'assets/image 4.jpg',
-      bio: 'Marketing at Company H',
+      bio:
+          'Marketing at Company H lorem ipsum dolor sit amet consectetur adipiscing elit',
     ),
     UserModel(
       id: '9',
@@ -85,7 +87,8 @@ List<UserModel> generateUsers() {
       industry: 'Industry I',
       profilePic: 'assets/pexels-karymefranca-1535907.jpg',
       coverpic: 'assets/image 4.jpg',
-      bio: 'Sales at Company I',
+      bio:
+          'Sales at Company I lorem ipsum dolor sit amet consectetur adipiscing elit',
     ),
     UserModel(
       id: '10',
@@ -94,7 +97,72 @@ List<UserModel> generateUsers() {
       industry: 'Industry J',
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/logo.jpg',
-      bio: 'Engineer at Company J',
+      bio:
+          'Engineer at Company J lorem ipsum dolor sit amet consectetur adipiscing elit',
+    ),
+    UserModel(
+      id: '11',
+      name: 'Ivy',
+      company: 'Company K',
+      industry: 'Industry K',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/logo.jpg',
+      bio:
+          'Manager at Company K lorem ipsum dolor sit amet consectetur adipiscing elit',
+    ),
+    UserModel(
+      id: '12',
+      name: 'Jack',
+      company: 'Company L',
+      industry: 'Industry L',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 2.jpg',
+      bio: 'Developer at Company L',
+    ),
+    UserModel(
+      id: '13',
+      name: 'Kate',
+      company: 'Company M',
+      industry: 'Industry M',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 2.jpg',
+      bio: 'Designer at Company M',
+    ),
+    UserModel(
+      id: '14',
+      name: 'Liam',
+      company: 'Company N',
+      industry: 'Industry N',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 3.jpg',
+      bio: 'Analyst at Company N',
+    ),
+    UserModel(
+      id: '15',
+      name: 'Mia',
+      company: 'Company O',
+      industry: 'Industry O',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 3.jpg',
+      bio: 'Consultant at Company O',
+    ),
+    UserModel(
+      id: '16',
+      name: 'Nathan',
+      company: 'Company P',
+      industry: 'Industry P',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/image 4.jpg',
+      bio: 'HR at Company P',
+    ),
+    UserModel(
+      id: '17',
+      name: 'Olivia',
+      company: 'Company Q',
+      industry: 'Industry Q',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/image 4.jpg',
+      bio: 'Marketing at Company Q',
     ),
   ];
 }

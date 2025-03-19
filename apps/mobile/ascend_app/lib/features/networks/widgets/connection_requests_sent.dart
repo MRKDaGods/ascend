@@ -65,7 +65,27 @@ class ConnectionRequestsSent extends StatelessWidget {
                           ),
 
                           title: Text(invitation.name),
-                          subtitle: Text(invitation.bio),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                invitation.bio,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                connectionRequest.timestamp,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
                           trailing: TextButton(
                             onPressed:
                                 () => onRemove(connectionRequest.requestId),

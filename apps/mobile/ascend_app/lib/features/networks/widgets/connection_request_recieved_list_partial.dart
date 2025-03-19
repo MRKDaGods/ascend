@@ -30,47 +30,83 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
               invitations
                   .sublist(0, invitations.length > 2 ? 2 : invitations.length)
                   .map((invitation) {
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage:
-                            invitation.profilePic.startsWith('http')
-                                ? NetworkImage(invitation.profilePic)
-                                : AssetImage(invitation.profilePic)
-                                    as ImageProvider,
-                      ),
+                    final connectionRequest = pendingRequestsReceived
+                        .firstWhere(
+                          (element) => element.senderId == invitation.id,
+                          orElse:
+                              () => ConnectionRequestModel(
+                                requestId: '',
+                                senderId: '',
+                                receiverId: '',
+                                timestamp: DateTime.now().toIso8601String(),
+                                status: '',
+                              ),
+                        );
 
-                      title: Text(invitation.name),
-                      subtitle: Text(invitation.bio),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.check, color: Colors.green),
-                            onPressed:
-                                () => onAccept(
-                                  pendingRequestsReceived
-                                      .firstWhere(
-                                        (element) =>
-                                            element.senderId == invitation.id,
-                                      )
-                                      .requestId,
-                                ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close, color: Colors.red),
-                            onPressed:
-                                () => onDecline(
-                                  pendingRequestsReceived
-                                      .firstWhere(
-                                        (element) =>
-                                            element.senderId == invitation.id,
-                                      )
-                                      .requestId,
-                                ),
-                          ),
-                        ],
-                      ),
-                    );
+                    if (connectionRequest.requestId != '') {
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage:
+                              invitation.profilePic.startsWith('http')
+                                  ? NetworkImage(invitation.profilePic)
+                                  : AssetImage(invitation.profilePic)
+                                      as ImageProvider,
+                        ),
+                        title: Text(invitation.name),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              invitation.bio,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              connectionRequest.timestamp,
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.check, color: Colors.green),
+                              onPressed:
+                                  () => onAccept(
+                                    pendingRequestsReceived
+                                        .firstWhere(
+                                          (element) =>
+                                              element.senderId == invitation.id,
+                                        )
+                                        .requestId,
+                                  ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.close, color: Colors.red),
+                              onPressed:
+                                  () => onDecline(
+                                    pendingRequestsReceived
+                                        .firstWhere(
+                                          (element) =>
+                                              element.senderId == invitation.id,
+                                        )
+                                        .requestId,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return SizedBox.shrink();
+                    }
                   })
                   .toList(),
         ),

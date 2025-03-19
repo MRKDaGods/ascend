@@ -12,6 +12,7 @@ void removeConnectionRequest(
   String requestId,
 ) {
   connectionRequests.removeWhere((element) => element.requestId == requestId);
+  print("Connection request removed number $requestId");
 }
 
 void acceptConnectionRequest(

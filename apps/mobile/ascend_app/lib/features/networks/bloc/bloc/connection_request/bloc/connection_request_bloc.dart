@@ -11,64 +11,30 @@ class ConnectionRequestBloc
   final ConnectionRequestRepository repository = ConnectionRequestRepository();
 
   ConnectionRequestBloc() : super(ConnectionRequestInitial()) {
-    on<FetchPendingRequestsSent>(_fetchPendingRequestsSent);
-    on<FetchPendingRequestsReceived>(_fetchPendingRequestsReceived);
     on<SendConnectionRequest>(_sendConnectionRequest);
     on<AcceptConnectionRequest>(_acceptConnectionRequest);
     on<DeclineConnectionRequest>(_declineConnectionRequest);
     on<CancelConnectionRequest>(_cancelConnectionRequest);
-    on<FetchAcceptedConnections>(_fetchAcceptedConnections);
+    on<RemoveConnection>(_removeConnection);
+    on<FetchConnectionRequests>(_fetchConnectionRequests);
   }
 
-  void _fetchPendingRequestsSent(
-    FetchPendingRequestsSent event,
+  void _fetchConnectionRequests(
+    FetchConnectionRequests event,
     Emitter<ConnectionRequestState> emit,
   ) {
-    try {
-      final pendingRequestsSent = repository.fetchPendingRequestsSent();
-      print("Fetched Pending Requests Sent: ${pendingRequestsSent.length}");
-      final currentState = state;
-      if (currentState is ConnectionRequestSuccess) {
-        emit(currentState.copyWith(pendingRequestsSent: pendingRequestsSent));
-      } else {
-        emit(
-          ConnectionRequestSuccess(
-            pendingRequestsReceived: [],
-            pendingRequestsSent: pendingRequestsSent,
-            acceptedConnections: [],
-          ),
-        );
-      }
-    } catch (e) {
-      emit(ConnectionRequestError(e.toString()));
-    }
-  }
-
-  void _fetchPendingRequestsReceived(
-    FetchPendingRequestsReceived event,
-    Emitter<ConnectionRequestState> emit,
-  ) {
+    emit(ConnectionRequestLoading());
     try {
       final pendingRequestsReceived = repository.fetchPendingRequestsReceived();
-      print(
-        "Fetched Pending Requests Received: ${pendingRequestsReceived.length}",
+      final pendingRequestsSent = repository.fetchPendingRequestsSent();
+      final acceptedConnections = repository.fetchAcceptedConnections();
+      emit(
+        ConnectionRequestSuccess(
+          pendingRequestsReceived: pendingRequestsReceived,
+          pendingRequestsSent: pendingRequestsSent,
+          acceptedConnections: acceptedConnections,
+        ),
       );
-      final currentState = state;
-      if (currentState is ConnectionRequestSuccess) {
-        emit(
-          currentState.copyWith(
-            pendingRequestsReceived: pendingRequestsReceived,
-          ),
-        );
-      } else {
-        emit(
-          ConnectionRequestSuccess(
-            pendingRequestsReceived: pendingRequestsReceived,
-            pendingRequestsSent: [],
-            acceptedConnections: [],
-          ),
-        );
-      }
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
@@ -78,9 +44,10 @@ class ConnectionRequestBloc
     SendConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
   ) {
+    emit(ConnectionRequestLoading());
     try {
       repository.sendConnectionRequestRepository(event.connectionRequest);
-      add(FetchPendingRequestsSent());
+      add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
@@ -90,9 +57,10 @@ class ConnectionRequestBloc
     AcceptConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
   ) {
+    emit(ConnectionRequestLoading());
     try {
       repository.acceptConnectionRequestRepoistory(event.requestId);
-      add(FetchPendingRequestsReceived());
+      add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
@@ -102,9 +70,10 @@ class ConnectionRequestBloc
     DeclineConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
   ) {
+    emit(ConnectionRequestLoading());
     try {
       repository.DeclineConnectionRequestRepoistory(event.requestId);
-      add(FetchPendingRequestsReceived());
+      add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
@@ -114,32 +83,23 @@ class ConnectionRequestBloc
     CancelConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
   ) {
+    emit(ConnectionRequestLoading());
     try {
       repository.cancelConnectionRequest(event.requestId);
-      add(FetchPendingRequestsSent());
+      add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
   }
 
-  void _fetchAcceptedConnections(
-    FetchAcceptedConnections event,
+  void _removeConnection(
+    RemoveConnection event,
     Emitter<ConnectionRequestState> emit,
   ) {
+    emit(ConnectionRequestLoading());
     try {
-      final acceptedConnections = repository.fetchAcceptedConnections();
-      final currentState = state;
-      if (currentState is ConnectionRequestSuccess) {
-        emit(currentState.copyWith(acceptedConnections: acceptedConnections));
-      } else {
-        emit(
-          ConnectionRequestSuccess(
-            pendingRequestsReceived: [],
-            pendingRequestsSent: [],
-            acceptedConnections: acceptedConnections,
-          ),
-        );
-      }
+      repository.removeConnection(event.connectionId);
+      add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
