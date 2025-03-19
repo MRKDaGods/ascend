@@ -24,6 +24,6 @@ class PostModel {
     this.timePosted = '2h ago',
     this.initialLikes = 0,
     this.initialComments = 0,
-    this.followers = 0, required String id, // Default to 0
+    this.followers = 0, // Default to 0
   });
 }
