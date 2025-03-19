@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
-import 'package:ascend_app/features/networks/presentation/networks.dart';
+//import 'package:ascend_app/features/networks/presentation/networks.dart';
 import 'package:ascend_app/features/UserPage/models/profile_section.dart';
 
 final List<ProfileSection> sectionss = [
@@ -42,7 +42,7 @@ final List<ProfileSection> sectionss = [
     title: 'Interests',
     content: [
       Text(
-        'Cairo University',
+        'Cairo Universityy',
         style: TextStyle(color: Colors.white, fontSize: 14),
       ),
       Text('Microsoft', style: TextStyle(color: Colors.white, fontSize: 14)),
@@ -50,7 +50,6 @@ final List<ProfileSection> sectionss = [
     ],
   ),
 ];
-
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -61,10 +60,8 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-    
 
-  final List<Widget> _pages = const [
-
+  final List<Widget> _pages = [
     UserProfilePage(
       name: "Maged Amgad",
       bio: "sw",
