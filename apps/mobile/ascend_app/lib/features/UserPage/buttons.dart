@@ -101,15 +101,4 @@ class ProfileButtons extends StatelessWidget {
       },
     );
   }
-
-  Widget _buildSheetOption(BuildContext context, IconData icon, String text) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(text, style: TextStyle(color: Colors.white)),
-      onTap: () {
-        Navigator.pop(context); // Close bottom sheet
-        print("$text selected");
-      },
-    );
-  }
 }

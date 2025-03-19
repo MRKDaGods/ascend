@@ -77,16 +77,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     });
   }
 
-  //makes full screen image
-  void _showFullScreenImage(BuildContext context, String imageUrl) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullScreenImage(imageUrl: imageUrl),
-      ),
-    );
-  }
-
   // Function to show withdraw confirmation dialog
   void _showWithdrawDialog(BuildContext context) {
     showDialog(
