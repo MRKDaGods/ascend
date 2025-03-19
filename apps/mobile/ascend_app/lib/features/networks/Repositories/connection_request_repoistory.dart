@@ -42,4 +42,9 @@ class ConnectionRequestRepository {
     //await Future.delayed(Duration(milliseconds: 500)); // Mock API delay
     removeConnectionRequest(connectionRequests, requestId);
   }
+
+  void removeConnection(String connectionId) {
+    //await Future.delayed(Duration(milliseconds: 500)); // Mock API delay
+    removeConnectionRequest(connectionRequests, connectionId);
+  }
 }

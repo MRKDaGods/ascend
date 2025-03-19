@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/widgets/grow.dart';
 import 'package:ascend_app/features/networks/widgets/catchup.dart';
@@ -11,14 +12,19 @@ class Networks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (RequestsContext) {
-        final bloc = ConnectionRequestBloc();
-        bloc.add(FetchPendingRequestsReceived());
-        bloc.add(FetchPendingRequestsSent());
-        bloc.add(FetchAcceptedConnections());
-        return bloc;
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ConnectionRequestBloc>(
+          create: (requestsContext) {
+            final bloc = ConnectionRequestBloc();
+            bloc.add(FetchConnectionRequests());
+            return bloc;
+          },
+        ),
+        BlocProvider<FollowBloc>(
+          create: (followContext) => FollowBloc()..add(FetchFollowing()),
+        ),
+      ],
       child: Scaffold(
         body: DefaultTabController(
           length: 2,

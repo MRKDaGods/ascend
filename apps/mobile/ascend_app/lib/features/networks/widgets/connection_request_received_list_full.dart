@@ -65,7 +65,27 @@ class ConnectionRequestsReceivedListFull extends StatelessWidget {
                                         as ImageProvider,
                           ),
                           title: Text(invitation.name),
-                          subtitle: Text(invitation.bio),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                invitation.bio,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                'Sent ${connectionRequest.timestamp}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

@@ -23,13 +23,9 @@ class CancelConnectionRequest extends ConnectionRequestEvent {
   CancelConnectionRequest({required this.requestId});
 }
 
-/*class RemoveConnection extends ConnectionRequestEvent {
+class RemoveConnection extends ConnectionRequestEvent {
   final String connectionId;
   RemoveConnection({required this.connectionId});
 }
-*/
-class FetchPendingRequestsSent extends ConnectionRequestEvent {}
 
-class FetchPendingRequestsReceived extends ConnectionRequestEvent {}
-
-class FetchAcceptedConnections extends ConnectionRequestEvent {}
+class FetchConnectionRequests extends ConnectionRequestEvent {}
