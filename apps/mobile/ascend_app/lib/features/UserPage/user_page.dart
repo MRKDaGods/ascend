@@ -4,7 +4,6 @@ import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 import 'full_screen_image.dart';
 
-class UserProfilePage extends StatelessWidget {
   UserProfilePage({
     super.key,
     this.name = 'Hamada Helal',
@@ -38,7 +37,6 @@ class UserProfilePage extends StatelessWidget {
     );
   }
 
-  //final void Function(int) changescreen;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,12 +46,10 @@ class UserProfilePage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        //search bar
         title: Container(
           height: 40,
           decoration: BoxDecoration(
@@ -61,16 +57,12 @@ class UserProfilePage extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
-            style: TextStyle(color: const Color.fromARGB(255, 19, 19, 19)),
+            style: TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              prefixIcon: Icon(
-                Icons.search,
-                color: const Color.fromARGB(137, 0, 0, 0),
-              ),
+              prefixIcon: Icon(Icons.search, color: Colors.white38),
               border: InputBorder.none,
               hintText: 'Search',
-              hintStyle: TextStyle(color: const Color.fromARGB(137, 3, 3, 3)),
-              suffixStyle: TextStyle(color: Colors.white54),
+              hintStyle: TextStyle(color: Colors.white38),
             ),
           ),
         ),
@@ -82,16 +74,14 @@ class UserProfilePage extends StatelessWidget {
               clipBehavior: Clip.none,
               alignment: Alignment.bottomLeft,
               children: [
-
                 GestureDetector(
-                  onTap: () {
-                    _showFullScreenImage(context, coverImageUrl);
-                  },
+                  onTap:
+                      () => _showFullScreenImage(context, widget.coverImageUrl),
                   child: Container(
                     height: 120,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage(coverImageUrl),
+                        image: NetworkImage(widget.coverImageUrl),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -101,15 +91,17 @@ class UserProfilePage extends StatelessWidget {
                   left: 20,
                   bottom: -40,
                   child: GestureDetector(
-                    onTap: () {
-                      _showFullScreenImage(context, profileImageUrl);
-                    },
+                    onTap:
+                        () => _showFullScreenImage(
+                          context,
+                          widget.profileImageUrl,
+                        ),
                     child: CircleAvatar(
                       radius: 50,
-                      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                      backgroundColor: Colors.black,
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage: NetworkImage(profileImageUrl),
+                        backgroundImage: NetworkImage(widget.profileImageUrl),
                       ),
                     ),
                   ),
@@ -123,8 +115,7 @@ class UserProfilePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-
-                    name,
+                    widget.name,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -132,37 +123,35 @@ class UserProfilePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 5),
-
-                  Text(bio, style: TextStyle(color: Colors.white70)),
+                  Text(widget.bio, style: TextStyle(color: Colors.white70)),
                   SizedBox(height: 5),
                   Text(
-                    latestEducation,
+                    widget.latestEducation,
                     style: TextStyle(color: Colors.white70),
                   ),
-                  Text(location, style: TextStyle(color: Colors.white70)),
+                  Text(
+                    widget.location,
+                    style: TextStyle(color: Colors.white70),
+                  ),
                   SizedBox(height: 5),
-                  if (connections > 0)
+                  if (widget.connections > 0)
                     Text(
-                      connections < 500
-                          ? '$connections connections'
+                      widget.connections < 500
+                          ? '${widget.connections} connections'
                           : '500+ connections',
                       style: TextStyle(color: Colors.white70),
                     ),
-
                   SizedBox(height: 15),
                   Row(
                     children:
-                        isconnect
+                        _isConnect
                             ? [
-                              // Wide "Message" Button when connected
                               Expanded(
                                 child: OutlinedButton(
                                   onPressed: () {},
                                   style: OutlinedButton.styleFrom(
                                     side: BorderSide(color: Colors.white70),
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 15,
-                                    ), // Make it taller
+                                    padding: EdgeInsets.symmetric(vertical: 15),
                                   ),
                                   child: Text(
                                     'Message',
@@ -172,14 +161,18 @@ class UserProfilePage extends StatelessWidget {
                               ),
                             ]
                             : [
-                              // "Connect" and "Message" buttons when NOT connected
                               ElevatedButton.icon(
-                                label: Text('Connect'),
-                                icon: Icon(Icons.add),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
+                                label: Text(
+                                  _isConnect ? 'Connected' : 'Connect',
                                 ),
-                                onPressed: () {},
+                                icon: Icon(
+                                  _isConnect ? Icons.check : Icons.add,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      _isConnect ? Colors.grey : Colors.blue,
+                                ),
+                                onPressed: _toggleConnect,
                               ),
                               SizedBox(width: 10),
                               OutlinedButton(
@@ -194,10 +187,8 @@ class UserProfilePage extends StatelessWidget {
                               ),
                             ],
                   ),
-
                   SizedBox(height: 30),
-                  // Divider(color: Colors.white38),
-                  for (var section in sections) _buildSection(section),
+                  for (var section in widget.sections) _buildSection(section),
                 ],
               ),
             ),
@@ -212,7 +203,6 @@ class UserProfilePage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-
           section.title,
           style: TextStyle(
             color: Colors.white,
@@ -220,16 +210,13 @@ class UserProfilePage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-
         for (var item in section.content) ...[
           SizedBox(height: 5),
           item,
           Divider(color: Colors.white38),
         ],
         SizedBox(height: 20),
-        // Divider(color: Colors.white38),
       ],
     );
   }
-
 }
