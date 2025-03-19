@@ -1,77 +1,130 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_images_grid_shape.dart';
 
 class PostImageSection extends StatelessWidget {
   final List<String> images;
   final bool useCarousel;
-  final bool isSponsored; // Add this parameter to check if the post is sponsored
-  final Function(int)? onTap;
+  final bool isSponsored;
+  final Function(int) onTap;
 
   const PostImageSection({
     super.key,
     required this.images,
     this.useCarousel = false,
-    this.isSponsored = false, // Default to false
-    this.onTap,
+    this.isSponsored = false,
+    required this.onTap,
   });
-
 
   @override
   Widget build(BuildContext context) {
-    if (images.isEmpty) {
-      return const SizedBox.shrink();
+    // For a single image
+    if (images.length == 1) {
+      return _buildSingleImage(context, images[0]);
     }
 
-    // Only use carousel for sponsored posts AND if useCarousel is true
-    if (isSponsored && useCarousel) {
-      return CarouselSlider(
-        options: CarouselOptions(
-          height: 200.0,
-          viewportFraction: 1.0,
-          enableInfiniteScroll: images.length > 1,
-          enlargeCenterPage: false,
-          autoPlay: true, // Auto-play for sponsored posts
-          autoPlayInterval: const Duration(seconds: 5),
-          autoPlayAnimationDuration: const Duration(milliseconds: 800),
+    // For multiple images with carousel
+    if (useCarousel) {
+      return _buildCarousel(context);
+    }
+
+    // For multiple images in a grid
+    return _buildImageGrid(context);
+  }
+
+  Widget _buildSingleImage(BuildContext context, String imageUrl) {
+    return GestureDetector(
+      onTap: () => onTap(0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.asset(
+          imageUrl,
+          width: double.infinity,
+          height: 200,
+          fit: BoxFit.cover,
         ),
-        items: List.generate(images.length, (index) {
-          return Builder(
-            builder: (BuildContext context) {
-              return GestureDetector(
-                onTap: () => onTap?.call(index),
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
+      ),
+    );
+  }
+
+  Widget _buildCarousel(BuildContext context) {
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: 200,
+        viewportFraction: 1.0,
+        enableInfiniteScroll: images.length > 1,
+        autoPlay: isSponsored, // Auto-play for sponsored posts
+        autoPlayInterval: const Duration(seconds: 4),
+      ),
+      items: List.generate(images.length, (index) {
+        return GestureDetector(
+          onTap: () => onTap(index),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                images[index],
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildImageGrid(BuildContext context) {
+    // Maximum of 4 images in grid view
+    final displayImages = images.length > 4 ? images.sublist(0, 4) : images;
+    final hasMoreImages = images.length > 4;
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: displayImages.length == 1 ? 1 : 2,
+          mainAxisSpacing: 4,
+          crossAxisSpacing: 4,
+          children: List.generate(displayImages.length, (index) {
+            bool isLastTile = index == 3 && hasMoreImages;
+            
+            return GestureDetector(
+              onTap: () => onTap(index),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
                     child: Image.asset(
-                      images[index],
+                      displayImages[index],
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        print("Error loading image: $error");
-                        return Container(
-                          height: 200,
-                          color: Colors.grey[300],
-                          child: const Center(child: Text('Image not available')),
-                        );
-                      },
                     ),
                   ),
-                ),
-              );
-            },
-          );
-        }),
-      );
-    } 
-    // For all non-sponsored posts, always use grid layout
-    else {
-      return ImagesGridShape(
-        imageCount: images.length,
-        images: images,
-        onTap: onTap,
-      );
-    }
+                  if (isLastTile)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '+${images.length - 3}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
+        );
+      },
+    );
   }
 }
