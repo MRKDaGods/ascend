@@ -42,7 +42,7 @@ final List<ProfileSection> sectionss = [
     title: 'Interests',
     content: [
       Text(
-        'Cairo University',
+        'Cairo Universityy',
         style: TextStyle(color: Colors.white, fontSize: 14),
       ),
       Text('Microsoft', style: TextStyle(color: Colors.white, fontSize: 14)),
