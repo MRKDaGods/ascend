@@ -1,12 +1,10 @@
 name: ascend_app
 description: "A new Flutter project."
-publish_to: "none"
+publish_to: 'none'
 version: 0.1.0
 
 environment:
-
   sdk: '>=3.7.0 <4.0.0'
-
 
 dependencies:
   flutter:
@@ -24,13 +22,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   
 
-
 flutter:
   uses-material-design: true
   assets:
     - assets/logo.jpg
     - assets/images_posts/
-
-
     - assets/
     - assets/logo/

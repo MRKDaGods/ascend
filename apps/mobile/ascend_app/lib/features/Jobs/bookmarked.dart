@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-import 'package:ascend_app/features/Jobs/job_details.dart';
 
 class Bookmarked extends StatefulWidget {
   final VoidCallback toalljobs;
@@ -34,7 +33,10 @@ class _BookmarkedState extends State<Bookmarked> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Saved Jobs')),
+      appBar: AppBar(
+        title: Text('Saved Jobs'),
+        actions: [IconButton(icon: Icon(Icons.filter_list), onPressed: () {})],
+      ),
       body: Column(
         children: [
           Padding(
@@ -57,93 +59,70 @@ class _BookmarkedState extends State<Bookmarked> {
                       itemCount: filteredBookmarkedJobs.length,
                       itemBuilder: (context, index) {
                         final job = filteredBookmarkedJobs[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => JobDetailsPage(
-                                      job: job,
-                                      onBookmarkToggle: () {
-                                        toggleBookmark(job);
-                                        Navigator.pop(
-                                          context,
-                                        ); // Go back after saving
-                                      },
-                                    ),
-                              ),
-                            );
-                          },
-                          child: Card(
-                            margin: EdgeInsets.symmetric(
-                              vertical: 8.0,
-                              horizontal: 16.0,
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(15.0),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.asset(
-                                      job.companyPhoto ??
-                                          'assets/logo.png', // Use default logo if null
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (
-                                        context,
-                                        error,
-                                        stackTrace,
-                                      ) {
-                                        return Icon(
-                                          Icons.image_not_supported,
-                                          size: 50,
-                                          color: Colors.grey,
-                                        );
-                                      },
-                                    ),
+                        return Card(
+                          margin: EdgeInsets.symmetric(
+                            vertical: 8.0,
+                            horizontal: 16.0,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(15.0),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: Image.asset(
+                                    job.companyPhoto ??
+                                        'assets/logo.png', // Use default logo if null
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
+                                        Icons.image_not_supported,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      );
+                                    },
                                   ),
-                                  SizedBox(width: 12.0),
+                                ),
+                                SizedBox(width: 12.0),
 
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          job.title,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16.0,
-                                          ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        job.title,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16.0,
                                         ),
-                                        SizedBox(height: 4.0),
-                                        Text(
-                                          'Company: ${job.company}',
-                                          style: TextStyle(
-                                            color: Colors.grey[700],
-                                          ),
+                                      ),
+                                      SizedBox(height: 4.0),
+                                      Text(
+                                        'Company: ${job.company}',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
                                         ),
-                                        Text(
-                                          'Location: ${job.location}',
-                                          style: TextStyle(
-                                            color: Colors.grey[700],
-                                          ),
+                                      ),
+                                      Text(
+                                        'Location: ${job.location}',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.bookmark_remove,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () => toggleBookmark(job),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.bookmark_remove,
+                                    color: Colors.red,
                                   ),
-                                ],
-                              ),
+                                  onPressed: () => toggleBookmark(job),
+                                ),
+                              ],
                             ),
                           ),
                         );
