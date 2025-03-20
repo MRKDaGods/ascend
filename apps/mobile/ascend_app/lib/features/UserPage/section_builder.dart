@@ -43,6 +43,7 @@ Widget buildSection(BuildContext context, ProfileSection section) {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            SizedBox(height: 5),
 
             // Section Content with Dividers
             for (var item in displayedContent) ...[
