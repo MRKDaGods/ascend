@@ -1,0 +1,2 @@
+E:/college/senior 1/Spring/SW/ascend/apps/mobile/ascend_app/android/app/.cxx/Debug/5vv735j6/x86/CMakeFiles/edit_cache.dir
+E:/college/senior 1/Spring/SW/ascend/apps/mobile/ascend_app/android/app/.cxx/Debug/5vv735j6/x86/CMakeFiles/rebuild_cache.dir
