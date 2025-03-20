@@ -1,11 +1,16 @@
 import React from "react";
 import SignUp from "@/app/components/SignUp";
+import { Container } from "@mui/material";
+import Logo from "@/app/components/Logo";
 
 const Page = () => {
   return (
-    <div>
-      <SignUp />
-    </div>
+    <>
+      <Logo />
+      <Container>
+        <SignUp />
+      </Container>
+    </>
   );
 };
 
