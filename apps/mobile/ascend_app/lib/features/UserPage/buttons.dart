@@ -1,5 +1,8 @@
+import 'package:ascend_app/features/UserPage/blue_button.dart';
 import 'package:flutter/material.dart';
 import 'bottom_options_sheet.dart';
+import 'grey_button.dart';
+import 'blue_button.dart';
 
 class ProfileButtons extends StatelessWidget {
   const ProfileButtons(
@@ -20,50 +23,28 @@ class ProfileButtons extends StatelessWidget {
     return Row(
       children: [
         if (_isConnect)
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.white70),
-                padding: EdgeInsets.symmetric(vertical: 8),
-              ),
-              child: Text('Message', style: TextStyle(color: Colors.white)),
-            ),
-          )
+          Expanded(child: BlueButton(text: "Message", icon: Icons.send))
         else ...[
           Expanded(
             child:
                 _isPending
-                    ? OutlinedButton.icon(
-                      icon: Icon(Icons.access_time, color: Colors.white),
-                      onPressed: () => _withdrawRequest(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white70),
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      label: Text('Pending'),
+                    ? GreyButton(
+                      text: "Pending",
+                      action: _withdrawRequest,
+                      icon: Icons.access_time,
                     )
-                    : ElevatedButton.icon(
-                      label: Text('Connect'),
-                      icon: Icon(Icons.add, color: Colors.black),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.black,
-                        backgroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                      ),
-                      onPressed: _toggleConnect,
+                    : BlueButton(
+                      text: "Connect",
+                      action: _toggleConnect,
+                      icon: Icons.person_add,
                     ),
           ),
           SizedBox(width: 8),
           Expanded(
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.white70),
-                padding: EdgeInsets.symmetric(vertical: 8),
-              ),
-              child: Text('Message', style: TextStyle(color: Colors.white)),
+            child: GreyButton(
+              text: "Message",
+              action: (context) {},
+              icon: Icons.send,
             ),
           ),
         ],
@@ -73,7 +54,7 @@ class ProfileButtons extends StatelessWidget {
           width: 40,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: Colors.grey[900],
               border: Border.all(color: Colors.white70),
               shape: BoxShape.circle,
             ),
