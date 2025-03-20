@@ -1,0 +1,13 @@
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    volumes:
+      - ./services/auth:/app/services/auth
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3001:3001"
+      - "9229:9229"
+    environment:
+      - NODE_ENV=development
