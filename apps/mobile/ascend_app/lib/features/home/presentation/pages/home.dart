@@ -16,46 +16,46 @@ class _HomeState extends State<Home> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   int _sponsoredPostCounter = 0;
-
+  
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _loadInitialItems();
   }
-
+  
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-
+  
   void _loadInitialItems() {
     // Load initial batch of regular posts
     setState(() {
       _posts = SamplePosts.generateMixedPosts(10);
     });
   }
-
+  
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
       _loadMoreItems();
     }
   }
-
+  
   void _loadMoreItems() async {
     if (_isLoading) return;
-
+    
     setState(() {
       _isLoading = true;
     });
-
+    
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 1));
-
+    
     if (mounted) {
       setState(() {
         // Add 5 more posts
@@ -64,7 +64,7 @@ class _HomeState extends State<Home> {
       });
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -75,8 +75,8 @@ class _HomeState extends State<Home> {
           const CustomSliverAppBar(
             pinned: false,
             floating: true,
-            addpost: true, // Show the post button
-          ),
+            addpost: true,   // Show the post button
+            ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -84,24 +84,20 @@ class _HomeState extends State<Home> {
                 if (index == _getDisplayItemCount()) {
                   return _isLoading
                       ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
                       : const SizedBox.shrink();
                 }
-
+              
                 // Check if this position should show a sponsored post
                 // Show sponsored posts at positions 2, 8, 15, etc.
-                if (index == 2 ||
-                    index == 8 ||
-                    (index > 10 && (index - 10) % 7 == 0)) {
+                if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
                   _sponsoredPostCounter++;
-                  final sponsoredPost = SamplePosts.getNextSponsoredPost(
-                    _sponsoredPostCounter - 1,
-                  );
-
+                  final sponsoredPost = SamplePosts.getNextSponsoredPost(_sponsoredPostCounter - 1);
+                  
                   return Post(
                     title: sponsoredPost.title,
                     description: sponsoredPost.description,
@@ -117,7 +113,7 @@ class _HomeState extends State<Home> {
                     followers: sponsoredPost.followers,
                   );
                 }
-
+                
                 // Calculate the actual post index, accounting for sponsored posts
                 int actualPostIndex = index;
                 if (index > 2) actualPostIndex--;
@@ -125,13 +121,13 @@ class _HomeState extends State<Home> {
                 if (index > 10) {
                   actualPostIndex -= ((index - 10) / 7).floor();
                 }
-
+                
                 if (actualPostIndex >= _posts.length) {
                   return const SizedBox.shrink();
                 }
-
+                
                 final post = _posts[actualPostIndex];
-
+                
                 return Post(
                   title: post.title,
                   description: post.description,
@@ -147,19 +143,18 @@ class _HomeState extends State<Home> {
                   followers: post.followers,
                 );
               },
-              childCount:
-                  _getDisplayItemCount() + 1, // +1 for loading indicator
+              childCount: _getDisplayItemCount() + 1, // +1 for loading indicator
             ),
           ),
         ],
       ),
     );
   }
-
+  
   int _getDisplayItemCount() {
     // Calculate total items including sponsored posts
     final regularPostsCount = _posts.length;
-
+    
     // Add sponsored posts: one after first 2 posts, another after 8 posts,
     // then every 7 posts after the first 10
     int sponsoredCount = 0;
@@ -168,7 +163,7 @@ class _HomeState extends State<Home> {
     if (regularPostsCount > 10) {
       sponsoredCount += ((regularPostsCount - 10) / 7).ceil();
     }
-
+    
     return regularPostsCount + sponsoredCount;
   }
 }
