@@ -1,8 +1,18 @@
-"use client"; // Necessary for Next.js if using client-side navigation
+"use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import Logo from "./Logo";
 import Footer from "./Footer";
+import {
+  Container,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Typography,
+  Paper,
+  Box,
+  Link,
+} from "@mui/material";
 
 const SignUp = () => {
   const router = useRouter();
@@ -18,7 +28,7 @@ const SignUp = () => {
     setSuccess("");
 
     try {
-      const response = await fetch("http://localhost:3001/SignUp", { // ✅ Fixed API URL
+      const response = await fetch("http://localhost:3001/SignUp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -40,86 +50,111 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F6F6EB]">
-      <Logo />
-      <p className="text-3xl font-normal mb-6">Make the most of your professional life</p>
-
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <form onSubmit={handleSubmit}>
-          {/* Email Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full px-3 py-2 border border-gray-400 rounded mt-1"
+    <Box display="flex" flexDirection="column" alignItems="center" minHeight="100vh" justifyContent="center" sx={{mt:-3}}>
+      <Typography variant="h4" fontWeight={500} gutterBottom>
+        Make the most of your professional life
+      </Typography>
+      <Container maxWidth="xs">
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <form onSubmit={handleSubmit}>
+            <Typography variant="subtitle1" gutterBottom sx={{mb:-2}}>Email</Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              margin="normal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              sx={{height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
             />
-          </div>
-
-          {/* Password Field with Show/Hide Toggle */}
-          <div className="mb-4">
-            <label className="block text-gray-700">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
-                className="w-full px-3 py-2 border border-gray-400 rounded mt-1 pr-10"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-600"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-          </div>
-
-          {/* Remember Me Checkbox */}
-          <div className="mb-4 flex items-center">
-            <input type="checkbox" id="remember" className="mr-2" />
-            <label htmlFor="remember" className="text-gray-700">Remember me</label>
-          </div>
-
-          {/* Error & Success Messages */}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {success && <p className="text-green-500 text-sm">{success}</p>}
-
-          {/* Submit Button */}
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-            Agree & Join
-          </button>
-        </form>
-
-        {/* Separator */}
-        <div className="my-4 text-center text-gray-500">or</div>
-
-        {/* Continue with Google */}
-        <button className="w-full flex items-center justify-center border py-2 rounded mb-2 hover:bg-gray-200">
-          <img src="/google.jpg" alt="Google" className="w-5 h-5 mr-2" />
-          Continue with Google
-        </button>
-
-        {/* Continue with Microsoft */}
-        <button className="w-full flex items-center justify-center border py-2 rounded hover:bg-gray-200">
-          <img src="/microsoft.png" alt="Microsoft" className="w-5 h-5 mr-2" />
-          Continue with Microsoft
-        </button>
-
-        {/* Already have an account? */}
-        <p className="mt-4 text-center text-sm">
-          Already on LinkedIn? <a href="#" className="text-blue-600 hover:underline">Sign in</a>
-        </p>
-      </div>
+            <Typography variant="subtitle1" gutterBottom sx={{mb:-2}}>Password</Typography>
+            <TextField
+              fullWidth
+              type={showPassword ? "text" : "password"}
+              variant="outlined"
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              sx={{height: "2em", "& .MuiInputBase-root": { height: "2em",  border: "0.01em solid black"  } }}
+              InputProps={{
+                endAdornment: (
+                  <Button onClick={() => setShowPassword(!showPassword)} size="medium" sx={{ fontWeight: "bold",  textTransform: "none"  }}>
+                    {showPassword ? "Hide" : "Show"}
+                  </Button>
+                ),
+              }}
+            />
+            <FormControlLabel
+              control={<Checkbox defaultChecked />}
+              label="Keep me logged in"
+              sx={{ mt: 1 }}
+            />
+            <Typography variant="caption" display="block" align="center" sx={{ mt: 1, mb: 2 }}>
+              By clicking Agree & Join or Continue, you agree to the LinkedIn
+              <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500 }}> User Agreement</Link>,
+              <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500 }}> Privacy Policy</Link>, and
+              <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500 }}> Cookie Policy</Link>.
+            </Typography>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ backgroundColor: "#0a66c2", color: "white", borderRadius: 8, py: 1.5, fontSize: "1rem", fontWeight: 600,  textTransform: "none"  }}
+            >
+              Agree & Join
+            </Button>
+          </form>
+          <Box display="flex" alignItems="center" width="100%" my={2} sx={{mb:-1, mt:-1}}>
+            <Box flex={1} height="1px" bgcolor="gray" />
+            <Typography align="center" sx={{ my: 2 }} mx={2}>or</Typography>
+            <Box flex={1} height="1px" bgcolor="gray" />
+          </Box>
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ mb: 1,
+              borderRadius: 5,
+              borderColor: "black",
+              color: "text.secondary",
+              fontWeight: "bold",
+              textTransform: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center"}}
+            startIcon={<img src="/google.jpg" alt="Google" width={24} height={24} />}
+          >
+            Continue with Google
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{mb: 1,
+              borderRadius: 5,
+              borderColor: "black",
+              color: "text.secondary",
+              fontWeight: "bold",
+              textTransform: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center"}}
+            startIcon={<img src="/microsoft.png" alt="Microsoft" width={24} height={24} />}
+          >
+            Continue with Microsoft
+          </Button>
+          <Typography align="center" sx={{ mt: 1 }}>
+            Already on LinkedIn?
+            <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Sign in</Link>
+          </Typography>
+        </Paper>
+      </Container>
+      <Typography align="center" sx={{ mt: 2 }}>
+        Looking to create a page for a business?
+        <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Get help</Link>
+      </Typography>
 
       <Footer />
-    </div>
+    </Box>
   );
 };
 
