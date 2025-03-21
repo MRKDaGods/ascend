@@ -1,7 +1,9 @@
 name: Auto Approve PR (seif)
 
-on: pull_request:
-    types: [opened, synchronize]
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+    workflow_dispatch:
 
 jobs:
   auto-approve:
