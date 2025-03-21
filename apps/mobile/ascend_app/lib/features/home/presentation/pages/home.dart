@@ -91,7 +91,6 @@ class _HomeState extends State<Home> {
                         )
                       : const SizedBox.shrink();
                 }
-              
                 // Check if this position should show a sponsored post
                 // Show sponsored posts at positions 2, 8, 15, etc.
                 if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
