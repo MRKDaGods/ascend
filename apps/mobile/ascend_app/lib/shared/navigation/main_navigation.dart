@@ -1,8 +1,55 @@
+import 'package:ascend_app/features/UserPage/user_page.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
+//import 'package:ascend_app/features/networks/presentation/networks.dart';
+import 'package:ascend_app/features/UserPage/models/profile_section.dart';
 
+final List<ProfileSection> sectionss = [
+  ProfileSection(
+    title: 'Highlights',
+    content: [
+      Text(
+        'You both studied at Cairo University from 2021 to 2026',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+  ProfileSection(
+    title: 'Activity',
+    content: [
+      Text(
+        'Hamada hasn’t posted yet',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+  ProfileSection(
+    title: 'Education',
+    content: [
+      Text(
+        'Cairo University\nBachelor of Engineering - Computer Engineering\nOct 2021 - Jun 2026',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      Text(
+        'Pioneers Language School\nHigh School\nSep 20 14 - Jun 2021',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+  ProfileSection(
+    title: 'Interests',
+    content: [
+      Text(
+        'Cairo University',
+        style: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      Text('Microsoft', style: TextStyle(color: Colors.white, fontSize: 14)),
+      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
+    ],
+  ),
+];
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -14,7 +61,14 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = const [
+  final List<Widget> _pages = [
+    UserProfilePage(
+      name: "Maged Amgad",
+      bio: "sw",
+      location: "Cairo,Egypt",
+      latestEducation: "Cairo university",
+      sections: sectionss,
+    ),
     Home(),
     Center(child: Text("Video")),
     Networks(),
