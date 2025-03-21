@@ -43,8 +43,7 @@ app.*.map.json
 /android/app/release
 
 # Ascend app specific ignores
-apps/mobile/ascend_app/android/app/
+/android/app/.cxx/
 
 # VS Code settings
 .vscode/
-apps/mobile/ascend_app/.vscode/
