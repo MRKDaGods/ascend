@@ -1,0 +1,15 @@
+name: Auto Approve PR (seif)
+
+on: pull_request_target
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: github.actor == 'seifheakal'
+    steps:
+      - name: Auto Approve PR
+        uses: hmarr/auto-approve-action@v4
+        with:
+          review-message: "Auto approved automated PR"
