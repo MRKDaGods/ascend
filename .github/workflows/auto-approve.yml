@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-    if: github.actor == 'seifheakal'
+    if: contains(fromJson('["seifheakal", "MRKDaGods", "HabibaHammouda"]'), github.actor)
     steps:
       - name: Auto Approve PR
         uses: hmarr/auto-approve-action@v4
