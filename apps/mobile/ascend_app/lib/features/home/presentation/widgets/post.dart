@@ -143,6 +143,17 @@ class _PostState extends State<Post> {
     );
   }
 
+  void _toggleLike() {
+    setState(() {
+      if (_isLiked) {
+        _likesCount--;
+      } else {
+        _likesCount++;
+      }
+      _isLiked = !_isLiked;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_showFeedbackOptions) {
