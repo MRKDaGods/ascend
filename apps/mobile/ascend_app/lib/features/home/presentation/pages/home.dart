@@ -111,7 +111,6 @@ class _HomeState extends State<Home> {
                     followers: sponsoredPost.followers,
                   );
                 }
-                
                 // Calculate the actual post index, accounting for sponsored posts
                 int actualPostIndex = index;
                 if (index > 2) actualPostIndex--;
