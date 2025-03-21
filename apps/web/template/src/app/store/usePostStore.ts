@@ -10,11 +10,13 @@ export interface PostType {
   timestamp: string;
   content: string;
   image?: string;
+  video?: string;
+  file?: string; 
   likes: number;
   comments: number;
   reposts: number;
   commentsList: string[];
-  isUserPost: boolean; // ✅ Distinguishes user-created posts
+  isUserPost: boolean;
 }
 
 // ✅ Define Zustand Store Type
@@ -69,8 +71,8 @@ export const usePostStore = create<PostStoreState>()(
           username: "Jane Smith",
           followers: "1,200 followers",
           timestamp: "1d ago",
-          content: "Had an amazing time at the tech conference! 🔥",
-          image: "/mock-image2.jpg",
+          content: "Feature works doesn’t mean you're done. 😅",
+          image: "/post1.jpg",
           likes: 89,
           comments: 23,
           reposts: 10,
@@ -82,7 +84,7 @@ export const usePostStore = create<PostStoreState>()(
       repostedPosts: [],
 
       // ✅ Add a new post
-      addPost: (content: string, image?: string) =>
+      addPost: (content: string, media?: string, mediaType?: "image" | "video") =>
         set((state) => {
           const newPost: PostType = {
             id: Date.now(),
@@ -91,15 +93,16 @@ export const usePostStore = create<PostStoreState>()(
             followers: "You",
             timestamp: "Just now",
             content,
-            image: image || "",
+            image: mediaType === "image" ? media : undefined,
+            video: mediaType === "video" ? media : undefined,
             likes: 0,
             comments: 0,
             reposts: 0,
             commentsList: [],
-            isUserPost: true, // ✅ Mark as user-created
+            isUserPost: true,
           };
           return { ...state, posts: [newPost, ...state.posts] };
-        }),
+        }),     
 
       // ✅ Delete only user-created posts
       deletePost: (postId: number) =>
