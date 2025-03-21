@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
-import 'full_screen_image.dart';
 import 'buttons.dart';
 import 'withdraw_request.dart';
+import 'profile_main_images.dart';
+import 'Data/dummy_profile_sections.dart';
+import 'section_builder.dart';
+import 'profile_header.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({
     super.key,
-    this.name = 'Hamada Helal',
-    this.bio = "zzz",
-    this.profileImageUrl = 'https://picsum.photos/150/150',
+    this.name = 'Maged Amgad',
+    this.bio = "Computer engineering student at Cairo University",
+    this.profileImageUrl = 'https://picsum.photos/500',
     this.coverImageUrl = 'https://picsum.photos/1500/500',
     this.location = 'Cairo, Cairo, Egypt',
     this.latestEducation = 'Cairo University',
-    this.sections = const [],
+    this.sections = sectionss,
     this.isconnect = false,
     this.isfollow = false,
     this.isPending = false,
     this.connections = 15,
+    this.verified = true,
+    this.degree = "1st",
   });
 
   final String name;
@@ -31,6 +36,8 @@ class UserProfilePage extends StatefulWidget {
   final String coverImageUrl;
   final String location;
   final List<ProfileSection> sections;
+  final bool verified;
+  final String degree;
 
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
@@ -40,11 +47,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late bool _isConnect;
   late bool _isFollow;
   late bool _isPending;
+  late String _degree;
 
   @override
   void initState() {
     super.initState();
     _isConnect = widget.isconnect;
+    _degree = widget.degree;
+    if (_isConnect) {
+      _isPending = false;
+      _degree = "1st";
+    } else {
+      _degree = "2nd";
+    }
     _isFollow = widget.isfollow;
     _isPending = widget.isPending;
   }
@@ -72,15 +87,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     });
   }
 
-  void _showFullScreenImage(BuildContext context, String imageUrl) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullScreenImage(imageUrl: imageUrl),
-      ),
-    );
-  }
-
   // Function to show withdraw confirmation dialog
   void _showWithdrawDialog(BuildContext context) {
     showDialog(
@@ -94,9 +100,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.black87,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.grey[900],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -111,15 +117,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
-            style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+            style: TextStyle(color: Colors.black87),
             decoration: InputDecoration(
-              prefixIcon: Icon(
-                Icons.search,
-                color: const Color.fromARGB(179, 0, 0, 0),
-              ),
+              prefixIcon: Icon(Icons.search, color: Colors.black87),
               border: InputBorder.none,
               hintText: 'Search',
-              hintStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+              hintStyle: TextStyle(color: Colors.black87),
             ),
           ),
         ),
@@ -127,43 +130,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.bottomLeft,
-              children: [
-                GestureDetector(
-                  onTap:
-                      () => _showFullScreenImage(context, widget.coverImageUrl),
-                  child: Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(widget.coverImageUrl),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 20,
-                  bottom: -40,
-                  child: GestureDetector(
-                    onTap:
-                        () => _showFullScreenImage(
-                          context,
-                          widget.profileImageUrl,
-                        ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.black,
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: NetworkImage(widget.profileImageUrl),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            ProfileMainImages(
+              profilePic: widget.profileImageUrl,
+              coverPic: widget.coverImageUrl,
             ),
             SizedBox(height: 50),
             Padding(
@@ -171,33 +140,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.name,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  ProfileHeader(
+                    name: widget.name,
+                    verified: widget.verified,
+                    degree: _degree,
+                    bio: widget.bio,
+                    location: widget.location,
+                    latestEducation: widget.latestEducation,
+                    connections: widget.connections,
+                    isconnect: _isConnect,
+                    isPending: _isPending,
                   ),
-                  SizedBox(height: 5),
-                  Text(widget.bio, style: TextStyle(color: Colors.white70)),
-                  SizedBox(height: 5),
-                  Text(
-                    widget.latestEducation,
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  Text(
-                    widget.location,
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  SizedBox(height: 5),
-                  if (widget.connections > 0)
-                    Text(
-                      widget.connections < 500
-                          ? '${widget.connections} connections'
-                          : '500+ connections',
-                      style: TextStyle(color: Colors.white70),
-                    ),
                   SizedBox(height: 15),
                   ProfileButtons(
                     _isConnect,
@@ -206,35 +159,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     _showWithdrawDialog,
                   ),
                   SizedBox(height: 30),
-                  for (var section in widget.sections) _buildSection(section),
                 ],
               ),
             ),
+            for (var section in widget.sections) buildSection(context, section),
           ],
         ),
       ),
     );
   }
-}
-
-Widget _buildSection(ProfileSection section) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        section.title,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      for (var item in section.content) ...[
-        SizedBox(height: 5),
-        item,
-        Divider(color: Colors.white38),
-      ],
-      SizedBox(height: 20),
-    ],
-  );
 }
