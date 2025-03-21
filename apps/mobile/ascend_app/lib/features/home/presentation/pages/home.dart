@@ -97,7 +97,6 @@ class _HomeState extends State<Home> {
                 if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
                   _sponsoredPostCounter++;
                   final sponsoredPost = SamplePosts.getNextSponsoredPost(_sponsoredPostCounter - 1);
-                  
                   return Post(
                     title: sponsoredPost.title,
                     description: sponsoredPost.description,
