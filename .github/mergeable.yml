@@ -7,4 +7,4 @@ mergeable:
         min:
           count: 1
         limit:
-          users: [ 'MRKDaGods', 'seifheakal' ]
+          users: [ 'MRKDaGods', 'seifheakal', 'github-actions', 'HabibaHammouda' ]
