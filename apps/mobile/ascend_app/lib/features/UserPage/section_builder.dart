@@ -39,7 +39,7 @@ Widget buildSection(BuildContext context, ProfileSection section) {
               section.title,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),

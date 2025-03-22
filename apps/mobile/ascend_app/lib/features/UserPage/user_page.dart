@@ -22,6 +22,13 @@ class UserProfilePage extends StatefulWidget {
     this.connections = 15,
     this.verified = true,
     this.degree = "1st",
+    this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
+    this.links = const [
+      {"title": "My Portfolio", "url": "https://example.com"},
+      {"title": "GitHub", "url": "https://github.com/username"},
+      {"title": " ", "url": "https://example.com"}, // This will be ignored
+    ],
+    this.badges = const ["Open to Work", "Providing Services"],
   });
 
   final String name;
@@ -37,6 +44,9 @@ class UserProfilePage extends StatefulWidget {
   final List<ProfileSection> sections;
   final bool verified;
   final String degree;
+  final List<String> mutualConnections;
+  final List<Map<String, String>> links;
+  final List<String> badges;
 
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
@@ -149,6 +159,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     connections: widget.connections,
                     isconnect: _isConnect,
                     isPending: _isPending,
+                    mutualConnections: widget.mutualConnections,
+                    links: widget.links,
                   ),
                   SizedBox(height: 15),
                   ProfileButtons(
