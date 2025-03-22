@@ -20,66 +20,112 @@ class ProfileOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Wrap(
-        children: [
-          _buildSheetOption(
-            context,
-            Icons.send,
-            "Send profile in a message",
-            null,
-          ),
-          _buildSheetOption(context, Icons.share, "Share via...", null),
-          _buildSheetOption(
-            context,
-            Icons.perm_contact_calendar,
-            "Contact info",
-            null,
-          ),
-          if (isConnect) ...[
-            _buildSheetOption(
-              context,
-              Icons.request_page,
-              "Request a recommendation",
-              null,
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Ensures it wraps content properly
+      children: [
+        Stack(
+          children: [
+            Container(
+              width: double.infinity, // Full width background
+              height: 35, // Slightly taller to match reference
+              color: const Color.fromARGB(
+                255,
+                27,
+                27,
+                27,
+              ), // Slightly darker background
             ),
-            _buildSheetOption(context, Icons.thumb_up, "Recommend", null),
-          ],
-
-          isfollowing
-              ? _buildSheetOption(
-                context,
-                Icons.remove,
-                "Unfollow",
-                toggleFollow,
-              )
-              : _buildSheetOption(context, Icons.add, "Follow", toggleFollow),
-          isConnect
-              ? _buildSheetOption(
-                context,
-                Icons.person_off,
-                "Remove connection",
-                toggleConnect,
-              )
-              : isPending
-              ? _buildSheetOption(
-                context,
-                Icons.access_time,
-                "Pending",
-                withdrawRequest,
-              )
-              : _buildSheetOption(
-                context,
-                Icons.person_add,
-                "Connect",
-                toggleConnect,
+            Center(
+              child: Container(
+                width: 54, // Proper width as in the reference image
+                height: 7, // Slightly thicker
+                decoration: BoxDecoration(
+                  color: Colors.white, // Drag handle color
+                  borderRadius: BorderRadius.circular(3), // Rounded edges
+                ),
+                margin: const EdgeInsets.symmetric(
+                  vertical: 10,
+                ), // Adds proper spacing
               ),
+            ),
+          ],
+        ),
 
-          _buildSheetOption(context, Icons.flag, "Report or block", null),
-          _buildSheetOption(context, Icons.info, "About this profile", null),
-        ],
-      ),
+        // Main content with padding
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+          child: Wrap(
+            children: [
+              // Custom Drag Handle
+              // Custom Drag Handle with Centering and Background
+              _buildSheetOption(
+                context,
+                Icons.send,
+                "Send profile in a message",
+                null,
+              ),
+              _buildSheetOption(context, Icons.share, "Share via...", null),
+              _buildSheetOption(
+                context,
+                Icons.perm_contact_calendar,
+                "Contact info",
+                null,
+              ),
+              if (isConnect) ...[
+                _buildSheetOption(
+                  context,
+                  Icons.request_page,
+                  "Request a recommendation",
+                  null,
+                ),
+                _buildSheetOption(context, Icons.thumb_up, "Recommend", null),
+              ],
+
+              isfollowing
+                  ? _buildSheetOption(
+                    context,
+                    Icons.remove,
+                    "Unfollow",
+                    toggleFollow,
+                  )
+                  : _buildSheetOption(
+                    context,
+                    Icons.add,
+                    "Follow",
+                    toggleFollow,
+                  ),
+              isConnect
+                  ? _buildSheetOption(
+                    context,
+                    Icons.person_off,
+                    "Remove connection",
+                    toggleConnect,
+                  )
+                  : isPending
+                  ? _buildSheetOption(
+                    context,
+                    Icons.access_time,
+                    "Pending",
+                    withdrawRequest,
+                  )
+                  : _buildSheetOption(
+                    context,
+                    Icons.person_add,
+                    "Connect",
+                    toggleConnect,
+                  ),
+
+              _buildSheetOption(context, Icons.flag, "Report or block", null),
+              _buildSheetOption(
+                context,
+                Icons.info,
+                "About this profile",
+                null,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
