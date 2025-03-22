@@ -29,7 +29,7 @@ class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {
         widget.description != null && widget.description!.length > 100;
     final String displayedText =
         shouldShowMore && !_isExpanded
-            ? widget.description!.substring(0, 100) + '...'
+            ? '${widget.description!.substring(0, 100)}...'
             : widget.description ?? '';
 
     return Column(
