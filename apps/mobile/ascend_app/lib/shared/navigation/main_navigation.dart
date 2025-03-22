@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
+import 'package:ascend_app/features/UserPage/Data/dummy_profile_sections.dart';
 
 //import 'package:ascend_app/features/networks/presentation/networks.dart';
 class MainNavigation extends StatefulWidget {
@@ -16,7 +17,7 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    UserProfilePage(),
+    UserProfilePage(sections: sections),
     Home(),
     Center(child: Text("Video")),
     Networks(),

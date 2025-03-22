@@ -16,7 +16,7 @@ class UserProfilePage extends StatefulWidget {
     this.coverImageUrl = 'https://picsum.photos/1500/500',
     this.location = 'Cairo, Cairo, Egypt',
     this.latestEducation = 'Cairo University',
-    this.sections = sectionss,
+    this.sections = const [],
     this.isconnect = false,
     this.isfollow = false,
     this.isPending = false,
