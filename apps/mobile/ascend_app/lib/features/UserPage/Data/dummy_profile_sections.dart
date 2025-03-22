@@ -1,54 +1,52 @@
 import '../models/profile_section.dart';
-import 'package:flutter/material.dart';
+import '../profile_entry.dart';
 
-const List<ProfileSection> sectionss = [
+List<ProfileSection> sections = [
   ProfileSection(
-    title: 'Highlights',
+    title: 'About',
     content: [
-      Text(
-        'You both studied at Cairo University from 2021 to 2026',
-        style: TextStyle(color: Colors.white, fontSize: 14),
-      ),
-    ],
-  ),
-  ProfileSection(
-    title: 'Activity',
-    content: [
-      Text(
-        'Hamada hasn’t posted yet',
-        style: TextStyle(color: Colors.white, fontSize: 14),
+      ProfileEntryWidget(
+        description:
+            "I am a passionate Computer Engineering student at Cairo University, "
+            "with a keen interest in Flutter development, mobile applications, "
+            "and software engineering. Always eager to learn and collaborate!",
       ),
     ],
   ),
   ProfileSection(
     title: 'Education',
     content: [
-      Text(
-        'Cairo University\nBachelor of Engineering - Computer Engineering\nOct 2021 - Jun 2026',
-        style: TextStyle(color: Colors.white, fontSize: 14),
+      ProfileEntryWidget(
+        title: 'Cairo University',
+        subtitle: 'Bachelor of Engineering - Computer Engineering',
+        description: 'Oct 2021 - Jun 2026\nGPA: 3.5',
+        imageUrl: 'assets/microsoft.png',
       ),
-      Text(
-        'Pioneers Language School\nHigh School\nSep 2014 - Jun 2021',
-        style: TextStyle(color: Colors.white, fontSize: 14),
+      ProfileEntryWidget(
+        title: 'Pioneers Language School',
+        subtitle: 'High School',
+        description: 'Sep 2014 - Jun 2021',
+        imageUrl: 'assets/microsoft.png',
       ),
     ],
   ),
   ProfileSection(
-    title: 'Interests',
+    title: 'Experience',
     content: [
-      Text(
-        'Cairo University',
-        style: TextStyle(color: Colors.white, fontSize: 14),
+      ProfileEntryWidget(
+        title: 'Google',
+        subtitle: 'Software Engineer Intern',
+        description: 'June 2024 - Aug 2024\nWorked on Flutter development',
+        imageUrl: 'assets/google.png',
       ),
-      Text('Microsoft', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('java', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('c++', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
-      Text('Flutter', style: TextStyle(color: Colors.white, fontSize: 14)),
     ],
   ),
-];  
+  ProfileSection(
+    title: 'Skills',
+    content: [
+      ProfileEntryWidget(title: 'Flutter'),
+      ProfileEntryWidget(title: 'Dart'),
+      ProfileEntryWidget(title: 'Java'),
+    ],
+  ),
+];
