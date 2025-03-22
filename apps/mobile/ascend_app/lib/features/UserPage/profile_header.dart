@@ -145,7 +145,14 @@ class ProfileHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 10),
-
+        if (links.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 5),
+              ProfileExtraMaterial(links: links),
+            ],
+          ),
         // Mutual Connections
         if (mutualConnections.isNotEmpty)
           Row(
@@ -163,14 +170,6 @@ class ProfileHeader extends StatelessWidget {
           ),
 
         // Links Section using ProfileExtraMaterial
-        if (links.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 5),
-              ProfileExtraMaterial(links: links),
-            ],
-          ),
       ],
     );
   }
