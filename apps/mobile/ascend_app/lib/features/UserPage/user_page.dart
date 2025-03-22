@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
 import 'buttons.dart';
-import 'withdraw_request.dart';
+import 'custom_alert_dialog.dart';
 import 'profile_main_images.dart';
 import 'section_builder.dart';
 import 'profile_header.dart';
@@ -16,7 +16,7 @@ class UserProfilePage extends StatefulWidget {
     this.location = 'Cairo, Cairo, Egypt',
     this.latestEducation = 'Cairo University',
     this.sections = const [],
-    this.isconnect = false,
+    this.isconnect = true,
     this.isfollow = false,
     this.isPending = false,
     this.connections = 15,
@@ -79,7 +79,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _isPending = true; // Change to "Pending"
       } else if (_isPending) {
         _isPending = false;
-        _isConnect = true; // Change to "Connected"
+        _isConnect = true; // Change to "Connected" //inv accepted
+      }
+      if (_isConnect) {
+        _isConnect = false; // Change to "Connect"
       }
     });
   }
@@ -97,11 +100,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   // Function to show withdraw confirmation dialog
-  void _showWithdrawDialog(BuildContext context) {
+  void _showWarningDialogForRemovingConnection(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return WithdrawRequest(toggleIspending: _toggleisPending);
+        return CustomAlertDialog(
+          title: "Remove connection",
+          description:
+              "Are you sure you want to remove $widget.name from your connections?",
+          confirmText: "Remove",
+          onConfirm: _toggleConnect,
+        );
+      },
+    );
+  }
+
+  void _showWarningDialogForPending(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          title: "Withdraw invitation",
+          description:
+              "If you withdraw now, you won’t be able to resend to this person for up to 3 weeks.",
+          confirmText: "Withdraw",
+          onConfirm: _toggleisPending,
+        );
       },
     );
   }
@@ -168,7 +192,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     isConnect: _isConnect,
                     isPending: _isPending,
                     toggleConnect: _toggleConnect,
-                    withdrawRequest: _showWithdrawDialog,
+                    withdrawRequest: _showWarningDialogForPending,
                     toggleFollow: _toggleFollow,
                   ),
                   SizedBox(height: 30),
