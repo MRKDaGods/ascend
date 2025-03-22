@@ -51,7 +51,7 @@ class ProfileHeader extends StatelessWidget {
         if (connections > 0) _buildConnectionsSection(),
 
         if (mutualConnections.isNotEmpty || links.isNotEmpty)
-          _buildExtraMaterial(),
+          _buildExtraMaterial(context),
       ],
     );
   }
@@ -140,7 +140,7 @@ class ProfileHeader extends StatelessWidget {
   }
 
   // Extra Material (Mutual Connections & Links)
-  Widget _buildExtraMaterial() {
+  Widget _buildExtraMaterial(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,22 +155,79 @@ class ProfileHeader extends StatelessWidget {
           ),
         // Mutual Connections
         if (mutualConnections.isNotEmpty)
-          Row(
-            children: [
-              const Icon(Icons.people, color: Colors.white70, size: 16),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  "Mutual connections: ${mutualConnections.join(', ')}",
-                  style: const TextStyle(color: Colors.white70),
-                  overflow: TextOverflow.ellipsis,
+          GestureDetector(
+            onTap: () {
+              _showMutualConnectionsDialog(context, mutualConnections);
+            },
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.people,
+                  color: Colors.white70,
+                  size: 16,
+                  applyTextScaling: true,
                 ),
-              ),
-            ],
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    mutualConnections.length > 2
+                        ? "${mutualConnections.take(2).join(', ')} , and ${mutualConnections.length - 2} other mutual connections"
+                        : "${mutualConnections.join(', and ')} are mutual connections",
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
 
         // Links Section using ProfileExtraMaterial
       ],
+    );
+  }
+
+  void _showMutualConnectionsDialog(
+    BuildContext context,
+    List<String> mutualConnections,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          title: const Text(
+            "Mutual Connections",
+            style: TextStyle(color: Colors.white),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: mutualConnections.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    mutualConnections[index],
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  onTap: () {
+                    // You can navigate to the profile of the selected mutual connection
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
