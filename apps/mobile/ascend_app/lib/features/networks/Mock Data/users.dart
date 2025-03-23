@@ -164,5 +164,32 @@ List<UserModel> generateUsers() {
       coverpic: 'assets/image 4.jpg',
       bio: 'Marketing at Company Q',
     ),
+    UserModel(
+      id: '18',
+      name: 'Peter',
+      company: 'Company R',
+      industry: 'Industry R',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/image 4.jpg',
+      bio: 'Sales at Company R',
+    ),
+    UserModel(
+      id: '19',
+      name: 'Quinn',
+      company: 'Company S',
+      industry: 'Industry S',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/logo.jpg',
+      bio: 'Engineer at Company S',
+    ),
+    UserModel(
+      id: '20',
+      name: 'Rose',
+      company: 'Company T',
+      industry: 'Industry T',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/logo.jpg',
+      bio: 'Manager at Company T',
+    ),
   ];
 }

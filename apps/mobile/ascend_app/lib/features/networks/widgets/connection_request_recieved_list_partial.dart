@@ -23,7 +23,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
         if (invitations.isEmpty)
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('No invitations received'),
+            child: const Text('No invitations received'),
           ),
         Column(
           children:
@@ -44,68 +44,132 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                         );
 
                     if (connectionRequest.requestId != '') {
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage:
-                              invitation.profilePic.startsWith('http')
-                                  ? NetworkImage(invitation.profilePic)
-                                  : AssetImage(invitation.profilePic)
-                                      as ImageProvider,
-                        ),
-                        title: Text(invitation.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              invitation.bio,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              connectionRequest.timestamp,
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.check, color: Colors.green),
-                              onPressed:
-                                  () => onAccept(
-                                    pendingRequestsReceived
-                                        .firstWhere(
-                                          (element) =>
-                                              element.senderId == invitation.id,
-                                        )
-                                        .requestId,
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Profile Picture
+                                CircleAvatar(
+                                  radius: 24,
+                                  backgroundImage:
+                                      invitation.profilePic.startsWith('http')
+                                          ? NetworkImage(invitation.profilePic)
+                                          : AssetImage(invitation.profilePic)
+                                              as ImageProvider,
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ), // Spacing between avatar and text
+                                // Name and Bio
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        invitation.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        invitation.bio,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        connectionRequest.timestamp,
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ), // Spacing between text and icons
+                                // Action Icons
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Decline Button with Circular Border
+                                    Container(
+                                      width:
+                                          36, // Set width and height for the circular border
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.grey,
+                                          width: 2,
+                                        ), // Grey circular border
+                                      ),
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.grey,
+                                        ),
+                                        onPressed:
+                                            () => onDecline(
+                                              connectionRequest.requestId,
+                                            ),
+                                        tooltip: 'Decline',
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 8,
+                                    ), // Spacing between the two buttons
+                                    // Accept Button with Circular Border
+                                    Container(
+                                      width:
+                                          36, // Set width and height for the circular border
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.blue,
+                                          width: 2,
+                                        ), // Blue circular border
+                                      ),
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(
+                                          Icons.check,
+                                          color: Colors.lightBlue,
+                                        ),
+                                        onPressed:
+                                            () => onAccept(
+                                              connectionRequest.requestId,
+                                            ),
+                                        tooltip: 'Accept',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              icon: Icon(Icons.close, color: Colors.red),
-                              onPressed:
-                                  () => onDecline(
-                                    pendingRequestsReceived
-                                        .firstWhere(
-                                          (element) =>
-                                              element.senderId == invitation.id,
-                                        )
-                                        .requestId,
-                                  ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          const Divider(
+                            thickness: 1,
+                            //height: 16, // Add spacing between items
+                          ),
+                        ],
                       );
                     } else {
-                      return SizedBox.shrink();
+                      return const SizedBox.shrink();
                     }
                   })
                   .toList(),
