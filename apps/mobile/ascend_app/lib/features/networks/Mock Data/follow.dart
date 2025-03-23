@@ -4,6 +4,16 @@ List<FollowModel> generateFollowers() {
   return [
     FollowModel(followerId: '1', followingId: '11'),
     FollowModel(followerId: '1', followingId: '12'),
+    FollowModel(followerId: '7', followingId: '13'),
+    FollowModel(followerId: '8', followingId: '13'),
+    FollowModel(followerId: '4', followingId: '13'),
+    FollowModel(followerId: '11', followingId: '13'),
+    FollowModel(followerId: '7', followingId: '14'),
+    FollowModel(followerId: '8', followingId: '14'),
+    FollowModel(followerId: '4', followingId: '14'),
+    FollowModel(followerId: '11', followingId: '15'),
+    FollowModel(followerId: '9', followingId: '16'),
+    FollowModel(followerId: '10', followingId: '16'),
   ];
 }
 
@@ -31,4 +41,8 @@ List<FollowModel> fetchFollowers(
   return followers
       .where((element) => element.followingId == followingId)
       .toList();
+}
+
+void hideUser(List<FollowModel> followers, String userId) {
+  followers.removeWhere((element) => element.followingId == userId);
 }

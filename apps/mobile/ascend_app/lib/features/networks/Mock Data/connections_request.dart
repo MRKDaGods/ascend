@@ -162,7 +162,14 @@ List<ConnectionRequestModel> ConnectionRequests() {
       requestId: "111",
       senderId: "1",
       receiverId: "4",
-      status: "rejected",
+      status: "accepted",
+      timestamp: "2024-09-01T12:00:00Z",
+    ),
+    ConnectionRequestModel(
+      requestId: "112",
+      senderId: "1",
+      receiverId: "11",
+      status: "accepted",
       timestamp: "2024-09-01T12:00:00Z",
     ),
   ];

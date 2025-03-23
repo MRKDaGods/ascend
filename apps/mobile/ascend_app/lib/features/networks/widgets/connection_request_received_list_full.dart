@@ -89,16 +89,36 @@ class ConnectionRequestsReceivedListFull extends StatelessWidget {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              IconButton(
-                                icon: Icon(Icons.check, color: Colors.green),
-                                onPressed:
-                                    () => onAccept(connectionRequest.requestId),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.close, color: Colors.red),
-                                onPressed:
-                                    () =>
-                                        onDecline(connectionRequest.requestId),
+                              const SizedBox(
+                                width: 8,
+                              ), // Spacing between text and icons
+                              // Action Icons
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed:
+                                        () => onDecline(
+                                          connectionRequest.requestId,
+                                        ),
+                                    tooltip: 'Decline',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                    ),
+                                    onPressed:
+                                        () => onAccept(
+                                          connectionRequest.requestId,
+                                        ),
+                                    tooltip: 'Accept',
+                                  ),
+                                ],
                               ),
                             ],
                           ),

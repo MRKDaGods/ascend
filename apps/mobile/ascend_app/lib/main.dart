@@ -2,6 +2,7 @@
 import 'package:ascend_app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/welcome.dart'; // Import the welcome.dart file
+import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(const MainApp());

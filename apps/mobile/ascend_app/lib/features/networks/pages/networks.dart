@@ -32,7 +32,12 @@ class Networks extends StatelessWidget {
             slivers: [
               const CustomSliverAppBar(floating: false, showTabBar: true),
               SliverFillRemaining(
-                child: TabBarView(children: [Grow(), CatchUp()]),
+                hasScrollBody: true,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: TabBarView(children: [Grow(), CatchUp()]),
+                ),
               ),
             ],
           ),

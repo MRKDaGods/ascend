@@ -14,6 +14,7 @@ class FollowBloc extends Bloc<FollowEvent, FollowState> {
     on<FetchFollowing>(_fetchfollowings);
     on<FollowUser>(_addfollowing);
     on<UnfollowUser>(_deletefollowing);
+    on<HideUser>(_hideUser);
   }
 
   void _addfollowing(FollowUser event, Emitter<FollowState> emit) {
@@ -41,6 +42,16 @@ class FollowBloc extends Bloc<FollowEvent, FollowState> {
     try {
       final followings = followRepoistory.fetchFollowingsRepoistory('1');
       emit(FollowSuccess(following: followings));
+    } catch (e) {
+      emit(FollowFailure(message: e.toString()));
+    }
+  }
+
+  void _hideUser(HideUser event, Emitter<FollowState> emit) {
+    emit(FollowLoading());
+    try {
+      followRepoistory.hideUserRepoistory(event.userId);
+      add(FetchFollowing());
     } catch (e) {
       emit(FollowFailure(message: e.toString()));
     }

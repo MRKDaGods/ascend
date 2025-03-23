@@ -19,4 +19,8 @@ class FollowRepoistory {
   List<FollowModel> fetchFollowersRepoistory(String followingId) {
     return fetchFollowers(followers, followingId);
   }
+
+  void hideUserRepoistory(String userId) {
+    hideUser(followers, userId);
+  }
 }
