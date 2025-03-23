@@ -11,6 +11,7 @@ class ProfileButtons extends StatelessWidget {
     required this.toggleConnect,
     required this.withdrawRequest,
     required this.toggleFollow,
+    required this.removeConnection,
     super.key,
   });
 
@@ -20,6 +21,7 @@ class ProfileButtons extends StatelessWidget {
   final void Function() toggleConnect;
   final void Function() toggleFollow;
   final void Function(BuildContext) withdrawRequest; // Function to show dialog
+  final void Function(BuildContext) removeConnection; // Function to show dialog
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +74,7 @@ class ProfileButtons extends StatelessWidget {
                     toggleConnect,
                     toggleFollow,
                     withdrawRequest,
+                    removeConnection,
                   ), // Show Bottom Sheet
             ),
           ),
@@ -88,6 +91,7 @@ class ProfileButtons extends StatelessWidget {
     void Function() toggleConnect,
     void Function() toggleFollow,
     void Function(BuildContext) withdrawRequest,
+    void Function(BuildContext) removeConnectionAlert,
   ) {
     showModalBottomSheet(
       context: context,
@@ -104,6 +108,7 @@ class ProfileButtons extends StatelessWidget {
           toggleConnect: toggleConnect,
           toggleFollow: toggleFollow,
           withdrawRequest: withdrawRequest,
+          removeConnection: removeConnectionAlert,
         );
       },
     );
