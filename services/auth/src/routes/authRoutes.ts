@@ -1,29 +1,29 @@
-import { Router } from 'express';
+import authenticateToken from "@shared/middleware/authMiddleware";
+import { Router } from "express";
 import {
-    register,
-    login,
-    confirmEmail,
-    resendConfirmEmail,
-    forgetPassword,
-    resetPassword,
-    updatePassword,
-    updateEmail,
-    socialLogin,
-    deleteAccount,
-} from '../controllers/authController';
-import { authenticateToken } from '../middleware/authMiddleware';
+  confirmEmail,
+  deleteAccount,
+  forgetPassword,
+  login,
+  register,
+  resendConfirmEmail,
+  resetPassword,
+  socialLogin,
+  updateEmail,
+  updatePassword,
+} from "../controllers/authController";
 
 const router = Router();
 
-router.post('/register', register); // d
-router.post('/login', login); // d
-router.post('/confirm-email', confirmEmail); // d
-router.post('/resend-confirm', resendConfirmEmail); // d
-router.post('/forget-password', forgetPassword); // d
-router.post('/reset-password', resetPassword); // d
-router.put('/update-password', authenticateToken, updatePassword); // d
-router.put('/update-email', authenticateToken, updateEmail); // d
-router.post('/social-login', socialLogin);
-router.delete('/delete-account', authenticateToken, deleteAccount);
+router.post("/register", register);
+router.post("/login", login);
+router.post("/confirm-email", confirmEmail);
+router.post("/resend-confirm", resendConfirmEmail);
+router.post("/forget-password", forgetPassword);
+router.post("/reset-password", resetPassword);
+router.put("/update-password", authenticateToken, updatePassword);
+router.put("/update-email", authenticateToken, updateEmail);
+router.post("/social-login", socialLogin);
+router.delete("/delete-account", authenticateToken, deleteAccount);
 
 export default router;

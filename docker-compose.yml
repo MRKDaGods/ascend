@@ -26,6 +26,26 @@ services:
     depends_on:
       - postgres
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=ascend_vhost
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ascend-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   auth:
     build:
       context: .
@@ -33,25 +53,63 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DB_HOST=postgres
+      # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_PORT=5432
+
+      # JWT
       - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
       - PORT=3001
+
+      # Google OAuth
       - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
       - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
       - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
     depends_on:
       - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+
+  user:
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3002
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - postgres
+      - rabbitmq
     networks:
       - ascend-network
 
 volumes:
   postgres_data:
   pgadmin_data:
-  
+  rabbitmq_data:
+
 networks:
   ascend-network:
     driver: bridge

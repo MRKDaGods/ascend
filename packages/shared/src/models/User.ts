@@ -1,16 +1,14 @@
 export enum UserRole {
-    USER = 'user',
-    MODERATOR = 'moderator',
-    ADMIN = 'admin'
+  USER = "user",
+  MODERATOR = "moderator",
+  ADMIN = "admin",
 }
 
 /**
  * Interface representing a user in the system.
- * 
+ *
  * @interface User
  * @property {number} id - Unique identifier for the user
- * @property {string} first_name - User's first name
- * @property {string} last_name - User's last name
  * @property {string} email - User's email address
  * @property {string} [password_hash] - Hashed password for authentication (optional)
  * @property {UserRole} role - User's role in the system
@@ -22,16 +20,14 @@ export enum UserRole {
  * @property {Date} updated_at - Timestamp when the user was last updated
  */
 export interface User {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string;
-    password_hash?: string;
-    role: UserRole;
-    confirmation_token?: string;
-    reset_token?: string;
-    new_email?: string;
-    is_verified: boolean;
-    created_at: Date;
-    updated_at: Date;
+  id: number;
+  email: string;
+  password_hash?: string;
+  role: UserRole;
+  confirmation_token?: string;
+  reset_token?: string;
+  new_email?: string;
+  is_verified: boolean;
+  created_at: Date;
+  updated_at: Date;
 }

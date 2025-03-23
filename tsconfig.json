@@ -18,5 +18,10 @@
     "include": [
         "packages/**/*",
         "services/**/*"
-    ]
+    ],
+    "ts-node": {
+        "require": [
+            "tsconfig-paths/register"
+        ]
+    }
 }
