@@ -82,7 +82,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _isConnect = true; // Change to "Connected" //inv accepted
       }
       if (_isConnect) {
-        _isConnect = false; // Change to "Connect"
+        _isConnect = false; // remove connection
       }
     });
   }
@@ -107,7 +107,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         return CustomAlertDialog(
           title: "Remove connection",
           description:
-              "Are you sure you want to remove $widget.name from your connections?",
+              "Are you sure you want to remove ${widget.name} from your connections?",
           confirmText: "Remove",
           onConfirm: _toggleConnect,
         );
@@ -194,6 +194,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     toggleConnect: _toggleConnect,
                     withdrawRequest: _showWarningDialogForPending,
                     toggleFollow: _toggleFollow,
+                    removeConnection: _showWarningDialogForRemovingConnection,
                   ),
                   SizedBox(height: 30),
                 ],

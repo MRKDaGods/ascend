@@ -8,6 +8,7 @@ class ProfileOptionsSheet extends StatelessWidget {
     required this.toggleConnect,
     required this.withdrawRequest,
     required this.toggleFollow,
+    required this.removeConnection,
     super.key,
   });
 
@@ -17,6 +18,7 @@ class ProfileOptionsSheet extends StatelessWidget {
   final void Function() toggleConnect;
   final void Function() toggleFollow;
   final void Function(BuildContext) withdrawRequest;
+  final void Function(BuildContext) removeConnection;
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +101,7 @@ class ProfileOptionsSheet extends StatelessWidget {
                     context,
                     Icons.person_off,
                     "Remove connection",
-                    toggleConnect,
+                    removeConnection,
                   )
                   : isPending
                   ? _buildSheetOption(
