@@ -5,6 +5,7 @@ const Footer = () => {
   return (
     <Box
       component="footer"
+      aria-label="Linked © 2025" // Added aria-label for accessibility
       display="flex"
       justifyContent="center"
       alignItems="center"

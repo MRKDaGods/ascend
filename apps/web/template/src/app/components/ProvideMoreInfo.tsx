@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Box, Typography, Button, Paper, TextField } from "@mui/material";
@@ -7,11 +7,20 @@ import BackButton from "@/app/components/BackButton";
 
 export default function ProvideMoreInfo() {
   const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState(""); // State to track error message
   const router = useRouter();
 
+  const handleNext = () => {
+    if (!feedback.trim()) {
+      setError("Please provide a reason for closing your account."); // Set error message
+      return;
+    }
+    setError(""); // Clear error message
+    router.push("/CloseAccountPassword");
+  };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: -10, ml:25 }}>
+    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: -10, ml: 25 }}>
       <Paper
         elevation={3}
         sx={{
@@ -43,6 +52,8 @@ export default function ProvideMoreInfo() {
           variant="outlined"
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
+          error={!!error} // Show error state
+          helperText={error} // Display error message
         />
 
         {/* Next Button - Aligned to Left */}
@@ -56,8 +67,7 @@ export default function ProvideMoreInfo() {
               borderRadius: "20px",
               padding: "6px 16px",
             }}
-            onClick={() => router.push("/CloseAccountPassword")}
-
+            onClick={handleNext} // Call handleNext on click
           >
             Next
           </Button>

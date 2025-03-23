@@ -1,8 +1,12 @@
+"use client";
+
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Box, Typography, Link } from "@mui/material";
 import AuthButtons from "./AuthButtons";
 
 const AuthSection = () => {
+  const router=useRouter();
   return (
     <Box sx={{ maxWidth: 600, mx: "auto", textAlign: "left", position: "relative", top: "7em" }}>
       <Typography variant="h4" color="text.secondary" gutterBottom sx={{ maxWidth:700, fontSize: "clamp(2rem, 5vw, 3rem)" }}>
@@ -18,7 +22,7 @@ const AuthSection = () => {
       </Typography>
       <Typography mt={2}
         sx={{textAlign: "center", position: "relative",maxWidth:400 }}>
-        New to LinkedIn? <Link href="#">Join now</Link>
+        New to LinkedIn? <Link href="#" onClick={() => router.push("/NewToLinkedin")}>Join now</Link>
       </Typography>
     </Box>
   );

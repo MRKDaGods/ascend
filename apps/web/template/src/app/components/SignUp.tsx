@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import Footer from "./Footer";
@@ -50,14 +51,28 @@ const SignUp = () => {
   };
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" minHeight="100vh" justifyContent="center" sx={{mt:-3}}>
+    <Box display="flex" flexDirection="column" alignItems="center" minHeight="100vh" justifyContent="center" sx={{ mt: -3 }}>
       <Typography variant="h4" fontWeight={500} gutterBottom>
         Make the most of your professional life
       </Typography>
       <Container maxWidth="xs">
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <form onSubmit={handleSubmit}>
-            <Typography variant="subtitle1" gutterBottom sx={{mb:-2}}>Email</Typography>
+            {/* Error Message */}
+            {error && (
+              <Typography color="error" data-testid="error-message" sx={{ mb: 2 }}>
+                {error}
+              </Typography>
+            )}
+            {/* Success Message */}
+            {success && (
+              <Typography color="success" data-testid="success-message" sx={{ mb: 2 }}>
+                {success}
+              </Typography>
+            )}
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              Email
+            </Typography>
             <TextField
               fullWidth
               variant="outlined"
@@ -65,9 +80,12 @@ const SignUp = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              sx={{height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+              aria-label="Email" // Added aria-label
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
             />
-            <Typography variant="subtitle1" gutterBottom sx={{mb:-2}}>Password</Typography>
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              Password
+            </Typography>
             <TextField
               fullWidth
               type={showPassword ? "text" : "password"}
@@ -76,10 +94,11 @@ const SignUp = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              sx={{height: "2em", "& .MuiInputBase-root": { height: "2em",  border: "0.01em solid black"  } }}
+              aria-label="Password" // Added aria-label
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
               InputProps={{
                 endAdornment: (
-                  <Button onClick={() => setShowPassword(!showPassword)} size="medium" sx={{ fontWeight: "bold",  textTransform: "none"  }}>
+                  <Button onClick={() => setShowPassword(!showPassword)} size="medium" sx={{ fontWeight: "bold", textTransform: "none" }}>
                     {showPassword ? "Hide" : "Show"}
                   </Button>
                 ),
@@ -100,12 +119,12 @@ const SignUp = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ backgroundColor: "#0a66c2", color: "white", borderRadius: 8, py: 1.5, fontSize: "1rem", fontWeight: 600,  textTransform: "none"  }}
+              sx={{ backgroundColor: "#0a66c2", color: "white", borderRadius: 8, py: 1.5, fontSize: "1rem", fontWeight: 600, textTransform: "none" }}
             >
               Agree & Join
             </Button>
           </form>
-          <Box display="flex" alignItems="center" width="100%" my={2} sx={{mb:-1, mt:-1}}>
+          <Box display="flex" alignItems="center" width="100%" my={2} sx={{ mb: -1, mt: -1 }}>
             <Box flex={1} height="1px" bgcolor="gray" />
             <Typography align="center" sx={{ my: 2 }} mx={2}>or</Typography>
             <Box flex={1} height="1px" bgcolor="gray" />
@@ -113,7 +132,8 @@ const SignUp = () => {
           <Button
             fullWidth
             variant="outlined"
-            sx={{ mb: 1,
+            sx={{
+              mb: 1,
               borderRadius: 5,
               borderColor: "black",
               color: "text.secondary",
@@ -121,7 +141,8 @@ const SignUp = () => {
               textTransform: "none",
               display: "flex",
               justifyContent: "center",
-              alignItems: "center"}}
+              alignItems: "center",
+            }}
             startIcon={<img src="/google.jpg" alt="Google" width={24} height={24} />}
           >
             Continue with Google
@@ -129,7 +150,8 @@ const SignUp = () => {
           <Button
             fullWidth
             variant="outlined"
-            sx={{mb: 1,
+            sx={{
+              mb: 1,
               borderRadius: 5,
               borderColor: "black",
               color: "text.secondary",
@@ -137,7 +159,8 @@ const SignUp = () => {
               textTransform: "none",
               display: "flex",
               justifyContent: "center",
-              alignItems: "center"}}
+              alignItems: "center",
+            }}
             startIcon={<img src="/microsoft.png" alt="Microsoft" width={24} height={24} />}
           >
             Continue with Microsoft
