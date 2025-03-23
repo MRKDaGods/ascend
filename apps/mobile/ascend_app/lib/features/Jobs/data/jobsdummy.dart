@@ -34,4 +34,12 @@ final List<Jobsattributes> jobs = [
     experienceLevel: 'Mid',
     salaryRange: 1000,
   ),
+  Jobsattributes(
+    title: 'UX Designer',
+    company: 'Amazon',
+    location: 'Alexandria',
+    companyPhoto: "assets/amazon.png",
+    experienceLevel: 'Entry',
+    salaryRange: 70,
+  ),
 ];

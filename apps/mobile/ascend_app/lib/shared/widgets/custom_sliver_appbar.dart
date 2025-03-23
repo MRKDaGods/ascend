@@ -13,6 +13,7 @@ class CustomSliverAppBar extends StatefulWidget {
   final bool settings;
   final bool jobs;
   final bool showAppBar;
+  final bool isDarkMode;
 
   const CustomSliverAppBar({
     super.key,
@@ -23,6 +24,7 @@ class CustomSliverAppBar extends StatefulWidget {
     this.settings = false,
     this.jobs = false,
     this.showAppBar = false,
+    this.isDarkMode = false,
   });
 
   @override
@@ -35,9 +37,12 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      
       pinned: widget.pinned,
       floating: widget.floating,
+      backgroundColor:
+          widget.isDarkMode
+              ? Colors.black
+              : Colors.white, // Set background color
       leading: GestureDetector(
         onTap: () {},
         child: Card(
@@ -50,43 +55,80 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
         create: (context) => SearchBloc(),
         child: BlocBuilder<SearchBloc, SearchState>(
           builder: (context, state) {
-            return Card.outlined(
-              
+            return Card(
+              color:
+                  widget.isDarkMode
+                      ? Colors.black
+                      : Colors.white, // Search bar background color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
               child: TextField(
-                onChanged: (value) {
-                  context.read<SearchBloc>().add(SearchTextChanged(value));
-                },
+                style: TextStyle(
+                  color:
+                      widget.isDarkMode
+                          ? Colors.white
+                          : Colors.black, // Text color
+                ),
                 decoration: InputDecoration(
-                  prefixIcon: widget.jobs ? const Icon(Icons.work_rounded) : const Icon(Icons.search),
+                  prefixIcon: Icon(
+                    widget.jobs ? Icons.work_rounded : Icons.search,
+                    color:
+                        widget.isDarkMode
+                            ? Colors.white54
+                            : Colors.black54, // Icon color
+                  ),
                   hintText: widget.jobs ? 'Search Jobs' : 'Search',
+                  hintStyle: TextStyle(
+                    color:
+                        widget.isDarkMode
+                            ? Colors.white54
+                            : Colors.black54, // Hint text color
+                  ),
                   border: InputBorder.none,
-                  suffixIcon: state.showDeleteButton
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            context.read<SearchBloc>().add(SearchTextChanged(''));
-                          },
-                        )
-                      : IconButton(
-                          icon: const Icon(Icons.qr_code),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('QR Code'),
-                                content: const Text('This is a QR Code'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                  suffixIcon:
+                      state.showDeleteButton
+                          ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              color:
+                                  widget.isDarkMode
+                                      ? Colors.white54
+                                      : Colors.black54,
+                            ),
+                            onPressed: () {
+                              context.read<SearchBloc>().add(
+                                SearchTextChanged(''),
+                              );
+                            },
+                          )
+                          : IconButton(
+                            icon: Icon(
+                              Icons.qr_code,
+                              color:
+                                  widget.isDarkMode
+                                      ? Colors.white54
+                                      : Colors.black54,
+                            ),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: const Text('QR Code'),
+                                      content: const Text('This is a QR Code'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            },
+                          ),
                 ),
               ),
             );
@@ -114,78 +156,58 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
           ],
         ),
       ],
-      bottom: widget.showTabBar
-          ? TabBar(
-              tabs: const [
-                Tab(text: "Grow"),
-                Tab(text: "Catchup"),
-              ],
-              indicatorColor: Theme.of(context).colorScheme.primary,
-              labelColor: Theme.of(context).colorScheme.primary,
-            )
-          : (widget.showAppBar
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(50.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedButton = 'All';
-                          });
-                        },
-                        child: Text(
-                          'All',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            
+      bottom:
+          widget.showTabBar
+              ? TabBar(
+                tabs: const [Tab(text: "Grow"), Tab(text: "Catchup")],
+                indicatorColor: Theme.of(context).colorScheme.primary,
+                labelColor: Theme.of(context).colorScheme.primary,
+              )
+              : (widget.showAppBar
+                  ? PreferredSize(
+                    preferredSize: const Size.fromHeight(50.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedButton = 'All';
+                            });
+                          },
+                          child: Text(
+                            'All',
+                            style: TextStyle(fontWeight: FontWeight.w700),
                           ),
-                          
                         ),
-                      ),
-                      FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedButton = 'Jobs';
-                          });
-                        },
-                        child: Text(
-                          'Jobs',
-                          
+                        FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedButton = 'Jobs';
+                            });
+                          },
+                          child: Text('Jobs'),
                         ),
-                        
-                      ),
-                      FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedButton = 'My posts';
-                          });
-                        },
-                        style: ButtonStyle(
-                          
+                        FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedButton = 'My posts';
+                            });
+                          },
+                          child: Text('My posts'),
                         ),
-                        child: Text(
-                          'My posts',
-                          
+                        FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedButton = 'Mentions';
+                            });
+                          },
+                          child: Text('Mentions'),
                         ),
-                      ),
-                      FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedButton = 'Mentions';
-                          });
-                        },
-                        child: Text(
-                          'Mentions',
-                          
-                        ),
-                        
-                      ),
-                    ],
-                  ),
-                )
-              : null),
+                      ],
+                    ),
+                  )
+                  : null),
     );
   }
 }
