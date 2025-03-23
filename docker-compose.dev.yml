@@ -1,4 +1,11 @@
 services:
+  gateway:
+    volumes:
+      - ./services/gateway:/app/services/gateway
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
   auth:
     volumes:
       - ./services/auth:/app/services/auth

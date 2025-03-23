@@ -46,7 +46,23 @@ services:
       timeout: 10s
       retries: 5
 
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=8080
+    networks:
+      - ascend-network
+
   auth:
+    hostname: auth
     build:
       context: .
       dockerfile: services/auth/Dockerfile
@@ -79,6 +95,7 @@ services:
       - ascend-network
 
   user:
+    hostname: user
     build:
       context: .
       dockerfile: services/user/Dockerfile

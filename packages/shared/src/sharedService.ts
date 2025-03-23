@@ -16,13 +16,17 @@ const PORT = process.env.PORT;
  * @param name - The name of the service
  * @param routes - The routes to register with the service
  * @param options - Additional options for the service
+ * @param options.dontConnectRabbitMQ - If true, the service will not connect to RabbitMQ
  * @param options.registerConsumers - An array of functions to register as consumers
+ * @param options.customInit - A custom initialization function for the service
  */
 const startSharedService = async (
   name: string,
-  routes: Router,
+  routes?: Router,
   options?: {
+    dontConnectRabbitMQ?: boolean;
     registerConsumers?: Array<() => Promise<void>>;
+    customInit?: (app: express.Express) => Promise<void>;
   }
 ) => {
   console.log(`Starting ${name} Service`);
@@ -32,21 +36,31 @@ const startSharedService = async (
   app.use(cors());
   app.use(express.json());
 
+  // Custom initialization
+  if (options?.customInit) {
+    await options.customInit(app);
+  }
+
   // Register controller
-  app.use("/", routes);
+  if (routes) {
+    app.use("/", routes);
+  }
 
   // Start server
+  const connectToRabbitMQ = !options || !options.dontConnectRabbitMQ;
   try {
-    // Connect to RabbitMQ
-    await connectRabbitMQ();
+    if (connectToRabbitMQ) {
+      // Connect to RabbitMQ
+      await connectRabbitMQ();
 
-    // Register consumers if provided
-    if (options?.registerConsumers) {
-      console.log(
-        `Registering ${options.registerConsumers.length} consumer(s)`
-      );
-      for (const registerConsumer of options.registerConsumers) {
-        await registerConsumer();
+      // Register consumers if provided
+      if (options?.registerConsumers) {
+        console.log(
+          `Registering ${options.registerConsumers.length} consumer(s)`
+        );
+        for (const registerConsumer of options.registerConsumers) {
+          await registerConsumer();
+        }
       }
     }
 
@@ -64,7 +78,10 @@ const startSharedService = async (
     console.log("SIGTERM received. Closing server...");
 
     // Safely close RabbitMQ connection
-    await closeRabbitMQ();
+    if (connectToRabbitMQ) {
+      await closeRabbitMQ();
+    }
+
     process.exit(0);
   });
 };
