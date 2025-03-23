@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { List, ListItemText, Typography, Paper, ListItemButton, Box } from "@mui/material";
 
 const sections = [
@@ -39,8 +39,19 @@ export default function SettingsBar() {
       </Box>
 
       {/* Settings Sidebar (Starts Below White Bar) */}
-      <Paper elevation={3} sx={{ width: "15.625em", p: 2, minHeight: "calc(100vh - 60px)", position: "fixed", top: "60px", left: 0 }}>
-        <Typography variant="h6" gutterBottom sx={{fontWeight:"bold", fontSize: 'h4.fontSize', m: 1}}>
+      <Paper
+        component="nav" // Ensure the Paper is rendered as a semantic element
+        elevation={3}
+        sx={{
+          width: "15.625em",
+          p: 2,
+          minHeight: "calc(100vh - 60px)",
+          position: "fixed",
+          top: "60px",
+          left: 0,
+        }}
+      >
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", fontSize: "h4.fontSize", m: 1 }}>
           Settings
         </Typography>
         <List>

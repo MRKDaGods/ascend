@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Box, Typography, Button, Paper, TextField, Checkbox, FormControlLabel } from "@mui/material";
@@ -8,10 +8,10 @@ import BackButton from "@/app/components/BackButton";
 export default function CloseAccountPassword() {
   const [password, setPassword] = useState("");
   const [unsubscribe, setUnsubscribe] = useState(false);
-    const router = useRouter();
+  const router = useRouter();
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: -10, ml:25 }}>
+    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: -10, ml: 25 }}>
       <Paper
         elevation={3}
         sx={{
@@ -33,17 +33,20 @@ export default function CloseAccountPassword() {
         </Typography>
 
         {/* Password Field */}
-        <Typography variant="body2" sx={{ fontWeight: "bold", mb: 1 }}>
-          Password
-        </Typography>
         <TextField
+          id="password-input"
+          label="Password"
+          InputLabelProps={{
+            style: { display: "none" }, // Visually hide the label
+          }}
           fullWidth
           type="password"
           variant="outlined"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          sx={{height: "2em", "& .MuiInputBase-root": { height: "2em",  border: "0.01em solid black"  } }}
-          
+          sx={{
+            "& .MuiInputBase-root": { height: "2.5em", border: "0.01em solid black" },
+          }}
         />
 
         {/* Unsubscribe Checkbox */}
