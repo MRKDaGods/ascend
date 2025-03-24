@@ -18,11 +18,11 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _pages = [
     UserProfilePage(sections: sections),
-    Home(),
+    Home(), 
     Center(child: Text("Video")),
     Networks(),
-    Center(child: Text("Notifications")),
     JobApp(),
+    Center(child: Text("Notifications")),
   ];
 
   void _onItemTapped(int index) {
