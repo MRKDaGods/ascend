@@ -33,3 +33,23 @@ services:
     command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
+
+  post:
+    volumes:
+      - ./services/post:/app/services/post
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  connection:
+    volumes:
+      - ./services/connection:/app/services/connection
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+  admin:
+    volumes:
+      - ./services/admin:/app/services/admin
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development

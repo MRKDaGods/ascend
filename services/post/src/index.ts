@@ -1,3 +1,4 @@
 import startSharedService from "@shared/sharedService";
 
-startSharedService("PostManagement", undefined);
+startSharedService("Post", undefined);
+console.log("yarab arbahbsafsa7mni");
