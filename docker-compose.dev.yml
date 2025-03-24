@@ -26,3 +26,10 @@ services:
     command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
+
+  notification:
+    volumes:
+      - ./services/notification:/app/services/notification
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
