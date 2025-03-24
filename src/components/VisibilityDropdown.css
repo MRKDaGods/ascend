@@ -1,0 +1,57 @@
+.visibility-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .eye-button {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 5px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Align items to the most right */
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: rgb(8, 8, 8); /* Text in black */
+  }
+  
+  .eye-button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .dropdown-menu {
+    position: absolute;
+    top: 40px;
+    right: 0; /* Align dropdown to the right */
+    background: rgb(0, 0, 0);
+    border: 1px solid npm #110e0e;
+    border-radius: 8px;
+    width: 220px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  .dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between; /* Align items to the most right */
+    align-items: center;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .selected {
+    font-weight: bold;
+  }
+  
+  .selected::before {
+    content: '●';
+    color: green;
+    margin-right: 10px;
+  }

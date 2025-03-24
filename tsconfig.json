@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "jsx": "react-jsx",
+      "moduleResolution": "node",
+      "module": "esnext",
+      "target": "es6",
+      "strict": true,
+      "allowSyntheticDefaultImports": true
+    },
+    "exclude": ["node_modules"],
+    "include": ["src"]
+  }
+  

@@ -1,0 +1,600 @@
+.linkedin-profile {
+  font-family: Arial, sans-serif;
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  position: relative;
+}
+
+.profile-banner {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  background: #f3f3f3;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: lightblue;
+}
+
+.camera-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: white;
+  color: #0073b1; /* Darker shade of blue */
+  padding: 5px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Aligns everything to the left */
+  padding: 20px;
+  position: relative;
+  margin-top: -75px; /* Adjusts the profile picture above the banner */
+}
+
+.profile-picture-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  cursor: pointer;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  margin-bottom: 10px; /* Moves the name down */
+  margin-left: 20px; /* Adjust this for precise alignment */
+}
+
+.profile-picture {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  margin-left: 20px; /* Ensures the name aligns with the picture */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.profile-name h1 {
+  font-size: 22px;
+  margin: 5px 0;
+}
+
+.profile-icons {
+  display: flex;
+  align-items: center;
+}
+
+.cairo-university-icon {
+  margin-left: 10px;
+  font-size: 18px;
+  color: #0073b1; /* Darker shade of blue */
+}
+
+.university-text {
+  margin-left: 5px;
+  font-size: 14px;
+  color: gray;
+}
+
+.edit-icon {
+  cursor: pointer;
+}
+
+.profile-info h2 {
+  font-size: 16px;
+  color: gray;
+  margin: 5px 0;
+}
+
+.profile-info p {
+  font-size: 14px;
+  color: gray;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.profile-actions button {
+  border: 2px solid;
+  border-radius: 50px;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.open-to {
+  background-color: #005f8d; /* Darker shade of blue */
+  color: white;
+  border-color: #005f8d;
+}
+
+.add-section, .enhance {
+  background-color: white;
+  color: #005f8d; /* Darker shade of blue */
+  border-color: #005f8d;
+}
+
+.more {
+  background-color: white;
+  color: black;
+  border-color: black;
+}
+
+.open-to-work {
+  background-color: lightblue;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px 0;
+  width: 50%;
+  position: relative;
+}
+
+.open-to-work p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.open-to-work a {
+  display: block;
+  margin-top: 5px;
+  font-size: 14px;
+  color: #005f8d; /* Darker shade of blue */
+}
+
+.small-edit-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+}
+
+.suggested {
+  background: white;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.suggested h3 {
+  font-size: 16px;
+}
+
+.suggested p {
+  font-size: 14px;
+  color: gray;
+}
+
+.skill-level {
+  margin-top: 10px;
+}
+
+.progress-bar {
+  width: 100%;
+  background: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress {
+  width: 100%; /* Changed to 100% for 7/7 progress */
+  height: 100%;
+  background: blue;
+  border-radius: 5px;
+}
+
+.profile-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure the modal is above other content */
+}
+
+.profile-modal-content {
+  background: black;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  color: white;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-size: 20px;
+}
+
+.close-button {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.full-size-profile {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.left-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-button {
+  background: none;
+  color: white;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-button:hover {
+  background: gray;
+}
+
+.delete-button {
+  background: none;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  position: absolute;
+  right: 10px;
+}
+
+.modal-divider {
+  border: 1px solid white;
+  margin: 20px 0;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  width: 500px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.checkbox-container input {
+  margin-right: 10px;
+}
+
+.date-container {
+  display: flex;
+  gap: 10px;
+}
+
+.save-button {
+  background: #0a66c2;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.save-button:hover {
+  background: #004182;
+}
+
+/* Experience Section */
+.experience-section {
+  background: white;
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.experience-section h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.experience-subtext {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* Experience Card */
+.experience-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.experience-icon {
+  width: 48px;
+  height: 48px;
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.experience-placeholder-icon {
+  font-size: 24px;
+  color: #666;
+}
+
+.experience-info h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.experience-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Add Experience Button */
+.add-experience-button {
+  background: white;
+  border: 1px solid #0073b1;
+  color: #0073b1;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.add-experience-button:hover {
+  background: #eaf4fc;
+}
+
+/* Common Section Styles */
+.education-section, .skills-section {
+  background: white;
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.education-section h3, .skills-section h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.education-subtext, .skills-subtext {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* Education Card */
+.education-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.education-icon {
+  width: 48px;
+  height: 48px;
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.education-placeholder-icon {
+  font-size: 24px;
+  color: #666;
+}
+
+.education-info h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.education-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Skills Section */
+.skills-list p {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+/* Buttons */
+.add-education-button, .add-skills-button {
+  background: white;
+  border: 1px solid #0073b1;
+  color: #0073b1;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.add-education-button:hover, .add-skills-button:hover {
+  background: #eaf4fc;
+}/* Resume Section */
+.resume-section {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.resume-section h3 {
+  margin-bottom: 10px;
+}
+
+.upload-resume-button {
+  background-color: #0073b1;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-icon {
+  font-size: 18px;
+}
+
+.resume-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f3f3f3;
+  padding: 8px;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+.resume-name {
+  flex-grow: 1;
+  font-weight: bold;
+}
+
+.delete-resume-button {
+  background: #d9534f;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
