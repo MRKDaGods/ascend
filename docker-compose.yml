@@ -154,6 +154,9 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_PORT=5432
 
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
       # Minio
       - MINIO_ENDPOINT=minio
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
@@ -163,6 +166,12 @@ services:
 
       # Service port
       - PORT=3003
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+
+      # Gateway
+      - GATEWAY_ENDPOINT=${GATEWAY_ENDPOINT}
     ports:
       - "3003:3003"
     depends_on:

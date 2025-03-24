@@ -1,11 +1,11 @@
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { Request, Response } from "express";
 import {
-  deleteFileFromMinIO,
-  getFileMetadata as getFileMetadataFromMinIO,
-  getPresignedUrl,
+    getFileFromMinIO,
+  getFileMetadata as serviceGetFileMetadata,
   uploadFileToMinIO,
 } from "../services/fileUploadService";
+import { verifyToken } from "@shared/utils/jwt";
 
 /**
  * Uploads a file
@@ -32,58 +32,6 @@ export const uploadFile = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 /**
- * Deletes a file
- *
- * @returns HTTP response
- * - 204 if successful
- * - 400 if no file ID provided
- * - 403 if user is not a service
- * - 500 if server error
- */
-export const deleteFile = async (req: AuthenticatedRequest, res: Response) => {
-  try { // Keep route in controller for, until we impl an admin panel
-    // Only services can delete files
-    if (!req.user!.isService) {
-      return res.status(403).json({ error: "Unauthorized" });
-    }
-
-    const fileId = parseInt(req.params.fileId);
-    if (!fileId) {
-      return res.status(400).json({ error: "No file ID provided" });
-    }
-
-    await deleteFileFromMinIO(fileId);
-    res.sendStatus(204);
-  } catch (error) {
-    console.error("Error deleting file:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
-/**
- * Generates a presigned URL for a file
- *
- * @returns HTTP response
- * - 200 with the presigned URL
- * - 400 if no file ID provided
- * - 500 if server error
- */
-export const getFileUrl = async (req: Request, res: Response) => {
-  try {
-    const fileId = parseInt(req.params.fileId);
-    if (!fileId) {
-      return res.status(400).json({ error: "No file ID provided" });
-    }
-
-    const fileUrl = await getPresignedUrl(fileId);
-    res.json({ fileUrl });
-  } catch (error) {
-    console.error("Error getting file URL:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
-/**
  * Retrieves file metadata
  *
  * @returns HTTP response
@@ -103,7 +51,7 @@ export const getFileMetadata = async (
 
     // TODO: check if the user has access to the file
 
-    const file = await getFileMetadataFromMinIO(fileId);
+    const file = await serviceGetFileMetadata(fileId);
     if (!file) {
       return res.status(404).json({ error: "File not found" });
     }
@@ -111,6 +59,26 @@ export const getFileMetadata = async (
     res.json(file);
   } catch (error) {
     console.error("Error getting file metadata:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const viewFile = async (req: Request, res: Response) => {
+  try {
+    const token = req.query.token as string;
+    if (!token) {
+      return res.status(400).json({ error: "No token provided" });
+    }
+
+    const fileId = verifyToken(token).file_id;
+    if (!fileId) {
+      return res.status(400).json({ error: "No file ID provided" });
+    }
+
+    const buffer = await getFileFromMinIO(fileId);
+    res.end(buffer);
+  } catch (error) {
+    console.error("Error viewing file:", error);
     res.status(500).json({ error: "Server error" });
   }
 };

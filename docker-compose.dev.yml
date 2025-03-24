@@ -19,3 +19,10 @@ services:
     command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
+
+  file:
+    volumes:
+      - ./services/file:/app/services/file
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development

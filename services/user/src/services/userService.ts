@@ -1,12 +1,27 @@
 import db from "@shared/config/db";
 import { Profile } from "@shared/models";
+import {
+  callRPC,
+  events,
+  FileDeletePayload,
+  FilePresignedUrlRequestPayload,
+  FilePresignedUrlResponsePayload,
+  FileUploadRequestPayload,
+  FileUploadResponsePayload,
+  getQueueName,
+  publishEvent,
+} from "@shared/rabbitMQ";
 
 /** Retrieves a user's profile
- * 
+ *
  * @param userId - The unique identifier of the user
+ * @param keepFileIDs - Whether to keep the file IDs in the profile object
  * @returns Profile object if found, or null if no profile was found
  */
-export const getProfile = async (userId: number): Promise<Profile | null> => {
+export const getProfile = async (
+  userId: number,
+  keepFileIDs: boolean = false
+): Promise<Profile | null> => {
   const profileResult = await db.query(
     "SELECT * FROM user_service.profiles WHERE user_id = $1",
     [userId]
@@ -18,6 +33,59 @@ export const getProfile = async (userId: number): Promise<Profile | null> => {
   }
 
   const profile = profileResult.rows[0];
+
+  // Quick rpc call to get presigned URL of whatever
+  const getPresignedUrl = async (
+    fileId: number | null
+  ): Promise<string | null> => {
+    if (!fileId) {
+      return null;
+    }
+
+    try {
+      const fileRpcQueue = getQueueName(events.FILE_URL_RPC);
+      const payload: FilePresignedUrlRequestPayload = {
+        file_id: fileId,
+      };
+
+      const response = await callRPC<FilePresignedUrlResponsePayload>(
+        fileRpcQueue,
+        payload
+      );
+
+      return response.presigned_url;
+    } catch (error) {
+      console.error(`Error getting presigned URL for file ${fileId}:`, error);
+      return null;
+    }
+  };
+
+  // DB only stores file IDs, so we need to get the presigned URL for each file
+  if (profile.profile_picture_id) {
+    profile.profile_picture_url = await getPresignedUrl(
+      profile.profile_picture_id
+    );
+
+    if (!keepFileIDs) {
+      delete profile.profile_picture_id;
+    }
+  }
+
+  if (profile.cover_photo_id) {
+    profile.cover_photo_url = await getPresignedUrl(profile.cover_photo_id);
+
+    if (!keepFileIDs) {
+      delete profile.cover_photo_id;
+    }
+  }
+
+  if (profile.resume_id) {
+    profile.resume_url = await getPresignedUrl(profile.resume_id);
+
+    if (!keepFileIDs) {
+      delete profile.resume_id;
+    }
+  }
 
   // Education
   const educationResult = await db.query(
@@ -72,7 +140,7 @@ export const getProfile = async (userId: number): Promise<Profile | null> => {
 };
 
 /** Creates or updates a user's profile
- * 
+ *
  * @param userId - The unique identifier of the user
  * @param profileData - The profile data to create or update (first_name and last_name are required)
  * @returns The newly created or updated Profile object
@@ -327,7 +395,7 @@ export const createOrUpdateProfile = async (
 };
 
 /** Checks if a profile exists for a user
- * 
+ *
  * @param userId - The unique identifier of the user
  */
 export const checkProfileExists = async (userId: number): Promise<boolean> => {
@@ -337,4 +405,169 @@ export const checkProfileExists = async (userId: number): Promise<boolean> => {
   );
 
   return result.rows.length > 0;
+};
+
+/** Updates a user's profile picture
+ *
+ * @param userId - The unique identifier of the user
+ * @param file - The file to upload as the profile picture
+ * @returns The updated Profile object
+ */
+export const uploadProfilePicture = async (
+  userId: number,
+  file: Express.Multer.File | null
+): Promise<Profile> => {
+  const profile = await getProfile(userId, true);
+  if (!profile) {
+    throw new Error("Profile not found");
+  }
+
+  let fileId = null;
+  if (file) {
+    // Construct payload and call the rpc
+    const payload: FileUploadRequestPayload = {
+      user_id: userId,
+      file_buffer: file.buffer.toString("base64"),
+      file_name: file.originalname,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      context: "profile_picture",
+    };
+
+    const fileResponse = await callRPC<FileUploadResponsePayload>(
+      getQueueName(events.FILE_UPLOAD_RPC),
+      payload,
+      60000
+    );
+
+    fileId = fileResponse.file_id;
+  }
+
+  // Delete old profile picture
+  if (profile.profile_picture_id) {
+    const deletePayload: FileDeletePayload = {
+      file_id: profile.profile_picture_id,
+    };
+    await publishEvent(events.FILE_DELETE, deletePayload);
+  }
+
+  await db.query(
+    `UPDATE user_service.profiles 
+     SET profile_picture_id = $1 
+     WHERE user_id = $2`,
+    [fileId, userId]
+  );
+
+  const updatedProfile = await getProfile(userId);
+  return updatedProfile as Profile;
+};
+
+/** Updates a user's cover photo
+ *
+ * @param userId - The unique identifier of the user
+ * @param file - The file to upload as the cover photo
+ * @returns The updated Profile object
+ */
+export const uploadCoverPhoto = async (
+  userId: number,
+  file: Express.Multer.File | null
+): Promise<Profile> => {
+  const profile = await getProfile(userId, true);
+  if (!profile) {
+    throw new Error("Profile not found");
+  }
+
+  let fileId = null;
+  if (file) {
+    // Construct payload and call the rpc
+    const payload: FileUploadRequestPayload = {
+      user_id: userId,
+      file_buffer: file.buffer.toString("base64"),
+      file_name: file.originalname,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      context: "cover_photo",
+    };
+
+    const fileResponse = await callRPC<FileUploadResponsePayload>(
+      getQueueName(events.FILE_UPLOAD_RPC),
+      payload,
+      60000
+    );
+
+    fileId = fileResponse.file_id;
+  }
+
+  // Delete old cover photo
+  if (profile.cover_photo_id) {
+    const deletePayload: FileDeletePayload = {
+      file_id: profile.cover_photo_id,
+    };
+    await publishEvent(events.FILE_DELETE, deletePayload);
+  }
+
+  await db.query(
+    `UPDATE user_service.profiles 
+     SET cover_photo_id = $1 
+     WHERE user_id = $2`,
+    [fileId, userId]
+  );
+
+  const updatedProfile = await getProfile(userId);
+  return updatedProfile as Profile;
+};
+
+/** Updates a user's resume
+ *
+ * @param userId - The unique identifier of the user
+ * @param file - The file to upload as the resume
+ * @returns The updated Profile object
+ */
+export const uploadResume = async (
+  userId: number,
+  file: Express.Multer.File | null
+): Promise<Profile> => {
+  const profile = await getProfile(userId, true);
+  if (!profile) {
+    throw new Error("Profile not found");
+  }
+
+  let fileId = null;
+  if (file) {
+    // Construct payload and call the rpc
+    const payload: FileUploadRequestPayload = {
+      user_id: userId,
+      file_buffer: file.buffer.toString("base64"),
+      file_name: file.originalname,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      context: "resume",
+    };
+
+    const fileResponse = await callRPC<FileUploadResponsePayload>(
+      getQueueName(events.FILE_UPLOAD_RPC),
+      payload,
+      60000
+    );
+
+    fileId = fileResponse.file_id;
+  }
+
+  // Delete old resume
+  if (profile.resume_id) {
+    const deletePayload: FileDeletePayload = {
+      file_id: profile.resume_id,
+    };
+    await publishEvent(events.FILE_DELETE, deletePayload);
+  }
+
+  await db.query(
+    `UPDATE user_service.profiles 
+     SET resume_id = $1 
+     WHERE user_id = $2`,
+    [fileId, userId]
+  );
+
+  const updatedProfile = await getProfile(userId);
+  return updatedProfile as Profile;
 };

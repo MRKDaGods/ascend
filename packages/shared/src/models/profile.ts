@@ -79,9 +79,12 @@ export interface Profile {
   user_id: number;
   first_name: string;
   last_name: string;
-  resume_url?: string;
-  cover_photo_url?: string;
-  profile_picture_url?: string;
+  resume_url?: string; // Injected
+  resume_id?: number;
+  cover_photo_url?: string; // Injected
+  cover_photo_id?: number;
+  profile_picture_url?: string; // Injected
+  profile_picture_id?: number;
   industry?: string;
   location?: string;
   bio?: string;

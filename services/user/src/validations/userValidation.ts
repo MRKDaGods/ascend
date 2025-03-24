@@ -182,3 +182,93 @@ export const updateUserProfileValidationRules: ValidationChain[] = [
     .isISO8601()
     .withMessage("Valid birthday is required for contact info"),
 ];
+
+/**
+ * Validation rules for uploading a profile picture
+ */
+export const uploadProfilePictureValidationRules: ValidationChain[] = [
+  body("file").custom((_, { req }) => {
+    if (!req.file) {
+      throw new Error("File is required");
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (req.file.size > maxSize) {
+      throw new Error("File size exceeds 5MB limit");
+    }
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      throw new Error("Only JPEG, PNG files are allowed");
+    }
+
+    // Validate context
+    if (req.body.context !== "profile_picture") {
+      throw new Error("Invalid context");
+    }
+
+    return true;
+  }),
+];
+
+/**
+ * Validation rules for uploading a cover photo
+ */
+export const uploadCoverPhotoValidationRules: ValidationChain[] = [
+  body("file").custom((_, { req }) => {
+    if (!req.file) {
+      throw new Error("File is required");
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (req.file.size > maxSize) {
+      throw new Error("File size exceeds 5MB limit");
+    }
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      throw new Error("Only JPEG, PNG files are allowed");
+    }
+
+    // Validate context
+    if (req.body.context !== "cover_photo") {
+      throw new Error("Invalid context");
+    }
+
+    return true;
+  }),
+];
+
+/**
+ * Validation rules for uploading a resume
+ */
+export const uploadResumeValidationRules: ValidationChain[] = [
+  body("file").custom((_, { req }) => {
+    if (!req.file) {
+      throw new Error("File is required");
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (req.file.size > maxSize) {
+      throw new Error("File size exceeds 5MB limit");
+    }
+
+    // Validate file type
+    const allowedTypes = ["application/pdf"];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      throw new Error("Only PDF files are allowed");
+    }
+
+    // Validate context
+    if (req.body.context !== "resume") {
+      throw new Error("Invalid context");
+    }
+
+    return true;
+  }),
+];

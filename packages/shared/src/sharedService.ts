@@ -19,6 +19,7 @@ const PORT = process.env.PORT;
  * @param options.dontConnectRabbitMQ - If true, the service will not connect to RabbitMQ
  * @param options.registerConsumers - An array of functions to register as consumers
  * @param options.customInit - A custom initialization function for the service
+ * @param options.postMQInit - A function to run after connecting to RabbitMQ
  */
 const startSharedService = async (
   name: string,
@@ -27,6 +28,7 @@ const startSharedService = async (
     dontConnectRabbitMQ?: boolean;
     registerConsumers?: Array<() => Promise<void>>;
     customInit?: (app: express.Express) => Promise<void>;
+    postMQInit?: () => Promise<void>;
   }
 ) => {
   console.log(`Starting ${name} Service`);
@@ -61,6 +63,11 @@ const startSharedService = async (
         for (const registerConsumer of options.registerConsumers) {
           await registerConsumer();
         }
+      }
+
+      // Post RabbitMQ initialization
+      if (options?.postMQInit) {
+        await options.postMQInit();
       }
     }
 

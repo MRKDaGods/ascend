@@ -1,10 +1,5 @@
 import { Router } from "express";
-import {
-  uploadFile,
-  deleteFile,
-  getFileUrl,
-  getFileMetadata,
-} from "../controllers/fileController";
+import { uploadFile, getFileMetadata, viewFile } from "../controllers/fileController";
 import { uploadFileValidationRules } from "../validations/fileValidation";
 import multer from "multer";
 import authenticateToken from "@shared/middleware/authMiddleware";
@@ -25,8 +20,7 @@ router.post(
   validate,
   uploadFile
 );
-router.delete("/file/:fileId", authenticateToken, deleteFile); // Redundant, but keep for now
-router.get("/file/:fileId/url", getFileUrl);
 router.get("/file/:fileId", authenticateToken, getFileMetadata);
+router.get("/view", viewFile);
 
 export default router;

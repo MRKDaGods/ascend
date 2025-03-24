@@ -14,6 +14,28 @@ export interface UserCreatedPayload {
   email: string;
 }
 
-export interface FileDeletedPayload {
+export interface FileDeletePayload {
+  file_id: number;
+}
+
+export interface FilePresignedUrlRequestPayload {
+  file_id: number;
+}
+
+export interface FilePresignedUrlResponsePayload {
+  file_id: number;
+  presigned_url: string;
+}
+
+export interface FileUploadRequestPayload {
+  user_id: number;
+  file_buffer: string; // base64 encoded file buffer
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  context?: string;
+}
+
+export interface FileUploadResponsePayload {
   file_id: number;
 }

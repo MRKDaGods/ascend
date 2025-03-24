@@ -1,5 +1,6 @@
 import db from "@shared/config/db";
 import { FileMetadata } from "@shared/models";
+import { generateToken } from "@shared/utils/jwt";
 import { Client } from "minio";
 import { Readable } from "stream";
 
@@ -51,7 +52,7 @@ export const uploadFileToMinIO = async (
 
   // Store in db
   const result = await db.query(
-    "INSERT INTO file_service.files (user_id, file_name, mime_type, file_size, context) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    "INSERT INTO file_service.files (user_id, file_name, mime_type, file_size, context) VALUES ($1, $2, $3, $4, $5) RETURNING *",
     [userId, fileName, file.mimetype, file.size, context]
   );
 
@@ -86,7 +87,7 @@ export const deleteFileFromMinIO = async (fileId: number): Promise<void> => {
  */
 export const getPresignedUrl = async (fileId: number): Promise<string> => {
   const result = await db.query(
-    "SELECT file_name FROM file_service.files WHERE id = $1",
+    "SELECT * FROM file_service.files WHERE id = $1",
     [fileId]
   );
 
@@ -94,8 +95,15 @@ export const getPresignedUrl = async (fileId: number): Promise<string> => {
     throw new Error("File not found");
   }
 
-  const fileName = result.rows[0].file_name;
-  return await minioClient.presignedGetObject(bucketName, fileName, 60 * 60);
+  // Create a presigned URL that expires in 1 hour
+  const token = generateToken(
+    {
+      file_id: fileId,
+    },
+    "1h"
+  );
+
+  return `${process.env.GATEWAY_ENDPOINT}/files/view?token=${token}`;
 };
 
 /**
@@ -113,4 +121,31 @@ export const getFileMetadata = async (
   );
 
   return result.rows.length > 0 ? (result.rows[0] as FileMetadata) : null;
+};
+
+/**
+ * Retrieves a file from MinIO
+ *
+ * @param fileId - The unique identifier of the file
+ * @returns The file buffer
+ */
+export const getFileFromMinIO = async (fileId: number): Promise<Buffer> => {
+  const result = await db.query(
+    "SELECT file_name FROM file_service.files WHERE id = $1",
+    [fileId]
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error("File not found");
+  }
+
+  const fileName = result.rows[0].file_name;
+  const stream = await minioClient.getObject(bucketName, fileName);
+  const buffers: Buffer[] = [];
+
+  for await (const chunk of stream) {
+    buffers.push(chunk);
+  }
+
+  return Buffer.concat(buffers);
 };

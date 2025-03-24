@@ -6,7 +6,9 @@ export const events = {
   USER_CREATED: "user.created",
 
   // ------File events------
-  FILE_DELETED: "file.deleted",
+  FILE_URL_RPC: "file.url_rpc",
+  FILE_UPLOAD_RPC: "file.upload_rpc",
+  FILE_DELETE: "file.delete",
 };
 
 export const getQueueName = (event: string) => {

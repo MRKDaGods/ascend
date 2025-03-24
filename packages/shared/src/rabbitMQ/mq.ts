@@ -110,6 +110,87 @@ export const consumeEvents = async (
   );
 };
 
+// Setup an RPC server
+export const setupRPCServer = async (
+  queue: string,
+  handler: (msg: any) => Promise<any>
+): Promise<void> => {
+  checkChannel();
+
+  await channel!.assertQueue(queue, { durable: false });
+  await channel!.prefetch(1);
+
+  channel!.consume(queue, async (msg) => {
+    if (msg) {
+      const message = JSON.parse(msg.content.toString());
+      const correlationId = msg.properties.correlationId;
+      const replyTo = msg.properties.replyTo;
+
+      try {
+        const response = await handler(message);
+        const responseBuffer = Buffer.from(JSON.stringify(response));
+        channel!.sendToQueue(replyTo, responseBuffer, { correlationId });
+      } catch (error) {
+        console.log(`Error occurred while processing rpc call: ${error}`);
+        const errorResponse = {
+          error: (error as Error).message || "Server error",
+        };
+        const responseBuffer = Buffer.from(JSON.stringify(errorResponse));
+        channel!.sendToQueue(replyTo, responseBuffer, { correlationId });
+      }
+
+      channel!.ack(msg);
+    }
+  });
+};
+
+// Generic RPC call
+export const callRPC = async <T>(
+  queue: string,
+  message: any,
+  timeoutMs: number = 30000 // 30s
+): Promise<T> => {
+  checkChannel();
+  
+  // Generate a unique correlation ID
+  const correlationId = Math.random().toString(36).substring(2, 15);
+
+  // Setup a temporary queue to receive the response
+  const replyQueue = await channel!.assertQueue("", { exclusive: true });
+
+  return new Promise((resolve, reject) => {
+    // Begin timeout
+    const timeout = setTimeout(() => {
+      reject(new Error(`RPC request timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    channel!.consume(
+      replyQueue.queue,
+      (msg) => {
+        if (msg && msg.properties.correlationId === correlationId) {
+          // Clear the timeout
+          clearTimeout(timeout);
+
+          // Parse and respond
+          const response: any = JSON.parse(msg.content.toString());
+          if (response.error) {
+            reject(new Error(response.error));
+          } else {
+            resolve(response as T);
+          }
+        }
+      },
+      { noAck: true }
+    );
+
+    const messageBuffer = Buffer.from(JSON.stringify(message));
+    channel!.sendToQueue(queue, messageBuffer, {
+      correlationId,
+      replyTo: replyQueue.queue,
+    });
+  });
+};
+
 // Close RabbitMQ connection
 export const closeRabbitMQ = async (): Promise<void> => {
   if (channel) await channel.close();
