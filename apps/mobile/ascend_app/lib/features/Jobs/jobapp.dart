@@ -52,7 +52,6 @@ class _JobAppState extends State<JobApp> {
                 pinned: true,
                 showTabBar: false,
                 jobs: true,
-                isDarkMode: widget.isDarkMode,
               ),
               SliverFillRemaining(child: activescreen),
             ],
