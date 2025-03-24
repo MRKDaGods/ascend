@@ -1,6 +1,6 @@
-import 'package:ascend_app/features/home/presentation/data/sample_posts.dart';
-import 'package:ascend_app/features/home/presentation/models/post_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post.dart';
+import 'package:ascend_app/features/home/data/sample_posts.dart';
+import 'package:ascend_app/features/home/models/post_model.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post.dart';
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart'; // Add this import
 import 'package:flutter/material.dart';
 

@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
+import 'package:ascend_app/features/home/models/comment_model.dart';
 
 class CommentManager {
   final List<Comment> comments;

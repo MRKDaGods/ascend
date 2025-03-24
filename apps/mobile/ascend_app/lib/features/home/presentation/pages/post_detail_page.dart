@@ -1,16 +1,16 @@
-import 'package:ascend_app/features/home/presentation/widgets/post_reactions_popup.dart';
+import 'package:ascend_app/features/home/presentation/widgets/common';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_header.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_content.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_image_section.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_reaction_button.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_action_button.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_comments_section.dart';
-import 'package:ascend_app/features/home/presentation/managers/comment_manager.dart';
-import 'package:ascend_app/features/home/presentation/managers/reaction_manager.dart';
-import 'package:ascend_app/features/home/presentation/widgets/full_screen_image_viewer.dart';
+import 'package:ascend_app/features/home/models/comment_model.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_header.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_content.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_image_section.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_engagement_stats.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_action_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_comments_section.dart';
+import 'package:ascend_app/features/home/managers/comment_manager.dart';
+import 'package:ascend_app/features/home/managers/reaction_manager.dart';
+import 'package:ascend_app/features/home/presentation/utils/full_screen_image_viewer.dart';
 
 class PostDetailPage extends StatefulWidget {
   final String title;

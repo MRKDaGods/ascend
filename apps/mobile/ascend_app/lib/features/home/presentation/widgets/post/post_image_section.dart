@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_images_grid_shape.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_images_grid_shape.dart';
 
 class PostImageSection extends StatelessWidget {
   final List<String> images;

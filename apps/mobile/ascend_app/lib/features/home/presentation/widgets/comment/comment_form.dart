@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 class CommentForm extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSubmit;
-  final FocusNode? focusNode; // Add this parameter, make it optional
+  final FocusNode? focusNode;
+  final String hintText;
 
   const CommentForm({
     super.key,
     required this.controller,
     required this.onSubmit,
-    this.focusNode, // Optional parameter
+    this.focusNode,
+    this.hintText = 'Add a comment...',
   });
 
   @override
@@ -26,16 +28,15 @@ class CommentForm extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              focusNode: focusNode, // Use the provided focus node
-              decoration: const InputDecoration(
-                hintText: 'Add a comment...',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                hintText: hintText, // Use the provided hintText
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
                   vertical: 8.0,
                   horizontal: 12.0,
                 ),
               ),
-              // Add this to allow dismissing the keyboard by tapping elsewhere
               onTap: () {
                 // Optional: If you want custom behavior when tapping the field
               },
