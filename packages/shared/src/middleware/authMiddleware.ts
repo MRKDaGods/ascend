@@ -3,7 +3,7 @@ import { verifyToken } from "../utils/jwt";
 import { JwtPayload } from "jsonwebtoken";
 
 export interface AuthenticatedRequest extends Request {
-  user?: JwtPayload | { id: number };
+  user?: JwtPayload | { id: number, isService: boolean };
 }
 
 /**

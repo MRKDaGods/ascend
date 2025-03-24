@@ -13,3 +13,7 @@ export interface UserCreatedPayload {
   last_name: string;
   email: string;
 }
+
+export interface FileDeletedPayload {
+  file_id: number;
+}

@@ -1,6 +1,11 @@
 import db from "@shared/config/db";
 import { Profile } from "@shared/models";
 
+/** Retrieves a user's profile
+ * 
+ * @param userId - The unique identifier of the user
+ * @returns Profile object if found, or null if no profile was found
+ */
 export const getProfile = async (userId: number): Promise<Profile | null> => {
   const profileResult = await db.query(
     "SELECT * FROM user_service.profiles WHERE user_id = $1",
@@ -66,6 +71,12 @@ export const getProfile = async (userId: number): Promise<Profile | null> => {
   return profile;
 };
 
+/** Creates or updates a user's profile
+ * 
+ * @param userId - The unique identifier of the user
+ * @param profileData - The profile data to create or update (first_name and last_name are required)
+ * @returns The newly created or updated Profile object
+ */
 export const createOrUpdateProfile = async (
   userId: number,
   profileData: Partial<Profile> & { first_name: string; last_name: string }
@@ -315,6 +326,10 @@ export const createOrUpdateProfile = async (
   return getProfile(userId) as Promise<Profile>;
 };
 
+/** Checks if a profile exists for a user
+ * 
+ * @param userId - The unique identifier of the user
+ */
 export const checkProfileExists = async (userId: number): Promise<boolean> => {
   const result = await db.query(
     "SELECT * FROM user_service.profiles WHERE user_id = $1",

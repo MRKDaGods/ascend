@@ -46,18 +46,37 @@ services:
       timeout: 10s
       retries: 5
 
+  minio:
+    image: minio/minio
+    hostname: minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - ascend-network
+
   gateway:
     build:
       context: .
       dockerfile: services/gateway/Dockerfile
-    ports:
-      - "8080:8080"
     environment:
       # JWT
       - JWT_SECRET=${JWT_SECRET}
 
       # Service port
       - PORT=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth
+      - user
+      - file
     networks:
       - ascend-network
 
@@ -66,8 +85,6 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
-    ports:
-      - "3001:3001"
     environment:
       # Postgres
       - DB_USER=${DB_USER}
@@ -88,6 +105,8 @@ services:
 
       # RabbitMQ
       - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3001:3001"
     depends_on:
       - postgres
       - rabbitmq
@@ -99,8 +118,6 @@ services:
     build:
       context: .
       dockerfile: services/user/Dockerfile
-    ports:
-      - "3002:3002"
     environment:
       # Postgres
       - DB_USER=${DB_USER}
@@ -116,9 +133,41 @@ services:
 
       # RabbitMQ
       - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3002:3002"
     depends_on:
       - postgres
       - rabbitmq
+      - file
+    networks:
+      - ascend-network
+
+  file:
+    hostname: file
+    build:
+      context: .
+      dockerfile: services/file/Dockerfile
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # Minio
+      - MINIO_ENDPOINT=minio
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=ascend-files
+      - MINIO_PORT=9000
+
+      # Service port
+      - PORT=3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - minio
     networks:
       - ascend-network
 
@@ -126,6 +175,7 @@ volumes:
   postgres_data:
   pgadmin_data:
   rabbitmq_data:
+  minio_data:
 
 networks:
   ascend-network:
