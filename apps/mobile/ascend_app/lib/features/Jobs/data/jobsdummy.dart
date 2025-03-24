@@ -8,6 +8,9 @@ final List<Jobsattributes> jobs = [
     companyPhoto: "assets/microsoft.png",
     experienceLevel: 'Mid',
     salaryRange: 200,
+    easyapply: true,
+    alumniCount: 20,
+    isBookmarked: true,
   ),
   Jobsattributes(
     title: 'Data Analyst',
@@ -17,6 +20,7 @@ final List<Jobsattributes> jobs = [
     experienceLevel: 'Entry',
     salaryRange: 50,
     jobDescription: "Google is looking for a Data Analyst to join our team.",
+    easyapply: true,
   ),
   Jobsattributes(
     title: 'Product Manager',
@@ -25,6 +29,7 @@ final List<Jobsattributes> jobs = [
     companyPhoto: "assets/apple-logo.png",
     experienceLevel: 'Senior',
     salaryRange: 100,
+    easyapply: false,
   ),
   Jobsattributes(
     title: 'Full Stack Developer',
@@ -33,6 +38,7 @@ final List<Jobsattributes> jobs = [
     companyPhoto: "assets/facebook.png",
     experienceLevel: 'Mid',
     salaryRange: 1000,
+    easyapply: false,
   ),
   Jobsattributes(
     title: 'UX Designer',
@@ -41,5 +47,6 @@ final List<Jobsattributes> jobs = [
     companyPhoto: "assets/amazon.png",
     experienceLevel: 'Entry',
     salaryRange: 70,
+    easyapply: true,
   ),
 ];

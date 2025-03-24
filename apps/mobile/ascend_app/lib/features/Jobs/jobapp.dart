@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/job_home_page.dart';
-import 'package:ascend_app/features/Jobs/bookmarked.dart';
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 
 class JobApp extends StatefulWidget {
@@ -38,7 +37,7 @@ class _JobAppState extends State<JobApp> {
       );
     }
     if (screen == "bookmarked") {
-      activescreen = Bookmarked(toalljobs: tojobs);
+      //activescreen = Bookmarked(toalljobs: tojobs);
     }
     return MaterialApp(
       theme: widget.isDarkMode ? ThemeData.dark() : ThemeData.light(),
@@ -50,7 +49,7 @@ class _JobAppState extends State<JobApp> {
             slivers: [
               CustomSliverAppBar(
                 floating: true,
-                pinned: false,
+                pinned: true,
                 showTabBar: false,
                 jobs: true,
                 isDarkMode: widget.isDarkMode,

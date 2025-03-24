@@ -5,6 +5,7 @@ import 'package:ascend_app/features/Jobs/pages/job_picks_section.dart';
 import 'package:ascend_app/features/Jobs/pages/premium_section.dart';
 import 'package:ascend_app/features/Jobs/pages/explore_section.dart';
 import 'package:ascend_app/features/Jobs/pages/more_jobs_section.dart';
+import 'package:ascend_app/features/Jobs/pages/saved_section.dart';
 
 class JobHomePage extends StatefulWidget {
   final VoidCallback tosavedjobs;
@@ -24,12 +25,15 @@ class _JobHomePageState extends State<JobHomePage> {
   String selectedExperienceLevel = "All";
   String selectedCompany = "All";
   int salaryRange = 100; // Default salary range filter
-  bool isDarkMode = true;
+
+  List<Jobsattributes> jobsList = List.from(
+    jobs,
+  ); // Create a mutable copy of jobs
 
   // Function to filter jobs based on search query & filters
   List<Jobsattributes> get filteredJobs {
     String query = searchController.text.toLowerCase();
-    return jobs.where((job) {
+    return jobsList.where((job) {
       bool matchesQuery =
           job.title.toLowerCase().contains(query) ||
           job.location.toLowerCase().contains(query) ||
@@ -54,6 +58,12 @@ class _JobHomePageState extends State<JobHomePage> {
   void toggleBookmark(Jobsattributes job) {
     setState(() {
       job.isBookmarked = !job.isBookmarked;
+    });
+  }
+
+  void removeJob(Jobsattributes job) {
+    setState(() {
+      jobsList.remove(job); // Remove the job from the list
     });
   }
 
@@ -189,8 +199,13 @@ class _JobHomePageState extends State<JobHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final savedJobs = jobs.where((job) => job.isBookmarked).toList();
+
     return Scaffold(
-      backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
+      backgroundColor:
+          widget.isDarkMode
+              ? const Color.fromARGB(255, 29, 34, 38)
+              : Colors.white,
 
       body: SingleChildScrollView(
         child: Column(
@@ -208,10 +223,62 @@ class _JobHomePageState extends State<JobHomePage> {
                 ],
               ),
             ),
-            JobPicksSection(isDarkMode: widget.isDarkMode),
+            Container(
+              height: 10,
+              color:
+                  widget.isDarkMode
+                      ? Colors.black
+                      : Colors.grey[300], // Gray if not dark mode
+            ),
+
+            JobPicksSection(
+              isDarkMode: widget.isDarkMode,
+              jobs: jobsList,
+              onRemove: removeJob,
+            ),
+            Container(
+              height: 10,
+              color:
+                  widget.isDarkMode
+                      ? Colors.black
+                      : Colors.grey[300], // Gray if not dark mode
+            ),
+
+            // Saved Section (only if there are saved jobs)
+            if (savedJobs.isNotEmpty) ...[
+              SavedPage(isDarkMode: widget.isDarkMode),
+              Container(
+                height: 10,
+                color:
+                    widget.isDarkMode
+                        ? Colors.black
+                        : Colors.grey[300], // Gray if not dark mode
+              ),
+            ],
+            Container(height: 3, color: Colors.amber),
             PremiumSection(isDarkMode: widget.isDarkMode),
+            Container(
+              height: 10,
+              color:
+                  widget.isDarkMode
+                      ? Colors.black
+                      : Colors.grey[300], // Gray if not dark mode
+            ),
+
             ExploreSection(isDarkMode: widget.isDarkMode),
-            MoreJobsSection(isDarkMode: widget.isDarkMode),
+            Container(
+              height: 10,
+              color:
+                  widget.isDarkMode
+                      ? Colors.black
+                      : Colors.grey[300], // Gray if not dark mode
+            ),
+
+            MoreJobsSection(
+              isDarkMode: widget.isDarkMode,
+              jobs: jobsList,
+              onRemove: removeJob,
+            ),
           ],
         ),
       ),
@@ -223,15 +290,17 @@ class _JobHomePageState extends State<JobHomePage> {
       onPressed: () {},
       style: ElevatedButton.styleFrom(
         backgroundColor:
-            widget.isDarkMode ? Colors.grey[900] : Colors.grey[300],
+            widget.isDarkMode
+                ? const Color.fromARGB(255, 29, 34, 38)
+                : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: widget.isDarkMode ? Colors.white : Colors.black,
+        side: BorderSide(
+          color: widget.isDarkMode ? Colors.grey : Colors.black, // Border color
+          width: 0.5, // Border width
         ),
       ),
+
+      child: Text(title, style: TextStyle(color: Colors.grey)),
     );
   }
 }
