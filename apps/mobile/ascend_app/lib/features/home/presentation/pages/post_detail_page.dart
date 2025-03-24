@@ -263,6 +263,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     _commentManager.addReply(text, parentId);
                   }
                 },
+                onReaction: (commentId, reactionType) {
+                  // Call the CommentManager's toggleReaction method
+                  _commentManager.toggleReaction(commentId, reactionType);
+                },
                 onTapCommentArea: () {
                   _commentFocusNode.requestFocus();
                 },
