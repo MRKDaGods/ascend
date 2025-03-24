@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
 
 class PostHeader extends StatelessWidget {
   final String ownerName;
@@ -27,91 +28,53 @@ class PostHeader extends StatelessWidget {
   });
 
   void _showOptionsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+    SheetHelpers.showPostOptionsSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.bookmark_border),
-                title: const Text('Save'),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Post saved')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.share),
-                title: const Text('Share via'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement share functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sharing...')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.not_interested),
-                title: const Text('Not interested'),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('We\'ll show fewer posts like this')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_remove_outlined),
-                title: Text('Unfollow $ownerName'),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Unfollowed $ownerName')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.flag_outlined),
-                title: const Text('Report post'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Show report dialog
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Report post'),
-                        content: const Text('Why are you reporting this post?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Post reported')),
-                              );
-                            },
-                            child: const Text('Submit'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
+      ownerName: ownerName,
+      onSave: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post saved')),
+        );
+      },
+      onShare: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sharing...')),
+        );
+      },
+      onNotInterested: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('We\'ll show fewer posts like this')),
+        );
+      },
+      onUnfollow: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unfollowed $ownerName')),
+        );
+      },
+      onReport: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Report post'),
+              content: const Text('Why are you reporting this post?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Post reported')),
+                    );
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

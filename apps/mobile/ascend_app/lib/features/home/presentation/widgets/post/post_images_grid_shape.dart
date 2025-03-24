@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/home/presentation/widgets/build_image.dart';
+import 'package:ascend_app/features/home/presentation/utils/build_image.dart';
 import 'package:flutter/material.dart';
 
 class ImagesGridShape extends StatelessWidget {
