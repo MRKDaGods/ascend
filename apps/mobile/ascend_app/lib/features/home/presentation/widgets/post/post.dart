@@ -1,17 +1,17 @@
-import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/full_screen_image_viewer.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_action_button.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_reaction_button.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_reactions_popup.dart';
-import 'package:ascend_app/features/home/presentation/managers/reaction_manager.dart';
+import 'package:ascend_app/features/home/models/comment_model.dart';
+import 'package:ascend_app/features/home/presentation/utils/full_screen_image_viewer.dart';
+import 'package:ascend_app/features/home/presentation/widgets/common';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_action_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_engagement_stats.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_reaction_button.dart';
+import 'package:ascend_app/features/home/managers/reaction_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/home/presentation/data/sample_comments.dart';
+import 'package:ascend_app/features/home/data/sample_comments.dart';
 import 'package:ascend_app/features/home/presentation/pages/post_detail_page.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_header.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_content.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_image_section.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post_feedback_options.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_header.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_content.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_image_section.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post_feedback_options.dart';
 
 class Post extends StatefulWidget {
   final String title;
@@ -143,16 +143,6 @@ class _PostState extends State<Post> {
     );
   }
 
-  void _toggleLike() {
-    setState(() {
-      if (_isLiked) {
-        _likesCount--;
-      } else {
-        _likesCount++;
-      }
-      _isLiked = !_isLiked;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
