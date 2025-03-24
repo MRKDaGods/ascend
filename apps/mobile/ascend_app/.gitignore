@@ -1,75 +1,35 @@
-# Flutter build and runtime files
-build/
-.dart_tool/
-.packages
-.pub/
-.pub-cache/
-.flutter-plugins
-.flutter-plugins-dependencies
-**/doc/api/
-**/ios/Flutter/.last_build_id
-
-# Flutter plugin registry (auto-generated)
-generated_plugin_registrant.dart
-
-# Android related files
-android/.gradle/
-android/app/debug/
-android/app/profile/
-android/app/release/
-android/key.properties
-
-# iOS related files
-ios/Flutter/
-ios/.symlinks/
-ios/Pods/
-ios/.generated/
-ios/Runner.xcworkspace/
-
-# macOS related files
-macos/.symlinks/
-macos/Pods/
-macos/build/
-macos/Flutter/ephemeral/
-
-# Web related files
-web/.dart_tool/
-web/build/
-
-# Linux related files
-linux/build/
-linux/flutter/ephemeral/
-
-# Windows related files
-windows/flutter/ephemeral/
-windows/build/
-
-# Debug & Runtime files
-debug.log
-*.log
-*.lock
-*.tmp
-*.swp
-*.swo
-*.swn
-*.bak
+# Miscellaneous
 *.class
+*.log
 *.pyc
-*DS_Store
+*.swp
+.DS_Store
 .atom/
 .buildlog/
 .history
 .svn/
 migrate_working_dir/
 
-# IDE/editor specific files
-.vscode/
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
 .idea/
-xcuserdata/
 
-# Xcode related
-*.xcworkspace
-*.xcuserstate
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
 
 # Symbolication related
 app.*.symbols
@@ -77,7 +37,13 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Ascend app specific ignores
+/android/app/.cxx/
+
+# VS Code settings
+.vscode/
