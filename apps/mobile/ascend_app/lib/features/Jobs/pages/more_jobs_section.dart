@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
+import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/jobcard.dart';
 
 class MoreJobsSection extends StatelessWidget {
   final bool isDarkMode;
+  final List<Jobsattributes> jobs;
+  final void Function(Jobsattributes) onRemove;
 
-  const MoreJobsSection({super.key, required this.isDarkMode});
+  const MoreJobsSection({
+    super.key,
+    required this.isDarkMode,
+    required this.jobs,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +30,42 @@ class MoreJobsSection extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          ...jobs.skip(3).map((job) => jobCard(job, isDarkMode: isDarkMode)),
+          if (jobs.isEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16.0,
+                    top: 10,
+                    bottom: 10,
+                  ),
+                  child: Text(
+                    "No jobs available at the moment.",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 10,
+                  color:
+                      isDarkMode
+                          ? Colors.black
+                          : Colors.grey[300], // Gray if not dark mode
+                ),
+              ],
+            )
+          else
+            ...jobs.map((job) {
+              return jobCard(
+                job: job,
+                isDarkMode: isDarkMode,
+                onRemove: onRemove,
+              );
+            }),
         ],
       ),
     );
