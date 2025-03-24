@@ -11,6 +11,8 @@ class PostModel {
   final int initialLikes;
   final int initialComments;
   final int followers; // Add followers count field
+  int likes;
+  bool isLiked;
 
   PostModel({
     this.title = '',
@@ -25,5 +27,7 @@ class PostModel {
     this.initialLikes = 0,
     this.initialComments = 0,
     this.followers = 0, // Default to 0
+    this.likes = 0, // Default to 0
+    this.isLiked = false, // Default to false
   });
 }

@@ -80,6 +80,46 @@ class _CommentsSectionState extends State<CommentsSection> {
     return false;
   }
   
+  // Add this method to handle reactions with reaction type
+  void _toggleReaction(String commentId, String reactionType) {
+    setState(() {
+      _findAndUpdateReaction(_comments, commentId, reactionType);
+    });
+  }
+  
+  // Recursive function to find comment and update reaction
+  bool _findAndUpdateReaction(List<Comment> comments, String commentId, String reactionType) {
+    for (int i = 0; i < comments.length; i++) {
+      if (comments[i].id == commentId) {
+        comments[i] = comments[i].copyWithReaction(reactionType);
+        return true;
+      }
+      
+      // Check in nested replies
+      if (comments[i].replies.isNotEmpty) {
+        List<Comment> updatedReplies = List<Comment>.from(comments[i].replies);
+        if (_findAndUpdateReaction(updatedReplies, commentId, reactionType)) {
+          // If a reply was updated, update the parent comment
+          comments[i] = Comment(
+            id: comments[i].id,
+            authorName: comments[i].authorName,
+            authorImage: comments[i].authorImage,
+            authorOccupation: comments[i].authorOccupation,
+            text: comments[i].text,
+            timePosted: comments[i].timePosted,
+            parentId: comments[i].parentId,
+            replies: updatedReplies,
+            likes: comments[i].likes,
+            isLiked: comments[i].isLiked,
+            reaction: comments[i].reaction,
+          );
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -93,6 +133,7 @@ class _CommentsSectionState extends State<CommentsSection> {
             return CommentItem(
               comment: _comments[index],
               onAddReply: _addReply,
+              onReaction: _toggleReaction, // Pass the reaction handler instead of like handler
             );
           },
         ),
