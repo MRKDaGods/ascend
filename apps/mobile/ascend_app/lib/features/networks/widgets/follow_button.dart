@@ -40,14 +40,14 @@ class _FollowButtonState extends State<FollowButton> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isFollowing ? Colors.black87 : Colors.blue,
+            color: isFollowing ? Colors.grey : Colors.blue,
             width: 2,
           ),
         ),
         child: Text(
           isFollowing ? 'Following' : 'Follow',
           style: TextStyle(
-            color: isFollowing ? Colors.black87 : Colors.blue,
+            color: isFollowing ? Colors.grey : Colors.blue,
             fontWeight: FontWeight.bold,
           ),
         ),

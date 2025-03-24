@@ -14,6 +14,12 @@ import 'package:ascend_app/features/networks/model/follow_model.dart';
 import 'package:ascend_app/features/networks/widgets/single_follow.dart';
 import 'package:ascend_app/features/networks/Mock Data/follow.dart';
 import 'package:ascend_app/features/networks/pages/recommended_to_follow.dart';
+import 'package:ascend_app/features/networks/Mock%20Data/connections_request.dart';
+import 'package:ascend_app/features/networks/managers/follow_manager.dart';
+import 'package:ascend_app/features/networks/managers/connection_manager.dart';
+import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
+import 'package:uuid/uuid.dart';
+import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
 
 class Grow extends StatefulWidget {
   const Grow({Key? key}) : super(key: key);
@@ -66,7 +72,7 @@ class _GrowState extends State<Grow> {
                       .map((followModel) => getUser(followModel.followingId))
                       .toList();
 
-              final suggestedUserstoFollow = getSuggestedUsers(
+              final suggestedUserstoFollow = getSuggestedUsersforFollow(
                 connections,
                 followedUsers,
                 invitationsReceived,
@@ -75,7 +81,20 @@ class _GrowState extends State<Grow> {
                     .toList(),
               );
 
-              final customConnections = buildCustomConnections(connections);
+              final mutualConnectionsforFollowSuggestions =
+                  getallconnectionsforMutualFollow(connections);
+
+              final getSuggestedConnections = getSuggestedUsersforConnection(
+                connections,
+                connectionState.pendingRequestsSent
+                    .map((request) => getUser(request.receiverId))
+                    .toList(),
+                invitationsReceived,
+              );
+
+              final getAllconnections = getAllconnectionsforEachUser(
+                ConnectionRequests(),
+              );
 
               return SingleChildScrollView(
                 controller: _scrollController, // Add scroll controller
@@ -197,7 +216,7 @@ class _GrowState extends State<Grow> {
                           const SizedBox(height: 5),
                           PeopleToFollow(
                             users: suggestedUserstoFollow,
-                            mutualUsers: customConnections,
+                            mutualUsers: mutualConnectionsforFollowSuggestions,
                             onFollow: (userId) {
                               context.read<FollowBloc>().add(
                                 FollowUser(userId: userId),
@@ -232,7 +251,8 @@ class _GrowState extends State<Grow> {
                                     Message:
                                         'People to follow based on your activity',
                                     users: suggestedUserstoFollow,
-                                    mutualUsers: customConnections,
+                                    mutualUsers:
+                                        mutualConnectionsforFollowSuggestions,
                                     onFollow: (userId) {
                                       context.read<FollowBloc>().add(
                                         FollowUser(userId: userId),
@@ -266,6 +286,95 @@ class _GrowState extends State<Grow> {
                           ),
                         ),
                       ),
+                      const Divider(thickness: 1, height: 16),
+                      // Suggested Users Section
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              'Suggested Connections',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          ConnectionSuggestions(
+                            suggestedUsers: getSuggestedConnections,
+                            connectionsMap: getAllconnections,
+                            onSend: (userId) {
+                              final requestId = Uuid().v4();
+                              context.read<ConnectionRequestBloc>().add(
+                                SendConnectionRequest(
+                                  connectionRequest: ConnectionRequestModel(
+                                    requestId: requestId,
+                                    senderId: "1",
+                                    receiverId: userId,
+                                    status: "pending",
+                                    timestamp: DateTime.now().toIso8601String(),
+                                  ),
+                                ),
+                              );
+                            },
+                            ShowAll: false,
+                          ),
+                          ListTile(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) {
+                                    final bloc =
+                                        BlocProvider.of<ConnectionRequestBloc>(
+                                          context,
+                                        );
+                                    return BlocProvider.value(
+                                      value: bloc,
+                                      child: SuggestedConnectionsPage(
+                                        Message:
+                                            'People to Connect based on your activity',
+                                        users: getSuggestedConnections,
+                                        mutualUsers: getAllconnections,
+                                        onSend: (userId) {
+                                          context
+                                              .read<ConnectionRequestBloc>()
+                                              .add(
+                                                SendConnectionRequest(
+                                                  connectionRequest:
+                                                      ConnectionRequestModel(
+                                                        requestId: Uuid().v4(),
+                                                        senderId: "1",
+                                                        receiverId: userId,
+                                                        status: "pending",
+                                                        timestamp:
+                                                            DateTime.now()
+                                                                .toIso8601String(),
+                                                      ),
+                                                ),
+                                              );
+                                        },
+                                        showAll: true,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                            contentPadding: EdgeInsets.zero,
+                            title: const Center(
+                              child: Text(
+                                'See all',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Divider(thickness: 1, height: 16),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -284,59 +393,4 @@ class _GrowState extends State<Grow> {
       },
     );
   }
-}
-
-List<UserModel> getSuggestedUsers(
-  List<UserModel> connections,
-  List<UserModel> followedUsers,
-  List<UserModel> sentconnectionRequests,
-  List<UserModel> receivedconnectionRequests,
-) {
-  final allUsers = generateUsers();
-  final unFollowedUsers =
-      allUsers.where((user) {
-        // Check if the user's ID is not in the connections or followedUsers lists
-        final isConnected = connections.any(
-          (connection) => connection.id == user.id && connection.id != "1",
-        );
-        final isFollowed = followedUsers.any(
-          (followed) => followed.id == user.id && followed.id != "1",
-        );
-        final isRequested = sentconnectionRequests.any(
-          (request) => request.id == user.id && request.id != "1",
-        );
-        final isReceived = receivedconnectionRequests.any(
-          (request) => request.id == user.id && request.id != "1",
-        );
-        return !isConnected && !isFollowed && !isRequested && !isReceived;
-      }).toList();
-  unFollowedUsers.removeWhere((element) => element.id == "1");
-  print("Users to Follow:");
-  unFollowedUsers.forEach((element) => print(element.id));
-  return unFollowedUsers;
-}
-
-Map<String, List<UserModel>> buildCustomConnections(
-  List<UserModel> connections,
-) {
-  final Map<String, List<UserModel>> customConnections = {};
-  final userstobeFollowed = generateFollowers();
-
-  for (var user in userstobeFollowed) {
-    final mutualUser =
-        connections.where((connection) {
-          return user.followerId == connection.id;
-        }).toList();
-
-    if (customConnections.containsKey(user.followingId)) {
-      customConnections[user.followingId]!.addAll(mutualUser);
-    } else {
-      customConnections[user.followingId] = mutualUser;
-    }
-  }
-  customConnections.forEach(
-    (key, value) =>
-        print("User: $key, Mutual Users: ${value.map((e) => e.id)}"),
-  );
-  return customConnections;
 }
