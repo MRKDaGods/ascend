@@ -1,118 +1,59 @@
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+"use client";
 
-interface UserData {
-  id: string;
-  name: string;
-  profilePhoto: string;
-  coverPhoto: string;
-  role: string;
-  entity: string;
-  location: string;
-}
+import { Card, CardContent, Typography, Box, Avatar, Skeleton, Alert } from "@mui/material";
+import Link from "next/link";
+import { useProfileStore } from "../store/useProfileStore";
 
-interface ProfileCardProps {
-  userData: UserData;
-}
+const ProfileCard: React.FC = () => {
+  const userData = useProfileStore((state) => state.userData); 
+  const isLoading = !userData;
+  const error = null;
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ userData }) => {
-  const router = useRouter();
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect screen size for responsiveness
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768); // Mobile if width ≤ 768px
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const profileImg = userData?.profilePhoto || "/default-avatar.jpg";
+  const coverImg = userData?.coverPhoto || "/default-cover.jpg";
 
   return (
-    <>
-      {/* Desktop/Laptop View (Floating Sidebar Card) */}
-      {!isMobile && (
-        <div
-          className="fixed left-2 md:left-6 top-20 cursor-pointer z-50"
-          onClick={() => router.push(`/profile/${userData.id}`)}
-        >
-          <div className="bg-white shadow-lg rounded-2xl w-48 sm:w-60 h-60 overflow-hidden transition-all duration-300 hover:shadow-xl">
-            <div className="relative">
-              {/* Cover Photo */}
-              <img
-                src={
-                  userData.coverPhoto ||
-                  "https://i.pinimg.com/736x/c0/27/be/c027bec07c2dc08b9df60921dfd539bd.jpg"
-                }
-                alt="Cover"
-                className="w-full h-20 sm:h-24 object-cover"
-              />
+    <Link href="/profile" style={{ textDecoration: "none", color: "inherit" }}>
+      <Card sx={{ width: 250, minHeight: 180, borderRadius: 3, overflow: "hidden", boxShadow: 3, backgroundColor: "white" }}>
+        {error && <Alert severity="error">{error}</Alert>}
 
-              {/* Profile Photo */}
-              <img
-                src={
-                  userData.profilePhoto ||
-                  "https://i.pinimg.com/736x/c0/27/be/c027bec07c2dc08b9df60921dfd539bd.jpg"
-                }
-                alt="Profile"
-                className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 w-16 sm:w-20 h-16 sm:h-20 rounded-full border-4 border-white shadow-md"
-              />
-            </div>
+        <Box sx={{ width: "100%", height: 120, position: "relative" }}>
+          {isLoading ? <Skeleton variant="rectangular" width="100%" height={120} /> : <img src={coverImg} alt="Cover Image" style={{ width: "100%", height: "50%", objectFit: "cover" }} />}
+        </Box>
 
-            {/* User Info */}
-            <div className="text-center pt-12 pb-4 px-4">
-              <h2 className="text-base sm:text-lg font-semibold text-black truncate">
-                {userData.name || "Loading..."}
-              </h2>
-              <p className="text-gray-600 text-xs sm:text-sm truncate">
-                {userData.role ? `${userData.role} at ${userData.entity}` : "Loading..."}
-              </p>
-              <p className="text-gray-500 text-xs sm:text-sm">{userData.location}</p>
-            </div>
-          </div>
-        </div>
-      )}
+        <CardContent sx={{ textAlign: "left", position: "relative", mt: -6, px: 2 }}>
+          {isLoading ? (
+            <Skeleton variant="circular" width={80} height={80} sx={{ mt: -5 }} />
+          ) : (
+            <Box sx={{ position: "relative", display: "inline-block" }}>
+              <Avatar src={profileImg} alt={userData?.name || "User"} sx={{ width: 80, height: 80, border: "3px solid white", mt: -5 }} />
+            </Box>
+          )}
 
-      {/* Mobile View (Full-width LinkedIn Style) */}
-      {isMobile && (
-        <div className="w-full bg-white shadow-sm rounded-lg overflow-hidden">
-          {/* Cover Photo */}
-          <div className="relative w-full h-20">
-            <img
-              src={userData.coverPhoto || "https://via.placeholder.com/280x80"}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Profile Details */}
-          <div className="relative text-center px-3 pb-3">
-            {/* Profile Picture */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-8">
-              <img
-                src={userData.profilePhoto || "https://via.placeholder.com/60"}
-                alt="Profile"
-                className="w-16 h-16 rounded-full border-2 border-white shadow-md"
-              />
-            </div>
-
-            {/* User Info */}
-            <div className="pt-8">
-              <h2 className="text-sm font-semibold text-gray-900">{userData.name}</h2>
-              <p className="text-gray-600 text-xs">{userData.role} at {userData.entity}</p>
-              <p className="text-gray-500 text-xs">{userData.location}</p>
-            </div>
-
-            {/* Manage Notifications */}
-            <div className="mt-2">
-              <button className="text-xs text-blue-600 hover:underline">Manage your notifications</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+          {isLoading ? (
+            <>
+              <Skeleton width="60%" sx={{ mt: 2 }} />
+              <Skeleton width="80%" sx={{ mt: 1 }} />
+              <Skeleton width="50%" sx={{ mt: 1 }} />
+            </>
+          ) : (
+            userData && (
+              <>
+                <Typography variant="h6" fontWeight={600} sx={{ mt: 1, color: "black" }}>
+                  {userData.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {userData.role} at {userData.entity}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {userData.location}
+                </Typography>
+              </>
+            )
+          )}
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
 

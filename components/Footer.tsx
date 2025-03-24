@@ -1,25 +1,37 @@
 'use client';
 import React from "react";
+import { Box, Typography, Link, Container } from "@mui/material";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-100 text-gray-600 text-sm mt-10 py-6 px-4 flex flex-col items-center">
-      <div className="flex flex-wrap justify-center space-x-4 mb-2">
-        <a href="#" className="hover:underline">About</a>
-        <a href="#" className="hover:underline">Accessibility</a>
-        <a href="#" className="hover:underline">Help Center</a>
-        <a href="#" className="hover:underline">Privacy & Terms</a>
-        <a href="#" className="hover:underline">Ad Choices</a>
-        <a href="#" className="hover:underline">Advertising</a>
-        <a href="#" className="hover:underline">Business Services</a>
-        <a href="#" className="hover:underline">Get the Ascend app</a>
-        <a href="#" className="hover:underline">More</a>
-      </div>
-      <div className="mt-2 text-gray-500">
-        <span className="font-semibold text-gray-700">Asc</span>
-        <span className="text-blue-600 font-bold">end</span> Corporation &copy; 2025
-      </div>
-    </footer>
+    <Box
+      component="footer"
+      sx={{
+        bgcolor: "grey.100",
+        color: "grey.600",
+        py: 3,
+        px: 2,
+        mt: 4,
+        textAlign: "center",
+      }}
+    >
+      <Container>
+        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 2 }}>
+          {[
+            "About", "Accessibility", "Help Center", "Privacy & Terms", "Ad Choices",
+            "Advertising", "Business Services", "Get the Ascend app", "More"
+          ].map((text) => (
+            <Link key={text} href="#" underline="hover" color="inherit">
+              {text}
+            </Link>
+          ))}
+        </Box>
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
+          <strong style={{ color: "#424242" }}>Asc</strong>
+          <strong style={{ color: "#1E88E5" }}>end</strong> Corporation &copy; 2025
+        </Typography>
+      </Container>
+    </Box>
   );
 };
 

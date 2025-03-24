@@ -1,85 +1,104 @@
 "use client";
-import React, { useState } from "react";
-import { Home as HomeIcon, Users, Briefcase, MessageSquare, Bell, Menu } from "lucide-react";
 
-interface UserData {
+import React, { useState, useEffect } from "react";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Avatar,
+  Menu,
+  MenuItem,
+  Box,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import { Home, People, Work, Chat, Notifications } from "@mui/icons-material";
+
+interface UserProfile {
+  id: string;
   name: string;
   profilePhoto: string;
-  coverPhoto: string;
   role: string;
   entity: string;
-  location: string;
 }
 
-const Navbar: React.FC<{ userData: UserData }> = ({ userData }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const Navbar: React.FC = () => {
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isClient, setIsClient] = useState(false);
+  const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    setIsClient(true); // Prevents SSR mismatch
+
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/user");
+        if (!response.ok) throw new Error("Failed to fetch user data");
+        const data: UserProfile = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  if (!isClient) return null; // Prevents SSR-related hydration issues
 
   return (
-    <nav className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-center py-3">
-          {/* Left: Logo & Search */}
-          <div className="flex items-center space-x-4">
-            <img src="/linkedin-logo.png" alt="LinkedIn" className="w-8 h-8" />
-            <input
-              type="text"
-              placeholder="Search"
-              className="bg-gray-100 px-4 py-1 rounded-full w-64 hidden md:block focus:outline-none"
-            />
-          </div>
+    <AppBar position="fixed" color="default" sx={{ boxShadow: 1 }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Left: Logo */}
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+          LinkedIn
+        </Typography>
 
-          {/* Center: Navigation Icons */}
-          <div className="hidden md:flex space-x-6 text-gray-600">
-            <HomeIcon className="w-6 h-6 hover:text-blue-500 cursor-pointer" />
-            <Users className="w-6 h-6 hover:text-blue-500 cursor-pointer" />
-            <Briefcase className="w-6 h-6 hover:text-blue-500 cursor-pointer" />
-            <MessageSquare className="w-6 h-6 hover:text-blue-500 cursor-pointer" />
-            <Bell className="w-6 h-6 hover:text-blue-500 cursor-pointer" />
-          </div>
+        {/* Center: Navigation Icons */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <IconButton><Home /></IconButton>
+          <IconButton><People /></IconButton>
+          <IconButton><Work /></IconButton>
+          <IconButton><Chat /></IconButton>
+          <IconButton><Notifications /></IconButton>
+        </Box>
 
-          {/* Right: Profile Dropdown */}
-          <div className="relative">
-            <img
-              src={userData.profilePhoto || "https://via.placeholder.com/40"}
-              alt="Profile"
-              className="w-10 h-10 rounded-full cursor-pointer"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            />
-
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={userData.profilePhoto || "https://via.placeholder.com/40"}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <div>
-                    <h2 className="text-gray-800 font-semibold">{userData.name}</h2>
-                    <p className="text-gray-500 text-sm">{userData.role} at {userData.entity}</p>
-                  </div>
-                </div>
-                <hr className="my-2" />
-                <a href="/profile" className="block text-blue-600 text-center font-semibold py-2 hover:underline">View Profile</a>
-                <hr className="my-2" />
-                <ul className="text-gray-700 text-sm">
-                  <li className="py-2 hover:bg-gray-100 px-2 cursor-pointer">Settings & Privacy</li>
-                  <li className="py-2 hover:bg-gray-100 px-2 cursor-pointer">Help</li>
-                  <li className="py-2 hover:bg-gray-100 px-2 cursor-pointer">Language</li>
-                </ul>
-                <hr className="my-2" />
-                <ul className="text-gray-700 text-sm">
-                  <li className="py-2 hover:bg-gray-100 px-2 cursor-pointer">Posts & Activity</li>
-                  <li className="py-2 hover:bg-gray-100 px-2 cursor-pointer">Job Posting Account</li>
-                </ul>
-                <hr className="my-2" />
-                <button className="w-full text-left text-red-600 px-2 py-2 hover:bg-gray-100">Sign Out</button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
+        {/* Right: Profile Menu */}
+        {userData ? (
+          <>
+            <IconButton onClick={handleMenuOpen}>
+              <Avatar src={userData.profilePhoto || "/default-avatar.jpg"} alt={userData.name} />
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+              <MenuItem disabled>
+                <Typography variant="body1" fontWeight="bold">
+                  {userData.name}
+                </Typography>
+              </MenuItem>
+              <MenuItem disabled>
+                <Typography variant="body2" color="text.secondary">
+                  {userData.role} at {userData.entity}
+                </Typography>
+              </MenuItem>
+              <MenuItem onClick={handleMenuClose}>View Profile</MenuItem>
+              <MenuItem onClick={handleMenuClose}>Settings & Privacy</MenuItem>
+              <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+            </Menu>
+          </>
+        ) : (
+          <CircularProgress size={24} />
+        )}
+      </Toolbar>
+    </AppBar>
   );
 };
 

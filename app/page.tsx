@@ -1,52 +1,74 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect } from "react";
 import Navbar from "../components/Navbar";
 import ProfileCard from "../components/ProfileCard";
 import NotificationCard from "../components/NotificationCard";
+import SettingsCard from "../components/SettingsCard";
 import Footer from "@/components/Footer";
-import '../app/globals.css';
+import { Box, Container, CircularProgress } from "@mui/material";
+import { useNotificationStore } from "../store/useNotificationStore";
+import { useProfileStore } from "../store/useProfileStore";
 
 export default function Home() {
-  const [userData, setUserData] = useState({
-    id: "",
-    name: "",
-    profilePhoto: "",
-    coverPhoto: "",
-    role: "",
-    entity: "",
-    location: "",
-  });
+  const { userData, setUserData } = useProfileStore();
+  const { setNotifications } = useNotificationStore();
 
-  // Fetch user data when the page loads
   useEffect(() => {
-    fetch("http://localhost:5000/api/user")
-      .then((response) => response.json())
-      .then((data) => setUserData(data))
-      .catch((error) => console.error("Error fetching user data:", error));
-  }, []);
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/user");
+        if (!response.ok) throw new Error("Failed to fetch user data");
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/notifications");
+        if (!response.ok) throw new Error("Failed to fetch notifications");
+        const data = await response.json();
+
+        const storedNotifications = localStorage.getItem("notifications");
+        if (storedNotifications) {
+          const parsedNotifications = JSON.parse(storedNotifications);
+          const mergedNotifications = data.map((notif: any) => {
+            const existingNotif = parsedNotifications.find((n: any) => n.id === notif.id);
+            return existingNotif ? existingNotif : notif;
+          });
+
+          setNotifications(mergedNotifications);
+        } else {
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchUserData();
+    fetchNotifications();
+  }, [setUserData, setNotifications]);
 
   return (
-    <main className="overflow-hidden bg-gray-100 min-h-screen flex flex-col">
-      {/* Navbar */}
-      <Navbar userData={userData} />
+    <Box sx={{ minHeight: "100vh", bgcolor: "grey.100", display: "flex", flexDirection: "column" }}>
+      <Navbar />
 
-      {/* Responsive Layout */}
-      <div className="flex flex-col md:flex-row w-full gap-4 px-4 pt-16 items-center md:items-start">
-        {/* ProfileCard on top for mobile, left for larger screens */}
-        <div className="w-full flex justify-center md:w-1/3 md:justify-start order-1 md:order-none">
-          <ProfileCard userData={userData} />
-        </div>
+      <Container sx={{ flexGrow: 1, mt: 10, display: "flex", gap: 3, maxWidth: "1200px", pb: 3 }}>
+        <Box sx={{ width: "250px", display: "flex", flexDirection: "column", gap: 2 }}>
+          {userData ? <ProfileCard /> : <CircularProgress />}
+          <SettingsCard />
+        </Box>
 
-        {/* NotificationCard below ProfileCard on mobile, right on larger screens */}
-        <div className="w-full flex justify-center md:flex-1 md:justify-start order-2 md:order-none">
-          <div className="w-full max-w-4xl"> 
-            <NotificationCard />
-          </div>
-        </div>
-      </div>
+        <Box sx={{ flexGrow: 1, maxWidth: "750px" }}>
+          <NotificationCard />
+        </Box>
+      </Container>
 
-      {/* Footer */}
       <Footer />
-    </main>
+    </Box>
   );
 }
