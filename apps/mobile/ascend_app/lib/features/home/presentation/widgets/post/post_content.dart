@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 class PostContent extends StatefulWidget {
   final String title;
   final String description;
