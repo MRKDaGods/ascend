@@ -114,12 +114,12 @@ class _FollowState extends State<SingleFollow> {
                   onPressed: _changeFollowStatus, // Ensure this is clickable
                   icon: Icon(
                     isFollowing ? Icons.check : Icons.add,
-                    color: isFollowing ? Colors.white : Colors.blue,
+                    color: isFollowing ? Colors.grey : Colors.blue,
                   ),
                   label: Text(
                     isFollowing ? "Following" : "Follow",
                     style: TextStyle(
-                      color: isFollowing ? Colors.white : Colors.blue,
+                      color: isFollowing ? Colors.grey : Colors.blue,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -128,7 +128,7 @@ class _FollowState extends State<SingleFollow> {
                       vertical: 8,
                     ),
                     side: BorderSide(
-                      color: isFollowing ? Colors.blue : Colors.blue,
+                      color: isFollowing ? Colors.grey : Colors.blue,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -148,7 +148,6 @@ class _FollowState extends State<SingleFollow> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                     ),

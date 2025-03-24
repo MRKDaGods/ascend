@@ -19,7 +19,7 @@ class Followings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Followings')),
+      appBar: AppBar(title: Text('People I follow')),
       body: Column(
         children: [
           Card(
@@ -31,11 +31,7 @@ class Followings extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Text(
                 '${followingUsers.length} people',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -58,7 +54,6 @@ class Followings extends StatelessWidget {
                     title: Text(
                       followingUsers[index].name,
                       style: TextStyle(
-                        color: Colors.black,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -69,7 +64,8 @@ class Followings extends StatelessWidget {
                         Text(
                           followingUsers[index].bio,
                           maxLines: 2,
-                          style: TextStyle(color: Colors.black, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12),
                         ),
                       ],
                     ),

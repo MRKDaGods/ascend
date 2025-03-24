@@ -6,6 +6,8 @@ class UserModel {
   final String profilePic;
   final String coverpic;
   final String bio;
+  final bool firstFollow;
+  final bool firstConnect;
 
   UserModel({
     required this.id,
@@ -15,6 +17,8 @@ class UserModel {
     required this.profilePic,
     required this.coverpic,
     required this.bio,
+    required this.firstFollow,
+    required this.firstConnect,
   });
 
   UserModel copyWith({
@@ -25,6 +29,8 @@ class UserModel {
     String? profilePic,
     String? coverpic,
     String? bio,
+    bool? firstFollow,
+    bool? firstConnect,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -34,6 +40,8 @@ class UserModel {
       profilePic: profilePic ?? this.profilePic,
       coverpic: coverpic ?? this.coverpic,
       bio: bio ?? this.bio,
+      firstFollow: firstFollow ?? this.firstFollow,
+      firstConnect: firstConnect ?? this.firstConnect,
     );
   }
 
@@ -45,6 +53,8 @@ class UserModel {
     profilePic: json["profilePictureUrl"],
     coverpic: json["coverpic"],
     bio: json["bio"],
+    firstFollow: json["firstFollow"],
+    firstConnect: json["firstConnect"],
   );
 
   Map<String, dynamic> toJson() => {

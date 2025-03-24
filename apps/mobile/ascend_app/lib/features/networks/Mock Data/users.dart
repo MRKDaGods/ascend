@@ -14,6 +14,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/logo.jpg',
       coverpic: 'assets/pexels-karymefranca-1535907.jpg',
       bio: 'Engineer at Company A',
+      firstFollow: false,
+      firstConnect: true,
     ),
     UserModel(
       id: '2',
@@ -23,6 +25,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/logo.jpg',
       coverpic: 'assets/pexels-karymefranca-1535907.jpg',
       bio: 'Manager at Company B',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '3',
@@ -32,6 +36,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/logo.jpg',
       coverpic: 'assets/pic 2.jpg',
       bio: 'Developer at Company C',
+      firstConnect: false,
+      firstFollow: true,
     ),
     UserModel(
       id: '4',
@@ -41,15 +47,19 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/logo.jpg',
       coverpic: 'assets/pic 2.jpg',
       bio: 'Designer at Company D',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '5',
-      name: 'Charlie',
+      name: 'Charlie Ronaldo',
       company: 'Company E',
       industry: 'Industry E',
       profilePic: 'assets/logo.jpg',
       coverpic: 'assets/pic 3.jpg',
       bio: 'Analyst at Company E',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '6',
@@ -59,6 +69,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/logo.jpg',
       coverpic: 'assets/pic 3.jpg',
       bio: 'Consultant at Company F',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '7',
@@ -69,6 +81,8 @@ List<UserModel> generateUsers() {
       coverpic: 'assets/image 4.jpg',
       bio:
           'HR at Company G lorem ipsum dolor sit amet consectetur adipiscing elit',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '8',
@@ -79,6 +93,8 @@ List<UserModel> generateUsers() {
       coverpic: 'assets/image 4.jpg',
       bio:
           'Marketing at Company H lorem ipsum dolor sit amet consectetur adipiscing elit',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '9',
@@ -89,6 +105,8 @@ List<UserModel> generateUsers() {
       coverpic: 'assets/image 4.jpg',
       bio:
           'Sales at Company I lorem ipsum dolor sit amet consectetur adipiscing elit',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '10',
@@ -99,6 +117,8 @@ List<UserModel> generateUsers() {
       coverpic: 'assets/logo.jpg',
       bio:
           'Engineer at Company J lorem ipsum dolor sit amet consectetur adipiscing elit',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '11',
@@ -109,6 +129,8 @@ List<UserModel> generateUsers() {
       coverpic: 'assets/logo.jpg',
       bio:
           'Manager at Company K lorem ipsum dolor sit amet consectetur adipiscing elit',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '12',
@@ -118,6 +140,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/pic 2.jpg',
       bio: 'Developer at Company L',
+      firstConnect: true,
+      firstFollow: false,
     ),
     UserModel(
       id: '13',
@@ -127,6 +151,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/pic 2.jpg',
       bio: 'Designer at Company M',
+      firstConnect: false,
+      firstFollow: true,
     ),
     UserModel(
       id: '14',
@@ -136,6 +162,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/pic 3.jpg',
       bio: 'Analyst at Company N',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '15',
@@ -145,6 +173,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/pic 3.jpg',
       bio: 'Consultant at Company O',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '16',
@@ -154,6 +184,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/image 4.jpg',
       bio: 'HR at Company P',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '17',
@@ -163,6 +195,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/image 4.jpg',
       bio: 'Marketing at Company Q',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '18',
@@ -172,6 +206,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/image 4.jpg',
       bio: 'Sales at Company R',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '19',
@@ -181,6 +217,8 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/logo.jpg',
       bio: 'Engineer at Company S',
+      firstFollow: true,
+      firstConnect: false,
     ),
     UserModel(
       id: '20',
@@ -190,6 +228,52 @@ List<UserModel> generateUsers() {
       profilePic: 'assets/facebook.png',
       coverpic: 'assets/logo.jpg',
       bio: 'Manager at Company T',
+      firstFollow: true,
+      firstConnect: false,
+    ),
+    UserModel(
+      id: '21',
+      name: 'Sam',
+      company: 'Company U',
+      industry: 'Industry U',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 2.jpg',
+      bio: 'Developer at Company U',
+      firstFollow: false,
+      firstConnect: true,
+    ),
+    UserModel(
+      id: '22',
+      name: 'Tina',
+      company: 'Company V',
+      industry: 'Industry V',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 2.jpg',
+      bio: 'Designer at Company V',
+      firstFollow: false,
+      firstConnect: true,
+    ),
+    UserModel(
+      id: '23',
+      name: 'Umar',
+      company: 'Company W',
+      industry: 'Industry W',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 3.jpg',
+      bio: 'Analyst at Company W',
+      firstFollow: false,
+      firstConnect: true,
+    ),
+    UserModel(
+      id: '24',
+      name: 'Vivian',
+      company: 'Company X',
+      industry: 'Industry X',
+      profilePic: 'assets/facebook.png',
+      coverpic: 'assets/pic 3.jpg',
+      bio: 'Consultant at Company X',
+      firstFollow: false,
+      firstConnect: true,
     ),
   ];
 }

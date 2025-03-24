@@ -2,7 +2,7 @@ import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/single_follow.dart';
 import 'package:flutter/material.dart';
 
-class PeopleToFollow extends StatelessWidget {
+class PeopleToFollow extends StatefulWidget {
   final List<UserModel> users;
   final Map<String, List<UserModel>> mutualUsers;
   final Function(String) onFollow;
@@ -19,28 +19,49 @@ class PeopleToFollow extends StatelessWidget {
     required this.onHide,
     required this.showAll,
   }) : super(key: key);
+  @override
+  _PeopleToFollowState createState() => _PeopleToFollowState();
+}
+
+class _PeopleToFollowState extends State<PeopleToFollow> {
+  late List<UserModel> localUsers; // Local copy of the users list
+
+  @override
+  void initState() {
+    super.initState();
+    localUsers = List.from(widget.users); // Initialize the local list
+  }
+
+  void _handleHide(String userId) {
+    setState(() {
+      localUsers.removeWhere(
+        (user) => user.id == userId,
+      ); // Remove the user locally
+    });
+    widget.onHide(userId); // Trigger the onHide callback
+  }
 
   @override
   Widget build(BuildContext context) {
     int countFollows =
-        showAll
-            ? users.length
-            : users.length > 2
+        widget.showAll
+            ? localUsers.length
+            : localUsers.length > 2
             ? 2
-            : users.length;
+            : localUsers.length;
     return Wrap(
       spacing: 8.0,
       runSpacing: 8.0,
       children:
-          users.take(countFollows).map((user) {
-            List<UserModel> mutuals = mutualUsers[user.id] ?? [];
+          localUsers.take(countFollows).map((user) {
+            List<UserModel> mutuals = widget.mutualUsers[user.id] ?? [];
             return SingleFollow(
               key: ValueKey(user.id),
               user: user,
               mutualUsers: mutuals,
-              onFollow: onFollow,
-              onUnfollow: onUnfollow,
-              onHide: onHide,
+              onFollow: widget.onFollow,
+              onUnfollow: widget.onUnfollow,
+              onHide: widget.onHide,
             );
           }).toList(),
     );
