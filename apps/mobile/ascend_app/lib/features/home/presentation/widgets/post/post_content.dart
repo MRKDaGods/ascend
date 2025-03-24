@@ -17,11 +17,9 @@ class PostContent extends StatefulWidget {
     this.onReadMoreTap,
     this.maxDescriptionLength = 150, // Default value
   });
-
   @override
   State<PostContent> createState() => _PostContentState();
 }
-
 class _PostContentState extends State<PostContent> {
   bool _expanded = false;
 
@@ -69,7 +67,6 @@ class _PostContentState extends State<PostContent> {
               ),
             ),
           ],
-          
           if (widget.description.isNotEmpty) ...[
             const SizedBox(height: 8),
             if (!needsReadMore)
