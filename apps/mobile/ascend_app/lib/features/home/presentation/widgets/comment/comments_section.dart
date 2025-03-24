@@ -1,7 +1,7 @@
+import 'package:ascend_app/features/home/presentation/widgets/comment/comment_form.dart';
+import 'package:ascend_app/features/home/presentation/widgets/comment/comment_item.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/home/presentation/models/comment_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/comment_form.dart';
-import 'package:ascend_app/features/home/presentation/widgets/comment_item.dart';
+import 'package:ascend_app/features/home/models/comment_model.dart';
 
 
 class CommentsSection extends StatefulWidget {

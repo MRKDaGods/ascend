@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/home/presentation/models/post_model.dart';
+import 'package:ascend_app/features/home/models/post_model.dart';
 
 /// Sample data for posts used throughout the app
 class SamplePosts {
