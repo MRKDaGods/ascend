@@ -25,6 +25,7 @@ class ProfileOptionsSheet extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min, // Ensures it wraps content properly
       children: [
+        // Custom Drag Handle
         Stack(
           children: [
             Container(
@@ -58,8 +59,6 @@ class ProfileOptionsSheet extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
           child: Wrap(
             children: [
-              // Custom Drag Handle
-              // Custom Drag Handle with Centering and Background
               _buildSheetOption(
                 context,
                 Icons.send,

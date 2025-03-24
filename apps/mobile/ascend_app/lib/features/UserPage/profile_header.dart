@@ -47,11 +47,12 @@ class ProfileHeader extends StatelessWidget {
 
         _buildEducationLocationSection(),
         const SizedBox(height: 5),
-
+        if (links.isNotEmpty) _buildLinks(context),
+        const SizedBox(height: 5),
         if (connections > 0) _buildConnectionsSection(),
+        const SizedBox(height: 5),
 
-        if (mutualConnections.isNotEmpty || links.isNotEmpty)
-          _buildExtraMaterial(context),
+        if (mutualConnections.isNotEmpty) _buildMutualConnections(context),
       ],
     );
   }
@@ -139,8 +140,7 @@ class ProfileHeader extends StatelessWidget {
     );
   }
 
-  // Extra Material (Mutual Connections & Links)
-  Widget _buildExtraMaterial(BuildContext context) {
+  Widget _buildLinks(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -153,7 +153,15 @@ class ProfileHeader extends StatelessWidget {
               ProfileExtraMaterial(links: links),
             ],
           ),
-        // Mutual Connections
+      ],
+    );
+  }
+
+  // Extra Material (Mutual Connections & Links)
+  Widget _buildMutualConnections(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         if (mutualConnections.isNotEmpty)
           GestureDetector(
             onTap: () {
