@@ -42,7 +42,7 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double mainAxisExtent =
-        screenWidth > 600 ? 400 : 280; // Adjust dynamically
+        screenWidth > 600 ? 400 : 320; // Adjust dynamically
 
     final int crossAxisCount =
         screenWidth > 600 ? 4 : 2; // Adjust columns for larger screens
