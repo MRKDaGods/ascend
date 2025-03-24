@@ -10,7 +10,6 @@ class MainNavigation extends StatefulWidget {
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
-
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
