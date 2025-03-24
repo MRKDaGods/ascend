@@ -4,37 +4,43 @@ import 'bottom_options_sheet.dart';
 import 'grey_button.dart';
 
 class ProfileButtons extends StatelessWidget {
-  const ProfileButtons(
-    this._isConnect,
-    this._isPending,
-    this._toggleConnect,
-    this._withdrawRequest, { // Function to handle withdraw action
+  const ProfileButtons({
+    required this.isConnect,
+    required this.isfollowing,
+    required this.isPending,
+    required this.toggleConnect,
+    required this.withdrawRequest,
+    required this.toggleFollow,
+    required this.removeConnection,
     super.key,
   });
 
-  final bool _isConnect;
-  final bool _isPending;
-  final void Function() _toggleConnect;
-  final void Function(BuildContext) _withdrawRequest; // Function to show dialog
+  final bool isConnect;
+  final bool isfollowing;
+  final bool isPending;
+  final void Function() toggleConnect;
+  final void Function() toggleFollow;
+  final void Function(BuildContext) withdrawRequest; // Function to show dialog
+  final void Function(BuildContext) removeConnection; // Function to show dialog
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (_isConnect)
+        if (isConnect)
           Expanded(child: BlueButton(text: "Message", icon: Icons.send))
         else ...[
           Expanded(
             child:
-                _isPending
+                isPending
                     ? GreyButton(
                       text: "Pending",
-                      action: _withdrawRequest,
+                      action: withdrawRequest,
                       icon: Icons.access_time,
                     )
                     : BlueButton(
                       text: "Connect",
-                      action: _toggleConnect,
+                      action: toggleConnect,
                       icon: Icons.person_add,
                     ),
           ),
@@ -60,7 +66,16 @@ class ProfileButtons extends StatelessWidget {
             child: IconButton(
               icon: Icon(Icons.more_horiz, color: Colors.white),
               onPressed:
-                  () => _showProfileOptionsSheet(context), // Show Bottom Sheet
+                  () => _showProfileOptionsSheet(
+                    context,
+                    isConnect,
+                    isfollowing,
+                    isPending,
+                    toggleConnect,
+                    toggleFollow,
+                    withdrawRequest,
+                    removeConnection,
+                  ), // Show Bottom Sheet
             ),
           ),
         ),
@@ -68,7 +83,16 @@ class ProfileButtons extends StatelessWidget {
     );
   }
 
-  void _showProfileOptionsSheet(BuildContext context) {
+  void _showProfileOptionsSheet(
+    BuildContext context,
+    bool isConnect,
+    bool isfollowing,
+    bool isPending,
+    void Function() toggleConnect,
+    void Function() toggleFollow,
+    void Function(BuildContext) withdrawRequest,
+    void Function(BuildContext) removeConnectionAlert,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.grey[900],
@@ -77,7 +101,15 @@ class ProfileButtons extends StatelessWidget {
       ),
       isScrollControlled: true, // Allows the sheet to expand properly
       builder: (BuildContext context) {
-        return ProfileOptionsSheet();
+        return ProfileOptionsSheet(
+          isConnect: isConnect,
+          isfollowing: isfollowing,
+          isPending: isPending,
+          toggleConnect: toggleConnect,
+          toggleFollow: toggleFollow,
+          withdrawRequest: withdrawRequest,
+          removeConnection: removeConnectionAlert,
+        );
       },
     );
   }

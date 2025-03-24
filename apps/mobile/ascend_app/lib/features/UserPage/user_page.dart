@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
 import 'buttons.dart';
-import 'withdraw_request.dart';
+import 'custom_alert_dialog.dart';
 import 'profile_main_images.dart';
-import 'Data/dummy_profile_sections.dart';
 import 'section_builder.dart';
 import 'profile_header.dart';
 
@@ -16,13 +15,20 @@ class UserProfilePage extends StatefulWidget {
     this.coverImageUrl = 'https://picsum.photos/1500/500',
     this.location = 'Cairo, Cairo, Egypt',
     this.latestEducation = 'Cairo University',
-    this.sections = sectionss,
-    this.isconnect = false,
+    this.sections = const [],
+    this.isconnect = true,
     this.isfollow = false,
     this.isPending = false,
     this.connections = 15,
     this.verified = true,
     this.degree = "1st",
+    this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
+    this.links = const [
+      {"title": "My Portfolio", "url": "https://example.com"},
+      {"title": "GitHub", "url": "https://github.com/username"},
+      {"title": " ", "url": "https://example.com"}, // This will be ignored
+    ],
+    this.badges = const ["Open to Work", "Providing Services"],
   });
 
   final String name;
@@ -38,6 +44,9 @@ class UserProfilePage extends StatefulWidget {
   final List<ProfileSection> sections;
   final bool verified;
   final String degree;
+  final List<String> mutualConnections;
+  final List<Map<String, String>> links;
+  final List<String> badges;
 
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
@@ -70,7 +79,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _isPending = true; // Change to "Pending"
       } else if (_isPending) {
         _isPending = false;
-        _isConnect = true; // Change to "Connected"
+        _isConnect = true; // Change to "Connected" //inv accepted
+      }
+      if (_isConnect) {
+        _isConnect = false; // remove connection
       }
     });
   }
@@ -88,11 +100,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   // Function to show withdraw confirmation dialog
-  void _showWithdrawDialog(BuildContext context) {
+  void _showWarningDialogForRemovingConnection(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return WithdrawRequest(toggleIspending: _toggleisPending);
+        return CustomAlertDialog(
+          title: "Remove connection",
+          description:
+              "Are you sure you want to remove ${widget.name} from your connections?",
+          confirmText: "Remove",
+          onConfirm: _toggleConnect,
+        );
+      },
+    );
+  }
+
+  void _showWarningDialogForPending(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          title: "Withdraw invitation",
+          description:
+              "If you withdraw now, you won’t be able to resend to this person for up to 3 weeks.",
+          confirmText: "Withdraw",
+          onConfirm: _toggleisPending,
+        );
       },
     );
   }
@@ -150,13 +183,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     connections: widget.connections,
                     isconnect: _isConnect,
                     isPending: _isPending,
+                    mutualConnections: widget.mutualConnections,
+                    links: widget.links,
                   ),
                   SizedBox(height: 15),
                   ProfileButtons(
-                    _isConnect,
-                    _isPending,
-                    _toggleConnect,
-                    _showWithdrawDialog,
+                    isfollowing: _isFollow,
+                    isConnect: _isConnect,
+                    isPending: _isPending,
+                    toggleConnect: _toggleConnect,
+                    withdrawRequest: _showWarningDialogForPending,
+                    toggleFollow: _toggleFollow,
+                    removeConnection: _showWarningDialogForRemovingConnection,
                   ),
                   SizedBox(height: 30),
                 ],
