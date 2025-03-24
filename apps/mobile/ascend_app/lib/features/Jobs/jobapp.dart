@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/jobhomepage.dart';
-import 'package:ascend_app/features/Jobs/bookmarked.dart';
+import 'package:ascend_app/features/Jobs/pages/job_home_page.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 
 class JobApp extends StatefulWidget {
-  const JobApp({super.key});
+  final bool isDarkMode;
+  const JobApp({super.key, required this.isDarkMode});
 
   @override
   State<JobApp> createState() {
@@ -30,11 +31,33 @@ class _JobAppState extends State<JobApp> {
   Widget build(BuildContext context) {
     Widget? activescreen;
     if (screen == "job-home") {
-      activescreen = JobHomePage(tosavedjobs: tosavedjobs);
+      activescreen = JobHomePage(
+        tosavedjobs: tosavedjobs,
+        isDarkMode: widget.isDarkMode,
+      );
     }
     if (screen == "bookmarked") {
-      activescreen = Bookmarked(toalljobs: tojobs);
+      //activescreen = Bookmarked(toalljobs: tojobs);
     }
-    return MaterialApp(home: Scaffold(body: activescreen));
+    return MaterialApp(
+      theme: widget.isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      home: Scaffold(
+        backgroundColor: widget.isDarkMode ? Colors.black : Colors.white,
+        body: DefaultTabController(
+          length: 2,
+          child: CustomScrollView(
+            slivers: [
+              CustomSliverAppBar(
+                floating: true,
+                pinned: true,
+                showTabBar: false,
+                jobs: true,
+              ),
+              SliverFillRemaining(child: activescreen),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
