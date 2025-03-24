@@ -68,7 +68,6 @@ class _PostContentState extends State<PostContent> {
               ),
             ),
           ],
-          
           if (widget.description.isNotEmpty) ...[
             const SizedBox(height: 8),
             if (!needsReadMore)
