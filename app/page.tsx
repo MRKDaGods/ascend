@@ -31,16 +31,16 @@ export default function Home() {
         const response = await fetch("http://localhost:5000/api/notifications");
         if (!response.ok) throw new Error("Failed to fetch notifications");
         const data = await response.json();
-
+    
+        //  Filter out deleted notifications before setting state
         const storedNotifications = localStorage.getItem("notifications");
         if (storedNotifications) {
           const parsedNotifications = JSON.parse(storedNotifications);
-          const mergedNotifications = data.map((notif: any) => {
-            const existingNotif = parsedNotifications.find((n: any) => n.id === notif.id);
-            return existingNotif ? existingNotif : notif;
-          });
-
-          setNotifications(mergedNotifications);
+          const filteredNotifications = data.filter((notif: any) =>
+            parsedNotifications.some((n: any) => n.id === notif.id)
+          );
+    
+          setNotifications(filteredNotifications);
         } else {
           setNotifications(data);
         }
@@ -48,6 +48,7 @@ export default function Home() {
         console.error("Error fetching notifications:", error);
       }
     };
+    
 
     fetchUserData();
     fetchNotifications();

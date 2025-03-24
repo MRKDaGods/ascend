@@ -87,12 +87,8 @@ const NotificationCard: React.FC = () => {
               textTransform: "none",
               fontWeight: "bold",
               backgroundColor: filterType === type ? "green" : "white",
-              color: filterType === type ? "white" : "green", // Text color for outlined buttons
-              borderColor: filterType === type ? "transparent" : "darkgreen", // Green border for outlined buttons
-              "&:hover": {
-                backgroundColor: filterType === type ? "darkgreen" : "grey.200",
-                borderColor: "green", // Ensure the border remains green on hover
-              },
+              color: filterType === type ? "white" : "black",
+              "&:hover": { backgroundColor: filterType === type ? "darkgreen" : "grey.200" },
             }}
             onClick={() => setFilterType(type)}
           >
@@ -148,10 +144,21 @@ const NotificationCard: React.FC = () => {
                   open={Boolean(anchorEl[notification.id])}
                   onClose={handleMenuClose}
                 >
-                  <MenuItem onClick={() => markAsRead(notification.id)}>
-                    <VisibilityOff sx={{ mr: 1 }} />
-                    Mark as {notification.markedasread ? "Unread" : "Read"}
-                  </MenuItem>
+     <MenuItem
+  onClick={() => {
+    if (notification.markedasread) {
+      useNotificationStore.getState().markAsUnread(notification.id); // ✅ Call markAsUnread
+    } else {
+      useNotificationStore.getState().markAsRead(notification.id);
+    }
+    handleMenuClose();
+  }}
+>
+  <VisibilityOff sx={{ mr: 1 }} />
+  Mark as {notification.markedasread ? "Unread" : "Read"}
+</MenuItem>
+
+
                   <MenuItem onClick={() => deleteNotification(notification.id)}>
                     <Delete sx={{ mr: 1, color: "red" }} />
                     Delete
