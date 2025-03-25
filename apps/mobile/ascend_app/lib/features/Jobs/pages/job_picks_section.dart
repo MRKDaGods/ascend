@@ -43,7 +43,7 @@ class JobPicksSection extends StatelessWidget {
           )
         else ...[
           Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 100),
+            padding: const EdgeInsets.only(left: 16.0, right: 16),
             child: Text(
               "Based on your profile, preferences, and activity like applies, searches, and saves",
               style: TextStyle(
@@ -51,6 +51,8 @@ class JobPicksSection extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
+              overflow: TextOverflow.visible,
+              softWrap: true,
             ),
           ),
           ...jobs.take(3).map((job) {
