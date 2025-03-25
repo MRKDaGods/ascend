@@ -51,10 +51,10 @@ export class PostService {
     if (postResult.rows.length === 0) return null;
 
     const post = postResult.rows[0];
-    // post.media = await this.getPostMedia(postId);
-    // post.likes_count = await this.getPostLikesCount(postId);
-    // post.comments_count = await this.getPostCommentsCount(postId);
-    // post.shares_count = await this.getPostSharesCount(postId);
+    post.media = await this.getPostMedia(postId);
+    post.likes_count = await this.getPostLikesCount(postId);
+    post.comments_count = await this.getPostCommentsCount(postId);
+    post.shares_count = await this.getPostSharesCount(postId);
 
     return post;
   }
