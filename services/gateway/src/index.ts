@@ -24,5 +24,14 @@ startSharedService("Gateway", undefined, {
 
     // File service
     app.use("/files", proxy("http://file:3003"));
+
+    // Post service
+    app.use("/post", proxy("http://post:3005"));
+
+    // Connection service
+    app.use("/connection", proxy("http://connection:3006"));
+
+    // Admin service
+    app.use("/admin", proxy("http://admin:3007"));
   },
 });
