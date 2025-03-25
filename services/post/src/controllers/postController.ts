@@ -52,26 +52,18 @@ export const createPost = [
     const files = req.files as Express.Multer.File[];
 
     try {
-         // Log all request information
-         console.log('=== Create Post Request Debug ===');
-         console.log('User:', {
-           id: req.user?.id,
-   });
-         console.log('Body:', req.body);
-         console.log('Files:', req.files);
-         console.log('============================');
       const post = await postService.createPost(userId, content, privacy);
       const postId = post.id;
+
       // Handle file uploads if any
       if (files?.length) {
         await Promise.all(
           files.map(async (file) => {
             // Upload file to file service
-            const fileId = await postFileProducer.uploadFile(file, userId);
-
+            //const fileId = await postFileProducer.uploadFile(file, userId);
+            const fileId = 12321123; // Mocked fileId for testing
             // Add media to post with received URL
             return postService.addMediaToPost({
-              id: fileId,
               post_id: postId,
               url: String(fileId),
               thumbnail_url: null,
