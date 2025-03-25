@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MoreVert, Notifications, Delete, VisibilityOff } from "@mui/icons-material";
 import {
@@ -23,11 +23,25 @@ import {
 import { useNotificationStore } from "../store/useNotificationStore";
 
 const NotificationCard: React.FC = () => {
-  const { notifications, markAsRead, deleteNotification } = useNotificationStore();
+  const { notifications, markAsRead, markAsUnread, deleteNotification, hydrated } =
+    useNotificationStore();
   const [anchorEl, setAnchorEl] = useState<{ [key: string]: null | HTMLElement }>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [filterType, setFilterType] = useState("all");
+
+  useEffect(() => {
+    if (!hydrated) return;
+  
+    // ✅ Ensure notifications are loaded correctly from localStorage
+    const storedNotifications = localStorage.getItem("notifications");
+    if (storedNotifications) {
+      useNotificationStore.getState().setNotifications(JSON.parse(storedNotifications));
+    }
+  }, [hydrated]);
+  
+
+  if (!hydrated) return null; // Prevent rendering before hydration
 
   const unseenCount = notifications.filter((notif) => !notif.markedasread).length;
 
@@ -144,22 +158,26 @@ const NotificationCard: React.FC = () => {
                   open={Boolean(anchorEl[notification.id])}
                   onClose={handleMenuClose}
                 >
-     <MenuItem
-  onClick={() => {
-    if (notification.markedasread) {
-      useNotificationStore.getState().markAsUnread(notification.id); // ✅ Call markAsUnread
-    } else {
-      useNotificationStore.getState().markAsRead(notification.id);
-    }
-    handleMenuClose();
-  }}
->
-  <VisibilityOff sx={{ mr: 1 }} />
-  Mark as {notification.markedasread ? "Unread" : "Read"}
-</MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      if (notification.markedasread) {
+                        markAsUnread(notification.id);
+                      } else {
+                        markAsRead(notification.id);
+                      }
+                      handleMenuClose();
+                    }}
+                  >
+                    <VisibilityOff sx={{ mr: 1 }} />
+                    Mark as {notification.markedasread ? "Unread" : "Read"}
+                  </MenuItem>
 
-
-                  <MenuItem onClick={() => deleteNotification(notification.id)}>
+                  <MenuItem
+                    onClick={() => {
+                      deleteNotification(notification.id);
+                      handleMenuClose();
+                    }}
+                  >
                     <Delete sx={{ mr: 1, color: "red" }} />
                     Delete
                   </MenuItem>
