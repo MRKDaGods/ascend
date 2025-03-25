@@ -75,44 +75,47 @@ Widget jobCard({
                   ),
                 ],
                 SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 8, // Space between elements
+                  runSpacing: 4, // Space between lines when wrapping occurs
                   children: [
                     Text(
                       job.viewed ? "Viewed" : job.timePosted,
                       style: TextStyle(color: Colors.grey[600]),
                     ),
-                    if (job.isPromoted) ...[
-                      SizedBox(width: 8),
+                    if (job.isPromoted)
                       Text("Promoted", style: TextStyle(color: Colors.orange)),
-                    ],
-                    if (job.isBookmarked) ...[
-                      SizedBox(width: 8),
-                      Text("saved", style: TextStyle(color: Colors.grey[600])),
-                    ],
+                    if (job.isBookmarked)
+                      Text("Saved", style: TextStyle(color: Colors.grey[600])),
                     if (job.easyapply) ...[
-                      SizedBox(width: 15),
-                      Image.asset(
-                        'assets/logo/logo13.png',
-                        width: 16,
-                        height: 16,
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          "Easy Apply",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 4, // Space between the logo and text
+                        children: [
+                          Image.asset(
+                            'assets/logo/logo13.png',
+                            width: 16,
+                            height: 16,
                           ),
-                        ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              "Easy Apply",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
