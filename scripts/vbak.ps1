@@ -1,3 +1,5 @@
+cd ..
+
 # Define volumes to back up
 $volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data", "ascend_rabbitmq_data")
 
