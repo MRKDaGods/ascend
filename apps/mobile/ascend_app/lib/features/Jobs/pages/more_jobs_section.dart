@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/jobcard.dart';
+import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 
 class MoreJobsSection extends StatelessWidget {
   final bool isDarkMode;
@@ -65,6 +66,15 @@ class MoreJobsSection extends StatelessWidget {
                 job: job,
                 isDarkMode: isDarkMode,
                 onRemove: onRemove,
+                onTap: () {
+                  // Navigate to the JobDetailsPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => JobDetailsPage(job: job),
+                    ),
+                  );
+                },
               );
             }),
         ],
