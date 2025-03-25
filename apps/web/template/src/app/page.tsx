@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import ProfileCard from "./components/ProfileCard";
 import NotificationCard from "./components/NotificationCard";
@@ -13,8 +13,12 @@ import { useProfileStore } from "./store/useProfileStore";
 export default function Home() {
   const { userData, setUserData } = useProfileStore();
   const { setNotifications } = useNotificationStore();
+  
+  const [isClient, setIsClient] = useState(false); // 👈 Add this
 
   useEffect(() => {
+    setIsClient(true); // 👈 Only update after mount
+
     const fetchUserData = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/user");
@@ -31,28 +35,28 @@ export default function Home() {
         const response = await fetch("http://localhost:5000/api/notifications");
         if (!response.ok) throw new Error("Failed to fetch notifications");
         const data = await response.json();
-    
-        //  Filter out deleted notifications before setting state
-        const storedNotifications = localStorage.getItem("notifications");
-        if (storedNotifications) {
-          const parsedNotifications = JSON.parse(storedNotifications);
-          const filteredNotifications = data.filter((notif: any) =>
-            parsedNotifications.some((n: any) => n.id === notif.id)
-          );
-    
-          setNotifications(filteredNotifications);
-        } else {
-          setNotifications(data);
-        }
+
+        const deletedIds = JSON.parse(localStorage.getItem("deletedNotifications") || "[]");
+        const storedNotifications = JSON.parse(localStorage.getItem("notifications") || "[]");
+
+        const mergedNotifications = data
+          .filter((notif: any) => !deletedIds.includes(notif.id))
+          .map((notif: any) => {
+            const storedNotif = storedNotifications.find((n: any) => n.id === notif.id);
+            return storedNotif ? { ...notif, markedasread: storedNotif.markedasread } : notif;
+          });
+
+        setNotifications(mergedNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
     };
-    
 
     fetchUserData();
     fetchNotifications();
   }, [setUserData, setNotifications]);
+
+  if (!isClient) return null; // 👈 Prevents hydration mismatch
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "grey.100", display: "flex", flexDirection: "column" }}>
