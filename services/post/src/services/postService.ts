@@ -23,7 +23,7 @@ export class PostService {
     const post = result.rows[0];
     
     if (media?.length) {
-      await Promise.all(media.map(m => this.addMediaToPost(post.id, m)));
+      await Promise.all(media.map(m => this.addMediaToPost(m)));
     }
     
     const createdPost = await this.getPostById(post.id);
@@ -80,11 +80,11 @@ export class PostService {
   }
 
   // Media operations
-  public async addMediaToPost(postId: number, media: Omit<Media, 'id' | 'post_id' | 'created_at' | 'updated_at'>): Promise<Media> {
+  public async addMediaToPost(media:Media): Promise<Media> {
     const result = await db.query(
       `INSERT INTO post_service.media (post_id, url, type, thumbnail_url, title, description, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
-      [postId, media.url, media.type, media.thumbnail_url, media.title, media.description]
+      [media.post_id, media.url, media.type, media.thumbnail_url, media.title, media.description]
     );
     return result.rows[0];
   }
