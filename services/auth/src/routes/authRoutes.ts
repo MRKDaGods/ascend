@@ -8,6 +8,7 @@ import {
   register,
   resendConfirmEmail,
   resetPassword,
+  setFCMToken,
   socialLogin,
   updateEmail,
   updatePassword,
@@ -25,5 +26,6 @@ router.put("/update-password", authenticateToken, updatePassword);
 router.put("/update-email", authenticateToken, updateEmail);
 router.post("/social-login", socialLogin);
 router.delete("/delete-account", authenticateToken, deleteAccount);
+router.post("/fcm-token", authenticateToken, setFCMToken);
 
 export default router;

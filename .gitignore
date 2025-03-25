@@ -137,3 +137,5 @@ dist
 
 # ammar
 packages/api-client
+
+**/.DS_Store

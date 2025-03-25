@@ -183,3 +183,15 @@ export const updateUserEmail = async (
 export const deleteUser = async (id: number): Promise<void> => {
   await db.query("DELETE FROM auth_service.users WHERE id = $1", [id]);
 };
+
+/**
+ * Sets the user's local FirebaseCloudMessaging token
+ * 
+ * @param id - The unique identifier of the user
+ * @param fcmToken - The new FCM token
+ */
+export const setUserFCMToken = async (id: number, fcmToken: string): Promise<void> => {
+  await db.query("UPDATE auth_service.users SET fcm_token = $1 WHERE id = $2", 
+    [id, fcmToken]
+  );
+};

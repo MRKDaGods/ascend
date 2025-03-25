@@ -11,6 +11,7 @@ import {
   findUserByEmail,
   findUserById,
   resetUserPassword,
+  setUserFCMToken,
   updateUserEmail,
   updateUserEmailConfirmation,
   updateUserNewEmailConfirmation,
@@ -400,6 +401,34 @@ export const deleteAccount = async (
 
     await deleteUser(userId);
     res.json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * Sets the user FCM token
+ *
+ * Authentication required
+ *
+ * @returns HTTP response
+ * - 200 with success message if account deleted
+ * - 404 if user not found
+ * - 500 if server error occurs
+ */
+export const setFCMToken = async(req: AuthenticatedRequest, res: Response) => {
+  const { fcm_token } = req.body;
+  const userId = req.user!.id;
+
+  try {
+    if (!(await findUserById(userId))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // TODO: Validate token by dry running
+
+    await setUserFCMToken(userId, fcm_token);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });

@@ -1,9 +1,7 @@
 export const events = {
   // ------User events------
-
-  // Called when a new user is created
-  // Auth -> User
-  USER_CREATED: "user.created",
+  USER_CREATED: "user.created", // A new user has been created
+  USER_FCM_TOKEN_RPC: "user.fcm_token_rpc", // User FCM token RPC request 
 
   // ------File events------
   FILE_URL_RPC: "file.url_rpc",
