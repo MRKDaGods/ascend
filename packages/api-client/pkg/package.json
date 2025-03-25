@@ -1,0 +1,15 @@
+{
+  "name": "@ascend/api-client",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "api_client_bg.wasm",
+    "api_client.js",
+    "api_client.d.ts"
+  ],
+  "main": "api_client.js",
+  "types": "api_client.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
