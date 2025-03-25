@@ -9,6 +9,13 @@ export const events = {
   FILE_URL_RPC: "file.url_rpc",
   FILE_UPLOAD_RPC: "file.upload_rpc",
   FILE_DELETE: "file.delete",
+
+  
+  // -------Job events---------------
+  JOB_CREATED : "job.created",
+
+  // -------Job application event----
+  JOB_APPLICATION_STATUS_UPDATED : "job_application.updated"
 };
 
 export const getQueueName = (event: string) => {
