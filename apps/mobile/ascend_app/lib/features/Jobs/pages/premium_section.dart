@@ -39,6 +39,7 @@ class PremiumSection extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: isDarkMode ? Colors.white : Colors.black,
             ),
+            overflow: TextOverflow.visible,
           ),
           SizedBox(height: 4),
           Text(
@@ -47,6 +48,7 @@ class PremiumSection extends StatelessWidget {
               fontSize: 14,
               color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
             ),
+            overflow: TextOverflow.visible,
           ),
           SizedBox(height: 12),
           Row(
@@ -71,7 +73,9 @@ class PremiumSection extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      spacing: 4, // Space between elements
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         CircleAvatar(
                           backgroundImage: NetworkImage(
@@ -85,7 +89,6 @@ class PremiumSection extends StatelessWidget {
                           ),
                           radius: 10,
                         ),
-                        SizedBox(width: 4),
                         Text(
                           "Mohamed and millions of other members use Premium",
                           style: TextStyle(
