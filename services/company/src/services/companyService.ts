@@ -61,6 +61,47 @@ export const findCompaniesByKeyword = async (keywords : {[key : string] : any}) 
     return result.rows;
 }
 
+
+export const updateCompanyProfile = async (company_id : number, keywords : {[key : string] : any}) : Promise<Array<Company>> => {
+    const {description, location, industry, logo_url} = keywords;
+    let counter : number = 0;
+    let db_query : string = "UPDATE company_service.company SET ";
+    let parametrs : Array<any> = [];
+
+    if(description){
+        counter += 1;
+        db_query += `description = ${counter} , `;
+        parametrs.push(description);
+    }
+
+    if(location){
+        counter += 1;
+        db_query += `location = ${counter} , `;
+        parametrs.push(location);
+    }
+    if(industry){
+        counter += 1;
+        db_query += `industry = ${counter} , `;
+        parametrs.push(industry);
+    }
+
+    if(logo_url){
+        counter += 1;
+        db_query += `logo_url = ${counter} , `;
+        parametrs.push(logo_url);
+    }
+
+    db_query = db_query.substring(0, db_query.lastIndexOf(","));
+
+    counter += 1;
+    db_query += ` WHERE company_id = ${counter}`;
+    parametrs.push(company_id);
+
+    const result = await db.query(db_query, parametrs);
+    return result.rows;
+}
+
+
 export const findCompaniesCreatedAt = async (date : Date) : Promise<Array<Company>> => {
     const result = await db.query("SELECT * FROM company_service.company WHERE DATE(created_at) = $1", [date])
     return result.rows;
