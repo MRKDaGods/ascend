@@ -6,6 +6,7 @@ import 'package:ascend_app/features/networks/managers/connection_manager.dart';
 class ConnectionSuggestions extends StatefulWidget {
   final List<UserModel> suggestedUsers;
   final Map<String, List<UserModel>> connectionsMap;
+
   final Function(String) onSend;
   final bool ShowAll;
 
@@ -22,8 +23,8 @@ class ConnectionSuggestions extends StatefulWidget {
 }
 
 class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
-  final Set<String> connectedUsers = {}; // Track connected users by their IDs
   late List<UserModel> localsuggestedUsers;
+  final Set<String> connectedUsers = {};
 
   @override
   void initState() {
@@ -33,9 +34,16 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
 
   void _handleConnect(String userId) {
     setState(() {
-      connectedUsers.add(userId); // Mark the user as connected
+      connectedUsers.add(userId);
     });
     widget.onSend(userId); // Trigger the onSend callback
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    localsuggestedUsers.clear();
+    print("Disposed");
   }
 
   @override
