@@ -5,6 +5,9 @@ class ReactionManager {
   String _currentReaction;
   int _likesCount;
   final Function(bool, String, int) onReactionChanged;
+  
+  // Add a variable to track if the reaction panel is showing
+  bool _isShowingReactionPanel = false;
 
   static const Map<String, IconData> reactionIcons = {
     'like': Icons.thumb_up,
@@ -23,6 +26,16 @@ class ReactionManager {
     'sad': Colors.amber,
     'angry': Colors.orange,
   };
+  
+  // Add reaction labels
+  static const Map<String, String> reactionLabels = {
+    'like': 'Like',
+    'love': 'Love',
+    'haha': 'Haha',
+    'wow': 'Wow',
+    'sad': 'Sad',
+    'angry': 'Angry',
+  };
 
   ReactionManager({
     required bool isLiked,
@@ -39,6 +52,22 @@ class ReactionManager {
 
   Color getCurrentReactionColor() {
     return _isLiked ? reactionColors[_currentReaction]! : Colors.grey;
+  }
+  
+  String getCurrentReactionLabel() {
+    return _isLiked ? reactionLabels[_currentReaction]! : 'Like';
+  }
+  
+  // Getter for reaction panel visibility
+  bool get isShowingReactionPanel => _isShowingReactionPanel;
+  
+  // Methods to control reaction panel visibility
+  void showReactionPanel() {
+    _isShowingReactionPanel = true;
+  }
+  
+  void hideReactionPanel() {
+    _isShowingReactionPanel = false;
   }
 
   void toggleReaction(String reactionType) {
