@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/jobcard.dart';
+import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 
 class JobPicksSection extends StatelessWidget {
   final bool isDarkMode;
@@ -25,7 +26,7 @@ class JobPicksSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
+              //color: isDarkMode ? Colors.white : Colors.black,
             ),
           ),
         ),
@@ -37,7 +38,7 @@ class JobPicksSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                //color: Colors.grey,
               ),
             ),
           )
@@ -55,10 +56,24 @@ class JobPicksSection extends StatelessWidget {
               softWrap: true,
             ),
           ),
+          SizedBox(height: 10),
+
           ...jobs.take(3).map((job) {
             return Column(
               children: [
-                jobCard(job: job, isDarkMode: isDarkMode, onRemove: onRemove),
+                jobCard(
+                  job: job,
+                  isDarkMode: isDarkMode,
+                  onRemove: onRemove,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => JobDetailsPage(job: job),
+                      ),
+                    );
+                  },
+                ),
                 Divider(
                   color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
                   thickness: 1,

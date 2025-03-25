@@ -5,7 +5,7 @@ class Jobsattributes {
     this.companyPhoto,
     required this.location,
     required this.experienceLevel,
-    required this.salaryRange,
+    required this.salary,
     this.isBookmarked = false,
     this.jobDescription,
     this.applied = false,
@@ -15,6 +15,7 @@ class Jobsattributes {
     this.isPromoted = false,
     required this.easyapply,
     this.viewed = false,
+    this.applicationForm,
   });
 
   final String title;
@@ -22,7 +23,7 @@ class Jobsattributes {
   final String? companyPhoto;
   final String location;
   final String experienceLevel; // Example: "Entry", "Mid", "Senior"
-  final int salaryRange;
+  final int salary;
   bool isBookmarked;
   final String? jobDescription;
   bool applied;
@@ -32,4 +33,5 @@ class Jobsattributes {
   bool isPromoted; // Promoted jobs are displayed at the top of the list
   final bool easyapply; // Indicates if job supports easy apply
   bool viewed; // Track if job has been viewed
+  final String? applicationForm; // URL for application form
 }

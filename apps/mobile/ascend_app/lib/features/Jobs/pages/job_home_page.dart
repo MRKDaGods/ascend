@@ -24,7 +24,7 @@ class _JobHomePageState extends State<JobHomePage> {
   final TextEditingController searchController = TextEditingController();
   String selectedExperienceLevel = "All";
   String selectedCompany = "All";
-  int salaryRange = 100; // Default salary range filter
+  int salary = 100; // Default salary range filter
 
   List<Jobsattributes> jobsList = List.from(
     jobs,
@@ -46,7 +46,7 @@ class _JobHomePageState extends State<JobHomePage> {
       bool matchesCompany =
           (selectedCompany == "All") || (job.company == selectedCompany);
 
-      bool matchesSalary = job.salaryRange >= salaryRange;
+      bool matchesSalary = job.salary >= salary;
 
       return matchesQuery &&
           matchesExperience &&
@@ -77,7 +77,7 @@ class _JobHomePageState extends State<JobHomePage> {
       builder: (context) {
         String tempSelectedExperience = selectedExperienceLevel;
         String tempSelectedCompany = selectedCompany;
-        int tempSalaryRange = salaryRange;
+        int tempsalary = salary;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -134,16 +134,16 @@ class _JobHomePageState extends State<JobHomePage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Salary Range: \$${tempSalaryRange.toString()}"),
+                      Text("Salary Range: \$${tempsalary.toString()}"),
                       Slider(
-                        value: tempSalaryRange.toDouble(),
+                        value: tempsalary.toDouble(),
                         min: 0,
                         max: 5000,
                         divisions: 20,
-                        label: tempSalaryRange.toString(),
+                        label: tempsalary.toString(),
                         onChanged: (value) {
                           setState(() {
-                            tempSalaryRange = value.toInt();
+                            tempsalary = value.toInt();
                           });
                         },
                       ),
@@ -162,7 +162,7 @@ class _JobHomePageState extends State<JobHomePage> {
                           setState(() {
                             tempSelectedExperience = "All";
                             tempSelectedCompany = "All";
-                            tempSalaryRange = 100;
+                            tempsalary = 100;
                           });
                         },
                         child: Text(
@@ -179,7 +179,7 @@ class _JobHomePageState extends State<JobHomePage> {
                           setState(() {
                             selectedExperienceLevel = tempSelectedExperience;
                             selectedCompany = tempSelectedCompany;
-                            salaryRange = tempSalaryRange;
+                            salary = tempsalary;
                           });
 
                           updateJobs();
@@ -206,117 +206,127 @@ class _JobHomePageState extends State<JobHomePage> {
           widget.isDarkMode
               ? const Color.fromARGB(255, 29, 34, 38)
               : Colors.white,
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Filters Row
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 300) {
-                  // Vertical layout for small screens
-                  return SingleChildScrollView(
-                    scrollDirection:
-                        Axis.horizontal, // Allow horizontal scrolling
-                    child: Column(
-                      children: [
-                        _filterButton("Preferences"),
-                        SizedBox(height: 5),
-                        _filterButton("My jobs"),
-                        SizedBox(height: 5),
-                        _filterButton("Post a free job"),
-                      ],
+      body: RefreshIndicator(
+        onRefresh: _refreshJobs,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ListView(
+              physics: AlwaysScrollableScrollPhysics(), // Ensures scrollability
+
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Filters Row
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth < 300) {
+                          // Vertical layout for small screens
+                          return SingleChildScrollView(
+                            scrollDirection:
+                                Axis.horizontal, // Allow horizontal scrolling
+                            child: Column(
+                              children: [
+                                _filterButton("Preferences"),
+                                SizedBox(height: 5),
+                                _filterButton("My jobs"),
+                                SizedBox(height: 5),
+                                _filterButton("Post a free job"),
+                              ],
+                            ),
+                          );
+                        } else {
+                          // Horizontal layout for wider screens
+                          return Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: _filterButton("Preferences"),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: _filterButton("My jobs"),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: _filterButton("Post a free job"),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
                     ),
-                  );
-                } else {
-                  // Horizontal layout for wider screens
-                  return Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: _filterButton("Preferences"),
-                          ),
-                        ),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: _filterButton("My jobs"),
-                          ),
-                        ),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: _filterButton("Post a free job"),
-                          ),
-                        ),
-                      ],
+                    Container(
+                      height: 10,
+                      color:
+                          widget.isDarkMode
+                              ? Colors.black
+                              : Colors.grey[300], // Gray if not dark mode
                     ),
-                  );
-                }
-              },
-            ),
-            Container(
-              height: 10,
-              color:
-                  widget.isDarkMode
-                      ? Colors.black
-                      : Colors.grey[300], // Gray if not dark mode
-            ),
 
-            JobPicksSection(
-              isDarkMode: widget.isDarkMode,
-              jobs: jobsList,
-              onRemove: removeJob,
-            ),
-            Container(
-              height: 10,
-              color:
-                  widget.isDarkMode
-                      ? Colors.black
-                      : Colors.grey[300], // Gray if not dark mode
-            ),
+                    JobPicksSection(
+                      isDarkMode: widget.isDarkMode,
+                      jobs: jobsList,
+                      onRemove: removeJob,
+                    ),
+                    Container(
+                      height: 10,
+                      color:
+                          widget.isDarkMode
+                              ? Colors.black
+                              : Colors.grey[300], // Gray if not dark mode
+                    ),
 
-            // Saved Section (only if there are saved jobs)
-            if (savedJobs.isNotEmpty) ...[
-              SavedPage(isDarkMode: widget.isDarkMode),
-              Container(
-                height: 10,
-                color:
-                    widget.isDarkMode
-                        ? Colors.black
-                        : Colors.grey[300], // Gray if not dark mode
-              ),
-            ],
-            Container(height: 3, color: Colors.amber),
-            PremiumSection(isDarkMode: widget.isDarkMode),
-            Container(
-              height: 10,
-              color:
-                  widget.isDarkMode
-                      ? Colors.black
-                      : Colors.grey[300], // Gray if not dark mode
-            ),
+                    // Saved Section (only if there are saved jobs)
+                    if (savedJobs.isNotEmpty) ...[
+                      SavedPage(isDarkMode: widget.isDarkMode),
+                      Container(
+                        height: 10,
+                        color:
+                            widget.isDarkMode
+                                ? Colors.black
+                                : Colors.grey[300], // Gray if not dark mode
+                      ),
+                    ],
+                    Container(height: 3, color: Colors.amber),
+                    PremiumSection(isDarkMode: widget.isDarkMode),
+                    Container(
+                      height: 10,
+                      color:
+                          widget.isDarkMode
+                              ? Colors.black
+                              : Colors.grey[300], // Gray if not dark mode
+                    ),
 
-            // ExploreScreen(isDarkMode: widget.isDarkMode),
-            Container(
-              height: 10,
-              color:
-                  widget.isDarkMode
-                      ? Colors.black
-                      : Colors.grey[300], // Gray if not dark mode
-            ),
+                    ExploreScreen(isDarkMode: widget.isDarkMode),
+                    Container(
+                      height: 10,
+                      color:
+                          widget.isDarkMode
+                              ? Colors.black
+                              : Colors.grey[300], // Gray if not dark mode
+                    ),
 
-            MoreJobsSection(
-              isDarkMode: widget.isDarkMode,
-              jobs: jobsList,
-              onRemove: removeJob,
-            ),
-          ],
+                    MoreJobsSection(
+                      isDarkMode: widget.isDarkMode,
+                      jobs: jobsList,
+                      onRemove: removeJob,
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -326,10 +336,10 @@ class _JobHomePageState extends State<JobHomePage> {
     return ElevatedButton(
       onPressed: () {},
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            widget.isDarkMode
-                ? const Color.fromARGB(255, 29, 34, 38)
-                : Colors.white,
+        // backgroundColor:
+        //     widget.isDarkMode
+        //         ? const Color.fromARGB(255, 29, 34, 38)
+        //         : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         side: BorderSide(
           color: widget.isDarkMode ? Colors.grey : Colors.black, // Border color
@@ -339,5 +349,16 @@ class _JobHomePageState extends State<JobHomePage> {
 
       child: Text(title, style: TextStyle(color: Colors.grey, fontSize: 13)),
     );
+  }
+
+  // Function to handle refresh
+  Future<void> _refreshJobs() async {
+    // Simulate a network call or data refresh
+    await Future.delayed(Duration(seconds: 1));
+    print("Refreshed jobs");
+    setState(() {
+      // Update the jobs list or any other state
+      jobsList = List.from(jobs); // Reset the jobs list
+    });
   }
 }
