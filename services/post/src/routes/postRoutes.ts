@@ -3,7 +3,7 @@ import authenticateToken from "@shared/middleware/authMiddleware";
 import multer from "multer";
 
 import {
-  // createPost,
+  createPost,
   getPostById,
   updatePost,
   deletePost,
@@ -34,7 +34,7 @@ router.get("/search", authenticateToken, searchPosts);
 router.get("/saved", authenticateToken, getSavedPosts);
 
 // Post CRUD routes
-// router.post("/", authenticateToken, upload.array("media"), createPost);
+router.post("/", authenticateToken, upload.array("media"), createPost);
 router.get("/:postId", authenticateToken, getPostById);
 router.patch("/:postId", authenticateToken, updatePost);
 router.delete("/:postId", authenticateToken, deletePost);
