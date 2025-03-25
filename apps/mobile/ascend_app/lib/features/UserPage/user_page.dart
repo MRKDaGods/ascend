@@ -25,7 +25,7 @@ class UserProfilePage extends StatefulWidget {
     this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
     this.links = const [
       {"title": "My Portfolio", "url": "https://example.com"},
-      {"title": "GitHub", "url": "https://github.com/username"},
+      {"title": "GitHub", "url": "https://github.com/MagedWadi"},
       {"title": " ", "url": "https://example.com"}, // This will be ignored
     ],
     this.badges = const ["Open to Work", "Providing Services"],
