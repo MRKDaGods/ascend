@@ -13,12 +13,11 @@ import { useProfileStore } from "./store/useProfileStore";
 export default function Home() {
   const { userData, setUserData } = useProfileStore();
   const { setNotifications } = useNotificationStore();
-  
-  const [isClient, setIsClient] = useState(false); // 👈 Add this
+
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true); // 👈 Only update after mount
-
+    setIsClient(true);
     const fetchUserData = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/user");
@@ -56,21 +55,62 @@ export default function Home() {
     fetchNotifications();
   }, [setUserData, setNotifications]);
 
-  if (!isClient) return null; // 👈 Prevents hydration mismatch
+  if (!isClient) return null;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "grey.100", display: "flex", flexDirection: "column" }}>
+    <Box
+  sx={{
+    minHeight: "100vh",
+    bgcolor: "grey.100",
+    display: "flex",
+    flexDirection: "column",
+  }}
+>
       <Navbar />
 
-      <Container sx={{ flexGrow: 1, mt: 10, display: "flex", gap: 3, maxWidth: "1200px", pb: 3 }}>
-        <Box sx={{ width: "250px", display: "flex", flexDirection: "column", gap: 2 }}>
+      {/* Main Layout */}
+      <Container
+       sx={{
+        flexGrow: 1,
+        mt: 10,
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        gap: 3,
+        maxWidth: "1200px",
+        pb: 3,
+      }}
+      >
+        {/* Profile & Settings Cards - Sticky on Large Screens, Stacked on Mobile */}
+        <Box
+        sx={{
+          width: { xs: "100%", md: "250px" },
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          position: { md: "sticky" },
+          top: { md: "80px" },
+          height: "fit-content",
+        }}
+        >
           {userData ? <ProfileCard /> : <CircularProgress />}
-          <SettingsCard />
+          <Box sx={{ width: "100%" }}>
+            <SettingsCard />
+          </Box>
         </Box>
 
-        <Box sx={{ flexGrow: 1, maxWidth: "750px" }}>
-          <NotificationCard />
-        </Box>
+        {/* Notification Card - Fully Visible on Small Screens */}
+        <Box
+  sx={{
+    flexGrow: 1,
+    maxWidth: { xs: "100%", md: "750px" },
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "visible",
+  }}
+>
+  <NotificationCard />
+</Box>
       </Container>
 
       <Footer />
