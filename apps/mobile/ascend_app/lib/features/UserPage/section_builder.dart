@@ -10,6 +10,7 @@ var sectionNameswithLimitTwo = [
   "Organizations",
 ];
 
+
 Widget buildSection(BuildContext context, ProfileSection section) {
   final int contentCount = section.content.length;
   int limit = 5;
