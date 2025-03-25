@@ -1,7 +1,12 @@
-import type { Metadata } from "next";
+"use client";
+
+import React from "react";
+import { CacheProvider } from "@emotion/react";
+import createCache from "@emotion/cache";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import theme from "./theme"; // Import your MUI theme
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,10 +18,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Ascend",
-  description: "description here",
-};
+const cache = createCache({ key: "css", prepend: true });
 
 export default function RootLayout({
   children,
@@ -24,11 +26,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-      </body>
-    </html>
+    <CacheProvider value={cache}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <html lang="en">
+          <body className={`${geistSans.variable} ${geistMono.variable}`}>
+            {children}
+          </body>
+        </html>
+      </ThemeProvider>
+    </CacheProvider>
   );
 }
 
