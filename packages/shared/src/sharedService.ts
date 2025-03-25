@@ -20,6 +20,9 @@ const PORT = process.env.PORT;
  * @param options.registerConsumers - An array of functions to register as consumers
  * @param options.customInit - A custom initialization function for the service
  * @param options.postMQInit - A function to run after connecting to RabbitMQ
+ * 
+ * @remarks
+ * Any changes made here must be backwards compatible with the existing services
  */
 const startSharedService = async (
   name: string,

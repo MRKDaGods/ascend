@@ -344,8 +344,11 @@ export const updateEmail = async (req: AuthenticatedRequest, res: Response) => {
 export const socialLogin = async (req: Request, res: Response) => {
   const { token } = req.body;
 
+  console.log(`[SOCIAL] Received token: ${token}`);
+
   try {
     const payload = await verifyGoogleToken(token);
+    console.log(`[SOCIAL] Decoded payload: ${JSON.stringify(payload)}`);
     if (!payload) {
       return res.status(401).json({ error: "Invalid Google token" });
     }
@@ -360,8 +363,11 @@ export const socialLogin = async (req: Request, res: Response) => {
     // Create an already verified user if they don't exist
     let user = await findUserByEmail(email);
     if (!user) {
+      console.log(`[SOCIAL] Creating new user: ${email}`);
       user = await createUser(firstName, lastName, email, undefined, true);
     }
+
+    console.log(`[SOCIAL] User found: ${JSON.stringify(user)}`);
 
     const jwtToken = generateToken({ id: user.id });
     res.json({ token: jwtToken, userId: user.id });
