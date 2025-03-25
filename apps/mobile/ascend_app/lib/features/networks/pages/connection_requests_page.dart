@@ -191,6 +191,10 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
             onPressed: () => _showSettingsModal(context),
           ),
         ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1),
+        ),
       ),
 
       body: BlocBuilder<ConnectionRequestBloc, ConnectionRequestState>(

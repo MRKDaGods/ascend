@@ -18,46 +18,48 @@ class Connections extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         } else if (state is ConnectionRequestSuccess) {
           return Scaffold(
-            appBar: AppBar(title: Text('Connections')),
+            appBar: AppBar(
+              title: Text('Connections'),
+              centerTitle: true,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(0),
+                child: Container(color: Colors.grey[300], height: 1),
+              ),
+            ),
             body: Column(
               children: [
-                Card(
-                  elevation: 2, // Slight shadow effect
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                  title: Text(
+                    '${state.acceptedConnections.length} Connections',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${state.acceptedConnections.length} Connections',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.search),
-                              onPressed: () {},
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.filter_list),
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          // Add search functionality here
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.filter_list),
+                        onPressed: () {
+                          // Add filter functionality here
+                        },
+                      ),
+                    ],
                   ),
                 ),
+                const Divider(color: Colors.grey, thickness: 1),
                 if (connections.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -119,35 +121,39 @@ class Connections extends StatelessWidget {
                                 ),
                               ),
                             ],
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ),
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              IconButton(
-                                icon: Icon(Icons.message),
-                                onPressed: () {},
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.grey,
+                                    width: 2,
+                                  ), // Grey circular border
+                                ),
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(
+                                    Icons.send,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () {},
+                                  tooltip: 'Message',
+                                ),
                               ),
-                              PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'remove') {
-                                    onRemove(
+                              IconButton(
+                                icon: Icon(Icons.more_vert),
+                                onPressed:
+                                    () => _showOptionsModal(
+                                      context,
                                       state
                                           .acceptedConnections[index]
                                           .requestId,
-                                    );
-                                  }
-                                },
-                                itemBuilder:
-                                    (BuildContext context) => [
-                                      PopupMenuItem(
-                                        value: 'remove',
-                                        child: ListTile(
-                                          leading: Icon(Icons.delete),
-                                          title: Text('Remove Connection'),
-                                        ),
-                                      ),
-                                    ],
-                                icon: Icon(Icons.more_vert), // Three-dot icon
+                                    ), // Three-dot icon
                               ),
                             ],
                           ),
@@ -168,6 +174,31 @@ class Connections extends StatelessWidget {
         } else {
           return Center(child: Text('Error loading connections'));
         }
+      },
+    );
+  }
+
+  void _showOptionsModal(BuildContext context, String requestId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListTile(
+            leading: const Icon(Icons.delete),
+            title: const Text(
+              'Remove Connection',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close the modal
+              onRemove(requestId); // Call the remove function
+            },
+          ),
+        );
       },
     );
   }

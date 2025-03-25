@@ -199,6 +199,7 @@ class _GrowState extends State<Grow> {
                         },
                       ),
                       const Divider(thickness: 1, height: 16),
+                      const Divider(thickness: 1, height: 16),
                       // People to Follow Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

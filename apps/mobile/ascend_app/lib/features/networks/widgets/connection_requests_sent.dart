@@ -28,79 +28,83 @@ class ConnectionRequestsSent extends StatelessWidget {
                 child: ListTile(
                   title: Text(
                     'All (${state.pendingRequestsSent.length})',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  // trailing: Icon(Icons.arrow_forward),
                 ),
               ),
               if (invitations.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: Text('No invitations sent'),
                 ),
-              Column(
-                children:
-                    invitations.map((invitation) {
-                      final connectionRequest = state.pendingRequestsSent
-                          .firstWhere(
-                            (element) => element.receiverId == invitation.id,
-                            orElse:
-                                () => ConnectionRequestModel(
-                                  requestId: '',
-                                  senderId: '',
-                                  receiverId: '',
-                                  timestamp: DateTime.now().toIso8601String(),
-                                  status: '',
-                                ),
-                          );
-
-                      if (connectionRequest.requestId != '') {
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                invitation.profilePic.startsWith('http')
-                                    ? NetworkImage(invitation.profilePic)
-                                    : AssetImage(invitation.profilePic)
-                                        as ImageProvider,
-                          ),
-
-                          title: Text(invitation.name),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                invitation.bio,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: invitations.length,
+                  itemBuilder: (context, index) {
+                    final invitation = invitations[index];
+                    final connectionRequest = state.pendingRequestsSent
+                        .firstWhere(
+                          (element) => element.receiverId == invitation.id,
+                          orElse:
+                              () => ConnectionRequestModel(
+                                requestId: '',
+                                senderId: '',
+                                receiverId: '',
+                                timestamp: DateTime.now().toIso8601String(),
+                                status: '',
                               ),
-                              Text(
-                                connectionRequest.timestamp,
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: TextButton(
-                            onPressed:
-                                () => onRemove(connectionRequest.requestId),
-                            child: Text('WITHDRAW'),
-                          ),
                         );
-                      } else {
-                        return SizedBox.shrink();
-                      }
-                    }).toList(),
+
+                    if (connectionRequest.requestId != '') {
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage:
+                              invitation.profilePic.startsWith('http')
+                                  ? NetworkImage(invitation.profilePic)
+                                  : AssetImage(invitation.profilePic)
+                                      as ImageProvider,
+                        ),
+                        title: Text(invitation.name),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              invitation.bio,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              connectionRequest.timestamp,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: TextButton(
+                          onPressed:
+                              () => onRemove(connectionRequest.requestId),
+                          child: const Text('Withdraw'),
+                        ),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  },
+                ),
               ),
             ],
           );
         } else {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );

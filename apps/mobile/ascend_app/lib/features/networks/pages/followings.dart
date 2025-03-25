@@ -22,16 +22,13 @@ class Followings extends StatelessWidget {
       appBar: AppBar(title: Text('People I follow')),
       body: Column(
         children: [
-          Card(
-            elevation: 2, // Slight shadow effect
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(
-                '${followingUsers.length} people',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ListTile(
+            leading: Text(
+              '${followingUsers.length} people',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
               ),
             ),
           ),

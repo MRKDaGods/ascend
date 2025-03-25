@@ -22,11 +22,7 @@ class ManageMyNetwork extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Manage My Network',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: ListView.separated(

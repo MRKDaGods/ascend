@@ -1,6 +1,9 @@
+import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ascend_app/features/networks/utils/overlay_builder.dart';
 
 class ConnectionRequestsReceivedListPartial extends StatelessWidget {
   final List<UserModel> invitations;
@@ -129,10 +132,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                         tooltip: 'Decline',
                                       ),
                                     ),
-                                    const SizedBox(
-                                      width: 8,
-                                    ), // Spacing between the two buttons
-                                    // Accept Button with Circular Border
+                                    const SizedBox(width: 8),
                                     Container(
                                       width:
                                           36, // Set width and height for the circular border
@@ -140,7 +140,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.blue,
+                                          color: Colors.lightBlue,
                                           width: 2,
                                         ), // Blue circular border
                                       ),
@@ -150,10 +150,11 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                           Icons.check,
                                           color: Colors.lightBlue,
                                         ),
-                                        onPressed:
-                                            () => onAccept(
-                                              connectionRequest.requestId,
-                                            ),
+                                        onPressed: () {
+                                          showSnackBar(context);
+                                          onAccept(connectionRequest.requestId);
+                                        },
+
                                         tooltip: 'Accept',
                                       ),
                                     ),

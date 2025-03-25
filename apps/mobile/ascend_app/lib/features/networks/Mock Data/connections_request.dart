@@ -4,7 +4,23 @@ void addConnectionRequest(
   List<ConnectionRequestModel> connectionRequests,
   ConnectionRequestModel connectionRequest,
 ) {
-  connectionRequests.add(connectionRequest);
+  // Check if the senderId and receiverId combination already exists
+  final exists = connectionRequests.any(
+    (element) =>
+        (element.senderId == connectionRequest.senderId &&
+            element.receiverId == connectionRequest.receiverId) ||
+        (element.senderId == connectionRequest.receiverId &&
+            element.receiverId == connectionRequest.senderId),
+  );
+
+  if (!exists) {
+    connectionRequests.add(connectionRequest);
+    print("Connection request added: ${connectionRequest.requestId}");
+  } else {
+    print(
+      "Connection request not added: Duplicate senderId and receiverId combination",
+    );
+  }
 }
 
 void removeConnectionRequest(
