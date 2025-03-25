@@ -2,12 +2,10 @@ import React, { useState } from "react";
 import './LinkedInProfile.css';
 import { FaPencilAlt, FaTrash, FaPlus, FaImage, FaUniversity, FaFilePdf, FaFileUpload } from 'react-icons/fa';
 import { MdAddAPhoto, MdCameraAlt } from 'react-icons/md';
-import { Link } from "react-router-dom"; // Import Link from React Router
-import EducationModal from "./components/EducationModal"; // Import Education modal
-import ExperienceModal from "./components/ExperienceModal"; // Import Experience modal
-import SkillsModal from "./components/SkillsModal"; // Import SkillsModal
-import VisibilityDropdown from "./components/VisibilityDropdown"; // Import VisibilityDropdown
-import ViewUsersProfile from "./ViewUsersProfile"; // Import the component
+import EducationModal from "./EducationModal"; // Import Education modal
+import ExperienceModal from "./ExperienceModal"; // Import Experience modal
+import SkillsModal from "./SkillsModal"; // Import SkillsModal
+import VisibilityDropdown from "./VisibilityDropdown"; // Import VisibilityDropdown
 
 interface Profile {
   name: string;
@@ -360,8 +358,7 @@ const LinkedInProfile: React.FC = () => {
         </div>
       )}
 
-      {/* Add the ViewUsersProfile component */}
-      <ViewUsersProfile />
+
     </div>
   );
 }
