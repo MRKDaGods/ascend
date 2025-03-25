@@ -34,16 +34,32 @@ export const getFeed = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// Post Management Controllers
+/**
+ * Create a new post with optional media attachments
+ * @route POST /api/posts
+ * @param {string} content - Post content
+ * @param {string} privacy - Post privacy ('public'|'private'|'connections')
+ * @param {File[]} media - Media files to attach
+ * @param {string} type - Media type ('image'|'video'|'document'|'link')
+ * @param {string} [title] - Optional media title
+ * @param {string} [description] - Optional media description
+ * @returns {Post} Created post with media
+ */
 export const createPost = [
-  ...createPostValidationRules,
-  validate,
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
     const { content, privacy } = req.body;
     const files = req.files as Express.Multer.File[];
 
     try {
+         // Log all request information
+         console.log('=== Create Post Request Debug ===');
+         console.log('User:', {
+           id: req.user?.id,
+   });
+         console.log('Body:', req.body);
+         console.log('Files:', req.files);
+         console.log('============================');
       const post = await postService.createPost(userId, content, privacy);
       const postId = post.id;
       // Handle file uploads if any
