@@ -3,28 +3,25 @@ import { create } from "zustand";
 interface MediaStoreState {
   mediaFiles: File[];
   mediaPreviews: string[];
-  discardDialogOpen: boolean;
   editorOpen: boolean;
-  postEditorOpen: boolean;
+  discardDialogOpen: boolean;
 
   setMediaFiles: (files: File[]) => void;
   removeMediaFile: (index: number) => void;
   clearAllMedia: () => void;
 
-  openDiscardDialog: () => void;
-  closeDiscardDialog: () => void;
   openEditor: () => void;
   closeEditor: () => void;
-  openPostEditor: () => void;
-  closePostEditor: () => void;
+
+  openDiscardDialog: () => void;
+  closeDiscardDialog: () => void;
 }
 
 export const useMediaStore = create<MediaStoreState>((set) => ({
   mediaFiles: [],
   mediaPreviews: [],
-  discardDialogOpen: false,
   editorOpen: false,
-  postEditorOpen: false,
+  discardDialogOpen: false,
 
   setMediaFiles: (files) => {
     const previews = files.map((file) => URL.createObjectURL(file));
@@ -37,7 +34,6 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
       const updatedPreviews = [...state.mediaPreviews];
       updatedFiles.splice(index, 1);
       updatedPreviews.splice(index, 1);
-
       return {
         mediaFiles: updatedFiles,
         mediaPreviews: updatedPreviews,
@@ -46,12 +42,9 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
 
   clearAllMedia: () => set({ mediaFiles: [], mediaPreviews: [] }),
 
-  openDiscardDialog: () => set({ discardDialogOpen: true }),
-  closeDiscardDialog: () => set({ discardDialogOpen: false }),
-
   openEditor: () => set({ editorOpen: true }),
   closeEditor: () => set({ editorOpen: false }),
 
-  openPostEditor: () => set({ postEditorOpen: true }),
-  closePostEditor: () => set({ postEditorOpen: false }),
+  openDiscardDialog: () => set({ discardDialogOpen: true }),
+  closeDiscardDialog: () => set({ discardDialogOpen: false }),
 }));

@@ -1,23 +1,17 @@
-import React from "react";
-import { usePostStore } from "../store/usePostStore";
-import Post from "./Post";
-import UserPost from "./UserPost";
+// components/Feed.tsx
+import ConnectionPost from "./ConnectionPost";
 import CreatePost from "./CreatePost";
+import { usePostStore } from "../store/usePostStore";
 
 const Feed: React.FC = () => {
   const { posts } = usePostStore();
 
+  const visiblePosts = posts.filter((post) => post.isUserPost !== true);
+
   return (
-    <div>
-      <CreatePost />
-      {posts.length === 0 ? (
-        <p>No posts available</p>
-      ) : (
-        posts.map((post) =>
-          post.isUserPost ? <UserPost key={post.id} post={post} /> : <Post key={post.id} post={post} />
-        )
-      )}
-    </div>
+    <>
+      <p>Check out /feed</p>
+    </>
   );
 };
 

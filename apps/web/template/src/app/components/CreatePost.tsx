@@ -3,33 +3,19 @@
 import React from "react";
 import {
   Avatar,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Stack,
   Box,
-  useTheme,
+  Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
-import { Close } from "@mui/icons-material";
 import { usePostStore } from "../store/usePostStore";
-import UserPost from "./UserPost";
 import AddMedia from "./AddMedia";
+import UserPostPopup from "./UserPostPopup";
+import PostDialog from "./PostDialog";
 
 const CreatePost: React.FC = () => {
-  const { open, postText, setOpen, setPostText, resetPost, addPost, posts } = usePostStore();
   const theme = useTheme();
-
-  const handlePost = () => {
-    if (postText.trim()) {
-      addPost(postText);
-      resetPost();
-    }
-  };
+  const { open, setOpen, setPostText } = usePostStore();
 
   return (
     <div>
@@ -39,8 +25,7 @@ const CreatePost: React.FC = () => {
           p: 2,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
-          width: "100%",
-          maxWidth: "570px",
+          width: "600px",
           backgroundColor: theme.palette.background.default,
           display: "flex",
           flexDirection: "column",
@@ -62,7 +47,7 @@ const CreatePost: React.FC = () => {
               cursor: "pointer",
               "&:hover": { backgroundColor: theme.palette.action.hover },
             }}
-            onClick={() => setOpen(true)}
+            onClick={() => setOpen(true) }
           >
             <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px", fontWeight: "bold" }}>
               Start a post
@@ -73,47 +58,10 @@ const CreatePost: React.FC = () => {
         <AddMedia />
       </Box>
 
-      <Dialog open={open} onClose={resetPost} fullWidth maxWidth="md">
-        <DialogTitle>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src="/profile.jpg" />
-              <Box>
-                <Typography fontWeight="bold">Ascend Developer • You</Typography>
-                <Typography color="gray" fontSize="0.8rem">
-                  Software Engineer at Microsoft
-                </Typography>
-              </Box>
-            </Stack>
-            <IconButton onClick={resetPost}>
-              <Close />
-            </IconButton>
-          </Stack>
-        </DialogTitle>
+     {typeof window !== 'undefined' && open && <PostDialog />}
 
-        <DialogContent>
-          <TextField
-            fullWidth
-            multiline
-            rows={5}
-            placeholder="What do you want to talk about?"
-            variant="standard"
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
-            sx={{ fontSize: "1.2rem", width: "100%" }}
-          />
-        </DialogContent>
-
-        <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
-          <Button variant="contained" disabled={!postText.trim()} onClick={handlePost}>
-            Post
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {posts.map((post) => (
-        <UserPost key={post.id} post={post} />
-      ))}
+      {/* ✅ Popup shown only on post creation */}
+      <UserPostPopup />
     </div>
   );
 };
