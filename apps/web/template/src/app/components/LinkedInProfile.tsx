@@ -38,7 +38,7 @@ const LinkedInProfile: React.FC = () => {
   const [isSkillsOpen, setIsSkillsOpen] = useState<boolean>(false);
   const [resume, setResume] = useState<File | null>(null); // State for resume upload
   const [profile, setProfile] = useState<Profile>({
-    name: 'Nouran Haridy',
+    name: 'Nooran Haridy',
     headline: 'CH Bachelor Programs - Faculty of Engineering Cairo University',
     location: 'New Cairo, Cairo, Egypt',
     bannerImage: '',
