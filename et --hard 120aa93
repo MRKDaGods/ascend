@@ -1,0 +1,18 @@
+[33m2ff4ae4[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/Mobile-Testing[m[33m)[m HEAD@{0}: pull origin Mobile-Testing --rebase: Fast-forward
+[33m120aa93[m[33m ([m[1;31morigin/main[m[33m)[m HEAD@{1}: commit: Update edit profile page tests to check for search bar presence instead of welcome message
+[33mb6681f4[m HEAD@{2}: checkout: moving from Mobile-Testing to main
+[33mffce5af[m[33m ([m[1;31msecondary/Mobile-Testing[m[33m, [m[1;32mMobile-Testing[m[33m)[m HEAD@{3}: pull origin Mobile-Testing --rebase: Fast-forward
+[33m81be152[m HEAD@{4}: checkout: moving from main to Mobile-Testing
+[33mb6681f4[m HEAD@{5}: checkout: moving from Mobile-Testing to main
+[33m81be152[m HEAD@{6}: checkout: moving from main to Mobile-Testing
+[33mb6681f4[m HEAD@{7}: commit: Add cover photo test page and interaction methods; update locators and page objects
+[33mb59a92d[m HEAD@{8}: checkout: moving from Mobile-Testing to main
+[33m81be152[m HEAD@{9}: pull origin Mobile-Testing --rebase: Fast-forward
+[33m4f16901[m HEAD@{10}: checkout: moving from main to Mobile-Testing
+[33mb59a92d[m HEAD@{11}: commit: Enhance profile photo page functionality; add new methods for profile photo interactions and update locators
+[33m4112932[m HEAD@{12}: commit: Add tests for profile photo page functionality; include valid and invalid image upload scenarios
+[33m4f16901[m HEAD@{13}: checkout: moving from Mobile-Testing to main
+[33m4f16901[m HEAD@{14}: checkout: moving from Mobile-Testing to Mobile-Testing
+[33m4f16901[m HEAD@{15}: checkout: moving from main to Mobile-Testing
+[33m4f16901[m HEAD@{16}: commit: Refactor locators and enhance login functionality; update tests for signup and login pages
+[33m8f53095[m HEAD@{17}: commit (initial): FIRST PUSH
