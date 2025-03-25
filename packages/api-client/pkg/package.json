@@ -1,5 +1,5 @@
 {
-  "name": "@ascend/api-client",
+  "name": "api-client",
   "type": "module",
   "version": "0.1.0",
   "files": [

@@ -18,7 +18,7 @@ impl ApiClient {
     }
 
     pub async fn get_gateway_health(&self) -> Result<String, ApiError> {
-        let url = format!("{}/gateway/health", self.base_url);
+        let url = format!("{}/health", self.base_url);
         let response = self.client.get(&url).send().await?;
         let body = response.text().await?;
         Ok(body)
