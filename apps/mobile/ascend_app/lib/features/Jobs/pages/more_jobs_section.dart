@@ -28,6 +28,7 @@ class MoreJobsSection extends StatelessWidget {
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: 10),
           if (jobs.isEmpty)

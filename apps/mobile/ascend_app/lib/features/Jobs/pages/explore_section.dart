@@ -1,28 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/Jobs/pages/more_categories_section.dart';
 
-class ExploreSection extends StatelessWidget {
+class ExploreScreen extends StatelessWidget {
+  final List<String> categories = [
+    'Technology',
+    'Health',
+    'Science',
+    'Business',
+    'Education',
+    'Sports',
+  ];
   final bool isDarkMode;
-
-  const ExploreSection({super.key, required this.isDarkMode});
-
+  ExploreScreen({super.key, required this.isDarkMode});
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Explore"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => MoreCategoriesScreen(categories: categories),
+                ),
+              );
+            },
+            child: Text("More", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+      body: Column(
         children: [
-          Text(
-            "Explore Jobs",
-            style: TextStyle(
-              color: isDarkMode ? Colors.white : Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          // Slider
+          Container(
+            height: 180,
+            child: PageView.builder(
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.all(10),
+                  child: Center(
+                    child: Text(
+                      categories[index],
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          SizedBox(height: 10),
-          // Add more UI elements related to exploring jobs
-          Placeholder(fallbackHeight: 100), // Placeholder for job collection UI
+          // Explore Section
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.all(10),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  child: Center(
+                    child: Text(
+                      categories[index],
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
