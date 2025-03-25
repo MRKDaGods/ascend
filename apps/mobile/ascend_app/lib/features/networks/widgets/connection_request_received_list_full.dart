@@ -3,6 +3,7 @@ import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import 'package:ascend_app/features/networks/utils/overlay_builder.dart';
 
 class ConnectionRequestsReceivedListFull extends StatelessWidget {
   final List<UserModel> invitations;
@@ -39,99 +40,154 @@ class ConnectionRequestsReceivedListFull extends StatelessWidget {
                   padding: const EdgeInsets.all(8.0),
                   child: Text('No invitations received'),
                 ),
-              Column(
-                children:
-                    invitations.map((invitation) {
-                      final connectionRequest = pendingRequestsReceived
-                          .firstWhere(
-                            (element) => element.senderId == invitation.id,
-                            orElse:
-                                () => ConnectionRequestModel(
-                                  requestId: '',
-                                  senderId: '',
-                                  receiverId: '',
-                                  status: '',
-                                  timestamp: '',
-                                ),
-                          );
-
-                      if (connectionRequest.requestId.isNotEmpty) {
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage:
-                                invitation.profilePic.startsWith('http')
-                                    ? NetworkImage(invitation.profilePic)
-                                    : AssetImage(invitation.profilePic)
-                                        as ImageProvider,
-                          ),
-                          title: Text(invitation.name),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                invitation.bio,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: invitations.length,
+                  itemBuilder: (context, index) {
+                    final invitation = invitations[index];
+                    final connectionRequest = pendingRequestsReceived
+                        .firstWhere(
+                          (element) => element.senderId == invitation.id,
+                          orElse:
+                              () => ConnectionRequestModel(
+                                requestId: '',
+                                senderId: '',
+                                receiverId: '',
+                                status: '',
+                                timestamp: '',
                               ),
-                              Text(
-                                'Sent ${connectionRequest.timestamp}',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(
-                                width: 8,
-                              ), // Spacing between text and icons
-                              // Action Icons
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed:
-                                        () => onDecline(
-                                          connectionRequest.requestId,
-                                        ),
-                                    tooltip: 'Decline',
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                    ),
-                                    onPressed:
-                                        () => onAccept(
-                                          connectionRequest.requestId,
-                                        ),
-                                    tooltip: 'Accept',
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
                         );
-                      } else {
-                        return SizedBox.shrink(); // Fix for null return issue
-                      }
-                    }).toList(), // Fix for null filtering
+
+                    if (connectionRequest.requestId != '') {
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Profile Picture
+                                CircleAvatar(
+                                  radius: 24,
+                                  backgroundImage:
+                                      invitation.profilePic.startsWith('http')
+                                          ? NetworkImage(invitation.profilePic)
+                                          : AssetImage(invitation.profilePic)
+                                              as ImageProvider,
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ), // Spacing between avatar and text
+                                // Name and Bio
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        invitation.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        invitation.bio,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        connectionRequest.timestamp,
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ), // Spacing between text and icons
+                                // Action Icons
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Decline Button with Circular Border
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.grey,
+                                          width: 2,
+                                        ), // Grey circular border
+                                      ),
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(
+                                          Icons.close,
+                                          color: Colors.grey,
+                                        ),
+                                        onPressed:
+                                            () => onDecline(
+                                              connectionRequest.requestId,
+                                            ),
+                                        tooltip: 'Decline',
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: 8,
+                                    ), // Spacing between the two buttons
+                                    // Accept Button with Circular Border
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.blue,
+                                          width: 2,
+                                        ), // Blue circular border
+                                      ),
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(
+                                          Icons.check,
+                                          color: Colors.lightBlue,
+                                        ),
+                                        onPressed: () {
+                                          onAccept(connectionRequest.requestId);
+                                          showSnackBar(context);
+                                        },
+                                        tooltip: 'Accept',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(thickness: 1),
+                        ],
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  },
+                ),
               ),
             ],
           );
         } else {
-          return SizedBox.shrink();
+          return const SizedBox.shrink();
         }
       },
     );
