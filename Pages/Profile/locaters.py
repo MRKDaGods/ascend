@@ -51,6 +51,12 @@ class CoverPhotoLocaters:
     TAKE_PHOTO_BUTTON = (By.ID, 'com.linkedin.android:id/profile_picture_select_bottom_sheet_take_a_photo')
     UPLOAD_FROM_GALLERY_BUTTON = (By.ID, 'com.linkedin.android:id/profile_picture_select_bottom_sheet_upload_from_photos_layout')
     CLOSE_PHOTO_BAR_BUTTON = (By.ACCESSIBILITY_ID, 'Bottom Sheet Control Bar, Double Tap to Dismiss')
+    VALID_COVER_PHOTO = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.google.android.providers.media.module:id/icon_thumbnail").instance(1)')
+    INVALID_COVER_PHOTO = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.google.android.providers.media.module:id/icon_thumbnail").instance(0)')
+    DONE_BUTTON = (By.ID, 'com.linkedin.android:id/done_button')
+    UPDATE_PHOTO_BUTTON = (By.ID, 'com.linkedin.android:id/profile_image_viewer_add_photo_button')
+    SUMBISSION_FAILED_MESSAGE = (By.ID, 'com.linkedin.android:id/alertTitle')
+    
     
 
 class ProfilePhotoPageLocaters:

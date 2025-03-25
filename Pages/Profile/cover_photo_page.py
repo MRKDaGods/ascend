@@ -9,6 +9,11 @@ class CoverPhotoPage(BasePage):
     SAVE_BUTTON = CoverPhotoLocaters.SAVE_BUTTON
     TAKE_PHOTO_BUTTON = CoverPhotoLocaters.TAKE_PHOTO_BUTTON
     UPLOAD_FROM_GALLERY_BUTTON = CoverPhotoLocaters.UPLOAD_FROM_GALLERY_BUTTON
+    VALID_COVER_PHOTO = CoverPhotoLocaters.VALID_COVER_PHOTO
+    INVALID_COVER_PHOTO = CoverPhotoLocaters.INVALID_COVER_PHOTO
+    DONE_BUTTON = CoverPhotoLocaters.DONE_BUTTON
+    UPDATE_PHOTO_BUTTON = CoverPhotoLocaters.UPDATE_PHOTO_BUTTON
+    SUMBISSION_FAILED_MESSAGE = CoverPhotoLocaters.SUMBISSION_FAILED_MESSAGE
     
     
 
@@ -27,7 +32,21 @@ class CoverPhotoPage(BasePage):
     def click_upload_from_gallery(self):
         self.click(self.UPLOAD_FROM_GALLERY_BUTTON)
     
+    def click_close_photo_bar(self):
+        self.click(self.CLOSE_PHOTO)
     
-    def get_message(self):
-        return self.get_text(self.MESSAGE)
+    def click_valid_cover_photo(self):
+        self.click(self.VALID_COVER_PHOTO)
+    
+    def click_invalid_cover_photo(self):
+        self.click(self.INVALID_COVER_PHOTO)
+    
+    def click_done(self):
+        self.click(self.DONE_BUTTON)
+    
+    def click_update_photo(self):
+        self.click(self.UPDATE_PHOTO_BUTTON)
+
+    def get_message(self, message):
+        return self.get_text(message)
     
