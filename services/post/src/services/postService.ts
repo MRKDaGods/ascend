@@ -59,14 +59,43 @@ export class PostService {
     return post;
   }
 
-  async updatePost(postId: number, content: string): Promise<Post | null> {
+  async updatePost(
+    postId: number, 
+    content: string, 
+    privacy?: Post["privacy"]
+  ): Promise<Post | null> {
+    const updateFields = [];
+    const values = [];
+    let valueIndex = 1;
+  
+    // Add content update if provided
+    if (content) {
+      updateFields.push(`content = $${valueIndex}`);
+      values.push(content);
+      valueIndex++;
+    }
+  
+    // Add privacy update if provided
+    if (privacy) {
+      updateFields.push(`privacy = $${valueIndex}`);
+      values.push(privacy);
+      valueIndex++;
+    }
+  
+    // Always update is_edited and updated_at
+    updateFields.push('is_edited = true');
+    updateFields.push('updated_at = NOW()');
+  
+    // Add postId as the last parameter
+    values.push(postId);
+  
     const result = await db.query(
       `UPDATE post_service.posts 
-       SET content = $1, is_edited = true, updated_at = NOW()
-       WHERE id = $2 RETURNING *`,
-      [content, postId]
+       SET ${updateFields.join(', ')}
+       WHERE id = $${valueIndex} RETURNING *`,
+      values
     );
-
+  
     return result.rows[0] ? this.getPostById(postId) : null;
   }
 

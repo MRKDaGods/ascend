@@ -46,6 +46,8 @@ export const getFeed = async (req: AuthenticatedRequest, res: Response) => {
  * @returns {Post} Created post with media
  */
 export const createPost = [
+  ...createPostValidationRules,
+  validate,
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
     const { content, privacy } = req.body;
