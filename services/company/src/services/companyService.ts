@@ -62,7 +62,7 @@ export const findCompaniesByKeyword = async (keywords : {[key : string] : any}) 
 }
 
 
-export const updateCompanyProfile = async (company_id : number, keywords : {[key : string] : any}) : Promise<Array<Company>> => {
+export const updateCompanyProfile = async (company_id : number, keywords : {[key : string] : any}) : Promise<Company | null> => {
     const {description, location, industry, logo_url} = keywords;
     let counter : number = 0;
     let db_query : string = "UPDATE company_service.company SET ";
@@ -98,7 +98,7 @@ export const updateCompanyProfile = async (company_id : number, keywords : {[key
     parametrs.push(company_id);
 
     const result = await db.query(db_query, parametrs);
-    return result.rows;
+    return result.rows.length > 0 ? result.rows[0] : null;
 }
 
 
