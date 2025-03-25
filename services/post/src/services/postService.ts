@@ -8,27 +8,27 @@ import {
   PostEngagement,
   FeedItemType,
   UserTag,
-  SavedPost
+  SavedPost,
 } from "@shared/models";
 
 export class PostService {
   // Post CRUD operations
-  async createPost(userId: number, content: string, privacy: Post['privacy'], media?: Media[]): Promise<Post> {
+  async createPost(
+    userId: number,
+    content: string,
+    privacy: Post["privacy"]
+  ): Promise<Post> {
     const result = await db.query(
       `INSERT INTO post_service.posts (user_id, content, privacy, is_edited, created_at, updated_at) 
        VALUES ($1, $2, $3, false, NOW(), NOW()) RETURNING *`,
       [userId, content, privacy]
     );
-    
+
     const post = result.rows[0];
-    
-    if (media?.length) {
-      await Promise.all(media.map(m => this.addMediaToPost(m)));
-    }
-    
+
     const createdPost = await this.getPostById(post.id);
     if (!createdPost) {
-      throw new Error('Post not found after creation');
+      throw new Error("Post not found after creation");
     }
     return createdPost;
   }
@@ -37,13 +37,13 @@ export class PostService {
     const postResult = await db.query(
       `SELECT p.*, 
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_url', u.profile_picture_id
         ) as user
        FROM post_service.posts p
-       JOIN user_service.users u ON p.user_id = u.id
+       JOIN user_service.profiles u ON p.user_id = u.user_id
        WHERE p.id = $1`,
       [postId]
     );
@@ -51,10 +51,10 @@ export class PostService {
     if (postResult.rows.length === 0) return null;
 
     const post = postResult.rows[0];
-    post.media = await this.getPostMedia(postId);
-    post.likes_count = await this.getPostLikesCount(postId);
-    post.comments_count = await this.getPostCommentsCount(postId);
-    post.shares_count = await this.getPostSharesCount(postId);
+    // post.media = await this.getPostMedia(postId);
+    // post.likes_count = await this.getPostLikesCount(postId);
+    // post.comments_count = await this.getPostCommentsCount(postId);
+    // post.shares_count = await this.getPostSharesCount(postId);
 
     return post;
   }
@@ -66,32 +66,53 @@ export class PostService {
        WHERE id = $2 RETURNING *`,
       [content, postId]
     );
-    
+
     return result.rows[0] ? this.getPostById(postId) : null;
   }
 
   async deletePost(postId: number): Promise<boolean> {
     const result = await db.query(
-      'DELETE FROM post_service.posts WHERE id = $1',
+      "DELETE FROM post_service.posts WHERE id = $1",
       [postId]
     );
     if (result.rowCount == null) return false;
-    return result.rowCount > 0 ;
+    return result.rowCount > 0;
   }
 
-  // Media operations
-  public async addMediaToPost(media:Media): Promise<Media> {
+  public async addMediaToPost(media: Omit<Media, 'id'>): Promise<Media> {
+    if (!media.url || !media.type || !media.post_id) {
+      throw new Error('Required media fields missing: url, type, or post_id');
+    }
+    // Check if post exists before adding media
+    const postExists = await this.getPostById(media.post_id);
+    if (!postExists) {
+        throw new Error(`Cannot add media: Post with ID ${media.post_id} does not exist`);
+    }
+
     const result = await db.query(
       `INSERT INTO post_service.media (post_id, url, type, thumbnail_url, title, description, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *`,
-      [media.post_id, media.url, media.type, media.thumbnail_url, media.title, media.description]
+      [
+        media.post_id,
+        media.url,
+        media.type,
+        media.thumbnail_url,
+        media.title,
+        media.description,
+      ]
     );
+  
+    if (!result.rows[0]) {
+      throw new Error('Failed to add media to post');
+    }
+  
+    console.log('Media added successfully:', result.rows[0]);
     return result.rows[0];
   }
 
   private async getPostMedia(postId: number): Promise<Media[]> {
     const result = await db.query(
-      'SELECT * FROM post_service.media WHERE post_id = $1',
+      "SELECT * FROM post_service.media WHERE post_id = $1",
       [postId]
     );
     return result.rows;
@@ -109,7 +130,7 @@ export class PostService {
 
   async unlikePost(userId: number, postId: number): Promise<boolean> {
     const result = await db.query(
-      'DELETE FROM post_service.likes WHERE user_id = $1 AND post_id = $2',
+      "DELETE FROM post_service.likes WHERE user_id = $1 AND post_id = $2",
       [userId, postId]
     );
     if (result.rowCount == null) return false;
@@ -117,7 +138,12 @@ export class PostService {
   }
 
   // Comment operations
-  async createComment(userId: number, postId: number, content: string, parentCommentId?: number): Promise<Comment> {
+  async createComment(
+    userId: number,
+    postId: number,
+    content: string,
+    parentCommentId?: number
+  ): Promise<Comment> {
     const result = await db.query(
       `INSERT INTO post_service.comments 
        (user_id, post_id, parent_comment_id, content, is_edited, created_at, updated_at)
@@ -126,7 +152,7 @@ export class PostService {
     );
     const comment = await this.getCommentById(result.rows[0].id);
     if (!comment) {
-      throw new Error('Comment not found');
+      throw new Error("Comment not found");
     }
     return comment;
   }
@@ -145,15 +171,19 @@ export class PostService {
        WHERE c.id = $1`,
       [commentId]
     );
-    
+
     if (result.rows.length === 0) return null;
-    
+
     const comment = result.rows[0];
     comment.replies = await this.getCommentReplies(commentId);
     return comment;
   }
 
-  async getPostComments(postId: number, limit: number = 20, offset: number = 0): Promise<Comment[]> {
+  async getPostComments(
+    postId: number,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Comment[]> {
     const result = await db.query(
       `SELECT c.*, 
         json_build_object(
@@ -178,10 +208,14 @@ export class PostService {
     return comments;
   }
 
-  async updateComment(commentId: number, content: string, userId: number): Promise<Comment | null> {
+  async updateComment(
+    commentId: number,
+    content: string,
+    userId: number
+  ): Promise<Comment | null> {
     // First check if user owns the comment
     const ownerCheck = await db.query(
-      'SELECT user_id FROM post_service.comments WHERE id = $1',
+      "SELECT user_id FROM post_service.comments WHERE id = $1",
       [commentId]
     );
 
@@ -203,10 +237,10 @@ export class PostService {
 
   async deleteComment(commentId: number, userId: number): Promise<boolean> {
     const result = await db.query(
-      'DELETE FROM post_service.comments WHERE id = $1 AND user_id = $2',
+      "DELETE FROM post_service.comments WHERE id = $1 AND user_id = $2",
       [commentId, userId]
     );
-    
+
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -221,7 +255,11 @@ export class PostService {
   }
 
   // Share operations
-  async sharePost(userId: number, postId: number, comment?: string): Promise<Share> {
+  async sharePost(
+    userId: number,
+    postId: number,
+    comment?: string
+  ): Promise<Share> {
     const result = await db.query(
       `INSERT INTO post_service.shares (user_id, post_id, comment, created_at)
        VALUES ($1, $2, $3, NOW()) RETURNING *`,
@@ -231,7 +269,11 @@ export class PostService {
   }
 
   // Feed operations
-  async getFeed(userId: number, limit: number = 20, offset: number = 0): Promise<FeedItemType[]> {
+  async getFeed(
+    userId: number,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<FeedItemType[]> {
     const result = await db.query(
       `SELECT p.*, 
         'post' as type,
@@ -256,7 +298,7 @@ export class PostService {
     );
 
     const feed = result.rows;
-    
+
     // Enhance feed items with engagement metrics
     for (const item of feed) {
       item.media = await this.getPostMedia(item.id);
@@ -271,16 +313,15 @@ export class PostService {
   // Helper methods for counting engagements
   private async getPostLikesCount(postId: number): Promise<number> {
     const result = await db.query(
-      'SELECT COUNT(*) FROM post_service.likes WHERE post_id = $1',
+      "SELECT COUNT(*) FROM post_service.likes WHERE post_id = $1",
       [postId]
     );
     return parseInt(result.rows[0].count, 10);
   }
 
-
   private async getPostSharesCount(postId: number): Promise<number> {
     const result = await db.query(
-      'SELECT COUNT(*) FROM post_service.shares WHERE post_id = $1',
+      "SELECT COUNT(*) FROM post_service.shares WHERE post_id = $1",
       [postId]
     );
     return parseInt(result.rows[0].count, 10);
@@ -305,7 +346,11 @@ export class PostService {
   }
 
   // Search operations
-  async searchPosts(query: string, limit: number = 20, offset: number = 0): Promise<Post[]> {
+  async searchPosts(
+    query: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Post[]> {
     const result = await db.query(
       `SELECT p.*, 
         json_build_object(
@@ -340,7 +385,7 @@ export class PostService {
       likes_count: await this.getPostLikesCount(postId),
       comments_count: await this.getPostCommentsCount(postId),
       shares_count: await this.getPostSharesCount(postId),
-      last_updated: new Date()
+      last_updated: new Date(),
     };
   }
 
@@ -356,7 +401,11 @@ export class PostService {
     return result.rows[0];
   }
 
-  async getSavedPosts(userId: number, limit: number = 20, offset: number = 0): Promise<Post[]> {
+  async getSavedPosts(
+    userId: number,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<Post[]> {
     const result = await db.query(
       `SELECT p.*, 
         json_build_object(
@@ -387,9 +436,13 @@ export class PostService {
   }
 
   // Tag users
-  async tagUsers(postId: number, userIds: number[], commentId?: number): Promise<UserTag[]> {
+  async tagUsers(
+    postId: number,
+    userIds: number[],
+    commentId?: number
+  ): Promise<UserTag[]> {
     const tags = await Promise.all(
-      userIds.map(userId =>
+      userIds.map((userId) =>
         db.query(
           `INSERT INTO post_service.user_tags 
            (user_id, post_id, comment_id, created_at)
@@ -399,8 +452,8 @@ export class PostService {
         )
       )
     );
-    
-    return tags.map(t => t.rows[0]);
+
+    return tags.map((t) => t.rows[0]);
   }
 
   // Helper method for feed count
@@ -417,14 +470,14 @@ export class PostService {
          OR (p.privacy = 'private' AND p.user_id = $1)`,
       [userId]
     );
-    
+
     return parseInt(result.rows[0].count, 10);
   }
 
   // Check if post is liked by user
   async isPostLikedByUser(postId: number, userId: number): Promise<boolean> {
     const result = await db.query(
-      'SELECT EXISTS(SELECT 1 FROM post_service.likes WHERE post_id = $1 AND user_id = $2)',
+      "SELECT EXISTS(SELECT 1 FROM post_service.likes WHERE post_id = $1 AND user_id = $2)",
       [postId, userId]
     );
     return result.rows[0].exists;
@@ -433,30 +486,33 @@ export class PostService {
   // Check if post is saved by user
   async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
     const result = await db.query(
-      'SELECT EXISTS(SELECT 1 FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2)',
+      "SELECT EXISTS(SELECT 1 FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2)",
       [postId, userId]
     );
     return result.rows[0].exists;
   }
 
-  async updatePrivacy(postId: number, privacy: Post['privacy']): Promise<Post | null> {
+  async updatePrivacy(
+    postId: number,
+    privacy: Post["privacy"]
+  ): Promise<Post | null> {
     const result = await db.query(
       `UPDATE post_service.posts 
        SET privacy = $1, updated_at = NOW()
        WHERE id = $2 RETURNING *`,
       [privacy, postId]
     );
-    
+
     return result.rows[0] ? this.getPostById(postId) : null;
   }
 
   async getPostWithEngagement(postId: number): Promise<Post & PostEngagement> {
     const post = await this.getPostById(postId);
     const engagement = await this.getPostEngagement(postId);
-    
+
     return {
       ...post!,
-      ...engagement
+      ...engagement,
     };
   }
 
@@ -474,7 +530,7 @@ export class PostService {
         postId,
         await this.getPostLikesCount(postId),
         await this.getPostCommentsCount(postId),
-        await this.getPostSharesCount(postId)
+        await this.getPostSharesCount(postId),
       ]
     );
   }
