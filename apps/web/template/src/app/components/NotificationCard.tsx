@@ -24,16 +24,16 @@ import { useNotificationStore } from "../store/useNotificationStore";
 
 const NotificationCard: React.FC = () => {
   const { notifications, markAsRead, markAsUnread, deleteNotification, hydrated } =
-    useNotificationStore();
+    useNotificationStore();      //hydrated is making sure that  the store is loaded from local storage 
   const [anchorEl, setAnchorEl] = useState<{ [key: string]: null | HTMLElement }>({});
   const containerRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [filterType, setFilterType] = useState("all");
 
-  useEffect(() => {
+  useEffect(() => {  // Ensure notifications are loaded correctly from localStorage
     if (!hydrated) return;
   
-    // ✅ Ensure notifications are loaded correctly from localStorage
+    // Ensure notifications are loaded correctly from localStorage
     const storedNotifications = localStorage.getItem("notifications");
     if (storedNotifications) {
       useNotificationStore.getState().setNotifications(JSON.parse(storedNotifications));
@@ -45,7 +45,7 @@ const NotificationCard: React.FC = () => {
 
   const unseenCount = notifications.filter((notif) => !notif.markedasread).length;
 
-  // 🔹 Filtering Notifications Based on Type
+  //  Filtering Notifications Based on Type
   const filteredNotifications = notifications.filter((notification) => {
     if (filterType === "myposts") return ["like", "comment"].includes(notification.type);
     if (filterType === "mentions") return notification.type === "mention";
@@ -70,18 +70,17 @@ const NotificationCard: React.FC = () => {
 
   return (
     <Card
-      sx={{
-        width: "100%",
-        maxWidth: "750px",
-        minWidth: "600px",
-        p: 2,
-        mt: 2,
-        borderRadius: 3,
-        boxShadow: 3,
-        transition: "width 0.2s ease-in-out",
-      }}
+    sx={{
+      width: "100%",
+      maxWidth: "750px",
+      p: 2,
+      mt: 2,
+      borderRadius: 3,
+      boxShadow: 3,
+    }}
+    
     >
-      {/* 🔹 Header with Title & Badge */}
+      {/* Header with Title & Badge */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6" fontWeight={600} display="flex" alignItems="center">
           <Notifications sx={{ mr: 1, color: "gray" }} />
@@ -90,7 +89,7 @@ const NotificationCard: React.FC = () => {
         {unseenCount > 0 && <Badge badgeContent={unseenCount} color="error" />}
       </Box>
 
-      {/* 🔹 Filter Buttons */}
+      {/*  Filter Buttons */}
       <ButtonGroup sx={{ mb: 2 }}>
         {["all", "myposts", "mentions", "connections"].map((type) => (
           <Button
@@ -111,15 +110,16 @@ const NotificationCard: React.FC = () => {
         ))}
       </ButtonGroup>
 
-      {/* 🔹 Notifications List */}
+      {/*  Notifications List */}
       <Box
         ref={containerRef}
         sx={{
-          maxHeight: "70vh",
-          overflowY: "auto",
           width: "100%",
-          minWidth: "600px",
-          maxWidth: "750px",
+          overflow: "visible",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+          minHeight: "100%", // Ensures all content is displayed
+          p: 2, // Adds padding for better spacing
         }}
       >
         <List>

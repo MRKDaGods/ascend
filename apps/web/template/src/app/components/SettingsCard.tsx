@@ -4,7 +4,7 @@ export default function SettingsCard() {
   return (
     <Card
       sx={{
-        maxWidth: 320, // Match the screenshot size
+        maxWidth: 400, 
         borderRadius: 2,
         boxShadow: 2,
         bgcolor: "white",

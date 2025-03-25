@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-interface Notification {
+interface Notification {  // represents single notification
   id: string;
   message: string;
   timestamp: string;
@@ -45,7 +45,7 @@ export const useNotificationStore = create<NotificationStore>()(
 
       markAsRead: async (id) => {
         try {
-          // Send a PATCH request to Mockoon API
+          // Send a PATCH request to Mockoon API (3ashan ne3mel update ll notification read wala unread)
           const response = await fetch(`http://localhost:5000/api/notifications/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -102,7 +102,7 @@ export const useNotificationStore = create<NotificationStore>()(
 
       deleteNotification: async (id: string) => {
         try {
-          const response = await fetch(`http://localhost:5000/api/notifications/${id}`, {
+          const response = await fetch(`http://localhost:5000/api/notifications/${id}`, {  
             method: "DELETE",
           });
       
@@ -113,7 +113,7 @@ export const useNotificationStore = create<NotificationStore>()(
           set((state) => {
             const updatedNotifications = state.notifications.filter((notif) => notif.id !== id);
             
-            // ✅ Store deleted IDs separately in localStorage
+            //  Store deleted IDs separately in localStorage
             const deletedIds = JSON.parse(localStorage.getItem("deletedNotifications") || "[]");
             deletedIds.push(id);
             localStorage.setItem("deletedNotifications", JSON.stringify(deletedIds));
