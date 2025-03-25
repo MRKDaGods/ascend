@@ -18,7 +18,15 @@ List<FollowModel> generateFollowers() {
 }
 
 void addFollowing(List<FollowModel> followers, String followingId) {
-  followers.add(FollowModel(followerId: '1', followingId: followingId));
+  final exist = followers.any(
+    (element) =>
+        (element.followingId == followingId && element.followerId == '1') ||
+        (element.followerId == followingId && element.followingId == '1'),
+  );
+
+  if (!exist) {
+    followers.add(FollowModel(followerId: '1', followingId: followingId));
+  }
 }
 
 void deleteFollowing(List<FollowModel> followers, String followingId) {
