@@ -17,7 +17,7 @@ def setup_test(appium_driver):
     logger.info("Testing edit profile page")
     # if user is logged in, open profile page then edit profile page , else login then open profile page and edit profile page
     try:
-        if home_page.get_text(home_page.WELCOME_MESSAGE) == "Welcome to LinkedIn":
+        if home_page.get_text(home_page.SEARCH_BAR) == "Search":
             UtilityFunctions.open_profile_page(appium_driver)
             profile_page.click_edit_profile()
             time.sleep(2)
