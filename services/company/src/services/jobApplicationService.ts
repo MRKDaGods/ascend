@@ -16,6 +16,11 @@ export const findJobApplicationsForUser = async (user_id : number) : Promise<Arr
     return result.rows;
 }
 
+export const updateJobApplicationStatus = async (id : number, new_status : ApplicationStatus) : Promise<JobApplication|null> => {
+    const result = await db.query("UPDATE company_service.job_application SET status = $1 WHERE application_id = $2", [new_status, id]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+}
+
 export const createJobApplication = async (
     job_id : number,
     user_id : number,

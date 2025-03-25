@@ -19,10 +19,13 @@ export const createJob = async (
     industry : string,
     maximum_salary : number,
     minimum_salary : number,
+    created_at : Date, 
     experience_level : ExperienceLevel,
     user_id : number
 ) : Promise<Job> => {
-    const result = await db.query("INSERT INTO company_service.job (company_id, title, description, location, industry, maximum_salary, minimum_salary, experience_level, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *");
+    const result = await db.query("INSERT INTO company_service.job (company_id, title, description, location, industry, maximum_salary, minimum_salary, experience_level, posted_by, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+        [company_id, title, description, location, industry, maximum_salary, minimum_salary, experience_level, user_id, created_at]
+    );
     return result.rows[0];
 }
 
@@ -43,30 +46,30 @@ export const findJobsByKeyword = async (keywords : {[key : string] : any}) : Pro
     let parametrs : Array<string> = [];
     if(experience_level){
         counter += 1;
-        db_query += `title = ${experience_level} AND `;
+        db_query += `title = ${counter} AND `;
         parametrs.push(experience_level);
     }
 
     if(title){
         counter += 1;
-        db_query += `title = ${title} AND `;
+        db_query += `title = ${counter} AND `;
         parametrs.push(title);
     }
 
     if(description){
         counter += 1;
-        db_query += `description = ${description} AND `;
+        db_query += `description = ${counter} AND `;
         parametrs.push(description);
     }
 
     if(location){
         counter += 1;
-        db_query += `location = ${location} AND `;
+        db_query += `location = ${counter} AND `;
         parametrs.push(location);
     }
     if(industry){
         counter += 1;
-        db_query += `industry = ${industry} AND `;
+        db_query += `industry = ${counter} AND `;
         parametrs.push(industry);
     }
 
