@@ -336,6 +336,7 @@ class _GrowState extends State<Grow> {
                                             'People to Connect based on your activity',
                                         users: getSuggestedConnections,
                                         mutualUsers: getAllconnections,
+
                                         onSend: (userId) {
                                           context
                                               .read<ConnectionRequestBloc>()
