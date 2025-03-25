@@ -5,7 +5,7 @@ import 'package:ascend_app/features/home/presentation/widgets/post/post_header.d
 import 'package:ascend_app/features/home/presentation/widgets/post/post_content.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post/post_image_section.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/reaction/post_reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post/post_action_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post/post_comments_section.dart';
 import 'package:ascend_app/features/home/managers/comment_manager.dart';
