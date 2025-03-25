@@ -206,22 +206,59 @@ class _JobHomePageState extends State<JobHomePage> {
           widget.isDarkMode
               ? const Color.fromARGB(255, 29, 34, 38)
               : Colors.white,
-
       body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Filters Row
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _filterButton("Preferences"),
-                  _filterButton("My jobs"),
-                  _filterButton("Post a free job"),
-                ],
-              ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 300) {
+                  // Vertical layout for small screens
+                  return SingleChildScrollView(
+                    scrollDirection:
+                        Axis.horizontal, // Allow horizontal scrolling
+                    child: Column(
+                      children: [
+                        _filterButton("Preferences"),
+                        SizedBox(height: 5),
+                        _filterButton("My jobs"),
+                        SizedBox(height: 5),
+                        _filterButton("Post a free job"),
+                      ],
+                    ),
+                  );
+                } else {
+                  // Horizontal layout for wider screens
+                  return Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: _filterButton("Preferences"),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: _filterButton("My jobs"),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: _filterButton("Post a free job"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
             ),
             Container(
               height: 10,
@@ -265,7 +302,7 @@ class _JobHomePageState extends State<JobHomePage> {
                       : Colors.grey[300], // Gray if not dark mode
             ),
 
-            ExploreSection(isDarkMode: widget.isDarkMode),
+            // ExploreScreen(isDarkMode: widget.isDarkMode),
             Container(
               height: 10,
               color:
@@ -300,7 +337,7 @@ class _JobHomePageState extends State<JobHomePage> {
         ),
       ),
 
-      child: Text(title, style: TextStyle(color: Colors.grey)),
+      child: Text(title, style: TextStyle(color: Colors.grey, fontSize: 13)),
     );
   }
 }
