@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../extensions/scaffold_extensions.dart';
 
 import 'bloc/search_bloc.dart';
 import 'bloc/search_event.dart';
@@ -37,12 +38,20 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
     return SliverAppBar(
       pinned: widget.pinned,
       floating: widget.floating,
-      leading: GestureDetector(
-        onTap: () {},
-        child: Card(
-          clipBehavior: Clip.hardEdge,
-          shape: const CircleBorder(),
-          child: Image.asset('assets/logo.jpg', fit: BoxFit.contain),
+      leading: Builder(
+        builder: (context) => GestureDetector(
+          onTap: () {
+            // Use custom animation for opening drawer
+            Scaffold.of(context).openDrawerWithAnimation(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+            );
+          },
+          child: Card(
+            clipBehavior: Clip.hardEdge,
+            shape: const CircleBorder(),
+            child: Image.asset('assets/logo.jpg', fit: BoxFit.contain),
+          ),
         ),
       ),
       title: BlocProvider(
