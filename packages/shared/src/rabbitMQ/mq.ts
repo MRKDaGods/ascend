@@ -8,7 +8,7 @@ const RABBITMQ_URL = process.env.RABBITMQ_URL;
 
 const connectWithRetry = async (
   url: string,
-  retries = 5,
+  retries = 12,
   delay = 5000
 ): Promise<ChannelModel> => {
   for (let i = 0; i < retries; i++) {
@@ -79,7 +79,7 @@ export const publishEvent = async (
 export const consumeEvents = async (
   queue: string,
   routingKey: string,
-  handler: (msg: ConsumeMessage) => Promise<void>
+  handler: (msg: any) => Promise<void>
 ): Promise<void> => {
   checkChannel();
 
@@ -94,7 +94,9 @@ export const consumeEvents = async (
     async (msg) => {
       if (msg) {
         try {
-          await handler(msg);
+          // Parse and handle the message
+          const payload = JSON.parse(msg.content.toString());
+          await handler(payload);
           channel!.ack(msg);
         } catch (error) {
           console.error("Error processing message:", error);
@@ -151,7 +153,7 @@ export const callRPC = async <T>(
   timeoutMs: number = 30000 // 30s
 ): Promise<T> => {
   checkChannel();
-  
+
   // Generate a unique correlation ID
   const correlationId = Math.random().toString(36).substring(2, 15);
 

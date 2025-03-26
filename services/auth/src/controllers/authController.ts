@@ -11,7 +11,7 @@ import {
   findUserByEmail,
   findUserById,
   resetUserPassword,
-  setUserFCMToken,
+  updateUserFCMToken,
   updateUserEmail,
   updateUserEmailConfirmation,
   updateUserNewEmailConfirmation,
@@ -46,6 +46,8 @@ export const register = async (req: Request, res: Response) => {
 
     // Send confirmation email
     const confirmation_token = generateToken({ email }, "24h");
+    await updateUserEmail(user.id, null, confirmation_token); // Set confirmation token
+
     await sendEmail(
       email,
       "Confirm Your Email",
@@ -113,7 +115,6 @@ export const login = async (req: Request, res: Response) => {
  */
 export const confirmEmail = async (req: Request, res: Response) => {
   const { token } = req.query as { token: string };
-  console.log(token);
 
   try {
     const { email, isNewEmail } = verifyToken(token);
@@ -417,7 +418,10 @@ export const deleteAccount = async (
  * - 404 if user not found
  * - 500 if server error occurs
  */
-export const setFCMToken = async(req: AuthenticatedRequest, res: Response) => {
+export const updateFCMToken = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   const { fcm_token } = req.body;
   const userId = req.user!.id;
 
@@ -428,7 +432,7 @@ export const setFCMToken = async(req: AuthenticatedRequest, res: Response) => {
 
     // TODO: Validate token by dry running
 
-    await setUserFCMToken(userId, fcm_token);
+    await updateUserFCMToken(userId, fcm_token);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
