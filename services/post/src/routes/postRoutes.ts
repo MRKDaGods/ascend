@@ -45,7 +45,7 @@ router.get("/:postId/engagement", authenticateToken, getPostEngagement);
 
 // Comment routes
 router.get("/:postId/comments", authenticateToken, getPostComments);
-router.post("/:postId/comments", authenticateToken, createComment);
+router.post("/:postId/comments", authenticateToken,  upload.none(), createComment);
 router.patch("/:postId/comments/:commentId", authenticateToken, updateComment);
 router.delete("/:postId/comments/:commentId", authenticateToken, deleteComment);
 

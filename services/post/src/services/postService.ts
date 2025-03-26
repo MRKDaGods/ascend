@@ -204,11 +204,13 @@ export class PostService {
     content: string,
     parentCommentId?: number
   ): Promise<Comment> {
+    const finalParentCommentId = parentCommentId || null;
+    
     const result = await db.query(
       `INSERT INTO post_service.comments 
        (user_id, post_id, parent_comment_id, content, is_edited, created_at, updated_at)
        VALUES ($1, $2, $3, $4, false, NOW(), NOW()) RETURNING *`,
-      [userId, postId, parentCommentId, content]
+      [userId, postId, finalParentCommentId, content]
     );
     const comment = await this.getCommentById(result.rows[0].id);
     if (!comment) {
@@ -221,13 +223,13 @@ export class PostService {
     const result = await db.query(
       `SELECT c.*, 
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_id', u.profile_picture_id
         ) as user
        FROM post_service.comments c
-       JOIN user_service.users u ON c.user_id = u.id
+       JOIN user_service.profiles u ON c.user_id = u.user_id
        WHERE c.id = $1`,
       [commentId]
     );
@@ -247,13 +249,13 @@ export class PostService {
     const result = await db.query(
       `SELECT c.*, 
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_id', u.profile_picture_id
         ) as user
        FROM post_service.comments c
-       JOIN user_service.users u ON c.user_id = u.id
+       JOIN user_service.profiles u ON c.user_id = u.user_id
        WHERE c.post_id = $1 AND c.parent_comment_id IS NULL
        ORDER BY c.created_at DESC
        LIMIT $2 OFFSET $3`,
@@ -338,13 +340,13 @@ export class PostService {
       `SELECT p.*, 
         'post' as type,
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_url', u.profile_picture_id
         ) as user
        FROM post_service.posts p
-       JOIN user_service.users u ON p.user_id = u.id
+       JOIN user_service.profiles u ON p.user_id = u.user_id
        WHERE p.privacy = 'public'
          OR (p.privacy = 'connections' AND EXISTS (
            SELECT 1 FROM user_service.connections 
@@ -391,13 +393,13 @@ export class PostService {
     const result = await db.query(
       `SELECT c.*, 
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_url', u.profile_picture_id
         ) as user
        FROM post_service.comments c
-       JOIN user_service.users u ON c.user_id = u.id
+       JOIN user_service.profiles u ON c.user_id = u.user_id
        WHERE c.parent_comment_id = $1
        ORDER BY c.created_at ASC`,
       [commentId]
@@ -414,13 +416,13 @@ export class PostService {
     const result = await db.query(
       `SELECT p.*, 
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_url', u.profile_picture_id
         ) as user
        FROM post_service.posts p
-       JOIN user_service.users u ON p.user_id = u.id
+       JOIN user_service.profiles u ON p.user_id = u.user_id
        WHERE p.content ILIKE $1 AND p.privacy = 'public'
        ORDER BY p.created_at DESC
        LIMIT $2 OFFSET $3`,
@@ -469,15 +471,15 @@ export class PostService {
     const result = await db.query(
       `SELECT p.*, 
         json_build_object(
-          'id', u.id,
+          'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_url
+          'profile_picture_url', u.profile_picture_id
         ) as user,
         sp.created_at as saved_at
        FROM post_service.saved_posts sp
        JOIN post_service.posts p ON sp.post_id = p.id
-       JOIN user_service.users u ON p.user_id = u.id
+       JOIN user_service.profiles u ON p.user_id = u.user_id
        WHERE sp.user_id = $1
        ORDER BY sp.created_at DESC
        LIMIT $2 OFFSET $3`,

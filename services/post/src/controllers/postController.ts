@@ -171,13 +171,11 @@ export const likePost = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const createComment = [
-  ...commentValidationRules,
-  validate,
+
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
     const postId = parseInt(req.params.postId);
     const { content, parentCommentId } = req.body;
-
     try {
       const comment = await postService.createComment(
         userId,
