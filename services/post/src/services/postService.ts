@@ -10,6 +10,15 @@ import {
   UserTag,
   SavedPost,
 } from "@shared/models";
+interface TagUserParams {
+  userId: number;
+  startIndex: number;
+  endIndex: number;
+}
+interface TagPosition {
+  startIndex: number;
+  endIndex: number;
+}
 
 export class PostService {
   // Post CRUD operations
@@ -60,50 +69,55 @@ export class PostService {
   }
 
   async updatePost(
-    postId: number, 
-    content: string, 
+    postId: number,
+    content: string,
     privacy?: Post["privacy"]
   ): Promise<Post | null> {
     const updateFields = [];
     const values = [];
     let valueIndex = 1;
-  
+
     // Add content update if provided
     if (content) {
       updateFields.push(`content = $${valueIndex}`);
       values.push(content);
       valueIndex++;
     }
-  
+
     // Add privacy update if provided
     if (privacy) {
       updateFields.push(`privacy = $${valueIndex}`);
       values.push(privacy);
       valueIndex++;
     }
-  
+
     // Always update is_edited and updated_at
-    updateFields.push('is_edited = true');
-    updateFields.push('updated_at = NOW()');
-  
+    updateFields.push("is_edited = true");
+    updateFields.push("updated_at = NOW()");
+
     // Add postId as the last parameter
     values.push(postId);
-     // Debug logging
-     console.log('=== Update Post Debug Info ===');
-     console.log('PostID:', postId);
-     console.log('Update Fields:', updateFields);
-     console.log('Values Array:', values);
-     console.log('Current Value Index:', valueIndex);
-     console.log('Generated SQL:', `UPDATE post_service.posts SET ${updateFields.join(', ')} WHERE id = $${valueIndex}`);
-     console.log('===========================');
-   
+    // Debug logging
+    console.log("=== Update Post Debug Info ===");
+    console.log("PostID:", postId);
+    console.log("Update Fields:", updateFields);
+    console.log("Values Array:", values);
+    console.log("Current Value Index:", valueIndex);
+    console.log(
+      "Generated SQL:",
+      `UPDATE post_service.posts SET ${updateFields.join(
+        ", "
+      )} WHERE id = $${valueIndex}`
+    );
+    console.log("===========================");
+
     const result = await db.query(
       `UPDATE post_service.posts 
-       SET ${updateFields.join(', ')}
+       SET ${updateFields.join(", ")}
        WHERE id = $${valueIndex} RETURNING *`,
       values
     );
-  
+
     return result.rows[0] ? this.getPostById(postId) : null;
   }
 
@@ -116,14 +130,16 @@ export class PostService {
     return result.rowCount > 0;
   }
 
-  public async addMediaToPost(media: Omit<Media, 'id'>): Promise<Media> {
+  public async addMediaToPost(media: Omit<Media, "id">): Promise<Media> {
     if (!media.url || !media.type || !media.post_id) {
-      throw new Error('Required media fields missing: url, type, or post_id');
+      throw new Error("Required media fields missing: url, type, or post_id");
     }
     // Check if post exists before adding media
     const postExists = await this.getPostById(media.post_id);
     if (!postExists) {
-        throw new Error(`Cannot add media: Post with ID ${media.post_id} does not exist`);
+      throw new Error(
+        `Cannot add media: Post with ID ${media.post_id} does not exist`
+      );
     }
 
     const result = await db.query(
@@ -138,12 +154,12 @@ export class PostService {
         media.description,
       ]
     );
-  
+
     if (!result.rows[0]) {
-      throw new Error('Failed to add media to post');
+      throw new Error("Failed to add media to post");
     }
-  
-    console.log('Media added successfully:', result.rows[0]);
+
+    console.log("Media added successfully:", result.rows[0]);
     return result.rows[0];
   }
 
@@ -155,17 +171,20 @@ export class PostService {
     return result.rows;
   }
 
-  async toggleLike(userId: number, postId: number): Promise<{ liked: boolean }> {
+  async toggleLike(
+    userId: number,
+    postId: number
+  ): Promise<{ liked: boolean }> {
     try {
       // Check if post exists first
       const post = await this.getPostById(postId);
       if (!post) {
-        throw new Error('Post not found');
+        throw new Error("Post not found");
       }
-  
+
       // Check if already liked
       const isLiked = await this.isPostLikedByUser(postId, userId);
-  
+
       if (isLiked) {
         // Unlike
         await db.query(
@@ -183,8 +202,8 @@ export class PostService {
         return { liked: true };
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
-      throw new Error('Failed to toggle like');
+      console.error("Error toggling like:", error);
+      throw new Error("Failed to toggle like");
     }
   }
 
@@ -205,7 +224,7 @@ export class PostService {
     parentCommentId?: number
   ): Promise<Comment> {
     const finalParentCommentId = parentCommentId || null;
-    
+
     const result = await db.query(
       `INSERT INTO post_service.comments 
        (user_id, post_id, parent_comment_id, content, is_edited, created_at, updated_at)
@@ -414,22 +433,22 @@ export class PostService {
     offset: number = 0
   ): Promise<Post[]> {
     // Handle empty or undefined query
-    if (!query || typeof query !== 'string') {
-      throw new Error('Search query is required');
+    if (!query || typeof query !== "string") {
+      throw new Error("Search query is required");
     }
-  
+
     // Clean and prepare search terms
     const searchTerms = query
       .toLowerCase()
-      .replace(/[^\w\s]/g, '')
+      .replace(/[^\w\s]/g, "")
       .trim()
       .split(/\s+/)
-      .filter(term => term.length >= 2);
-  
+      .filter((term) => term.length >= 2);
+
     if (searchTerms.length === 0) {
-      throw new Error('Search query must contain valid terms');
+      throw new Error("Search query must contain valid terms");
     }
-  
+
     try {
       const result = await db.query(
         `SELECT DISTINCT p.*,
@@ -442,33 +461,35 @@ export class PostService {
          JOIN user_service.profiles u ON p.user_id = u.user_id
          WHERE (
            to_tsvector('english', p.content) @@ plainto_tsquery('english', $1)
-           OR p.content ILIKE ANY(array[${searchTerms.map((_, i) => `$${i + 4}`).join(', ')}])
+           OR p.content ILIKE ANY(array[${searchTerms
+             .map((_, i) => `$${i + 4}`)
+             .join(", ")}])
          )
          AND p.privacy = 'public'
          ORDER BY rank DESC, p.created_at DESC
          LIMIT $2 OFFSET $3`,
-        [query, limit, offset, ...searchTerms.map(term => `%${term}%`)]
+        [query, limit, offset, ...searchTerms.map((term) => `%${term}%`)]
       );
-  
+
       // Transform results to include user object
-      const posts = result.rows.map(row => ({
+      const posts = result.rows.map((row) => ({
         ...row,
         user: {
           id: row.user_id,
           first_name: row.first_name,
           last_name: row.last_name,
-          profile_picture_url: row.profile_picture_id
-        }
+          profile_picture_url: row.profile_picture_id,
+        },
       }));
-  
+
       // Remove the redundant fields
-      posts.forEach(post => {
+      posts.forEach((post) => {
         delete post.user_id;
         delete post.first_name;
         delete post.last_name;
         delete post.profile_picture_id;
       });
-  
+
       // Enhance posts with additional data
       for (const post of posts) {
         post.media = await this.getPostMedia(post.id);
@@ -476,27 +497,43 @@ export class PostService {
         post.comments_count = await this.getPostCommentsCount(post.id);
         post.shares_count = await this.getPostSharesCount(post.id);
       }
-  
+
       return posts;
     } catch (error) {
-      console.error('Error searching posts:', error);
-      throw new Error('Failed to search posts');
+      console.error("Error searching posts:", error);
+      throw new Error("Failed to search posts");
     }
   }
-  // Engagement 
+  // Engagement
   async getPostEngagement(
     postId: number,
     includeLikes: boolean,
     includeComments: boolean,
     includeShares: boolean
   ): Promise<{
-    likes?: { userId: number; firstName: string; lastName: string; profilePicture: string }[];
-    comments?: { userId: number; firstName: string; lastName: string; profilePicture: string; content: string }[];
-    shares?: { userId: number; firstName: string; lastName: string; profilePicture: string }[];
+    likes?: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      profilePicture: string;
+    }[];
+    comments?: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      profilePicture: string;
+      content: string;
+    }[];
+    shares?: {
+      userId: number;
+      firstName: string;
+      lastName: string;
+      profilePicture: string;
+    }[];
   }> {
     try {
       const result: any = {};
-  
+
       if (includeLikes) {
         const likesQuery = await db.query(
           `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id
@@ -507,7 +544,7 @@ export class PostService {
         );
         result.likes = likesQuery.rows;
       }
-  
+
       if (includeComments) {
         const commentsQuery = await db.query(
           `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id, c.content
@@ -518,7 +555,7 @@ export class PostService {
         );
         result.comments = commentsQuery.rows;
       }
-  
+
       if (includeShares) {
         const sharesQuery = await db.query(
           `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id
@@ -529,25 +566,28 @@ export class PostService {
         );
         result.shares = sharesQuery.rows;
       }
-  
+
       return result;
     } catch (error) {
-      console.error('Error getting post engagement:', error);
-      throw new Error('Failed to get post engagement');
+      console.error("Error getting post engagement:", error);
+      throw new Error("Failed to get post engagement");
     }
   }
 
-  async toggleSavePost(userId: number, postId: number): Promise<{ saved: boolean }> {
+  async toggleSavePost(
+    userId: number,
+    postId: number
+  ): Promise<{ saved: boolean }> {
     try {
       // Check if post exists first
       const post = await this.getPostById(postId);
       if (!post) {
-        throw new Error('Post not found');
+        throw new Error("Post not found");
       }
-  
+
       // Check if already saved
       const isSaved = await this.isPostSavedByUser(postId, userId);
-  
+
       if (isSaved) {
         // Unsave
         await db.query(
@@ -565,8 +605,8 @@ export class PostService {
         return { saved: true };
       }
     } catch (error) {
-      console.error('Error toggling save:', error);
-      throw new Error('Failed to toggle save');
+      console.error("Error toggling save:", error);
+      throw new Error("Failed to toggle save");
     }
   }
 
@@ -602,27 +642,6 @@ export class PostService {
     }
 
     return posts;
-  }
-
-  // Tag users
-  async tagUsers(
-    postId: number,
-    userIds: number[],
-    commentId?: number
-  ): Promise<UserTag[]> {
-    const tags = await Promise.all(
-      userIds.map((userId) =>
-        db.query(
-          `INSERT INTO post_service.user_tags 
-           (user_id, post_id, comment_id, created_at)
-           VALUES ($1, $2, $3, NOW())
-           RETURNING *`,
-          [userId, postId, commentId]
-        )
-      )
-    );
-
-    return tags.map((t) => t.rows[0]);
   }
 
   // Helper method for feed count
@@ -675,8 +694,6 @@ export class PostService {
     return result.rows[0] ? this.getPostById(postId) : null;
   }
 
-
-
   async updateEngagementCounts(postId: number): Promise<void> {
     await db.query(
       `INSERT INTO post_service.post_engagement 
@@ -695,6 +712,132 @@ export class PostService {
       ]
     );
   }
-}
 
+  // Tag users in post or comment
+  async tagUsers(params: {
+    contentType: "post" | "comment";
+    contentId: number;
+    tags: TagUserParams[];
+    taggerUserId: number;
+  }): Promise<UserTag[]> {
+    // Validate all users exist first
+    const userIds = params.tags.map((tag) => tag.userId);
+    const usersExist = await this.verifyUsersExist(userIds);
+    if (!usersExist) {
+      throw new Error("One or more users not found");
+    }
+
+    // Validate content exists
+    const contentExists = await this.verifyContentExists(
+      params.contentType,
+      params.contentId
+    );
+    if (!contentExists) {
+      throw new Error(`${params.contentType} not found`);
+    }
+
+    // Validate tag positions don't overlap
+    await this.validateTagPositions(
+      params.contentType,
+      params.contentId,
+      params.tags
+    );
+
+    // Insert tags
+    const tags = await Promise.all(
+      params.tags.map((tag) =>
+        db.query(
+          `INSERT INTO post_service.user_tags (
+            tagged_user_id,
+            tagger_user_id,
+            ${params.contentType === "post" ? "post_id" : "comment_id"},
+            start_index,
+            end_index,
+            created_at
+          ) VALUES ($1, $2, $3, $4, $5, NOW())
+          RETURNING *`,
+          [
+            tag.userId,
+            params.taggerUserId,
+            params.contentId,
+            tag.startIndex,
+            tag.endIndex,
+          ]
+        )
+      )
+    );
+
+    // THIS WILL NEED TO BE HANDLED BY AMMAR (you can add trigger in database itself or handle it in the service)
+    // Send notifications to tagged users
+
+    return tags.map((t) => t.rows[0]);
+  }
+
+  // Helper Methods
+  private async verifyUsersExist(userIds: number[]): Promise<boolean> {
+    const result = await db.query(
+      `SELECT COUNT(*) = $1 as all_exist
+       FROM user_service.profiles
+       WHERE user_id = ANY($2)`,
+      [userIds.length, userIds]
+    );
+    return result.rows[0].all_exist;
+  }
+
+  private async verifyContentExists(
+    contentType: "post" | "comment",
+    contentId: number
+  ): Promise<boolean> {
+    const table = contentType === "post" ? "posts" : "comments";
+    const result = await db.query(
+      `SELECT EXISTS(SELECT 1 FROM post_service.${table} WHERE id = $1)`,
+      [contentId]
+    );
+    return result.rows[0].exists;
+  }
+
+  private async validateTagPositions(
+    contentType: "post" | "comment",
+    contentId: number,
+    newTags: TagUserParams[]
+  ): Promise<void> {
+    // Get existing tags for this content
+    const existingTags = await db.query(
+      `SELECT start_index, end_index 
+       FROM post_service.user_tags
+       WHERE ${contentType}_id = $1`,
+      [contentId]
+    );
+
+    // Check for overlaps with new tags
+    const allTags = [...existingTags.rows, ...newTags];
+    const hasOverlap = checkForOverlaps(allTags);
+
+    if (hasOverlap) {
+      throw new Error("Tag positions overlap");
+    }
+  }
+}
+function checkForOverlaps(tags: TagPosition[]): boolean {
+  // Sort tags by start index for efficient comparison
+  const sortedTags = [...tags].sort((a, b) => a.startIndex - b.startIndex);
+
+  for (let i = 1; i < sortedTags.length; i++) {
+    const prevTag = sortedTags[i - 1];
+    const currentTag = sortedTags[i];
+
+    // Check if current tag starts before previous tag ends
+    if (currentTag.startIndex < prevTag.endIndex) {
+      return true; // Overlap detected
+    }
+
+    // Additional validation
+    if (currentTag.startIndex > currentTag.endIndex) {
+      throw new Error(
+        `Invalid tag range: start (${currentTag.startIndex}) > end (${currentTag.endIndex})`
+      );
+    }
+  }
+  return false; // No overlap detected
+}
 export default new PostService();

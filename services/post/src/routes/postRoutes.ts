@@ -18,7 +18,7 @@ import {
   getPostComments,
   tagUsers,
   deleteComment,
-  updateComment
+  updateComment,
 } from "../controllers/postController";
 
 const upload = multer({
@@ -56,6 +56,6 @@ router.post("/:postId/share", authenticateToken,upload.none(),  sharePost);
 router.post("/:postId/save", authenticateToken, savePost);
 
 // Tag routes
-// router.post("/:postId/tags", authenticateToken, tagUsers);
+router.post("/tags", authenticateToken, tagUsers);
 
 export default router;
