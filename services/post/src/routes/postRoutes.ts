@@ -50,7 +50,7 @@ router.patch("/:postId/comments/:commentId", authenticateToken, updateComment);
 router.delete("/:postId/comments/:commentId", authenticateToken, deleteComment);
 
 // Share routes
-router.post("/:postId/share", authenticateToken, sharePost);
+router.post("/:postId/share", authenticateToken,upload.none(),  sharePost);
 
 // Save routes
 router.post("/:postId/save", authenticateToken, savePost);
