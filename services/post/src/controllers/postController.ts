@@ -426,3 +426,58 @@ export const tagUsers = async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
+export const getTaggedUsers = async (req: AuthenticatedRequest, res: Response) => {
+  const { contentType, contentId } = req.params;
+
+  // Validate contentType
+  if (!['post', 'comment'].includes(contentType)) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Invalid contentType. Must be 'post' or 'comment'" 
+    });
+  }
+
+  try {
+    const taggedUsers = await postService.getTaggedUsers({
+      contentType: contentType as "post" | "comment",
+      contentId: parseInt(contentId)
+    });
+
+    res.json({ 
+      success: true, 
+      data: taggedUsers 
+    });
+  } catch (error) {
+    console.error("Error getting tagged users:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Server error" 
+    });
+  }
+};
+
+export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
+  const tagId = parseInt(req.params.tagId);
+  const userId = req.user!.id;
+
+  try {
+    const removedTag = await postService.removeTag({
+      tagId,
+      userId
+    });
+
+    res.json({ 
+      success: true, 
+      data: removedTag,
+      message: "Tag removed successfully"
+    });
+  } catch (error) {
+    console.error("Error removing tag:", error);
+    
+
+    res.status(500).json({ 
+      success: false, 
+      error: "Server error" 
+    });
+  }
+};
