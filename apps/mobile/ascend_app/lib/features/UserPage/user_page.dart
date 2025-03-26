@@ -24,7 +24,7 @@ class UserProfilePage extends StatefulWidget {
     this.degree = "1st",
     this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
     this.links = const [
-      {"title": "My Portfolio", "url": "https://example.com"},
+      {"title": "My Portfolio", "url": "https://dartcode.org/docs/settings/"},
       {"title": "GitHub", "url": "https://github.com/MagedWadi"},
       {"title": " ", "url": "https://example.com"}, // This will be ignored
     ],
