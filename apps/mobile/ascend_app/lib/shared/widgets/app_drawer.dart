@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import '../../features/profile/models/user_profile_model.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  final UserProfileModel? userProfile;
+  
+  const AppDrawer({
+    Key? key,
+    this.userProfile,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Use the provided profile or an empty one if null
+    final profile = userProfile ?? UserProfileModel.empty();
+    
     return Drawer(
       child: Column(
         children: [
@@ -21,31 +30,35 @@ class AppDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 30,
-                          backgroundImage: AssetImage('assets/logo.jpg'),
+                          backgroundImage: profile.avatarUrl.isNotEmpty 
+                              ? NetworkImage(profile.avatarUrl) as ImageProvider
+                              : const AssetImage('assets/logo.jpg'),
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'User Name',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          profile.name,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 5),
-                        Text('user postion or bio', style: TextStyle(fontSize: 14)),
-                        SizedBox(height: 5),
-                        Text('location', style: TextStyle(fontSize: 14)),
+                        Text(profile.position, style: const TextStyle(fontSize: 14)),
+                        const SizedBox(height: 5),
+                        Text(profile.location, style: const TextStyle(fontSize: 14)),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const CircleAvatar(
+                            CircleAvatar(
                               radius: 8,
-                              backgroundImage: AssetImage('assets/logo.jpg'),
+                              backgroundImage: profile.companyLogoUrl.isNotEmpty 
+                                  ? NetworkImage(profile.companyLogoUrl) as ImageProvider
+                                  : const AssetImage('assets/logo.jpg'),
                             ),
                             const SizedBox(width: 5),
                             Flexible(
                               child: Text(
-                                'Company Name',
-                                style: TextStyle(fontSize: 14),
+                                profile.companyName,
+                                style: const TextStyle(fontSize: 14),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -60,7 +73,7 @@ class AppDrawer extends StatelessWidget {
                 ListTile(
                   horizontalTitleGap: 5,
                   leading: Text(
-                    '32',
+                    profile.profileViewers.toString(),
                     style: TextStyle(
                       fontSize: 20,
                       color: Theme.of(context).primaryColor,
@@ -75,7 +88,7 @@ class AppDrawer extends StatelessWidget {
                 ListTile(
                   horizontalTitleGap: 5,
                   leading: Text(
-                    '60',
+                    profile.postImpressions.toString(),
                     style: TextStyle(
                       fontSize: 20,
                       color: Theme.of(context).primaryColor,
@@ -111,15 +124,21 @@ class AppDrawer extends StatelessWidget {
           ),
           // Settings at the bottom
           Divider(),
-          ListTile(
-            dense: true,
-            leading: const Icon(Icons.payments_rounded, color: Colors.amber),
-            horizontalTitleGap: 5,
-            title: const Text(
-              'Try premium for EGP0',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          // Only show "Try premium" if the user is not a premium user
+          if (!profile.isPremium)
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.payments_rounded, color: Colors.amber),
+              horizontalTitleGap: 5,
+              title: const Text(
+                'Try premium for EGP0',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Navigate to premium subscription
+              },
             ),
-          ),
           ListTile(
             horizontalTitleGap: 5,
             leading: const Icon(Icons.settings),
