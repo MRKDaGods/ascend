@@ -91,7 +91,7 @@ services:
       dockerfile: services/auth/Dockerfile
     environment:
       # Service
-      - SERVICE_NAME=gateway
+      - SERVICE_NAME=auth
       - ASCEND_ADMIN_FIRST_NAME=${ASCEND_ADMIN_FIRST_NAME}
       - ASCEND_ADMIN_LAST_NAME=${ASCEND_ADMIN_LAST_NAME}
       - ASCEND_ADMIN_EMAIL=${ASCEND_ADMIN_EMAIL}
@@ -131,7 +131,7 @@ services:
       dockerfile: services/user/Dockerfile
     environment:
       # Service
-      - SERVICE_NAME=auth
+      - SERVICE_NAME=user
 
       # Postgres
       - DB_USER=${DB_USER}

@@ -119,6 +119,8 @@ export const setupRPCServer = async (
 ): Promise<void> => {
   checkChannel();
 
+  console.log(`Setting up RPC server for queue: ${queue}`);
+
   await channel!.assertQueue(queue, { durable: false });
   await channel!.prefetch(1);
 
@@ -163,7 +165,7 @@ export const callRPC = async <T>(
   return new Promise((resolve, reject) => {
     // Begin timeout
     const timeout = setTimeout(() => {
-      reject(new Error(`RPC request timed out after ${timeoutMs}ms`));
+      reject(new Error(`RPC request timed out after ${timeoutMs}ms, queue: ${queue}`));
     }, timeoutMs);
 
     channel!.consume(
@@ -175,7 +177,7 @@ export const callRPC = async <T>(
 
           // Parse and respond
           const response: any = JSON.parse(msg.content.toString());
-          if (response.error) {
+          if (response && response.error) {
             reject(new Error(response.error));
           } else {
             resolve(response as T);
