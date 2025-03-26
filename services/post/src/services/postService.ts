@@ -155,14 +155,37 @@ export class PostService {
     return result.rows;
   }
 
-  // Like operations
-  async likePost(userId: number, postId: number): Promise<Like> {
-    const result = await db.query(
-      `INSERT INTO post_service.likes (user_id, post_id, created_at)
-       VALUES ($1, $2, NOW()) RETURNING *`,
-      [userId, postId]
-    );
-    return result.rows[0];
+  async toggleLike(userId: number, postId: number): Promise<{ liked: boolean }> {
+    try {
+      // Check if post exists first
+      const post = await this.getPostById(postId);
+      if (!post) {
+        throw new Error('Post not found');
+      }
+  
+      // Check if already liked
+      const isLiked = await this.isPostLikedByUser(postId, userId);
+  
+      if (isLiked) {
+        // Unlike
+        await db.query(
+          "DELETE FROM post_service.likes WHERE user_id = $1 AND post_id = $2",
+          [userId, postId]
+        );
+        return { liked: false };
+      } else {
+        // Like
+        await db.query(
+          `INSERT INTO post_service.likes (user_id, post_id, created_at)
+           VALUES ($1, $2, NOW())`,
+          [userId, postId]
+        );
+        return { liked: true };
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      throw new Error('Failed to toggle like');
+    }
   }
 
   async unlikePost(userId: number, postId: number): Promise<boolean> {
