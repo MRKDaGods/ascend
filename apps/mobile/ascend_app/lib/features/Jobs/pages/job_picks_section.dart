@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-import 'package:ascend_app/features/Jobs/jobcard.dart';
+import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 
 class JobPicksSection extends StatelessWidget {
@@ -62,6 +62,7 @@ class JobPicksSection extends StatelessWidget {
             return Column(
               children: [
                 jobCard(
+                  context: context,
                   job: job,
                   isDarkMode: isDarkMode,
                   onRemove: onRemove,

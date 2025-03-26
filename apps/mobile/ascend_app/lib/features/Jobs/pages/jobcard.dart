@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 Widget jobCard({
+  required BuildContext context, // Added BuildContext parameter
   required Jobsattributes job,
   required bool isDarkMode,
   required void Function(Jobsattributes) onRemove,
@@ -24,7 +26,7 @@ Widget jobCard({
       child: Container(
         color:
             isDarkMode ? const Color.fromARGB(255, 29, 34, 38) : Colors.white,
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         child: Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: Row(
@@ -33,41 +35,83 @@ Widget jobCard({
               // Company Logo
               ClipRRect(
                 borderRadius: BorderRadius.circular(4.0),
-                child:
-                    job.companyPhoto != null && job.companyPhoto!.isNotEmpty
-                        ? (Uri.tryParse(job.companyPhoto!)?.hasAbsolutePath ??
-                                false
-                            ? Image.network(
-                              job.companyPhoto!,
-                              fit: BoxFit.cover,
-                              width: 50,
-                              height: 50,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
-                                  color: Colors.grey,
-                                );
-                              },
-                            )
-                            : Image.asset(
-                              job.companyPhoto!,
-                              fit: BoxFit.cover,
-                              width: 50,
-                              height: 50,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
-                                  color: Colors.grey,
-                                );
-                              },
-                            ))
-                        : Icon(
-                          Icons.image_not_supported,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
+                child: Container(
+                  color:
+                      job.companyPhoto != null
+                          ? (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.white) // Contrasting background color
+                          : Colors.transparent,
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+
+                    child:
+                        job.companyPhoto != null && job.companyPhoto!.isNotEmpty
+                            ? (Uri.tryParse(
+                                      job.companyPhoto!,
+                                    )?.hasAbsolutePath ??
+                                    false
+                                ? (job.companyPhoto!.endsWith('.svg')
+                                    ? SvgPicture.network(
+                                      job.companyPhoto!,
+                                      //width: 50,
+                                      //height: 50,
+                                      fit:
+                                          BoxFit
+                                              .contain, // Ensure the image fits properly
+                                      placeholderBuilder:
+                                          (context) => Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                    )
+                                    : Image.network(
+                                      job.companyPhoto!,
+                                      headers: {'User-Agent': 'Mozilla/5.0'},
+                                      fit:
+                                          BoxFit
+                                              .cover, // Ensure the image fits properly
+                                      width: 50,
+                                      height: 50,
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) {
+                                        print(
+                                          "Image failed to load: ${job.companyPhoto}",
+                                        );
+                                        return Icon(
+                                          Icons.image_not_supported,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        );
+                                      },
+                                    ))
+                                : Image.asset(
+                                  job.companyPhoto!,
+                                  fit:
+                                      BoxFit
+                                          .cover, // Ensure the image fits properly
+                                  width: 50,
+                                  height: 50,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.image_not_supported,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    );
+                                  },
+                                ))
+                            : Icon(
+                              Icons.image_not_supported,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
 
@@ -136,7 +180,7 @@ Widget jobCard({
                                 height: 16,
                               ),
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
                                   vertical: 2,
                                 ),
@@ -144,7 +188,7 @@ Widget jobCard({
                                   color: Colors.transparent,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(
+                                child: const Text(
                                   "Easy Apply",
                                   style: TextStyle(
                                     color: Colors.grey,

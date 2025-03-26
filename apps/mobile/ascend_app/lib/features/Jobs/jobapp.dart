@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/job_home_page.dart';
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 import 'package:ascend_app/theme.dart';
+import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 
 class JobApp extends StatefulWidget {
   final bool isDarkMode;
@@ -22,9 +23,9 @@ class _JobAppState extends State<JobApp> {
     });
   }
 
-  void tosavedjobs() {
+  void tosearchbar() {
     setState(() {
-      screen = "bookmarked";
+      screen = "searchbar";
     });
   }
 
@@ -35,13 +36,10 @@ class _JobAppState extends State<JobApp> {
 
     Widget? activescreen;
     if (screen == "job-home") {
-      activescreen = JobHomePage(
-        tosavedjobs: tosavedjobs,
-        isDarkMode: isDarkTheme,
-      );
+      activescreen = JobHomePage(isDarkMode: isDarkTheme);
     }
-    if (screen == "bookmarked") {
-      //activescreen = Bookmarked(toalljobs: tojobs);
+    if (screen == "searchbar") {
+      activescreen = JobSearchPage(toalljobs: tojobs);
     }
     return MaterialApp(
       theme: isDarkTheme ? AppTheme.dark : AppTheme.light,
@@ -51,12 +49,15 @@ class _JobAppState extends State<JobApp> {
           length: 2,
           child: CustomScrollView(
             slivers: [
-              CustomSliverAppBar(
-                floating: true,
-                pinned: true,
-                showTabBar: false,
-                jobs: true,
-              ),
+              if (screen == "job-home")
+                CustomSliverAppBar(
+                  floating: true,
+                  pinned: true,
+                  showTabBar: false,
+                  jobs: true,
+                  onJobAction: tosearchbar,
+                ),
+
               SliverFillRemaining(child: activescreen),
             ],
           ),

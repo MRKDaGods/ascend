@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/more_categories_section.dart';
+import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 
 class ExploreScreen extends StatelessWidget {
   final List<String> categories = [
@@ -11,7 +12,14 @@ class ExploreScreen extends StatelessWidget {
     'Sports',
   ];
   final bool isDarkMode;
-  ExploreScreen({super.key, required this.isDarkMode});
+  final List<Jobsattributes> jobs; // Add jobs parameter
+
+  ExploreScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.jobs, // Initialize jobs
+  });
+
   @override
   Widget build(BuildContext context) {
     return Column(

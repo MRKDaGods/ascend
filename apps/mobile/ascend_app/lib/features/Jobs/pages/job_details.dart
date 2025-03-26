@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-import 'package:ascend_app/features/Jobs/easy_apply.dart';
+import 'package:ascend_app/features/Jobs/pages/easy_apply.dart';
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher package
+import 'package:flutter_svg/flutter_svg.dart';
 
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
-
   const JobDetailsPage({Key? key, required this.job}) : super(key: key);
 
   @override
@@ -41,6 +41,10 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    widget.job.viewed = true; // Mark the job as viewed
+    setState(() {
+      widget.job.viewed = true;
+    });
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -52,7 +56,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                     widget.job.companyPhoto != null
                         ? (Theme.of(context).brightness == Brightness.dark
                             ? Colors.white
-                            : Colors.black) // Contrasting background color
+                            : Colors.white) // Contrasting background color
                         : Colors.transparent, // Transparent if no photo
                 padding: const EdgeInsets.all(4.0), // Padding around the image
                 child:
@@ -61,24 +65,43 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                                   widget.job.companyPhoto!,
                                 )?.hasAbsolutePath ??
                                 false
-                            ? Image.network(
-                              widget.job.companyPhoto!,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.image_not_supported,
-                                  size: 40,
-                                  color: Colors.grey,
-                                );
-                              },
-                            )
+                            ? (widget.job.companyPhoto!.endsWith('.svg')
+                                ? SvgPicture.network(
+                                  widget.job.companyPhoto!,
+                                  width: 40,
+                                  height: 40,
+                                  fit:
+                                      BoxFit
+                                          .contain, // Shrink and resize the image
+                                  placeholderBuilder:
+                                      (context) => Icon(
+                                        Icons.image_not_supported,
+                                        size: 40,
+                                        color: Colors.grey,
+                                      ),
+                                )
+                                : Image.network(
+                                  widget.job.companyPhoto!,
+                                  headers: {'User-Agent': 'Mozilla/5.0'},
+                                  fit:
+                                      BoxFit
+                                          .contain, // Shrink and resize the image
+                                  width: 40,
+                                  height: 40,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      Icons.image_not_supported,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    );
+                                  },
+                                ))
                             : Image.asset(
                               widget.job.companyPhoto!,
+                              fit:
+                                  BoxFit.contain, // Shrink and resize the image
                               width: 40,
                               height: 40,
-                              fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Icon(
                                   Icons.image_not_supported,

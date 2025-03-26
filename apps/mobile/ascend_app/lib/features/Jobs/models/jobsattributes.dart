@@ -2,10 +2,12 @@ class Jobsattributes {
   Jobsattributes({
     required this.title,
     required this.company,
-    this.companyPhoto,
     required this.location,
     required this.experienceLevel,
     required this.salary,
+    required this.easyapply,
+
+    this.companyPhoto,
     this.isBookmarked = false,
     this.jobDescription,
     this.applied = false,
@@ -13,20 +15,19 @@ class Jobsattributes {
     this.alumniCount = 0,
     this.timePosted = "1 day ago", // Default time posted
     this.isPromoted = false,
-    required this.easyapply,
     this.viewed = false,
     this.applicationForm,
   });
 
-  final String title;
-  final String company;
-  final String? companyPhoto;
-  final String location;
+  final String title; // Job title
+  final String company; // Company name
+  final String? companyPhoto; // URL for company logo
+  final String location; // Example: "San Francisco, CA"
   final String experienceLevel; // Example: "Entry", "Mid", "Senior"
-  final int salary;
-  bool isBookmarked;
-  final String? jobDescription;
-  bool applied;
+  final int salary; // Salary in USD
+  bool isBookmarked; // Track if user has bookmarked job
+  final String? jobDescription; // Detailed job description
+  bool applied; // Track if user has applied to job
   String applicationStatus; // Track application status (Pending, Viewed, etc.)
   int alumniCount; // Number of alumni working at the company
   String timePosted; // Time since job was posted
