@@ -24,8 +24,30 @@ import { usePostStore, PostType } from "../stores/usePostStore";
 
 interface UserPostProps {
   post: PostType;
-  onDeleteClick?: () => void; // ✅ Optional external delete handler
+  onDeleteClick?: () => void;
 }
+
+// ✅ Convert text with URLs into clickable links
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) =>
+    urlRegex.test(part) ? (
+      <a
+        key={index}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#0a66c2", wordBreak: "break-all" }}
+      >
+        {part}
+      </a>
+    ) : (
+      <React.Fragment key={index}>{part}</React.Fragment>
+    )
+  );
+};
 
 const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
   const theme = useTheme();
@@ -51,7 +73,7 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
 
   const handleEditPost = () => {
     setPostText(post.content);
-    setEditingPost(post); // ✅ sets the editing post
+    setEditingPost(post);
     setOpen(true);
     handleMenuClose();
   };
@@ -75,7 +97,6 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
         transition: "background-color 0.3s ease-in-out",
       }}
     >
-      {/* ✅ Header */}
       <CardHeader
         avatar={<Avatar src={post.profilePic} />}
         title={
@@ -104,9 +125,9 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
                 onClick={() => {
                   handleMenuClose();
                   if (onDeleteClick) {
-                    onDeleteClick(); // ✅ Trigger external delete dialog
+                    onDeleteClick();
                   } else {
-                    setDeleteDialogOpen(true); // ✅ Fallback: show internal dialog
+                    setDeleteDialogOpen(true);
                   }
                 }}
               >
@@ -117,13 +138,11 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
         }
       />
 
-      {/* ✅ Content */}
       <CardContent>
         <Typography variant="body1" sx={{ fontSize: "1.2rem" }}>
-          {post.content}
+          {renderTextWithLinks(post.content)}
         </Typography>
 
-        {/* ✅ Optional Media */}
         {post.image && (
           <CardMedia
             component="img"
@@ -142,15 +161,12 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
         )}
       </CardContent>
 
-      {/* ✅ Reactions */}
       <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
         <Button
           startIcon={<ThumbUp />}
           sx={{
             textTransform: "none",
-            color: likedPosts.includes(post.id)
-              ? "#0a66c2"
-              : theme.palette.text.secondary,
+            color: likedPosts.includes(post.id) ? "#0a66c2" : theme.palette.text.secondary,
             fontWeight: "bold",
           }}
           onClick={() => likePost(post.id)}
@@ -170,7 +186,6 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
         </Button>
       </Stack>
 
-      {/* ✅ Internal Delete Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Are you sure you want to delete this post?</DialogTitle>
         <DialogActions>
