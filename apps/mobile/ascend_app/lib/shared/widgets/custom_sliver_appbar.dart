@@ -14,6 +14,7 @@ class CustomSliverAppBar extends StatefulWidget {
   final bool settings;
   final bool jobs;
   final bool showAppBar;
+  final VoidCallback? onJobAction;
 
   const CustomSliverAppBar({
     super.key,
@@ -24,6 +25,7 @@ class CustomSliverAppBar extends StatefulWidget {
     this.settings = false,
     this.jobs = false,
     this.showAppBar = false,
+    this.onJobAction, // To detetct the job action
   });
 
   @override
@@ -39,20 +41,21 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
       pinned: widget.pinned,
       floating: widget.floating,
       leading: Builder(
-        builder: (context) => GestureDetector(
-          onTap: () {
-            // Use custom animation for opening drawer
-            Scaffold.of(context).openDrawerWithAnimation(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-            );
-          },
-          child: Card(
-            clipBehavior: Clip.hardEdge,
-            shape: const CircleBorder(),
-            child: Image.asset('assets/logo.jpg', fit: BoxFit.contain),
-          ),
-        ),
+        builder:
+            (context) => GestureDetector(
+              onTap: () {
+                // Use custom animation for opening drawer
+                Scaffold.of(context).openDrawerWithAnimation(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+              child: Card(
+                clipBehavior: Clip.hardEdge,
+                shape: const CircleBorder(),
+                child: Image.asset('assets/logo.jpg', fit: BoxFit.contain),
+              ),
+            ),
       ),
       title: BlocProvider(
         create: (context) => SearchBloc(),
@@ -60,6 +63,12 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
           builder: (context, state) {
             return Card.outlined(
               child: TextField(
+                onTap: () {
+                  // Handle the tap event
+                  if (widget.onJobAction != null) {
+                    widget.onJobAction!();
+                  }
+                },
                 onChanged: (value) {
                   context.read<SearchBloc>().add(SearchTextChanged(value));
                 },

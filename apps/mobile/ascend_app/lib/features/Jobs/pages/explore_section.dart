@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/more_categories_section.dart';
+import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 
 class ExploreScreen extends StatelessWidget {
   final List<String> categories = [
@@ -11,74 +12,79 @@ class ExploreScreen extends StatelessWidget {
     'Sports',
   ];
   final bool isDarkMode;
-  ExploreScreen({super.key, required this.isDarkMode});
+  final List<Jobsattributes> jobs; // Add jobs parameter
+
+  ExploreScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.jobs, // Initialize jobs
+  });
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Explore"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => MoreCategoriesScreen(categories: categories),
-                ),
-              );
-            },
-            child: Text("More", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Slider
-          Container(
-            height: 180,
-            child: PageView.builder(
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.all(10),
-                  child: Center(
-                    child: Text(
-                      categories[index],
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                );
-              },
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 5),
+          child: Text(
+            "Explore with job collections",
+            style: TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
             ),
           ),
-          // Explore Section
-          Expanded(
-            child: GridView.builder(
-              padding: EdgeInsets.all(10),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: Center(
-                    child: Text(
-                      categories[index],
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                );
-              },
+        ),
+        Wrap(
+          children: [
+            Row(
+              children: [
+                _tabItem(Icons.flash_on, "Easy Apply", () {
+                  print("Easy Apply clicked");
+                }, isDarkMode),
+                _tabItem(Icons.access_time, "Part Time", () {
+                  print("Part Time clicked");
+                }, isDarkMode),
+                _tabItem(Icons.work_outline, "Remote", () {
+                  print("Remote clicked");
+                }, isDarkMode),
+                _tabItem(Icons.more_horiz, "More", () {
+                  print("More clicked");
+                }, isDarkMode),
+              ],
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
+}
+
+// Function to create a clickable tab item
+Widget _tabItem(
+  IconData icon,
+  String label,
+  VoidCallback onTap,
+  bool isDarkMode,
+) {
+  return Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 24, color: Colors.blue),
+          SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
