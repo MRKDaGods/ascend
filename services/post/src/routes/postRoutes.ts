@@ -36,7 +36,7 @@ router.get("/saved", authenticateToken, getSavedPosts);
 // Post CRUD routes
 router.post("/", authenticateToken, upload.array("media"), createPost);
 router.get("/:postId", authenticateToken, getPostById);
-router.patch("/:postId", authenticateToken, updatePost);
+router.patch("/:postId", authenticateToken,  upload.none(), updatePost);
 router.delete("/:postId", authenticateToken, deletePost);
 
 // Engagement routes
