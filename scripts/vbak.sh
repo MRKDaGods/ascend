@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Ask for confirmation
+echo "This will create backups of all Docker volumes. Continue? (y/N)"
+read -r confirmation
+if [[ "$confirmation" != "y" ]]; then
+    echo "Backup cancelled."
+    exit
+fi
+
 cd ..
 
 # Define volumes to back up
