@@ -369,43 +369,60 @@ export const searchPosts = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-// export const addMediaToPost = [
-//   mediaUploadValidationRules,
-//   validate,
-//   async (req: AuthenticatedRequest, res: Response) => {
-//     const postId = parseInt(req.params.postId);
-//     const { type, title, description } = req.body;
-//     const file = req.file;
-
-//     try {
-//       const media = await postService.addMediaToPost(postId, {
-//         file,
-//         type,
-//         title,
-//         description,
-//         url: req.body.url,
-//       });
-//       res.json({ success: true, data: media });
-//     } catch (error) {
-//       console.error("Error adding media:", error);
-//       res.status(500).json({ success: false, error: "Server error" });
-//     }
-//   }
-// ];
-
-export const tagUsers = [
-  tagUsersValidationRules,
-  validate,
-  async (req: AuthenticatedRequest, res: Response) => {
-    const postId = parseInt(req.params.postId);
-    const { userIds, commentId } = req.body;
-
-    try {
-      const tags = await postService.tagUsers(postId, userIds, commentId);
-      res.json({ success: true, data: tags });
-    } catch (error) {
-      console.error("Error tagging users:", error);
-      res.status(500).json({ success: false, error: "Server error" });
+export const tagUsers = async (req: AuthenticatedRequest, res: Response) => {
+  const { contentType, contentId, tags } = req.body;
+    // Check if user is authenticated
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        error: "User not authenticated"
+      });
     }
-  },
-];
+  // Validate required fields
+  if (!contentType || !contentId || !tags) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Missing required fields: contentType, contentId, or tags" 
+    });
+  }
+
+  // Validate contentType
+  if (!['post', 'comment'].includes(contentType)) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Invalid contentType. Must be 'post' or 'comment'" 
+    });
+  }
+
+  try {
+    // Extract user IDs and positions from tags
+    const tagData = tags.map((tag: any) => ({
+      userId: tag.userId,
+      startIndex: tag.startIndex,
+      endIndex: tag.endIndex
+    }));
+
+    // Call service layer
+    const createdTags = await postService.tagUsers({
+      contentType,
+      contentId: parseInt(contentId),
+      tags: tagData,
+      taggerUserId: req.user.id 
+    });
+
+    res.status(201).json({ 
+      success: true, 
+      data: {
+        contentType,
+        contentId,
+        tags: createdTags
+      }
+    });
+
+  } catch (error) {
+    console.error("Error tagging users:", error);
+    
+
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
