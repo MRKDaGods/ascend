@@ -413,33 +413,76 @@ export class PostService {
     limit: number = 20,
     offset: number = 0
   ): Promise<Post[]> {
-    const result = await db.query(
-      `SELECT p.*, 
-        json_build_object(
-          'id', u.user_id,
-          'first_name', u.first_name,
-          'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_id
-        ) as user
-       FROM post_service.posts p
-       JOIN user_service.profiles u ON p.user_id = u.user_id
-       WHERE p.content ILIKE $1 AND p.privacy = 'public'
-       ORDER BY p.created_at DESC
-       LIMIT $2 OFFSET $3`,
-      [`%${query}%`, limit, offset]
-    );
-
-    const posts = result.rows;
-    for (const post of posts) {
-      post.media = await this.getPostMedia(post.id);
-      post.likes_count = await this.getPostLikesCount(post.id);
-      post.comments_count = await this.getPostCommentsCount(post.id);
-      post.shares_count = await this.getPostSharesCount(post.id);
+    // Handle empty or undefined query
+    if (!query || typeof query !== 'string') {
+      throw new Error('Search query is required');
     }
-
-    return posts;
+  
+    // Clean and prepare search terms
+    const searchTerms = query
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .trim()
+      .split(/\s+/)
+      .filter(term => term.length >= 2);
+  
+    if (searchTerms.length === 0) {
+      throw new Error('Search query must contain valid terms');
+    }
+  
+    try {
+      const result = await db.query(
+        `SELECT DISTINCT p.*,
+          u.user_id,
+          u.first_name,
+          u.last_name,
+          u.profile_picture_id,
+          ts_rank_cd(to_tsvector('english', p.content), plainto_tsquery('english', $1)) as rank
+         FROM post_service.posts p
+         JOIN user_service.profiles u ON p.user_id = u.user_id
+         WHERE (
+           to_tsvector('english', p.content) @@ plainto_tsquery('english', $1)
+           OR p.content ILIKE ANY(array[${searchTerms.map((_, i) => `$${i + 4}`).join(', ')}])
+         )
+         AND p.privacy = 'public'
+         ORDER BY rank DESC, p.created_at DESC
+         LIMIT $2 OFFSET $3`,
+        [query, limit, offset, ...searchTerms.map(term => `%${term}%`)]
+      );
+  
+      // Transform results to include user object
+      const posts = result.rows.map(row => ({
+        ...row,
+        user: {
+          id: row.user_id,
+          first_name: row.first_name,
+          last_name: row.last_name,
+          profile_picture_url: row.profile_picture_id
+        }
+      }));
+  
+      // Remove the redundant fields
+      posts.forEach(post => {
+        delete post.user_id;
+        delete post.first_name;
+        delete post.last_name;
+        delete post.profile_picture_id;
+      });
+  
+      // Enhance posts with additional data
+      for (const post of posts) {
+        post.media = await this.getPostMedia(post.id);
+        post.likes_count = await this.getPostLikesCount(post.id);
+        post.comments_count = await this.getPostCommentsCount(post.id);
+        post.shares_count = await this.getPostSharesCount(post.id);
+      }
+  
+      return posts;
+    } catch (error) {
+      console.error('Error searching posts:', error);
+      throw new Error('Failed to search posts');
+    }
   }
-
   // Engagement 
   async getPostEngagement(
     postId: number,
