@@ -352,10 +352,10 @@ export const getSavedPosts = async (
 };
 
 export const searchPosts = async (req: AuthenticatedRequest, res: Response) => {
-  const query = req.query.q as string;
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 10;
-
+  const query = req.body.q as string;
+  const page = parseInt(req.body.page as string) || 1;
+  const limit = parseInt(req.body.limit as string) || 10;
+  console.log("Query:", query, "Page:", page, "Limit:", limit);
   try {
     const posts = await postService.searchPosts(
       query,
