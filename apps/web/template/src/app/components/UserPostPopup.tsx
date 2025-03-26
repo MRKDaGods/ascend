@@ -1,7 +1,7 @@
 "use client";
 import { Snackbar, Alert, Link, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { usePostStore } from "../store/usePostStore";
+import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
 
 const UserPostPopup = () => {

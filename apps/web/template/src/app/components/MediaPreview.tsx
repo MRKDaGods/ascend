@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, IconButton, Typography, Stack, Button } from "@mui/material";
 import { Edit, PersonAdd, TextFields, FileCopy, Delete, Add } from "@mui/icons-material";
-import { useMediaStore } from "../store/useMediaStore";
+import { useMediaStore } from "../stores/useMediaStore";
 
 const MediaPreview: React.FC = () => {
   const { mediaFiles, mediaPreviews, removeMediaFile } = useMediaStore();

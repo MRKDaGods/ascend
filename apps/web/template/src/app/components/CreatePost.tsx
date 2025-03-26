@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { usePostStore } from "../store/usePostStore";
+import { usePostStore } from "../stores/usePostStore";
 import AddMedia from "./AddMedia";
 import UserPostPopup from "./UserPostPopup";
 import PostDialog from "./PostDialog";

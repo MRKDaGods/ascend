@@ -3,7 +3,7 @@
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ReactNode, useEffect, useState } from "react";
-import { useThemeStore } from "../store/useThemeStore";
+import { useThemeStore } from "../stores/useThemeStore";
 
 const CustomThemeProvider = ({ children }: { children: ReactNode }) => {
   const { theme } = useThemeStore();

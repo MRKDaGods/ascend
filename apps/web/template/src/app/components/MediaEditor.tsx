@@ -3,10 +3,10 @@ import {
   Dialog, DialogTitle, DialogContent, IconButton, Typography, Box, Button
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { useMediaStore } from "../store/useMediaStore";
+import { useMediaStore } from "../stores/useMediaStore";
 import MediaPreview from "./MediaPreview";
 import DiscardDialog from "./DiscardDialog";
-import { usePostStore } from "../store/usePostStore";
+import { usePostStore } from "../stores/usePostStore";
 
 const MediaEditor: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);

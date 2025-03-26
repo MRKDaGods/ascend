@@ -3,7 +3,7 @@ import { Button, Stack, Box } from "@mui/material";
 import { Image, VideoLibrary, Article } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import MediaEditor from "./MediaEditor";
-import { useMediaStore } from "../store/useMediaStore";
+import { useMediaStore } from "../stores/useMediaStore";
 
 const AddMedia: React.FC = () => {
   const theme = useTheme();

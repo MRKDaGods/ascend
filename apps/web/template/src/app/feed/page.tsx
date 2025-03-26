@@ -3,7 +3,7 @@ import React from "react";
 import { Box } from "@mui/material";
 import ConnectionPost from "../components/ConnectionPost";
 import CreatePost from "../components/CreatePost";
-import { usePostStore } from "../store/usePostStore";
+import { usePostStore } from "../stores/usePostStore";
 import Navbar from "../components/Navbar";
 
 const Feed: React.FC = () => {

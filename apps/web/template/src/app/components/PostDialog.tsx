@@ -6,8 +6,8 @@ import {
   IconButton, Stack, TextField, Typography
 } from "@mui/material";
 import { Close, Edit, Delete } from "@mui/icons-material";
-import { usePostStore } from "../store/usePostStore";
-import { useMediaStore } from "../store/useMediaStore";
+import { usePostStore } from "../stores/usePostStore";
+import { useMediaStore } from "../stores/useMediaStore";
 
 const PostDialog: React.FC = () => {
   const {
@@ -24,48 +24,25 @@ const PostDialog: React.FC = () => {
     mediaPreviews, mediaFiles, removeMediaFile, clearAllMedia, openEditor
   } = useMediaStore();
 
-
-    const handlePost = () => {
-      if (!postText.trim()) return;
-
-      let mediaUrl = mediaPreviews[0]; // Assume one file for now
-      const isImage = mediaFiles[0]?.type?.startsWith("image");
-      const isVideo = mediaFiles[0]?.type?.startsWith("video");
-
-      if (mediaUrl) {
-        addPost(postText, mediaUrl, isImage ? "image" : isVideo ? "video" : undefined);
-      } else {
-        addPost(postText);
-      }
-
-      clearAllMedia(); // ✅ Clean up
-      setPopupOpen(true);
-      resetPost(); // Close the post dialog
-    };
-
-
-  // const handlePost = () => {
-  //   if (postText.trim()) {
-  //     const media = mediaPreviews[0];
-  //     const mediaType = mediaFiles[0]?.type.startsWith("video") ? "video" : "image";
-  //     addPost(postText, media, mediaType);
-  //     setPopupOpen(true);
-  //     resetPost();
-  //     clearAllMedia(); // Clean media after post
-  //   }
-  // };
-
   const handleSubmit = () => {
-    if (!postText.trim()) return;
+    if (!postText.trim() && mediaPreviews.length === 0) return;
+  
+    const media = mediaPreviews[0];
+    const type = media?.includes("video") ? "video" : "image";
   
     if (editingPost) {
+      // Edit mode (text only for now)
       editPost(editingPost.id, postText);
     } else {
-      addPost(postText);
+      // Add new post with text + optional media
+      addPost(postText, media, type === "image" ? "image" : "video");
+      setPopupOpen(true);
     }
   
-    resetPost(); // Clears everything
+    resetPost();
+    clearAllMedia();
   };
+  
 
   return (
     <Dialog open fullWidth maxWidth="md" onClose={resetPost}>
@@ -103,11 +80,15 @@ const PostDialog: React.FC = () => {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button variant="contained" onClick={handleSubmit} disabled={!postText.trim() && mediaPreviews.length === 0}>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={!postText.trim() && mediaPreviews.length === 0}
+        >
           {editingPost ? "Save" : "Post"}
         </Button>
+    </DialogActions>
 
-      </DialogActions>
     </Dialog>
   );
 };

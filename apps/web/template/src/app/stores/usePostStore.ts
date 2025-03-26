@@ -25,11 +25,13 @@ interface PostStoreState {
   postText: string;
   popupOpen: boolean;
   lastUserPostId: number | null,
+  isLastPostDeleted: boolean,
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
   setPopupOpen: (open: boolean) => void;
   setLastUserPostId: (id: number) => void;
+  setLastPostDeleted: (deleted: boolean) => void;
 
   resetPost: () => void;
 
@@ -59,12 +61,16 @@ export const usePostStore = create<PostStoreState>()(
       popupOpen: false,
       lastUserPostId: null,
 
+      isLastPostDeleted: false,
+
       setOpen: (open) => set(() => ({ open })),
       setPostText: (text) => set(() => ({ postText: text })),
       setPopupOpen: (open) => set(() => ({ popupOpen: open })),
 
       resetPost: () => set(() => ({ open: false, postText: "" })),
       setLastUserPostId: (id: number) => set({ lastUserPostId: id }),
+
+      setLastPostDeleted: (deleted: boolean) => set({ isLastPostDeleted: deleted }),
 
       posts: [
         {
@@ -104,7 +110,7 @@ export const usePostStore = create<PostStoreState>()(
       addPost: (content: string, media?: string, mediaType?: "image" | "video") =>
         set((state) => {
           const newPost: PostType = {
-            id: Math.floor(Math.random() * 1000000),
+            id: Date.now(),
             profilePic: "/profile.jpg",
             username: "User",
             followers: "You",
@@ -122,9 +128,11 @@ export const usePostStore = create<PostStoreState>()(
             ...state,
             posts: [...state.posts, newPost],
             popupOpen: true,
-            lastUserPostId: newPost.id
+            lastUserPostId: newPost.id,
+            isLastPostDeleted: false, // ✅ Reset deleted flag here!
           };
         }),
+      
 
       // ✅ Delete only user-created posts
       deletePost: (postId: number) =>

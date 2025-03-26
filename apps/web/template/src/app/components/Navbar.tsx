@@ -25,7 +25,7 @@ import {
   DarkMode,
   LightMode,
 } from "@mui/icons-material";
-import { useThemeStore } from "../store/useThemeStore";
+import { useThemeStore } from "../stores/useThemeStore";
 
 // ✅ Custom Styles for Search Bar
 const SearchBar = styled("div")(({ theme }) => ({

@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardMedia,
   IconButton,
   Typography,
   Stack,
@@ -17,43 +16,27 @@ import {
   Dialog,
   DialogActions,
   DialogTitle,
+  CardMedia,
   useTheme,
 } from "@mui/material";
 import { MoreHoriz, ThumbUp, Comment, Delete, Edit } from "@mui/icons-material";
-import { usePostStore, PostType } from "../store/usePostStore";
+import { usePostStore, PostType } from "../stores/usePostStore";
 
-const renderWithLinks = (text: string) => {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+interface UserPostProps {
+  post: PostType;
+  onDeleteClick?: () => void; // ✅ Optional external delete handler
+}
 
-  const parts = text.split(urlRegex);
-
-  return parts.map((part, index) =>
-    urlRegex.test(part) ? (
-      <a
-        key={index}
-        href={part}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ color: "#0a66c2", textDecoration: "underline" }}
-      >
-        {part}
-      </a>
-    ) : (
-      <span key={index}>{part}</span>
-    )
-  );
-};
-
-const UserPost: React.FC<{ post: PostType }> = ({ post }) => {
+const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
   const theme = useTheme();
   const {
     deletePost,
     likePost,
-    commentOnPost,
-    likedPosts,
+    setOpen,
+    setPostText,
     setEditingPost,
+    likedPosts,
   } = usePostStore();
-  
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -62,134 +45,144 @@ const UserPost: React.FC<{ post: PostType }> = ({ post }) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => setAnchorEl(null);
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-  const handleDeleteConfirm = () => {
+  const handleEditPost = () => {
+    setPostText(post.content);
+    setEditingPost(post); // ✅ sets the editing post
+    setOpen(true);
+    handleMenuClose();
+  };
+
+  const handleDelete = () => {
     deletePost(post.id);
     setDeleteDialogOpen(false);
+    handleMenuClose();
   };
 
   return (
-    <Box sx={{ maxWidth: "580px", mx: "auto", mt: 2 }}>
-      <Card
-        sx={{
-          borderRadius: 3,
-          backgroundColor: theme.palette.background.paper,
-          color: theme.palette.text.primary,
-          px: 2,
-          py: 1,
-          transition: "background-color 0.3s ease-in-out",
-        }}
-      >
-        {/* Post Header */}
-        <CardHeader
-          avatar={<Avatar src={post.profilePic} sx={{ width: 44, height: 44 }} />}
-          title={
-            <Typography fontWeight="bold">
-              Ascend Developer{" "}
-              <Typography
-                component="span"
-                sx={{ color: theme.palette.text.secondary, fontSize: "0.875rem", ml: 1 }}
-              >
-                • You
-              </Typography>
-            </Typography>
-          }
-          subheader={
-            <Typography color={theme.palette.text.secondary} fontSize="0.875rem">
-              Now • <span role="img" aria-label="connections">👥</span>
-            </Typography>
-          }
-          action={
-            <>
-              <IconButton onClick={handleMenuOpen}>
-                <MoreHoriz sx={{ color: theme.palette.text.primary }} />
-              </IconButton>
-              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-                <MenuItem
-                  onClick={() => {
-                    setEditingPost(post); // ⬅️ Trigger edit mode
-                    handleMenuClose();    // Close the menu
-                  }}
-                >
-                  <Edit sx={{ mr: 1 }} /> Edit Post
-                </MenuItem>
-                <MenuItem onClick={() => setDeleteDialogOpen(true)}>
-                  <Delete sx={{ color: "red", mr: 1 }} /> Delete Post
-                </MenuItem>
-              </Menu>
-            </>
-          }
-        />
-
-        {/* Post Content */}
-        <CardContent sx={{ pt: 0 }}>
-          <Typography variant="body1" fontSize="1rem" sx={{ color: theme.palette.text.primary }}>
-            {renderWithLinks(post.content)}
+    <Card
+      sx={{
+        mt: 2,
+        borderRadius: 3,
+        backgroundColor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
+        p: 2,
+        maxWidth: "700px",
+        mx: "auto",
+        transition: "background-color 0.3s ease-in-out",
+      }}
+    >
+      {/* ✅ Header */}
+      <CardHeader
+        avatar={<Avatar src={post.profilePic} />}
+        title={
+          <Typography fontWeight="bold">
+            Ascend Developer •{" "}
+            <span style={{ color: theme.palette.text.secondary, fontSize: "0.9rem" }}>
+              You
+            </span>
           </Typography>
-        </CardContent>
+        }
+        subheader={
+          <Typography color={theme.palette.text.secondary} fontSize="0.9rem">
+            {post.timestamp}
+          </Typography>
+        }
+        action={
+          <>
+            <IconButton onClick={handleMenuOpen}>
+              <MoreHoriz sx={{ color: theme.palette.text.primary }} />
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <MenuItem onClick={handleEditPost}>
+                <Edit sx={{ mr: 1 }} /> Edit Post
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  if (onDeleteClick) {
+                    onDeleteClick(); // ✅ Trigger external delete dialog
+                  } else {
+                    setDeleteDialogOpen(true); // ✅ Fallback: show internal dialog
+                  }
+                }}
+              >
+                <Delete sx={{ color: "red", mr: 1 }} /> Delete Post
+              </MenuItem>
+            </Menu>
+          </>
+        }
+      />
 
-        {/* ✅ Post Media (if available) */}
+      {/* ✅ Content */}
+      <CardContent>
+        <Typography variant="body1" sx={{ fontSize: "1.2rem" }}>
+          {post.content}
+        </Typography>
+
+        {/* ✅ Optional Media */}
         {post.image && (
           <CardMedia
             component="img"
             image={post.image}
-            alt="Uploaded Post Image"
-            sx={{ maxHeight: 500, objectFit: "cover", borderRadius: 2, mx: 2 }}
+            alt="Post Image"
+            sx={{ borderRadius: 2, mt: 2, maxHeight: 400 }}
           />
         )}
         {post.video && (
           <CardMedia
             component="video"
-            src={post.video}
             controls
-            sx={{ maxHeight: 500, borderRadius: 2, mx: 2 }}
+            src={post.video}
+            sx={{ borderRadius: 2, mt: 2, maxHeight: 400 }}
           />
         )}
+      </CardContent>
 
+      {/* ✅ Reactions */}
+      <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
+        <Button
+          startIcon={<ThumbUp />}
+          sx={{
+            textTransform: "none",
+            color: likedPosts.includes(post.id)
+              ? "#0a66c2"
+              : theme.palette.text.secondary,
+            fontWeight: "bold",
+          }}
+          onClick={() => likePost(post.id)}
+        >
+          Like
+        </Button>
+        <Button
+          startIcon={<Comment />}
+          sx={{
+            textTransform: "none",
+            color: theme.palette.text.secondary,
+            fontWeight: "bold",
+          }}
+          onClick={() => console.log("Comment Clicked")}
+        >
+          Comment
+        </Button>
+      </Stack>
 
-        {/* Like & Comment Buttons */}
-        <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
-          <Button
-            startIcon={<ThumbUp />}
-            sx={{
-              textTransform: "none",
-              color: likedPosts.includes(post.id) ? "#0a66c2" : theme.palette.text.secondary,
-              fontWeight: "bold",
-            }}
-            onClick={() => likePost(post.id)}
-          >
-            Like
-          </Button>
-          <Button
-            startIcon={<Comment />}
-            sx={{
-              textTransform: "none",
-              color: theme.palette.text.secondary,
-              fontWeight: "bold",
-            }}
-            onClick={() => console.log("Comment Clicked")}
-          >
-            Comment
-          </Button>
-        </Stack>
-      </Card>
-
-      {/* Delete Confirmation Dialog */}
+      {/* ✅ Internal Delete Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle sx={{ color: theme.palette.text.primary }}>
-          Are you sure you want to delete this post?
-        </DialogTitle>
+        <DialogTitle>Are you sure you want to delete this post?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)} sx={{ color: theme.palette.text.secondary }}>
             Cancel
           </Button>
-          <Button onClick={handleDeleteConfirm} color="error">
+          <Button onClick={handleDelete} color="error">
             Delete
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Card>
   );
 };
 

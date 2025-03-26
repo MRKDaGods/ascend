@@ -1,7 +1,7 @@
 // components/Feed.tsx
 import ConnectionPost from "./ConnectionPost";
 import CreatePost from "./CreatePost";
-import { usePostStore } from "../store/usePostStore";
+import { usePostStore } from "../stores/usePostStore";
 
 const Feed: React.FC = () => {
   const { posts } = usePostStore();
