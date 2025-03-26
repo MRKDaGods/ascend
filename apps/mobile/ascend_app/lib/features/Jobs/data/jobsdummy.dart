@@ -46,7 +46,8 @@ final List<Jobsattributes> jobs = [
     title: 'UX Designer',
     company: 'Amazon',
     location: 'Alexandria',
-    companyPhoto: "assets/amazon.png",
+    companyPhoto:
+        "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
     experienceLevel: 'Entry',
     salary: 70,
     easyapply: true,
@@ -102,7 +103,7 @@ final List<Jobsattributes> jobs = [
     company: 'Ubisoft',
     location: 'Montreal, Canada',
     companyPhoto:
-        "https://upload.wikimedia.org/wikipedia/commons/5/58/Ubisoft_logo.svg",
+        "https://upload.wikimedia.org/wikipedia/commons/7/78/Ubisoft_logo.svg",
     experienceLevel: 'Mid',
     salary: 130,
     easyapply: false,
@@ -113,7 +114,7 @@ final List<Jobsattributes> jobs = [
     company: 'Intel',
     location: 'Dubai, UAE',
     companyPhoto:
-        "https://upload.wikimedia.org/wikipedia/commons/c/c9/Intel-logo.svg",
+        "https://upload.wikimedia.org/wikipedia/commons/7/7d/Intel_logo_%282006-2020%29.svg",
     experienceLevel: 'Senior',
     salary: 250,
     easyapply: false,
@@ -134,7 +135,7 @@ final List<Jobsattributes> jobs = [
     company: 'Cisco',
     location: 'London, UK',
     companyPhoto:
-        "https://upload.wikimedia.org/wikipedia/commons/3/3b/Cisco_logo.svg",
+        "https://upload.wikimedia.org/wikipedia/commons/0/08/Cisco_logo_blue_2016.svg",
     experienceLevel: 'Entry',
     salary: 80,
     easyapply: true,
