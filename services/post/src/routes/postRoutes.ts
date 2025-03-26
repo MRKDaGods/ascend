@@ -33,7 +33,7 @@ router.get("/feed", authenticateToken, getFeed);
 router.get("/search", authenticateToken, searchPosts);
 router.get("/saved", authenticateToken, getSavedPosts);
 
-// Post CRUD routes
+// Post CRUD routes DONE
 router.post("/", authenticateToken, upload.array("media"), createPost);
 router.get("/:postId", authenticateToken, getPostById);
 router.patch("/:postId", authenticateToken,  upload.none(), updatePost);

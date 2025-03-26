@@ -160,7 +160,7 @@ export const likePost = async (req: AuthenticatedRequest, res: Response) => {
   const postId = parseInt(req.params.postId);
 
   try {
-    const result = await postService.likePost(userId, postId);
+    const result = await postService.toggleLike(userId, postId);
     res.json({
       success: true,
     });
