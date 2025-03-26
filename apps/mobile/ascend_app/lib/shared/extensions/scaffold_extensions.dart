@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 extension ScaffoldStateExtension on ScaffoldState {
   void openDrawerWithAnimation({
     Duration duration = const Duration(milliseconds: 250),
-    Curve curve = Curves.easeInOut,
+    Curve curve = Curves.decelerate,
   }) {
     if (!isDrawerOpen && widget.drawer != null) {
       openDrawer();
