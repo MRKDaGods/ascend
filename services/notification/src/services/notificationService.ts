@@ -139,6 +139,8 @@ export const markNotificationAsRead = async (
 export const sendWelcomeNotification = async (
   userId: number
 ): Promise<void> => {
+  console.log(`Sending welcome notification to user ${userId}`);
+
   // Get admin user ID
   const adminRpcQueue = getRPCQueueName(
     Services.AUTH,
