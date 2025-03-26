@@ -817,7 +817,27 @@ export class PostService {
       throw new Error("Tag positions overlap");
     }
   }
+  async getTaggedUsers(params: { contentType: "post" | "comment"; contentId: number }) {
+    const result = await db.query(
+      `SELECT ut.tagged_user_id, p.first_name, ut.start_index, ut.end_index
+       FROM post_service.user_tags ut
+       JOIN user_service.profiles p ON ut.tagged_user_id = p.user_id
+       WHERE ut.${params.contentType}_id = $1`,
+      [params.contentId]
+    );
+    return result.rows;
+  }
+  async removeTag(params: { tagId: number; userId: number }) {
+    const result = await db.query(
+      `DELETE FROM post_service.user_tags WHERE id = $1 AND tagger_user_id = $2 RETURNING *`,
+      [params.tagId, params.userId]
+    );
+    if (result.rowCount === 0) throw new Error("Tag not found or unauthorized");
+    return result.rows[0];
+  }
+  
 }
+
 function checkForOverlaps(tags: TagPosition[]): boolean {
   // Sort tags by start index for efficient comparison
   const sortedTags = [...tags].sort((a, b) => a.startIndex - b.startIndex);

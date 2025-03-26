@@ -19,6 +19,8 @@ import {
   tagUsers,
   deleteComment,
   updateComment,
+  removeTag,
+  getTaggedUsers,
 } from "../controllers/postController";
 
 const upload = multer({
@@ -57,5 +59,6 @@ router.post("/:postId/save", authenticateToken, savePost);
 
 // Tag routes
 router.post("/tags", authenticateToken, tagUsers);
-
+router.get('/:contentType/:contentId/tags', authenticateToken, getTaggedUsers);
+router.delete('/tags/:tagId', authenticateToken, removeTag);
 export default router;
