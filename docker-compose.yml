@@ -66,6 +66,9 @@ services:
       context: .
       dockerfile: services/gateway/Dockerfile
     environment:
+      # Service
+      - SERVICE_NAME=gateway
+
       # JWT
       - JWT_SECRET=${JWT_SECRET}
 
@@ -77,6 +80,7 @@ services:
       - auth
       - user
       - file
+      - notification
     networks:
       - ascend-network
 
@@ -86,6 +90,13 @@ services:
       context: .
       dockerfile: services/auth/Dockerfile
     environment:
+      # Service
+      - SERVICE_NAME=gateway
+      - ASCEND_ADMIN_FIRST_NAME=${ASCEND_ADMIN_FIRST_NAME}
+      - ASCEND_ADMIN_LAST_NAME=${ASCEND_ADMIN_LAST_NAME}
+      - ASCEND_ADMIN_EMAIL=${ASCEND_ADMIN_EMAIL}
+      - ASCEND_ADMIN_PASSWORD=${ASCEND_ADMIN_PASSWORD}
+
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
@@ -119,6 +130,9 @@ services:
       context: .
       dockerfile: services/user/Dockerfile
     environment:
+      # Service
+      - SERVICE_NAME=auth
+
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
@@ -148,6 +162,9 @@ services:
       context: .
       dockerfile: services/file/Dockerfile
     environment:
+      # Service
+      - SERVICE_NAME=file
+
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
@@ -186,6 +203,9 @@ services:
       context: .
       dockerfile: services/notification/Dockerfile
     environment:
+      # Service
+      - SERVICE_NAME=notification
+
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
