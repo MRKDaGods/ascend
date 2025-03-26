@@ -295,9 +295,15 @@ export const getPostEngagement = async (
   res: Response
 ) => {
   const postId = parseInt(req.params.postId);
+  const { likes = false, comments = false, shares = false } = req.query;
 
   try {
-    const engagement = await postService.getPostEngagement(postId);
+    const engagement = await postService.getPostEngagement(
+      postId,
+      Boolean(likes === 'true'),
+      Boolean(comments === 'true'),
+      Boolean(shares === 'true')
+    );
     res.json({ success: true, data: engagement });
   } catch (error) {
     console.error("Error fetching engagement:", error);
@@ -310,12 +316,12 @@ export const savePost = async (req: AuthenticatedRequest, res: Response) => {
   const postId = parseInt(req.params.postId);
 
   try {
-    const result = await postService.savePost(userId, postId);
+    const result = await postService.toggleSavePost(userId, postId);
     res.json({
       success: true,
       data: {
         saved: true,
-        message: "Post saved successfully",
+        message: "Post saved/UnSaved successfully",
       },
     });
   } catch (error) {

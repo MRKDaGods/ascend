@@ -440,27 +440,91 @@ export class PostService {
     return posts;
   }
 
-  // Engagement metrics
-  async getPostEngagement(postId: number): Promise<PostEngagement> {
-    return {
-      post_id: postId,
-      likes_count: await this.getPostLikesCount(postId),
-      comments_count: await this.getPostCommentsCount(postId),
-      shares_count: await this.getPostSharesCount(postId),
-      last_updated: new Date(),
-    };
+  // Engagement 
+  async getPostEngagement(
+    postId: number,
+    includeLikes: boolean,
+    includeComments: boolean,
+    includeShares: boolean
+  ): Promise<{
+    likes?: { userId: number; firstName: string; lastName: string; profilePicture: string }[];
+    comments?: { userId: number; firstName: string; lastName: string; profilePicture: string; content: string }[];
+    shares?: { userId: number; firstName: string; lastName: string; profilePicture: string }[];
+  }> {
+    try {
+      const result: any = {};
+  
+      if (includeLikes) {
+        const likesQuery = await db.query(
+          `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id
+           FROM post_service.likes l
+           JOIN user_service.profiles u ON l.user_id = u.user_id
+           WHERE l.post_id = $1`,
+          [postId]
+        );
+        result.likes = likesQuery.rows;
+      }
+  
+      if (includeComments) {
+        const commentsQuery = await db.query(
+          `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id, c.content
+           FROM post_service.comments c
+           JOIN user_service.profiles u ON c.user_id = u.user_id
+           WHERE c.post_id = $1`,
+          [postId]
+        );
+        result.comments = commentsQuery.rows;
+      }
+  
+      if (includeShares) {
+        const sharesQuery = await db.query(
+          `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id
+           FROM post_service.shares s
+           JOIN user_service.profiles u ON s.user_id = u.user_id
+           WHERE s.post_id = $1`,
+          [postId]
+        );
+        result.shares = sharesQuery.rows;
+      }
+  
+      return result;
+    } catch (error) {
+      console.error('Error getting post engagement:', error);
+      throw new Error('Failed to get post engagement');
+    }
   }
 
-  // Save/Unsave operations
-  async savePost(userId: number, postId: number): Promise<SavedPost> {
-    const result = await db.query(
-      `INSERT INTO post_service.saved_posts (user_id, post_id, created_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (user_id, post_id) DO NOTHING
-       RETURNING *`,
-      [userId, postId]
-    );
-    return result.rows[0];
+  async toggleSavePost(userId: number, postId: number): Promise<{ saved: boolean }> {
+    try {
+      // Check if post exists first
+      const post = await this.getPostById(postId);
+      if (!post) {
+        throw new Error('Post not found');
+      }
+  
+      // Check if already saved
+      const isSaved = await this.isPostSavedByUser(postId, userId);
+  
+      if (isSaved) {
+        // Unsave
+        await db.query(
+          "DELETE FROM post_service.saved_posts WHERE user_id = $1 AND post_id = $2",
+          [userId, postId]
+        );
+        return { saved: false };
+      } else {
+        // Save
+        await db.query(
+          `INSERT INTO post_service.saved_posts (user_id, post_id, created_at)
+           VALUES ($1, $2, NOW())`,
+          [userId, postId]
+        );
+        return { saved: true };
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+      throw new Error('Failed to toggle save');
+    }
   }
 
   async getSavedPosts(
@@ -568,15 +632,7 @@ export class PostService {
     return result.rows[0] ? this.getPostById(postId) : null;
   }
 
-  async getPostWithEngagement(postId: number): Promise<Post & PostEngagement> {
-    const post = await this.getPostById(postId);
-    const engagement = await this.getPostEngagement(postId);
 
-    return {
-      ...post!,
-      ...engagement,
-    };
-  }
 
   async updateEngagementCounts(postId: number): Promise<void> {
     await db.query(
