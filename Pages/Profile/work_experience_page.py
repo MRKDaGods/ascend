@@ -1,6 +1,7 @@
 from appium.webdriver.common.appiumby import AppiumBy as By  # Import AppiumBy
 from Pages.base_page import BasePage  # Import BasePage
 from Pages.Profile.locaters import WorkExperiencePageLocaters  # Import LoginLocators
+import time
 
 class WorkExperiencePage(BasePage):
     """ Page Object for Login Page """
@@ -32,11 +33,19 @@ class WorkExperiencePage(BasePage):
     ADD_LINK_BUTTON = WorkExperiencePageLocaters.ADD_LINK_BUTTON
     ADD_PHOTO_BUTTON = WorkExperiencePageLocaters.ADD_PHOTO_BUTTON
     SAVE_BUTTON = WorkExperiencePageLocaters.SAVE_BUTTON
+    START_MONTH = WorkExperiencePageLocaters.START_MONTH
+    START_YEAR = WorkExperiencePageLocaters.START_YEAR
+    END_MONTH = WorkExperiencePageLocaters.END_MONTH
+    END_YEAR = WorkExperiencePageLocaters.END_YEAR
+    SET_DATE_BUTTON = WorkExperiencePageLocaters.SET_DATE_BUTTON
+    CLOSE_BUTTON = WorkExperiencePageLocaters.CLOSE_BUTTON
+    
   
     
     
     def enter_title(self, title):
         self.click(self.TITLE_TEXT_BOX)
+        time.sleep(1)
         self.send_keys(self.TITLE_TEXT_BOX_AFTER_CLICK, title)
         self.update_entered_title_element(title)
         self.click(self.ENTERED_TITLE_BUTTON)
@@ -59,6 +68,7 @@ class WorkExperiencePage(BasePage):
     
     def enter_company_name(self, company_name):
         self.click(self.COMPANY_NAME_TEXT_BOX)
+        time.sleep(2)
         self.send_keys(self.COMPANY_NAME_TEXT_BOX_AFTER_CLICK, company_name)
         self.update_entered_company_name_element(company_name)
         self.click(self.ENTERED_COMPANY_NAME_BUTTON)
@@ -69,11 +79,11 @@ class WorkExperiencePage(BasePage):
     def check_currently_working(self):
         self.click(self.CURRENTLY_WORKING_CHECKBOX)
     
-    def enter_start_date(self, start_date):
-        self.send_keys(self.START_DATE, start_date)
+    def click_start_date(self):
+        self.click(self.START_DATE)
     
-    def enter_end_date(self, end_date):
-        self.send_keys(self.END_DATE, end_date)
+    def click_end_date(self):
+        self.click(self.END_DATE)
     
     def enter_location(self, location):
         self.click(self.LOCATION_TEXT_BOX)
@@ -114,8 +124,24 @@ class WorkExperiencePage(BasePage):
         self.click(self.ADD_PHOTO_BUTTON)
     
     
+    def click_set_date(self):
+        self.click(self.SET_DATE_BUTTON)
         
+    def click_start_month(self):
+        self.click(self.START_MONTH)
     
+    def click_start_year(self):
+        self.click(self.START_YEAR)
+    
+    def click_end_month(self):
+        self.click(self.END_MONTH)
+    
+    def click_end_year(self):
+        self.click(self.END_YEAR)
+        
+    def click_close(self):
+        self.click(self.CLOSE_BUTTON)
+        
     def get_message(self):
         return self.get_text(self.MESSAGE)
     

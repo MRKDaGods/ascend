@@ -57,8 +57,6 @@ class ProfilePhotoPage(BasePage):
         self.click(self.CLOSE_BUTTON)
     
     
-    
-    
     def get_message(self,message):
         return self.get_text(message)
     

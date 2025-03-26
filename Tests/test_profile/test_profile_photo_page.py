@@ -17,26 +17,7 @@ def setup_test(appium_driver):
     profile_photo_page = ProfilePhotoPage(appium_driver)
     logger.info("Testing profile photo page")
     # if user is logged in, open profile page then edit profile page , else login then open profile page and edit profile page
-    try:
-        if home_page.get_text(home_page.SEARCH_BAR) == "Search":
-            UtilityFunctions.open_profile_page(appium_driver)
-            profile_page.click_edit_profile_image()
-            time.sleep(2)
-    except:
-        try:
-            # if the user in landing page , click sign in with email and proceed to login
-            if landing_page.get_text(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
-                logger.info("User is in landing page")
-                landing_page.click_sign_in_with_email()
-                UtilityFunctions.login(appium_driver)
-                UtilityFunctions.open_profile_page(appium_driver)
-                profile_page.click_edit_profile_image()
-                time.sleep(2)
-        except:
-            #if the user is not in landing page , then the user is in login page , login then open profile page and edit profile page
-            UtilityFunctions.login(appium_driver)
-            UtilityFunctions.open_profile_page(appium_driver)
-            profile_page.click_edit_profile_image()
+    UtilityFunctions.navigation_to_profile_then_click(appium_driver, profile_page.click_edit_profile_image)
 
     return profile_photo_page, profile_page
 

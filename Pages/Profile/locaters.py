@@ -15,6 +15,7 @@ class ProfiePageLocaters:
     SHOW_ALL_ANALYTICS_BUTTON = (By.ID, 'com.linkedin.android:id/profile_action_component_rectangular_full_button')
     ADD_EXPERIENCE_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add experience")')
     ADD_EXPERIENCE_BUTTON_2 = (By.ACCESSIBILITY_ID, 'Add new experience')    
+    ADD_POSTION_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add position")')
     ADD_NEW_EDUCATION_BUTTON= (By.ACCESSIBILITY_ID, 'Add new education')
     ADD_EDUCATION_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Add education")')
     # EDIT EDUCATION IS FOR EACH ELMENT AND THE ID IS SET AUTOMATICALLY 
@@ -23,7 +24,7 @@ class ProfiePageLocaters:
     NAME = (By.ID, 'com.linkedin.android:id/profile_top_card_name_section')
     HEADLINE = (By.ID, 'com.linkedin.android:id/profile_top_card_headline')
     LOCATION = (By.ID, 'com.linkedin.android:id/profile_top_card_location')
-    
+    EXPERIENCE_MESSAGE = (By.ACCESSIBILITY_ID, 'Experience')
 
 class EditProfilePageLocaters:
     FIRST_NAME = (By.XPATH, '//android.widget.EditText[@resource-id="com.linkedin.android:id/form_edit_text_dash" and contains(@text, "Ta")]') # DYNAMIC LOCATER
@@ -108,6 +109,12 @@ class WorkExperiencePageLocaters:
     ADD_LINK_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/bottom_sheet_container").instance(0)')
     ADD_PHOTO_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Upload a photo")')
     SAVE_BUTTON = (By.ID, 'com.linkedin.android:id/profile_edit_form_page_save_button_sticky')
+    START_MONTH = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("April")')
+    START_YEAR = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("2024")')
+    END_MONTH = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("March")')
+    END_YEAR = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("2025")')
+    SET_DATE_BUTTON  = (By.ID, 'android:id/button1')
+    CLOSE_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Dismiss")')
     #LOCATION TITLE COMPANY
     #ADD SKILLS 
     # DATE IS NOT IMPMENTED WAITNG FOR THE DEVELOPERS
