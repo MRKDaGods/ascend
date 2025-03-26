@@ -2,6 +2,7 @@ from appium.webdriver.common.appiumby import AppiumBy as By  # Import AppiumBy
 from Pages.base_page import BasePage  # Import BasePage
 from Pages.Profile.locaters import ProfiePageLocaters  # Import LoginLocators
 from logger import logger
+import time
 
 class ProfiePage(BasePage):
     """ Page Object for Login Page """
@@ -27,6 +28,8 @@ class ProfiePage(BasePage):
     NAME = ProfiePageLocaters.NAME
     HEADLINE = ProfiePageLocaters.HEADLINE
     LOCATION = ProfiePageLocaters.LOCATION
+    ADD_POSTION_BUTTON = ProfiePageLocaters.ADD_POSTION_BUTTON
+    EXPERIENCE_MESSAGE = ProfiePageLocaters.EXPERIENCE_MESSAGE
     
 
     def click_edit_profile(self):
@@ -72,6 +75,8 @@ class ProfiePage(BasePage):
             print(f"Failed to click ADD_EXPERIENCE_BUTTON due to: {e}. Trying ADD_EXPERIENCE_BUTTON_2")
             logger.info("Failed to click ADD_EXPERIENCE_BUTTON due to: {}. Trying ADD_EXPERIENCE_BUTTON_2".format)
             self.click(self.ADD_EXPERIENCE_BUTTON_2)
+            time.sleep(1)
+            self.click(self.ADD_POSTION_BUTTON)
     
     def click_add_new_education(self):
         try:

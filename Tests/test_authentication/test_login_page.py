@@ -17,7 +17,7 @@ def setup_test(appium_driver):
 
     # Ensure user is signed out if already logged in
     try:
-        if home_page.get_text(home_page.WELCOME_MESSAGE) == "Welcome to LinkedIn":
+        if home_page.get_text(home_page.SEARCH_BAR) == "Search":
             UtilityFunctions.signout(appium_driver)
     except:
         pass

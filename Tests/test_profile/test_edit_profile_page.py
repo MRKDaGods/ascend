@@ -16,25 +16,26 @@ def setup_test(appium_driver):
     landing_page = LandingPage(appium_driver)
     logger.info("Testing edit profile page")
     # if user is logged in, open profile page then edit profile page , else login then open profile page and edit profile page
-    try:
-        if home_page.get_text(home_page.SEARCH_BAR) == "Search":
-            UtilityFunctions.open_profile_page(appium_driver)
-            profile_page.click_edit_profile()
-            time.sleep(2)
-    except:
-        try:
-            # if the user in landing page , click sign in with email and proceed to login
-            if landing_page.get_text(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
-                landing_page.click_sign_in_with_email()
-                UtilityFunctions.login(appium_driver)
-                UtilityFunctions.open_profile_page(appium_driver)
-                profile_page.click_edit_profile()
-                time.sleep(2)
-        except:
-            #if the user is not in landing page , then the user is in login page , login then open profile page and edit profile page
-            UtilityFunctions.login(appium_driver)
-            UtilityFunctions.open_profile_page(appium_driver)
-            profile_page.click_edit_profile()
+    UtilityFunctions.navigation_to_profile_then_click(appium_driver, profile_page.click_edit_profile)
+    # try:
+    #     if home_page.get_text(home_page.SEARCH_BAR) == "Search":
+    #         UtilityFunctions.open_profile_page(appium_driver)
+    #         profile_page.click_edit_profile()
+    #         time.sleep(2)
+    # except:
+    #     try:
+    #         # if the user in landing page , click sign in with email and proceed to login
+    #         if landing_page.get_text(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
+    #             landing_page.click_sign_in_with_email()
+    #             UtilityFunctions.login(appium_driver)
+    #             UtilityFunctions.open_profile_page(appium_driver)
+    #             profile_page.click_edit_profile()
+    #             time.sleep(2)
+    #     except:
+    #         #if the user is not in landing page , then the user is in login page , login then open profile page and edit profile page
+    #         UtilityFunctions.login(appium_driver)
+    #         UtilityFunctions.open_profile_page(appium_driver)
+    #         profile_page.click_edit_profile()
 
     return edit_profile_page, profile_page
 
