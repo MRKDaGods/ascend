@@ -46,7 +46,7 @@ def test_valid_login(appium_driver, setup_test):
     time.sleep(5)  # Wait for login process
 
     try:
-        assert "Welcome to LinkedIn" in home_page.get_text(home_page.WELCOME_MESSAGE), "Login failed!"
+        assert "Search" in home_page.get_text(home_page.SEARCH_BAR), "Login failed!"
         logger.info("Valid login test passed")
     except Exception as e:
         logger.error(f" Valid Login test failed: {e}")
@@ -179,8 +179,10 @@ def test_case_senstive_mail(appium_driver, setup_test):
         time.sleep(3)
         
         try:
-            assert "Welcome to LinkedIn" in home_page.get_text(home_page.WELCOME_MESSAGE), "Login failed!"
+            assert "Search" in home_page.get_text(home_page.SEARCH_BAR), "Login failed!"
+            UtilityFunctions.signout(appium_driver)
             logger.info("Case senstive email login test passed")
+
         except Exception as e:
             logger.error(f" Case senstive email login test failed: {e}")
             assert False, "Case senstive email login test failed"
