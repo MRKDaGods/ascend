@@ -88,7 +88,15 @@ export class PostService {
   
     // Add postId as the last parameter
     values.push(postId);
-  
+     // Debug logging
+     console.log('=== Update Post Debug Info ===');
+     console.log('PostID:', postId);
+     console.log('Update Fields:', updateFields);
+     console.log('Values Array:', values);
+     console.log('Current Value Index:', valueIndex);
+     console.log('Generated SQL:', `UPDATE post_service.posts SET ${updateFields.join(', ')} WHERE id = $${valueIndex}`);
+     console.log('===========================');
+   
     const result = await db.query(
       `UPDATE post_service.posts 
        SET ${updateFields.join(', ')}

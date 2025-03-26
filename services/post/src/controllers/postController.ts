@@ -117,9 +117,8 @@ export const updatePost = [
   async (req: AuthenticatedRequest, res: Response) => {
     const postId = parseInt(req.params.postId);
     const { content, privacy } = req.body;
-
     try {
-      const post = await postService.updatePost(postId, content);
+      const post = await postService.updatePost(postId, content,privacy);
       if (!post) {
         return res.status(404).json({
           success: false,
