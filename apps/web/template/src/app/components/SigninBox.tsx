@@ -10,10 +10,10 @@ const SigninBox = () => {
   return (
     <Box textAlign="center" mt={4} sx={{ position: "relative" }}>
       {/* Welcome Text */}
-      <Typography variant="h5" fontWeight="bold" color="text.primary">
+      <Typography variant="h5" fontWeight="bold" color="text.primary" id="welcome-text">
         Welcome Back
       </Typography>
-      <Typography variant="body2" color="text.secondary" mt={1} mb={3}>
+      <Typography variant="body2" color="text.secondary" mt={1} mb={3} id="description-text">
         Don’t miss your next opportunity. Sign in to stay updated on your professional world.
       </Typography>
 
@@ -39,8 +39,8 @@ const SigninBox = () => {
           <Box display="flex" alignItems="center">
             <Avatar src="/user.jpg" sx={{ width: 40, height: 40, mr: 2 }} />
             <Box textAlign="left">
-              <Typography fontWeight="bold">Mehrati Sameh</Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography fontWeight="bold" id="user-name">Mehrati Sameh</Typography>
+              <Typography variant="body2" color="text.secondary" id="user-email">
                 m*****@gmail.com
               </Typography>
             </Box>
@@ -60,6 +60,7 @@ const SigninBox = () => {
           p={2} 
           sx={{ cursor: "pointer", "&:hover": { bgcolor: "grey.100" } }}
           onClick={() => router.push("/signup")}
+          id="sign-in-another-account-button"
         >
           <Avatar sx={{ width: 32, height: 32, bgcolor: "grey.300", mr: 2 }} />
           <Typography variant="body2" color="text.primary">
@@ -77,6 +78,7 @@ const SigninBox = () => {
           fontWeight="bold" 
           sx={{ cursor: "pointer" }}
           onClick={() => router.push("/NewToLinkedin")}
+          id="join-now-link"
         >
           Join now
         </Typography>

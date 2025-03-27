@@ -1,18 +1,22 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Box, Typography } from "@mui/material";
+import { Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-export default function BackButton() {
+const BackButton = () => {
   const router = useRouter();
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer", mb: 2 }} onClick={() => router.back()}>
-      <ArrowBackIcon sx={{ fontSize: 20, color: "black" }} />
-      <Typography sx={{ ml: 1, fontSize: "0.875rem", fontWeight: "bold", color: "black", textTransform: "none" }}>
-        Back
-      </Typography>
-    </Box>
+    <Button
+      id="back-button"
+      startIcon={<ArrowBackIcon data-testid="ArrowBackIcon" />}
+      onClick={() => router.back()}
+      sx={{ textTransform: "none", fontWeight: "bold", mb: 2 }}
+    >
+      Back
+    </Button>
   );
-}
+};
+
+export default BackButton;

@@ -80,7 +80,8 @@ const SignUp = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              aria-label="Email" // Added aria-label
+              aria-label="Email"
+              id="email-input"
               sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
             />
             <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
@@ -94,31 +95,38 @@ const SignUp = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              aria-label="Password" // Added aria-label
+              aria-label="Password"
+              id="password-input"
               sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
               InputProps={{
                 endAdornment: (
-                  <Button onClick={() => setShowPassword(!showPassword)} size="medium" sx={{ fontWeight: "bold", textTransform: "none" }}>
+                  <Button
+                    onClick={() => setShowPassword(!showPassword)}
+                    size="medium"
+                    id="toggle-password-visibility"
+                    sx={{ fontWeight: "bold", textTransform: "none" }}
+                  >
                     {showPassword ? "Hide" : "Show"}
                   </Button>
                 ),
               }}
             />
             <FormControlLabel
-              control={<Checkbox defaultChecked />}
+              control={<Checkbox defaultChecked id="keep-logged-in-checkbox" />}
               label="Keep me logged in"
               sx={{ mt: 1 }}
             />
             <Typography variant="caption" display="block" align="center" sx={{ mt: 1, mb: 2 }}>
               By clicking Agree & Join or Continue, you agree to the LinkedIn
-              <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500 }}> User Agreement</Link>,
-              <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500 }}> Privacy Policy</Link>, and
-              <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500 }}> Cookie Policy</Link>.
+              <Link href="#" id="user-agreement-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> User Agreement</Link>,
+              <Link href="#" id="privacy-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Privacy Policy</Link>, and
+              <Link href="#" id="cookie-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Cookie Policy</Link>.
             </Typography>
             <Button
               type="submit"
               fullWidth
               variant="contained"
+              id="agree-and-join-button"
               sx={{ backgroundColor: "#0a66c2", color: "white", borderRadius: 8, py: 1.5, fontSize: "1rem", fontWeight: 600, textTransform: "none" }}
             >
               Agree & Join
@@ -132,6 +140,7 @@ const SignUp = () => {
           <Button
             fullWidth
             variant="outlined"
+            id="continue-with-google-button"
             sx={{
               mb: 1,
               borderRadius: 5,
@@ -150,6 +159,7 @@ const SignUp = () => {
           <Button
             fullWidth
             variant="outlined"
+            id="continue-with-microsoft-button"
             sx={{
               mb: 1,
               borderRadius: 5,
@@ -167,13 +177,13 @@ const SignUp = () => {
           </Button>
           <Typography align="center" sx={{ mt: 1 }}>
             Already on LinkedIn?
-            <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Sign in</Link>
+            <Link href="#" id="sign-in-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Sign in</Link>
           </Typography>
         </Paper>
       </Container>
       <Typography align="center" sx={{ mt: 2 }}>
         Looking to create a page for a business?
-        <Link href="#" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Get help</Link>
+        <Link href="#" id="get-help-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Get help</Link>
       </Typography>
 
       <Footer />

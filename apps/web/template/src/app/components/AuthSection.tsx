@@ -20,12 +20,12 @@ const AuthSection = () => {
       <AuthButtons />
       <Typography variant="body2" color="text.secondary" mt={2} sx={{ textAlign: "center", position: "relative", maxWidth: 400 }}>
         By clicking Continue to join or sign in, you agree to LinkedIn's
-        <Link href="#" sx={{ ml: 0.5 }}> User Agreement</Link>,
-        <Link href="#" sx={{ ml: 0.5 }}> Privacy Policy</Link>, and
-        <Link href="#" sx={{ ml: 0.5 }}> Cookie Policy</Link>.
+        <Link href="#" id="user-agreement-link" sx={{ ml: 0.5 }}> User Agreement</Link>,
+        <Link href="#" id="privacy-policy-link" sx={{ ml: 0.5 }}> Privacy Policy</Link>, and
+        <Link href="#" id="cookie-policy-link" sx={{ ml: 0.5 }}> Cookie Policy</Link>.
       </Typography>
       <Typography mt={2} sx={{ textAlign: "center", position: "relative", maxWidth: 400 }}>
-        New to LinkedIn? <Link href="#" onClick={() => router.push("/NewToLinkedin")}>Join now</Link>
+        New to LinkedIn? <Link href="#" id="join-now-link" onClick={() => router.push("/NewToLinkedin")}>Join now</Link>
       </Typography>
     </Box>
   );

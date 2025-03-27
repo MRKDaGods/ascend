@@ -13,10 +13,10 @@ export default function AccountManagement() {
         Account management
       </Typography>
       <List>
-        <ListItemButton>
+        <ListItemButton id="hibernate-account-button">
           <ListItemText primary="Hibernate account" />
         </ListItemButton>
-        <ListItemButton onClick={() => router.push("/CloseAccount")}>
+        <ListItemButton id="close-account-button" onClick={() => router.push("/CloseAccount")}>
           <ListItemText primary="Close account" />
         </ListItemButton>
       </List>

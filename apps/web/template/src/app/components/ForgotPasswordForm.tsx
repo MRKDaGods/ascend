@@ -14,7 +14,7 @@ const ForgotPasswordForm = () => {
         mt: -7,
       }}
     >
-      <Typography variant="h5" fontWeight="bold" mb={2}>
+      <Typography variant="h5" fontWeight="bold" mb={2} id="form-title">
         Forgot password
       </Typography>
       <TextField
@@ -22,10 +22,11 @@ const ForgotPasswordForm = () => {
         variant="outlined"
         label="Email or Phone"
         margin="normal"
+        id="email-or-phone-input"
       />
         
         <Typography variant="body2" color="black" mb={2}
-         sx={{mt: 1,}} >
+         sx={{mt: 1,}} id="verification-message">
         We’ll send a verification code to this email or phone number if it matches an existing LinkedIn account.
       </Typography>
       <Button
@@ -40,6 +41,7 @@ const ForgotPasswordForm = () => {
           mt: 1,
           textTransform: "none",
         }}
+        id="next-button"
       >
         Next
       </Button>
@@ -52,6 +54,7 @@ const ForgotPasswordForm = () => {
           fontWeight: "bold",
           textTransform: "none",
         }}
+        id="back-button"
       >
         Back
       </Button>

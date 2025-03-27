@@ -21,10 +21,8 @@ export default function CloseAccountPassword() {
           borderRadius: "8px",
         }}
       >
-        {/* Back Button */}
         <BackButton />
 
-        {/* Close Account Content */}
         <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
           Close account
         </Typography>
@@ -32,12 +30,11 @@ export default function CloseAccountPassword() {
           Enter your password to close this account
         </Typography>
 
-        {/* Password Field */}
         <TextField
           id="password-input"
           label="Password"
           InputLabelProps={{
-            style: { display: "none" }, // Visually hide the label
+            style: { display: "none" },
           }}
           fullWidth
           type="password"
@@ -49,15 +46,14 @@ export default function CloseAccountPassword() {
           }}
         />
 
-        {/* Unsubscribe Checkbox */}
         <FormControlLabel
-          control={<Checkbox checked={unsubscribe} onChange={(e) => setUnsubscribe(e.target.checked)} />}
+          control={<Checkbox id="unsubscribe-checkbox" checked={unsubscribe} onChange={(e) => setUnsubscribe(e.target.checked)} />}
           label="Unsubscribe me from LinkedIn email communications, including invitations."
         />
 
-        {/* Done Button - Disabled if no password entered */}
         <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
           <Button
+            id="done-button"
             variant="contained"
             color="primary"
             disabled={!password}

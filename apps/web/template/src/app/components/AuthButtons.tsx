@@ -10,6 +10,7 @@ const AuthButtons = () => {
   return (
     <Stack spacing={2} mt={3} width="100%" sx={{ maxWidth: 400 }}>
       <Button
+        id="sign-in-with-google-button"
         fullWidth
         variant="outlined"
         onClick={() => router.push("/continueAsMehrati")} // ✅ Added navigation
@@ -25,6 +26,7 @@ const AuthButtons = () => {
       </Button>
 
       <Button
+        id="sign-in-with-microsoft-button"
         fullWidth
         variant="outlined"
         onClick={() => router.push("/continueWithMicrosoft")} // ✅ Added navigation
@@ -40,6 +42,7 @@ const AuthButtons = () => {
       </Button>
 
       <Button
+        id="sign-in-with-email-button"
         fullWidth
         variant="outlined"
         onClick={() => router.push("/signInWithEmail")}

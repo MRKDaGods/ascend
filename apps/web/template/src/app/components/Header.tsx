@@ -20,18 +20,20 @@ const Header = () => {
           py: { xs: 1, md: 0 },
         }}
       >
-        <Typography variant="h5" color="primary" fontWeight="bold">
+        <Typography variant="h5" color="primary" fontWeight="bold" id="linkedin-logo">
           Linked<span style={{ backgroundColor: "#0077b5", color: "white", padding: "0.01em 0.2em", borderRadius: 4 }}>in</span>
         </Typography>
 
         <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
           <Button
+            id="join-now-button"
             onClick={() => router.push("/signInWithEmail")}
             sx={{ color: "black", textTransform: "none", fontSize: { xs: "0.875rem", md: "1rem" } }}
           >
             Join now
           </Button>
           <Button
+            id="sign-in-button"
             onClick={() => router.push("/signup")}
             variant="outlined"
             sx={{
