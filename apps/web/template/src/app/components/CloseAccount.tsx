@@ -35,6 +35,7 @@ export default function CloseAccount({ username }: { username: string }) {
 
         {/* Continue Button (Smaller, Rounded, Aligned Left) */}
         <Button
+          id="continue-button"
           variant="contained"
           color="primary"
           sx={{

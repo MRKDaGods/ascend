@@ -30,15 +30,15 @@ const Footer = () => {
       </Typography>
       
       <Box display="flex" gap={1.5} flexWrap="wrap">
-        <Link href="#" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>User Agreement</Link>
-        <Link href="#" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Privacy Policy</Link>
-        <Link href="#" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Community Guidelines</Link>
-        <Link href="#" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Cookie Policy</Link>
-        <Link href="#" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Copyright Policy</Link>
-        <Link href="#" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Send Feedback</Link>
+        <Link href="#" id="user-agreement-link" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>User Agreement</Link>
+        <Link href="#" id="privacy-policy-link" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Privacy Policy</Link>
+        <Link href="#" id="community-guidelines-link" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Community Guidelines</Link>
+        <Link href="#" id="cookie-policy-link" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Cookie Policy</Link>
+        <Link href="#" id="copyright-policy-link" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Copyright Policy</Link>
+        <Link href="#" id="send-feedback-link" underline="hover" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>Send Feedback</Link>
       </Box>
       
-      <Typography variant="caption" sx={{ cursor: "pointer" }}>
+      <Typography id="language-selector" variant="caption" sx={{ cursor: "pointer" }}>
         Language ⌄
       </Typography>
     </Box>

@@ -46,6 +46,7 @@ export default function ProvideMoreInfo() {
           Reason for closing account
         </Typography>
         <TextField
+          id="feedback-input"
           fullWidth
           multiline
           rows={4}
@@ -59,6 +60,7 @@ export default function ProvideMoreInfo() {
         {/* Next Button - Aligned to Left */}
         <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
           <Button
+            id="next-button"
             variant="contained"
             color="primary"
             sx={{

@@ -18,6 +18,7 @@ const Illustration = () => {
       }}
     >
       <Image
+        id="illustration-image"
         src="/signuplock.png"
         alt="Illustration"
         width={900}

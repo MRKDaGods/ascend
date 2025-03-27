@@ -62,7 +62,7 @@ export default function LoginBox() {
           textAlign: "center",
         }}
       >
-        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ textAlign: "left" }}>
+        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ textAlign: "left" }} id="login-title">
           Sign in
         </Typography>
 
@@ -116,6 +116,7 @@ export default function LoginBox() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             sx={{ borderRadius: 5 }}
+            id="email-input"
           />
 
           {/* Password Field with "Show / Hide" Toggle */}
@@ -145,6 +146,7 @@ export default function LoginBox() {
                 </InputAdornment>
               ),
             }}
+            id="password-input"
           />
 
           {/* Forgot Password */}
@@ -160,6 +162,7 @@ export default function LoginBox() {
               textTransform: "none"
             }}
             onClick={() => router.push("/ForgetPassword")}
+            id="forgot-password-link"
           >
             Forgot password?
           </Button>
@@ -167,7 +170,7 @@ export default function LoginBox() {
 
           {/* Keep Me Logged In (Now Below Forgot Password) */}
           <FormControlLabel
-            control={<Checkbox />}
+            control={<Checkbox id="keep-logged-in-checkbox" />}
             label="Keep me logged in"
             sx={{ display: "block", textAlign: "left", mt: 1 }}
           />
@@ -185,6 +188,7 @@ export default function LoginBox() {
               textTransform: "none",
               fontSize: 16,
             }}
+            id="sign-in-button"
           >
             Sign in
           </Button>

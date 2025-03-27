@@ -55,8 +55,8 @@ export default function SettingsBar() {
           Settings
         </Typography>
         <List>
-          {sections.map((section) => (
-            <ListItemButton key={section}>
+          {sections.map((section, index) => (
+            <ListItemButton key={section} id={`settings-section-${index}`}>
               <ListItemText primary={section} primaryTypographyProps={{ fontSize: "1.1rem", fontWeight: "bold" }} />
             </ListItemButton>
           ))}

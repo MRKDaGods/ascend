@@ -33,10 +33,10 @@ export default function ReasonToClose({ username }: { username: string }) {
         <BackButton />
 
         {/* Close Account Content */}
-        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
+        <Typography variant="h6" id="close-account-title" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
           Close account
         </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography variant="body1" id="username-message" sx={{ mb: 2 }}>
           {username}, we’re sorry to see you go
         </Typography>
 
@@ -46,6 +46,7 @@ export default function ReasonToClose({ username }: { username: string }) {
         {/* Next Button - Aligned to Left */}
         <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
           <Button
+            id="next-button"
             variant="contained"
             color="primary"
             onClick={handleNext}
