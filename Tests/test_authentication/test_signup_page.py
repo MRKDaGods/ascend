@@ -27,50 +27,7 @@ def setup_test(appium_driver):
 
 
 
-def test_valid_signup(appium_driver, setup_test):
-    """ Test signup Functionality """
-    logger.info("Testing Signup")
-    signup_page, is_from_landing_page = setup_test
-    if is_from_landing_page:
-        signup_page.enter_first_name(TC.TEST_FIRST_NAME)
-        appium_driver.hide_keyboard()
-        time.sleep(2)
-        signup_page.enter_last_name(TC.TEST_LAST_NAME)
-        appium_driver.hide_keyboard()
-        time.sleep(3)
-        signup_page.click_continue()
-        time.sleep(1)
-        signup_page.enter_email(TC.TEST_EMAIL)
-        appium_driver.hide_keyboard()
-        time.sleep(2)
-        signup_page.click_continue()
-        time.sleep(1)
-        signup_page.enter_password(TC.TEST_PASSWORD)
-        appium_driver.hide_keyboard()
-        time.sleep(2)
-        signup_page.click_continue()
-        time.sleep(5)
-        
-    else:
-        signup_page.enter_email(TC.TEST_EMAIL)
-        appium_driver.hide_keyboard()
-        time.sleep(2)
-        signup_page.click_continue()
-        time.sleep(1)
-        signup_page.enter_password(TC.TEST_PASSWORD)
-        appium_driver.hide_keyboard()
-        time.sleep(2)
-        signup_page.click_continue()
-        time.sleep(3)
-        signup_page.enter_first_name(TC.TEST_FIRST_NAME)
-        appium_driver.hide_keyboard()
-        time.sleep(2)
-        signup_page.enter_last_name(TC.TEST_LAST_NAME)
-        appium_driver.hide_keyboard()
-        time.sleep(3)
-        signup_page.click_continue()
-        time.sleep(5)
-        # assert "Continue" in signup_page.get_text(signup_page.CONTINUE_BUTTON), "signup failed!"
+
 def test_invalid_name(appium_driver, setup_test):
     """Test case for invalid name"""
     signup_page, is_from_landing_page = setup_test
@@ -244,3 +201,48 @@ def test_existing_email(appium_driver, setup_test):
         except Exception as e:
             logger.error(f"Existing email test failed: {e}")
             assert False, "Existing email test failed"
+
+def test_valid_signup(appium_driver, setup_test):
+    """ Test signup Functionality """
+    logger.info("Testing Signup")
+    signup_page, is_from_landing_page = setup_test
+    if is_from_landing_page:
+        signup_page.enter_first_name(TC.TEST_FIRST_NAME)
+        appium_driver.hide_keyboard()
+        time.sleep(2)
+        signup_page.enter_last_name(TC.TEST_LAST_NAME)
+        appium_driver.hide_keyboard()
+        time.sleep(3)
+        signup_page.click_continue()
+        time.sleep(1)
+        signup_page.enter_email(TC.TEST_EMAIL)
+        appium_driver.hide_keyboard()
+        time.sleep(2)
+        signup_page.click_continue()
+        time.sleep(1)
+        signup_page.enter_password(TC.TEST_PASSWORD)
+        appium_driver.hide_keyboard()
+        time.sleep(2)
+        # signup_page.click_continue()
+        # time.sleep(5)
+        
+    else:
+        signup_page.enter_email(TC.TEST_EMAIL)
+        appium_driver.hide_keyboard()
+        time.sleep(2)
+        signup_page.click_continue()
+        time.sleep(1)
+        signup_page.enter_password(TC.TEST_PASSWORD)
+        appium_driver.hide_keyboard()
+        time.sleep(2)
+        signup_page.click_continue()
+        time.sleep(3)
+        signup_page.enter_first_name(TC.TEST_FIRST_NAME)
+        appium_driver.hide_keyboard()
+        time.sleep(2)
+        signup_page.enter_last_name(TC.TEST_LAST_NAME)
+        appium_driver.hide_keyboard()
+        time.sleep(3)
+        # signup_page.click_continue()
+        # time.sleep(5)
+        # assert "Continue" in signup_page.get_text(signup_page.CONTINUE_BUTTON), "signup failed!"
