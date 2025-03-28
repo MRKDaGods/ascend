@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class InvitationsSettingsPage extends StatefulWidget {
-  const InvitationsSettingsPage({Key? key}) : super(key: key);
+  const InvitationsSettingsPage({super.key});
 
   @override
   State<InvitationsSettingsPage> createState() =>

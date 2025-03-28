@@ -15,12 +15,12 @@ class ConnectionRequestsPage extends StatefulWidget {
   final List<ConnectionRequestModel> pendingRequestsSent;
 
   const ConnectionRequestsPage({
-    Key? key,
+    super.key,
     required this.invitationsReceived,
     required this.invitationsSent,
     required this.pendingRequestsReceived,
     required this.pendingRequestsSent,
-  }) : super(key: key);
+  });
   @override
   _ConnectionRequestsPageState createState() => _ConnectionRequestsPageState();
 }
@@ -203,21 +203,32 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ConnectionRequestSuccess) {
             return isReceivedSelected
-                ? ConnectionRequestsReceivedListFull(
-                  invitations: widget.invitationsReceived,
-                  pendingRequestsReceived: state.pendingRequestsReceived,
-                  onAccept: (requestId) {
-                    context.read<ConnectionRequestBloc>().add(
-                      AcceptConnectionRequest(requestId: requestId),
-                    );
-                  },
-                  onDecline: (requestId) {
-                    context.read<ConnectionRequestBloc>().add(
-                      DeclineConnectionRequest(requestId: requestId),
-                    );
-                  },
-                )
-                : ConnectionRequestsSent(
+                ? state.pendingRequestsReceived.isNotEmpty
+                    ? ConnectionRequestsReceivedListFull(
+                      invitations: widget.invitationsReceived,
+                      pendingRequestsReceived: state.pendingRequestsReceived,
+                      onAccept: (requestId) {
+                        context.read<ConnectionRequestBloc>().add(
+                          AcceptConnectionRequest(requestId: requestId),
+                        );
+                      },
+                      onDecline: (requestId) {
+                        context.read<ConnectionRequestBloc>().add(
+                          DeclineConnectionRequest(requestId: requestId),
+                        );
+                      },
+                    )
+                    : Center(
+                      child: Text(
+                        'No invitations here',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                : state.pendingRequestsSent.isNotEmpty
+                ? ConnectionRequestsSent(
                   invitations: widget.invitationsSent,
                   pendingRequestsSent: state.pendingRequestsSent,
                   onRemove: (requestId) {
@@ -225,6 +236,12 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
                       CancelConnectionRequest(requestId: requestId),
                     );
                   },
+                )
+                : Center(
+                  child: Text(
+                    'No Sent Invitations',
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                  ),
                 );
           } else if (state is ConnectionRequestError) {
             return Center(child: Text('Error: ${state.toString()}'));

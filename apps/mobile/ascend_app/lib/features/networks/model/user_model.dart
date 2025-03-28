@@ -65,5 +65,7 @@ class UserModel {
     "profilePictureUrl": profilePic,
     "coverpic": coverpic,
     "bio": bio,
+    "firstFollow": firstFollow,
+    "firstConnect": firstConnect,
   };
 }

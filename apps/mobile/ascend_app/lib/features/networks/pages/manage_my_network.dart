@@ -11,10 +11,10 @@ class ManageMyNetwork extends StatelessWidget {
   final List<UserModel> followed;
 
   const ManageMyNetwork({
-    Key? key,
+    super.key,
     required this.connections,
     required this.followed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

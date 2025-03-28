@@ -7,10 +7,10 @@ class MutualConnections extends StatelessWidget {
   final int numFollowers;
 
   const MutualConnections({
-    Key? key,
+    super.key,
     required this.mutualUsers,
     required this.numFollowers,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,16 +22,16 @@ class MutualConnections extends StatelessWidget {
           children: [
             SizedBox(
               height: 30,
-              width: mutualUsers.length > 0 ? 30 : 0,
+              width: mutualUsers.isNotEmpty ? 30 : 0,
               child: CircleAvatar(
                 radius: 15,
                 backgroundImage:
-                    mutualUsers.length > 0
+                    mutualUsers.isNotEmpty
                         ? AssetImage(mutualUsers[0].profilePic)
                         : null,
               ),
             ),
-            SizedBox(width: mutualUsers.length > 0 ? 5 : 0),
+            SizedBox(width: mutualUsers.isNotEmpty ? 5 : 0),
             Flexible(
               fit: FlexFit.loose,
               child: Text(

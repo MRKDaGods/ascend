@@ -9,11 +9,12 @@ class FollowButton extends StatefulWidget {
   Function(String) onUnFollow;
 
   FollowButton({
-    Key? key,
+    super.key,
     required this.userId,
     required this.onFollow,
     required this.onUnFollow,
-  }) : super(key: key);
+  });
+  @override
   _FollowButtonState createState() => _FollowButtonState();
 }
 

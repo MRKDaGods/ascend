@@ -36,25 +36,25 @@ void acceptConnectionRequest(
   String requestId,
 ) {
   print("Connection request accepted number $requestId");
-  connectionRequests.forEach((element) {
+  for (var element in connectionRequests) {
     if (element.requestId == requestId) {
       element.status = "accepted";
       print(
         "Connection request accepted number ${element.requestId} from ${element.senderId} to ${element.receiverId}",
       );
     }
-  });
+  }
 }
 
 void declineConnectionRequest(
   List<ConnectionRequestModel> connectionRequests,
   String requestId,
 ) {
-  connectionRequests.forEach((element) {
+  for (var element in connectionRequests) {
     if (element.requestId == requestId) {
       element.status = "rejected";
     }
-  });
+  }
 }
 
 List<ConnectionRequestModel> fetchPendingSentConnectionRequest(
@@ -67,7 +67,9 @@ List<ConnectionRequestModel> fetchPendingSentConnectionRequest(
           )
           .toList();
   print("Pending requests sent:");
-  pendingRequestsSent.forEach((element) => print(element.requestId));
+  for (var element in pendingRequestsSent) {
+    print(element.requestId);
+  }
   return pendingRequestsSent;
 }
 
@@ -82,7 +84,9 @@ List<ConnectionRequestModel> fetchPendingReceivedConnectionRequest(
           )
           .toList();
   print("Pending requests received:");
-  pendingRequestsReceived.forEach((element) => print(element.requestId));
+  for (var element in pendingRequestsReceived) {
+    print(element.requestId);
+  }
   return pendingRequestsReceived;
 }
 
@@ -98,7 +102,9 @@ List<ConnectionRequestModel> fetchAcceptedConnectionRequest(
           )
           .toList();
   print("Accepted connections:");
-  acceptedConnections.forEach((element) => print(element.requestId));
+  for (var element in acceptedConnections) {
+    print(element.requestId);
+  }
   return acceptedConnections;
 }
 
