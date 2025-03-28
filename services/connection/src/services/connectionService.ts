@@ -8,64 +8,171 @@ import {
   UserPreferences,
   ConnectionStatus
 } from "@shared/models";
-
+interface SearchFilters {
+  industry?: string[];
+  location?: string[];
+  skills?: string[];
+  connectionStatus?: 'all' | 'connected' | 'not_connected';
+  minExperience?: number;
+  maxExperience?: number;
+}
 class ConnectionService {
   // Search for users
-  async searchUsers(query: string, currentUserId: number, page: number = 1, limit: number = 10) {
+
+  
+  async searchUsers(
+    query: string, 
+    currentUserId: number, 
+    filters: SearchFilters = {},
+    page: number = 1, 
+    limit: number = 10
+  ) {
     const offset = (page - 1) * limit;
+    const params: any[] = [currentUserId];
+    let paramCounter = 2;
+  
+    // Create base query conditions
+    let conditions = [`u.user_id != $1`];
     
-    const result = await db.query(`
+    // Handle search query if provided
+    if (query) {
+      const searchQuery = query
+        .trim()
+        .split(/\s+/)
+        .filter(term => term.length > 0)
+        .map(term => term + ':*')
+        .join(' & ');
+      
+      conditions.push(`
+        to_tsvector('english',
+          coalesce(u.first_name, '') || ' ' ||
+          coalesce(u.last_name, '') || ' ' ||
+          coalesce(u.industry, '') || ' ' ||
+          coalesce(u.bio, '') || ' ' ||
+          coalesce(u.skills, '') || ' ' ||
+          coalesce(u.location, '')
+        ) @@ to_tsquery('english', $${paramCounter})
+      `);
+      params.push(searchQuery);
+      paramCounter++;
+    }
+  
+    // Apply filters
+    if (filters.industry?.length) {
+      conditions.push(`u.industry = ANY($${paramCounter})`);
+      params.push(filters.industry);
+      paramCounter++;
+    }
+  
+    if (filters.location?.length) {
+      conditions.push(`u.location = ANY($${paramCounter})`);
+      params.push(filters.location);
+      paramCounter++;
+    }
+  
+    if (filters.skills?.length) {
+      conditions.push(`u.skills && $${paramCounter}`);
+      params.push(filters.skills);
+      paramCounter++;
+    }
+  
+    if (filters.minExperience !== undefined) {
+      conditions.push(`u.years_of_experience >= $${paramCounter}`);
+      params.push(filters.minExperience);
+      paramCounter++;
+    }
+  
+    if (filters.maxExperience !== undefined) {
+      conditions.push(`u.years_of_experience <= $${paramCounter}`);
+      params.push(filters.maxExperience);
+      paramCounter++;
+    }
+  
+    // Handle connection status filter
+    if (filters.connectionStatus) {
+      switch (filters.connectionStatus) {
+        case 'connected':
+          conditions.push(`
+            EXISTS(
+              SELECT 1 FROM connection_service.connections c
+              WHERE c.user_id = $1 
+              AND c.connection_id = u.user_id 
+              AND c.status = 'accepted'
+            )
+          `);
+          break;
+        case 'not_connected':
+          conditions.push(`
+            NOT EXISTS(
+              SELECT 1 FROM connection_service.connections c
+              WHERE c.user_id = $1 
+              AND c.connection_id = u.user_id 
+              AND c.status = 'accepted'
+            )
+          `);
+          break;
+      }
+    }
+  
+    // Block filter is always applied
+    conditions.push(`
+      NOT EXISTS(
+        SELECT 1 FROM connection_service.blocked_users b
+        WHERE (b.user_id = $1 AND b.blocked_user_id = u.user_id)
+           OR (b.user_id = u.user_id AND b.blocked_user_id = $1)
+      )
+    `);
+  
+    const queryText = `
       SELECT 
-        u.id, 
+        u.user_id, 
         u.first_name, 
         u.last_name,
-        u.profile_picture_url,
-        u.headline,
-        u.current_company,
+        u.profile_picture_id,
+        u.bio,
+        u.industry,
+        u.location,
+        u.skills,
+        u.years_of_experience,
         EXISTS(
           SELECT 1 FROM connection_service.connections c
-          WHERE c.user_id = $2 AND c.connection_id = u.id AND c.status = 'accepted'
+          WHERE c.user_id = $1 AND c.connection_id = u.user_id AND c.status = 'accepted'
         ) as is_connected,
         EXISTS(
           SELECT 1 FROM connection_service.follows f
-          WHERE f.follower_id = $2 AND f.following_id = u.id
+          WHERE f.follower_id = $1 AND f.following_id = u.user_id
         ) as is_following,
-        EXISTS(
-          SELECT 1 FROM connection_service.blocked_users b
-          WHERE b.user_id = $2 AND b.blocked_user_id = u.id
-        ) as is_blocked
-      FROM auth_service.users u
-      WHERE 
-        (u.first_name ILIKE $1 OR u.last_name ILIKE $1 OR 
-         u.current_company ILIKE $1 OR u.industry ILIKE $1)
-        AND u.id != $2
-        AND NOT EXISTS(
-          SELECT 1 FROM connection_service.blocked_users b
-          WHERE (b.user_id = $2 AND b.blocked_user_id = u.id)
-             OR (b.user_id = u.id AND b.blocked_user_id = $2)
-        )
-      ORDER BY u.first_name, u.last_name
-      LIMIT $3 OFFSET $4
-    `, [`%${query}%`, currentUserId, limit, offset]);
-
-    const countResult = await db.query(`
-      SELECT COUNT(*) 
-      FROM auth_service.users u
-      WHERE 
-        (u.first_name ILIKE $1 OR u.last_name ILIKE $1 OR 
-         u.current_company ILIKE $1 OR u.industry ILIKE $1)
-        AND u.id != $2
-        AND NOT EXISTS(
-          SELECT 1 FROM connection_service.blocked_users b
-          WHERE (b.user_id = $2 AND b.blocked_user_id = u.id)
-             OR (b.user_id = u.id AND b.blocked_user_id = $2)
-        )
-    `, [`%${query}%`, currentUserId]);
-
+        ${query ? `
+          ts_rank_cd(
+            to_tsvector('english',
+              coalesce(u.first_name, '') || ' ' ||
+              coalesce(u.last_name, '') || ' ' ||
+              coalesce(u.industry, '') || ' ' ||
+              coalesce(u.bio, '') || ' ' ||
+              coalesce(u.skills, '') || ' ' ||
+              coalesce(u.location, '')
+            ),
+            to_tsquery('english', $2)
+          ) as search_rank,
+        ` : ''}
+        count(*) OVER() as total_count
+      FROM user_service.profiles u
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY ${query ? 'search_rank DESC,' : ''} u.first_name, u.last_name
+      LIMIT $${paramCounter} OFFSET $${paramCounter + 1}
+    `;
+  
+    params.push(limit, offset);
+  
+    const result = await db.query(queryText, params);
+  
     return {
-      data: result.rows,
+      data: result.rows.map(row => ({
+        ...row,
+        total_count: undefined // Remove total_count from individual records
+      })),
       pagination: {
-        total: parseInt(countResult.rows[0].count),
+        total: result.rows[0]?.total_count || 0,
         page,
         limit
       }
@@ -130,6 +237,7 @@ class ConnectionService {
   
     return result.rows[0];
   }
+
   async respondToConnectionRequest(params: {
     requestId: number;
     userId: number;
@@ -147,6 +255,7 @@ class ConnectionService {
     }
   
     const connection = request.rows[0];
+    console.log(params.accept);
     const newStatus = params.accept ? ConnectionStatus.ACCEPTED : ConnectionStatus.DECLINED;
   
     // Update recipient's connection record
@@ -178,10 +287,10 @@ class ConnectionService {
     const offset = (page - 1) * limit;
     let query = `
       SELECT 
-        u.id, u.first_name, u.last_name, u.profile_picture_url, u.headline,
+        u.user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio,
         c.created_at as connected_at
       FROM connection_service.connections c
-      JOIN auth_service.users u ON c.connection_id = u.id
+      JOIN user_service.profiles u ON c.connection_id = u.user_id
       WHERE c.user_id = $1 AND c.status = 'accepted'
     `;
     const params: any[] = [userId];
@@ -214,9 +323,9 @@ class ConnectionService {
     let query = `
       SELECT 
         c.id, c.message, c.created_at,
-        u.id as user_id, u.first_name, u.last_name, u.profile_picture_url, u.headline
+        u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio
       FROM connection_service.connections c
-      JOIN auth_service.users u ON c.connection_id = u.id
+      JOIN user_service.profiles u ON c.connection_id = u.user_id
       WHERE c.user_id = $1 AND c.status = 'pending'
     `;
     const params: any[] = [userId];
@@ -298,10 +407,10 @@ class ConnectionService {
     
     const result = await db.query(`
       SELECT 
-        u.id, u.first_name, u.last_name, u.profile_picture_url,
+        u.user_id, u.first_name, u.last_name, u.profile_picture_id,
         b.created_at as blocked_at
       FROM connection_service.blocked_users b
-      JOIN auth_service.users u ON b.blocked_user_id = u.id
+      JOIN user_service.profiles u ON b.blocked_user_id = u.user_id
       WHERE b.user_id = $1
       ORDER BY b.created_at DESC
       LIMIT $2 OFFSET $3
@@ -385,6 +494,7 @@ class ConnectionService {
     userId: number;
     accept: boolean;
   }) {
+    console.log('accept:', params.accept);
     const result = await db.query<MessageRequest>(`
       UPDATE connection_service.messaging_requests
       SET status = $1, updated_at = NOW()
@@ -402,35 +512,39 @@ class ConnectionService {
   // Preferences
   async updateConnectionPreferences(params: {
     userId: number;
-    allowConnectionRequests?: boolean;
-    allowMessagesFrom?: 'all' | 'none' | 'connections_only';
-    visibleToPublic?: boolean;
-    visibleToConnections?: boolean;
-    visibleToNetwork?: boolean;
+    allow_connection_requests?: boolean;
+    allow_messages_from?: 'all' | 'none' | 'connections_only';
+    visible_to_public?: boolean;
+    visible_to_connections?: boolean;
+    visible_to_network?: boolean;
   }) {
+    console.log('Raw params:', params);
+    console.log('Object.keys(params):', Object.keys(params));
+    console.log('Filtered keys:', Object.keys(params).filter(k => k !== 'userId'));
+
     const fields = [];
     const values = [];
     let paramIndex = 1;
 
-    if (params.allowConnectionRequests !== undefined) {
+    if (params.allow_connection_requests !== undefined) {
       fields.push(`allow_connection_requests = $${paramIndex++}`);
-      values.push(params.allowConnectionRequests);
+      values.push(params.allow_connection_requests);
     }
-    if (params.allowMessagesFrom !== undefined) {
+    if (params.allow_messages_from !== undefined) {
       fields.push(`allow_messages_from = $${paramIndex++}`);
-      values.push(params.allowMessagesFrom);
+      values.push(params.allow_messages_from);
     }
-    if (params.visibleToPublic !== undefined) {
+    if (params.visible_to_public !== undefined) {
       fields.push(`visible_to_public = $${paramIndex++}`);
-      values.push(params.visibleToPublic);
+      values.push(params.visible_to_public);
     }
-    if (params.visibleToConnections !== undefined) {
+    if (params.visible_to_connections !== undefined) {
       fields.push(`visible_to_connections = $${paramIndex++}`);
-      values.push(params.visibleToConnections);
+      values.push(params.visible_to_connections);
     }
-    if (params.visibleToNetwork !== undefined) {
+    if (params.visible_to_network !== undefined) {
       fields.push(`visible_to_network = $${paramIndex++}`);
-      values.push(params.visibleToNetwork);
+      values.push(params.visible_to_network);
     }
 
     if (fields.length === 0) {
@@ -439,7 +553,11 @@ class ConnectionService {
 
     values.push(params.userId);
 
-    const result = await db.query<UserPreferences>(`
+    console.log('Fields array:', fields);
+    console.log('Values array:', values);
+    console.log('ParamIndex:', paramIndex);
+
+    const query = `
       INSERT INTO connection_service.user_preferences (
         user_id, ${Object.keys(params).filter(k => k !== 'userId').join(', ')}
       ) VALUES (
@@ -449,7 +567,14 @@ class ConnectionService {
         ${fields.join(', ')},
         updated_at = NOW()
       RETURNING *
-    `, [...values.slice(0, -1), params.userId, ...values.slice(0, -1)]);
+    `;
+
+    console.log('Final query:', query);
+    console.log('Final values:', [...values.slice(0, -1), params.userId]);
+
+    const result = await db.query<UserPreferences>(query, 
+      [...values.slice(0, -1), params.userId]
+    );
 
     return result.rows[0];
   }

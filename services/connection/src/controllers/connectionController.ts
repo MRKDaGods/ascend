@@ -8,28 +8,69 @@ import {
 } from "../validations/connectionValidation";
 import validate from "@shared/middleware/validationMiddleware";
 
-// Search Controller
-export const searchUsers = async (req: AuthenticatedRequest, res: Response) => {
-  const { q, page = 1, limit = 10 } = req.query;
+interface SearchQueryParams {
+  q?: string;
+  page?: string;
+  limit?: string;
+  industry?: string[];
+  location?: string[];
+  skills?: string[];
+  connectionStatus?: 'all' | 'connected' | 'not_connected';
+  minExperience?: string;
+  maxExperience?: string;
+}
 
+export const searchUsers = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
+
+    const {
+      q,
+      page = '1',
+      limit = '10',
+      industry,
+      location,
+      skills,
+      connectionStatus,
+      minExperience,
+      maxExperience
+    } = req.query as SearchQueryParams;
+
+    // Build filters object
+    const filters = {
+      ...(industry && { industry }),
+      ...(location && { location }),
+      ...(skills && { skills }),
+      ...(connectionStatus && { connectionStatus }),
+      ...(minExperience && { minExperience: Number(minExperience) }),
+      ...(maxExperience && { maxExperience: Number(maxExperience) })
+    };
+
     const results = await connectionService.searchUsers(
-      q as string,
+      q || '',
       req.user.id,
+      filters,
       Number(page),
       Number(limit)
     );
-    res.json({ success: true, data: results });
-  } catch {
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to search users" 
+
+    res.json({
+      success: true,
+      data: results.data,
+      pagination: results.pagination
+    });
+
+  } catch (error) {
+    console.error('Error in searchUsers:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to search users",
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -41,9 +82,9 @@ export const sendConnectionRequest = [
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user?.id) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "User not authenticated" 
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
         });
       }
       const request = await connectionService.sendConnectionRequest({
@@ -53,9 +94,9 @@ export const sendConnectionRequest = [
       });
       res.status(201).json({ success: true, data: request });
     } catch (error: any) {
-      return res.status(404).json({ 
-        success: false, 
-        message: error.message || "Failed to send connection request" 
+      return res.status(404).json({
+        success: false,
+        message: error.message || "Failed to send connection request",
       });
     }
   },
@@ -66,9 +107,9 @@ export const respondToConnectionRequest = [
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user?.id) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "User not authenticated" 
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
         });
       }
       const result = await connectionService.respondToConnectionRequest({
@@ -77,10 +118,10 @@ export const respondToConnectionRequest = [
         accept: req.body.accept,
       });
       res.json({ success: true, data: result });
-    } catch {
-      res.status(400).json({ 
-        success: false, 
-        message: "Failed to respond to connection request" 
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to respond to connection request",
       });
     }
   },
@@ -100,9 +141,9 @@ export const removeConnection = async (
     });
     res.json({ success: true, message: "Connection removed" });
   } catch {
-    res.status(400).json({ 
-      success: false, 
-      message: "Failed to remove connection" 
+    res.status(400).json({
+      success: false,
+      message: "Failed to remove connection",
     });
   }
 };
@@ -113,9 +154,9 @@ export const getConnections = async (
 ) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
     const connections = await connectionService.getConnections(
@@ -125,10 +166,12 @@ export const getConnections = async (
       Number(req.query.limit) || 10
     );
     res.json({ success: true, data: connections });
-  } catch {
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to get connections" 
+  } catch (error) {
+    console.error('Error in getConnections:', error); // Added error logging
+    res.status(500).json({
+      success: false,
+      message: "Failed to get connections",
+      error: error instanceof Error ? error.message : String(error) // Added error details
     });
   }
 };
@@ -147,7 +190,12 @@ export const getPendingRequests = async (
     );
     res.json({ success: true, data: requests });
   } catch (error) {
-    res.status(500).json({ success: false, error: "Failed to get requests" });
+    console.error('Error in getPendingRequests:', error); // Add logging
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to get requests",
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
 };
 
@@ -155,9 +203,9 @@ export const getPendingRequests = async (
 export const followUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
     await connectionService.followUser({
@@ -166,19 +214,22 @@ export const followUser = async (req: AuthenticatedRequest, res: Response) => {
     });
     res.json({ success: true, message: "User followed" });
   } catch {
-    res.status(400).json({ 
-      success: false, 
-      message: "Failed to follow user" 
+    res.status(400).json({
+      success: false,
+      message: "Failed to follow user",
     });
   }
 };
 
-export const unfollowUser = async (req: AuthenticatedRequest, res: Response) => {
+export const unfollowUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
     await connectionService.unfollowUser({
@@ -187,9 +238,9 @@ export const unfollowUser = async (req: AuthenticatedRequest, res: Response) => 
     });
     res.json({ success: true, message: "User unfollowed" });
   } catch {
-    res.status(400).json({ 
-      success: false, 
-      message: "Failed to unfollow user" 
+    res.status(400).json({
+      success: false,
+      message: "Failed to unfollow user",
     });
   }
 };
@@ -198,9 +249,9 @@ export const unfollowUser = async (req: AuthenticatedRequest, res: Response) => 
 export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
     await connectionService.blockUser({
@@ -209,9 +260,9 @@ export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
     });
     res.json({ success: true, message: "User blocked" });
   } catch {
-    res.status(400).json({ 
-      success: false, 
-      message: "Failed to block user" 
+    res.status(400).json({
+      success: false,
+      message: "Failed to block user",
     });
   }
 };
@@ -219,9 +270,9 @@ export const blockUser = async (req: AuthenticatedRequest, res: Response) => {
 export const unblockUser = async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
     await connectionService.unblockUser({
@@ -230,19 +281,22 @@ export const unblockUser = async (req: AuthenticatedRequest, res: Response) => {
     });
     res.json({ success: true, message: "User unblocked" });
   } catch {
-    res.status(400).json({ 
-      success: false, 
-      message: "Failed to unblock user" 
+    res.status(400).json({
+      success: false,
+      message: "Failed to unblock user",
     });
   }
 };
 
-export const getBlockedUsers = async (req: AuthenticatedRequest, res: Response) => {
+export const getBlockedUsers = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     if (!req.user?.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "User not authenticated" 
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
     const blockedUsers = await connectionService.getBlockedUsers(
@@ -251,10 +305,12 @@ export const getBlockedUsers = async (req: AuthenticatedRequest, res: Response) 
       Number(req.query.limit) || 10
     );
     res.json({ success: true, data: blockedUsers });
-  } catch {
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to get blocked users" 
+  } catch (error) {
+    console.error('Error in getBlockedUsers:', error); // Add logging
+    res.status(500).json({
+      success: false,
+      message: "Failed to get blocked users",
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -266,9 +322,9 @@ export const sendMessageRequest = [
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user?.id) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "User not authenticated" 
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
         });
       }
       const request = await connectionService.sendMessageRequest({
@@ -277,10 +333,12 @@ export const sendMessageRequest = [
         message: req.body.message,
       });
       res.status(201).json({ success: true, data: request });
-    } catch {
-      res.status(400).json({ 
-        success: false, 
-        message: "Failed to send message request" 
+    } catch (error) {
+      console.error('Error in sendMessageRequest:', error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to send message request",
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   },
@@ -291,11 +349,12 @@ export const respondToMessageRequest = [
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user?.id) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "User not authenticated" 
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
         });
       }
+      console.log('Request Body:', req.body);
       const result = await connectionService.respondToMessageRequest({
         requestId: Number(req.params.requestId),
         userId: req.user.id,
@@ -303,9 +362,9 @@ export const respondToMessageRequest = [
       });
       res.json({ success: true, data: result });
     } catch {
-      res.status(400).json({ 
-        success: false, 
-        message: "Failed to respond to message request" 
+      res.status(400).json({
+        success: false,
+        message: "Failed to respond to message request",
       });
     }
   },
@@ -317,10 +376,13 @@ export const updateConnectionPreferences = [
   validate,
   async (req: AuthenticatedRequest, res: Response) => {
     try {
+      console.log('Request Body:', req.body);
+      console.log('User ID:', req.user?.id);
+
       if (!req.user?.id) {
-        return res.status(401).json({ 
-          success: false, 
-          message: "User not authenticated" 
+        return res.status(401).json({
+          success: false,
+          message: "User not authenticated",
         });
       }
       const preferences = await connectionService.updateConnectionPreferences({
@@ -328,10 +390,10 @@ export const updateConnectionPreferences = [
         ...req.body,
       });
       res.json({ success: true, data: preferences });
-    } catch {
-      res.status(400).json({ 
-        success: false, 
-        message: "Failed to update connection preferences" 
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to update connection preferences",
       });
     }
   },
