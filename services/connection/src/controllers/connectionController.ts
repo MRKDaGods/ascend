@@ -8,19 +8,10 @@ import {
 } from "../validations/connectionValidation";
 import validate from "@shared/middleware/validationMiddleware";
 
-interface SearchQueryParams {
-  q?: string;
-  page?: string;
-  limit?: string;
-  industry?: string[];
-  location?: string[];
-  skills?: string[];
-  connectionStatus?: 'all' | 'connected' | 'not_connected';
-  minExperience?: string;
-  maxExperience?: string;
-}
-
+// Search Controller
 export const searchUsers = async (req: AuthenticatedRequest, res: Response) => {
+  const { q, page = 1, limit = 10 } = req.query;
+  
   try {
     if (!req.user?.id) {
       return res.status(401).json({
@@ -28,43 +19,13 @@ export const searchUsers = async (req: AuthenticatedRequest, res: Response) => {
         message: "User not authenticated",
       });
     }
-
-    const {
-      q,
-      page = '1',
-      limit = '10',
-      industry,
-      location,
-      skills,
-      connectionStatus,
-      minExperience,
-      maxExperience
-    } = req.query as SearchQueryParams;
-
-    // Build filters object
-    const filters = {
-      ...(industry && { industry }),
-      ...(location && { location }),
-      ...(skills && { skills }),
-      ...(connectionStatus && { connectionStatus }),
-      ...(minExperience && { minExperience: Number(minExperience) }),
-      ...(maxExperience && { maxExperience: Number(maxExperience) })
-    };
-
     const results = await connectionService.searchUsers(
-      q || '',
+      q as string,
       req.user.id,
-      filters,
       Number(page),
       Number(limit)
     );
-
-    res.json({
-      success: true,
-      data: results.data,
-      pagination: results.pagination
-    });
-
+    res.json({ success: true, data: results });
   } catch (error) {
     console.error('Error in searchUsers:', error);
     res.status(500).json({
