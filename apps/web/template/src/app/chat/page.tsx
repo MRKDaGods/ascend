@@ -10,7 +10,7 @@ export default function Page(){
    
       
         
-        <Box sx={{ display: "flex", flexGrow: 1, height: "100vh", paddingTop: "64px" }}>
+        <Box sx={{ display: "flex", height: "100vh" }}>
           <Sidebar /> 
           <ChatWindow />
         </Box>

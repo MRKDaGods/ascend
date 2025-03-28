@@ -1,8 +1,11 @@
 "use client";
 import { Box,Typography,Button} from "@mui/material";
-import { useEffect} from "react";
+import { useEffect,useRef, useState} from "react";
 import { useChatStore } from "../store/chatStore";
 import axios from "axios";
+import Message from "./Message";
+//import { messageProps } from "./Message";
+
 
 export default function ChatWindow(){
 
@@ -15,6 +18,10 @@ export default function ChatWindow(){
     const page= useChatStore(state=>state.page);
     const setpage = useChatStore(state=>state.setPage);
 
+    //initialize bottom ref for scroll to bottom
+    const bottomRef = useRef<HTMLDivElement | null>(null);
+    const [shouldScrollToBottom,setShouldScrollToBottom]=useState(true);
+
     
   
 
@@ -23,15 +30,22 @@ export default function ChatWindow(){
         
         //clear old pagination
         resetPage();
+        setShouldScrollToBottom(true);
 
         axios.get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=1`)
         .then((response)=>{
-            setDisplayedMessages(response.data);
+            setDisplayedMessages(response.data.data.messages);
         })
         .catch((e)=>{
             console.error("failed to fetch messages:",e);
         });
     },[selectedConversationId]);
+
+    useEffect(()=>{
+        if (shouldScrollToBottom && bottomRef.current){
+            bottomRef.current.scrollIntoView({behavior:"smooth"})
+        }
+    },[displayedMessages])
 
     const loadOlderMessages = ()=>{
         const nextPage=page+1;
@@ -46,6 +60,7 @@ export default function ChatWindow(){
                 return;
             }
             //else prepend older msgs to the top
+            setShouldScrollToBottom(false);
             setDisplayedMessages((prev)=>[...res.data,...prev]);
             setpage(nextPage);
         })
@@ -72,10 +87,15 @@ export default function ChatWindow(){
         Load older messages
     </Button>
     {displayedMessages.map((msg) => (
-      msg.content ? (
-        <Typography key={msg.id}>{msg.content}</Typography>
-      ) : null
+     <Message key={msg.id} 
+     id={msg.id} 
+     content={msg.content} 
+     sender={msg.sender} 
+     mediaUrls={msg.mediaUrls} 
+     createdAt={msg.createdAt} 
+     currentUserName="Ruaa"/>
     ))}
+    <Box ref={bottomRef}/>
   </Box>
   
    );
