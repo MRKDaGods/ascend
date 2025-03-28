@@ -8,122 +8,21 @@ import {
   UserPreferences,
   ConnectionStatus
 } from "@shared/models";
-interface SearchFilters {
-  industry?: string[];
-  location?: string[];
-  skills?: string[];
-  connectionStatus?: 'all' | 'connected' | 'not_connected';
-  minExperience?: number;
-  maxExperience?: number;
-}
+
 class ConnectionService {
   // Search for users
-
-  
-  async searchUsers(
-    query: string, 
-    currentUserId: number, 
-    filters: SearchFilters = {},
-    page: number = 1, 
-    limit: number = 10
-  ) {
+  async searchUsers(query: string, currentUserId: number, page: number = 1, limit: number = 10) {
     const offset = (page - 1) * limit;
-    const params: any[] = [currentUserId];
-    let paramCounter = 2;
-  
-    // Create base query conditions
-    let conditions = [`u.user_id != $1`];
-    
-    // Handle search query if provided
-    if (query) {
-      const searchQuery = query
-        .trim()
-        .split(/\s+/)
-        .filter(term => term.length > 0)
-        .map(term => term + ':*')
-        .join(' & ');
-      
-      conditions.push(`
-        to_tsvector('english',
-          coalesce(u.first_name, '') || ' ' ||
-          coalesce(u.last_name, '') || ' ' ||
-          coalesce(u.industry, '') || ' ' ||
-          coalesce(u.bio, '') || ' ' ||
-          coalesce(u.skills, '') || ' ' ||
-          coalesce(u.location, '')
-        ) @@ to_tsquery('english', $${paramCounter})
-      `);
-      params.push(searchQuery);
-      paramCounter++;
-    }
-  
-    // Apply filters
-    if (filters.industry?.length) {
-      conditions.push(`u.industry = ANY($${paramCounter})`);
-      params.push(filters.industry);
-      paramCounter++;
-    }
-  
-    if (filters.location?.length) {
-      conditions.push(`u.location = ANY($${paramCounter})`);
-      params.push(filters.location);
-      paramCounter++;
-    }
-  
-    if (filters.skills?.length) {
-      conditions.push(`u.skills && $${paramCounter}`);
-      params.push(filters.skills);
-      paramCounter++;
-    }
-  
-    if (filters.minExperience !== undefined) {
-      conditions.push(`u.years_of_experience >= $${paramCounter}`);
-      params.push(filters.minExperience);
-      paramCounter++;
-    }
-  
-    if (filters.maxExperience !== undefined) {
-      conditions.push(`u.years_of_experience <= $${paramCounter}`);
-      params.push(filters.maxExperience);
-      paramCounter++;
-    }
-  
-    // Handle connection status filter
-    if (filters.connectionStatus) {
-      switch (filters.connectionStatus) {
-        case 'connected':
-          conditions.push(`
-            EXISTS(
-              SELECT 1 FROM connection_service.connections c
-              WHERE c.user_id = $1 
-              AND c.connection_id = u.user_id 
-              AND c.status = 'accepted'
-            )
-          `);
-          break;
-        case 'not_connected':
-          conditions.push(`
-            NOT EXISTS(
-              SELECT 1 FROM connection_service.connections c
-              WHERE c.user_id = $1 
-              AND c.connection_id = u.user_id 
-              AND c.status = 'accepted'
-            )
-          `);
-          break;
-      }
-    }
-  
-    // Block filter is always applied
-    conditions.push(`
-      NOT EXISTS(
-        SELECT 1 FROM connection_service.blocked_users b
-        WHERE (b.user_id = $1 AND b.blocked_user_id = u.user_id)
-           OR (b.user_id = u.user_id AND b.blocked_user_id = $1)
-      )
-    `);
-  
-    const queryText = `
+
+    // Create a normalized search query
+    const searchQuery = query
+      .trim()
+      .split(/\s+/)
+      .filter(term => term.length > 0)
+      .map(term => term + ':*')
+      .join(' & ');
+
+    const result = await db.query(`
       SELECT 
         u.user_id, 
         u.first_name, 
@@ -131,48 +30,67 @@ class ConnectionService {
         u.profile_picture_id,
         u.bio,
         u.industry,
-        u.location,
-        u.skills,
-        u.years_of_experience,
         EXISTS(
           SELECT 1 FROM connection_service.connections c
-          WHERE c.user_id = $1 AND c.connection_id = u.user_id AND c.status = 'accepted'
+          WHERE c.user_id = $2 AND c.connection_id = u.user_id AND c.status = 'accepted'
         ) as is_connected,
         EXISTS(
           SELECT 1 FROM connection_service.follows f
-          WHERE f.follower_id = $1 AND f.following_id = u.user_id
+          WHERE f.follower_id = $2 AND f.following_id = u.user_id
         ) as is_following,
-        ${query ? `
-          ts_rank_cd(
-            to_tsvector('english',
-              coalesce(u.first_name, '') || ' ' ||
-              coalesce(u.last_name, '') || ' ' ||
-              coalesce(u.industry, '') || ' ' ||
-              coalesce(u.bio, '') || ' ' ||
-              coalesce(u.skills, '') || ' ' ||
-              coalesce(u.location, '')
-            ),
-            to_tsquery('english', $2)
-          ) as search_rank,
-        ` : ''}
-        count(*) OVER() as total_count
+        EXISTS(
+          SELECT 1 FROM connection_service.blocked_users b
+          WHERE b.user_id = $2 AND b.blocked_user_id = u.user_id
+        ) as is_blocked,
+        ts_rank_cd(
+          to_tsvector('english',
+            coalesce(first_name, '') || ' ' ||
+            coalesce(last_name, '') || ' ' ||
+            coalesce(industry, '') || ' ' ||
+            coalesce(bio, '')
+          ),
+          to_tsquery('english', $1)
+        ) as search_rank
       FROM user_service.profiles u
-      WHERE ${conditions.join(' AND ')}
-      ORDER BY ${query ? 'search_rank DESC,' : ''} u.first_name, u.last_name
-      LIMIT $${paramCounter} OFFSET $${paramCounter + 1}
-    `;
-  
-    params.push(limit, offset);
-  
-    const result = await db.query(queryText, params);
-  
+      WHERE 
+        to_tsvector('english',
+          coalesce(first_name, '') || ' ' ||
+          coalesce(last_name, '') || ' ' ||
+          coalesce(industry, '') || ' ' ||
+          coalesce(bio, '')
+        ) @@ to_tsquery('english', $1)
+        AND u.user_id != $2
+        AND NOT EXISTS(
+          SELECT 1 FROM connection_service.blocked_users b
+          WHERE (b.user_id = $2 AND b.blocked_user_id = u.user_id)
+             OR (b.user_id = u.user_id AND b.blocked_user_id = $2)
+        )
+      ORDER BY search_rank DESC, u.first_name, u.last_name
+      LIMIT $3 OFFSET $4
+    `, [searchQuery, currentUserId, limit, offset]);
+
+    const countResult = await db.query(`
+      SELECT COUNT(*) 
+      FROM user_service.profiles u
+      WHERE 
+        to_tsvector('english',
+          coalesce(first_name, '') || ' ' ||
+          coalesce(last_name, '') || ' ' ||
+          coalesce(industry, '') || ' ' ||
+          coalesce(bio, '')
+        ) @@ to_tsquery('english', $1)
+        AND u.user_id != $2
+        AND NOT EXISTS(
+          SELECT 1 FROM connection_service.blocked_users b
+          WHERE (b.user_id = $2 AND b.blocked_user_id = u.user_id)
+             OR (b.user_id = u.user_id AND b.blocked_user_id = $2)
+        )
+    `, [searchQuery, currentUserId]);
+
     return {
-      data: result.rows.map(row => ({
-        ...row,
-        total_count: undefined // Remove total_count from individual records
-      })),
+      data: result.rows,
       pagination: {
-        total: result.rows[0]?.total_count || 0,
+        total: parseInt(countResult.rows[0].count),
         page,
         limit
       }
@@ -237,7 +155,7 @@ class ConnectionService {
   
     return result.rows[0];
   }
-
+  
   async respondToConnectionRequest(params: {
     requestId: number;
     userId: number;
