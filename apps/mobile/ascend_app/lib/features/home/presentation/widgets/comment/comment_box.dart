@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/managers/reaction_manager.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/reaction/post_reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
 
 class CommentBox extends StatelessWidget {

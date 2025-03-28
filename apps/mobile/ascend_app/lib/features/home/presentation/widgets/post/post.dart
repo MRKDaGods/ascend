@@ -3,7 +3,7 @@ import 'package:ascend_app/features/home/presentation/utils/full_screen_image_vi
 import 'package:ascend_app/features/home/presentation/widgets/common';
 import 'package:ascend_app/features/home/presentation/widgets/post/post_action_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/post/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/reaction/post_reaction_button.dart';
 import 'package:ascend_app/features/home/managers/reaction_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/data/sample_comments.dart';
