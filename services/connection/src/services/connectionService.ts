@@ -20,82 +20,84 @@ class ConnectionService {
       .split(/\s+/)
       .filter(term => term.length > 0)
       .map(term => term + ':*')
-      .join(' & ');
+      .join(' | ');
 
-    const result = await db.query(`
-      SELECT 
-        u.user_id, 
-        u.first_name, 
-        u.last_name,
-        u.profile_picture_id,
-        u.bio,
-        u.industry,
-        EXISTS(
-          SELECT 1 FROM connection_service.connections c
-          WHERE c.user_id = $2 AND c.connection_id = u.user_id AND c.status = 'accepted'
-        ) as is_connected,
-        EXISTS(
-          SELECT 1 FROM connection_service.follows f
-          WHERE f.follower_id = $2 AND f.following_id = u.user_id
-        ) as is_following,
-        EXISTS(
-          SELECT 1 FROM connection_service.blocked_users b
-          WHERE b.user_id = $2 AND b.blocked_user_id = u.user_id
-        ) as is_blocked,
-        ts_rank_cd(
-          to_tsvector('english',
-            coalesce(first_name, '') || ' ' ||
-            coalesce(last_name, '') || ' ' ||
-            coalesce(industry, '') || ' ' ||
-            coalesce(bio, '')
-          ),
-          to_tsquery('english', $1)
-        ) as search_rank
-      FROM user_service.profiles u
-      WHERE 
-        to_tsvector('english',
-          coalesce(first_name, '') || ' ' ||
-          coalesce(last_name, '') || ' ' ||
-          coalesce(industry, '') || ' ' ||
-          coalesce(bio, '')
-        ) @@ to_tsquery('english', $1)
-        AND u.user_id != $2
-        AND NOT EXISTS(
-          SELECT 1 FROM connection_service.blocked_users b
-          WHERE (b.user_id = $2 AND b.blocked_user_id = u.user_id)
-             OR (b.user_id = u.user_id AND b.blocked_user_id = $2)
-        )
-      ORDER BY search_rank DESC, u.first_name, u.last_name
-      LIMIT $3 OFFSET $4
-    `, [searchQuery, currentUserId, limit, offset]);
-
-    const countResult = await db.query(`
-      SELECT COUNT(*) 
-      FROM user_service.profiles u
-      WHERE 
-        to_tsvector('english',
-          coalesce(first_name, '') || ' ' ||
-          coalesce(last_name, '') || ' ' ||
-          coalesce(industry, '') || ' ' ||
-          coalesce(bio, '')
-        ) @@ to_tsquery('english', $1)
-        AND u.user_id != $2
-        AND NOT EXISTS(
-          SELECT 1 FROM connection_service.blocked_users b
-          WHERE (b.user_id = $2 AND b.blocked_user_id = u.user_id)
-             OR (b.user_id = u.user_id AND b.blocked_user_id = $2)
-        )
-    `, [searchQuery, currentUserId]);
-
-    return {
-      data: result.rows,
-      pagination: {
-        total: parseInt(countResult.rows[0].count),
-        page,
-        limit
-      }
-    };
-  }
+      const result = await db.query(`
+        SELECT 
+          u.user_id, 
+          u.first_name, 
+          u.last_name,
+          u.profile_picture_id,
+          u.bio,
+          u.industry,
+          u.location,
+          ts_rank_cd(
+            setweight(to_tsvector('english', coalesce(first_name, '')), 'A') ||
+            setweight(to_tsvector('english', coalesce(last_name, '')), 'A') ||
+            setweight(to_tsvector('english', coalesce(industry, '')), 'B') ||
+            setweight(to_tsvector('english', coalesce(bio, '')), 'C'),
+            to_tsquery('english', $1)
+          ) as search_rank
+        FROM user_service.profiles u
+        WHERE 
+          (
+            -- Full text search with weighted terms
+            to_tsvector('english',
+              coalesce(first_name, '') || ' ' ||
+              coalesce(last_name, '') || ' ' ||
+              coalesce(industry, '') || ' ' ||
+              coalesce(bio, '')
+            ) @@ to_tsquery('english', $1)
+            -- Fallback to ILIKE for partial matches
+            OR lower(first_name) LIKE lower($2)
+            OR lower(last_name) LIKE lower($2)
+            OR lower(industry) LIKE lower($2)
+          )
+          AND u.user_id != $3
+          AND NOT EXISTS(
+            SELECT 1 FROM connection_service.blocked_users b
+            WHERE (b.user_id = $3 AND b.blocked_user_id = u.user_id)
+               OR (b.user_id = u.user_id AND b.blocked_user_id = $3)
+          )
+        ORDER BY 
+          search_rank DESC,
+          first_name ASC,
+          last_name ASC
+        LIMIT $4 OFFSET $5
+      `, [searchQuery, `%${query}%`, currentUserId, limit, offset]);
+  
+      const countResult = await db.query(`
+        SELECT COUNT(*) 
+        FROM user_service.profiles u
+        WHERE 
+          (
+            to_tsvector('english',
+              coalesce(first_name, '') || ' ' ||
+              coalesce(last_name, '') || ' ' ||
+              coalesce(industry, '') || ' ' ||
+              coalesce(bio, '')
+            ) @@ to_tsquery('english', $1)
+            OR lower(first_name) LIKE lower($2)
+            OR lower(last_name) LIKE lower($2)
+            OR lower(industry) LIKE lower($2)
+          )
+          AND u.user_id != $3
+          AND NOT EXISTS(
+            SELECT 1 FROM connection_service.blocked_users b
+            WHERE (b.user_id = $3 AND b.blocked_user_id = u.user_id)
+               OR (b.user_id = u.user_id AND b.blocked_user_id = $3)
+          )
+      `, [searchQuery, `%${query}%`, currentUserId]);
+  
+      return {
+        data: result.rows,
+        pagination: {
+          total: parseInt(countResult.rows[0].count),
+          page,
+          limit
+        }
+      };
+    }
 
   // Connection management
   async sendConnectionRequest(params: {
