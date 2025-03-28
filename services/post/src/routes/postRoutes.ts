@@ -21,6 +21,8 @@ import {
   updateComment,
   removeTag,
   getTaggedUsers,
+  reportPost, 
+  deleteReport 
 } from "../controllers/postController";
 
 const upload = multer({
@@ -61,4 +63,10 @@ router.post("/:postId/save", authenticateToken, savePost);
 router.post("/tags", authenticateToken, tagUsers);
 router.get('/:contentType/:contentId/tags', authenticateToken, getTaggedUsers);
 router.delete('/tags/:tagId', authenticateToken, removeTag);
+
+// Report routes
+router.post("/:postId/report", authenticateToken, reportPost); // Report a post
+// router.get("/reports", authenticateToken, aaa); // Get all reports (Admin)
+router.delete("/reports/:reportId", authenticateToken, deleteReport); // Delete a report (Admin)
+
 export default router;

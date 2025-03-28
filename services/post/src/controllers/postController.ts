@@ -481,3 +481,74 @@ export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
     });
   }
 };
+
+enum ReportReason {
+  SPAM = "spam",
+  HARASSMENT = "harassment",
+  VIOLENCE = "violence",
+  HATE_SPEECH = "hate_speech",
+  MISINFORMATION = "misinformation",
+  OTHER = "other",
+}
+export const reportPost = async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user!.id;
+  const postId = Number(req.params.postId);
+  const { reason, description } = req.body;
+
+  if (isNaN(postId)) {
+    return res.status(400).json({ success: false, error: "Invalid post ID" });
+  }
+
+  if (!Object.values(ReportReason).includes(reason)) {
+    return res.status(400).json({ success: false, error: "Invalid report reason" });
+  }
+
+  try {
+    const report = await postService.createReport({
+      userId,
+      postId,
+      reason,
+      description: description?.trim() || null,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: report,
+      message: "Post reported successfully",
+    });
+  } catch (error) {
+    console.error("Error reporting post:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+
+
+export const deleteReport = async (req: AuthenticatedRequest, res: Response) => {
+  const reportId = Number(req.params.reportId);
+  const userId = req.user!.id;
+  // const isAdmin = req.user!.role === "admin"; // Assuming role exists in `req.user`
+  const isAdmin = true // Temp until someone implements the user roles
+  if (isNaN(reportId)) {
+    return res.status(400).json({ success: false, error: "Invalid report ID" });
+  }
+
+  try {
+    const report = await postService.getReportById(reportId);
+
+    if (!report) {
+      return res.status(404).json({ success: false, error: "Report not found" });
+    }
+
+    if (report.reporter_id !== userId && !isAdmin) {
+      return res.status(403).json({ success: false, error: "Unauthorized to delete this report" });
+    }
+
+    await postService.deleteReport(reportId);
+
+    res.json({ success: true, message: "Report deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting report:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};

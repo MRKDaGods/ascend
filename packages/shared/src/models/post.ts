@@ -1,11 +1,30 @@
 export enum MediaType {
-  IMAGE = 'image',
-  VIDEO = 'video',
-  DOCUMENT = 'document',
-  LINK = 'link'
+  IMAGE = "image",
+  VIDEO = "video",
+  DOCUMENT = "document",
+  LINK = "link",
+}
+export enum ReportReason {
+  SPAM = "spam",
+  HARASSMENT = "harassment",
+  VIOLENCE = "violence",
+  HATE_SPEECH = "hate_speech",
+  MISINFORMATION = "misinformation",
+  OTHER = "other",
 }
 
-export interface Media { // 1:N with Post
+export interface Report {
+  // Reports for inappropriate content
+  id: number;
+  reporter_id: number;
+  post_id: number;
+  reason: ReportReason;
+  comment?: string;
+  created_at: Date;
+}
+
+export interface Media {
+  // 1:N with Post
   id: number;
   post_id: number;
   url: string;
@@ -17,7 +36,8 @@ export interface Media { // 1:N with Post
   updated_at: Date;
 }
 
-export interface Post { // 1:N with User
+export interface Post {
+  // 1:N with User
   id: number;
   user_id: number;
   content: string;
@@ -33,7 +53,7 @@ export interface Post { // 1:N with User
   user?: UserBrief;
 }
 
-export type PostPrivacy = 'public' | 'connections' | 'private';
+export type PostPrivacy = "public" | "connections" | "private";
 
 export interface UserBrief {
   id: number;
@@ -42,14 +62,16 @@ export interface UserBrief {
   profile_picture_url: string | null;
 }
 
-export interface Like { // M:N between User and Post
+export interface Like {
+  // M:N between User and Post
   id: number;
   user_id: number;
   post_id: number;
   created_at: Date;
 }
 
-export interface Comment { // 1:N with Post, self-referential for replies
+export interface Comment {
+  // 1:N with Post, self-referential for replies
   id: number;
   post_id: number;
   user_id: number;
@@ -58,7 +80,8 @@ export interface Comment { // 1:N with Post, self-referential for replies
   is_edited: boolean;
   created_at: Date;
   updated_at: Date;
-  user?: { // Injected
+  user?: {
+    // Injected
     id: number;
     first_name: string;
     last_name: string;
@@ -67,7 +90,8 @@ export interface Comment { // 1:N with Post, self-referential for replies
   replies?: Comment[]; // Injected for nested comments
 }
 
-export interface Share { // Reposts
+export interface Share {
+  // Reposts
   id: number;
   user_id: number;
   post_id: number;
@@ -76,7 +100,8 @@ export interface Share { // Reposts
   created_at: Date;
 }
 
-export interface UserTag { // M:N between User and Post/Comment
+export interface UserTag {
+  // M:N between User and Post/Comment
   id: number;
   user_id: number;
   post_id?: number;
@@ -84,7 +109,8 @@ export interface UserTag { // M:N between User and Post/Comment
   created_at: Date;
 }
 
-export interface SavedPost { // M:N between User and Post
+export interface SavedPost {
+  // M:N between User and Post
   id: number;
   user_id: number;
   post_id: number;
@@ -100,7 +126,7 @@ export interface PostEngagement {
 }
 
 export interface FeedItemType {
-  type: 'post' | 'share' | 'recommendation';
+  type: "post" | "share" | "recommendation";
   item: Post | Share;
   created_at: Date;
 }
