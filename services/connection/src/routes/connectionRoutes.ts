@@ -1,6 +1,5 @@
 import { Router } from "express";
 import authenticateToken from "@shared/middleware/authMiddleware";
-import multer from "multer";
 import {
   searchUsers,
   sendConnectionRequest,
