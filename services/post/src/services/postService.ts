@@ -817,7 +817,10 @@ export class PostService {
       throw new Error("Tag positions overlap");
     }
   }
-  async getTaggedUsers(params: { contentType: "post" | "comment"; contentId: number }) {
+  async getTaggedUsers(params: {
+    contentType: "post" | "comment";
+    contentId: number;
+  }) {
     const result = await db.query(
       `SELECT ut.tagged_user_id, p.first_name, ut.start_index, ut.end_index
        FROM post_service.user_tags ut
@@ -835,7 +838,87 @@ export class PostService {
     if (result.rowCount === 0) throw new Error("Tag not found or unauthorized");
     return result.rows[0];
   }
+   // Create a report for a post
+   async createReport({
+    userId,
+    postId,
+    reason,
+    description,
+  }: {
+    userId: number;
+    postId: number;
+    reason: string;
+    description?: string;
+  }) {
+    const result = await db.query(
+      `INSERT INTO post_service.reports (reporter_id, post_id, reason, description, status, created_at)
+       VALUES ($1, $2, $3, $4, 'pending', NOW()) RETURNING *`,
+      [userId, postId, reason, description || null]
+    );
+
+    return result.rows[0];
+  }
+
+  // Get all reports with pagination and optional status filter
+  async getReports({
+    limit,
+    offset,
+    status,
+  }: {
+    limit: number;
+    offset: number;
+    status?: string;
+  }) {
+
   
+
+    let query = `SELECT * FROM post_service.reports`;
+    const params: any[] = [];
+
+    if (status) {
+      query += ` WHERE status = $1`;
+      params.push(status);
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.query(query, params);
+    return result.rows;
+  }
+
+  // Get the total number of reports (for pagination)
+  async getReportsCount(status?: string) {
+    let query = `SELECT COUNT(*) FROM post_service.reports`;
+    const params: any[] = [];
+
+    if (status) {
+      query += ` WHERE status = $1`;
+      params.push(status);
+    }
+
+    const result = await db.query(query, params);
+    return parseInt(result.rows[0].count, 10);
+  }
+
+  // Get a specific report by ID
+  async getReportById(reportId: number) {
+    const result = await db.query(
+      `SELECT * FROM post_service.reports WHERE id = $1`,
+      [reportId]
+    );
+
+    return result.rows[0] || null;
+  }
+
+  // Delete a report
+  async deleteReport(reportId: number) {
+    const result = await db.query(
+      `DELETE FROM post_service.reports WHERE id = $1`,
+      [reportId]
+    );
+    return (result.rowCount ?? 0) > 0 ? undefined : 0;
+  }
 }
 
 function checkForOverlaps(tags: TagPosition[]): boolean {
