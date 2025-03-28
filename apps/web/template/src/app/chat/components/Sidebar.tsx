@@ -45,17 +45,15 @@ export default function Sidebar(){
        <Drawer variant="permanent"  
        sx={{
         width:{xs:250,md:"30%"},
-        maxWidth:400,
+        maxWidth:350,
         flexShrink:0,
-        maskPosition:"fixed",
-        top:"64px",
+  
         "& .MuiDrawer-paper": 
        {
             width:{xs:250,md:"30%"},
-            boxSizing: 'border-box'},
-       height: "calc(100vh - 64px)",
-       marginTop:"64px",
-       position:"relative" 
+            boxSizing: 'border-box',
+            maxWidth: 350},
+           
        }}>
         <Box sx={{p:2, bgcolor:"#f5f5f5", }}>
             <Typography variant="h6">Chats</Typography>

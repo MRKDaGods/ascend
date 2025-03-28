@@ -1,18 +1,9 @@
 import {create} from "zustand";
 import { conversation } from "../components/Sidebar";
+import { messageProps } from "../components/Message";
 
 
-type message ={
-    id: number;
-    sender: string;
-    content:string;
-    media: null | {
-        type: "image" | "video" | "document";
-        url: string;
-        fileName?: string;
-    };
-    timestamp: string;
-}
+
 
 //should include all global states related to chat
 
@@ -22,9 +13,9 @@ type chatStore ={
     setSelectedConversationId: (id: number | null) => void;
     conversations: conversation[],
     setConversations: (convos: conversation[])=>void;
-    displayedMessages: message[];
+    displayedMessages: messageProps[];
     //momken msgs tekoon fn betakhod el previous msg array w t return a new one (updater fn)
-    setDisplayedMessages: (msgs: message[] | ((prev: message[])=>message[]))=>void;
+    setDisplayedMessages: (msgs: messageProps[] | ((prev: messageProps[])=>messageProps[]))=>void;
     page: number;
     setPage: (newPage: number)=>void;
     resetPage: ()=>void;
