@@ -367,24 +367,22 @@ export class PostService {
        FROM post_service.posts p
        JOIN user_service.profiles u ON p.user_id = u.user_id
        WHERE (
-         -- Public posts
-         p.privacy = 'public'
-         -- Posts from connections
-         OR (p.privacy IN ('public', 'connections') 
-             AND EXISTS (
-               SELECT 1 FROM connection_service.connections c
-               WHERE ((c.user_id = $1 AND c.connection_id = p.user_id)
-                  OR (c.connection_id = $1 AND c.user_id = p.user_id))
-               AND c.status = 'accepted'
-             ))
-         -- Posts from users being followed
+         -- Posts from connections (both public and connections-only)
+         (p.privacy IN ('public', 'connections') 
+          AND EXISTS (
+            SELECT 1 FROM connection_service.connections c
+            WHERE ((c.user_id = $1 AND c.connection_id = p.user_id)
+               OR (c.connection_id = $1 AND c.user_id = p.user_id))
+            AND c.status = 'accepted'
+          ))
+         -- Posts from users being followed (only public posts)
          OR (p.privacy = 'public' 
              AND EXISTS (
                SELECT 1 FROM connection_service.follows f
                WHERE f.follower_id = $1 AND f.following_id = p.user_id
              ))
-         -- User's own private posts
-         OR (p.privacy = 'private' AND p.user_id = $1)
+         -- User's own posts (including private ones)
+         OR p.user_id = $1
        )
        -- Exclude posts from blocked users
        AND NOT EXISTS (
@@ -401,9 +399,9 @@ export class PostService {
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset]
     );
-
+  
     const feed = result.rows;
-
+  
     // Enhance feed items with engagement metrics
     for (const item of feed) {
       item.media = await this.getPostMedia(item.id);
@@ -411,7 +409,7 @@ export class PostService {
       item.comments_count = await this.getPostCommentsCount(item.id);
       item.shares_count = await this.getPostSharesCount(item.id);
     }
-
+  
     return feed;
   }
 
