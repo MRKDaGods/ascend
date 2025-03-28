@@ -7,8 +7,11 @@ class Connections extends StatelessWidget {
   final List<UserModel> connections;
   final Function(String) onRemove;
 
-  Connections({Key? key, required this.connections, required this.onRemove})
-    : super(key: key);
+  const Connections({
+    super.key,
+    required this.connections,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {

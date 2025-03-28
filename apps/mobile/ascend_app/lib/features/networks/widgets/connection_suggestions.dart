@@ -11,30 +11,30 @@ class ConnectionSuggestions extends StatefulWidget {
   final bool ShowAll;
 
   const ConnectionSuggestions({
-    Key? key,
+    super.key,
     required this.suggestedUsers,
     required this.connectionsMap,
     required this.onSend,
     required this.ShowAll,
-  }) : super(key: key);
+  });
 
   @override
   _ConnectionSuggestionsState createState() => _ConnectionSuggestionsState();
 }
 
 class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
-  late List<UserModel> localsuggestedUsers;
+  List<UserModel> localsuggestedUsers = [];
   final Set<String> connectedUsers = {};
 
   @override
   void initState() {
     super.initState();
-    localsuggestedUsers = List.from(widget.suggestedUsers);
   }
 
   void _handleConnect(String userId) {
     setState(() {
       connectedUsers.add(userId);
+      localsuggestedUsers.removeWhere((user) => user.id == userId);
     });
     widget.onSend(userId); // Trigger the onSend callback
   }
@@ -42,12 +42,11 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
   @override
   void dispose() {
     super.dispose();
-    localsuggestedUsers.clear();
-    print("Disposed");
   }
 
   @override
   Widget build(BuildContext context) {
+    localsuggestedUsers = widget.suggestedUsers;
     final double screenWidth = MediaQuery.of(context).size.width;
     final double mainAxisExtent =
         screenWidth > 600 ? 400 : 320; // Adjust dynamically

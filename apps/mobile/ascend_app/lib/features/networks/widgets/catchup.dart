@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CatchUp extends StatelessWidget {
-  const CatchUp({Key? key}) : super(key: key);
+  const CatchUp({super.key});
 
   @override
   Widget build(BuildContext context) {

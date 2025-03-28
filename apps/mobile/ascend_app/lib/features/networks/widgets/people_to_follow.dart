@@ -7,18 +7,16 @@ class PeopleToFollow extends StatefulWidget {
   final Map<String, List<UserModel>> mutualUsers;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
-  final Function(String) onHide;
   final bool showAll;
 
   const PeopleToFollow({
-    Key? key,
+    super.key,
     required this.users,
     required this.mutualUsers,
     required this.onFollow,
     required this.onUnfollow,
-    required this.onHide,
     required this.showAll,
-  }) : super(key: key);
+  });
   @override
   _PeopleToFollowState createState() => _PeopleToFollowState();
 }
@@ -32,38 +30,57 @@ class _PeopleToFollowState extends State<PeopleToFollow> {
     localUsers = List.from(widget.users); // Initialize the local list
   }
 
+  void _handleFollow(String userId) {
+    setState(() {
+      localUsers.removeWhere(
+        (user) => user.id == userId,
+      ); // Remove the user locally
+    });
+    widget.onFollow(userId); // Trigger the onFollow callback
+  }
+
   void _handleHide(String userId) {
     setState(() {
       localUsers.removeWhere(
         (user) => user.id == userId,
       ); // Remove the user locally
     });
-    widget.onHide(userId); // Trigger the onHide callback
   }
 
   @override
   Widget build(BuildContext context) {
+    // Dynamically calculate the number of users to display
     int countFollows =
         widget.showAll
             ? localUsers.length
             : localUsers.length > 2
             ? 2
             : localUsers.length;
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 8.0,
-      children:
-          localUsers.take(countFollows).map((user) {
-            List<UserModel> mutuals = widget.mutualUsers[user.id] ?? [];
-            return SingleFollow(
-              key: ValueKey(user.id),
-              user: user,
-              mutualUsers: mutuals,
-              onFollow: widget.onFollow,
-              onUnfollow: widget.onUnfollow,
-              onHide: widget.onHide,
-            );
-          }).toList(),
+
+    return ListView(
+      shrinkWrap: true, // Allow the ListView to wrap its content
+      physics: const NeverScrollableScrollPhysics(), // Disable scrolling
+      children: [
+        Column(
+          children:
+              localUsers.take(countFollows).map((user) {
+                List<UserModel> mutuals = widget.mutualUsers[user.id] ?? [];
+                return Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 8.0,
+                  ), // Add spacing between items
+                  child: SingleFollow(
+                    key: ValueKey(user.id),
+                    user: user,
+                    mutualUsers: mutuals,
+                    onFollow: _handleFollow,
+                    onUnfollow: widget.onUnfollow,
+                    onHide: _handleHide, // Use the local hide handler
+                  ),
+                );
+              }).toList(),
+        ),
+      ],
     );
   }
 }

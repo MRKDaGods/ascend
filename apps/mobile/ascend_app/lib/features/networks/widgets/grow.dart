@@ -107,9 +107,11 @@ class _GrowState extends State<Grow> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                          'Invitations (${invitationsReceived.length})',
+                          invitationsReceived.isNotEmpty
+                              ? 'Invitations (${invitationsReceived.length})'
+                              : 'Invitations',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -144,7 +146,7 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 1),
+                      const Divider(thickness: 3, height: 0),
                       ConnectionRequestsReceivedListPartial(
                         invitations: invitationsReceived,
                         pendingRequestsReceived:
@@ -160,7 +162,9 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 1, height: 16),
+                      if (invitationsReceived.isNotEmpty)
+                        const SizedBox(height: 20),
+                      const Divider(thickness: 3, height: 0),
                       // Manage Your Network Section
                       ListTile(
                         contentPadding: EdgeInsets.zero,
@@ -198,8 +202,9 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 1, height: 16),
-                      const Divider(thickness: 1, height: 16),
+                      const Divider(thickness: 3, height: 0),
+                      SizedBox(height: 20),
+                      const Divider(thickness: 3, height: 0),
                       // People to Follow Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,7 +214,7 @@ class _GrowState extends State<Grow> {
                             child: Text(
                               'People to follow based on your activity',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -228,16 +233,12 @@ class _GrowState extends State<Grow> {
                                 UnfollowUser(userId: userId),
                               );
                             },
-                            onHide: (userId) {
-                              context.read<FollowBloc>().add(
-                                HideUser(userId: userId),
-                              );
-                            },
                             showAll: false,
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
+                      //See All button
                       ListTile(
                         onTap: () {
                           Navigator.of(context).push(
@@ -264,11 +265,7 @@ class _GrowState extends State<Grow> {
                                         UnfollowUser(userId: userId),
                                       );
                                     },
-                                    onHide: (userId) {
-                                      context.read<FollowBloc>().add(
-                                        HideUser(userId: userId),
-                                      );
-                                    },
+
                                     showAll: true,
                                   ),
                                 );
@@ -287,7 +284,9 @@ class _GrowState extends State<Grow> {
                           ),
                         ),
                       ),
-                      const Divider(thickness: 1, height: 16),
+                      const Divider(thickness: 3, height: 16),
+                      const SizedBox(height: 20),
+                      const Divider(thickness: 3, height: 0),
                       // Suggested Users Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,13 +294,15 @@ class _GrowState extends State<Grow> {
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 4),
                             child: Text(
-                              'Suggested Connections',
+                              'People to connect based on your activity',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
+
+                          // Connection Suggestions widget
                           ConnectionSuggestions(
                             suggestedUsers: getSuggestedConnections,
                             connectionsMap: getAllconnections,

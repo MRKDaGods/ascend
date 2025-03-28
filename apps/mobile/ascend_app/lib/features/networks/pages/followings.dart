@@ -10,11 +10,11 @@ class Followings extends StatelessWidget {
   final Function(String) onUnFollow;
 
   const Followings({
-    Key? key,
+    super.key,
     required this.followingUsers,
     required this.onFollow,
     required this.onUnFollow,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

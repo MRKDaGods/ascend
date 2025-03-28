@@ -11,13 +11,13 @@ class SingleFollow extends StatefulWidget {
   final Function(String) onHide;
 
   const SingleFollow({
-    Key? key,
+    super.key,
     required this.user,
     required this.mutualUsers,
     required this.onFollow,
     required this.onUnfollow,
     required this.onHide,
-  }) : super(key: key);
+  });
 
   @override
   _FollowState createState() => _FollowState();

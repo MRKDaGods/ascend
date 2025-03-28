@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class NetworkInvitesSettingsPage extends StatefulWidget {
+  const NetworkInvitesSettingsPage({super.key});
+
   @override
   _NetworkInvitesSettingsPageState createState() =>
       _NetworkInvitesSettingsPageState();

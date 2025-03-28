@@ -8,19 +8,17 @@ class RecommendedToFollow extends StatefulWidget {
   final Map<String, List<UserModel>> mutualUsers;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
-  final Function(String) onHide;
   final bool showAll;
 
   const RecommendedToFollow({
-    Key? key,
+    super.key,
     required this.Message,
     required this.users,
     required this.mutualUsers,
     required this.onFollow,
     required this.onUnfollow,
-    required this.onHide,
     required this.showAll,
-  }) : super(key: key);
+  });
 
   @override
   _RecommendedToFollowState createState() => _RecommendedToFollowState();
@@ -70,9 +68,6 @@ class _RecommendedToFollowState extends State<RecommendedToFollow> {
                 },
                 onUnfollow: (userId) {
                   widget.onUnfollow(userId);
-                },
-                onHide: (userId) {
-                  widget.onHide(userId);
                 },
                 showAll: true,
               ),

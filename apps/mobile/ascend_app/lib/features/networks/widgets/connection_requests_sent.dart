@@ -3,18 +3,42 @@ import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import 'package:ascend_app/features/networks/widgets/custom_filter_chip.dart';
+import 'package:ascend_app/features/networks/utils/connection_request_sent_filter.dart';
+import 'package:ascend_app/features/networks/utils/enums.dart';
 
-class ConnectionRequestsSent extends StatelessWidget {
+class ConnectionRequestsSent extends StatefulWidget {
   final List<UserModel> invitations;
   final List<ConnectionRequestModel> pendingRequestsSent;
   final Function(String) onRemove;
 
   const ConnectionRequestsSent({
-    Key? key,
+    super.key,
     required this.invitations,
     required this.pendingRequestsSent,
     required this.onRemove,
-  }) : super(key: key);
+  });
+
+  @override
+  _ConnectionRequestsSentState createState() => _ConnectionRequestsSentState();
+}
+
+class _ConnectionRequestsSentState extends State<ConnectionRequestsSent>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  List<bool> isSelectedList = [true, false, false];
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this); // 3 tabs
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,84 +47,72 @@ class ConnectionRequestsSent extends StatelessWidget {
         if (state is ConnectionRequestSuccess) {
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text(
-                    'All (${state.pendingRequestsSent.length})',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      CustomFilterChip(
+                        labelText:
+                            'People (${state.pendingRequestsSent.length})',
+                        isSelected: isSelectedList[0],
+                        onSelected: () {
+                          setState(() {
+                            isSelectedList = [true, false, false];
+                            _tabController.animateTo(0);
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      CustomFilterChip(
+                        labelText: 'Pages (0)',
+                        isSelected: isSelectedList[1],
+                        onSelected: () {
+                          setState(() {
+                            isSelectedList = [false, true, false];
+                            _tabController.animateTo(1);
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      CustomFilterChip(
+                        labelText: 'Events (0)',
+                        isSelected: isSelectedList[2],
+                        onSelected: () {
+                          setState(() {
+                            isSelectedList = [false, false, true];
+                            _tabController.animateTo(2);
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
-              if (invitations.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('No invitations sent'),
+              const Divider(thickness: 1),
+              if (isSelectedList[0]) ...[
+                buildSent(
+                  widget.invitations,
+                  state.pendingRequestsSent,
+                  widget.onRemove,
+                  ConnectionRequestSentFilterMode.People,
                 ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: invitations.length,
-                  itemBuilder: (context, index) {
-                    final invitation = invitations[index];
-                    final connectionRequest = state.pendingRequestsSent
-                        .firstWhere(
-                          (element) => element.receiverId == invitation.id,
-                          orElse:
-                              () => ConnectionRequestModel(
-                                requestId: '',
-                                senderId: '',
-                                receiverId: '',
-                                timestamp: DateTime.now().toIso8601String(),
-                                status: '',
-                              ),
-                        );
-
-                    if (connectionRequest.requestId != '') {
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage:
-                              invitation.profilePic.startsWith('http')
-                                  ? NetworkImage(invitation.profilePic)
-                                  : AssetImage(invitation.profilePic)
-                                      as ImageProvider,
-                        ),
-                        title: Text(invitation.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              invitation.bio,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              connectionRequest.timestamp,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: TextButton(
-                          onPressed:
-                              () => onRemove(connectionRequest.requestId),
-                          child: const Text('Withdraw'),
-                        ),
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
+              ] else if (isSelectedList[1]) ...[
+                buildSent(
+                  widget.invitations,
+                  state.pendingRequestsReceived,
+                  widget.onRemove,
+                  ConnectionRequestSentFilterMode.Pages,
                 ),
-              ),
+              ] else if (isSelectedList[2]) ...[
+                buildSent(
+                  widget.invitations,
+                  state.pendingRequestsReceived,
+                  widget.onRemove,
+                  ConnectionRequestSentFilterMode.Events,
+                ),
+              ],
             ],
           );
         } else {
