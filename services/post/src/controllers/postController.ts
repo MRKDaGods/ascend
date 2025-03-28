@@ -16,8 +16,8 @@ import {
 // Feed Controllers
 export const getFeed = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 10;
+  const page = parseInt(String(req.query.page).trim()) || 1;
+  const limit = parseInt(String(req.query.limit).trim()) || 10;
 
   try {
     const feed = await postService.getFeed(userId, limit, (page - 1) * limit);

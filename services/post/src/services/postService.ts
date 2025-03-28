@@ -356,24 +356,48 @@ export class PostService {
     offset: number = 0
   ): Promise<FeedItemType[]> {
     const result = await db.query(
-      `SELECT p.*, 
+      `SELECT DISTINCT ON (p.id) p.*, 
         'post' as type,
         json_build_object(
           'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_id
+          'profile_picture_id', u.profile_picture_id
         ) as user
        FROM post_service.posts p
        JOIN user_service.profiles u ON p.user_id = u.user_id
-       WHERE p.privacy = 'public'
-         OR (p.privacy = 'connections' AND EXISTS (
-           SELECT 1 FROM user_service.connections 
-           WHERE (user_id1 = $1 AND user_id2 = p.user_id)
-              OR (user_id2 = $1 AND user_id1 = p.user_id)
-         ))
+       WHERE (
+         -- Public posts
+         p.privacy = 'public'
+         -- Posts from connections
+         OR (p.privacy IN ('public', 'connections') 
+             AND EXISTS (
+               SELECT 1 FROM connection_service.connections c
+               WHERE ((c.user_id = $1 AND c.connection_id = p.user_id)
+                  OR (c.connection_id = $1 AND c.user_id = p.user_id))
+               AND c.status = 'accepted'
+             ))
+         -- Posts from users being followed
+         OR (p.privacy = 'public' 
+             AND EXISTS (
+               SELECT 1 FROM connection_service.follows f
+               WHERE f.follower_id = $1 AND f.following_id = p.user_id
+             ))
+         -- User's own private posts
          OR (p.privacy = 'private' AND p.user_id = $1)
-       ORDER BY p.created_at DESC
+       )
+       -- Exclude posts from blocked users
+       AND NOT EXISTS (
+         SELECT 1 FROM connection_service.blocked_users b
+         WHERE (b.user_id = $1 AND b.blocked_user_id = p.user_id)
+            OR (b.blocked_user_id = $1 AND b.user_id = p.user_id)
+       )
+       -- Exclude reported posts by this user
+       AND NOT EXISTS (
+         SELECT 1 FROM post_service.reports r
+         WHERE r.post_id = p.id AND r.reporter_id = $1
+       )
+       ORDER BY p.id, p.created_at DESC
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset]
     );
@@ -651,9 +675,9 @@ export class PostService {
        FROM post_service.posts p
        WHERE p.privacy = 'public'
          OR (p.privacy = 'connections' AND EXISTS (
-           SELECT 1 FROM user_service.connections 
-           WHERE (user_id1 = $1 AND user_id2 = p.user_id)
-              OR (user_id2 = $1 AND user_id1 = p.user_id)
+           SELECT 1 FROM connection_service.connections 
+           WHERE (user_id = $1 AND connection_id = p.user_id)
+              OR (connection_id = $1 AND user_id = p.user_id)
          ))
          OR (p.privacy = 'private' AND p.user_id = $1)`,
       [userId]
@@ -838,8 +862,8 @@ export class PostService {
     if (result.rowCount === 0) throw new Error("Tag not found or unauthorized");
     return result.rows[0];
   }
-   // Create a report for a post
-   async createReport({
+  // Create a report for a post
+  async createReport({
     userId,
     postId,
     reason,
@@ -869,9 +893,6 @@ export class PostService {
     offset: number;
     status?: string;
   }) {
-
-  
-
     let query = `SELECT * FROM post_service.reports`;
     const params: any[] = [];
 
@@ -880,7 +901,9 @@ export class PostService {
       params.push(status);
     }
 
-    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${
+      params.length + 2
+    }`;
     params.push(limit, offset);
 
     const result = await db.query(query, params);

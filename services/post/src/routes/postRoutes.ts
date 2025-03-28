@@ -33,7 +33,7 @@ const upload = multer({
 const router = Router();
 
 // Feed routes
-router.get("/feed", authenticateToken, getFeed);
+router.get("/feed", authenticateToken, upload.none(),getFeed);
 router.get("/search", authenticateToken,upload.none(),searchPosts);
 router.get("/saved", authenticateToken, getSavedPosts);
 
