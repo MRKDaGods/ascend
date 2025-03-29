@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
-
+import 'package:ascend_app/features/UserPage/user_page.dart';
+import 'package:ascend_app/features/UserPage/Data/dummy_profile_sections.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -13,14 +14,21 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+  bool isDarkMode = false;
+  late final List<Widget> _pages;
 
-  final List<Widget> _pages = const [
-    Home(),
-    Center(child: Text("Video")),
-    Networks(),
-    Center(child: Text("Notifications")),
-    JobApp(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      Home(),
+      //Center(child: Text("Video")),
+      UserProfilePage(sections: sections),
+      Networks(),
+      Center(child: Text("Notifications")),
+      JobApp(isDarkMode: isDarkMode),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
