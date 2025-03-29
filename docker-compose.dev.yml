@@ -21,6 +21,13 @@ services:
     environment:
       - NODE_ENV=development
 
+  company:
+    volumes:
+      - ./services/company:/app/services/company
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
   file:
     volumes:
       - ./services/file:/app/services/file

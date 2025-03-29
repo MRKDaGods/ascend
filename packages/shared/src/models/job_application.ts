@@ -17,7 +17,6 @@ export enum ApplicationStatus {
  * @property {number} user_id - ID of the user who submitted the application
  * @property {Date} applied_at - Timestamp when the application was submitted
  * @property {ApplicationStatus} status - Current status of the job application
- * @property {boolean} is_active - Boolean indicating whether both the job and the user are still in the system
  */
 export interface JobApplication {
     application_id: number;
@@ -25,5 +24,4 @@ export interface JobApplication {
     user_id: number;
     applied_at: Date;
     status: ApplicationStatus;
-    is_active: boolean;
 };
