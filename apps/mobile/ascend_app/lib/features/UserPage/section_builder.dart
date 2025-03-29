@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
-import 'edit_section_page.dart';
+import 'expanded_section_page.dart';
 import 'edit_entry_page.dart';
 import 'profile_entry.dart';
 
@@ -63,13 +63,18 @@ class _SectionBuilderState extends State<SectionBuilder> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (!widget.isExpanded)
-                    Text(
-                      widget.section.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        Text(
+                          widget.section.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   // Icons for Editing and Adding Items
                   if (widget.isMyProfile &&
@@ -96,6 +101,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                                 builder:
                                     (context) => EditSectionPage(
                                       section: widget.section,
+                                      isMyProfile: widget.isMyProfile,
                                     ),
                               ),
                             );
@@ -145,45 +151,19 @@ class _SectionBuilderState extends State<SectionBuilder> {
               ],
 
               // "Show All" Button if more content exists
-              if (hasMoreThanLimit || widget.section.title == "Analytics")
+              if ((hasMoreThanLimit || widget.section.title == "Analytics") &&
+                  !widget.isExpanded)
                 GestureDetector(
                   onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          backgroundColor: Colors.black87,
-                          title: Text(
-                            'All ${widget.section.title}',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          content: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children:
-                                  widget.section.content
-                                      .map(
-                                        (item) => Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 5,
-                                          ),
-                                          child: item,
-                                        ),
-                                      )
-                                      .toList(),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => EditSectionPage(
+                              section: widget.section,
+                              isMyProfile: widget.isMyProfile,
                             ),
-                          ),
-                          actions: [
-                            TextButton(
-                              child: const Text(
-                                'Close',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        );
-                      },
+                      ),
                     );
                   },
                   child: Padding(

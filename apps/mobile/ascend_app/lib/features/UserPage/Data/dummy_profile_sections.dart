@@ -54,6 +54,18 @@ List<ProfileSection> sections = [
         description: 'Sep 2014 - Jun 2021',
         imageUrl: 'assets/company_placeholder.png',
       ),
+      ProfileEntryWidget(
+        title: 'Cairo University',
+        subtitle: 'Bachelor of Engineering - Computer Engineering',
+        description: 'Oct 2021 - Jun 2026\nGPA: 3.5',
+        imageUrl: 'assets/cairo_university.png',
+      ),
+      ProfileEntryWidget(
+        title: 'Cairo University',
+        subtitle: 'Bachelor of Engineering - Computer Engineering',
+        description: 'Oct 2021 - Jun 2026\nGPA: 3.5',
+        imageUrl: 'assets/cairo_university.png',
+      ),
     ],
   ),
 
