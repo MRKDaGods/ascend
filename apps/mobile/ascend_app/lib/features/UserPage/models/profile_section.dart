@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-
+import '../profile_entry.dart';
 class ProfileSection {
   final String title;
-  final List<Widget>
+  final List<ProfileEntryWidget>
   content; //can be text(usually one item if text)or list of rows
   final String? text;
 
