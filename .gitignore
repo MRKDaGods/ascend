@@ -1,0 +1,32 @@
+# Flutter/Dart specific ignores
+.dart_tool/
+.packages
+.pub/
+build/
+flutter_*.iml
+
+# macOS specific
+macos/
+ios/Flutter/.last_build_id
+
+# Android specific
+android/.gradle/
+android/.idea/
+android/local.properties
+android/app/
+*.jks
+
+# VS Code settings
+.vscode/
+apps/mobile/ascend_app/.vscode/
+
+# Logs and system files
+*.log
+*.DS_Store
+*.lock
+*.pyc
+*.pyo
+*.swp
+
+# Ascend app specific ignores
+apps/mobile/ascend_app/android/app/

@@ -1,18 +1,147 @@
 import 'package:flutter/material.dart';
+import 'models/profile_section.dart';
+import 'buttons.dart';
+import 'custom_alert_dialog.dart';
+import 'profile_main_images.dart';
+import 'section_builder.dart';
+import 'profile_header.dart';
 
-class UserProfilePage extends StatelessWidget {
-  const UserProfilePage(this.changescreen, {super.key});
-  final void Function(int) changescreen;
+class UserProfilePage extends StatefulWidget {
+  const UserProfilePage({
+    super.key,
+    this.name = 'Maged Amgad',
+    this.bio = "Computer engineering student at Cairo University",
+    this.profileImageUrl = 'https://picsum.photos/500',
+    this.coverImageUrl = 'https://picsum.photos/1500/500',
+    this.location = 'Cairo, Cairo, Egypt',
+    this.latestEducation = 'Cairo University',
+    this.sections = const [],
+    this.isconnect = true,
+    this.isfollow = false,
+    this.isPending = false,
+    this.connections = 15,
+    this.verified = true,
+    this.degree = "1st",
+    this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
+    this.links = const [
+      {"title": "My Portfolio", "url": "https://example.com"},
+      {"title": "GitHub", "url": "https://github.com/MagedWadi"},
+      {"title": " ", "url": "https://example.com"}, // This will be ignored
+    ],
+    this.badges = const ["Open to Work", "Providing Services"],
+  });
+
+  final String name;
+  final bool isconnect;
+  final bool isfollow;
+  final bool isPending;
+  final int connections;
+  final String latestEducation;
+  final String bio;
+  final String profileImageUrl;
+  final String coverImageUrl;
+  final String location;
+  final List<ProfileSection> sections;
+  final bool verified;
+  final String degree;
+  final List<String> mutualConnections;
+  final List<Map<String, String>> links;
+  final List<String> badges;
+
+  @override
+  _UserProfilePageState createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends State<UserProfilePage> {
+  late bool _isConnect;
+  late bool _isFollow;
+  late bool _isPending;
+  late String _degree;
+
+  @override
+  void initState() {
+    super.initState();
+    _isConnect = widget.isconnect;
+    _degree = widget.degree;
+    if (_isConnect) {
+      _isPending = false;
+      _degree = "1st";
+    } else {
+      _degree = "2nd";
+    }
+    _isFollow = widget.isfollow;
+    _isPending = widget.isPending;
+  }
+
+  void _toggleConnect() {
+    setState(() {
+      if (!_isConnect && !_isPending) {
+        _isPending = true; // Change to "Pending"
+      } else if (_isPending) {
+        _isPending = false;
+        _isConnect = true; // Change to "Connected" //inv accepted
+      }
+      if (_isConnect) {
+        _isConnect = false; // remove connection
+      }
+    });
+  }
+
+  void _toggleFollow() {
+    setState(() {
+      _isFollow = !_isFollow;
+    });
+  }
+
+  void _toggleisPending() {
+    setState(() {
+      _isPending = !_isPending;
+    });
+  }
+
+  // Function to show withdraw confirmation dialog
+  void _showWarningDialogForRemovingConnection(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          title: "Remove connection",
+          description:
+              "Are you sure you want to remove ${widget.name} from your connections?",
+          confirmText: "Remove",
+          onConfirm: _toggleConnect,
+        );
+      },
+    );
+  }
+
+  void _showWarningDialogForPending(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          title: "Withdraw invitation",
+          description:
+              "If you withdraw now, you won’t be able to resend to this person for up to 3 weeks.",
+          confirmText: "Withdraw",
+          onConfirm: _toggleisPending,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.black87,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.grey[900],
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => changescreen(0),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         title: Container(
           height: 40,
@@ -21,13 +150,12 @@ class UserProfilePage extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black87),
             decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search, color: Colors.white54),
+              prefixIcon: Icon(Icons.search, color: Colors.black87),
               border: InputBorder.none,
               hintText: 'Search',
-              hintStyle: TextStyle(color: Colors.white54),
-              suffixStyle: TextStyle(color: Colors.white54),
+              hintStyle: TextStyle(color: Colors.black87),
             ),
           ),
         ),
@@ -35,26 +163,9 @@ class UserProfilePage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.bottomLeft,
-              children: [
-                Container(height: 120, color: Colors.grey[800]),
-                Positioned(
-                  left: 20,
-                  bottom: -40,
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.black,
-                    child: CircleAvatar(
-                      radius: 38,
-                      backgroundImage: NetworkImage(
-                        'https://via.placeholder.com/150',
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            ProfileMainImages(
+              profilePic: widget.profileImageUrl,
+              coverPic: widget.coverImageUrl,
             ),
             SizedBox(height: 50),
             Padding(
@@ -62,120 +173,37 @@ class UserProfilePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Hamada Helal',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  ProfileHeader(
+                    name: widget.name,
+                    verified: widget.verified,
+                    degree: _degree,
+                    bio: widget.bio,
+                    location: widget.location,
+                    latestEducation: widget.latestEducation,
+                    connections: widget.connections,
+                    isconnect: _isConnect,
+                    isPending: _isPending,
+                    mutualConnections: widget.mutualConnections,
+                    links: widget.links,
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    'Student at Cairo University',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    'Cairo University\nCairo, Cairo, Egypt',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        label: Text('Connect'),
-                        icon: Icon(Icons.add),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                        ),
-                        onPressed: () {},
-                      ),
-                      SizedBox(width: 10),
-                      OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.white70),
-                        ),
-                        child: Text(
-                          'Message',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
+                  SizedBox(height: 15),
+                  ProfileButtons(
+                    isfollowing: _isFollow,
+                    isConnect: _isConnect,
+                    isPending: _isPending,
+                    toggleConnect: _toggleConnect,
+                    withdrawRequest: _showWarningDialogForPending,
+                    toggleFollow: _toggleFollow,
+                    removeConnection: _showWarningDialogForRemovingConnection,
                   ),
                   SizedBox(height: 30),
-                  // Divider(color: Colors.white38),
-                  _buildSection('Highlights', [
-                    'You both studied at Cairo University from 2021 to 2026',
-                  ]),
-                  _buildSection('Activity', ['Hamada hasn’t posted yet']),
-                  _buildEducation(),
-                  _buildInterests(),
                 ],
               ),
             ),
+            for (var section in widget.sections) buildSection(context, section),
           ],
         ),
       ),
-      bottomNavigationBar: _buildnNavigationBar(),
     );
-  }
-
-  Widget _buildSection(String title, List<String> content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        for (var item in content) ...[
-          SizedBox(height: 5),
-          Text(item, style: TextStyle(color: Colors.white70)),
-          Divider(color: Colors.white38),
-        ],
-        SizedBox(height: 20),
-        // Divider(color: Colors.white38),
-      ],
-    );
-  }
-
-  Widget _buildEducation() {
-    return _buildSection('Education', [
-      'Cairo University\nBachelor of Engineering - Computer Engineering\nOct 2021 - Jun 2026',
-      'Pioneers Language School\nHigh School\nSep 2018 - Jun 2021',
-    ]);
-  }
-
-  Widget _buildnNavigationBar() {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.white60,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: 'My Network'),
-        BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Post'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: 'Notifications',
-        ),
-        BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Jobs'),
-      ],
-    );
-  }
-
-  Widget _buildInterests() {
-    return _buildSection('Interests', [
-      'Cairo University',
-      'Microsoft',
-      'Flutter',
-    ]);
   }
 }

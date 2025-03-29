@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/jobhomepage.dart';
-import 'package:ascend_app/features/Jobs/bookmarked.dart';
+import 'package:ascend_app/features/Jobs/pages/job_home_page.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
+import 'package:ascend_app/theme.dart';
+import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 
 class JobApp extends StatefulWidget {
-  const JobApp({super.key});
+  final bool isDarkMode;
+  const JobApp({super.key, required this.isDarkMode});
 
   @override
   State<JobApp> createState() {
@@ -20,21 +23,46 @@ class _JobAppState extends State<JobApp> {
     });
   }
 
-  void tosavedjobs() {
+  void tosearchbar() {
     setState(() {
-      screen = "bookmarked";
+      screen = "searchbar";
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme =
+        widget.isDarkMode || Theme.of(context).brightness == Brightness.dark;
+
     Widget? activescreen;
     if (screen == "job-home") {
-      activescreen = JobHomePage(tosavedjobs: tosavedjobs);
+      activescreen = JobHomePage(isDarkMode: isDarkTheme);
     }
-    if (screen == "bookmarked") {
-      activescreen = Bookmarked(toalljobs: tojobs);
+    if (screen == "searchbar") {
+      activescreen = JobSearchPage(toalljobs: tojobs);
     }
-    return MaterialApp(home: Scaffold(body: activescreen));
+    return MaterialApp(
+      theme: isDarkTheme ? AppTheme.dark : AppTheme.light,
+      home: Scaffold(
+        backgroundColor: isDarkTheme ? Colors.black : Colors.white,
+        body: DefaultTabController(
+          length: 2,
+          child: CustomScrollView(
+            slivers: [
+              if (screen == "job-home")
+                CustomSliverAppBar(
+                  floating: true,
+                  pinned: true,
+                  showTabBar: false,
+                  jobs: true,
+                  onJobAction: tosearchbar,
+                ),
+
+              SliverFillRemaining(child: activescreen),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

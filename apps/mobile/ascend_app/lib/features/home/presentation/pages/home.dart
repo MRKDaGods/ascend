@@ -1,7 +1,8 @@
-import 'package:ascend_app/features/home/presentation/data/sample_posts.dart';
-import 'package:ascend_app/features/home/presentation/models/post_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post.dart';
-import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart'; // Add this import
+import 'package:ascend_app/features/home/data/sample_posts.dart';
+import 'package:ascend_app/features/home/models/post_model.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
+import 'package:ascend_app/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -67,86 +68,84 @@ class _HomeState extends State<Home> {
   
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // Replace SliverAppBar with your CustomSliverAppBar
-          const CustomSliverAppBar(
-            pinned: false,
-            floating: true,
-            addpost: true,   // Show the post button
+    return AppScaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            const CustomSliverAppBar(
+              pinned: false,
+              floating: true,
+              addpost: true,
             ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                // Show loading indicator at the end
-                if (index == _getDisplayItemCount()) {
-                  return _isLoading
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      : const SizedBox.shrink();
-                }
-              
-                // Check if this position should show a sponsored post
-                // Show sponsored posts at positions 2, 8, 15, etc.
-                if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
-                  _sponsoredPostCounter++;
-                  final sponsoredPost = SamplePosts.getNextSponsoredPost(_sponsoredPostCounter - 1);
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  // Show loading indicator at the end
+                  if (index == _getDisplayItemCount()) {
+                    return _isLoading
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  }
+                  // Check if this position should show a sponsored post
+                  // Show sponsored posts at positions 2, 8, 15, etc.
+                  if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
+                    _sponsoredPostCounter++;
+                    final sponsoredPost = SamplePosts.getNextSponsoredPost(_sponsoredPostCounter - 1);
+                    return Post(
+                      title: sponsoredPost.title,
+                      description: sponsoredPost.description,
+                      images: sponsoredPost.images,
+                      useCarousel: sponsoredPost.useCarousel,
+                      isSponsored: sponsoredPost.isSponsored,
+                      ownerName: sponsoredPost.ownerName,
+                      ownerImageUrl: sponsoredPost.ownerImageUrl,
+                      ownerOccupation: sponsoredPost.ownerOccupation,
+                      timePosted: sponsoredPost.timePosted,
+                      initialLikes: sponsoredPost.initialLikes,
+                      initialComments: sponsoredPost.initialComments,
+                      followers: sponsoredPost.followers,
+                    );
+                  }
+                  // Calculate the actual post index, accounting for sponsored posts
+                  int actualPostIndex = index;
+                  if (index > 2) actualPostIndex--;
+                  if (index > 8) actualPostIndex--;
+                  if (index > 10) {
+                    actualPostIndex -= ((index - 10) / 7).floor();
+                  }
+                  
+                  if (actualPostIndex >= _posts.length) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  final post = _posts[actualPostIndex];
                   
                   return Post(
-                    title: sponsoredPost.title,
-                    description: sponsoredPost.description,
-                    images: sponsoredPost.images,
-                    useCarousel: sponsoredPost.useCarousel,
-                    isSponsored: sponsoredPost.isSponsored,
-                    ownerName: sponsoredPost.ownerName,
-                    ownerImageUrl: sponsoredPost.ownerImageUrl,
-                    ownerOccupation: sponsoredPost.ownerOccupation,
-                    timePosted: sponsoredPost.timePosted,
-                    initialLikes: sponsoredPost.initialLikes,
-                    initialComments: sponsoredPost.initialComments,
-                    followers: sponsoredPost.followers,
+                    title: post.title,
+                    description: post.description,
+                    images: post.images,
+                    useCarousel: post.useCarousel,
+                    isSponsored: post.isSponsored,
+                    ownerName: post.ownerName,
+                    ownerImageUrl: post.ownerImageUrl,
+                    ownerOccupation: post.ownerOccupation,
+                    timePosted: post.timePosted,
+                    initialLikes: post.initialLikes,
+                    initialComments: post.initialComments,
+                    followers: post.followers,
                   );
-                }
-                
-                // Calculate the actual post index, accounting for sponsored posts
-                int actualPostIndex = index;
-                if (index > 2) actualPostIndex--;
-                if (index > 8) actualPostIndex--;
-                if (index > 10) {
-                  actualPostIndex -= ((index - 10) / 7).floor();
-                }
-                
-                if (actualPostIndex >= _posts.length) {
-                  return const SizedBox.shrink();
-                }
-                
-                final post = _posts[actualPostIndex];
-                
-                return Post(
-                  title: post.title,
-                  description: post.description,
-                  images: post.images,
-                  useCarousel: post.useCarousel,
-                  isSponsored: post.isSponsored,
-                  ownerName: post.ownerName,
-                  ownerImageUrl: post.ownerImageUrl,
-                  ownerOccupation: post.ownerOccupation,
-                  timePosted: post.timePosted,
-                  initialLikes: post.initialLikes,
-                  initialComments: post.initialComments,
-                  followers: post.followers,
-                );
-              },
-              childCount: _getDisplayItemCount() + 1, // +1 for loading indicator
+                },
+                childCount: _getDisplayItemCount() + 1, // +1 for loading indicator
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
