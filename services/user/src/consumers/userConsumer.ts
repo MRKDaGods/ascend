@@ -1,15 +1,17 @@
-import { ConsumeMessage } from "amqplib";
 import {
   checkProfileExists,
   createOrUpdateProfile,
+  getUserProfilePictureURL,
 } from "../services/userService";
-import { UserCreatedPayload } from "@shared/rabbitMQ";
+import { UserCreatedPayload, UserProfilePicPayload } from "@shared/rabbitMQ";
 
-export const handleUserCreated = async (msg: ConsumeMessage): Promise<void> => {
-  const event = JSON.parse(msg.content.toString());
-  console.log("Received user.created event:", event);
-
-  const payload: UserCreatedPayload = event;
+/**
+ * Handles the user.created event
+ */
+export const handleUserCreated = async (
+  payload: UserCreatedPayload
+): Promise<void> => {
+  console.log("Received user.created event:", payload);
 
   // Check if profile already exists
   const exists = await checkProfileExists(payload.user_id);
@@ -29,4 +31,34 @@ export const handleUserCreated = async (msg: ConsumeMessage): Promise<void> => {
   });
 
   console.log(`Created profile for user ${payload.user_id}`);
+};
+
+/**
+ * Handles the user.profile_pic_rpc event
+ **/
+export const handleUserProfilePicRequestRPC = async (
+  payload: UserProfilePicPayload.Request
+): Promise<UserProfilePicPayload.Response | null> => {
+  console.log("Received user.profile_pic_rpc event:", payload);
+
+  const user_id = payload.user_id;
+  if (!user_id) {
+    console.error("Invalid user ID");
+    return null;
+  }
+
+  // Get the user's profile picture
+  const profilePicUrl = await getUserProfilePictureURL(user_id);
+  if (!profilePicUrl) {
+    console.error(`Failed to retrieve profile picture for user ${user_id}`);
+    return null;
+  }
+
+  console.log(`Retrieved profile picture for user ${user_id}: ${profilePicUrl}`);
+
+  const response: UserProfilePicPayload.Response = {
+    user_id,
+    profile_pic_url: profilePicUrl,
+  };
+  return response;
 };

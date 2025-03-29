@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Ask for confirmation
+echo "This will restore all Docker volumes from backups. Continue? (y/N)"
+read -r confirmation
+if [[ "$confirmation" != "y" ]]; then
+    echo "Restore cancelled."
+    exit
+fi
+
+cd ..
+
 VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data" "ascend_rabbitmq_data")
 
 # Backup directory
