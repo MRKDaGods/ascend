@@ -24,5 +24,8 @@ startSharedService("Gateway", undefined, {
 
     // File service
     app.use("/files", proxy("http://file:3003"));
+
+    // Job service
+    app.use("/jobs", proxy("http://job:3008"));
   },
 });
