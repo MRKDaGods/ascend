@@ -1,6 +1,6 @@
 import db from "@shared/config/db";
-import { User } from "@shared/models";
-import { events, publishEvent } from "@shared/rabbitMQ";
+import { User, UserRole } from "@shared/models";
+import { Events, publishEvent } from "@shared/rabbitMQ";
 import bcrypt from "bcryptjs";
 
 /**
@@ -44,12 +44,13 @@ export const createUser = async (
   lastName: string,
   email: string,
   password?: string | undefined,
-  isVerified: boolean = false
+  isVerified: boolean = false,
+  role: UserRole = UserRole.USER
 ): Promise<User> => {
   const password_hash = password ? await bcrypt.hash(password, 10) : "";
   const result = await db.query(
-    "INSERT INTO auth_service.users (email, password_hash, is_verified) VALUES ($1, $2, $3) RETURNING *",
-    [email, password_hash, isVerified]
+    "INSERT INTO auth_service.users (email, password_hash, is_verified, role) VALUES ($1, $2, $3, $4) RETURNING *",
+    [email, password_hash, isVerified, role]
   );
 
   const user = result.rows[0];
@@ -57,7 +58,7 @@ export const createUser = async (
   // Publish user created event, and have the user service create a user profile
   try {
     // UserCreatedPayload
-    await publishEvent(events.USER_CREATED, {
+    await publishEvent(Events.USER_CREATED, {
       user_id: user.id,
       first_name: firstName,
       last_name: lastName,
@@ -171,7 +172,7 @@ export const updateUserPassword = async (
  */
 export const updateUserEmail = async (
   id: number,
-  newEmail: string,
+  newEmail: string | null,
   confirmationToken: string
 ): Promise<void> => {
   await db.query(
@@ -182,4 +183,81 @@ export const updateUserEmail = async (
 
 export const deleteUser = async (id: number): Promise<void> => {
   await db.query("DELETE FROM auth_service.users WHERE id = $1", [id]);
+};
+
+/**
+ * Sets the user's local FirebaseCloudMessaging token
+ *
+ * @param id - The unique identifier of the user
+ * @param fcmToken - The new FCM token
+ */
+export const updateUserFCMToken = async (
+  id: number,
+  fcmToken: string
+): Promise<void> => {
+  await db.query("UPDATE auth_service.users SET fcm_token = $1 WHERE id = $2", [
+    id,
+    fcmToken,
+  ]);
+};
+
+/**
+ * Gets the user's local FirebaseCloudMessaging token
+ *
+ * @param id - The unique identifier of the user
+ */
+export const getUserFCMToken = async (id: number): Promise<string | null> => {
+  const result = await db.query(
+    "SELECT fcm_token FROM auth_service.users WHERE id = $1",
+    [id]
+  );
+  return result.rows.length > 0 ? result.rows[0].fcm_token : null;
+};
+
+/**
+ * Creates the admin user if it does not already exist
+ */
+export const createAdminUser = async (): Promise<void> => {
+  const fname = process.env.ASCEND_ADMIN_FIRST_NAME;
+  const lname = process.env.ASCEND_ADMIN_LAST_NAME;
+  const email = process.env.ASCEND_ADMIN_EMAIL;
+  const password = process.env.ASCEND_ADMIN_PASSWORD;
+
+  if (!email || !password || !fname || !lname) {
+    throw new Error(
+      "Missing required environment variables for admin user creation"
+    );
+  }
+
+  const existingUser = await findUserByEmail(email);
+  if (existingUser) {
+    console.log("Admin user already exists");
+    return;
+  }
+
+  const user = await createUser(
+    fname,
+    lname,
+    email,
+    password,
+    true,
+    UserRole.ADMIN
+  );
+  console.log("Created admin user:", user);
+};
+
+/**
+ * Retrieves the admin user ID
+ */
+export const getAdminUserId = async (): Promise<number | null> => {
+  const email = process.env.ASCEND_ADMIN_EMAIL;
+  if (!email) {
+    throw new Error("ASCEND_ADMIN_EMAIL is not defined");
+  }
+
+  const result = await db.query(
+    "SELECT id FROM auth_service.users WHERE email = $1",
+    [email]
+  );
+  return result.rows.length > 0 ? result.rows[0].id : null;
 };

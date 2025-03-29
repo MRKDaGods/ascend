@@ -27,5 +27,8 @@ startSharedService("Gateway", undefined, {
 
     // Job service
     app.use("/jobs", proxy("http://job:3008"));
+
+    // Notification service
+    app.use("/notification", proxy("http://notification:3004"));
   },
 });

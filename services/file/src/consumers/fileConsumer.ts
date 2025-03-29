@@ -1,11 +1,8 @@
 import {
   FileDeletePayload,
-  FilePresignedUrlRequestPayload,
-  FilePresignedUrlResponsePayload,
-  FileUploadRequestPayload,
-  FileUploadResponsePayload,
+  FilePresignedUrlPayload,
+  FileUploadPayload,
 } from "@shared/rabbitMQ";
-import { ConsumeMessage } from "amqplib";
 import {
   deleteFileFromMinIO,
   getPresignedUrl,
@@ -17,8 +14,8 @@ import { validateFileSize } from "../validations/fileValidation";
  * Handles the file.url_rpc event
  **/
 export const handleGetPresignedUrlRPC = async (
-  payload: FilePresignedUrlRequestPayload
-): Promise<FilePresignedUrlResponsePayload | null> => {
+  payload: FilePresignedUrlPayload.Request
+): Promise<FilePresignedUrlPayload.Response | null> => {
   console.log("Received file.rpc event:", JSON.stringify(payload));
 
   const file_id = payload.file_id;
@@ -31,7 +28,7 @@ export const handleGetPresignedUrlRPC = async (
   const fileUrl = await getPresignedUrl(file_id);
   console.log(`Generated pre-signed URL for file ${file_id}: ${fileUrl}`);
 
-  const response: FilePresignedUrlResponsePayload = {
+  const response: FilePresignedUrlPayload.Response = {
     file_id,
     presigned_url: fileUrl,
   };
@@ -42,8 +39,8 @@ export const handleGetPresignedUrlRPC = async (
  * Handles the file.upload_rpc event
  **/
 export const handleFileUploadRPC = async (
-  payload: FileUploadRequestPayload
-): Promise<FileUploadResponsePayload> => {
+  payload: FileUploadPayload.Request
+): Promise<FileUploadPayload.Response> => {
   console.log("Received file.upload event");
   console.log(`msg content: ${payload}`);
   if (
@@ -83,28 +80,24 @@ export const handleFileUploadRPC = async (
     payload.context
   );
 
-  const response: FileUploadResponsePayload = { file_id: fileId };
+  const response: FileUploadPayload.Response = { file_id: fileId };
   return response;
 };
 
 /**
  * Handles the file.delete event
  **/
-export const handleFileDelete = async (msg: ConsumeMessage): Promise<void> => {
-  try {
-    const event = JSON.parse(msg.content.toString());
-    console.log("Received file.deleted event:", event);
+export const handleFileDelete = async (
+  payload: FileDeletePayload
+): Promise<void> => {
+  console.log("Received file.deleted event:", payload);
 
-    const payload: FileDeletePayload = event;
-    if (!payload.file_id) {
-      console.error("Invalid file.deleted event received:", event);
-      return;
-    }
-
-    // Delete!
-    deleteFileFromMinIO(payload.file_id);
-    console.log(`Deleted file ${payload.file_id}`);
-  } catch (error) {
-    console.error("Error handling file.deleted event:", error);
+  if (!payload.file_id) {
+    console.error("Invalid file.deleted event received:", event);
+    return;
   }
+
+  // Delete!
+  deleteFileFromMinIO(payload.file_id);
+  console.log(`Deleted file ${payload.file_id}`);
 };
