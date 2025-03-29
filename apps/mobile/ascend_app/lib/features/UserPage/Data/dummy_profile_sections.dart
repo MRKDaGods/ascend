@@ -1,5 +1,6 @@
 import '../models/profile_section.dart';
 import '../profile_entry.dart';
+import 'package:flutter/material.dart';
 
 List<ProfileSection> sections = [
   // About Section
@@ -14,6 +15,28 @@ List<ProfileSection> sections = [
       ),
     ],
   ),
+  if (true)
+    ProfileSection(
+      title: 'Analytics',
+      content: [
+        ProfileEntryWidget(
+          title: '5 profile views',
+          subtitle: 'Discover who\'s viewed your profile.',
+          icon: Icon(Icons.people), // Use an appropriate icon
+        ),
+        ProfileEntryWidget(
+          title: '0 post impressions',
+          subtitle: 'Start a post to increase engagement.',
+          description: "Past 7 days",
+          icon: Icon(Icons.bar_chart), // Use an appropriate icon
+        ),
+        ProfileEntryWidget(
+          title: '8 search appearances',
+          subtitle: 'See how often you appear in search results.',
+          icon: Icon(Icons.search), // Use an appropriate icon,
+        ),
+      ],
+    ),
 
   // Education Section
   ProfileSection(
@@ -30,6 +53,18 @@ List<ProfileSection> sections = [
         subtitle: 'High School',
         description: 'Sep 2014 - Jun 2021',
         imageUrl: 'assets/company_placeholder.png',
+      ),
+      ProfileEntryWidget(
+        title: 'Cairo University',
+        subtitle: 'Bachelor of Engineering - Computer Engineering',
+        description: 'Oct 2021 - Jun 2026\nGPA: 3.5',
+        imageUrl: 'assets/cairo_university.png',
+      ),
+      ProfileEntryWidget(
+        title: 'Cairo University',
+        subtitle: 'Bachelor of Engineering - Computer Engineering',
+        description: 'Oct 2021 - Jun 2026\nGPA: 3.5',
+        imageUrl: 'assets/cairo_university.png',
       ),
     ],
   ),
