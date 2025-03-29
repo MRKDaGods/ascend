@@ -41,7 +41,7 @@ services:
     networks:
       - ascend-network
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -205,36 +205,11 @@ services:
     networks:
       - ascend-network
 
-  job:
-    hostname: job
-    build:
-      context: .
-      dockerfile: services/job/Dockerfile
-    environment:
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3008
-    ports:
-      - "3008:3008"
-    depends_on:
-      - postgres
-    networks:
-      - ascend-network
-
 volumes:
   postgres_data:
   pgadmin_data:
   rabbitmq_data:
   minio_data:
-
 
 networks:
   ascend-network:
