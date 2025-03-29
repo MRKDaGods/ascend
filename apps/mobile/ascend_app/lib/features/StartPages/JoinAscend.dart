@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/StartPages/SignIn.dart';
 import 'package:ascend_app/features/StartPages/Widget/ContinueButton.dart';
 import 'package:ascend_app/features/StartPages/Widget/InputWidgets.dart'; // Add this import
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
@@ -230,7 +231,7 @@ class _JoinascendState extends State<Joinascend>
                             context,
                             MaterialPageRoute(
                               builder: (context) {
-                                return const Joinascend();
+                                return const SignInPage();
                               },
                             ),
                           );
@@ -271,11 +272,13 @@ class _JoinascendState extends State<Joinascend>
                                         controller: emailController,
                                         labelText: 'Email or Phone',
                                         errorText: emailError,
+                                        fieldId: "Join_email",
                                       ),
                                       SizedBox(height: 20),
                                       if (showPasswordField)
                                         CustomTextFormField(
                                           controller: passwordController,
+                                          fieldId: "Join_password",
                                           labelText: 'Password',
                                           errorText: passwordError,
                                           obscureText: true,
@@ -297,11 +300,13 @@ class _JoinascendState extends State<Joinascend>
                                       CustomTextFormField(
                                         controller: firstNameController,
                                         labelText: 'First Name',
+                                        fieldId: "Join_first_name",
                                         errorText: firstNameError,
                                       ),
                                       SizedBox(height: 20),
                                       CustomTextFormField(
                                         controller: lastNameController,
+                                        fieldId: "Join_last_name",
                                         labelText: 'Last Name',
                                         errorText: lastNameError,
                                       ),
