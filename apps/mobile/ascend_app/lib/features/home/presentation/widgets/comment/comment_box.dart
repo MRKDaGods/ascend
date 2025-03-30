@@ -141,16 +141,32 @@ class CommentBox extends StatelessWidget {
                   children: [
                     // Replace PostReactionButton with ReactionButton
                     if (onReactionTap != null)
-                      ReactionButton(
-                        // Create a manager with the current state
-                        manager: ReactionManager(
-                          isLiked: isLiked,
-                          currentReaction: reaction,
-                        ),
-                        // Connect callbacks
-                        onTap: onReactionTap,
-                        onLongPressStart: onReactionLongPress ?? () {},
-                        onLongPressEnd: () {}, // Add empty handler
+                      Row(
+                        children: [
+                          ReactionButton(
+                            // Create a manager with the current state
+                            manager: ReactionManager(
+                              isLiked: isLiked,
+                              currentReaction: reaction,
+                            ),
+                            // Connect callbacks
+                            onTap: onReactionTap,
+                            onLongPressStart: onReactionLongPress ?? () {},
+                            onLongPressEnd: () {}, // Add empty handler
+                          ),
+                          // Display like count
+                          if (likeCount > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4.0),
+                              child: Text(
+                                likeCount.toString(),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     
                     const SizedBox(width: 16),
