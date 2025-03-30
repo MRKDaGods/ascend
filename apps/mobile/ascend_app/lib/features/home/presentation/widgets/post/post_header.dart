@@ -12,6 +12,7 @@ class PostHeader extends StatelessWidget {
   final VoidCallback? onOptionsPressed;
   final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
   final VoidCallback? onShowFeedbackOptions; // New callback to show feedback options
+  final Function(String reason)? onHidePost; // Add this
 
   const PostHeader({
     super.key,
@@ -25,57 +26,38 @@ class PostHeader extends StatelessWidget {
     this.onOptionsPressed,
     this.onFeedbackSubmitted,
     this.onShowFeedbackOptions,
+    this.onHidePost,
   });
 
   void _showOptionsBottomSheet(BuildContext context) {
+    print("Showing options sheet for: $ownerName");
+    
     SheetHelpers.showPostOptionsSheet(
       context: context,
       ownerName: ownerName,
       onSave: () {
+        print("Post saved");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post saved')),
         );
       },
       onShare: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sharing...')),
-        );
+        print("Post shared");
       },
       onNotInterested: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('We\'ll show fewer posts like this')),
-        );
+        print("Not interested selected");
+        if (onHidePost != null) {
+          onHidePost!("Not interested");
+        }
       },
       onUnfollow: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unfollowed $ownerName')),
-        );
+        print("Unfollowing: $ownerName");
       },
       onReport: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Report post'),
-              content: const Text('Why are you reporting this post?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Post reported')),
-                    );
-                  },
-                  child: const Text('Submit'),
-                ),
-              ],
-            );
-          },
-        );
+        print("Report selected");
+        if (onFeedbackSubmitted != null) {
+          onFeedbackSubmitted!("Reported");
+        }
       },
     );
   }
@@ -85,7 +67,9 @@ class PostHeader extends StatelessWidget {
     return Row(
       children: [
         CircleAvatar(
-          backgroundImage: AssetImage(ownerImageUrl),
+          backgroundImage: ownerImageUrl.startsWith('http') || ownerImageUrl.startsWith('https')
+            ? NetworkImage(ownerImageUrl) as ImageProvider
+            : AssetImage(ownerImageUrl),
           radius: 20,
         ),
         const SizedBox(width: 8),
@@ -129,16 +113,29 @@ class PostHeader extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.more_horiz),
           splashRadius: 24,
-          onPressed: () => onOptionsPressed != null 
-                          ? onOptionsPressed!() 
-                          : _showOptionsBottomSheet(context),
+          onPressed: () {
+            print("Options button pressed");
+            if (onOptionsPressed != null) {
+              onOptionsPressed!();
+            } else {
+              _showOptionsBottomSheet(context);
+            }
+          },
         ),
         // X button to remove post - only show for non-sponsored posts
         if (!isSponsored)
           IconButton(
             icon: const Icon(Icons.close),
             splashRadius: 24,
-            onPressed: onShowFeedbackOptions, // Call the new callback instead
+            onPressed: () {
+              print("X button pressed");
+              if (onShowFeedbackOptions != null) {
+                onShowFeedbackOptions!();
+              } else {
+                print("Warning: onShowFeedbackOptions callback is null");
+                // No fallback - don't show dialog
+              }
+            },
           ),
         if (isSponsored)
           Container(
