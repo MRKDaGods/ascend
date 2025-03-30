@@ -5,6 +5,7 @@ class ProfileEntryWidget extends StatefulWidget {
   final String? subtitle;
   final String? description;
   final String? imageUrl;
+  final Icon? icon;
   final List<Widget>? extraContent;
 
   const ProfileEntryWidget({
@@ -13,6 +14,7 @@ class ProfileEntryWidget extends StatefulWidget {
     this.subtitle,
     this.description,
     this.imageUrl,
+    this.icon,
     this.extraContent,
   });
 
@@ -42,6 +44,11 @@ class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {
               Padding(
                 padding: const EdgeInsets.only(right: 8.0, top: 3),
                 child: Image.asset(widget.imageUrl!, width: 40, height: 40),
+              )
+            else if (widget.icon != null) // Display icon if icon is provided
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0, top: 3),
+                child: Icon(widget.icon!.icon, size: 28, color: Colors.white70),
               ),
             Expanded(
               child: Column(
@@ -56,6 +63,7 @@ class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                   if (widget.subtitle != null)
                     Text(
                       widget.subtitle!,
