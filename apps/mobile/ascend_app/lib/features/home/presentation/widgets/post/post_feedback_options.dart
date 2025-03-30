@@ -14,49 +14,54 @@ class PostFeedbackOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Help us improve your feed',
-                  style: TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.bold,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Help us improve your feed',
+                    style: TextStyle(
+                      fontSize: 16, 
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: onUndo,
-                  child: const Text('UNDO'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Text('Why don\'t you want to see this?'),
-            const SizedBox(height: 16),
-            _buildFeedbackOption(
-              context,
-              'Not interested in this topic',
-              'topic',
-            ),
-            const SizedBox(height: 8),
-            _buildFeedbackOption(
-              context,
-              'Not interested in posts from $ownerName',
-              'author',
-            ),
-            const SizedBox(height: 8),
-            _buildFeedbackOption(
-              context,
-              'Not appropriate for LinkedIn',
-              'inappropriate',
-            ),
-          ],
+                  TextButton(
+                    onPressed: onUndo,
+                    child: const Text('UNDO'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text('Why don\'t you want to see this?'),
+              const SizedBox(height: 16),
+              _buildFeedbackOption(
+                context,
+                'Not interested in this topic',
+                'topic',
+              ),
+              const SizedBox(height: 8),
+              _buildFeedbackOption(
+                context,
+                'Not interested in posts from $ownerName',
+                'author',
+              ),
+              const SizedBox(height: 8),
+              _buildFeedbackOption(
+                context,
+                'Not appropriate for LinkedIn',
+                'inappropriate',
+              ),
+            ],
+          ),
         ),
       ),
     );

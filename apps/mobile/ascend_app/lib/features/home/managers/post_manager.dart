@@ -3,7 +3,7 @@ import '../models/comment_model.dart';
 
 class PostManager {
   // Toggle reaction on a post
-  static Post toggleReaction(Post post, String? reactionType) {
+  static PostModel toggleReaction(PostModel post, String? reactionType) {
     if (post.isLiked && reactionType == post.currentReaction) {
       // Remove reaction
       return post.copyWith(
@@ -23,7 +23,7 @@ class PostManager {
   }
 
   // Add a comment to a post
-  static Post addComment(Post post, Comment comment) {
+  static PostModel addComment(PostModel post, Comment comment) {
     final updatedComments = [...post.comments, comment];
     return post.copyWith(
       comments: updatedComments,
@@ -32,7 +32,7 @@ class PostManager {
   }
 
   // Toggle reaction on a specific comment within a post
-  static Post toggleCommentReaction(Post post, String commentId, String? reactionType) {
+  static PostModel toggleCommentReaction(PostModel post, String commentId, String? reactionType) {
     // Find the comment and its index
     int commentIndex = -1;
     Comment? targetComment;
@@ -83,7 +83,7 @@ class PostManager {
   }
 
   // Update all comments on a post
-  static Post updateComments(Post post, List<Comment> newComments) {
+  static PostModel updateComments(PostModel post, List<Comment> newComments) {
     return post.copyWith(
       comments: newComments,
       commentsCount: newComments.length,

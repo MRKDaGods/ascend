@@ -106,8 +106,8 @@ class SamplePosts {
   ];
 
   /// Pre-defined sponsored post example for marketing
-  static Post getSponsoredMarketingPost() {
-    return Post(
+  static PostModel getSponsoredMarketingPost() {
+    return PostModel(
       id: 'sponsored_marketing',
       title: '✨ Sponsored: Premium Content',
       description: 'Check out our featured products and services tailored just for you! Our team of experts has curated special offers exclusive to Ascend users.',
@@ -131,8 +131,8 @@ class SamplePosts {
   }
 
   /// Pre-defined sponsored post example for fitness
-  static Post getSponsoredFitnessPost() {
-    return Post(
+  static PostModel getSponsoredFitnessPost() {
+    return PostModel(
       id: 'sponsored_fitness',
       title: '💪 Transform Your Fitness Journey',
       description: 'Discover our new workout programs designed for busy professionals. Get in shape without spending hours at the gym!',
@@ -155,8 +155,8 @@ class SamplePosts {
   }
 
   /// Pre-defined sponsored post example for technology
-  static Post getSponsoredTechPost() {
-    return Post(
+  static PostModel getSponsoredTechPost() {
+    return PostModel(
       id: 'sponsored_tech',
       title: '🚀 The Future of AI is Here',
       description: 'Introducing our latest AI-powered tools that will revolutionize how you work. Boost productivity and creativity with one simple platform.',
@@ -178,11 +178,11 @@ class SamplePosts {
   }
 
   /// Get default posts for the app
-  static List<Post> getDefaultPosts() {
-    List<Post> posts = [];
+  static List<PostModel> getDefaultPosts() {
+    List<PostModel> posts = [];
     
     // Add text-only posts
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_1',
       title: 'Morning Thoughts on Design',
       description: 'I\'ve been thinking about the evolution of UI/UX over the past decade. The shift from skeuomorphic designs to flat interfaces and now to more nuanced approaches with subtle depth cues is fascinating. What design trends do you think will emerge next?',
@@ -198,7 +198,7 @@ class SamplePosts {
       images: [],
     ));
     
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_2',
       title: 'Career Reflections',
       description: 'After 5 years in the industry, I\'ve learned that technical skills only get you so far. The ability to communicate effectively, especially with non-technical stakeholders, has been the most valuable skill I\'ve developed.',
@@ -215,7 +215,7 @@ class SamplePosts {
     ));
     
     // Add single image posts
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_3',
       title: 'My Latest Project',
       description: 'Just finished this dashboard design for a fintech client. Focused on clarity and data visualization while maintaining brand identity.',
@@ -231,7 +231,7 @@ class SamplePosts {
       comments: _getRandomComments(2),
     ));
     
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_4',
       title: 'Office Views Today',
       description: 'Working remotely has its perks. This is my office for the day!',
@@ -248,7 +248,7 @@ class SamplePosts {
     ));
     
     // Add multi-image grid posts
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_5',
       title: 'Design Exploration',
       description: 'Some explorations for our new mobile app. We\'re trying different color schemes and typography combinations.',
@@ -270,7 +270,7 @@ class SamplePosts {
       comments: _getRandomComments(4),
     ));
     
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_6',
       title: 'Team Building Event',
       description: 'Had an amazing time with the team yesterday. Games, food, and great conversations!',
@@ -292,7 +292,7 @@ class SamplePosts {
     ));
     
     // Add carousel image posts
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_7',
       title: 'Product Design Process',
       description: 'A glimpse into our design process for the new feature. From sketches to wireframes to high-fidelity prototypes.',
@@ -315,7 +315,7 @@ class SamplePosts {
       comments: _getRandomComments(3),
     ));
     
-    posts.add(Post(
+    posts.add(PostModel(
       id: 'post_8',
       title: 'Conference Highlights',
       description: 'Some highlights from the UX Conference 2024. So many inspiring talks and great networking opportunities!',
@@ -340,9 +340,9 @@ class SamplePosts {
   }
 
   /// Generate a list of random posts combining different types
-  static List<Post> generateMixedPosts(int count) {
-    List<Post> basePosts = getDefaultPosts();
-    List<Post> result = [];
+  static List<PostModel> generateMixedPosts(int count) {
+    List<PostModel> basePosts = getDefaultPosts();
+    List<PostModel> result = [];
     
     for (int i = 0; i < count; i++) {
       int index = i % basePosts.length;
@@ -359,8 +359,8 @@ class SamplePosts {
   }
 
   /// Sponsored posts rotation - returns different sponsored posts in sequence
-  static Post getNextSponsoredPost(int index) {
-    List<Post> sponsoredPosts = [
+  static PostModel getNextSponsoredPost(int index) {
+    List<PostModel> sponsoredPosts = [
       getSponsoredMarketingPost(),
       getSponsoredFitnessPost(),
       getSponsoredTechPost(),

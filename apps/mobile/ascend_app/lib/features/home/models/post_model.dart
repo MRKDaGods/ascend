@@ -1,9 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:ascend_app/features/home/models/comment_model.dart';
-import 'package:ascend_app/features/home/managers/post_manager.dart'; // Add this import
+import 'package:ascend_app/features/home/managers/post_manager.dart';
 
-// The main Post class that should be used throughout the app
-class Post extends Equatable {
+// Renamed from Post to PostModel for consistency
+class PostModel extends Equatable {
   final String id;
   final String title;
   final String description;
@@ -20,8 +20,9 @@ class Post extends Equatable {
   final bool isLiked;
   final String? currentReaction;
   final List<Comment> comments;
+  final bool showFeedbackOptions;
 
-  const Post({
+  const PostModel({
     required this.id,
     required this.title,
     required this.description,
@@ -38,6 +39,7 @@ class Post extends Equatable {
     this.isLiked = false,
     this.currentReaction,
     this.comments = const [],
+    this.showFeedbackOptions = false,
   });
 
   @override
@@ -58,10 +60,11 @@ class Post extends Equatable {
     isLiked,
     currentReaction,
     comments,
+    showFeedbackOptions,
   ];
 
-  // Standard copyWith method remains unchanged
-  Post copyWith({
+  // Updated to return PostModel
+  PostModel copyWith({
     String? id,
     String? title,
     String? description,
@@ -78,8 +81,9 @@ class Post extends Equatable {
     bool? isLiked,
     String? currentReaction,
     List<Comment>? comments,
+    bool? showFeedbackOptions,
   }) {
-    return Post(
+    return PostModel(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -96,25 +100,25 @@ class Post extends Equatable {
       isLiked: isLiked ?? this.isLiked,
       currentReaction: currentReaction ?? this.currentReaction,
       comments: comments ?? this.comments,
+      showFeedbackOptions: showFeedbackOptions ?? this.showFeedbackOptions,
     );
   }
   
-  // Delegate to PostManager
-  Post toggleReaction(String? reactionType) {
+  // Updated to return PostModel
+  PostModel toggleReaction(String? reactionType) {
     return PostManager.toggleReaction(this, reactionType);
   }
 
-  // Delegate to PostManager
-  Post addComment(Comment comment) {
+  // Updated to return PostModel
+  PostModel addComment(Comment comment) {
     return PostManager.addComment(this, comment);
   }
 
-  // Delegate to PostManager
-  Post toggleCommentReaction(String commentId, String? reactionType) {
+  // Updated to return PostModel
+  PostModel toggleCommentReaction(String commentId, String? reactionType) {
     return PostManager.toggleCommentReaction(this, commentId, reactionType);
   }
   
-  // To JSON method for serialization
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -133,12 +137,13 @@ class Post extends Equatable {
       'isLiked': isLiked,
       'currentReaction': currentReaction,
       'comments': comments.map((comment) => comment.toJson()).toList(),
+      'showFeedbackOptions': showFeedbackOptions,
     };
   }
 
-  // From JSON method for deserialization
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
+  // Updated factory constructor
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    return PostModel(
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
@@ -161,12 +166,13 @@ class Post extends Equatable {
               ),
             )
           : const [],
+      showFeedbackOptions: json['showFeedbackOptions'] as bool? ?? false,
     );
   }
   
-  // Factory to create from legacy PostModel format (if needed)
-  factory Post.fromLegacyModel(Map<String, dynamic> oldModel) {
-    return Post(
+  // Updated factory constructor
+  factory PostModel.fromLegacyModel(Map<String, dynamic> oldModel) {
+    return PostModel(
       id: oldModel['id'] ?? 'post_${DateTime.now().millisecondsSinceEpoch}',
       title: oldModel['title'] ?? '',
       description: oldModel['description'] ?? '',
@@ -182,9 +188,10 @@ class Post extends Equatable {
       followers: oldModel['followers'] ?? 0,
       isLiked: oldModel['isLiked'] ?? false,
       comments: const [],
+      showFeedbackOptions: oldModel['showFeedbackOptions'] ?? false,
     );
   }
 }
 
-// Type alias for backward compatibility
-typedef PostModel = Post;
+// Remove the type alias since the class is now directly named PostModel
+// typedef PostModel = Post;  <-- Remove this line

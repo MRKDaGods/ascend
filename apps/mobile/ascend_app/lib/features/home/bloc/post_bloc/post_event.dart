@@ -14,7 +14,7 @@ class LoadPosts extends PostEvent {
 }
 
 class UpdatePost extends PostEvent {
-  final Post post;
+  final PostModel post;
   
   const UpdatePost(this.post);
   
@@ -91,4 +91,17 @@ class HidePost extends PostEvent {
   
   @override
   List<Object?> get props => [postId, reason];
+}
+
+// Add new events
+class ShowPostFeedbackOptions extends PostEvent {
+  final String postId;
+  
+  const ShowPostFeedbackOptions(this.postId);
+}
+
+class HidePostFeedbackOptions extends PostEvent {
+  final String postId;
+  
+  const HidePostFeedbackOptions(this.postId);
 }
