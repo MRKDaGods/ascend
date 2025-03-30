@@ -5,6 +5,8 @@ import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/c
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
+import 'package:ascend_app/features/networks/model/search_model.dart';
 
 class ManageMyNetwork extends StatelessWidget {
   final List<UserModel> connections;
@@ -40,10 +42,19 @@ class ManageMyNetwork extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder:
-                        (_) => BlocProvider.value(
-                          value: BlocProvider.of<ConnectionRequestBloc>(
-                            context,
-                          ),
+                        (_) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider.value(
+                              value: BlocProvider.of<ConnectionRequestBloc>(
+                                context,
+                              ),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<SearchFiltersBloc>(
+                                context,
+                              ),
+                            ),
+                          ],
                           child: Connections(
                             connections: connections,
                             onRemove: (requestId) {

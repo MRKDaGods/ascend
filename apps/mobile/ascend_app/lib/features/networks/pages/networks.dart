@@ -4,6 +4,8 @@ import 'package:ascend_app/features/networks/widgets/grow.dart';
 import 'package:ascend_app/features/networks/widgets/catchup.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
+import 'package:ascend_app/features/networks/model/search_model.dart';
 
 import '../../../shared/widgets/custom_sliver_appbar.dart';
 
@@ -23,6 +25,13 @@ class Networks extends StatelessWidget {
         ),
         BlocProvider<FollowBloc>(
           create: (followContext) => FollowBloc()..add(FetchFollowing()),
+        ),
+        BlocProvider<SearchFiltersBloc>(
+          create: (searchContext) {
+            final bloc = SearchFiltersBloc();
+            bloc.add(SearchFiltersIntialize());
+            return bloc;
+          },
         ),
       ],
       child: Scaffold(

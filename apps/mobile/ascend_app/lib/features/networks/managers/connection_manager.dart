@@ -26,10 +26,10 @@ List<UserModel> getSuggestedUsersforConnection(
 
   unConnectedUsers.removeWhere((element) => element.id == "1");
   unConnectedUsers.removeWhere((element) => element.firstFollow == true);
-  print("Users to Connect:");
+  /*print("Users to Connect:");
   for (var element in unConnectedUsers) {
     print(element.id);
-  }
+  }*/
   return unConnectedUsers;
 }
 
@@ -61,10 +61,10 @@ Map<String, List<UserModel>> getAllconnectionsforEachUser(
     connectionsMap[key] = value.toSet().toList();
   });
 
-  print("connectionsMap for all users");
-  connectionsMap.forEach((key, value) {
+  //print("connectionsMap for all users");
+  /*connectionsMap.forEach((key, value) {
     print("key: $key, value: ${value.map((e) => e.id)}");
-  });
+  });*/
   return connectionsMap;
 }
 
@@ -89,9 +89,9 @@ Map<String, List<UserModel>> getMutualConnectionsforeachUser(
       mutualConnections[key] = [];
     }
   }
-  print("mutualConnections for all users");
+  /*print("mutualConnections for all users");
   mutualConnections.forEach((key, value) {
     print("key: $key, value: ${value.map((e) => e.id)}");
-  });
+  });*/
   return mutualConnections;
 }

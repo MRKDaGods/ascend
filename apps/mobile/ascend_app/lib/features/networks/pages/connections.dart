@@ -2,6 +2,9 @@ import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import 'package:ascend_app/features/networks/pages/Networks_search_page.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
+import 'package:ascend_app/features/networks/model/search_model.dart';
 
 class Connections extends StatelessWidget {
   final List<UserModel> connections;
@@ -50,7 +53,18 @@ class Connections extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.search),
                         onPressed: () {
-                          // Add search functionality here
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => BlocProvider.value(
+                                    value: BlocProvider.of<SearchFiltersBloc>(
+                                      context,
+                                    ),
+                                    child: NetworksSearchPage(),
+                                  ),
+                            ),
+                          );
                         },
                       ),
                       IconButton(
