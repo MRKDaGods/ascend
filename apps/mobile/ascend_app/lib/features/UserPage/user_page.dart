@@ -6,8 +6,11 @@ import 'profile_main_images.dart';
 import 'section_builder.dart';
 import 'profile_header.dart';
 
+enum ProfileType { myprofile, otherUserProfile }
+
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({
+    this.profileType = ProfileType.myprofile,
     super.key,
     this.name = 'Maged Amgad',
     this.bio = "Computer engineering student at Cairo University",
@@ -24,13 +27,13 @@ class UserProfilePage extends StatefulWidget {
     this.degree = "1st",
     this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
     this.links = const [
-      {"title": "My Portfolio", "url": "https://example.com"},
+      {"title": "My Portfolio", "url": "https://dartcode.org/docs/settings/"},
       {"title": "GitHub", "url": "https://github.com/MagedWadi"},
       {"title": " ", "url": "https://example.com"}, // This will be ignored
     ],
     this.badges = const ["Open to Work", "Providing Services"],
   });
-
+  final ProfileType profileType;
   final String name;
   final bool isconnect;
   final bool isfollow;
@@ -200,7 +203,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ],
               ),
             ),
-            for (var section in widget.sections) buildSection(context, section),
+            for (var section in widget.sections)
+              SectionBuilder(
+                section: section,
+                isMyProfile:
+                    widget.profileType == ProfileType.myprofile ? true : false,
+              ),
           ],
         ),
       ),
