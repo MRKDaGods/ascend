@@ -88,7 +88,7 @@ class _PostState extends State<Post> {
                     ownerOccupation: post.ownerOccupation,
                     isSponsored: post.isSponsored,
                     followers: post.followers,
-                    onOptionsPressed: () {},
+                    onOptionsPressed: null, // Set to null explicitly
                     onHidePost: (reason) {
                       context.read<PostBloc>().add(HidePost(post.id, reason));
                     },
