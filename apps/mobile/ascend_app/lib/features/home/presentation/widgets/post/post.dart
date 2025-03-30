@@ -1,270 +1,258 @@
-import 'package:ascend_app/features/home/models/comment_model.dart';
-import 'package:ascend_app/features/home/presentation/utils/full_screen_image_viewer.dart';
-import 'package:ascend_app/features/home/presentation/widgets/common';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_action_button.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_engagement_stats.dart';
-import 'package:ascend_app/features/home/presentation/widgets/reaction/post_reaction_button.dart';
-import 'package:ascend_app/features/home/managers/reaction_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/home/data/sample_comments.dart';
-import 'package:ascend_app/features/home/presentation/pages/post_detail_page.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_header.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_content.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_image_section.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_feedback_options.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../bloc/post_bloc/post_bloc.dart';
+import '../../../bloc/post_bloc/post_event.dart';
+import '../../../bloc/post_bloc/post_state.dart';
+import '../../../models/post_model.dart';
+import '../../../models/comment_model.dart';
+import '../../../managers/reaction_manager.dart';
+import '../../pages/post_detail_page.dart';
+import '../../utils/reaction_utils.dart';
+import '../post/post_header.dart';
+import '../post/post_content.dart';
+import '../image/post_image_section.dart';
+import '../post/post_action_button.dart';
+import '../post/post_engagement_stats.dart';
+import '../reaction/reaction_button.dart';
+import '../comment/comment_preview.dart';
+import '../../utils/full_screen_image_viewer.dart'; // Add this import
 
 class Post extends StatefulWidget {
-  final String title;
-  final String description;
-  final List<String> images;
-  final bool useCarousel;
-  final bool isSponsored;
-  final String ownerName;
-  final String ownerImageUrl;
-  final String ownerOccupation;
-  final String timePosted;
-  final int initialLikes;
-  final int initialComments;
-  final int followers;
-  final VoidCallback? onRemove;
-  
-  const Post({
-    super.key,
-    this.title = '',
-    this.description = '',
-    this.images = const [],
-    this.useCarousel = false,
-    this.isSponsored = false,
-    this.ownerName = 'Anonymous User',
-    this.ownerImageUrl = 'assets/logo.jpg',
-    this.ownerOccupation = '',
-    this.timePosted = '2h ago',
-    this.initialLikes = 0,
-    this.initialComments = 0,
-    this.followers = 0,
-    this.onRemove,
-  });
+  final String postId;
+  final Comment? previewComment;
+
+  const Post({Key? key, required this.postId, this.previewComment})
+    : super(key: key);
 
   @override
   State<Post> createState() => _PostState();
 }
 
 class _PostState extends State<Post> {
-  bool _showFeedbackOptions = false;
-  bool _isLiked = false;
-  late int _likesCount;
-  late int _commentsCount;
-  final List<Comment> _comments = [];
-  
-  // Reaction state
-  String _currentReaction = 'like';
-  
-  // Create managers
-  late ReactionManager _reactionManager;
+  final GlobalKey _reactionButtonKey = GlobalKey();
+
+  // Navigate to post details page
+  void _navigateToPostDetail(BuildContext context, PostModel post) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => PostDetailPage(postId: post.id)),
+    );
+  }
+
+  // New method to navigate to image viewer
+  void _navigateToImageViewer(
+    BuildContext context,
+    PostModel post,
+    int imageIndex,
+  ) {
+    print("Navigating to image viewer: index=$imageIndex");
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => FullScreenImageViewer(
+              images: post.images,
+              initialIndex: imageIndex,
+              postId: post.id,
+            ),
+      ),
+    );
+  }
 
   @override
-  void initState() {
-    super.initState();
-    _likesCount = widget.initialLikes;
-    _commentsCount = widget.initialComments;
-    
-    // Initialize managers
-    
-    _reactionManager = ReactionManager(
-      isLiked: _isLiked,
-      currentReaction: _currentReaction,
-      likesCount: _likesCount,
-      onReactionChanged: (isLiked, reaction, count) {
-        setState(() {
-          _isLiked = isLiked;
-          _currentReaction = reaction;
-          _likesCount = count;
-        });
-      },
-    );
-    
-    // Add sample comments from the dedicated class
-    _comments.addAll(SampleComments.getDefaultComments());
-  }
-  
-  void _showReactionsPopup() {
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    
-    showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return PostReactionsPopup(
-          reactionIcons: ReactionManager.reactionIcons,
-          reactionColors: ReactionManager.reactionColors,
-          position: position,
-          onReactionSelected: (type) {
-            Navigator.of(context).pop();
-            _reactionManager.toggleReaction(type);
-          },
+  Widget build(BuildContext context) {
+    return BlocBuilder<PostBloc, PostState>(
+      builder: (context, state) {
+        if (state is PostsLoaded) {
+          final post = state.getPostById(widget.postId);
+
+          if (post == null) {
+            return const SizedBox.shrink();
+          }
+
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            elevation: 0.5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Post header
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: PostHeader(
+                    ownerName: post.ownerName,
+                    ownerImageUrl: post.ownerImageUrl,
+                    timePosted: post.timePosted,
+                    ownerOccupation: post.ownerOccupation,
+                    isSponsored: post.isSponsored,
+                    followers: post.followers,
+                    onOptionsPressed: () {},
+                    onHidePost: (reason) {
+                      context.read<PostBloc>().add(HidePost(post.id, reason));
+                    },
+                  ),
+                ),
+
+                // Post content
+                if (post.description.isNotEmpty)
+                  InkWell(
+                    onTap: () => _navigateToPostDetail(context, post),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: PostContent(
+                        title: post.title,
+                        description: post.description,
+                      ),
+                    ),
+                  ),
+
+                // Post image if present - UPDATED with correct padding
+                if (post.images.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 7.0,
+                    ),
+                    child: PostImageSection(
+                      images: post.images,
+                      useCarousel: post.useCarousel,
+                      isSponsored: post.isSponsored, // Add this parameter
+                      // Send index to open the specific image in full screen
+                      onTapImage: (index) {
+                        print("Image tapped at index: $index");
+                        _navigateToImageViewer(context, post, index);
+                      },
+                    ),
+                  ),
+
+                // Comment preview if provided
+                if (widget.previewComment != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: CommentPreview(
+                      comment: widget.previewComment!,
+                      onTap: () => _navigateToPostDetail(context, post),
+                    ),
+                  ),
+
+                // Engagement stats
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: PostEngagementStats(
+                    likesCount: post.likesCount,
+                    commentsCount: post.commentsCount,
+                    reactionIcon: _getReactionIcon(post),
+                    reactionColor: _getReactionColor(post),
+                  ),
+                ),
+
+                const Divider(height: 1),
+
+                // Action buttons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Like/React button - Using the key directly on the ReactionButton
+                      ReactionButton(
+                        key: _reactionButtonKey,
+                        manager: ReactionManager(
+                          isLiked: post.isLiked,
+                          currentReaction: post.currentReaction,
+                        ),
+                        onTap:
+                            () => context.read<PostBloc>().add(
+                              TogglePostReaction(
+                                post.id,
+                                post.isLiked ? null : 'like',
+                              ),
+                            ),
+                        onLongPressStart: () {
+                          final RenderBox box =
+                              _reactionButtonKey.currentContext!
+                                      .findRenderObject()
+                                  as RenderBox;
+                          final position = box.localToGlobal(Offset.zero);
+
+                          ReactionUtils.showReactionsPopup(
+                            context: context,
+                            position: position,
+                            itemId: post.id,
+                            isComment: false,
+                            onReactionSelected:
+                                (id, reaction) => context.read<PostBloc>().add(
+                                  TogglePostReaction(id, reaction),
+                                ),
+                          );
+                        },
+                        onLongPressEnd: () {},
+                      ),
+
+                      // Comment button
+                      PostActionButton(
+                        icon: Icons.comment_outlined,
+                        label: 'Comment',
+                        onTap: () => _navigateToPostDetail(context, post),
+                      ),
+
+                      // Share button
+                      PostActionButton(
+                        icon: Icons.share_outlined,
+                        label: 'Share',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Loading state
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          child: const SizedBox(
+            height: 150,
+            child: Center(child: CircularProgressIndicator()),
+          ),
         );
       },
     );
   }
 
-  void _navigateToPostDetail() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PostDetailPage(
-          title: widget.title,
-          description: widget.description,
-          images: widget.images,
-          useCarousel: widget.useCarousel,
-          isSponsored: widget.isSponsored,
-          ownerName: widget.ownerName,
-          ownerImageUrl: widget.ownerImageUrl,
-          ownerOccupation: widget.ownerOccupation,
-          timePosted: widget.timePosted,
-          initialLikes: _likesCount,
-          initialComments: _commentsCount,
-          followers: widget.followers,
-          comments: List<Comment>.from(_comments),
-        ),
-      ),
-    );
-  }
-  
-  // Add this new method to handle image taps
-  void _handleImageTap(int index) {
-    print("Image tapped at index: $index");
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => FullScreenImageViewer(
-          images: widget.images,
-          initialIndex: index,
-        ),
-      ),
-    );
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    if (_showFeedbackOptions) {
-      // Show feedback options when X is clicked
-      return PostFeedbackOptions(
-        ownerName: widget.ownerName,
-        onFeedbackSubmitted: (reason) {
-          // Handle feedback submission
-          print('Feedback submitted: $reason');
-          
-          // Call the parent's onRemove callback if it exists
-          if (widget.onRemove != null) {
-            widget.onRemove!();
-          }
-        },
-        onUndo: () {
-          // Restore the post to its original state
-          setState(() {
-            _showFeedbackOptions = false;
-          });
-        },
-      );
+  IconData _getReactionIcon(PostModel post) {
+    if (!post.isLiked) {
+      return Icons.thumb_up_outlined;
     }
 
-    // Show normal post
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Post Header with options and remove functionality
-            PostHeader(
-              ownerName: widget.ownerName,
-              ownerImageUrl: widget.ownerImageUrl,
-              ownerOccupation: widget.ownerOccupation,
-              timePosted: widget.timePosted,
-              isSponsored: widget.isSponsored,
-              followers: widget.followers,
-              // onOptionsPressed removed to use default behavior
-              onFeedbackSubmitted: (reason) {
-                print("Post removed due to: $reason");
-                // Handle the removal based on the reason
-                
-                // Call the parent's onRemove callback if it exists
-                if (widget.onRemove != null) {
-                  widget.onRemove!();
-                }
-              },
-              onShowFeedbackOptions: () {
-                setState(() {
-                  _showFeedbackOptions = true;
-                });
-              },
-            ),
-            
-            // Post Content (Title and Description)
-            PostContent(
-              title: widget.title,
-              description: widget.description,
-              onTap: _navigateToPostDetail,
-            ),
+    if (post.currentReaction != null &&
+        ReactionManager.reactionIcons.containsKey(post.currentReaction)) {
+      return ReactionManager.reactionIcons[post.currentReaction]!;
+    }
 
-            // Images Section - now using the grid layout
-            if (widget.images.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              PostImageSection(
-                images: widget.images,
-                useCarousel: widget.useCarousel,
-                isSponsored: widget.isSponsored, // Pass the isSponsored flag
-                onTap: _handleImageTap,
-              ),
-            ],
+    return Icons.thumb_up;
+  }
 
-            // Engagement Stats
-            PostEngagementStats(
-              likesCount: _likesCount,
-              commentsCount: _commentsCount,
-              reactionIcon: _reactionManager.getCurrentReactionIcon(),
-              reactionColor: _reactionManager.getCurrentReactionColor(),
-            ),
+  Color _getReactionColor(PostModel post) {
+    if (!post.isLiked) {
+      return Colors.grey;
+    }
 
-            // Divider
-            Divider(color: Colors.grey[300], height: 1),
-            
-            // Reaction Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                PostReactionButton(
-                  isLiked: _isLiked,
-                  currentReaction: _currentReaction,
-                  onTap: () => _reactionManager.toggleReaction(_currentReaction),
-                  onLongPress: _showReactionsPopup,
-                  reactionIcons: ReactionManager.reactionIcons,
-                  reactionColors: ReactionManager.reactionColors,
-                ),
-                PostActionButton(
-                  icon: Icons.comment_outlined,
-                  label: "Comment",
-                  onTap: _navigateToPostDetail,
-                ),
-                PostActionButton(
-                  icon: Icons.repeat,
-                  label: "Repost",
-                  onTap: () {},
-                ),
-                PostActionButton(
-                  icon: Icons.send,
-                  label: "Send",
-                  onTap: () {},
-                ),
-              ],
-            ),
-            
-            // Divider
-            Divider(color: Colors.grey[300], height: 1),
-          ],
-        ),
-      ),
-    );
+    if (post.currentReaction != null &&
+        ReactionManager.reactionColors.containsKey(post.currentReaction)) {
+      return ReactionManager.reactionColors[post.currentReaction]!;
+    }
+
+    return Colors.blue;
   }
 }
