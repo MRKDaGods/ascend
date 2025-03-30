@@ -15,6 +15,8 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<ToggleCommentReaction>(_onToggleCommentReaction);
     on<UpdatePostComments>(_onUpdatePostComments);
     on<HidePost>(_onHidePost);
+    on<ShowPostFeedbackOptions>(_onShowPostFeedbackOptions);
+    on<HidePostFeedbackOptions>(_onHidePostFeedbackOptions);
     // Register other events here
   }
   
@@ -193,5 +195,29 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         emit(currentState);
       }
     }
+  }
+
+  void _onShowPostFeedbackOptions(ShowPostFeedbackOptions event, Emitter<PostState> emit) {
+    final currentState = state as PostsLoaded;
+    final posts = currentState.posts.map((post) {
+      if (post.id == event.postId) {
+        return post.copyWith(showFeedbackOptions: true);
+      }
+      return post;
+    }).toList();
+    
+    emit(PostsLoaded(posts));
+  }
+
+  void _onHidePostFeedbackOptions(HidePostFeedbackOptions event, Emitter<PostState> emit) {
+    final currentState = state as PostsLoaded;
+    final posts = currentState.posts.map((post) {
+      if (post.id == event.postId) {
+        return post.copyWith(showFeedbackOptions: false);
+      }
+      return post;
+    }).toList();
+    
+    emit(PostsLoaded(posts));
   }
 }

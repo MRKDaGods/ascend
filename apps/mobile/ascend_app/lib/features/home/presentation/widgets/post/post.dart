@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/home/presentation/widgets/post/post_feedback_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/post_bloc/post_bloc.dart';
@@ -69,6 +70,22 @@ class _PostState extends State<Post> {
             return const SizedBox.shrink();
           }
 
+          // Check the feedback options from the post model
+          if (post.showFeedbackOptions) {
+            return PostFeedbackOptions(
+              ownerName: post.ownerName,
+              onFeedbackSubmitted: (reason) {
+                // Handle feedback submission
+                context.read<PostBloc>().add(HidePost(post.id, reason));
+              },
+              onUndo: () {
+                // Use BLoC to hide feedback options
+                context.read<PostBloc>().add(HidePostFeedbackOptions(post.id));
+              },
+            );
+          }
+
+          // Normal post view
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 8.0),
             elevation: 0.5,
@@ -78,7 +95,7 @@ class _PostState extends State<Post> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Post header
+                // Post header with onShowFeedbackOptions callback
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: PostHeader(
@@ -88,7 +105,11 @@ class _PostState extends State<Post> {
                     ownerOccupation: post.ownerOccupation,
                     isSponsored: post.isSponsored,
                     followers: post.followers,
-                    onOptionsPressed: null, // Set to null explicitly
+                    onOptionsPressed: null, // Let it use the default behavior
+                    onShowFeedbackOptions: () {
+                      // Use BLoC event instead of setState
+                      context.read<PostBloc>().add(ShowPostFeedbackOptions(post.id));
+                    },
                     onHidePost: (reason) {
                       context.read<PostBloc>().add(HidePost(post.id, reason));
                     },

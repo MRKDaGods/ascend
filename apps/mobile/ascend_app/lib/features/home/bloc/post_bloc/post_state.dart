@@ -13,28 +13,29 @@ class PostsInitial extends PostState {}
 class PostsLoading extends PostState {}
 
 class PostsLoaded extends PostState {
-  final List<Post> posts;
-  final bool freshLoad;  // Add this property
+  final List<PostModel> posts;
+  final bool freshLoad; // Added this parameter
   
-  // Update the constructor to include freshLoad parameter
-  const PostsLoaded(this.posts, {this.freshLoad = false});
+  const PostsLoaded(this.posts, {this.freshLoad = false}); // Added default value
   
-  // Add method to get post by ID if you don't have it already
-  Post? getPostById(String id) {
+  @override
+  List<Object?> get props => [posts, freshLoad]; // Added to props
+  
+  // Helper method to find a post by id
+  PostModel? getPostById(String id) {
     try {
       return posts.firstWhere((post) => post.id == id);
-    } catch (_) {
+    } catch (e) {
       return null;
     }
   }
   
-  // Make sure to include freshLoad in props
-  @override
-  List<Object> get props => [posts, freshLoad];
-  
-  // Create a copy with an updated post
-  PostsLoaded copyWith({List<Post>? posts}) {
-    return PostsLoaded(posts ?? this.posts);
+  // Include freshLoad in copyWith
+  PostsLoaded copyWith({List<PostModel>? posts, bool? freshLoad}) {
+    return PostsLoaded(
+      posts ?? this.posts,
+      freshLoad: freshLoad ?? this.freshLoad,
+    );
   }
 }
 

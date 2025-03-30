@@ -3,17 +3,17 @@ import '../data/sample_posts.dart';
 
 class PostRepository {
   // For now, we'll use in-memory storage
-  final List<Post> _posts = [];
+  final List<PostModel> _posts = [];
   
   // Add a map for sponsored posts
-  final Map<String, Post> _sponsoredPosts = {};
+  final Map<String, PostModel> _sponsoredPosts = {};
 
   PostRepository() {
     // Initialize with sample posts
     _posts.addAll(SamplePosts.getDefaultPosts());
     
     // Initialize sponsored posts
-    _sponsoredPosts['sponsored_1'] = Post(
+    _sponsoredPosts['sponsored_1'] = PostModel(
       id: 'sponsored_1',
       title: 'Sponsored: Premium Subscription',
       description: 'Get 50% off our premium plan today!',
@@ -28,7 +28,7 @@ class PostRepository {
       images: ['assets/images/posts/sponsor1.jpg'],
     );
     
-    _sponsoredPosts['sponsored_2'] = Post(
+    _sponsoredPosts['sponsored_2'] = PostModel(
       id: 'sponsored_2',
       title: 'Sponsored: Learn New Skills',
       description: 'Join our workshop to learn the latest tech skills!',
@@ -47,14 +47,14 @@ class PostRepository {
   }
   
   // Get all posts
-  Future<List<Post>> getPosts() async {
+  Future<List<PostModel>> getPosts() async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 300));
     return _posts;
   }
   
   // Get a single post by ID
-  Future<Post?> getPostById(String id) async {
+  Future<PostModel?> getPostById(String id) async {
     // Check if it's a sponsored post
     if (id.startsWith('sponsored_')) {
       return _sponsoredPosts[id];
@@ -69,7 +69,7 @@ class PostRepository {
   }
   
   // Add a new post
-  Future<Post> addPost(Post post) async {
+  Future<PostModel> addPost(PostModel post) async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 300));
     _posts.add(post);
@@ -77,7 +77,7 @@ class PostRepository {
   }
   
   // Update an existing post
-  Future<Post> updatePost(Post post) async {
+  Future<PostModel> updatePost(PostModel post) async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 300));
     final index = _posts.indexWhere((p) => p.id == post.id);
@@ -95,14 +95,14 @@ class PostRepository {
   }
 
   // Add this method
-  Future<List<Post>> getMorePosts(int count) async {
+  Future<List<PostModel>> getMorePosts(int count) async {
     // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 800));
     
     // Generate some more sample posts
     final newPosts = List.generate(count, (index) {
       final id = _posts.length + index + 1;
-      return Post(
+      return PostModel(
         id: 'post_$id',
         title: 'New Post $id',
         description: 'This is a dynamically loaded post #$id',

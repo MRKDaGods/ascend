@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
-import '../post/post_feedback_options.dart';
 
 class PostHeader extends StatelessWidget {
   final String ownerName;
@@ -129,8 +128,13 @@ class PostHeader extends StatelessWidget {
             icon: const Icon(Icons.close),
             splashRadius: 24,
             onPressed: () {
-              // Show the feedback options directly
-              showFeedbackOptions(context);
+              print("X button pressed");
+              if (onShowFeedbackOptions != null) {
+                onShowFeedbackOptions!();
+              } else {
+                print("Warning: onShowFeedbackOptions callback is null");
+                // No fallback - don't show dialog
+              }
             },
           ),
         if (isSponsored)
@@ -161,28 +165,6 @@ class PostHeader extends StatelessWidget {
     } else {
       return number.toString();
     }
-  }
-
-  // Add this method to PostHeader
-  void showFeedbackOptions(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        content: PostFeedbackOptions(
-          ownerName: ownerName,
-          onFeedbackSubmitted: (reason) {
-            Navigator.pop(dialogContext);
-            if (onHidePost != null) {
-              onHidePost!(reason);
-            }
-          },
-          onUndo: () {
-            Navigator.pop(dialogContext);
-          },
-        ),
-        contentPadding: EdgeInsets.zero,
-      ),
-    );
   }
 }
 
