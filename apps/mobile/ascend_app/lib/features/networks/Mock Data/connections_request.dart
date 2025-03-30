@@ -15,11 +15,11 @@ void addConnectionRequest(
 
   if (!exists) {
     connectionRequests.add(connectionRequest);
-    print("Connection request added: ${connectionRequest.requestId}");
+    //print("Connection request added: ${connectionRequest.requestId}");
   } else {
-    print(
-      "Connection request not added: Duplicate senderId and receiverId combination",
-    );
+    //print(
+    // "Connection request not added: Duplicate senderId and receiverId combination",
+    //);
   }
 }
 
@@ -28,20 +28,20 @@ void removeConnectionRequest(
   String requestId,
 ) {
   connectionRequests.removeWhere((element) => element.requestId == requestId);
-  print("Connection request removed number $requestId");
+  //print("Connection request removed number $requestId");
 }
 
 void acceptConnectionRequest(
   List<ConnectionRequestModel> connectionRequests,
   String requestId,
 ) {
-  print("Connection request accepted number $requestId");
+  //print("Connection request accepted number $requestId");
   for (var element in connectionRequests) {
     if (element.requestId == requestId) {
       element.status = "accepted";
-      print(
+      /*print(
         "Connection request accepted number ${element.requestId} from ${element.senderId} to ${element.receiverId}",
-      );
+      );*/
     }
   }
 }
@@ -66,9 +66,9 @@ List<ConnectionRequestModel> fetchPendingSentConnectionRequest(
             (element) => element.status == "pending" && element.senderId == "1",
           )
           .toList();
-  print("Pending requests sent:");
+  //print("Pending requests sent:");
   for (var element in pendingRequestsSent) {
-    print(element.requestId);
+    //print(element.requestId);
   }
   return pendingRequestsSent;
 }
@@ -83,10 +83,10 @@ List<ConnectionRequestModel> fetchPendingReceivedConnectionRequest(
                 element.status == "pending" && element.receiverId == "1",
           )
           .toList();
-  print("Pending requests received:");
-  for (var element in pendingRequestsReceived) {
+  //print("Pending requests received:");
+  /*for (var element in pendingRequestsReceived) {
     print(element.requestId);
-  }
+  }*/
   return pendingRequestsReceived;
 }
 
@@ -101,9 +101,9 @@ List<ConnectionRequestModel> fetchAcceptedConnectionRequest(
                 (element.senderId == "1" || element.receiverId == "1"),
           )
           .toList();
-  print("Accepted connections:");
+  //print("Accepted connections:");
   for (var element in acceptedConnections) {
-    print(element.requestId);
+    //print(element.requestId);
   }
   return acceptedConnections;
 }

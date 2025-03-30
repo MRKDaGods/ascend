@@ -20,6 +20,7 @@ import 'package:ascend_app/features/networks/managers/connection_manager.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
 import 'package:uuid/uuid.dart';
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 
 class Grow extends StatefulWidget {
   const Grow({Key? key}) : super(key: key);
@@ -191,6 +192,12 @@ class _GrowState extends State<Grow> {
                                         value: BlocProvider.of<FollowBloc>(
                                           context,
                                         ),
+                                      ),
+                                      BlocProvider.value(
+                                        value:
+                                            BlocProvider.of<SearchFiltersBloc>(
+                                              context,
+                                            ),
                                       ),
                                     ],
                                     child: ManageMyNetwork(

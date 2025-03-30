@@ -38,7 +38,6 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
   void _showSettingsModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
-
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

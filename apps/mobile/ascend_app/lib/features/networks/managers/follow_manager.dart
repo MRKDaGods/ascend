@@ -31,10 +31,10 @@ List<UserModel> getSuggestedUsersforFollow(
 
   unFollowedUsers.removeWhere((element) => element.id == "1");
   unFollowedUsers.removeWhere((element) => element.firstFollow == false);
-  print("Users to Follow:");
+  /*print("Users to Follow:");
   for (var element in unFollowedUsers) {
     print(element.id);
-  }
+  }*/
   return unFollowedUsers;
 }
 
@@ -56,10 +56,10 @@ Map<String, List<UserModel>> getallconnectionsforMutualFollow(
       customConnections[user.followingId] = mutualUser;
     }
   }
-  customConnections.forEach(
+  /*customConnections.forEach(
     (key, value) =>
         print("User: $key, Mutual Users: ${value.map((e) => e.id)}"),
-  );
+  );*/
   return customConnections;
 }
 
