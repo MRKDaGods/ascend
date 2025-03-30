@@ -1,22 +1,27 @@
 import 'package:ascend_app/features/home/models/comment_model.dart';
+import 'package:ascend_app/features/profile/models/user_profile_model.dart';
+import 'package:flutter/material.dart';
 
 class CommentManager {
   final List<Comment> comments;
   final Function(List<Comment>) onCommentsChanged;
+  final UserProfileModel? userProfile;
   
   CommentManager({
     required this.comments,
     required this.onCommentsChanged,
+    this.userProfile,
   });
   
   void addComment(String text, {String? authorName, String? authorImage, String? authorOccupation}) {
     if (text.isEmpty) return;
     
+    // Use current user's data from UserProfileModel if available
     final newComment = Comment(
       id: DateTime.now().toString(),
-      authorName: authorName ?? 'You',
-      authorImage: authorImage ?? 'assets/logo.jpg',
-      authorOccupation: authorOccupation,
+      authorName: authorName ?? userProfile?.name ?? 'You',
+      authorImageUrl: authorImage ?? userProfile?.avatarUrl ?? 'assets/logo.jpg',
+      authorOccupation: authorOccupation ?? userProfile?.position ?? '',
       text: text,
       timePosted: 'Just now',
     );
@@ -30,9 +35,9 @@ class CommentManager {
     
     final newReply = Comment(
       id: DateTime.now().toString(),
-      authorName: authorName ?? 'You',
-      authorImage: authorImage ?? 'assets/logo.jpg',
-      authorOccupation: authorOccupation,
+      authorName: authorName ?? userProfile?.name ?? 'You',
+      authorImageUrl: authorImage ?? userProfile?.avatarUrl ?? 'assets/logo.jpg',
+      authorOccupation: authorOccupation ?? userProfile?.position ?? '',
       text: text,
       timePosted: 'Just now',
       parentId: parentId,
@@ -53,19 +58,7 @@ class CommentManager {
       if (comments[i].replies.isNotEmpty) {
         List<Comment> updatedReplies = List<Comment>.from(comments[i].replies);
         if (findAndAddReply(updatedReplies, parentId, reply)) {
-          comments[i] = Comment(
-            id: comments[i].id,
-            authorName: comments[i].authorName,
-            authorImage: comments[i].authorImage,
-            authorOccupation: comments[i].authorOccupation,
-            text: comments[i].text,
-            timePosted: comments[i].timePosted,
-            parentId: comments[i].parentId,
-            replies: updatedReplies,
-            likes: comments[i].likes,
-            isLiked: comments[i].isLiked,
-            reaction: comments[i].reaction,
-          );
+          comments[i] = comments[i].copyWith(replies: updatedReplies);
           return true;
         }
       }
@@ -92,20 +85,7 @@ class CommentManager {
       if (comments[i].replies.isNotEmpty) {
         List<Comment> updatedReplies = List<Comment>.from(comments[i].replies);
         if (findAndToggleLike(updatedReplies, commentId)) {
-          // If a reply was updated, update the parent comment with the new replies list
-          comments[i] = Comment(
-            id: comments[i].id,
-            authorName: comments[i].authorName,
-            authorImage: comments[i].authorImage,
-            authorOccupation: comments[i].authorOccupation,
-            text: comments[i].text,
-            timePosted: comments[i].timePosted,
-            parentId: comments[i].parentId,
-            replies: updatedReplies,
-            likes: comments[i].likes,
-            isLiked: comments[i].isLiked,
-            reaction: comments[i].reaction,
-          );
+          comments[i] = comments[i].copyWith(replies: updatedReplies);
           return true;
         }
       }
@@ -132,20 +112,7 @@ class CommentManager {
       if (comments[i].replies.isNotEmpty) {
         List<Comment> updatedReplies = List<Comment>.from(comments[i].replies);
         if (findAndUpdateReaction(updatedReplies, commentId, reactionType)) {
-          // If a reply was updated, update the parent comment
-          comments[i] = Comment(
-            id: comments[i].id,
-            authorName: comments[i].authorName,
-            authorImage: comments[i].authorImage,
-            authorOccupation: comments[i].authorOccupation,
-            text: comments[i].text,
-            timePosted: comments[i].timePosted,
-            parentId: comments[i].parentId,
-            replies: updatedReplies,
-            likes: comments[i].likes,
-            isLiked: comments[i].isLiked,
-            reaction: comments[i].reaction,
-          );
+          comments[i] = comments[i].copyWith(replies: updatedReplies);
           return true;
         }
       }
@@ -154,21 +121,72 @@ class CommentManager {
   }
 }
 
-// Add this extension to the Comment class if you can't modify the original class
+// Extension methods to support existing code that might reference different field names
 extension CommentExtension on Comment {
+  // Keep existing method
   Comment copyWithLikeToggled() {
-    return Comment(
-      id: id,
-      authorName: authorName,
-      authorImage: authorImage,
-      authorOccupation: authorOccupation,
-      text: text,
-      timePosted: timePosted,
-      parentId: parentId,
-      replies: replies,
-      likes: isLiked ? likes - 1 : likes + 1,
+    return copyWith(
+      likesCount: isLiked ? likesCount - 1 : likesCount + 1,
       isLiked: !isLiked,
-      reaction: reaction,
     );
+  }
+  
+  // Add method to handle reactions
+  Comment copyWithReaction(String reactionType) {
+    if (isLiked && reactionType == 'none') {
+      // Remove reaction
+      return copyWith(
+        likesCount: likesCount > 0 ? likesCount - 1 : 0,
+        isLiked: false,
+        currentReaction: null,
+      );
+    } else {
+      // Add or change reaction 
+      return copyWith(
+        likesCount: isLiked ? likesCount : likesCount + 1,
+        isLiked: true,
+        currentReaction: reactionType,
+      );
+    }
+  }
+}
+
+extension ScaffoldStateExtension on ScaffoldState {
+  // Store a reference to the current user profile
+  static UserProfileModel? _currentUserProfile;
+  
+  // Setter for current user profile
+  static void setCurrentUserProfile(UserProfileModel profile) {
+    _currentUserProfile = profile;
+  }
+  
+  // Getter for current user profile
+  static UserProfileModel? getCurrentUserProfile() {
+    return _currentUserProfile;
+  }
+
+  void openDrawerWithAnimation({
+    Duration duration = const Duration(milliseconds: 250),
+    Curve curve = Curves.easeInOut,
+    UserProfileModel? userProfile,
+  }) {
+    if (!isDrawerOpen && widget.drawer != null) {
+      // If a profile is provided for this specific drawer opening,
+      // update the current profile
+      if (userProfile != null) {
+        _currentUserProfile = userProfile;
+      }
+      
+      openDrawer();
+    }
+  }
+
+  void closeDrawerWithAnimation({
+    Duration duration = const Duration(milliseconds: 200),
+    Curve curve = Curves.easeIn,
+  }) {
+    if (isDrawerOpen) {
+      Navigator.of(context).pop();
+    }
   }
 }

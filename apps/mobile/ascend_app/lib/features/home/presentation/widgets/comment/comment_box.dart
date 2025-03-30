@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/managers/reaction_manager.dart';
-import 'package:ascend_app/features/home/presentation/widgets/reaction/post_reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/widgets/reaction/reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
 
 class CommentBox extends StatelessWidget {
@@ -9,14 +9,16 @@ class CommentBox extends StatelessWidget {
   final String timePosted;
   final String text;
   final String avatarImage;
-  final VoidCallback onMenuTap;
+  
+  // Replace generic onMenuTap with specific handlers
+  final Function(String) onMenuOptionSelected;
+  
   final VoidCallback? onReplyTap;
   final VoidCallback? onReactionTap;
   final VoidCallback? onReactionLongPress;
   final bool isLiked;
   final String? reaction;
   final int likeCount;
-  final BuildContext context; // Add this parameter
   
   // Optional: Allow child widgets to be passed in instead of text
   final Widget? child;
@@ -28,8 +30,7 @@ class CommentBox extends StatelessWidget {
     required this.timePosted,
     required this.text,
     required this.avatarImage,
-    required this.onMenuTap,
-    required this.context, // Add this required parameter
+    required this.onMenuOptionSelected,
     this.onReplyTap,
     this.onReactionTap,
     this.onReactionLongPress,
@@ -97,31 +98,7 @@ class CommentBox extends StatelessWidget {
                             
                             // Menu dots - aligned with time and name
                             InkWell(
-                              onTap: () => SheetHelpers.showPostOptionsSheet(
-                                context: context,
-                                ownerName: authorName,
-                                showSave: false,
-                                showNotInterested: false,
-                                showUnfollow: false,
-                                showMessage: true, // Enable message option
-                                reportText: 'Report comment',
-                                onShare: () {
-                                  Navigator.pop(context);
-                                  // Call the original onMenuTap if needed
-                                  onMenuTap();
-                                },
-                                onMessage: () {
-                                  Navigator.pop(context);
-                                  // Handle messaging the user
-                                  // You can call a specific method here or use onMenuTap
-                                  onMenuTap();
-                                },
-                                onReport: () {
-                                  Navigator.pop(context);
-                                  // Call the original onMenuTap if needed
-                                  onMenuTap();
-                                },
-                              ),
+                              onTap: () => _showOptionsSheet(context),
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 4.0),
                                 child: Icon(
@@ -162,15 +139,18 @@ class CommentBox extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 12.0, top: 4.0),
                 child: Row(
                   children: [
-                    // Use PostReactionButton for reactions - fix condition to allow reactions to work
+                    // Replace PostReactionButton with ReactionButton
                     if (onReactionTap != null)
-                      PostReactionButton(
-                        isLiked: isLiked,
-                        currentReaction: reaction ?? 'like',
-                        onTap: onReactionTap!,
-                        onLongPress: onReactionLongPress ?? () {}, // Provide empty fallback
-                        reactionIcons: ReactionManager.reactionIcons,
-                        reactionColors: ReactionManager.reactionColors,
+                      ReactionButton(
+                        // Create a manager with the current state
+                        manager: ReactionManager(
+                          isLiked: isLiked,
+                          currentReaction: reaction,
+                        ),
+                        // Connect callbacks
+                        onTap: onReactionTap,
+                        onLongPressStart: onReactionLongPress ?? () {},
+                        onLongPressEnd: () {}, // Add empty handler
                       ),
                     
                     const SizedBox(width: 16),
@@ -194,6 +174,31 @@ class CommentBox extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+  
+  // Use SheetHelpers, but connect to our callback system
+  void _showOptionsSheet(BuildContext context) {
+    SheetHelpers.showPostOptionsSheet(
+      context: context,
+      ownerName: authorName,
+      showSave: false,
+      showNotInterested: false,
+      showUnfollow: false,
+      showMessage: true, // Enable message option
+      reportText: 'Report comment',
+      onShare: () {
+        Navigator.pop(context);
+        onMenuOptionSelected('share');
+      },
+      onMessage: () {
+        Navigator.pop(context);
+        onMenuOptionSelected('message');
+      },
+      onReport: () {
+        Navigator.pop(context);
+        onMenuOptionSelected('report');
+      },
     );
   }
 }

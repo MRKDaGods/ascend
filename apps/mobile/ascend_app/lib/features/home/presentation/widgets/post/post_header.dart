@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
+import '../post/post_feedback_options.dart';
 
 class PostHeader extends StatelessWidget {
   final String ownerName;
@@ -12,6 +13,7 @@ class PostHeader extends StatelessWidget {
   final VoidCallback? onOptionsPressed;
   final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
   final VoidCallback? onShowFeedbackOptions; // New callback to show feedback options
+  final Function(String reason)? onHidePost; // Add this
 
   const PostHeader({
     super.key,
@@ -25,6 +27,7 @@ class PostHeader extends StatelessWidget {
     this.onOptionsPressed,
     this.onFeedbackSubmitted,
     this.onShowFeedbackOptions,
+    this.onHidePost,
   });
 
   void _showOptionsBottomSheet(BuildContext context) {
@@ -85,7 +88,9 @@ class PostHeader extends StatelessWidget {
     return Row(
       children: [
         CircleAvatar(
-          backgroundImage: AssetImage(ownerImageUrl),
+          backgroundImage: ownerImageUrl.startsWith('http') || ownerImageUrl.startsWith('https')
+            ? NetworkImage(ownerImageUrl) as ImageProvider
+            : AssetImage(ownerImageUrl),
           radius: 20,
         ),
         const SizedBox(width: 8),
@@ -138,7 +143,10 @@ class PostHeader extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.close),
             splashRadius: 24,
-            onPressed: onShowFeedbackOptions, // Call the new callback instead
+            onPressed: () {
+              // Show the feedback options directly
+              showFeedbackOptions(context);
+            },
           ),
         if (isSponsored)
           Container(
@@ -168,6 +176,28 @@ class PostHeader extends StatelessWidget {
     } else {
       return number.toString();
     }
+  }
+
+  // Add this method to PostHeader
+  void showFeedbackOptions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        content: PostFeedbackOptions(
+          ownerName: ownerName,
+          onFeedbackSubmitted: (reason) {
+            Navigator.pop(dialogContext);
+            if (onHidePost != null) {
+              onHidePost!(reason);
+            }
+          },
+          onUndo: () {
+            Navigator.pop(dialogContext);
+          },
+        ),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
   }
 }
 
