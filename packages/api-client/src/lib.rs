@@ -2,6 +2,8 @@ mod bindings;
 mod client;
 mod errors;
 mod models;
+mod services;
+mod utils;
 
 pub use client::ApiClient;
 pub use errors::ApiError;

@@ -5,5 +5,9 @@ pub enum ApiError {
     #[error("HTTP request failed: {0}")]
     Request(#[from] reqwest::Error),
     #[error("Serialization failed: {0}")]
-    Serialization(#[from] serde_json::Error),
+    Serialization(#[from] serde_json::Error),  
+    #[error("WASM serialization failed: {0}")]
+    WasmSerialization(#[from] serde_wasm_bindgen::Error),
+    #[error("Unauthorized access: {0}")]
+    Unauthorized(String),
 }
