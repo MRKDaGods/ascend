@@ -5,7 +5,8 @@
   "files": [
     "api_client_bg.wasm",
     "api_client.js",
-    "api_client.d.ts"
+    "api_client.d.ts",
+    "mrk.ts"
   ],
   "main": "api_client.js",
   "types": "api_client.d.ts",

@@ -1,5 +1,6 @@
+use crate::services::auth::Auth;
 use crate::errors::ApiError;
-// use crate::models::user::User;
+use crate::utils;
 use reqwest::Client;
 
 // I suck at rust mb
@@ -7,6 +8,7 @@ use reqwest::Client;
 pub struct ApiClient {
     client: Client,
     base_url: String,
+    auth_token: Option<String>,
 }
 
 impl ApiClient {
@@ -14,20 +16,38 @@ impl ApiClient {
         Self {
             client: Client::new(),
             base_url: base_url.to_string(),
+            auth_token: None,
         }
     }
 
-    pub async fn get_gateway_health(&self) -> Result<String, ApiError> {
-        let url = format!("{}/gateway/health", self.base_url);
-        let response = self.client.get(&url).send().await?;
-        let body = response.text().await?;
-        Ok(body)
+    pub fn construct_url(&self, path: &str) -> String {
+        format!("{}/{}", self.base_url, path)
     }
 
-    // pub async fn get_user(&self, id: i64) -> Result<User, ApiError> {
-    //     let url = format!("{}/users/{}", self.base_url, id);
-    //     let response = self.client.get(&url).send().await?;
-    //     let user: User = response.json().await?;
-    //     Ok(user)
-    // }
+    pub fn http_client(&self) -> &Client {
+        &self.client
+    }
+
+    pub fn set_auth_token(&mut self, token: String) {
+        self.auth_token = Some(token);
+    }
+
+    pub fn auth_token(&self) -> Result<&String, ApiError> {
+        self.auth_token
+            .as_ref()
+            .ok_or(ApiError::Unauthorized(String::from("No auth token set")))
+    }
+
+    // Cache the auth endpoint
+    pub fn auth(&self) -> Auth {
+        Auth::new(self)
+    }
+
+    pub async fn get_gateway_health(&self) -> Result<String, ApiError> {
+        let url = self.construct_url("health");
+        let response = self.client.get(&url).send().await?;
+        utils::handle_text_response(response).await
+    }
+
+
 }
