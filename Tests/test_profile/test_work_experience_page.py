@@ -1,5 +1,5 @@
 from Pages.Profile.profile_page import ProfiePage
-from Pages.Navigation.sidebar import SideBarPage
+from Pages.Navigation.sidebar_page import SideBarPage
 from Pages.Feed.home_page import HomePage
 from Pages.Profile.work_experience_page import WorkExperiencePage
 from Pages.Profile.profile_page import ProfiePage
