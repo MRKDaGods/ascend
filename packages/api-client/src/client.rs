@@ -38,8 +38,7 @@ impl ApiClient {
             .ok_or(ApiError::Unauthorized(String::from("No auth token set")))
     }
 
-    // Cache the auth endpoint
-    pub fn auth(&self) -> Auth {
+    pub fn auth(&mut self) -> Auth {
         Auth::new(self)
     }
 

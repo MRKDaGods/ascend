@@ -7,6 +7,14 @@ export class WasmApiClient {
   get_auth_token(): string;
   get_gateway_health(): Promise<string>;
   login(email: string, password: string): Promise<any>;
+  register(first_name: string, last_name: string, email: string, password: string): Promise<any>;
+  resend_confirm_email(email: string): Promise<any>;
+  update_password(old_password: string, new_password: string): Promise<any>;
+  update_email(new_email: string): Promise<any>;
+  forget_password(email: string): Promise<any>;
+  reset_password(token: string, new_password: string): Promise<any>;
+  delete_account(): Promise<any>;
+  logout(): Promise<any>;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -19,6 +27,14 @@ export interface InitOutput {
   readonly wasmapiclient_get_auth_token: (a: number) => [number, number, number, number];
   readonly wasmapiclient_get_gateway_health: (a: number) => any;
   readonly wasmapiclient_login: (a: number, b: number, c: number, d: number, e: number) => any;
+  readonly wasmapiclient_register: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => any;
+  readonly wasmapiclient_resend_confirm_email: (a: number, b: number, c: number) => any;
+  readonly wasmapiclient_update_password: (a: number, b: number, c: number, d: number, e: number) => any;
+  readonly wasmapiclient_update_email: (a: number, b: number, c: number) => any;
+  readonly wasmapiclient_forget_password: (a: number, b: number, c: number) => any;
+  readonly wasmapiclient_reset_password: (a: number, b: number, c: number, d: number, e: number) => any;
+  readonly wasmapiclient_delete_account: (a: number) => any;
+  readonly wasmapiclient_logout: (a: number) => any;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
@@ -28,8 +44,8 @@ export interface InitOutput {
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h2ade3ec9598a0224: (a: number, b: number) => void;
-  readonly closure117_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure162_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure147_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure192_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 
