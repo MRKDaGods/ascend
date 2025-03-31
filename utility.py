@@ -2,7 +2,6 @@ from Pages.Feed.home_page import HomePage
 from Pages.Navigation.sidebar_page import SideBarPage
 from Pages.Authentication.login_page import LoginPage
 from Pages.Authentication.landing_page import LandingPage
-from Pages.Profile.profile_page import ProfiePage
 from Test_Cases_Data.Authentication import LoginTestCasesData as TC
 from Pages.Feed.home_page import HomePage
 from Pages.Profile.profile_page import ProfiePage
