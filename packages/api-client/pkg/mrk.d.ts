@@ -1,11 +1,14 @@
 import { WasmApiClient } from "./api_client";
+import { Profile } from "./models";
 export declare class ApiClient {
     baseUrl: string;
     private client;
     private _auth;
+    private _user;
     constructor(baseUrl: string);
     initialize(): Promise<void>;
     get auth(): AuthService;
+    get user(): UserService;
 }
 declare class AuthService {
     private client;
@@ -83,5 +86,66 @@ declare class AuthService {
      * @throws Error if the logout fails
      */
     logout(): Promise<void>;
+}
+declare class UserService {
+    private client;
+    constructor(client: WasmApiClient);
+    /**
+     * Retrieves the currently authenticated user's profile
+     * @returns The user's profile
+     * @throws Error if the user is not authenticated
+     */
+    getLocalUserProfile(): Promise<Profile>;
+    /**
+     * Updates the currently authenticated user's profile
+     * @param profile - The user's profile data
+     * @returns The updated profile
+     * @throws Error if the update fails
+     *
+     * @remarks The profile object must contain at least first_name and last_name
+     */
+    updateLocalUserProfile(profile: Partial<Profile> & {
+        first_name: string;
+        last_name: string;
+    }): Promise<Profile>;
+    /**
+     * Uploads a profile picture for the currently authenticated user
+     * @param file - The image file to upload
+     * @returns The updated profile with the new profile picture URL
+     * @throws Error if the upload fails
+     */
+    uploadProfilePicture(file: File): Promise<Profile>;
+    /**
+     * Deletes the currently authenticated user's profile picture
+     * @returns The updated profile with the profile picture removed
+     * @throws Error if the deletion fails
+     */
+    deleteProfilePicture(): Promise<Profile>;
+    /**
+     * Uploads a cover photo for the currently authenticated user
+     * @param file - The image file to upload
+     * @returns The updated profile with the new cover photo URL
+     * @throws Error if the upload fails
+     */
+    uploadCoverPhoto(file: File): Promise<Profile>;
+    /**
+     * Deletes the currently authenticated user's cover photo
+     * @returns The updated profile with the cover photo removed
+     * @throws Error if the deletion fails
+     */
+    deleteCoverPhoto(): Promise<Profile>;
+    /**
+     * Uploads a resume for the currently authenticated user
+     * @param file - The resume file to upload
+     * @returns The updated profile with the new resume URL
+     * @throws Error if the upload fails
+     */
+    uploadResume(file: File): Promise<Profile>;
+    /**
+     * Deletes the currently authenticated user's resume
+     * @returns The updated profile with the resume removed
+     * @throws Error if the deletion fails
+     */
+    deleteResume(): Promise<Profile>;
 }
 export {};

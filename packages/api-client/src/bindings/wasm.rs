@@ -1,3 +1,4 @@
+use crate::models::profile::Profile;
 use crate::{ApiClient, ApiError};
 use wasm_bindgen::prelude::*;
 
@@ -91,18 +92,12 @@ impl WasmApiClient {
     }
 
     #[wasm_bindgen]
-    pub async fn update_email(
-        &mut self,
-        new_email: &str,
-    ) -> Result<JsValue, JsValue> {
+    pub async fn update_email(&mut self, new_email: &str) -> Result<JsValue, JsValue> {
         wasm_wrap!(self.auth().update_email(new_email: &str))
     }
 
     #[wasm_bindgen]
-    pub async fn forget_password(
-        &mut self,
-        email: &str,
-    ) -> Result<JsValue, JsValue> {
+    pub async fn forget_password(&mut self, email: &str) -> Result<JsValue, JsValue> {
         wasm_wrap!(self.auth().forget_password(email: &str))
     }
 
@@ -116,16 +111,70 @@ impl WasmApiClient {
     }
 
     #[wasm_bindgen]
-    pub async fn delete_account(
-        &mut self,
-    ) -> Result<JsValue, JsValue> {
+    pub async fn delete_account(&mut self) -> Result<JsValue, JsValue> {
         wasm_wrap!(self.auth().delete_account())
     }
 
     #[wasm_bindgen]
-    pub async fn logout(
-        &mut self,
-    ) -> Result<JsValue, JsValue> {
+    pub async fn logout(&mut self) -> Result<JsValue, JsValue> {
         wasm_wrap!(self.auth().logout())
+    }
+
+    // User methods
+    #[wasm_bindgen]
+    pub async fn get_local_user_profile(&self) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().get_local_user_profile())
+    }
+
+    #[wasm_bindgen]
+    pub async fn update_local_user_profile(&self, profile: JsValue) -> Result<JsValue, JsValue> {
+        let profile: Profile = serde_wasm_bindgen::from_value(profile).map_err(map_error_wasm)?;
+
+        wasm_wrap!(self.user().update_local_user_profile(profile: Profile))
+    }
+
+    #[wasm_bindgen]
+    pub async fn upload_profile_picture(
+        &self,
+        name: &str,
+        mime: &str,
+        buffer: &[u8],
+    ) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().upload_profile_picture(name: &str, mime: &str, buffer: &[u8]))
+    }
+
+    #[wasm_bindgen]
+    pub async fn delete_profile_picture(&self) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().delete_profile_picture())
+    }
+
+    #[wasm_bindgen]
+    pub async fn upload_cover_photo(
+        &self,
+        name: &str,
+        mime: &str,
+        buffer: &[u8],
+    ) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().upload_cover_photo(name: &str, mime: &str, buffer: &[u8]))
+    }
+
+    #[wasm_bindgen]
+    pub async fn delete_cover_photo(&self) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().delete_cover_photo())
+    }
+
+    #[wasm_bindgen]
+    pub async fn upload_resume(
+        &self,
+        name: &str,
+        mime: &str,
+        buffer: &[u8],
+    ) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().upload_resume(name: &str, mime: &str, buffer: &[u8]))
+    }
+
+    #[wasm_bindgen]
+    pub async fn delete_resume(&self) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().delete_resume())
     }
 }

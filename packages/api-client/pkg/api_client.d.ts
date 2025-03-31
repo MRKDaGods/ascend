@@ -15,6 +15,14 @@ export class WasmApiClient {
   reset_password(token: string, new_password: string): Promise<any>;
   delete_account(): Promise<any>;
   logout(): Promise<any>;
+  get_local_user_profile(): Promise<any>;
+  update_local_user_profile(profile: any): Promise<any>;
+  upload_profile_picture(name: string, mime: string, buffer: Uint8Array): Promise<any>;
+  delete_profile_picture(): Promise<any>;
+  upload_cover_photo(name: string, mime: string, buffer: Uint8Array): Promise<any>;
+  delete_cover_photo(): Promise<any>;
+  upload_resume(name: string, mime: string, buffer: Uint8Array): Promise<any>;
+  delete_resume(): Promise<any>;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -35,6 +43,14 @@ export interface InitOutput {
   readonly wasmapiclient_reset_password: (a: number, b: number, c: number, d: number, e: number) => any;
   readonly wasmapiclient_delete_account: (a: number) => any;
   readonly wasmapiclient_logout: (a: number) => any;
+  readonly wasmapiclient_get_local_user_profile: (a: number) => any;
+  readonly wasmapiclient_update_local_user_profile: (a: number, b: any) => any;
+  readonly wasmapiclient_upload_profile_picture: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => any;
+  readonly wasmapiclient_delete_profile_picture: (a: number) => any;
+  readonly wasmapiclient_upload_cover_photo: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => any;
+  readonly wasmapiclient_delete_cover_photo: (a: number) => any;
+  readonly wasmapiclient_upload_resume: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => any;
+  readonly wasmapiclient_delete_resume: (a: number) => any;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
@@ -43,9 +59,9 @@ export interface InitOutput {
   readonly __wbindgen_export_5: WebAssembly.Table;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h2ade3ec9598a0224: (a: number, b: number) => void;
-  readonly closure147_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure192_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h44b2e8785f7525ab: (a: number, b: number) => void;
+  readonly closure243_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure293_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

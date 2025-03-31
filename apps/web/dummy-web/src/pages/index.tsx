@@ -13,6 +13,7 @@ import {
   LogoutButton,
   AuthTokenDisplay
 } from "../components/auth";
+import { UserProfileForm } from "../components/user";
 import styles from "../styles/layout.module.css";
 
 // Define the tab groups
@@ -23,6 +24,12 @@ const authTabs: TabGroup[] = [
       { id: "login", label: "Login" },
       { id: "register", label: "Register" },
       { id: "resendConfirmation", label: "Resend Confirmation" },
+    ]
+  },
+  {
+    title: "User Profile",
+    tabs: [
+      { id: "userProfile", label: "View Profile" },
     ]
   },
   {
@@ -43,7 +50,7 @@ const authTabs: TabGroup[] = [
 ];
 
 type TabId = 'login' | 'register' | 'resendConfirmation' | 'updatePassword' | 
-  'updateEmail' | 'forgetPassword' | 'resetPassword' | 'deleteAccount';
+  'updateEmail' | 'forgetPassword' | 'resetPassword' | 'deleteAccount' | 'userProfile';
 
 export default function Home() {
   const [initialized, setInitialized] = useState(false);
@@ -83,6 +90,8 @@ export default function Home() {
         return <ResetPasswordForm />;
       case 'deleteAccount':
         return <DeleteAccountForm />;
+      case 'userProfile':
+        return <UserProfileForm />;
       default:
         return <LoginForm />;
     }

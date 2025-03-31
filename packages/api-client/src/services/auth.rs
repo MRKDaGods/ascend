@@ -10,12 +10,12 @@ pub struct Auth<'a> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResponse {
     pub token: String,
-    pub user_id: u32,
+    pub user_id: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegisterResponse {
-    pub user_id: u32,
+    pub user_id: i32,
     pub email: String,
 }
 
