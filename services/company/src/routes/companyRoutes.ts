@@ -1,35 +1,34 @@
 import { Router } from "express";
 import { createAnnounementPost, createCompanyProfile, createJobPost, deleteAnnouncementPost, deleteCompanyProfile, deleteJobPost, followCompany, getAnnouncement, getCompaniesCreatedByUser, getCompanyAnalytics, getCompanyAnnouncements, getCompanyFollowers, getCompanyJobPosts, getCompanyJobsApplications, getCompanyProfile, getJobPost, unfollowCompany, updateCompany, updateJobApplicationStatus } from "../controllers/companyController";
 import authenticateToken from "@shared/middleware/authMiddleware";
-import { updateCompanyProfile } from "../services/companyService";
-
+import { announcementIdValidation, applicationIdValidation, companyIdValidation, createAnnouncementValidation, createCompanyValidation, createJobValidation, followValidation, jobIdValidation, limitAndPageValidation, updateCompanyValidation, updateJobApplicationValidation } from "../validations/companyValidation";
 const companyRoutes = Router();
 
 
-companyRoutes.post("/companies", authenticateToken, createCompanyProfile);
-companyRoutes.patch("/companies/:companyId", authenticateToken, updateCompany);
-companyRoutes.get("/companies/:companyId", authenticateToken, getCompanyProfile);
-companyRoutes.get("/companies", authenticateToken, getCompaniesCreatedByUser);
-companyRoutes.delete("/companies/:companyId", authenticateToken, deleteCompanyProfile);
+companyRoutes.post("/api/companies", authenticateToken, createCompanyValidation, createCompanyProfile);
+companyRoutes.patch("/api/companies/:companyId", authenticateToken, companyIdValidation, updateCompanyValidation, updateCompany);
+companyRoutes.get("/api/companies/:companyId", authenticateToken, companyIdValidation, getCompanyProfile);
+companyRoutes.get("/api/companies", authenticateToken, getCompaniesCreatedByUser);
+companyRoutes.delete("/api/companies/:companyId", authenticateToken, companyIdValidation, deleteCompanyProfile);
 
-companyRoutes.post("/companies/:companyId/jobs", authenticateToken, createJobPost);
-companyRoutes.get("/companies/:companyId/jobs", authenticateToken, getCompanyJobPosts);
-companyRoutes.delete("/companies/:companyId/jobs/:jobId", authenticateToken, deleteJobPost);
-companyRoutes.get("/companies/jobs/:jobId", authenticateToken, getJobPost);
+companyRoutes.post("/api/companies/:companyId/jobs", authenticateToken, companyIdValidation, createJobValidation, createJobPost);
+companyRoutes.get("/api/companies/:companyId/jobs", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyJobPosts);
+companyRoutes.delete("/api/companies/:companyId/jobs/:jobId", authenticateToken, companyIdValidation, jobIdValidation, deleteJobPost);
+companyRoutes.get("/api/companies/jobs/:jobId", authenticateToken, jobIdValidation, getJobPost);
 
-companyRoutes.post("/companies/:companyId/announcements", authenticateToken, createAnnounementPost);
-companyRoutes.get("/companies/:companyId/announcements", authenticateToken, getCompanyAnnouncements);
-companyRoutes.delete("/companies/:companyId/announcements/:announcementId", authenticateToken, deleteAnnouncementPost);
-companyRoutes.get("/companies/announcements/:announcementId", authenticateToken, getAnnouncement);
+companyRoutes.post("/api/companies/:companyId/announcements", authenticateToken, companyIdValidation, createAnnouncementValidation, createAnnounementPost);
+companyRoutes.get("/api/companies/:companyId/announcements", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyAnnouncements);
+companyRoutes.delete("/api/companies/:companyId/announcements/:announcementId", authenticateToken, companyIdValidation, announcementIdValidation, deleteAnnouncementPost);
+companyRoutes.get("/api/companies/announcements/:announcementId", authenticateToken, announcementIdValidation, getAnnouncement);
 
-companyRoutes.get("/companies/:companyId/applications", authenticateToken, getCompanyJobsApplications);
-companyRoutes.patch("/companies/:companyId/applications/:applicationId", authenticateToken, updateJobApplicationStatus);
+companyRoutes.get("/api/companies/:companyId/applications", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyJobsApplications);
+companyRoutes.patch("/api/companies/:companyId/applications/:applicationId", authenticateToken, companyIdValidation, applicationIdValidation, updateJobApplicationValidation, updateJobApplicationStatus);
 
-companyRoutes.get("/companies/:companyId/followers", authenticateToken, getCompanyFollowers);
+companyRoutes.get("/api/companies/:companyId/followers", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyFollowers);
 
-companyRoutes.post("/companies/:companyId/follow", authenticateToken, followCompany);
-companyRoutes.delete("/companies/:companyId/unfollow", authenticateToken, unfollowCompany);
+companyRoutes.post("/api/companies/:companyId/follow", authenticateToken, companyIdValidation, followValidation, followCompany);
+companyRoutes.delete("/api/companies/:companyId/unfollow", authenticateToken, companyIdValidation, unfollowCompany);
 
-companyRoutes.get("/companies/:companyId/analytics", authenticateToken, getCompanyAnalytics);
+companyRoutes.get("/api/companies/:companyId/analytics", authenticateToken, companyIdValidation, getCompanyAnalytics);
 
 export default companyRoutes;

@@ -21,24 +21,25 @@ export const createJob = async (
     company_id : number,
     title : string,
     description : string,
-    location : string,
     industry : string,
-    maximum_salary : number,
-    minimum_salary : number,
     created_at : Date, 
     experience_level : ExperienceLevel,
-    user_id : number
+    user_id : number,
+    location : string = "",
+    maximum_salary : number = -1,
+    minimum_salary : number = -1
 ) : Promise<Job> => {
+    const params = [company_id, title, description, location === "" ? null:location , industry, maximum_salary === -1 ? null:maximum_salary , minimum_salary === -1 ? null:minimum_salary, experience_level, user_id, created_at];
     const result = await db.query("INSERT INTO company_service.job (company_id, title, description, location, industry, salary_range_max, salary_range_min, experience_level, posted_by, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
-        [company_id, title, description, location, industry, maximum_salary, minimum_salary, experience_level as ExperienceLevel, user_id, created_at]
+        params
     );
     return result.rows[0];
-}
+};
 
 export const findNumberOfJobPostForCompany = async (company_id : number) : Promise<number> => {
   const result = await db.query("SELECT COUNT(*) FROM company_service.job WHERE company_id = $1", [company_id]);
   return result.rows[0];
-}
+};
 
 export const findJobsPostedByUserId = async (user_id: number, limit: number = -1, offset: number = 0): Promise<Array<Job>> => {
     let result;
@@ -48,7 +49,7 @@ export const findJobsPostedByUserId = async (user_id: number, limit: number = -1
       result = await db.query("SELECT * FROM company_service.job WHERE posted_by = $1 LIMIT $2 OFFSET $3", [user_id, limit, offset * limit]);
     }
     return result.rows;
-  };
+};
   
 export const findJobsWithExperienceLevel = async (experience_level: ExperienceLevel,  limit: number = -1,  offset: number = 0): Promise<Array<Job>> => {
     const query = limit === -1 
@@ -57,7 +58,7 @@ export const findJobsWithExperienceLevel = async (experience_level: ExperienceLe
     const params = limit === -1 ? [experience_level] : [experience_level as ExperienceLevel, limit, offset * limit];
     const result = await db.query(query, params);
     return result.rows;
-  };
+};
   
 
 export const findJobsByKeyword = async (keywords : {[key : string] : any}, limit : number = -1, offset : number = 0) : Promise<Array<Job>> => {

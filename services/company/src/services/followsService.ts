@@ -26,15 +26,8 @@ export const findCompaniesFollowedByUser = async (user_id : number, limit : numb
     return result.rows;
 };
 
-export const createFollowRelationShip = async (user_id : number, company_id : number, date : Date, first_name : string, last_name : string, profile_photo_url : string = "") : Promise<boolean> => {
-    let params : Array<any>;
-    if(profile_photo_url === ""){
-        params = [user_id, company_id, date, first_name, last_name, null];
-    }else{
-        params = [user_id, company_id, date, first_name, last_name, profile_photo_url];
-    }
-    console.log(params);
-    const result = await db.query("INSERT INTO company_service.follows (follower_id, company_id, created_at, first_name, last_name, profile_picture_url) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (follower_id, company_id) DO NOTHING RETURNING *", params);
+export const createFollowRelationShip = async (user_id : number, company_id : number, date : Date) : Promise<boolean> => {
+    const result = await db.query("INSERT INTO company_service.follows (follower_id, company_id, created_at) VALUES ($1, $2, $3) ON CONFLICT (follower_id, company_id) DO NOTHING RETURNING *", [user_id, company_id, date]);
     return result.rows.length > 0;
 };
 
