@@ -23,3 +23,23 @@ pub async fn handle_text_response(response: Response) -> Result<String, ApiError
     let text = response.text().await?;
     Ok(text)
 }
+
+pub fn filter_json_null_values(value: serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Object(obj) => {
+            let filtered = obj.into_iter()
+                .filter(|(_, v)| !v.is_null())
+                .map(|(k, v)| (k, filter_json_null_values(v)))
+                .collect::<serde_json::Map<String, serde_json::Value>>();
+            serde_json::Value::Object(filtered)
+        },
+        serde_json::Value::Array(arr) => {
+            let filtered = arr.into_iter()
+                .filter(|v| !v.is_null())
+                .map(filter_json_null_values)
+                .collect::<Vec<serde_json::Value>>();
+            serde_json::Value::Array(filtered)
+        },
+        _ => value,
+    }
+}

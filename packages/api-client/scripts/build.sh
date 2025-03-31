@@ -20,21 +20,32 @@ if [ ! -f "pkg/package.json" ]; then
     exit 1
 fi
 
-# Add mrk.xx to the files array
+# Copy models from shared/models to pkg/models
+echo "Copying models..."
+mkdir -p pkg/models
+
+cp -r ../shared/src/models/* pkg/models/
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to copy models."
+    exit 1
+fi
+echo "Models copied successfully."
+
+# Add our stuff
 echo "Postprocessing package.json..."
 if ! grep -q '/* Postprocessed */' pkg/package.json; then
     TMP_FILE=$(mktemp)
 
     jq '(.devDependencies.typescript) = "^5.8.2" 
         | (.scripts.build) = "tsc" 
-        | .files += ["mrk.js", "mrk.d.ts"] 
+        | .files += ["mrk.js", "mrk.d.ts", "models"]
         | . + { "/* Postprocessed */": "" }' pkg/package.json >"$TMP_FILE"
 
     mv "$TMP_FILE" pkg/package.json
 
-    echo "Added mrk.xx to files in package.json"
+    echo "Postprocessed package.json"
 else
-    echo "mrk.xx already in files list"
+    echo "Already postprocessed"
 fi
 
 # Build the TypeScript definitions

@@ -4,7 +4,7 @@ export enum PhoneType {
   MOBILE = "mobile",
 }
 
-export interface Education { // 1:N
+export interface Education /* MRK_ATTR_REF */ { // 1:N
   id: number;
   user_id: number;
   school: string;
@@ -16,7 +16,7 @@ export interface Education { // 1:N
   updated_at: Date;
 }
 
-export interface Experience { // 1:N
+export interface Experience /* MRK_ATTR_REF */ { // 1:N
   id: number;
   user_id: number;
   company: string;
@@ -28,7 +28,7 @@ export interface Experience { // 1:N
   updated_at: Date;
 }
 
-export interface Project { // 1:N
+export interface Project /* MRK_ATTR_REF */ { // 1:N
   id: number;
   user_id: number;
   name: string;
@@ -40,7 +40,7 @@ export interface Project { // 1:N
   updated_at: Date;
 }
 
-export interface Course { // 1:N
+export interface Course /* MRK_ATTR_REF */ { // 1:N
   id: number;
   user_id: number;
   name: string;
@@ -53,17 +53,17 @@ export interface Course { // 1:N
 // Skills & Interests are stored as seperate entities
 // so that they can be shared between users
 // may as well have autocomplete for them
-export interface Skill { // M:N
+export interface Skill /* MRK_ATTR_REF */ { // M:N
   id: number;
   name: string;
 }
 
-export interface Interest { // M:N
+export interface Interest /* MRK_ATTR_REF */ { // M:N
   id: number;
   name: string;
 }
 
-export interface ContactInfo { // 1:1
+export interface ContactInfo /* MRK_ATTR_REF */ { // 1:1
   user_id: number;
   profile_url?: string;
   email: string; // Primary email address, from auth!
@@ -75,7 +75,7 @@ export interface ContactInfo { // 1:1
   updated_at?: Date;
 }
 
-export interface Profile {
+export interface Profile /* MRK_ATTR_REF */ {
   user_id: number;
   first_name: string;
   last_name: string;

@@ -1,4 +1,5 @@
 use crate::services::auth::Auth;
+use crate::services::user::User;
 use crate::errors::ApiError;
 use crate::utils;
 use reqwest::Client;
@@ -40,6 +41,10 @@ impl ApiClient {
 
     pub fn auth(&mut self) -> Auth {
         Auth::new(self)
+    }
+
+    pub fn user(&self) -> User {
+        User::new(self)
     }
 
     pub async fn get_gateway_health(&self) -> Result<String, ApiError> {
