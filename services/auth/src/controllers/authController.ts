@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response) => {
       `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
     );
 
-    res.status(201).json({ id: user.id, email: user.email });
+    res.status(201).json({ user_id: user.id, email: user.email });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -73,7 +73,7 @@ export const register = async (req: Request, res: Response) => {
  * @returns 500 status with error message on server error
  *
  * @remarks
- * Tokens are valid for 1 hour
+ * Tokens are valid for 12 hours
  */
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -95,8 +95,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = generateToken({ id: user.id }); // 1h expiration
-    res.json({ token, userId: user.id });
+    const token = generateToken({ id: user.id }, "12h"); // 12h expiration
+    res.json({ token, user_id: user.id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
