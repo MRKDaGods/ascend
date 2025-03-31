@@ -54,7 +54,7 @@ export const register = async (req: Request, res: Response) => {
       `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
     );
 
-    res.status(201).json({ id: user.id, email: user.email });
+    res.status(201).json({ user_id: user.id, email: user.email });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -96,7 +96,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = generateToken({ id: user.id }); // 1h expiration
-    res.json({ token, userId: user.id });
+    res.json({ token, user_id: user.id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
