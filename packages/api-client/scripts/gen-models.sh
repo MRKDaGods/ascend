@@ -156,6 +156,10 @@ ts_to_rust() {
 
                 for keyword in "${reserved_keywords[@]}"; do
                     if [[ "$field" == "$keyword" ]]; then
+                        # Add rename attirbute
+                        echo "    #[serde(rename = \"${field}\")]" >>"$output_file"
+
+                        # Append underscore to field name
                         field="${field}_"
                         break
                     fi
@@ -182,6 +186,10 @@ echo "Finding TypeScript models in $SHARED_DIR"
 find "$SHARED_DIR" -name "*.ts" | while read -r file; do
     # Get relative path and create output file path
     rel_path=${file#$SHARED_DIR/}
+    if [[ "$rel_path" == "index.ts" ]]; then
+        continue
+    fi
+
     output_file="$OUTPUT_DIR/${rel_path%.ts}.rs"
 
     # Create output directory if needed

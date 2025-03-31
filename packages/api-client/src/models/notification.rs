@@ -11,6 +11,7 @@ pub enum NotificationType {
 pub struct Notification {
     pub id: i32,
     pub user_id: i32,
+    #[serde(rename = "type")]
     pub type_: NotificationType,
     pub message: String,
     pub payload: Option<serde_json::Value>,

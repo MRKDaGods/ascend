@@ -1,5 +1,5 @@
 import init, { WasmApiClient } from "./api_client";
-import { Profile } from "./models";
+import { Notification, Profile } from "./models";
 
 // Sanitize dates - convert any Date objects to ISO strings
 // This is necessary because the API expects ISO string dates
@@ -25,10 +25,39 @@ const sanitizeDates = (obj: any): any => {
   return obj;
 };
 
+// Sanitize maps - convert maps to JS objects
+const sanitizeMaps = (obj: any): any => {
+  if (!obj) return obj;
+
+  // Handle Map objects
+  if (obj instanceof Map) {
+    const result: { [key: string]: any } = {};
+    obj.forEach((value, key) => {
+      result[String(key)] = sanitizeMaps(value);
+    });
+    return result;
+  }
+
+  if (typeof obj === "object") {
+    if (Array.isArray(obj)) {
+      return obj.map((item) => sanitizeMaps(item));
+    } else {
+      const result: any = {};
+      for (const key in obj) {
+        result[key] = sanitizeMaps(obj[key]);
+      }
+      return result;
+    }
+  }
+
+  return obj;
+};
+
 export class ApiClient {
   private client: WasmApiClient | null = null;
   private _auth: AuthService | null = null;
   private _user: UserService | null = null;
+  private _notification: NotificationService | null = null;
 
   constructor(public baseUrl: string) {}
 
@@ -43,6 +72,7 @@ export class ApiClient {
     // Init services
     this._auth = new AuthService(this.client);
     this._user = new UserService(this.client);
+    this._notification = new NotificationService(this.client);
   }
 
   // Services
@@ -60,6 +90,14 @@ export class ApiClient {
     }
 
     return this._user;
+  }
+
+  get notification(): NotificationService {
+    if (!this._notification) {
+      throw new Error("ApiClient not initialized");
+    }
+
+    return this._notification;
   }
 }
 
@@ -222,9 +260,7 @@ class UserService {
    * @returns The updated profile with the new profile picture URL
    * @throws Error if the upload fails
    */
-  async uploadProfilePicture(
-    file: File
-  ): Promise<Profile> {
+  async uploadProfilePicture(file: File): Promise<Profile> {
     const name = file.name;
     const mime = file.type;
     const buffer = await file.bytes();
@@ -246,9 +282,7 @@ class UserService {
    * @returns The updated profile with the new cover photo URL
    * @throws Error if the upload fails
    */
-  async uploadCoverPhoto(
-    file: File
-  ): Promise<Profile> {
+  async uploadCoverPhoto(file: File): Promise<Profile> {
     const name = file.name;
     const mime = file.type;
     const buffer = await file.bytes();
@@ -270,9 +304,7 @@ class UserService {
    * @returns The updated profile with the new resume URL
    * @throws Error if the upload fails
    */
-  async uploadResume(
-    file: File
-  ): Promise<Profile> {
+  async uploadResume(file: File): Promise<Profile> {
     const name = file.name;
     const mime = file.type;
     const buffer = await file.bytes();
@@ -286,5 +318,28 @@ class UserService {
    */
   async deleteResume(): Promise<Profile> {
     return this.client.delete_resume();
+  }
+}
+
+class NotificationService {
+  constructor(private client: WasmApiClient) {}
+
+  /**
+   * Retrieves the currently authenticated user's notifications
+   * @returns An array of notifications
+   * @throws Error if the retrieval fails
+   */
+  async getNotifications(): Promise<Notification[]> {
+    const notifications = await this.client.get_notifications();
+    return sanitizeMaps(notifications);
+  }
+
+  /**
+   * Marks a notification as read
+   * @param notificationId - The ID of the notification to mark as read
+   * @throws Error if the update fails
+   */
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    return this.client.mark_notification_as_read(notificationId);
   }
 }

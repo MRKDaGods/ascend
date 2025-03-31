@@ -210,16 +210,16 @@ function passArray8ToWasm0(arg, malloc) {
     WASM_VECTOR_LEN = arg.length;
     return ptr;
 }
-function __wbg_adapter_42(arg0, arg1) {
+function __wbg_adapter_46(arg0, arg1) {
     wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h44b2e8785f7525ab(arg0, arg1);
 }
 
-function __wbg_adapter_45(arg0, arg1, arg2) {
-    wasm.closure243_externref_shim(arg0, arg1, arg2);
+function __wbg_adapter_49(arg0, arg1, arg2) {
+    wasm.closure255_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_173(arg0, arg1, arg2, arg3) {
-    wasm.closure293_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_183(arg0, arg1, arg2, arg3) {
+    wasm.closure303_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -476,6 +476,22 @@ export class WasmApiClient {
         const ret = wasm.wasmapiclient_delete_resume(this.__wbg_ptr);
         return ret;
     }
+    /**
+     * @param {number | null} [page]
+     * @returns {Promise<any>}
+     */
+    get_notifications(page) {
+        const ret = wasm.wasmapiclient_get_notifications(this.__wbg_ptr, isLikeNone(page) ? 0x100000001 : (page) >> 0);
+        return ret;
+    }
+    /**
+     * @param {number} notification_id
+     * @returns {Promise<any>}
+     */
+    mark_notification_as_read(notification_id) {
+        const ret = wasm.wasmapiclient_mark_notification_as_read(this.__wbg_ptr, notification_id);
+        return ret;
+    }
 }
 
 async function __wbg_load(module, imports) {
@@ -654,7 +670,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_173(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_183(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -667,6 +683,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_new_405e22f390576ce2 = function() {
         const ret = new Object();
+        return ret;
+    };
+    imports.wbg.__wbg_new_5e0be73521bc8c17 = function() {
+        const ret = new Map();
         return ret;
     };
     imports.wbg.__wbg_new_78feb108b6472713 = function() {
@@ -740,6 +760,10 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbg_set_65595bdd868b3009 = function(arg0, arg1, arg2) {
         arg0.set(arg1, arg2 >>> 0);
+    };
+    imports.wbg.__wbg_set_8fc6bf8a5b1071d1 = function(arg0, arg1, arg2) {
+        const ret = arg0.set(arg1, arg2);
+        return ret;
     };
     imports.wbg.__wbg_setbody_5923b78a95eedf29 = function(arg0, arg1) {
         arg0.body = arg1;
@@ -817,6 +841,14 @@ function __wbg_get_imports() {
         const ret = +arg0;
         return ret;
     };
+    imports.wbg.__wbindgen_bigint_from_i64 = function(arg0) {
+        const ret = arg0;
+        return ret;
+    };
+    imports.wbg.__wbindgen_bigint_from_u64 = function(arg0) {
+        const ret = BigInt.asUintN(64, arg0);
+        return ret;
+    };
     imports.wbg.__wbindgen_boolean_get = function(arg0) {
         const v = arg0;
         const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
@@ -831,12 +863,12 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper700 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 240, __wbg_adapter_42);
+    imports.wbg.__wbindgen_closure_wrapper753 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 252, __wbg_adapter_46);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper718 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 244, __wbg_adapter_45);
+    imports.wbg.__wbindgen_closure_wrapper771 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 256, __wbg_adapter_49);
         return ret;
     };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {

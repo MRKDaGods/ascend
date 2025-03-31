@@ -1,8 +1,7 @@
 use crate::client::ApiClient;
 use crate::errors::ApiError;
 use crate::utils;
-
-use crate::models::profile::Profile;
+use crate::models::profile::Profile as ProfileModel;
 
 pub struct User<'a> {
     client: &'a ApiClient,
@@ -13,7 +12,7 @@ impl<'a> User<'a> {
         Self { client }
     }
 
-    pub async fn get_local_user_profile(&self) -> Result<Profile, ApiError> {
+    pub async fn get_local_user_profile(&self) -> Result<ProfileModel, ApiError> {
         let url = self.client.construct_url("user/profile");
         let token = self.client.auth_token()?;
 
@@ -25,10 +24,10 @@ impl<'a> User<'a> {
             .send()
             .await?;
 
-        utils::handle_response::<Profile>(response).await
+        utils::handle_response::<ProfileModel>(response).await
     }
 
-    pub async fn update_local_user_profile(&self, profile: Profile) -> Result<Profile, ApiError> {
+    pub async fn update_local_user_profile(&self, profile: ProfileModel) -> Result<ProfileModel, ApiError> {
         let url = self.client.construct_url("user/profile");
         let token = self.client.auth_token()?;
 
@@ -44,7 +43,7 @@ impl<'a> User<'a> {
             .send()
             .await?;
 
-        utils::handle_response::<Profile>(response).await
+        utils::handle_response::<ProfileModel>(response).await
     }
 
     async fn upload_user_file(
@@ -54,7 +53,7 @@ impl<'a> User<'a> {
         name: &str,
         mime: &str,
         buffer: &[u8],
-    ) -> Result<Profile, ApiError> {
+    ) -> Result<ProfileModel, ApiError> {
         let url = self.client.construct_url(endpoint);
         let token = self.client.auth_token()?;
         let part = reqwest::multipart::Part::bytes(buffer.to_vec())
@@ -75,13 +74,13 @@ impl<'a> User<'a> {
             .send()
             .await?;
 
-        utils::handle_response::<Profile>(response).await
+        utils::handle_response::<ProfileModel>(response).await
     }
 
     async fn delete_user_file(
         &self,
         endpoint: &str,
-    ) -> Result<Profile, ApiError> {
+    ) -> Result<ProfileModel, ApiError> {
         let url = self.client.construct_url(endpoint);
         let token = self.client.auth_token()?;
 
@@ -93,7 +92,7 @@ impl<'a> User<'a> {
             .send()
             .await?;
 
-        utils::handle_response::<Profile>(response).await
+        utils::handle_response::<ProfileModel>(response).await
     }
 
     pub async fn upload_profile_picture(
@@ -101,12 +100,12 @@ impl<'a> User<'a> {
         name: &str,
         mime: &str,
         buffer: &[u8],
-    ) -> Result<Profile, ApiError> {
+    ) -> Result<ProfileModel, ApiError> {
         self.upload_user_file("user/profile/picture",
             "profile_picture", name, mime, buffer).await
     }
 
-    pub async fn delete_profile_picture(&self) -> Result<Profile, ApiError> {
+    pub async fn delete_profile_picture(&self) -> Result<ProfileModel, ApiError> {
         self.delete_user_file("user/profile/picture").await
     }
 
@@ -115,12 +114,12 @@ impl<'a> User<'a> {
         name: &str,
         mime: &str,
         buffer: &[u8],
-    ) -> Result<Profile, ApiError> {
+    ) -> Result<ProfileModel, ApiError> {
         self.upload_user_file("user/profile/cover",
             "cover_photo", name, mime, buffer).await
     }
 
-    pub async fn delete_cover_photo(&self) -> Result<Profile, ApiError> {
+    pub async fn delete_cover_photo(&self) -> Result<ProfileModel, ApiError> {
         self.delete_user_file("user/profile/cover").await
     }
 
@@ -129,12 +128,12 @@ impl<'a> User<'a> {
         name: &str,
         mime: &str,
         buffer: &[u8],
-    ) -> Result<Profile, ApiError> {
+    ) -> Result<ProfileModel, ApiError> {
         self.upload_user_file("user/profile/resume",
             "resume", name, mime, buffer).await
     }
 
-    pub async fn delete_resume(&self) -> Result<Profile, ApiError> {
+    pub async fn delete_resume(&self) -> Result<ProfileModel, ApiError> {
         self.delete_user_file("user/profile/resume").await
     }
 }

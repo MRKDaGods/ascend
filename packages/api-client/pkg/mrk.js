@@ -21,12 +21,39 @@ const sanitizeDates = (obj) => {
     }
     return obj;
 };
+// Sanitize maps - convert maps to JS objects
+const sanitizeMaps = (obj) => {
+    if (!obj)
+        return obj;
+    // Handle Map objects
+    if (obj instanceof Map) {
+        const result = {};
+        obj.forEach((value, key) => {
+            result[String(key)] = sanitizeMaps(value);
+        });
+        return result;
+    }
+    if (typeof obj === "object") {
+        if (Array.isArray(obj)) {
+            return obj.map((item) => sanitizeMaps(item));
+        }
+        else {
+            const result = {};
+            for (const key in obj) {
+                result[key] = sanitizeMaps(obj[key]);
+            }
+            return result;
+        }
+    }
+    return obj;
+};
 export class ApiClient {
     constructor(baseUrl) {
         this.baseUrl = baseUrl;
         this.client = null;
         this._auth = null;
         this._user = null;
+        this._notification = null;
     }
     async initialize() {
         if (this.client) {
@@ -37,6 +64,7 @@ export class ApiClient {
         // Init services
         this._auth = new AuthService(this.client);
         this._user = new UserService(this.client);
+        this._notification = new NotificationService(this.client);
     }
     // Services
     get auth() {
@@ -50,6 +78,12 @@ export class ApiClient {
             throw new Error("ApiClient not initialized");
         }
         return this._user;
+    }
+    get notification() {
+        if (!this._notification) {
+            throw new Error("ApiClient not initialized");
+        }
+        return this._notification;
     }
 }
 class AuthService {
@@ -239,5 +273,27 @@ class UserService {
      */
     async deleteResume() {
         return this.client.delete_resume();
+    }
+}
+class NotificationService {
+    constructor(client) {
+        this.client = client;
+    }
+    /**
+     * Retrieves the currently authenticated user's notifications
+     * @returns An array of notifications
+     * @throws Error if the retrieval fails
+     */
+    async getNotifications() {
+        const notifications = await this.client.get_notifications();
+        return sanitizeMaps(notifications);
+    }
+    /**
+     * Marks a notification as read
+     * @param notificationId - The ID of the notification to mark as read
+     * @throws Error if the update fails
+     */
+    async markNotificationAsRead(notificationId) {
+        return this.client.mark_notification_as_read(notificationId);
     }
 }

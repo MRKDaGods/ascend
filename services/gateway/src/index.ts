@@ -30,6 +30,6 @@ startSharedService("Gateway", undefined, {
     app.use("/files", proxy("http://file:3003", globalProxyOptions));
 
     // Notification service
-    app.use("/notification", proxy("http://notification:3004", globalProxyOptions));
+    app.use("/notifications", proxy("http://notification:3004", globalProxyOptions));
   },
 });
