@@ -1194,15 +1194,19 @@ export const UserProfileForm: React.FC = () => {
   );
 
   const handleProfilePictureUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement> | null
   ) => {
-    if (!profile || !e.target.files || e.target.files.length === 0) return;
+    if (!profile) return;
 
-    const file = e.target.files[0];
+    if (e && (!e.target.files || e.target.files.length === 0)) return;
+
+    const file = e ? e.target.files![0] : null;
     try {
       setSaveLoading(true);
 
-      const newProfile = await api.user.uploadProfilePicture(file);
+      const newProfile = file
+        ? await api.user.uploadProfilePicture(file)
+        : await api.user.deleteProfilePicture();
 
       // Update local state
       setProfile({
@@ -1235,11 +1239,20 @@ export const UserProfileForm: React.FC = () => {
           }}
         >
           {profile.profile_picture_url && (
-            <img
-              src={profile.profile_picture_url}
-              alt="Profile"
-              style={{ maxWidth: "100px", borderRadius: "50%" }}
-            />
+            <div>
+              <img
+                src={profile.profile_picture_url}
+                alt="Profile"
+                style={{
+                  maxWidth: "100px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
+              />
+              <button onClick={() => handleProfilePictureUpload(null)}>
+                Delete
+              </button>
+            </div>
           )}
           <label
             htmlFor="profile-picture-upload"
@@ -1268,15 +1281,18 @@ export const UserProfileForm: React.FC = () => {
   };
 
   const handleCoverPhotoUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement> | null
   ) => {
-    if (!profile || !e.target.files || e.target.files.length === 0) return;
+    if (!profile) return;
+    if (e && (!e.target.files || e.target.files.length === 0)) return;
 
-    const file = e.target.files[0];
+    const file = e ? e.target.files![0] : null;
     try {
       setSaveLoading(true);
 
-      const newProfile = await api.user.uploadCoverPhoto(file);
+      const newProfile = file
+        ? await api.user.uploadCoverPhoto(file)
+        : await api.user.deleteCoverPhoto();
 
       // Update local state
       setProfile({
@@ -1309,11 +1325,20 @@ export const UserProfileForm: React.FC = () => {
           }}
         >
           {profile.cover_photo_url && (
-            <img
-              src={profile.cover_photo_url}
-              alt="Cover"
-              style={{ maxWidth: "100px", borderRadius: "50%" }}
-            />
+            <div>
+              <img
+                src={profile.cover_photo_url}
+                alt="Cover"
+                style={{
+                  maxWidth: "100px",
+                  borderRadius: "8px",
+                  objectFit: "cover",
+                }}
+              />
+              <button onClick={() => handleCoverPhotoUpload(null)}>
+                Delete
+              </button>
+            </div>
           )}
           <label
             htmlFor="cover-photo-upload"
@@ -1341,14 +1366,19 @@ export const UserProfileForm: React.FC = () => {
     );
   };
 
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!profile || !e.target.files || e.target.files.length === 0) return;
+  const handleResumeUpload = async (
+    e: React.ChangeEvent<HTMLInputElement> | null
+  ) => {
+    if (!profile) return;
+    if (e && (!e.target.files || e.target.files.length === 0)) return;
 
-    const file = e.target.files[0];
+    const file = e ? e.target.files![0] : null;
     try {
       setSaveLoading(true);
 
-      const newProfile = await api.user.uploadResume(file);
+      const newProfile = file
+        ? await api.user.uploadResume(file)
+        : await api.user.deleteResume();
 
       // Update local state
       setProfile({
@@ -1381,14 +1411,17 @@ export const UserProfileForm: React.FC = () => {
           }}
         >
           {profile.resume_url && (
-            <a
-              href={profile.resume_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: "underline" }}
-            >
-              View Resume
-            </a>
+            <div>
+              <a
+                href={profile.resume_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "underline" }}
+              >
+                View Resume
+              </a>
+              <button onClick={() => handleResumeUpload(null)}>Delete</button>
+            </div>
           )}
           <label
             htmlFor="resume-upload"
