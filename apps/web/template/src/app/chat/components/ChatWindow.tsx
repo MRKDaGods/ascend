@@ -4,7 +4,7 @@ import { useEffect,useRef, useState} from "react";
 import { useChatStore } from "../store/chatStore";
 import axios from "axios";
 import Message from "./Message";
-//import { messageProps } from "./Message";
+import InputBox from "./InputBox";
 
 
 export default function ChatWindow(){
@@ -12,8 +12,12 @@ export default function ChatWindow(){
     
     //worse readablioty compared to destructuring bas ahsan in avoiding unnecessary rerendering of store
     const selectedConversationId = useChatStore(state => state.selectedConversationId);
-    const setDisplayedMessages = useChatStore(state => state.setDisplayedMessages);
-    const displayedMessages = useChatStore(state => state.displayedMessages);
+    const setMessagesForConversation = useChatStore(state => state.setMessagesForConversation);
+
+    const allMessages = useChatStore(state => state.messagesByConversation);
+
+    const messagesByConversation = selectedConversationId ? allMessages[selectedConversationId] || [] : [];
+
     const resetPage = useChatStore(state => state.resetPage);
     const page= useChatStore(state=>state.page);
     const setpage = useChatStore(state=>state.setPage);
@@ -24,7 +28,7 @@ export default function ChatWindow(){
 
     
   
-
+    //To get the conversations most recent medssages
     useEffect(()=>{
         if (!selectedConversationId) return;
         
@@ -34,7 +38,7 @@ export default function ChatWindow(){
 
         axios.get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=1`)
         .then((response)=>{
-            setDisplayedMessages(response.data.data.messages);
+            setMessagesForConversation(selectedConversationId!,response.data.data.messages);
         })
         .catch((e)=>{
             console.error("failed to fetch messages:",e);
@@ -45,23 +49,30 @@ export default function ChatWindow(){
         if (shouldScrollToBottom && bottomRef.current){
             bottomRef.current.scrollIntoView({behavior:"smooth"})
         }
-    },[displayedMessages])
+    },[messagesByConversation])
 
     const loadOlderMessages = ()=>{
         const nextPage=page+1;
-        axios.get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=${nextPage}`)
+        axios
+        .get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=${nextPage}`)
         .then((res)=>{
-            if (!Array.isArray(res.data) || 
-            res.data.length===0 ||
-            res.data.every((msg) => displayedMessages.some((m) => m.id === msg.id))
-        ) {
-        
-                console.log("no more messages to load");
-                return;
-            }
+            const newMessages = res.data?.data?.messages || [];
+            const existingMessages = messagesByConversation;
+
+            //check for duplicate messages
+            if (
+              !Array.isArray(newMessages) ||
+              newMessages.length === 0 ||
+              newMessages.every((msg: any) => existingMessages.some((m) => m.id === msg.id))
+            ) {
+              console.log("no more messages to load");
+              return;
+            } 
+            
             //else prepend older msgs to the top
             setShouldScrollToBottom(false);
-            setDisplayedMessages((prev)=>[...res.data,...prev]);
+            setMessagesForConversation(selectedConversationId!,(prev)=>
+                [...newMessages,...prev]);
             setpage(nextPage);
         })
         .catch((e)=>console.error("Failed to load older messages:", e));
@@ -82,11 +93,12 @@ export default function ChatWindow(){
     }
 
    return(
+    <Box sx={{display:"flex", flexDirection:"column",height:"100%",minHeight:0}}>
     <Box sx={{ flexGrow: 1, overflowY: "auto", padding: 2 }}>
     <Button variant="outlined" onClick={loadOlderMessages} size="small" sx={{mb: 2}}>
         Load older messages
     </Button>
-    {displayedMessages.map((msg) => (
+    {messagesByConversation.map((msg) => (
      <Message key={msg.id} 
      id={msg.id} 
      content={msg.content} 
@@ -95,7 +107,11 @@ export default function ChatWindow(){
      createdAt={msg.createdAt} 
      currentUserName="Ruaa"/>
     ))}
-    <Box ref={bottomRef}/>
+    <Box ref={bottomRef} id="chat-bottom"/>
+    
+    
+  </Box>
+  <InputBox/>
   </Box>
   
    );
