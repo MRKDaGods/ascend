@@ -68,6 +68,8 @@ const NotificationCard: React.FC = () => {
     router.push(notification.link);
   };
 
+  console.log("Router in NotificationCard:", router.push); // Debug statement
+
   return (
     <Card
     sx={{
@@ -94,6 +96,7 @@ const NotificationCard: React.FC = () => {
         {["all", "myposts", "mentions", "connections"].map((type) => (
           <Button
             key={type}
+            data-testid={`filter-button-${type}`} // Add test ID for filter buttons
             variant={filterType === type ? "contained" : "outlined"}
             sx={{
               borderRadius: "20px",
@@ -147,7 +150,10 @@ const NotificationCard: React.FC = () => {
                     secondary={notification.timestamp}
                     primaryTypographyProps={{ fontWeight: notification.markedasread ? "normal" : "bold" }}
                   />
-                  <IconButton onClick={(event) => handleMenuOpen(event, notification.id)}>
+                  <IconButton
+                    data-testid="more-options-button" // Add test ID for the MoreVert button
+                    onClick={(event) => handleMenuOpen(event, notification.id)}
+                  >
                     <MoreVert />
                   </IconButton>
                 </ListItem>
@@ -192,3 +198,5 @@ const NotificationCard: React.FC = () => {
 };
 
 export default NotificationCard;
+
+
