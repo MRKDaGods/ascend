@@ -40,16 +40,18 @@ export const useChatStore = create<chatStore>((set)=>({
         messagesByConversation: {...state.messagesByConversation, [id]: msgs}
     })),
     //update a new message list
-    appendMessageToConversation: (id, msg) =>
-        set((state) => ({
+    appendMessageToConversation: (id, msg) => {
+        if (id == null) return {};
+        console.log("Store append to convo:", id, msg.content);
+        return set((state) => ({
           messagesByConversation: {
             ...state.messagesByConversation,
-            [id]: [
-              ...(state.messagesByConversation[id] || []),
-              msg,
-            ],
+            [id]: [...(state.messagesByConversation[id] || []), msg],
           },
-        })),
+        }));
+      },
+      
+      
       
    
     page: 1,

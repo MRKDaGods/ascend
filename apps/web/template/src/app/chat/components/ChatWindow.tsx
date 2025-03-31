@@ -45,11 +45,15 @@ export default function ChatWindow(){
         });
     },[selectedConversationId]);
 
-    useEffect(()=>{
-        if (shouldScrollToBottom && bottomRef.current){
-            bottomRef.current.scrollIntoView({behavior:"smooth"})
-        }
-    },[messagesByConversation])
+    //scroll to bottom
+    useEffect(() => {
+        if (!shouldScrollToBottom || !bottomRef.current) return;
+      
+        requestAnimationFrame(() => {
+          bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        });
+      }, [messagesByConversation.length]);
+      
 
     const loadOlderMessages = ()=>{
         const nextPage=page+1;
