@@ -6,10 +6,20 @@ import { ExperienceLevel } from "@shared/models/job";
 import { createFollowRelationShip, deleteFollowRelationShip, findFollowersOfCompany, findNumberOfFollowersOfCompany } from "../services/followsService";
 import { findJobApplicationsToCompany, findNumberOfJobApplicationsForCompany, updateJobAppStatus } from "../services/jobApplicationService";
 import { createAnnouncement, deleteAnnouncement, findAnnouncementById, findAnnouncementsByCompanyId, findNumberOfAnnouncements } from "../services/announcementService";
-import { title } from "process";
-import { describe } from "node:test";
 import { ApplicationStatus } from "@shared/models/job_application";
+import { Company } from "@shared/models/company";
+import { validationResult } from "express-validator";
+import { error } from "console";
 
+/**
+ * @route POST /api/companies
+ * @description create a new company profile
+ * @param {AuthenticatedRequest} req (name , description, logoUrl, location. industry, date) - AuthenticatedRequest object (comming from authorization middleware)
+ * @returns {Response} - HTTP response
+ * - 200 with new company profile
+ * - 404 if the request parameters and/or body are not in the required format
+ * - 500 if internal error occurs
+ */
 export const createCompanyProfile = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     const {name, description, industry, location, logoUrl} = req.body;
@@ -30,8 +40,19 @@ export const createCompanyProfile = async (req : AuthenticatedRequest, res : Res
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error : "})
     }
-}
+};
 
+/**
+ * @route DELETE /api/companies/:companyId
+ * @description delete existing company profile
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param companyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized or is not the creator of the company profile
+ * - 404 if no company with the given ID was found or the request parameters and/or body are not in the required format
+ * - 200 with message indicating success of deleting the company profile
+ * - 500 if internal errors occur
+ */
 export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
@@ -63,6 +84,17 @@ export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Res
     }
 };
 
+
+/**
+ * @route GET /api/companies
+ * @description get all company profiles created by the user with given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if the request parameters and/or body are not in the required format
+ * - 200 with array of company profiles created by the user with the given ID
+ * - 500 if internal errors occur
+ */
 export const getCompaniesCreatedByUser = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
@@ -82,6 +114,18 @@ export const getCompaniesCreatedByUser = async (req : AuthenticatedRequest, res 
     }    
 }
 
+
+/**
+ * @route PATCH /api/companies/:companyId
+ * @description update existing company profile
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized or is not the creator of the company profile
+ * - 404 if no company with the given ID was found or the request parameters and/or body are not in the required format
+ * - 200 with the updated company profile
+ * - 500 if internal errors occur
+ */
 export const updateCompany = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
@@ -111,6 +155,18 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
     }
 };
 
+
+/**
+ * @route GET /api/companies/:companyId
+ * @description get the company profile with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param companyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized or is not the creator of the company
+ * - 404 if no company with the given ID was found or the request parameters and/or body are not in the required format
+ * - 200 with the company profile
+ * - 500 if internal errors occur
+ */
 export const getCompanyProfile = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
@@ -131,45 +187,87 @@ export const getCompanyProfile = async (req : AuthenticatedRequest, res : Respon
             },
             error : null
         });
-    }catch(e){
+    }catch(e : any){
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error"});
     }
 };
 
+
+/**
+ * @route POST /api/companies/:companyId/jobs
+ * @description create a job post for the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company
+ * - 404 if no company with the given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with the new job post
+ * - 500 if internal errors occur
+ */
 export const createJobPost = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
     const company_id = parseInt(req.params.companyId, 10);
-    const {title , description, location, salaryRange, industry, experience_level} = req.body;
+    const {title , description, location, salary_range_max, salary_range_min, industry, experience_level} = req.body;
     try {
         const company = await findCompanyById(company_id);
         if(!company){
             return res.status(404).json({error : "company not found"});
         }
         if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
-        const new_job_post = await createJob(company_id, title, description, location, industry, salaryRange.max, salaryRange.min, new Date(), experience_level as ExperienceLevel, user_id);
+        const new_job_post = await createJob(company_id, title, description, industry, new Date(), experience_level, user_id, !location?"":location, !salary_range_max?-1:salary_range_max, !salary_range_min?-1:salary_range_min)
         return res.status(200).json({
             data : {
                 job : new_job_post
             },
             error : null
         });
-    }catch(e){
+    }catch(e : any){
+        console.log(e);
         console.log(`Internal error : ${e}`);
         return res.status(500).json({error : "Internal error"});
     }
 };
 
+
+/**
+ * @route DELETE /api/companies/:companyId/jobs/:jobId
+ * @description delete the job post for the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param companyId - path parameter
+ * @param jobId - path parameter 
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company
+ * - 404 if no company profile with the given ID was found or no job post with the given ID was found  
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with message indicating success of job post deletion
+ * - 500 if internal errors occur
+ */
 export const deleteJobPost = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     const job_id = parseInt(req.params.jobId, 10);    
     try {
@@ -182,7 +280,7 @@ export const deleteJobPost = async (req : AuthenticatedRequest, res : Response) 
             return res.status(404).json({error : "job not found"});
         }
         if(company?.created_by !== user_id || company?.company_id !== job?.company_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         const job_deleted = await deleteJob(job_id);
         if(job_deleted){
@@ -193,7 +291,7 @@ export const deleteJobPost = async (req : AuthenticatedRequest, res : Response) 
                 error : null
             });
         }else{
-            return res.status(400).json({error : "Failed to delete job post"});
+            return res.status(404).json({error : "job not found"});
         }
     }catch(e){
         console.log(`Internal error : ${e}`)
@@ -201,10 +299,28 @@ export const deleteJobPost = async (req : AuthenticatedRequest, res : Response) 
     }
 };
 
+
+/**
+ * @route GET /api/companies/jobs/:jobId
+ * @description get job post with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
+ * @param jobId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if no job post with the given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with the job post
+ * - 500 if internal errors occur
+ */
 export const getJobPost = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
+    }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
     }
     const job_id = parseInt(req.params.jobId, 10);
     try {
@@ -226,11 +342,30 @@ export const getJobPost = async (req : AuthenticatedRequest, res : Response) => 
 };
 
 
+/**
+ * @route POST /api/companies/:companyId/announcements
+ * @description create a new announcement post for the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company
+ * - 404 if no company with the given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with the new announecment post
+ * - 500 if internal errors occur
+ */
 export const createAnnounementPost = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     const { content } = req.body;
     try {
@@ -239,7 +374,7 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
             return res.status(404).json({error : "company not found"});
         }
         if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         const new_announcement_post = await createAnnouncement(company_id, user_id, new Date(), content);
         return res.status(200).json({
@@ -254,11 +389,33 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
     }
 };
 
+
+
+/**
+ * @route DELETE /api/companies/:companyId/announcements/:announcementId
+ * @description delete the announcement post for the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param companyId - path parameter
+ * @param announcementId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company
+ * - 404 if no company profile with the given ID was found or no announcement post with given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with message indicating success of announcement post deletion
+ * - 500 if internal errors occur
+ */
 export const deleteAnnouncementPost = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     const announcement_id = parseInt(req.params.announcementId, 10);    
     try {
@@ -271,7 +428,7 @@ export const deleteAnnouncementPost = async (req : AuthenticatedRequest, res : R
             return res.status(404).json({error : "announcement not found"});
         }
         if(company?.created_by !== user_id || company?.company_id !== announcement?.company_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         const announcement_deleted = await deleteAnnouncement(announcement_id); 
         if(announcement_deleted){
@@ -282,7 +439,7 @@ export const deleteAnnouncementPost = async (req : AuthenticatedRequest, res : R
                 error : null
             });
         }else{
-            return res.status(400).json({error : "Failed to delete announcement"});
+            return res.status(404).json({error : "announcement not found"});
         }
     }catch(e){
         console.log(`Internal error : ${e}`)
@@ -290,10 +447,29 @@ export const deleteAnnouncementPost = async (req : AuthenticatedRequest, res : R
     }
 };
 
+
+
+/**
+ * @route GET /api/companies/announcements/:announcementId
+ * @description get job post with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param announcementId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if no announcement post with the given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with the announcement post
+ * - 500 if internal errors occur
+ */
 export const getAnnouncement = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
+    }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
     }
     const announcement_id = parseInt(req.params.announcementId, 10);
     try {
@@ -306,7 +482,7 @@ export const getAnnouncement = async (req : AuthenticatedRequest, res : Response
                 error : null
             });
         }else{
-            return res.status(404).json({error : "Announcement not found"});
+            return res.status(404).json({error : "announcement not found"});
         }
     }catch(e){
         console.log(`Internal error : ${e}`);
@@ -315,11 +491,32 @@ export const getAnnouncement = async (req : AuthenticatedRequest, res : Response
 };
 
 
+/**
+ * @route GET /api/companies/:companyId/followers
+ * @description get all user profiles following the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @param limit - query parameter indicating the length of the retrieved page
+ * @param page - query parameter indicating the number of the page to be returned , starting from 1
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company
+ * - 404 if the company with given ID was not found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with array of user profiles following the company with the given ID
+ * - 500 if internal errors occur
+ */
 export const getCompanyFollowers = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
     const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
@@ -329,7 +526,7 @@ export const getCompanyFollowers = async (req : AuthenticatedRequest, res : Resp
             return res.status(404).json({error : "company not found"});
         }
         if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         let company_followers;
         if(limit === -1){
@@ -350,19 +547,31 @@ export const getCompanyFollowers = async (req : AuthenticatedRequest, res : Resp
     }   
 };
 
+
+/**
+ * @route GET /api/companies/:companyId/jobs
+ * @description get all job posts of the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
+ * @param comanyId - path parameter
+ * @param limit - query parameter indicating the length of the retrieved page
+ * @param page - query parameter indicating the number of the page to be returned , starting from 1
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if the company with given ID was not found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with array of job posts of the company with the given ID
+ * - 500 if internal errors occur
+ */
 export const getCompanyJobPosts = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
     const company_id = parseInt(req.params.companyId, 10);
     const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
     const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
     try {
-        const company = await findCompanyById(company_id);
-        if(!company){
-            return res.status(404).json({error : "company not found"});
-        }
         let job_posts;
         if(limit === -1){
             job_posts = await findJobsByCompanyId(company_id);
@@ -376,26 +585,47 @@ export const getCompanyJobPosts = async (req : AuthenticatedRequest, res : Respo
             }, 
             error : null            
         });
-    }catch(e){
+    }catch(e : any){
+        if(e.code === "23503"){
+            return res.status(404).json({error : "company not found"});
+        }
         console.log(`Internal error : ${e}`);
         return res.status(500).json({error : "Internal error"});
     }   
 };
 
 
+
+/**
+ * @route GET /api/companies/:companyId/announcements
+ * @description get all announcement posts of the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
+ * @param comanyId - path parameter
+ * @param limit - query parameter indicating the length of the retrieved page
+ * @param page - query parameter indicating the number of the page to be returned , starting from 1
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if the company with given ID was not found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with array of announcement posts of the company with the given ID
+ * - 500 if internal errors occur
+ */
 export const getCompanyAnnouncements = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
     const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
     try {
-        const company = await findCompanyById(company_id);
-        if(!company){
-            return res.status(404).json({error : "company not found"});
-        }
         let company_announcements;
         if(limit === -1){
             company_announcements = await findAnnouncementsByCompanyId(company_id);
@@ -409,17 +639,42 @@ export const getCompanyAnnouncements = async (req : AuthenticatedRequest, res : 
             }, 
             error : null            
         });
-    }catch(e){
+    }catch(e : any){
+        if(e.code === "23503"){
+            return res.status(404).json({error : "company not found"});
+        }
         console.log(`Internal error : ${e}`);
         return res.status(500).json({error : "Internal error"});
     }   
 };
 
+
+/**
+ * @route GET /api/companies/:companyId/applications
+ * @description get all job applications associated with the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
+ * @param comanyId - path parameter
+ * @param limit - query parameter indicating the length of the retrieved page
+ * @param page - query parameter indicating the number of the page to be returned , starting from 1
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 403 if the user is not the creator of the company
+ * - 404 if the company with given ID was not found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with array of job applications of the company with the given ID
+ * - 500 if internal errors occur
+ */
 export const getCompanyJobsApplications = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
     const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
@@ -429,7 +684,7 @@ export const getCompanyJobsApplications = async (req : AuthenticatedRequest, res
             return res.status(404).json({error : "company not found"});
         }
         if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         let job_applications;
         if(limit === -1){
@@ -449,6 +704,21 @@ export const getCompanyJobsApplications = async (req : AuthenticatedRequest, res
     }
 };
 
+
+/**
+ * @route PATCH /api/companies/:companyId/applications/:applicationId
+ * @description update job application status
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @param applicationId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company profile
+ * - 404 if no company and/or job application with the given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with the updated job application
+ * - 500 if internal errors occur
+ */
 export const updateJobApplicationStatus = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
@@ -463,7 +733,7 @@ export const updateJobApplicationStatus = async (req : AuthenticatedRequest, res
             return res.status(404).json({error : "company not found"});
         }
         if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         const new_job_application = await updateJobAppStatus(job_application_id, status as ApplicationStatus);
         if(new_job_application){
@@ -475,7 +745,7 @@ export const updateJobApplicationStatus = async (req : AuthenticatedRequest, res
             });
         }else{
             return res.status(404).json({
-                error : "Job application not found"
+                error : "job application not found"
             });
         }         
     }catch(e){
@@ -484,11 +754,37 @@ export const updateJobApplicationStatus = async (req : AuthenticatedRequest, res
     }
 }
 
+
+/**
+ * @route GET /api/companies/:companyId/analytics
+ * @description get analytics of the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
+ * @param comanyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 403 if the user is not the creator of the company
+ * - 404 if the company with given ID was not found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with analytics of the company with the given ID in this format
+ *   {
+ *      job_application_analytics : {pending : # of pending, viewed : # of pending , accepted : # of pending, rejected : # of pending },
+ *      number_of_job_posts : # of job posts,
+ *      number_of_followers : # of follower,
+ *      number_of_announcements : # of announcements
+ *   } 
+ * - 500 if internal errors occur
+ */
 export const getCompanyAnalytics = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});       
     }
+ 
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     try{
         const company = await findCompanyById(company_id);
@@ -496,7 +792,7 @@ export const getCompanyAnalytics = async (req : AuthenticatedRequest, res : Resp
             return res.status(404).json({error : "company not found"});
         }
         if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
+            return res.status(403).json({error : "forbidden"});
         }
         const job_application_analytics = await findNumberOfJobApplicationsForCompany(company_id);
         const number_of_jobs = await findNumberOfJobPostForCompany(company_id);
@@ -519,51 +815,94 @@ export const getCompanyAnalytics = async (req : AuthenticatedRequest, res : Resp
     }
 };
 
+
+/**
+ * @route POST /api/companies/:companyId/follow
+ * @description make user with the given user id follow the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if no company with the given ID was not found 
+ * - 400 if the request parameters and/or body are not in the required format or the company is already followed
+ * - 200 with a message indicating that the company is now followed by the user
+ * - 500 if internal errors occur
+ */
 export const followCompany = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
-    const {first_name, last_name, profile_photo_url} = req.body;
     try {
         const date = new Date();
-        const follow = await createFollowRelationShip(user_id, company_id, date, first_name, last_name, profile_photo_url);
+        const follow = await createFollowRelationShip(user_id, company_id, date);
         if(follow){
             return res.status(200).json({
                 data : {
-                    msg : "Company followed"
+                    msg : "company followed"
                 },
                 error : null
             });
         }else{
-            return res.status(400).json({error : "Company already followed"});
+            return res.status(400).json({error : "company already followed"});
         }
-    }catch(e){
+    }catch(e : any){
+        if(e.code === "23503"){
+            return res.status(404).json({error : "company not found"});
+        }
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error : "})
     }
 }
 
+
+
+/**
+ * @route DELETE /api/companies/:companyId/unfollow
+ * @description make user with the given user id unfollow the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized
+ * - 404 if no company with the given ID was found or the request parameters and/or body are not in the required format
+ * - 200 with a message indicating that the user successfully unfollowed the company
+ * - 500 if internal errors occur
+ */
 export const unfollowCompany = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     try {
         const unfollow = await deleteFollowRelationShip(user_id, company_id);
         if(unfollow){
             return res.status(200).json({
                 data : {
-                    msg : "Company unfollowed"
+                    msg : "company unfollowed"
                 },
                 error : null
             });
         }else{
-            return res.status(400).json({error : "Company already unfollowed"});
+            return res.status(400).json({error : "company already unfollowed"});
         }
-    }catch(e){
+    }catch(e : any){
+        if(e.code === "23503"){
+            return res.status(404).json({error : "company not found"});
+        }
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error : "})
     }
