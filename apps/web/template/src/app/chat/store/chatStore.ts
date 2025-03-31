@@ -11,11 +11,11 @@ import { messageProps } from "../components/Message";
 type chatStore ={
     selectedConversationId: number | null;
     setSelectedConversationId: (id: number | null) => void;
-    conversations: conversation[],
+    conversations: conversation[];
     setConversations: (convos: conversation[])=>void;
-    displayedMessages: messageProps[];
-    //momken msgs tekoon fn betakhod el previous msg array w t return a new one (updater fn)
-    setDisplayedMessages: (msgs: messageProps[] | ((prev: messageProps[])=>messageProps[]))=>void;
+    messagesByConversation: { [conversationId: number]: messageProps[]};
+    setMessagesForConversation: (id: number, msgs: messageProps[] | ((prev: messageProps[])=>messageProps[]))=>void;
+    appendMessageToConversation: (id: number, msg:messageProps) => void; //for convenience bas el ablaha is enough to append
     page: number;
     setPage: (newPage: number)=>void;
     resetPage: ()=>void;
@@ -28,12 +28,30 @@ export const useChatStore = create<chatStore>((set)=>({
     setSelectedConversationId: (id)=>set({selectedConversationId: id}),
     conversations:[],
     setConversations: (convos)=>set({conversations: convos}),
-    displayedMessages:[],
-    //akeny ba2ool take current displayedmessages, pass it to msgs fn and update it with the return value of msgs
-    setDisplayedMessages: (msgs)=> 
-        typeof msgs === "function"
-             ? set((state)=>({displayedMessages:msgs(state.displayedMessages)})) 
-             : set({displayedMessages:msgs}),
+    messagesByConversation: {},
+    //set new message list or update one
+    setMessagesForConversation: (id,msgs)=> typeof msgs === "function"
+    ? set((state)=>({
+        messagesByConversation: {
+            ...state.messagesByConversation,[id]:msgs(state.messagesByConversation[id] || [])
+        }
+    })
+    ): set((state)=>({
+        messagesByConversation: {...state.messagesByConversation, [id]: msgs}
+    })),
+    //update a new message list
+    appendMessageToConversation: (id, msg) =>
+        set((state) => ({
+          messagesByConversation: {
+            ...state.messagesByConversation,
+            [id]: [
+              ...(state.messagesByConversation[id] || []),
+              msg,
+            ],
+          },
+        })),
+      
+   
     page: 1,
     setPage: (newPage)=>set({page:newPage}),
     resetPage: ()=>set({page:1})

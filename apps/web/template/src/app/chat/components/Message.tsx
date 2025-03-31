@@ -53,7 +53,7 @@ export default function Message({id,content,sender,mediaUrls,createdAt,currentUs
     const isSentByYou= currentUserName===sender.name; 
     return (
         <Box sx={{display:"flex", gap:1.5, alignItems:"flex-start", mb: 2}}>
-            <Avatar src={sender.profilePictureUrl} alt = {sender.name}>
+            <Avatar src={sender.profilePictureUrl} alt = {sender.name} sx={{ width: 50, height: 50 }}>
             {sender.name.charAt(0)}
                 </Avatar>
             <Paper elevation ={0} 
