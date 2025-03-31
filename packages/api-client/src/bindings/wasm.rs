@@ -177,4 +177,18 @@ impl WasmApiClient {
     pub async fn delete_resume(&self) -> Result<JsValue, JsValue> {
         wasm_wrap!(self.user().delete_resume())
     }
+
+    // Notification methods
+    #[wasm_bindgen]
+    pub async fn get_notifications(&self, page: Option<i32>) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.notification().get_notifications(page: Option<i32>))
+    }
+
+    #[wasm_bindgen]
+    pub async fn mark_notification_as_read(
+        &self,
+        notification_id: i32,
+    ) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.notification().mark_as_read(notification_id: i32))
+    }
 }

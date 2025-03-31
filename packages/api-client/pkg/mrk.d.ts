@@ -1,14 +1,16 @@
 import { WasmApiClient } from "./api_client";
-import { Profile } from "./models";
+import { Notification, Profile } from "./models";
 export declare class ApiClient {
     baseUrl: string;
     private client;
     private _auth;
     private _user;
+    private _notification;
     constructor(baseUrl: string);
     initialize(): Promise<void>;
     get auth(): AuthService;
     get user(): UserService;
+    get notification(): NotificationService;
 }
 declare class AuthService {
     private client;
@@ -147,5 +149,21 @@ declare class UserService {
      * @throws Error if the deletion fails
      */
     deleteResume(): Promise<Profile>;
+}
+declare class NotificationService {
+    private client;
+    constructor(client: WasmApiClient);
+    /**
+     * Retrieves the currently authenticated user's notifications
+     * @returns An array of notifications
+     * @throws Error if the retrieval fails
+     */
+    getNotifications(): Promise<Notification[]>;
+    /**
+     * Marks a notification as read
+     * @param notificationId - The ID of the notification to mark as read
+     * @throws Error if the update fails
+     */
+    markNotificationAsRead(notificationId: number): Promise<void>;
 }
 export {};

@@ -23,6 +23,8 @@ export class WasmApiClient {
   delete_cover_photo(): Promise<any>;
   upload_resume(name: string, mime: string, buffer: Uint8Array): Promise<any>;
   delete_resume(): Promise<any>;
+  get_notifications(page?: number | null): Promise<any>;
+  mark_notification_as_read(notification_id: number): Promise<any>;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -51,6 +53,8 @@ export interface InitOutput {
   readonly wasmapiclient_delete_cover_photo: (a: number) => any;
   readonly wasmapiclient_upload_resume: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => any;
   readonly wasmapiclient_delete_resume: (a: number) => any;
+  readonly wasmapiclient_get_notifications: (a: number, b: number) => any;
+  readonly wasmapiclient_mark_notification_as_read: (a: number, b: number) => any;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
@@ -60,8 +64,8 @@ export interface InitOutput {
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h44b2e8785f7525ab: (a: number, b: number) => void;
-  readonly closure243_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure293_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure255_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure303_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

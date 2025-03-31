@@ -14,6 +14,7 @@ import {
   AuthTokenDisplay
 } from "../components/auth";
 import { UserProfileForm } from "../components/user";
+import { NotificationsPanel } from "../components/notifications";
 import styles from "../styles/layout.module.css";
 
 // Define the tab groups
@@ -46,11 +47,17 @@ const authTabs: TabGroup[] = [
       { id: "forgetPassword", label: "Forget Password" },
       { id: "resetPassword", label: "Reset Password" },
     ]
+  },
+  {
+    title: "Notifications",
+    tabs: [
+      { id: "notifications", label: "Notifications" },
+    ]
   }
 ];
 
 type TabId = 'login' | 'register' | 'resendConfirmation' | 'updatePassword' | 
-  'updateEmail' | 'forgetPassword' | 'resetPassword' | 'deleteAccount' | 'userProfile';
+  'updateEmail' | 'forgetPassword' | 'resetPassword' | 'deleteAccount' | 'userProfile' | 'notifications';
 
 export default function Home() {
   const [initialized, setInitialized] = useState(false);
@@ -92,6 +99,8 @@ export default function Home() {
         return <DeleteAccountForm />;
       case 'userProfile':
         return <UserProfileForm />;
+      case 'notifications':
+        return <NotificationsPanel />;
       default:
         return <LoginForm />;
     }
