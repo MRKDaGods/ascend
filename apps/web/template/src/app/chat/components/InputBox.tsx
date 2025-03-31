@@ -5,6 +5,7 @@ import { useChatStore } from "../store/chatStore";
 import axios from "axios";
 
 export default function InputBox(){
+    console.log("InputBox rendered");
     const [messageText,setMessageText]=useState("");
     const [selectedFiles,setselectedFiles]=useState<File[]>([]);
 
@@ -36,41 +37,51 @@ export default function InputBox(){
 
 
 
-    const handleSend = async ()=>{
+    const handleSend = async () => {
         const {
-            selectedConversationId,
-            appendMessageToConversation,
+          appendMessageToConversation,
+          messagesByConversation,
         } = useChatStore.getState();
-
+      
+        const selectedConversationId = useChatStore.getState().selectedConversationId;
+      
+        if (selectedConversationId === null) return;
         
-        try{
-            //get urls for media
-            let uploadedUrls: string[]=[];
-            if (selectedFiles.length>0){
-                uploadedUrls = await uploadMediaFiles(selectedFiles);
-            }
-            //send post request to send msg
-            const res = await axios.post("http://localhost:3001/messages",{
-                conversationId: selectedConversationId,
-                content: messageText.trim(),
-                mediaUrls: uploadedUrls,
-            });
-            const newMessage = res.data?.data?.message;
+        try {
+          let uploadedUrls: string[] = [];
+      
+          if (selectedFiles.length > 0) {
+            uploadedUrls = await uploadMediaFiles(selectedFiles);
+          }
+      
+          const res = await axios.post("http://localhost:3001/messages", {
+            conversationId: selectedConversationId,
+            content: messageText.trim(),
+            mediaUrls: uploadedUrls,
+          });
+      
 
-            if (newMessage && selectedConversationId!==null){
-                appendMessageToConversation(selectedConversationId,newMessage);
-                // Manually scroll to bottom
-                const chatWindowBottom = document.getElementById("chat-bottom");
-                chatWindowBottom?.scrollIntoView({ behavior: "smooth" });
-            }
-                //reset input
-            setMessageText("");
-            setselectedFiles([]);
-        } catch (error){
-            console.error("Failed to send message:", error)
+          const newMessage = res.data?.data?.message;
+          newMessage.id = `${newMessage.id}-${Date.now()}`; //MOCK PURPOSES: TO REMOVE AFTER BE INTEG
+
+      
+          console.log("Appending message to convo:", selectedConversationId, newMessage);
+
+          if (newMessage) {
+            appendMessageToConversation(selectedConversationId, newMessage);
+      
+            // Manually scroll to bottom
+            const chatWindowBottom = document.getElementById("chat-bottom");
+            chatWindowBottom?.scrollIntoView({ behavior: "smooth" });
+          }
+      
+          setMessageText("");
+          setselectedFiles([]);
+        } catch (error) {
+          console.error("Failed to send message:", error);
         }
-    }
-
+      };
+      
     return(
         <>
         <Box sx={{display:"flex",alignItems:"center",gap:1,padding:1,borderTop:"1px solid #ccc",backgroundColor:"#fff"}}>
