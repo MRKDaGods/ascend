@@ -28,6 +28,13 @@ services:
     environment:
       - NODE_ENV=development
 
+  payment:
+    volumes:
+      - ./services/payment:/app/services/payment
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
   file:
     volumes:
       - ./services/file:/app/services/file

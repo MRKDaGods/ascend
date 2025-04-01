@@ -5,15 +5,15 @@ COPY package.json .
 COPY package-lock.json .
 COPY tsconfig.json .
 COPY packages/shared /app/packages/shared
-COPY services/company /app/services/company
+COPY services/payment /app/services/payment
 
 RUN npm install
 
 WORKDIR /app/packages/shared
 RUN npm run build
 
-WORKDIR /app/services/company
+WORKDIR /app/services/payment
 RUN npm run build
 
-EXPOSE 3009
+EXPOSE 3011
 CMD ["npm", "start"]

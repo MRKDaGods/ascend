@@ -147,6 +147,43 @@ services:
       - ascend-network
 
 
+  payment:
+    hostname: payment
+    build:
+      context: .
+      dockerfile: services/company/Dockerfile
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # STRIPE
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+
+      # Service port
+      - PORT=3011
+
+      # Google OAuth
+      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
+      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
+      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3011:3011"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+
+
   user:
     hostname: user
     build:
