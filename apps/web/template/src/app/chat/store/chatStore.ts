@@ -13,12 +13,17 @@ type chatStore ={
     setSelectedConversationId: (id: number | null) => void;
     conversations: conversation[];
     setConversations: (convos: conversation[])=>void;
+    updateLastMessage: (conversationId: number,newLastMessage:string) =>void;
     messagesByConversation: { [conversationId: number]: messageProps[]};
     setMessagesForConversation: (id: number, msgs: messageProps[] | ((prev: messageProps[])=>messageProps[]))=>void;
     appendMessageToConversation: (id: number, msg:messageProps) => void; //for convenience bas el ablaha is enough to append
     page: number;
     setPage: (newPage: number)=>void;
     resetPage: ()=>void;
+    unreadMessagesById: {[conversationId: number]: number};
+    setUnreadMessagesById: (id: number, unreadcount: number | ((prev: number)=>number))=>void;
+    markConversationAsRead: (id:number)=>void;
+    
 }
 
 //actual store el lama ba call useChateStore byraga3ly the state object passed to set
@@ -28,6 +33,11 @@ export const useChatStore = create<chatStore>((set)=>({
     setSelectedConversationId: (id)=>set({selectedConversationId: id}),
     conversations:[],
     setConversations: (convos)=>set({conversations: convos}),
+    updateLastMessage: (conversationId,newLastMessage)=> set((state)=>({
+        conversations: state.conversations.map((conv)=> 
+        conv.id===conversationId? {...conv,lastMessage:newLastMessage} : conv
+    )
+    })),
     messagesByConversation: {},
     //set new message list or update one
     setMessagesForConversation: (id,msgs)=> typeof msgs === "function"
@@ -48,15 +58,25 @@ export const useChatStore = create<chatStore>((set)=>({
             ...state.messagesByConversation,
             [id]: [...(state.messagesByConversation[id] || []), msg],
           },
-        }));
+        }))
       },
-      
-      
-      
-   
     page: 1,
     setPage: (newPage)=>set({page:newPage}),
-    resetPage: ()=>set({page:1})
+    resetPage: ()=>set({page:1}),
+    unreadMessagesById: {},
+    setUnreadMessagesById: (id,newCount)=> 
+        typeof newCount==="function"
+    ? set((state)=>({
+        unreadMessagesById: {
+            ...state.unreadMessagesById,
+            [id]: newCount(state.unreadMessagesById[id] || 0),
+        },
+    })): set((state)=>({
+        unreadMessagesById: {...state.unreadMessagesById,[id]:newCount}
+    })),
+    markConversationAsRead: (id)=>set((state)=>({unreadMessagesById: {
+        ...state.unreadMessagesById, [id]:0,}
+    })),
 
 
 }));

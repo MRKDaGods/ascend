@@ -5,6 +5,7 @@ import { useChatStore } from "../store/chatStore";
 import axios from "axios";
 import Message from "./Message";
 import InputBox from "./InputBox";
+import { handleIncomingMessage } from "../utils/fireBaseHandlers";
 
 
 export default function ChatWindow(){
@@ -26,7 +27,10 @@ export default function ChatWindow(){
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const [shouldScrollToBottom,setShouldScrollToBottom]=useState(true);
 
-    
+   
+
+
+
   
     //To get the conversations most recent medssages
     useEffect(()=>{
@@ -36,6 +40,7 @@ export default function ChatWindow(){
         resetPage();
         setShouldScrollToBottom(true);
 
+        //comment this out when testing the triggering a test msg button
         axios.get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=1`)
         .then((response)=>{
             setMessagesForConversation(selectedConversationId!,response.data.data.messages);
@@ -109,7 +114,9 @@ export default function ChatWindow(){
      sender={msg.sender} 
      mediaUrls={msg.mediaUrls} 
      createdAt={msg.createdAt} 
-     currentUserName="Ruaa"/>
+     conversationId={msg.conversationId}
+     recipient={msg.recipient}
+     />
     ))}
     <Box ref={bottomRef} id="chat-bottom"/>
     
