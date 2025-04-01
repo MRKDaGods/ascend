@@ -116,6 +116,7 @@ export default function ChatWindow(){
      createdAt={msg.createdAt} 
      conversationId={msg.conversationId}
      recipient={msg.recipient}
+     status={msg.status}
      />
     ))}
     <Box ref={bottomRef} id="chat-bottom"/>
