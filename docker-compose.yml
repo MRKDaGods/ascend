@@ -269,6 +269,37 @@ services:
     networks:
       - ascend-network
 
+  messaging:
+    hostname: messaging
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=notification
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3010
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3010:3010"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+
 volumes:
   postgres_data:
   pgadmin_data:
