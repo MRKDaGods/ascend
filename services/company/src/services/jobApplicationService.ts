@@ -75,7 +75,7 @@ export const createJobApplication = async (
     applied_at : Date,
     status : ApplicationStatus,
 ) : Promise<Array<JobApplication>> => {
-    const result = await db.query("INSERT INTO company_service.job_application (job_id, user_id, applied_at, status) VALUES ($1, $2, $3, $4)", [job_id, user_id, applied_at, status as ApplicationStatus]);
+    const result = await db.query("INSERT INTO company_service.job_application (job_id, user_id, applied_at, status) VALUES ($1, $2, $3, $4) RETURNING *", [job_id, user_id, applied_at, status as ApplicationStatus]);
     return result.rows;
 };
 
