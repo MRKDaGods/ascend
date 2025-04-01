@@ -131,7 +131,8 @@ export default function Sidebar(){
     },
     mediaUrls: [],
     createdAt: new Date().toISOString(),
-    conversationId: 1  // <--- test with your conv ID
+    conversationId: 1, // <--- test with your conv ID
+    status: "delivered"
   });
 }}>
   Trigger Test Message

@@ -18,6 +18,7 @@ export type messageProps = {
 
     mediaUrls: string[];
     createdAt: string;
+    status: "sent" | "delivered" | "read";
     
 }
 
@@ -56,8 +57,14 @@ function formatTime(isoString:string): string{
 
 }
 
-export default function Message({id,content,sender,mediaUrls,createdAt}:messageProps){
+export default function Message({id,content,sender,recipient,mediaUrls,createdAt,status}:messageProps){
+
+    //Temporary username:
+    const currentUsername = "Ruaa";
+    const isSentByYou= sender.name===currentUsername;
    
+    console.log("Message rendered", { content, sender, status, isSentByYou });
+
     return (
         <Box sx={{display:"flex", gap:1.5, alignItems:"flex-start", mb: 2}}>
             <Avatar src={sender.profilePictureUrl} alt = {sender.name} sx={{ width: 50, height: 50 }}>
@@ -137,6 +144,15 @@ export default function Message({id,content,sender,mediaUrls,createdAt}:messageP
                         );
                     }
                 })
+            }
+
+            {/* read receipts */}
+            {
+                isSentByYou && (
+                    <Typography fontSize="0.75rem" color="gray" mt={0.5}>
+                        {status === "read" ? "✔️✔️" : status === "delivered" ? "✔️" : "⏳"}
+                    </Typography>
+                )
             }
 
             </Paper>
