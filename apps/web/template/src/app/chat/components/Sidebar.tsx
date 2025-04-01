@@ -3,11 +3,16 @@ import { useState } from "react";
 import { ListItem } from "@mui/material";
 import { useEffect } from "react";
 import axios from "axios";
-import { Drawer, Box, Typography,List,ListItemProps,Avatar,ListItemText,ListItemAvatar,Badge,Button} from "@mui/material";
+import { Drawer, Box, Typography,List,ListItemProps,
+  Avatar,ListItemText,ListItemAvatar,Badge,
+  Button,IconButton} from "@mui/material";
 import ListItemButton from '@mui/material/ListItemButton';
 import { useChatStore } from "../store/chatStore";
 import { markAsRead } from "../utils/api";
 import { handleIncomingMessage } from "../utils/fireBaseHandlers";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 
 //defining conversation interface to define its structure for TS
 //FIX: timestamp still not handled 
@@ -24,18 +29,34 @@ export type conversation = {
 export default function Sidebar(){
     
     //destructuring the state object returned from the zustand store
-    const {selectedConversationId,setSelectedConversationId,conversations,setConversations,setUnreadMessagesById}=useChatStore();
+    const {selectedConversationId,setSelectedConversationId,conversations,setConversations,setUnreadMessagesById,markConversationAsUnread}=useChatStore();
     const unreadMessagesById = useChatStore(state=>state.unreadMessagesById);
-
+    const {markConversationAsRead}=useChatStore.getState();
     //handle conv selection
     const handleSelectedConversation = async (id: number)=>{
-      const {markConversationAsRead}=useChatStore.getState();
+      
       setSelectedConversationId(id); //update slected conv
       markConversationAsRead(id); //locally mark as read
       await markAsRead(id); //tell BE its read
   
     }
     
+    //FOR THE UNREAD MENU
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [menuConvId, setMenuConvId] = useState<number | null>(null);
+
+    const open = Boolean(anchorEl);
+
+    const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>, id: number) => {
+      setAnchorEl(event.currentTarget);
+      setMenuConvId(id);
+    };
+
+    const handleMenuClose = () => {
+      setAnchorEl(null);
+      setMenuConvId(null);
+    };
+
    
     //renders once when component mounts
     useEffect(()=>{
@@ -58,7 +79,7 @@ export default function Sidebar(){
     
 
     return(
-        
+        <>
        <Drawer variant="permanent"  
        sx={{
         width:{xs:250,md:"30%"},
@@ -77,11 +98,15 @@ export default function Sidebar(){
         </Box>
         {
             conversations.length!==0? (
-                <List sx={{overflowY:"auto",maxheight:"calc(100vh-64px)"}}> 
+                <List sx={{overflowY:"auto",maxHeight:"calc(100vh-64px)"}}> 
                 {
                  
                  conversations.map((chat)=>(
-                    <ListItem key={chat.id} disablePadding> 
+                    <ListItem key={chat.id} disablePadding secondaryAction={
+                      <IconButton edge="end" onClick={(e)=>handleMenuClick(e,chat.id)}>
+                        <MoreVertIcon />
+                      </IconButton>
+                    }> 
                     <ListItemButton
                       selected={chat.id === selectedConversationId} 
                       onClick={() => {handleSelectedConversation(chat.id)}}
@@ -136,11 +161,34 @@ export default function Sidebar(){
   });
 }}>
   Trigger Test Message
-</Button>
+</Button>  
+ </Drawer>
 
-       
-       </Drawer>
 
+{/* read/unread menu */}
+<Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+  {menuConvId !== null && unreadMessagesById[menuConvId] === 0 ? (
+    <MenuItem
+      onClick={() => {
+        markConversationAsUnread(menuConvId);
+        handleMenuClose();
+      }}
+    >
+      Mark as Unread
+    </MenuItem>
+  ) : (
+    <MenuItem
+      onClick={() => {
+        if (menuConvId !== null) markConversationAsRead(menuConvId);
+        handleMenuClose();
+      }}
+    >
+      Mark as Read
+    </MenuItem>
+  )}
+</Menu>
+
+       </>
     );
 
 }
