@@ -23,6 +23,7 @@ type chatStore ={
     unreadMessagesById: {[conversationId: number]: number};
     setUnreadMessagesById: (id: number, unreadcount: number | ((prev: number)=>number))=>void;
     markConversationAsRead: (id:number)=>void;
+    markConversationAsUnread:(id:number)=>void;
     
 }
 
@@ -77,6 +78,11 @@ export const useChatStore = create<chatStore>((set)=>({
     markConversationAsRead: (id)=>set((state)=>({unreadMessagesById: {
         ...state.unreadMessagesById, [id]:0,}
     })),
+    markConversationAsUnread: (id)=> set((state)=>({
+        unreadMessagesById: {
+            ...state.unreadMessagesById, [id]: 1,
+        }
+    }))
 
 
 }));
