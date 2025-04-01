@@ -3,15 +3,22 @@ import { Box, Avatar,Paper, Typography} from "@mui/material";
 
 export type messageProps = {
     id: string;
+    conversationId: number;
     content: string;
     sender: {
         id: string;
         name: string;
         profilePictureUrl: string
     }
+    recipient: {
+        id: string;
+        name: string;
+        profilePictureUrl: string
+    }
+
     mediaUrls: string[];
     createdAt: string;
-    currentUserName: string;
+    
 }
 
 function formatTime(isoString:string): string{
@@ -49,8 +56,8 @@ function formatTime(isoString:string): string{
 
 }
 
-export default function Message({id,content,sender,mediaUrls,createdAt,currentUserName}:messageProps){
-    const isSentByYou= currentUserName===sender.name; 
+export default function Message({id,content,sender,mediaUrls,createdAt}:messageProps){
+   
     return (
         <Box sx={{display:"flex", gap:1.5, alignItems:"flex-start", mb: 2}}>
             <Avatar src={sender.profilePictureUrl} alt = {sender.name} sx={{ width: 50, height: 50 }}>
