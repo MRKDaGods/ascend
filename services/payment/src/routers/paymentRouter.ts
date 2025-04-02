@@ -3,11 +3,16 @@ import authMiddleware from "@shared/middleware/authMiddleware";
 
 const paymentRoutes = Router();
 
+
+paymentRoutes.get("/payments/features", authMiddleware);
+
 paymentRoutes.post("/payments/process", authMiddleware);
+paymentRoutes.get("/payments/process/complete", authMiddleware);
 
-paymentRoutes.post("/subscriptions", authMiddleware);
-paymentRoutes.delete("/subscriptions/:subscriptionId", authMiddleware);
-paymentRoutes.get("/subscriptions/:subscriptionId", authMiddleware);
-paymentRoutes.put("/subscriptions/:subscriptionId", authMiddleware);
+paymentRoutes.get("/payments/subscriptions", authMiddleware);
+paymentRoutes.post("/payments/subscriptions", authMiddleware);
+paymentRoutes.delete("/payments/subscriptions/:subscriptionId", authMiddleware);
+paymentRoutes.get("/payments/subscriptions/:subscriptionId", authMiddleware);
+paymentRoutes.put("/payments/subscriptions/:subscriptionId", authMiddleware);
 
-paymentRoutes.get("/usage/:userId", authMiddleware);
+paymentRoutes.get("/payments/usage/:userId", authMiddleware);
