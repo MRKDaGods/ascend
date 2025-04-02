@@ -1,54 +1,61 @@
-# !/bin/bash
+#!/bin/bash
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-PACKAGE_ROOT=$(dirname "$SCRIPT_DIR")
+# Navigate to the script's directory
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# Ensure that we're in root
-cd "$PACKAGE_ROOT" || {
-    echo "Failed to navigate to package root"
-    exit 1
+show_menu() {
+    echo "Choose a platform to build for:"
+    echo "1) iOS (64-bit ARM) - aarch64-apple-ios"
+    echo "2) Android (64-bit ARM) - aarch64-linux-android"
+    echo "3) Android (32-bit ARM) - armv7-linux-androideabi"
+    echo "4) Android (32-bit x86) - i686-linux-android"
+    echo "5) WebAssembly - wasm"
+    echo "q) Quit"
+    echo
+    read -p "[1-5 or q]: " chosenPlatform
 }
 
-echo "Working directory: $(pwd)"
-
-echo "Building API client..."
-wasm-pack build --target web --out-dir pkg --scope ascend
-
-# Ensure pkg/package.json exists
-if [ ! -f "pkg/package.json" ]; then
-    echo "Error: pkg/package.json doesn't exist. Build may have failed."
-    exit 1
-fi
-
-# Copy models from shared/models to pkg/models
-echo "Copying models..."
-mkdir -p pkg/models
-
-cp -r ../shared/src/models/* pkg/models/
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to copy models."
-    exit 1
-fi
-echo "Models copied successfully."
-
-# Add our stuff
-echo "Postprocessing package.json..."
-if ! grep -q '/* Postprocessed */' pkg/package.json; then
-    TMP_FILE=$(mktemp)
-
-    jq '(.devDependencies.typescript) = "^5.8.2" 
-        | (.scripts.build) = "tsc" 
-        | .files += ["mrk.js", "mrk.d.ts", "models"]
-        | . + { "/* Postprocessed */": "" }' pkg/package.json >"$TMP_FILE"
-
-    mv "$TMP_FILE" pkg/package.json
-
-    echo "Postprocessed package.json"
+# Check number of args
+if [ $# -eq 0 ]; then
+    show_menu
+    
+    case $chosenPlatform in
+        1) platform="aarch64-apple-ios" ;;
+        2) platform="aarch64-linux-android" ;;
+        3) platform="armv7-linux-androideabi" ;;
+        4) platform="i686-linux-android" ;;
+        5) platform="wasm" ;;
+        q|Q) echo "Exiting."; exit 0 ;;
+        *) echo "Invalid choice. Exiting."; exit 1 ;;
+    esac
 else
-    echo "Already postprocessed"
+    # Use the provided platform directly
+    echo "Using provided platform: $1"
+    platform=$1
 fi
 
-# Build the TypeScript definitions
-cd pkg
-echo "Building TypeScript definitions..."
-npm run build
+# Build selected platform
+case "$platform" in
+    "aarch64-apple-ios")
+        echo "Building for iOS (64-bit ARM)..."
+        ;;
+    "aarch64-linux-android")
+        echo "Building for Android (64-bit ARM)..."
+        ;;
+    "armv7-linux-androideabi")
+        echo "Building for Android (32-bit ARM)..."
+        ;;
+    "i686-linux-android")
+        echo "Building for Android (32-bit x86)..."
+        ;;
+    "wasm")
+        echo "Building for WebAssembly..."
+        ./build-wasm.sh
+        ;;
+    *)
+        echo "Unsupported platform: $platform"
+        exit 1
+        ;;
+esac
+
+echo "Build completed for $platform"

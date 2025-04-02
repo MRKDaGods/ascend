@@ -57,6 +57,4 @@ impl ApiClient {
         let response = self.client.get(&url).send().await?;
         utils::handle_text_response(response).await
     }
-
-
 }
