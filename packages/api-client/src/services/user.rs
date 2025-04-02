@@ -70,6 +70,7 @@ impl<'a> User<'a> {
             .http_client()
             .post(&url)
             .bearer_auth(token)
+            .header("x-no-parse-body", "1")
             .multipart(form)
             .send()
             .await?;
