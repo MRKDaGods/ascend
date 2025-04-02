@@ -273,10 +273,10 @@ services:
     hostname: messaging
     build:
       context: .
-      dockerfile: services/notification/Dockerfile
+      dockerfile: services/messaging/Dockerfile
     environment:
       # Service
-      - SERVICE_NAME=notification
+      - SERVICE_NAME=messaging
 
       # Postgres
       - DB_USER=${DB_USER}
