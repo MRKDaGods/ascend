@@ -5,22 +5,22 @@ import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
 
-const UserPostPopup = () => {
-  const { popupOpen, setPopupOpen } = usePostStore();
+const SavePostPopup = () => {
+  const { savedPopupOpen, setSavedPopupOpen } = usePostStore();
   const router = useRouter();
 
   const handleClose = () => {
-    setPopupOpen(false);
+    setSavedPopupOpen(false);
   };
 
   const handleViewPost = () => {
-    setPopupOpen(false);
-    router.push("/mypost");
+    setSavedPopupOpen(false);
+    router.push("/saved-post");
   };
 
   return (
     <Snackbar
-      open={popupOpen}
+      open={savedPopupOpen}
       anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       onClose={handleClose}
     >
@@ -34,7 +34,7 @@ const UserPostPopup = () => {
               onClick={handleViewPost}
               sx={{ cursor: "pointer", color: "#0a66c2", fontWeight: "bold" }}
             >
-              View post
+              View saved posts
             </Link>
             <IconButton onClick={handleClose} size="small" color="inherit">
               <CloseIcon fontSize="small" />
@@ -42,10 +42,10 @@ const UserPostPopup = () => {
           </>
         }
       >
-        Post successful.
+        Post saved.
       </Alert>
     </Snackbar>
   );
 };
 
-export default UserPostPopup;
+export default SavePostPopup;

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-// ✅ Define Post Type
+// ✅ Post Type
 export type PostType = {
   id: number;
   username: string;
@@ -19,59 +19,61 @@ export type PostType = {
   isUserPost?: boolean;
 };
 
-// ✅ Define Zustand Store Type
+// ✅ Store State Type
 interface PostStoreState {
   open: boolean;
   postText: string;
   popupOpen: boolean;
-  lastUserPostId: number | null,
-  isLastPostDeleted: boolean,
-
-  setOpen: (open: boolean) => void;
-  setPostText: (text: string) => void;
-  setPopupOpen: (open: boolean) => void;
-  setLastUserPostId: (id: number) => void;
-  setLastPostDeleted: (deleted: boolean) => void;
-
-  resetPost: () => void;
+  savedPopupOpen: boolean;
+  unsavedPopupOpen: boolean;
+  lastUserPostId: number | null;
+  isLastPostDeleted: boolean;
 
   posts: PostType[];
   likedPosts: number[];
   repostedPosts: number[];
+  savedPosts: number[];
+
   editingPost: PostType | null;
+
+  setOpen: (open: boolean) => void;
+  setPostText: (text: string) => void;
+  setPopupOpen: (open: boolean) => void;
+  setSavedPopupOpen: (open: boolean) => void;
+  setUnsavedPopupOpen: (open: boolean) => void;
+  setLastUserPostId: (id: number) => void;
+  setLastPostDeleted: (deleted: boolean) => void;
+  resetPost: () => void;
 
   addPost: (content: string, media?: string, mediaType?: "image" | "video") => void;
   deletePost: (postId: number) => void;
+  editPost: (id: number, newText: string) => void;
+  setEditingPost: (post: PostType | null) => void;
 
   likePost: (id: number) => void;
   repostPost: (id: number) => void;
+  toggleSavePost: (id: number) => void;
+
   commentOnPost: (id: number, comment: string) => void;
   deleteComment: (postId: number, commentIndex: number) => void;
-
-  setEditingPost: (post: PostType | null) => void;
-  editPost: (id: number, newText: string) => void;
 }
 
-// ✅ Zustand Store with Persistence
+// ✅ Zustand Store (with Persistence)
 export const usePostStore = create<PostStoreState>()(
   persist(
     (set, get) => ({
+      // UI States
       open: false,
       postText: "",
       popupOpen: false,
+      savedPopupOpen: false,
+      unsavedPopupOpen: false,
+
       lastUserPostId: null,
-
       isLastPostDeleted: false,
+      editingPost: null,
 
-      setOpen: (open) => set(() => ({ open })),
-      setPostText: (text) => set(() => ({ postText: text })),
-      setPopupOpen: (open) => set(() => ({ popupOpen: open })),
-
-      resetPost: () => set(() => ({ open: false, postText: "" })),
-      setLastUserPostId: (id: number) => set({ lastUserPostId: id }),
-
-      setLastPostDeleted: (deleted: boolean) => set({ isLastPostDeleted: deleted }),
-
+      // Data
       posts: [
         {
           id: 1,
@@ -102,12 +104,22 @@ export const usePostStore = create<PostStoreState>()(
           isUserPost: false,
         },
       ],
-
       likedPosts: [],
       repostedPosts: [],
+      savedPosts: [],
 
-      // ✅ Add a new post
-      addPost: (content: string, media?: string, mediaType?: "image" | "video") =>
+      // Actions
+      setOpen: (open) => set({ open }),
+      setPostText: (text) => set({ postText: text }),
+      setPopupOpen: (open) => set({ popupOpen: open }),
+      setSavedPopupOpen: (open) => set({ savedPopupOpen: open }),
+      setUnsavedPopupOpen: (open) => set({ unsavedPopupOpen: open }),
+      setLastUserPostId: (id) => set({ lastUserPostId: id }),
+      setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
+
+      resetPost: () => set({ open: false, postText: "", editingPost: null }),
+
+      addPost: (content, media, mediaType) =>
         set((state) => {
           const newPost: PostType = {
             id: Date.now(),
@@ -125,30 +137,41 @@ export const usePostStore = create<PostStoreState>()(
             isUserPost: true,
           };
           return {
-            ...state,
             posts: [...state.posts, newPost],
             popupOpen: true,
             lastUserPostId: newPost.id,
-            isLastPostDeleted: false, // ✅ Reset deleted flag here!
+            isLastPostDeleted: false,
           };
         }),
-      
 
-      // ✅ Delete only user-created posts
-      deletePost: (postId: number) =>
+      deletePost: (postId) =>
         set((state) => ({
-          ...state,
           posts: state.posts.filter((post) => !(post.id === postId && post.isUserPost)),
         })),
 
-      // ✅ Like/Unlike a post
-      likePost: (id: number) =>
+      editPost: (id, newText) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === id ? { ...post, content: newText } : post
+          ),
+          editingPost: null,
+          postText: "",
+          open: false,
+        })),
+
+      setEditingPost: (post) =>
+        set({
+          editingPost: post,
+          postText: post?.content ?? "",
+          open: true,
+        }),
+
+      likePost: (id) =>
         set((state) => {
           const isLiked = state.likedPosts.includes(id);
           return {
-            ...state,
             likedPosts: isLiked
-              ? state.likedPosts.filter((postId) => postId !== id)
+              ? state.likedPosts.filter((pid) => pid !== id)
               : [...state.likedPosts, id],
             posts: state.posts.map((post) =>
               post.id === id
@@ -158,14 +181,12 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      // ✅ Repost/Undo repost
-      repostPost: (id: number) =>
+      repostPost: (id) =>
         set((state) => {
           const isReposted = state.repostedPosts.includes(id);
           return {
-            ...state,
             repostedPosts: isReposted
-              ? state.repostedPosts.filter((postId) => postId !== id)
+              ? state.repostedPosts.filter((pid) => pid !== id)
               : [...state.repostedPosts, id],
             posts: state.posts.map((post) =>
               post.id === id
@@ -175,10 +196,20 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      // ✅ Add a comment
-      commentOnPost: (id: number, comment: string) =>
+      toggleSavePost: (id) =>
+        set((state) => {
+          const isSaved = state.savedPosts.includes(id);
+          return {
+            savedPosts: isSaved
+              ? state.savedPosts.filter((pid) => pid !== id)
+              : [...state.savedPosts, id],
+            savedPopupOpen: !isSaved,    // ✅ Show Save popup only when saving
+            unsavedPopupOpen: isSaved,   // ✅ Show Unsave popup only when unsaving
+          };
+        }),        
+
+      commentOnPost: (id, comment) =>
         set((state) => ({
-          ...state,
           posts: state.posts.map((post) =>
             post.id === id
               ? {
@@ -190,10 +221,8 @@ export const usePostStore = create<PostStoreState>()(
           ),
         })),
 
-      // ✅ Delete a comment
-      deleteComment: (postId: number, commentIndex: number) =>
+      deleteComment: (postId, commentIndex) =>
         set((state) => ({
-          ...state,
           posts: state.posts.map((post) =>
             post.id === postId
               ? {
@@ -204,22 +233,6 @@ export const usePostStore = create<PostStoreState>()(
               : post
           ),
         })),
-
-        editingPost: null,
-
-        setEditingPost: (post) => set(() => ({ editingPost: post, open: true, postText: post?.content ?? "" })),
-
-        editPost: (id, newText) =>
-          set((state) => ({
-            posts: state.posts.map((post) =>
-              post.id === id ? { ...post, content: newText } : post
-            ),
-            editingPost: null, // Clear edit mode
-            postText: "",       // Clear input
-            open: false,        // Close dialog
-          })),
-
-
     }),
     {
       name: "post-storage",
