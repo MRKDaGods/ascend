@@ -29,16 +29,16 @@ void showFilterModal(BuildContext context) {
           builder: (context, setState) {
             return BlocBuilder<SearchFiltersBloc, SearchFiltersState>(
               builder: (context, state) {
-                if (state is SearchFiltersStateLoading) {
+                if (state is SearchFiltersLoading) {
                   return const Center(child: CircularProgressIndicator());
-                } else if (state is SearchFiltersStateFailed) {
+                } else if (state is SearchFiltersError) {
                   return Center(
                     child: Text(
                       'Error: ${state.error}',
                       style: const TextStyle(color: Colors.red),
                     ),
                   );
-                } else if (state is SearchFiltersStateLoaded) {
+                } else if (state is SearchFiltersLoaded) {
                   final filters = state.filters;
                   final bool _isReset = checkIfReset(filters);
                   return Padding(
@@ -207,7 +207,44 @@ void showFilterModal(BuildContext context) {
                                   },
                                   context,
                                 ),
+                                const Divider(color: Colors.grey, thickness: 3),
                               ],
+                            ),
+                          ),
+                        ),
+                        // Fixed (Non-Scrollable) Filter Footer
+                        Divider(color: Colors.grey, thickness: 3),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  8,
+                                  55,
+                                  102,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 32,
+                                ),
+                              ),
+                              child: const Text(
+                                'Show Results',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
                         ),

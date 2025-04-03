@@ -16,6 +16,18 @@ bool checkIfReset(SearchModel filters) {
       filters.firstName == '' &&
       filters.lastName == '' &&
       filters.title == '' &&
-      filters.company == '' &&
+      filters.company == null &&
       filters.school == '';
+}
+
+bool checkIfResetcurrentCompanies(SearchModel filters) {
+  return filters.currentCompanies.isEmpty;
+}
+
+bool checkIfResetpastCompanies(SearchModel filters) {
+  return filters.pastCompanies.isEmpty;
+}
+
+bool checkIfResetIndustries(SearchModel filters) {
+  return filters.industries.isEmpty;
 }

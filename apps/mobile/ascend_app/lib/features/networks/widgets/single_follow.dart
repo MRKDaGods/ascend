@@ -31,7 +31,6 @@ class _FollowState extends State<SingleFollow> {
   void _changeFollowStatus() {
     setState(() {
       isFollowing = !isFollowing;
-      print(isFollowing);
       if (isFollowing) {
         widget.onFollow(widget.user.id);
       } else {
@@ -48,7 +47,6 @@ class _FollowState extends State<SingleFollow> {
 
   @override
   Widget build(BuildContext context) {
-    print("Rebuilding SingleFollow: isFollowing = $isFollowing");
     if (!isVisible) {
       return const SizedBox.shrink();
     }

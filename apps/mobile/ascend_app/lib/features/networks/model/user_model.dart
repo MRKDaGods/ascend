@@ -1,8 +1,8 @@
 class UserModel {
   final String id;
   final String name;
-  final String company;
-  final String industry;
+  final String companyId;
+  //final String industryId;
   final String profilePic;
   final String coverpic;
   final String bio;
@@ -12,8 +12,8 @@ class UserModel {
   UserModel({
     required this.id,
     required this.name,
-    required this.company,
-    required this.industry,
+    required this.companyId,
+    //required this.industryId,
     required this.profilePic,
     required this.coverpic,
     required this.bio,
@@ -24,8 +24,8 @@ class UserModel {
   UserModel copyWith({
     String? id,
     String? name,
-    String? company,
-    String? industry,
+    String? companyId,
+    //String? industryId,
     String? profilePic,
     String? coverpic,
     String? bio,
@@ -35,8 +35,8 @@ class UserModel {
     return UserModel(
       id: id ?? this.id,
       name: name ?? this.name,
-      company: company ?? this.company,
-      industry: industry ?? this.industry,
+      companyId: companyId ?? this.companyId,
+      //industryId: industryId ?? this.industryId,
       profilePic: profilePic ?? this.profilePic,
       coverpic: coverpic ?? this.coverpic,
       bio: bio ?? this.bio,
@@ -48,8 +48,8 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
     id: json["id"],
     name: json["name"],
-    company: json["company"],
-    industry: json["industry"],
+    companyId: json["company_id"],
+    //industryId: json["industry_id"],
     profilePic: json["profilePictureUrl"],
     coverpic: json["coverpic"],
     bio: json["bio"],
@@ -60,8 +60,8 @@ class UserModel {
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
-    "company": company,
-    "industry": industry,
+    "company_id": companyId,
+    //"industry_id": industryId,
     "profilePictureUrl": profilePic,
     "coverpic": coverpic,
     "bio": bio,

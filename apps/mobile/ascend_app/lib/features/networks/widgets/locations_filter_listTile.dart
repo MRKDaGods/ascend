@@ -1,11 +1,13 @@
+import 'package:ascend_app/features/networks/model/location_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/pages/location_searching.dart';
+import 'package:ascend_app/features/networks/widgets/location_modal.dart';
 
 Widget? printLocations(
-  List<String> locations,
+  List<LocationModel> locations,
   void Function(String) onLocationsRemoved,
 ) {
   return locations.isNotEmpty
@@ -45,22 +47,13 @@ Widget? printLocations(
 }
 
 Widget buildLocationList(
-  List<String> locations,
+  List<LocationModel> locations,
   void Function(String) onLocationsRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => BlocProvider.value(
-                value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: LocationSearching(),
-              ),
-        ),
-      );
+      showLocationModal(context);
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
@@ -69,7 +62,7 @@ Widget buildLocationList(
     ),
     subtitle: printLocations(locations, onLocationsRemoved),
     trailing: Text(
-      locations.length > 0 ? 'Any' : 'Edit',
+      locations.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

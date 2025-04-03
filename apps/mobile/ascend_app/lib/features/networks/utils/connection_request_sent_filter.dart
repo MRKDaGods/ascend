@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/utils/enums.dart';
+import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 
 Widget buildSent(
   List<UserModel> allUsers,
@@ -23,7 +24,7 @@ Widget buildSent(
                     requestId: '',
                     senderId: '',
                     receiverId: '',
-                    timestamp: DateTime.now().toIso8601String(),
+                    timestamp: DateTime.now(),
                     status: '',
                   ),
             );
@@ -53,7 +54,7 @@ Widget buildSent(
                           ),
                         ),
                         Text(
-                          connectionRequest.timestamp,
+                          timeDifference(connectionRequest.timestamp),
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 10,

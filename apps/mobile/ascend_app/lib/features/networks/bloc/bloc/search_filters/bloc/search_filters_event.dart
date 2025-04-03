@@ -1,14 +1,15 @@
+// search_filters_event.dart
 part of 'search_filters_bloc.dart';
 
-@immutable
-sealed class SearchFiltersEvent extends Equatable {
+abstract class SearchFiltersEvent extends Equatable {
   const SearchFiltersEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-final class SearchFiltersUpdate extends SearchFiltersEvent {
+// Event to update a filter
+class SearchFiltersUpdate extends SearchFiltersEvent {
   final String key;
   final dynamic value;
 
@@ -18,14 +19,8 @@ final class SearchFiltersUpdate extends SearchFiltersEvent {
   List<Object?> get props => [key, value];
 }
 
-final class SearchFiltersReset extends SearchFiltersEvent {
-  const SearchFiltersReset();
-
-  @override
-  List<Object?> get props => [];
-}
-
-final class SearchFiltersRemove extends SearchFiltersEvent {
+// Event to remove a specific filter value
+class SearchFiltersRemove extends SearchFiltersEvent {
   final String key;
   final dynamic value;
 
@@ -35,17 +30,18 @@ final class SearchFiltersRemove extends SearchFiltersEvent {
   List<Object?> get props => [key, value];
 }
 
-final class SearchFiltersClear extends SearchFiltersEvent {
+// Event to clear an entire filter category
+class SearchFiltersClear extends SearchFiltersEvent {
   final String key;
+
   const SearchFiltersClear({required this.key});
 
   @override
   List<Object?> get props => [key];
 }
 
-final class SearchFiltersIntialize extends SearchFiltersEvent {
-  const SearchFiltersIntialize();
+// Event to reset all filters
+class SearchFiltersReset extends SearchFiltersEvent {}
 
-  @override
-  List<Object?> get props => [];
-}
+// Event to fetch current filters
+class SearchFiltersFetch extends SearchFiltersEvent {}

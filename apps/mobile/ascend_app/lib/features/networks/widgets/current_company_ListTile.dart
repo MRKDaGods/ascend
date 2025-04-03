@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/companies_searching.dart';
+import 'package:ascend_app/features/networks/pages/current_company_searching.dart';
+import 'package:ascend_app/features/networks/widgets/current_company_modal.dart';
+import 'package:ascend_app/features/networks/widgets/filter_modal.dart';
+import 'package:ascend_app/features/networks/model/company_model.dart';
 
 Widget? printcurrentCompanies(
-  List<String> currentCompanies,
+  List<CompanyModel> currentCompanies,
   void Function(String) oncurrentCompaniesRemoved,
 ) {
   return currentCompanies.isNotEmpty
@@ -15,7 +18,7 @@ Widget? printcurrentCompanies(
           children: [
             currentCompanies.length == 1
                 ? Text(
-                  "${currentCompanies[0]}",
+                  "${currentCompanies[0].companyName}",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -23,7 +26,7 @@ Widget? printcurrentCompanies(
                   ),
                 )
                 : Text(
-                  "${currentCompanies[0]} and ${currentCompanies.length - 1} more",
+                  "${currentCompanies[0].companyName} and ${currentCompanies.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -45,22 +48,16 @@ Widget? printcurrentCompanies(
 }
 
 Widget buildCurrentCompanyList(
-  List<String> currentCompanies,
+  List<CompanyModel> currentCompanies,
   void Function(String) oncurrentCompaniesRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => BlocProvider.value(
-                value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: CompaniesSearching(),
-              ),
-        ),
-      );
+      Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 0), () {
+        showCurrentCompanyModal(context);
+      });
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
@@ -72,7 +69,7 @@ Widget buildCurrentCompanyList(
       oncurrentCompaniesRemoved,
     ),
     trailing: Text(
-      currentCompanies.length > 0 ? 'Any' : 'Edit',
+      currentCompanies.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

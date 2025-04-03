@@ -3,7 +3,7 @@ class ConnectionRequestModel {
   final String senderId;
   final String receiverId;
   String status; // pending, accepted, rejected
-  final String timestamp;
+  DateTime timestamp;
 
   ConnectionRequestModel({
     required this.requestId,
@@ -18,7 +18,7 @@ class ConnectionRequestModel {
     String? senderId,
     String? receiverId,
     String? status,
-    String? timestamp,
+    DateTime? timestamp,
   }) {
     return ConnectionRequestModel(
       requestId: requestId ?? this.requestId,

@@ -3,6 +3,7 @@ import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/widgets/selection_buttons.dart';
 import 'package:ascend_app/features/networks/utils/enums.dart';
+import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 
 Widget buildReceived(
   List<UserModel> allUsers,
@@ -26,7 +27,7 @@ Widget buildReceived(
                     senderId: '',
                     receiverId: '',
                     status: '',
-                    timestamp: '',
+                    timestamp: DateTime.now(),
                   ),
             );
 
@@ -74,7 +75,7 @@ Widget buildReceived(
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                connectionRequest.timestamp,
+                                timeDifference(connectionRequest.timestamp),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
@@ -132,7 +133,7 @@ Widget buildReceived(
                     senderId: '',
                     receiverId: '',
                     status: '',
-                    timestamp: '',
+                    timestamp: DateTime.now(),
                   ),
             );
 
@@ -180,7 +181,7 @@ Widget buildReceived(
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                connectionRequest.timestamp,
+                                timeDifference(connectionRequest.timestamp),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,

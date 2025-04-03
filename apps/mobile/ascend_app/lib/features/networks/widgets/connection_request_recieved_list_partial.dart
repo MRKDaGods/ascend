@@ -1,6 +1,7 @@
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
+import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/utils/overlay_builder.dart';
@@ -40,7 +41,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                   requestId: '',
                                   senderId: '',
                                   receiverId: '',
-                                  timestamp: DateTime.now().toIso8601String(),
+                                  timestamp: DateTime.now(),
                                   status: '',
                                 ),
                           );
@@ -94,7 +95,9 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          connectionRequest.timestamp,
+                                          timeDifference(
+                                            connectionRequest.timestamp,
+                                          ),
                                           style: const TextStyle(
                                             color: Colors.grey,
                                             fontSize: 10,

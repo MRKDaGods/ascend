@@ -84,9 +84,6 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
       itemBuilder: (context, index) {
         final user = localsuggestedUsers[index];
         final bool isConnected = connectedUsers.contains(user.id);
-        print(
-          "User Name: ${user.name},User Id : ${user.id} ,index: $index, isConnected: $isConnected",
-        );
         return SingleConnection(
           key: ValueKey(user.id),
           user: user,
