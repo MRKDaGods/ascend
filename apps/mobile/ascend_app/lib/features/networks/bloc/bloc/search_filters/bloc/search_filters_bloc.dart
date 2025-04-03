@@ -1,99 +1,124 @@
 import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:equatable/equatable.dart';
+import 'package:ascend_app/features/networks/model/company_model.dart';
+import 'package:ascend_app/features/networks/model/search_model.dart';
+import 'package:ascend_app/features/networks/repositories/search_filter_repository.dart';
 
 part 'search_filters_event.dart';
 part 'search_filters_state.dart';
 
 class SearchFiltersBloc extends Bloc<SearchFiltersEvent, SearchFiltersState> {
-  SearchFiltersBloc() : super(SearchFiltersInitial()) {
-    on<SearchFiltersUpdate>(_onSearchFiltersUpdate);
-    on<SearchFiltersReset>(_onSearchFiltersReset);
-    on<SearchFiltersRemove>(_onSearchFiltersRemove);
-    on<SearchFiltersClear>(_onSearchFiltersClear);
-    on<SearchFiltersIntialize>(_onSearchFiltersInitialize);
+  final SearchFilterRepository _repository;
+
+  SearchFiltersBloc({SearchFilterRepository? repository})
+    : _repository =
+          repository ?? SearchFilterRepositoryProvider.getRepository(),
+      super(SearchFiltersInitial()) {
+    on<SearchFiltersUpdate>(_onUpdate);
+    on<SearchFiltersRemove>(_onRemove);
+    on<SearchFiltersClear>(_onClear);
+    on<SearchFiltersReset>(_onReset);
+    on<SearchFiltersFetch>(_onFetch);
   }
 
-  void _onSearchFiltersUpdate(
+  // Handle updating a filter - without debounce timer
+  Future<void> _onUpdate(
     SearchFiltersUpdate event,
     Emitter<SearchFiltersState> emit,
-  ) {
+  ) async {
     try {
-      if (state is SearchFiltersStateLoaded) {
-        final SearchModel currFilters =
-            (state as SearchFiltersStateLoaded).filters;
-        emit(SearchFiltersStateLoading());
-        currFilters.updateFilters(event.key, event.value);
-        emit(SearchFiltersStateLoaded(filters: currFilters));
+      emit(SearchFiltersLoading());
+
+      final updatedFilters = await _repository.updateFilter(
+        key: event.key,
+        value: event.value,
+      );
+
+      if (!emit.isDone) {
+        emit(SearchFiltersLoaded(filters: updatedFilters));
       }
     } catch (e) {
-      emit(SearchFiltersStateFailed(error: e.toString()));
-    }
-  }
-
-  void _onSearchFiltersClear(
-    SearchFiltersClear event,
-    Emitter<SearchFiltersState> emit,
-  ) {
-    emit(SearchFiltersStateLoading());
-    try {
-      final SearchModel currFilters =
-          (state as SearchFiltersStateLoaded).filters;
-      currFilters.clearFilters(event.key);
-      emit(SearchFiltersStateLoaded(filters: currFilters));
-    } catch (e) {
-      emit(SearchFiltersStateFailed(error: e.toString()));
-    }
-  }
-
-  void _onSearchFiltersReset(
-    SearchFiltersReset event,
-    Emitter<SearchFiltersState> emit,
-  ) {
-    try {
-      if (state is SearchFiltersStateLoaded) {
-        final SearchModel currFilters =
-            (state as SearchFiltersStateLoaded).filters;
-        emit(SearchFiltersStateLoading());
-        currFilters.resetFilters();
-        emit(SearchFiltersStateLoaded(filters: currFilters));
+      if (!emit.isDone) {
+        emit(SearchFiltersError(error: e.toString()));
       }
-    } catch (e) {
-      emit(SearchFiltersStateFailed(error: e.toString()));
     }
   }
 
-  void _onSearchFiltersRemove(
+  // Handle removing a filter
+  Future<void> _onRemove(
     SearchFiltersRemove event,
     Emitter<SearchFiltersState> emit,
-  ) {
-    emit(SearchFiltersStateLoading());
+  ) async {
     try {
-      if (state is SearchFiltersStateLoaded) {
-        final SearchModel currFilters =
-            (state as SearchFiltersStateLoaded).filters;
-        emit(SearchFiltersStateLoading());
-        currFilters.removeFilter(event.key, event.value);
-        emit(SearchFiltersStateLoaded(filters: currFilters));
+      emit(SearchFiltersLoading());
+
+      final updatedFilters = await _repository.removeFilter(
+        key: event.key,
+        value: event.value,
+      );
+
+      if (!emit.isDone) {
+        emit(SearchFiltersLoaded(filters: updatedFilters));
       }
     } catch (e) {
-      emit(SearchFiltersStateFailed(error: e.toString()));
+      if (!emit.isDone) {
+        emit(SearchFiltersError(error: e.toString()));
+      }
     }
   }
 
-  void _onSearchFiltersInitialize(
-    SearchFiltersIntialize event,
+  // Handle clearing a specific filter
+  Future<void> _onClear(
+    SearchFiltersClear event,
     Emitter<SearchFiltersState> emit,
-  ) {
-    emit(SearchFiltersStateLoading());
+  ) async {
     try {
-      emit(SearchFiltersStateLoading());
-      final SearchModel initialFilters = SearchModel.defaultModel();
-      emit(SearchFiltersStateLoaded(filters: initialFilters));
+      emit(SearchFiltersLoading());
+
+      final updatedFilters = await _repository.clearFilter(event.key);
+
+      if (!emit.isDone) {
+        emit(SearchFiltersLoaded(filters: updatedFilters));
+      }
     } catch (e) {
-      emit(SearchFiltersStateFailed(error: e.toString()));
+      if (!emit.isDone) {
+        emit(SearchFiltersError(error: e.toString()));
+      }
+    }
+  }
+
+  // Handle resetting all filters
+  Future<void> _onReset(
+    SearchFiltersReset event,
+    Emitter<SearchFiltersState> emit,
+  ) async {
+    try {
+      emit(SearchFiltersLoading());
+
+      final emptyFilters = await _repository.resetFilters();
+
+      if (!emit.isDone) {
+        emit(SearchFiltersLoaded(filters: emptyFilters));
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(SearchFiltersError(error: e.toString()));
+      }
+    }
+  }
+
+  // Handle fetching current filters
+  void _onFetch(SearchFiltersFetch event, Emitter<SearchFiltersState> emit) {
+    try {
+      final currentFilters = _repository.getFilters();
+
+      if (!emit.isDone) {
+        emit(SearchFiltersLoaded(filters: currentFilters));
+      }
+    } catch (e) {
+      if (!emit.isDone) {
+        emit(SearchFiltersError(error: e.toString()));
+      }
     }
   }
 }

@@ -322,7 +322,7 @@ class _GrowState extends State<Grow> {
                                     senderId: "1",
                                     receiverId: userId,
                                     status: "pending",
-                                    timestamp: DateTime.now().toIso8601String(),
+                                    timestamp: DateTime.now(),
                                   ),
                                 ),
                               );
@@ -358,8 +358,7 @@ class _GrowState extends State<Grow> {
                                                         receiverId: userId,
                                                         status: "pending",
                                                         timestamp:
-                                                            DateTime.now()
-                                                                .toIso8601String(),
+                                                            DateTime.now(),
                                                       ),
                                                 ),
                                               );

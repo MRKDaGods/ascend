@@ -1,11 +1,13 @@
+import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/companies_searching.dart';
+import 'package:ascend_app/features/networks/pages/current_company_searching.dart';
+import 'package:ascend_app/features/networks/widgets/past_company_modal.dart';
 
 Widget? printpastCompanies(
-  List<String> pastCompanies,
+  List<CompanyModel> pastCompanies,
   void Function(String) onpastCompaniesRemoved,
 ) {
   return pastCompanies.isNotEmpty
@@ -15,7 +17,7 @@ Widget? printpastCompanies(
           children: [
             pastCompanies.length == 1
                 ? Text(
-                  "${pastCompanies[0]}",
+                  "${pastCompanies[0].companyName}",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -23,7 +25,7 @@ Widget? printpastCompanies(
                   ),
                 )
                 : Text(
-                  "${pastCompanies[0]} and ${pastCompanies.length - 1} more",
+                  "${pastCompanies[0].companyName} and ${pastCompanies.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -45,22 +47,16 @@ Widget? printpastCompanies(
 }
 
 Widget buildPastCompanyList(
-  List<String> pastCompanies,
+  List<CompanyModel> pastCompanies,
   void Function(String) onpastCompaniesRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => BlocProvider.value(
-                value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: CompaniesSearching(),
-              ),
-        ),
-      );
+      Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 0), () {
+        showpastCompanyModal(context);
+      });
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(

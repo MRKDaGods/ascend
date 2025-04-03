@@ -99,8 +99,7 @@ class Connections extends StatelessWidget {
                                 name: '',
                                 profilePic: '',
                                 coverpic: '',
-                                industry: '',
-                                company: '',
+                                companyId: '',
                                 bio: '',
                                 firstFollow: false,
                                 firstConnect: false,
@@ -114,7 +113,6 @@ class Connections extends StatelessWidget {
                           title: Text(
                             connection.name,
                             style: TextStyle(
-                              color: Colors.black,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -125,16 +123,14 @@ class Connections extends StatelessWidget {
                               Text(
                                 connection.bio,
                                 maxLines: 2,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                ),
+                                style: TextStyle(fontSize: 12),
                               ),
                               Text(
-                                state.acceptedConnections[index].timestamp,
+                                'connected on ${state.acceptedConnections[index].timestamp}',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],

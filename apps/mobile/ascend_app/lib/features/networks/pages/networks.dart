@@ -29,7 +29,7 @@ class Networks extends StatelessWidget {
         BlocProvider<SearchFiltersBloc>(
           create: (searchContext) {
             final bloc = SearchFiltersBloc();
-            bloc.add(SearchFiltersIntialize());
+            bloc.add(SearchFiltersFetch());
             return bloc;
           },
         ),

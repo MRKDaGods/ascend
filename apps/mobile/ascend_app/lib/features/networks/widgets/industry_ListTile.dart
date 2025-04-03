@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
@@ -5,7 +6,7 @@ import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/pages/industry_searching.dart';
 
 Widget? printindustrySearching(
-  List<String> industrySearching,
+  List<CompanyModel> industrySearching,
   void Function(String) onindustrySearchingRemoved,
 ) {
   return industrySearching.isNotEmpty
@@ -45,7 +46,7 @@ Widget? printindustrySearching(
 }
 
 Widget buildIndustryList(
-  List<String> industrySearching,
+  List<CompanyModel> industrySearching,
   void Function(String) onindustrySearchingRemoved,
   BuildContext context,
 ) {
