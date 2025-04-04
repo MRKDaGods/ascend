@@ -46,22 +46,20 @@ class ToggleCommentReaction extends PostEvent {
 class AddComment extends PostEvent {
   final String postId;
   final String text;
-  final String? parentId;
+  final String authorId;
   final String authorName;
   final String authorImageUrl;
-  final String authorOccupation;
   
-  const AddComment({
-    required this.postId,
-    required this.text,
-    this.parentId,
-    required this.authorName,
-    required this.authorImageUrl,
-    required this.authorOccupation,
-  });
+  AddComment(
+    this.postId,
+    this.text,
+    this.authorId,
+    this.authorName,
+    this.authorImageUrl,
+  );
   
   @override
-  List<Object?> get props => [postId, text, parentId, authorName, authorImageUrl, authorOccupation];
+  List<Object?> get props => [postId, text, authorId, authorName, authorImageUrl];
 }
 
 class LoadMorePosts extends PostEvent {
@@ -104,4 +102,25 @@ class HidePostFeedbackOptions extends PostEvent {
   final String postId;
   
   const HidePostFeedbackOptions(this.postId);
+}
+
+class AddCommentReply extends PostEvent {
+  final String postId;
+  final String parentId;
+  final String text;
+  final String authorId;
+  final String authorName;
+  final String authorImageUrl;
+  
+  AddCommentReply(
+    this.postId,
+    this.parentId,
+    this.text,
+    this.authorId,
+    this.authorName,
+    this.authorImageUrl,
+  );
+  
+  @override
+  List<Object?> get props => [postId, parentId, text, authorId, authorName, authorImageUrl];
 }

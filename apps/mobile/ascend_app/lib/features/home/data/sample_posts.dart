@@ -7,6 +7,7 @@ class SamplePosts {
   static final List<Comment> sampleComments = [
     Comment(
       id: 'comment_1',
+      authorId: 'user_alex', // Add authorId for each comment
       authorName: 'Alex Thompson',
       authorImageUrl: 'assets/EmptyUser.png',
       authorOccupation: 'Product Manager',
@@ -14,9 +15,11 @@ class SamplePosts {
       timePosted: '2h ago',
       likesCount: 8,
       isLiked: false,
+      currentReaction: null,
       replies: [
         Comment(
           id: 'reply_1_1',
+          authorId: 'user_jamie', // Add authorId for each reply
           authorName: 'Jamie Wilson',
           authorImageUrl: 'assets/pic 2.jpg',
           authorOccupation: 'Digital Marketer',
@@ -24,9 +27,13 @@ class SamplePosts {
           timePosted: '1h ago',
           likesCount: 3,
           isLiked: false,
+          currentReaction: null,
+          replies: [], // Add empty replies list
+          parentId: 'comment_1', // Add parentId for replies
         ),
         Comment(
           id: 'reply_1_2',
+          authorId: 'user_sarah', // Add authorId for each reply
           authorName: 'Sarah Chen',
           authorImageUrl: 'assets/pic 3.jpg',
           authorOccupation: 'UX Designer',
@@ -34,11 +41,15 @@ class SamplePosts {
           timePosted: '45m ago',
           likesCount: 1,
           isLiked: false,
+          currentReaction: null,
+          replies: [], // Add empty replies list
+          parentId: 'comment_1', // Add parentId for replies
         ),
       ],
     ),
     Comment(
       id: 'comment_2',
+      authorId: 'user_michael', // Add authorId
       authorName: 'Michael Brown',
       authorImageUrl: 'assets/image 4.jpg',
       authorOccupation: 'Software Engineer',
@@ -46,10 +57,12 @@ class SamplePosts {
       timePosted: '3h ago',
       likesCount: 5,
       isLiked: false,
+      currentReaction: null,
       replies: [],
     ),
     Comment(
       id: 'comment_3',
+      authorId: 'user_priya', // Add authorId
       authorName: 'Priya Sharma',
       authorImageUrl: 'assets/pexels-karymefranca-1535907.jpg',
       authorOccupation: 'Product Designer',
@@ -57,9 +70,11 @@ class SamplePosts {
       timePosted: '5h ago',
       likesCount: 12,
       isLiked: false,
+      currentReaction: null,
       replies: [
         Comment(
           id: 'reply_3_1',
+          authorId: 'user_david', // Add authorId
           authorName: 'David Miller',
           authorImageUrl: 'assets/EmptyUser.png',
           authorOccupation: 'UI Developer',
@@ -67,11 +82,15 @@ class SamplePosts {
           timePosted: '4h ago',
           likesCount: 2,
           isLiked: false,
+          currentReaction: null,
+          replies: [], // Add empty replies list
+          parentId: 'comment_3', // Add parentId
         ),
       ],
     ),
     Comment(
       id: 'comment_4',
+      authorId: 'user_emily', // Add authorId
       authorName: 'Emily Zhang',
       authorImageUrl: 'assets/pic 2.jpg',
       authorOccupation: 'UX Researcher',
@@ -79,10 +98,12 @@ class SamplePosts {
       timePosted: '1d ago',
       likesCount: 15,
       isLiked: false,
+      currentReaction: null,
       replies: [],
     ),
     Comment(
       id: 'comment_5',
+      authorId: 'user_marcus', // Add authorId
       authorName: 'Marcus Johnson',
       authorImageUrl: 'assets/pic 3.jpg',
       authorOccupation: 'Tech Lead',
@@ -90,9 +111,11 @@ class SamplePosts {
       timePosted: '2d ago',
       likesCount: 7,
       isLiked: false,
+      currentReaction: null,
       replies: [
         Comment(
           id: 'reply_5_1',
+          authorId: 'user_sophia', // Add authorId
           authorName: 'Sophia Lee',
           authorImageUrl: 'assets/image 4.jpg',
           authorOccupation: 'Frontend Developer',
@@ -100,6 +123,9 @@ class SamplePosts {
           timePosted: '1d ago',
           likesCount: 3,
           isLiked: false,
+          currentReaction: null,
+          replies: [], // Add empty replies list
+          parentId: 'comment_5', // Add parentId
         ),
       ],
     ),

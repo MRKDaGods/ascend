@@ -1,4 +1,5 @@
 class UserProfileModel {
+  final String id; // Add this field
   final String name;
   final String position;
   final String location;
@@ -10,6 +11,7 @@ class UserProfileModel {
   final String avatarUrl;
   
   const UserProfileModel({
+    this.id = 'default_user_id', // Add default value
     this.name = 'User Name',
     this.position = 'Position or Bio',
     this.location = 'Location',
@@ -24,6 +26,7 @@ class UserProfileModel {
   // Factory constructor to create a UserProfileModel from JSON data
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
+      id: json['id'] as String? ?? 'default_user_id', // Add this field
       name: json['name'] as String? ?? 'User Name',
       position: json['position'] as String? ?? 'Position or Bio',
       location: json['location'] as String? ?? 'Location',
@@ -39,6 +42,7 @@ class UserProfileModel {
   // Method to convert UserProfileModel to JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // Add this field
       'name': name,
       'position': position,
       'location': location,
@@ -58,6 +62,7 @@ class UserProfileModel {
   
   // A method to create a copy of this profile with some values updated
   UserProfileModel copyWith({
+    String? id, // Add this field
     String? name,
     String? position,
     String? location,
@@ -69,6 +74,7 @@ class UserProfileModel {
     String? avatarUrl,
   }) {
     return UserProfileModel(
+      id: id ?? this.id, // Add this field
       name: name ?? this.name,
       position: position ?? this.position,
       location: location ?? this.location,
