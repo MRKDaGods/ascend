@@ -20,7 +20,7 @@
 //       <DialogTitle>Delete post?</DialogTitle>
 //       <DialogContent>
 //         <Typography>
-//           Are you sure you want to permanently remove this post from LinkedIn?
+//           Are you sure you want to permanently remove this post from Ascend?
 //         </Typography>
 //       </DialogContent>
 //       <DialogActions>
@@ -33,7 +33,6 @@
 
 // export default DeletePostDialog;
 
-// components/DeletePostDialog.tsx
 "use client";
 import React from "react";
 import {
@@ -57,7 +56,7 @@ const DeletePostDialog: React.FC<DeletePostDialogProps> = ({ open, onCancel, onC
       <DialogTitle>Delete post?</DialogTitle>
       <DialogContent>
         <Typography>
-          Are you sure you want to permanently remove this post from LinkedIn?
+          Are you sure you want to permanently remove this post from Ascend?
         </Typography>
       </DialogContent>
       <DialogActions>
