@@ -14,7 +14,7 @@ class CommentDetailPage extends StatefulWidget {
   final Function(String, String?)? onReaction;
   final String currentUserId;
   final String postId; // Add postId to find the post in the state
-  
+
   const CommentDetailPage({
     Key? key,
     required this.parentComment,
@@ -24,7 +24,7 @@ class CommentDetailPage extends StatefulWidget {
     required this.currentUserId,
     required this.postId,
   }) : super(key: key);
-  
+
   @override
   State<CommentDetailPage> createState() => _CommentDetailPageState();
 }
@@ -32,28 +32,29 @@ class CommentDetailPage extends StatefulWidget {
 class _CommentDetailPageState extends State<CommentDetailPage> {
   final TextEditingController _replyController = TextEditingController();
   final FocusNode _replyFocusNode = FocusNode();
-  
+
   late Comment _currentParentComment;
   Comment? _replyingTo;
-  
+  bool _showReplies = true; // Add a flag to toggle replies visibility
+
   @override
   void initState() {
     super.initState();
     _currentParentComment = widget.parentComment;
     _replyingTo = widget.replyingTo;
-    
+
     if (widget.replyingTo != null) {
       _replyFocusNode.requestFocus();
     }
   }
-  
+
   @override
   void dispose() {
     _replyController.dispose();
     _replyFocusNode.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PostBloc, PostState>(
@@ -61,24 +62,23 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
         if (state is PostsLoaded) {
           // Find the post containing this comment
           final post = state.posts.firstWhere(
-            (post) => post.comments.any((comment) => comment.id == _currentParentComment.id),
+            (post) => post.comments.any(
+              (comment) => comment.id == _currentParentComment.id,
+            ),
             orElse: () => PostModel.empty(),
           );
-          
+
           // Find the updated parent comment
           final updatedParentComment = post.comments.firstWhere(
             (comment) => comment.id == _currentParentComment.id,
             orElse: () => _currentParentComment,
           );
-          
+
           // Update our local reference
           _currentParentComment = updatedParentComment;
-          
+
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Comment'),
-              elevation: 0,
-            ),
+            appBar: AppBar(title: const Text('Comment'), elevation: 0),
             body: Column(
               children: [
                 Expanded(
@@ -91,45 +91,83 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                           CommentItem(
                             comment: updatedParentComment,
                             showReplies: false,
-                            isCurrentUser: updatedParentComment.authorId == widget.currentUserId,
+                            isCurrentUser:
+                                updatedParentComment.authorId ==
+                                widget.currentUserId,
                             onReaction: widget.onReaction,
                           ),
-                          
                           if (updatedParentComment.replies.isNotEmpty) ...[
                             const Divider(),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(
-                                'Replies (${updatedParentComment.replies.length})',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                            
+                            // Add toggle button for showing/hiding replies
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _showReplies = !_showReplies; // Toggle replies visibility
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Replies (${updatedParentComment.replies.length})',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Icon(
+                                      _showReplies ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                      size: 20,
+                                      color: Theme.of(context).primaryColor,
+                                    ),
+                                    Text(
+                                      _showReplies ? 'Hide Replies' : 'View Replies',
+                                      style: TextStyle(
+                                        color: Theme.of(context).primaryColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                             
-                            ...List.generate(updatedParentComment.replies.length, (index) {
-                              final reply = updatedParentComment.replies[index];
-                              return CommentItem(
-                                comment: reply,
-                                showReplies: false,
-                                isCurrentUser: reply.authorId == widget.currentUserId,
-                                onReaction: widget.onReaction,
-                                onReply: (commentId) {
-                                  setState(() {
-                                    _replyingTo = reply;
-                                  });
-                                  _replyFocusNode.requestFocus();
+                            // Show replies only if _showReplies is true
+                            if (_showReplies) ...[
+                              ...List.generate(
+                                updatedParentComment.replies.length,
+                                (index) {
+                                  final reply =
+                                      updatedParentComment.replies[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(left: 40.0),
+                                    child: CommentItem(
+                                      comment: reply,
+                                      showReplies: false,
+                                      isCurrentUser:
+                                          reply.authorId == widget.currentUserId,
+                                      onReaction: widget.onReaction,
+                                      onReply: (commentId) {
+                                        setState(() {
+                                          _replyingTo = reply;
+                                        });
+                                        _replyFocusNode.requestFocus();
+                                      },
+                                    ),
+                                  );
                                 },
-                              );
-                            }),
+                              ),
+                            ],
                           ],
                         ],
                       ),
                     ),
                   ),
                 ),
-                
+
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: CommentForm(
@@ -142,22 +180,19 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                         _replyingTo = null;
                       });
                     },
-                    hintText: _replyingTo != null 
-                      ? "Reply to ${_replyingTo!.authorId == widget.currentUserId ? 'yourself' : _replyingTo!.authorName}"
-                      : "Reply to ${_currentParentComment.authorId == widget.currentUserId ? 'yourself' : _currentParentComment.authorName}",
+                    hintText:
+                        _replyingTo != null
+                            ? "Reply to ${_replyingTo!.authorId == widget.currentUserId ? 'yourself' : _replyingTo!.authorName}"
+                            : "Reply to ${_currentParentComment.authorId == widget.currentUserId ? 'yourself' : _currentParentComment.authorName}",
                   ),
                 ),
               ],
             ),
           );
         }
-        
+
         // If not loaded, show loading state
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }
