@@ -5,12 +5,11 @@ class PremiumSection extends StatelessWidget {
   const PremiumSection({super.key, required this.isDarkMode});
   @override
   Widget build(BuildContext context) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.black : Colors.white,
+        color:
+            isDarkMode ? const Color.fromARGB(255, 29, 34, 38) : Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
       ),
       child: Column(
@@ -118,7 +117,7 @@ class PremiumSection extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Text(
-                "Try Premium for EGP0",
+                "Try Premium for EGP 0",
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
