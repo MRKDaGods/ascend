@@ -7,6 +7,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./theme"; // Import your MUI theme
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ApiInitializer } from "@/api";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,7 @@ export default function RootLayout({
         <CssBaseline />
         <html lang="en">
           <body className={`${geistSans.variable} ${geistMono.variable}`}>
-            {children}
+            <ApiInitializer content={() => children} />
           </body>
         </html>
       </ThemeProvider>
