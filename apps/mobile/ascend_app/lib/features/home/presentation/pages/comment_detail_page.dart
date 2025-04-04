@@ -97,70 +97,25 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                             onReaction: widget.onReaction,
                           ),
                           if (updatedParentComment.replies.isNotEmpty) ...[
-                            const Divider(),
                             
-                            // Add toggle button for showing/hiding replies
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _showReplies = !_showReplies; // Toggle replies visibility
-                                });
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'Replies (${updatedParentComment.replies.length})',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Icon(
-                                      _showReplies ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                      size: 20,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                    Text(
-                                      _showReplies ? 'Hide Replies' : 'View Replies',
-                                      style: TextStyle(
-                                        color: Theme.of(context).primaryColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
+                            ...List.generate(updatedParentComment.replies.length, (index) {
+                              final reply = updatedParentComment.replies[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 40.0),
+                                child: CommentItem(
+                                  comment: reply,
+                                  showReplies: false,
+                                  isCurrentUser: reply.authorId == widget.currentUserId,
+                                  onReaction: widget.onReaction,
+                                  onReply: (commentId) {
+                                    setState(() {
+                                      _replyingTo = reply;
+                                    });
+                                    _replyFocusNode.requestFocus();
+                                  },
                                 ),
-                              ),
-                            ),
-                            
-                            // Show replies only if _showReplies is true
-                            if (_showReplies) ...[
-                              ...List.generate(
-                                updatedParentComment.replies.length,
-                                (index) {
-                                  final reply =
-                                      updatedParentComment.replies[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(left: 40.0),
-                                    child: CommentItem(
-                                      comment: reply,
-                                      showReplies: false,
-                                      isCurrentUser:
-                                          reply.authorId == widget.currentUserId,
-                                      onReaction: widget.onReaction,
-                                      onReply: (commentId) {
-                                        setState(() {
-                                          _replyingTo = reply;
-                                        });
-                                        _replyFocusNode.requestFocus();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                              );
+                            }),
                           ],
                         ],
                       ),
