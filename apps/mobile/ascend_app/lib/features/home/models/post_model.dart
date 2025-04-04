@@ -191,6 +191,25 @@ class PostModel extends Equatable {
       showFeedbackOptions: oldModel['showFeedbackOptions'] ?? false,
     );
   }
+
+  // Added factory constructor
+  factory PostModel.empty() {
+    return PostModel(
+      id: '',
+      title: '',
+      description: '',
+      ownerName: '',
+      ownerImageUrl: '',
+      ownerOccupation: '',
+      timePosted: '',
+      likesCount: 0,
+      commentsCount: 0,
+      followers: 0,
+      isLiked: false,
+      comments: [],
+      images: [],
+    );
+  }
 }
 
 // Remove the type alias since the class is now directly named PostModel
