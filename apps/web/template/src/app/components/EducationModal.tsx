@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Education {
   school: string;
@@ -29,6 +29,34 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
     endYear: '',
     description: ''
   });
+
+  // Fetch data from Mockoon when modal opens
+  useEffect(() => {
+    const fetchEducation = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/education"); // Ensure Mockoon is running
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched Education Data:", data);
+
+        if (Array.isArray(data) && data.length > 0) {
+          setEducation(data[0]); // Using the first education object
+        } else {
+          console.warn("No education data found.");
+        }
+      } catch (error) {
+        console.error("Error fetching education data:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchEducation();
+    }
+  }, [isOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -137,6 +165,7 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
   );
 };
 
+// Styles remain unchanged
 const styles: { [key: string]: React.CSSProperties } = {
   modalOverlay: {
     position: 'fixed',
