@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import { Box, Container, CircularProgress } from "@mui/material";
 import { useNotificationStore } from "./store/useNotificationStore";
 import { useProfileStore } from "./store/useProfileStore";
+import { api } from "../api";
 
 export default function Home() {
   const { userData, setUserData } = useProfileStore();
@@ -17,7 +18,8 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    // Fake login 3shn nhave any notifs
+
     const fetchUserData = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/user");
@@ -30,67 +32,58 @@ export default function Home() {
     };
 
     const fetchNotifications = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/notifications");
-        if (!response.ok) throw new Error("Failed to fetch notifications");
-        const data = await response.json();
-
-        const deletedIds = JSON.parse(localStorage.getItem("deletedNotifications") || "[]");
-        const storedNotifications = JSON.parse(localStorage.getItem("notifications") || "[]");
-
-        const mergedNotifications = data
-          .filter((notif: any) => !deletedIds.includes(notif.id))
-          .map((notif: any) => {
-            const storedNotif = storedNotifications.find((n: any) => n.id === notif.id);
-            return storedNotif ? { ...notif, markedasread: storedNotif.markedasread } : notif;
-          });
-
-        setNotifications(mergedNotifications);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
+      api.notification.getNotifications(1) // Page number 1 for the latest 10 notifications
+        .then((response) => {
+          console.log("Fetched notifications:", response);
+          setNotifications(response);
+        })
+        .catch((error) => {
+          console.error("Error fetching notifications:", error);
+        });
     };
+
+    setIsClient(true);
 
     fetchUserData();
     fetchNotifications();
-  }, [setUserData, setNotifications]);
+  }, []);
 
   if (!isClient) return null;
 
   return (
     <Box
-  sx={{
-    minHeight: "100vh",
-    bgcolor: "grey.100",
-    display: "flex",
-    flexDirection: "column",
-  }}
->
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "grey.100",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Navbar />
 
       {/* Main Layout */}
       <Container
-       sx={{
-        flexGrow: 1,
-        mt: 10,
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        gap: 3,
-        maxWidth: "1200px",
-        pb: 3,
-      }}
+        sx={{
+          flexGrow: 1,
+          mt: 10,
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 3,
+          maxWidth: "1200px",
+          pb: 3,
+        }}
       >
         {/* Profile & Settings Cards - Sticky on Large Screens, Stacked on Mobile */}
         <Box
-        sx={{
-          width: { xs: "100%", md: "250px" },
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          position: { md: "sticky" },
-          top: { md: "80px" },
-          height: "fit-content",
-        }}
+          sx={{
+            width: { xs: "100%", md: "250px" },
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            position: { md: "sticky" },
+            top: { md: "80px" },
+            height: "fit-content",
+          }}
         >
           {userData ? <ProfileCard /> : <CircularProgress />}
           <Box sx={{ width: "100%" }}>
@@ -100,17 +93,17 @@ export default function Home() {
 
         {/* Notification Card - Fully Visible on Small Screens */}
         <Box
-  sx={{
-    flexGrow: 1,
-    maxWidth: { xs: "100%", md: "750px" },
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "visible",
-  }}
->
-  <NotificationCard />
-</Box>
+          sx={{
+            flexGrow: 1,
+            maxWidth: { xs: "100%", md: "750px" },
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "visible",
+          }}
+        >
+          <NotificationCard />
+        </Box>
       </Container>
 
       <Footer />
