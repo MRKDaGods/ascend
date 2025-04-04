@@ -62,7 +62,7 @@ const SavedPosts: React.FC = () => {
         return (
           <Box
             key={post.id}
-            onClick={() => router.push(`/post/${post.id}`)}
+            onClick={() => router.push(`/feed/${post.id}`)}
             sx={{ cursor: "pointer" }}
           >
             <Card

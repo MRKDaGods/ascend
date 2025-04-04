@@ -15,7 +15,7 @@ const SavePostPopup = () => {
 
   const handleViewPost = () => {
     setSavedPopupOpen(false);
-    router.push("/saved-post");
+    router.push("/feed/saved-post");
   };
 
   return (

@@ -15,7 +15,7 @@ const UserPostPopup = () => {
 
   const handleViewPost = () => {
     setPopupOpen(false);
-    router.push("/mypost");
+    router.push("/feed/mypost");
   };
 
   return (

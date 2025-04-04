@@ -1,13 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import Navbar from "../components/Navbar";
-import UserPost from "../components/UserPost";
-import PostDialog from "../components/PostDialog";
-import DeletePostDialog from "../components/DeletePostDialog";
-import { usePostStore } from "../stores/usePostStore";
+import UserPost from "@/app/components/UserPost";
+import PostDialog from "@/app/components/PostDialog";
+import DeletePostDialog from "@/app/components/DeletePostDialog";
+import { usePostStore } from "@/app/stores/usePostStore";
 import { Typography, Box } from "@mui/material";
 
-const MyPostPage = () => {
+const EditDelete = () => {
   const { posts, open, deletePost, isLastPostDeleted, setLastPostDeleted } = usePostStore();
   const userPosts = posts.filter((post) => post.isUserPost);
   const lastUserPost = userPosts[userPosts.length - 1];
@@ -23,10 +22,7 @@ const MyPostPage = () => {
   };
 
   return (
-    <>
-      <Navbar />
-      
-
+    <>      
       {/* ✅ Post Removed Message */}
       {isLastPostDeleted ? (
         <Box sx={{ textAlign: "center", mt: 5 }}>
@@ -57,4 +53,4 @@ const MyPostPage = () => {
   );
 };
 
-export default MyPostPage;
+export default EditDelete;

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import Navbar from "../components/Navbar";
-import SavedPosts from "../components/SavedPosts";
+import Navbar from "@/app/components/Navbar";
+import SavedPosts from "@/app/components/SavedPosts";
 
 const SavePage = () => {
   return (
