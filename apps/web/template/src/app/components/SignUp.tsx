@@ -14,6 +14,8 @@ import {
   Box,
   Link,
 } from "@mui/material";
+import { api } from "@/api";
+import { loginWithGoogle } from "@/ext/auth";
 
 const SignUp = () => {
   const router = useRouter();
@@ -23,31 +25,37 @@ const SignUp = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // ++++++
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    try {
-      const response = await fetch("http://localhost:3001/SignUp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+    api.auth.register(firstName, lastName, email, password)
+      .then((response) => {
+        console.log("Registration successful:", response);
+        alert("Registered successfully! ID: " + response.user_id + "\nEmail: " + response.email);
+
+        // Redirect to the dashboard or another page
+      })
+      .catch((error) => {
+        console.error("Registration error:", error);
+        setError("An error occurred during registration. Please try again.");
       });
+  };
 
-      if (!response.ok) {
-        throw new Error("Server returned an error");
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setSuccess(data.message);
-      } else {
-        setError("Signup failed. Please try again.");
-      }
-    } catch (err) {
-      setError("Error connecting to server.");
-    }
+  const handleGoogleSignIn = () => {
+    loginWithGoogle().then((response) => {
+      console.log("Google login successful:", response);
+      alert("Logged in successfully! ID: " + 0);
+      router.push("/dashboard");
+    }).catch((error) => {
+      console.error("Google login error:", error);
+      setError("An error occurred during Google login. Please try again.");
+    });
   };
 
   return (
@@ -70,6 +78,38 @@ const SignUp = () => {
                 {success}
               </Typography>
             )}
+
+            {/* ++++++ */}
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              First name
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              aria-label="First Name"
+              id="first-name-input"
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+            />
+
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              Last name
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              aria-label="Last Name"
+              id="last-name-input"
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+            />
+
             <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
               Email
             </Typography>
@@ -153,6 +193,7 @@ const SignUp = () => {
               alignItems: "center",
             }}
             startIcon={<img src="/google.jpg" alt="Google" width={24} height={24} />}
+            onClick={handleGoogleSignIn}
           >
             Continue with Google
           </Button>

@@ -12,6 +12,7 @@ import {
   Typography,
   InputAdornment,
 } from "@mui/material";
+import { api } from "@/api";
 
 export default function LoginBox() {
   const router = useRouter();
@@ -36,12 +37,22 @@ export default function LoginBox() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    if (password.length < 3) { // Adjusted to 3 for demo purposes, change to 8 for production
+      setError("Password must be at least 3 characters long.");
       return;
     }
 
-    router.push("/dashboard");
+    // ++++
+    // Call the API to sign in
+    api.auth.login(email, password)
+      .then((response) => {
+        console.log("Login successful:", response);
+        alert("Logged in successfully! ID: " + response.user_id + "\nToken: " + response.token);
+        router.push("/dashboard");
+      }).catch((error) => {
+        console.error("Login error:", error);
+        setError("An error occurred during login. Please try again.");
+      });
   };
 
   if (!mounted) return null; // Prevents mismatch by rendering only on the client
@@ -152,12 +163,12 @@ export default function LoginBox() {
           {/* Forgot Password */}
           <Button
             color="primary"
-            sx={{ 
-              cursor: "pointer", 
-              fontSize: 14, 
-              textAlign: "left", 
-              mt: 1, 
-              display: "flex", 
+            sx={{
+              cursor: "pointer",
+              fontSize: 14,
+              textAlign: "left",
+              mt: 1,
+              display: "flex",
               justifyContent: "flex-start",
               textTransform: "none"
             }}
