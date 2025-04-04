@@ -1,11 +1,11 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import React from "react";
-import { usePostStore } from "../../stores/usePostStore";
-import UserPost from "../../components/UserPost";
+import ConnectionPost from "../../components/ConnectionPost";
 import Navbar from "../../components/Navbar";
 import { Typography, Box } from "@mui/material";
+import { useParams } from "next/navigation";
+import { usePostStore } from "../../stores/usePostStore";
 
 const FullPostPage: React.FC = () => {
   const { id } = useParams();
@@ -24,13 +24,14 @@ const FullPostPage: React.FC = () => {
   return (
     <>
     <Navbar />
+    <br></br>
     <Box sx={{
       mb: 2,
       borderRadius: 3,
       maxWidth: "580px",
       margin: "0 auto",
     }}>
-      <UserPost post={post} />
+      <ConnectionPost post={post} />
     </Box>
     </>
   );
