@@ -333,8 +333,8 @@ class NotificationService {
    * @returns An array of notifications
    * @throws Error if the retrieval fails
    */
-  async getNotifications(): Promise<Notification[]> {
-    const notifications = await this.client.get_notifications();
+  async getNotifications(page?: number): Promise<Notification[]> {
+    const notifications = await this.client.get_notifications(page);
     return sanitizeMaps(notifications);
   }
 
