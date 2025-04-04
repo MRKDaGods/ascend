@@ -1,11 +1,21 @@
-cd ..
-
 # Ask for confirmation
 $confirmation = Read-Host "This will create backups of all Docker volumes. Continue? (y/N)"
 if ($confirmation -ne 'y') {
     Write-Output "Backup cancelled."
     exit
 }
+
+# Ensure that we're in root
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PACKAGE_ROOT = Split-Path -Parent $SCRIPT_DIR
+
+Set-Location $PACKAGE_ROOT
+if (-not $?) {
+    Write-Host "Failed to navigate to package root"
+    exit 1
+}
+
+Write-Host "Working directory: $(Get-Location)"
 
 # Define volumes to back up
 $volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data", "ascend_rabbitmq_data")

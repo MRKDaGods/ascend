@@ -75,6 +75,10 @@ export class ApiClient {
     this._notification = new NotificationService(this.client);
   }
 
+  get initialized(): boolean {
+    return this.client !== null;
+  }
+
   // Services
   get auth(): AuthService {
     if (!this._auth) {

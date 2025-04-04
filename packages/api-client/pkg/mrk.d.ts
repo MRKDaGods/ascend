@@ -8,6 +8,7 @@ export declare class ApiClient {
     private _notification;
     constructor(baseUrl: string);
     initialize(): Promise<void>;
+    get initialized(): boolean;
     get auth(): AuthService;
     get user(): UserService;
     get notification(): NotificationService;
