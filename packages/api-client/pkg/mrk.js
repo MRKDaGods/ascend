@@ -66,6 +66,9 @@ export class ApiClient {
         this._user = new UserService(this.client);
         this._notification = new NotificationService(this.client);
     }
+    get initialized() {
+        return this.client !== null;
+    }
     // Services
     get auth() {
         if (!this._auth) {

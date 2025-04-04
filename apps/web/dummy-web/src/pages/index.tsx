@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { initializeApi, api } from "../services/auth/handlers";
+import { api, ApiInitializer } from "@/api";
 import { TabsContainer, TabGroup } from "../components/common/TabsContainer";
 import {
   LoginForm,
@@ -56,28 +56,11 @@ const authTabs: TabGroup[] = [
   }
 ];
 
-type TabId = 'login' | 'register' | 'resendConfirmation' | 'updatePassword' | 
+type TabId = 'login' | 'register' | 'resendConfirmation' | 'updatePassword' |
   'updateEmail' | 'forgetPassword' | 'resetPassword' | 'deleteAccount' | 'userProfile' | 'notifications';
 
 export default function Home() {
-  const [initialized, setInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('login');
-  const [initError, setInitError] = useState<string | null>(null);
-
-  // Initialize API client
-  useEffect(() => {
-    const init = async () => {
-      const result = await initializeApi();
-      if (result.success) {
-        setInitialized(true);
-        setInitError(null);
-      } else {
-        setInitError(result.error?.toString() || "Unknown error");
-      }
-    };
-    
-    init();
-  }, []);
 
   const renderActiveForm = () => {
     switch (activeTab) {
@@ -107,31 +90,19 @@ export default function Home() {
   };
 
   const renderContent = () => {
-    if (!initialized) {
-      return <p>Initializing API client...</p>;
-    }
-
-    if (initError) {
-      return (
-        <div style={{ color: "red" }}>
-          <p>Failed to initialize API client:</p>
-          <pre>{initError}</pre>
-        </div>
-      );
-    }
-
+    console.log("Rendering content for active tab:", activeTab);
     return (
       <div>
         <LogoutButton />
-        
-        <TabsContainer 
-          groups={authTabs} 
-          activeTab={activeTab} 
-          onTabChange={(tabId) => setActiveTab(tabId as TabId)} 
+
+        <TabsContainer
+          groups={authTabs}
+          activeTab={activeTab}
+          onTabChange={(tabId) => setActiveTab(tabId as TabId)}
         />
 
         {renderActiveForm()}
-        
+
         <div style={{ marginTop: "20px" }}>
           <AuthTokenDisplay />
         </div>
@@ -139,8 +110,8 @@ export default function Home() {
     );
   };
 
-  return (
-    <div className={styles.container}>
+  const render = () => {
+    return <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>API Client Tester</h1>
         <p className={styles.subtitle}>API URL: {api.baseUrl}</p>
@@ -149,5 +120,9 @@ export default function Home() {
         {renderContent()}
       </div>
     </div>
+  }
+
+  return (
+    <ApiInitializer content={render} />
   );
 }
