@@ -1,13 +1,39 @@
-import React from "react";
-import { Box, IconButton, Typography, Stack, Button } from "@mui/material";
-import { Edit, PersonAdd, TextFields, FileCopy, Delete, Add } from "@mui/icons-material";
+"use client";
+
+import React, { useState } from "react";
+import {
+  Box,
+  IconButton,
+  Typography,
+  Stack,
+  Button,
+} from "@mui/material";
+import { Delete, FileCopy, Add } from "@mui/icons-material";
 import { useMediaStore } from "../stores/useMediaStore";
 
 const MediaPreview: React.FC = () => {
-  const { mediaFiles, mediaPreviews, removeMediaFile } = useMediaStore();
+  const {
+    mediaFiles,
+    mediaPreviews,
+    removeMediaFile,
+    addMediaFile,
+  } = useMediaStore();
 
-  const handleDelete = (index: number) => {
-    removeMediaFile(index);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const handleDelete = () => {
+    removeMediaFile(selectedIndex);
+    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+  };
+
+  const handleDuplicate = () => {
+    const fileToDuplicate = mediaFiles[selectedIndex];
+    if (fileToDuplicate) {
+      const duplicated = new File([fileToDuplicate], fileToDuplicate.name, {
+        type: fileToDuplicate.type,
+      });
+      addMediaFile(duplicated);
+    }
   };
 
   if (mediaFiles.length === 0) return null;
@@ -17,77 +43,111 @@ const MediaPreview: React.FC = () => {
       sx={{
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        height: "calc(100vh - 100px)",
         p: 2,
+        overflow: "hidden", // ✅ Removes external scroller
       }}
     >
-      {/* ✅ Left Section: Smaller Main Image Preview */}
-      <Box sx={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <img
-          src={mediaPreviews[0]}
-          alt="Main Preview"
-          style={{ width: "40%", borderRadius: 8 }} // ✅ Reduced width from 85% to 70%
-        />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 2,
-            mt: 2,
-            p: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.05)",
-            borderRadius: 2,
-            width: "45%", // ✅ Slightly smaller button container
-          }}
-        >
-          <IconButton title="Edit"><Edit /></IconButton>
-          <IconButton title="Tag"><PersonAdd /></IconButton>
-          <IconButton title="ALT"><TextFields /></IconButton>
-        </Box>
-      </Box>
-
-      {/* ✅ Right Section: Thumbnail + Controls */}
+      {/* ✅ Left: Main Preview */}
       <Box
         sx={{
-          width: "140px", // ✅ Slightly reduced width
-          textAlign: "center",
+          width: 250,
+          height: 500,
+          flex: 1,
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "center",
           alignItems: "center",
-          gap: 1,
         }}
       >
-        <Typography fontSize="0.9rem" color="gray">
-          1 of {mediaFiles.length}
-        </Typography>
         <img
-          src={mediaPreviews[0]}
-          alt="Thumbnail"
+          src={mediaPreviews[selectedIndex]}
+          alt={`Main preview ${selectedIndex}`}
           style={{
-            width: "100%",
-            borderRadius: 6,
-            border: "2px solid #0073b1",
+            maxHeight: "500px",
+            maxWidth: "500px",
+            borderRadius: 12,
           }}
         />
-        <Stack direction="row" spacing={2} mt={1}>
-          <IconButton title="Duplicate"><FileCopy /></IconButton>
-          <IconButton title="Delete" sx={{ color: "red" }} onClick={() => handleDelete(0)}><Delete /></IconButton>
-          <IconButton title="Add More"><Add /></IconButton>
+      </Box>
+
+      {/* ✅ Right: Thumbnails + Fixed Controls */}
+      <Box
+        sx={{
+          width: 250,
+          height: 500,
+          display: "flex",
+          flexDirection: "column",
+          px: 2,
+        }}
+      >
+        {/* ✅ Scrollable Thumbnail Grid */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto", // ✅ Scrolls internally when media > 6
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 1,
+            pr: 1,
+          }}
+        >
+          {mediaPreviews.map((preview, index) => (
+            <Box key={index} sx={{ textAlign: "center" }}>
+              <Box
+                onClick={() => setSelectedIndex(index)}
+                sx={{
+                  borderRadius: 2,
+                  overflow: "hidden",
+                  border:
+                    selectedIndex === index
+                      ? "2px solid #0a66c2"
+                      : "2px solid transparent",
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                <img
+                  src={preview}
+                  alt={`Thumb ${index}`}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    display: "block",
+                    borderRadius: "8px",
+                  }}
+                />
+              </Box>
+              <Typography fontSize="0.75rem" sx={{ mt: 0.5 }}>
+                {String(index + 1).padStart(2, "0")}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* ✅ Fixed Controls */}
+        <Stack direction="row" justifyContent="space-between" mt={2}>
+          <IconButton onClick={handleDuplicate}>
+            <FileCopy />
+          </IconButton>
+          <IconButton onClick={handleDelete}>
+            <Delete color="error" />
+          </IconButton>
+          <IconButton>
+            <Add />
+          </IconButton>
         </Stack>
       </Box>
 
-      {/* ✅ Bottom Right: Next Button */}
-      <Button
-        variant="contained"
+      {/* ✅ Next Button Fixed Bottom Right */}
+      <Box
         sx={{
           position: "absolute",
           bottom: 16,
           right: 24,
         }}
       >
-        Next
-      </Button>
+        <Button variant="contained">Next</Button>
+      </Box>
     </Box>
   );
 };

@@ -7,6 +7,7 @@ interface MediaStoreState {
   discardDialogOpen: boolean;
 
   setMediaFiles: (files: File[]) => void;
+  addMediaFile: (file: File) => void;
   removeMediaFile: (index: number) => void;
   clearAllMedia: () => void;
 
@@ -28,6 +29,12 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
     set({ mediaFiles: files, mediaPreviews: previews });
   },
 
+  addMediaFile: (file: File) =>
+    set((state) => ({
+      mediaFiles: [...state.mediaFiles, file],
+      mediaPreviews: [...state.mediaPreviews, URL.createObjectURL(file)],
+    })),
+    
   removeMediaFile: (index) =>
     set((state) => {
       const updatedFiles = [...state.mediaFiles];
