@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-// ✅ Post Type
 export type PostType = {
   id: number;
   username: string;
@@ -19,7 +18,8 @@ export type PostType = {
   isUserPost?: boolean;
 };
 
-// ✅ Store State Type
+type ReactionType = "like" | "clap" | "support" | "love" | "idea" | "funny";
+
 interface PostStoreState {
   open: boolean;
   postText: string;
@@ -33,6 +33,7 @@ interface PostStoreState {
   likedPosts: number[];
   repostedPosts: number[];
   savedPosts: number[];
+  postReactions: { [postId: number]: ReactionType }; // ✅ NEW
 
   editingPost: PostType | null;
 
@@ -50,7 +51,9 @@ interface PostStoreState {
   editPost: (id: number, newText: string) => void;
   setEditingPost: (post: PostType | null) => void;
 
-  likePost: (id: number) => void;
+  setReaction: (postId: number, reaction: ReactionType) => void; // ✅ NEW
+  clearReaction: (postId: number) => void; // ✅ NEW
+
   repostPost: (id: number) => void;
   toggleSavePost: (id: number) => void;
 
@@ -58,57 +61,24 @@ interface PostStoreState {
   deleteComment: (postId: number, commentIndex: number) => void;
 }
 
-// ✅ Zustand Store (with Persistence)
 export const usePostStore = create<PostStoreState>()(
   persist(
     (set, get) => ({
-      // UI States
       open: false,
       postText: "",
       popupOpen: false,
       savedPopupOpen: false,
       unsavedPopupOpen: false,
-
       lastUserPostId: null,
       isLastPostDeleted: false,
       editingPost: null,
 
-      // Data
-      posts: [
-        {
-          id: 1,
-          profilePic: "/man.jpg",
-          username: "John Doe",
-          followers: "500+ connections",
-          timestamp: "2h ago",
-          content: "Excited to share my latest project! 🚀",
-          image: "/post.jpg",
-          likes: 34,
-          comments: 12,
-          reposts: 5,
-          commentsList: ["Awesome work!", "Looks great!"],
-          isUserPost: false,
-        },
-        {
-          id: 2,
-          profilePic: "/profile2.jpg",
-          username: "Jane Smith",
-          followers: "1,200 followers",
-          timestamp: "1d ago",
-          content: "Feature works doesn’t mean you're done. 😅",
-          image: "/post1.jpg",
-          likes: 89,
-          comments: 23,
-          reposts: 10,
-          commentsList: ["Looks like fun!", "Wish I was there!"],
-          isUserPost: false,
-        },
-      ],
+      posts: [ /* initial posts */ ],
       likedPosts: [],
       repostedPosts: [],
       savedPosts: [],
+      postReactions: {},
 
-      // Actions
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
       setPopupOpen: (open) => set({ popupOpen: open }),
@@ -166,17 +136,26 @@ export const usePostStore = create<PostStoreState>()(
           open: true,
         }),
 
-      likePost: (id) =>
+      setReaction: (postId, reaction) =>
+        set((state) => ({
+          postReactions: {
+            ...state.postReactions,
+            [postId]: reaction,
+          },
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? { ...post, likes: state.postReactions[postId] ? post.likes : post.likes + 1 }
+              : post
+          ),
+        })),
+
+      clearReaction: (postId) =>
         set((state) => {
-          const isLiked = state.likedPosts.includes(id);
+          const { [postId]: _, ...rest } = state.postReactions;
           return {
-            likedPosts: isLiked
-              ? state.likedPosts.filter((pid) => pid !== id)
-              : [...state.likedPosts, id],
+            postReactions: rest,
             posts: state.posts.map((post) =>
-              post.id === id
-                ? { ...post, likes: isLiked ? post.likes - 1 : post.likes + 1 }
-                : post
+              post.id === postId ? { ...post, likes: post.likes - 1 } : post
             ),
           };
         }),
@@ -189,9 +168,7 @@ export const usePostStore = create<PostStoreState>()(
               ? state.repostedPosts.filter((pid) => pid !== id)
               : [...state.repostedPosts, id],
             posts: state.posts.map((post) =>
-              post.id === id
-                ? { ...post, reposts: isReposted ? post.reposts - 1 : post.reposts + 1 }
-                : post
+              post.id === id ? { ...post, reposts: isReposted ? post.reposts - 1 : post.reposts + 1 } : post
             ),
           };
         }),
@@ -203,10 +180,10 @@ export const usePostStore = create<PostStoreState>()(
             savedPosts: isSaved
               ? state.savedPosts.filter((pid) => pid !== id)
               : [...state.savedPosts, id],
-            savedPopupOpen: !isSaved,    // ✅ Show Save popup only when saving
-            unsavedPopupOpen: isSaved,   // ✅ Show Unsave popup only when unsaving
+            savedPopupOpen: !isSaved,
+            unsavedPopupOpen: isSaved,
           };
-        }),        
+        }),
 
       commentOnPost: (id, comment) =>
         set((state) => ({

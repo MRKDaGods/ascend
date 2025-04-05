@@ -2,7 +2,8 @@
 
 import React from "react";
 import { Button, Stack, useTheme } from "@mui/material";
-import { ThumbUp, Comment, Repeat, Send } from "@mui/icons-material";
+import { Comment, Repeat, Send } from "@mui/icons-material";
+import Reactions from "./Reactions";
 
 interface Props {
   postId: number;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 const PostActions: React.FC<Props> = ({
+  postId,
   liked,
   reposted,
   onLike,
@@ -23,25 +25,21 @@ const PostActions: React.FC<Props> = ({
   const theme = useTheme();
 
   return (
-    <Stack direction="row" justifyContent="space-around" sx={{ px: 2, py: 1 }}>
-      <Button
-        startIcon={<ThumbUp />}
-        onClick={onLike}
-        sx={{
-          textTransform: "none",
-          fontWeight: "bold",
-          color: liked ? "#0a66c2" : theme.palette.text.secondary,
-        }}
-      >
-        Like
-      </Button>
+    <Stack direction="row" justifyContent="space-around" sx={{ px: 2, py: 1, position: "relative" }}>
+      <Reactions postId={postId} liked={liked} onLike={onLike} />
+
       <Button
         startIcon={<Comment />}
         onClick={onCommentClick}
-        sx={{ textTransform: "none", fontWeight: "bold", color: theme.palette.text.secondary }}
+        sx={{
+          textTransform: "none",
+          fontWeight: "bold",
+          color: theme.palette.text.secondary,
+        }}
       >
         Comment
       </Button>
+
       <Button
         startIcon={<Repeat />}
         onClick={onRepost}
@@ -53,9 +51,14 @@ const PostActions: React.FC<Props> = ({
       >
         Repost
       </Button>
+
       <Button
         startIcon={<Send />}
-        sx={{ textTransform: "none", fontWeight: "bold", color: theme.palette.text.secondary }}
+        sx={{
+          textTransform: "none",
+          fontWeight: "bold",
+          color: theme.palette.text.secondary,
+        }}
       >
         Send
       </Button>
