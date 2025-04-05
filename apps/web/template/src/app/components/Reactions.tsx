@@ -7,16 +7,10 @@ import {
   Paper,
   Tooltip,
   IconButton,
+  Box,
 } from "@mui/material";
 import { ThumbUp } from "@mui/icons-material";
 import { usePostStore } from "../stores/usePostStore";
-
-// Reaction icons
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects";
-import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
-import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
 type ReactionType = "like" | "clap" | "support" | "love" | "idea" | "funny";
 
@@ -30,32 +24,56 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
   const theme = useTheme();
   const { postReactions, setReaction } = usePostStore();
 
-  const [showReactions, setShowReactions] = useState(false);
   const [hoveredReaction, setHoveredReaction] = useState<ReactionType | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
+  // ✅ Reactions with their icons
   const reactions: {
     label: ReactionType;
-    icon: React.ReactElement<{ fontSize?: "small" | "medium" | "large" }>;
+    icon: React.ReactElement;
+    imgSrc: string;
   }[] = [
-    { label: "like", icon: <ThumbUp /> },
-    { label: "clap", icon: <EmojiEventsIcon /> },
-    { label: "support", icon: <VolunteerActivismIcon /> },
-    { label: "love", icon: <FavoriteIcon /> },
-    { label: "idea", icon: <EmojiObjectsIcon /> },
-    { label: "funny", icon: <SentimentSatisfiedAltIcon /> },
+    { label: "like", icon: <img src="/reactions/like.png" alt="Like" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/like.png" },
+    { label: "clap", icon: <img src="/reactions/clap.png" alt="Clap" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/clap.png" },
+    { label: "support", icon: <img src="/reactions/support.png" alt="Support" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/support.png" },
+    { label: "love", icon: <img src="/reactions/love.png" alt="Love" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/love.png" },
+    { label: "idea", icon: <img src="/reactions/idea.png" alt="Idea" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/idea.png" },
+    { label: "funny", icon: <img src="/reactions/funny.png" alt="Funny" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/funny.png" },
   ];
 
   const currentReaction = postReactions[postId];
 
+  // ✅ Get dynamic icon
+  const getReactionIcon = () => {
+    const found = reactions.find((r) => r.label === currentReaction);
+    return found ? (
+      <img
+        src={found.imgSrc}
+        alt={currentReaction}
+        style={{ width: 22, height: 22 }}
+      />
+    ) : (
+      <ThumbUp />
+    );
+  };
+
   return (
-    <>
-      {showReactions && (
+    <Box
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setHoveredReaction(null);
+      }}
+      sx={{ position: "relative", display: "inline-block", m: 0, p: 0 }}
+    >
+      {/* ✅ Reactions Popup */}
+      {isHovered && (
         <Paper
           elevation={4}
           sx={{
             position: "absolute",
-            bottom: 50,
-            left: 30,
+            bottom: "calc(100% - 2px)",
+            left: 0,
             backgroundColor:
               theme.palette.mode === "dark" ? "#fff" : "#f9f9f9",
             display: "flex",
@@ -64,43 +82,41 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
             p: 1,
             zIndex: 20,
           }}
-          onMouseLeave={() => setShowReactions(false)}
         >
           {reactions.map((reaction) => (
             <Tooltip title={reaction.label} key={reaction.label}>
               <IconButton
                 onClick={() => {
                   setReaction(postId, reaction.label);
-                  setShowReactions(false);
                 }}
                 onMouseEnter={() => setHoveredReaction(reaction.label)}
                 sx={{
-                  color: "#000",
+                  padding: 0.5,
                   "&:hover": {
                     backgroundColor: "#f0f0f0",
                   },
                 }}
               >
-                {React.cloneElement(reaction.icon, { fontSize: "medium" })}
+                {reaction.icon}
               </IconButton>
             </Tooltip>
           ))}
         </Paper>
       )}
 
+      {/* ✅ Main Button with dynamic reaction icon */}
       <Button
-        startIcon={<ThumbUp />}
+        startIcon={getReactionIcon()}
         sx={{
           textTransform: "none",
           fontWeight: "bold",
           color: currentReaction ? "#0a66c2" : theme.palette.text.secondary,
         }}
-        onMouseEnter={() => setShowReactions(true)}
         onClick={() => {
           if (hoveredReaction) {
             setReaction(postId, hoveredReaction);
           } else {
-            onLike(); // fallback to default like
+            onLike(); // fallback like
           }
         }}
       >
@@ -108,7 +124,7 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
           ? currentReaction.charAt(0).toUpperCase() + currentReaction.slice(1)
           : "Like"}
       </Button>
-    </>
+    </Box>
   );
 };
 
