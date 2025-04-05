@@ -49,7 +49,10 @@ const MediaEditor: React.FC = () => {
           <IconButton onClick={handleClose}><Close /></IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ minHeight: 300 }}>
+        <DialogContent sx={{
+            minHeight: 400,
+            overflow: "hidden", // Prevent extra scrollbar
+          }}>
           {mediaFiles.length > 0 ? <MediaPreview /> : (
             <Box textAlign="center" mt={5}>
               <img src="/select-files.png" width={200} />

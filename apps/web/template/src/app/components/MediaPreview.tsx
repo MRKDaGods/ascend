@@ -36,6 +36,21 @@ const MediaPreview: React.FC = () => {
     }
   };
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAddClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach((file) => {
+        addMediaFile(file);
+      });
+    }
+  };
+
   if (mediaFiles.length === 0) return null;
 
   return (
@@ -83,12 +98,14 @@ const MediaPreview: React.FC = () => {
         {/* ✅ Scrollable Thumbnail Grid */}
         <Box
           sx={{
-            flex: 1,
-            overflowY: "auto", // ✅ Scrolls internally when media > 6
+            flexGrow: 1,
+            overflowY: "auto",
             display: "grid",
             gridTemplateColumns: "repeat(2, 1fr)",
-            gap: 1,
-            pr: 1,
+            justifyItems: "center",
+            alignItems: "start", // prevent row stretching
+            gap: 2, // consistent spacing between rows & columns
+            px: 1,
           }}
         >
           {mediaPreviews.map((preview, index) => (
@@ -132,9 +149,17 @@ const MediaPreview: React.FC = () => {
           <IconButton onClick={handleDelete}>
             <Delete color="error" />
           </IconButton>
-          <IconButton>
+          <IconButton onClick={handleAddClick}>
             <Add />
           </IconButton>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            hidden
+            onChange={handleFileChange}
+          />
         </Stack>
       </Box>
 
