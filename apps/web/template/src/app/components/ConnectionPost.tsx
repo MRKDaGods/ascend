@@ -34,6 +34,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         borderRadius: 3,
         backgroundColor: theme.palette.background.paper,
         color: theme.palette.text.primary,
+        minWidth: "400px",
         maxWidth: "580px",
         margin: "0 auto",
       }}

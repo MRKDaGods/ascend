@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-export type ReactionType = "like" | "clap" | "support" | "love" | "idea" | "funny";
+export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
 export type PostType = {
   id: number;

@@ -12,7 +12,7 @@ import {
 import { ThumbUp } from "@mui/icons-material";
 import { usePostStore } from "../stores/usePostStore";
 
-type ReactionType = "like" | "clap" | "support" | "love" | "idea" | "funny";
+type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
 interface Props {
   postId: number;
@@ -32,12 +32,12 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
     icon: React.ReactElement;
     imgSrc: string;
   }[] = [
-    { label: "like", icon: <img src="/reactions/like.png" alt="Like" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/like.png" },
-    { label: "clap", icon: <img src="/reactions/clap.png" alt="Clap" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/clap.png" },
-    { label: "support", icon: <img src="/reactions/support.png" alt="Support" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/support.png" },
-    { label: "love", icon: <img src="/reactions/love.png" alt="Love" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/love.png" },
-    { label: "idea", icon: <img src="/reactions/idea.png" alt="Idea" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/idea.png" },
-    { label: "funny", icon: <img src="/reactions/funny.png" alt="Funny" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/funny.png" },
+    { label: "Like", icon: <img src="/reactions/like.png" alt="Like" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/like.png" },
+    { label: "Celebrate", icon: <img src="/reactions/clap.png" alt="Clap" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/clap.png" },
+    { label: "Support", icon: <img src="/reactions/support.png" alt="Support" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/support.png" },
+    { label: "Love", icon: <img src="/reactions/love.png" alt="Love" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/love.png" },
+    { label: "Idea", icon: <img src="/reactions/idea.png" alt="Idea" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/idea.png" },
+    { label: "Funny", icon: <img src="/reactions/funny.png" alt="Funny" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/funny.png" },
   ];
 
   const currentReaction = postReactions[postId];
@@ -58,10 +58,10 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
   const handleClick = () => {
     if (hoveredReaction) {
       setReaction(postId, hoveredReaction);
-    } else if (currentReaction === "like") {
+    } else if (currentReaction === "Like") {
       clearReaction(postId); // remove like
     } else if (!currentReaction) {
-      setReaction(postId, "like"); // default to like
+      setReaction(postId, "Like"); // default to like
     } else {
       clearReaction(postId); // remove other reaction
     }
