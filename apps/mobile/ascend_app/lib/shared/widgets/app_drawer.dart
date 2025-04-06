@@ -139,8 +139,8 @@ class AppDrawer extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  // Navigate to settings
+                  Navigator.pop(context);// Close the drawer
+                  Navigator.pushNamed(context, '/settings');// Navigate to settings
                 },
               ),
               const SizedBox(height: 16), // Add some padding at the bottom
