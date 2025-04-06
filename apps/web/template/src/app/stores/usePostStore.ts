@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 
-
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
 const generateNumericId = () => {
@@ -61,10 +60,11 @@ interface PostStoreState {
   setUnsavedPopupOpen: (open: boolean) => void;
   setDraftSavedPopupOpen: (open: boolean) => void;
 
-
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
+  setDraftText: (text: string) => void;
   resetPost: () => void;
+  
 
   addPost: (content: string, media?: string, mediaType?: "image" | "video") => void;
   deletePost: (postId: number) => void;
@@ -119,7 +119,6 @@ export const usePostStore = create<PostStoreState>()(
       setLastUserPostId: (id) => set({ lastUserPostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       setDraftText: (text: string) => set({ draftText: text }),
-
 
       openDiscardPostDialog: () => set({ discardPostDialogOpen: true }),
       closeDiscardPostDialog: () => set({ discardPostDialogOpen: false }),

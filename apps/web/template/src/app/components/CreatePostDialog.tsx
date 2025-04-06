@@ -25,7 +25,8 @@ const CreatePostDialog: React.FC = () => {
     discardPostDialogOpen,
     closeDiscardPostDialog,
     openDiscardPostDialog,
-    setDraftSavedPopupOpen,    
+    setDraftSavedPopupOpen,
+    setDraftText,    
   } = usePostStore();
   const {
     mediaPreviews, removeMediaFile, clearAllMedia, openEditor,
@@ -46,10 +47,12 @@ const CreatePostDialog: React.FC = () => {
     if (editingPost) {
       // Edit mode (text only for now)
       editPost(editingPost.id, postText);
+      
     } else {
       // Add new post with text + optional media
       addPost(postText, media, type === "image" ? "image" : "video");
       setUserPostPopupOpen(true);
+      setDraftText("");
     }
   
     resetPost();
@@ -114,8 +117,10 @@ const CreatePostDialog: React.FC = () => {
       resetPost();
     }} 
     onSave={() => {
+      setDraftText(postText);
       setDraftSavedPopupOpen(true);
       closeDiscardPostDialog();
+      resetPost();
     }} />
     <DraftSavedPopup />
     </>
