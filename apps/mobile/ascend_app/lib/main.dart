@@ -1,3 +1,9 @@
+import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/help_center_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/notifications_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
 import 'package:ascend_app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/welcome.dart';
@@ -35,12 +41,20 @@ class MainApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
-        initialRoute: '/', // Set the initial route to '/'
+        initialRoute: '/settings', // Set the initial route to '/'
         routes: {
           '/': (context) => const Welcome(), // Open Welcome page on app start
           '/settings': (context) => const SettingsMainPage(),
           '/accountPreferences': (context) => const AccountPreferencesPage(),
           '/signInSecurity': (context) => const SignInSecurityPage(),
+          "/visibility": (context) => const VisibilityPage(),
+          '/dataPrivacy': (context) => const DataPrivacyPage(),
+          '/advertisingData': (context) => const AdvertisingDataPage(),
+          '/notifications': (context) => const NotificationsPage(),
+          // ------------------------------------
+          '/helpCenter': (context) => const HelpCenterPage(),
+          '/privacyPolicy': (context) => const HelpCenterPage(),
+          '/signOut': (context) => const SignOutPage(),
           // Add other routes here
         },
       ),
