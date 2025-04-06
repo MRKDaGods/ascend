@@ -44,6 +44,7 @@ interface PostStoreState {
   lastUserPostId: number | null;
   isLastPostDeleted: boolean;
   discardPostDialogOpen: boolean;
+  draftText: string;
 
   posts: PostType[];
   repostedPosts: number[];
@@ -60,10 +61,10 @@ interface PostStoreState {
   setUnsavedPopupOpen: (open: boolean) => void;
   setDraftSavedPopupOpen: (open: boolean) => void;
 
+
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
-  draftPost: () => void;
 
   addPost: (content: string, media?: string, mediaType?: "image" | "video") => void;
   deletePost: (postId: number) => void;
@@ -102,6 +103,7 @@ export const usePostStore = create<PostStoreState>()(
       editingPost: null,
       postReactions: {},
       discardPostDialogOpen: false,
+      draftText: "",
 
       posts: [],
 
@@ -116,12 +118,22 @@ export const usePostStore = create<PostStoreState>()(
       setDraftSavedPopupOpen: (open) => set({draftSavedPopupOpen: open}),
       setLastUserPostId: (id) => set({ lastUserPostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
+      setDraftText: (text: string) => set({ draftText: text }),
+
 
       openDiscardPostDialog: () => set({ discardPostDialogOpen: true }),
       closeDiscardPostDialog: () => set({ discardPostDialogOpen: false }),
 
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
-      draftPost: () => set({ open: false, postText: "", editingPost: null }),
+      draftPost: () => {
+        set((state) => ({
+          draftText: state.postText,
+          open: false,
+          postText: "",
+          editingPost: null,
+        }));
+      },
+      
 
       addPost: (content, media, mediaType) =>
         set((state) => {

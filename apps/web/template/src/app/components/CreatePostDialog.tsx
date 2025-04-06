@@ -17,10 +17,10 @@ const CreatePostDialog: React.FC = () => {
     postText,
     setPostText,
     resetPost,
-    draftPost,
     addPost,
     editPost,
     editingPost,
+    draftText,
     setUserPostPopupOpen,
     discardPostDialogOpen,
     closeDiscardPostDialog,
@@ -32,11 +32,10 @@ const CreatePostDialog: React.FC = () => {
   } = useMediaStore();
 
   useEffect(() => {
-      if (open) {
-        setDraftSavedPopupOpen(false); // Reset the popup each time the dialog opens
-      }
-    }, [open, setDraftSavedPopupOpen]);
-  
+    if (open && draftText && !editingPost) {
+      setPostText(draftText);
+    }
+  }, [open, draftText, editingPost]);  
 
   const handleSubmit = () => {
     if (!postText.trim() && mediaPreviews.length === 0) return;
@@ -108,13 +107,15 @@ const CreatePostDialog: React.FC = () => {
     </DialogActions>
 
     </Dialog>
-    <DiscardPostDialog open={discardPostDialogOpen} onClose={closeDiscardPostDialog} onDiscard={() => {
+    <DiscardPostDialog open={discardPostDialogOpen} 
+    onClose={closeDiscardPostDialog} 
+    onDiscard={() => {
       closeDiscardPostDialog();
       resetPost();
-    }} onSave={() => {
+    }} 
+    onSave={() => {
       setDraftSavedPopupOpen(true);
       closeDiscardPostDialog();
-      draftPost();
     }} />
     <DraftSavedPopup />
     </>

@@ -12,10 +12,11 @@ import { usePostStore } from "../stores/usePostStore";
 import AddMedia from "./AddMedia";
 import UserPostPopup from "./UserPostPopup";
 import CreatePostDialog from "./CreatePostDialog";
+import DraftSavedPopup from "./DraftSavedPopup";
 
 const CreatePost: React.FC = () => {
   const theme = useTheme();
-  const { open, setOpen } = usePostStore();
+  const { open, setOpen, draftText } = usePostStore();
 
   return (
     <div>
@@ -49,9 +50,12 @@ const CreatePost: React.FC = () => {
             }}
             onClick={() => setOpen(true) }
           >
-            <Typography sx={{ color: theme.palette.text.secondary, fontSize: "14px", fontWeight: "bold" }}>
-              Start a post
-            </Typography>
+              <Typography
+              sx={{ color: theme.palette.text.secondary, fontSize: "14px", fontWeight: "bold" }}
+              >
+              {draftText ? `Draft: ${draftText}` : "Start a post"}
+              </Typography>
+
           </Box>
         </Stack>
 
@@ -60,8 +64,8 @@ const CreatePost: React.FC = () => {
 
      {typeof window !== 'undefined' && open && <CreatePostDialog />}
 
-      {/* ✅ Popup shown only on post creation */}
-      <UserPostPopup />
+     <DraftSavedPopup />
+    <UserPostPopup />
 
     </div>
   );
