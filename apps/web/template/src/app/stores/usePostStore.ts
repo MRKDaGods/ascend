@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
+export type ReactionType = "like" | "clap" | "support" | "love" | "idea" | "funny";
+
 export type PostType = {
   id: number;
   username: string;
@@ -16,9 +18,8 @@ export type PostType = {
   file?: string;
   commentsList: string[];
   isUserPost?: boolean;
+  reaction?: ReactionType;
 };
-
-type ReactionType = "like" | "clap" | "support" | "love" | "idea" | "funny";
 
 interface PostStoreState {
   open: boolean;
@@ -30,12 +31,11 @@ interface PostStoreState {
   isLastPostDeleted: boolean;
 
   posts: PostType[];
-  likedPosts: number[];
   repostedPosts: number[];
   savedPosts: number[];
-  postReactions: { [postId: number]: ReactionType }; // ✅ NEW
 
   editingPost: PostType | null;
+  postReactions: { [postId: number]: ReactionType };
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
@@ -51,8 +51,8 @@ interface PostStoreState {
   editPost: (id: number, newText: string) => void;
   setEditingPost: (post: PostType | null) => void;
 
-  setReaction: (postId: number, reaction: ReactionType) => void; // ✅ NEW
-  clearReaction: (postId: number) => void; // ✅ NEW
+  setReaction: (postId: number, reaction: ReactionType) => void;
+  clearReaction: (postId: number) => void;
 
   repostPost: (id: number) => void;
   toggleSavePost: (id: number) => void;
@@ -72,12 +72,39 @@ export const usePostStore = create<PostStoreState>()(
       lastUserPostId: null,
       isLastPostDeleted: false,
       editingPost: null,
+      postReactions: {},
 
-      posts: [ /* initial posts */ ],
-      likedPosts: [],
+      posts: [
+        {
+          id: 1,
+          profilePic: "/man.jpg",
+          username: "John Doe",
+          followers: "500+ connections",
+          timestamp: "2h ago",
+          content: "Excited to share my latest project! 🚀",
+          image: "/post.jpg",
+          likes: 34,
+          comments: 12,
+          reposts: 5,
+          commentsList: [],
+        },
+        {
+          id: 2,
+          profilePic: "/profile2.jpg",
+          username: "Jane Smith",
+          followers: "1,200 followers",
+          timestamp: "1d ago",
+          content: "Feature works doesn’t mean you're done. 😅",
+          image: "/post1.jpg",
+          likes: 89,
+          comments: 23,
+          reposts: 10,
+          commentsList: [],
+        },
+      ],
+
       repostedPosts: [],
       savedPosts: [],
-      postReactions: {},
 
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
@@ -136,6 +163,28 @@ export const usePostStore = create<PostStoreState>()(
           open: true,
         }),
 
+      // setReaction: (postId, reaction) =>
+      //   set((state) => ({
+      //     posts: state.posts.map((post) =>
+      //       post.id === postId
+      //         ? {
+      //             ...post,
+      //             reaction,
+      //             likes: post.reaction ? post.likes : post.likes + 1,
+      //           }
+      //         : post
+      //     ),
+      //   })),
+
+      // clearReaction: (postId) =>
+      //   set((state) => ({
+      //     posts: state.posts.map((post) =>
+      //       post.id === postId && post.reaction
+      //         ? { ...post, reaction: undefined, likes: post.likes - 1 }
+      //         : post
+      //     ),
+      //   })),
+
       setReaction: (postId, reaction) =>
         set((state) => ({
           postReactions: {
@@ -143,12 +192,12 @@ export const usePostStore = create<PostStoreState>()(
             [postId]: reaction,
           },
           posts: state.posts.map((post) =>
-            post.id === postId
-              ? { ...post, likes: state.postReactions[postId] ? post.likes : post.likes + 1 }
+            post.id === postId && !state.postReactions[postId]
+              ? { ...post, likes: post.likes + 1 }
               : post
           ),
         })),
-
+      
       clearReaction: (postId) =>
         set((state) => {
           const { [postId]: _, ...rest } = state.postReactions;
@@ -158,7 +207,7 @@ export const usePostStore = create<PostStoreState>()(
               post.id === postId ? { ...post, likes: post.likes - 1 } : post
             ),
           };
-        }),
+        }),      
 
       repostPost: (id) =>
         set((state) => {

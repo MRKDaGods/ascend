@@ -22,12 +22,11 @@ interface Props {
 
 const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
   const theme = useTheme();
-  const { postReactions, setReaction } = usePostStore();
+  const { postReactions, setReaction, clearReaction } = usePostStore();
 
   const [hoveredReaction, setHoveredReaction] = useState<ReactionType | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  // ✅ Reactions with their icons
   const reactions: {
     label: ReactionType;
     icon: React.ReactElement;
@@ -43,7 +42,6 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
 
   const currentReaction = postReactions[postId];
 
-  // ✅ Get dynamic icon
   const getReactionIcon = () => {
     const found = reactions.find((r) => r.label === currentReaction);
     return found ? (
@@ -57,6 +55,18 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
     );
   };
 
+  const handleClick = () => {
+    if (hoveredReaction) {
+      setReaction(postId, hoveredReaction);
+    } else if (currentReaction === "like") {
+      clearReaction(postId); // remove like
+    } else if (!currentReaction) {
+      setReaction(postId, "like"); // default to like
+    } else {
+      clearReaction(postId); // remove other reaction
+    }
+  };
+
   return (
     <Box
       onMouseEnter={() => setIsHovered(true)}
@@ -66,7 +76,6 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
       }}
       sx={{ position: "relative", display: "inline-block", m: 0, p: 0 }}
     >
-      {/* ✅ Reactions Popup */}
       {isHovered && (
         <Paper
           elevation={4}
@@ -104,7 +113,6 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
         </Paper>
       )}
 
-      {/* ✅ Main Button with dynamic reaction icon */}
       <Button
         startIcon={getReactionIcon()}
         sx={{
@@ -112,13 +120,7 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
           fontWeight: "bold",
           color: currentReaction ? "#0a66c2" : theme.palette.text.secondary,
         }}
-        onClick={() => {
-          if (hoveredReaction) {
-            setReaction(postId, hoveredReaction);
-          } else {
-            onLike(); // fallback like
-          }
-        }}
+        onClick={handleClick}
       >
         {currentReaction
           ? currentReaction.charAt(0).toUpperCase() + currentReaction.slice(1)

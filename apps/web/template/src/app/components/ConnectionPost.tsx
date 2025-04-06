@@ -15,10 +15,13 @@ import UnsavePopup from "./UnsavePopup";
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const {
-    likePost, commentOnPost, repostPost, deleteComment,
-    likedPosts, repostedPosts, savedPosts, toggleSavePost, setSavedPopupOpen, setUnsavedPopupOpen
+    repostPost,
+    savedPosts,
+    toggleSavePost,
+    setSavedPopupOpen,
+    setUnsavedPopupOpen,
+    postReactions,
   } = usePostStore();
-  
 
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -48,36 +51,40 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
             <IconButton onClick={(e) => setMenuAnchorEl(e.currentTarget)}>
               <MoreHoriz />
             </IconButton>
-            <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={() => setMenuAnchorEl(null)}>
-                {savedPosts.includes(post.id) ? (
-                  <MenuItem
-                    onClick={() => {
-                      toggleSavePost(post.id);
-                      setUnsavedPopupOpen(true); // ✅ Show unsave popup
-                      setMenuAnchorEl(null);
-                    }}
-                  >
-                    <Bookmark sx={{ fontSize: 18, mr: 1 }} />
-                    <Box>
-                      <Typography fontWeight="bold">Unsave</Typography>
-                      <Typography fontSize="0.75rem" color="gray">
-                        Unsave from your saved list
-                      </Typography>
-                    </Box>
-                  </MenuItem>
-                ) : (
-                  <MenuItem
-                    onClick={() => {
-                      toggleSavePost(post.id);
-                      setSavedPopupOpen(true); // ✅ Show save popup
-                      setMenuAnchorEl(null);
-                    }}
-                  >
-                    <Bookmark sx={{ fontSize: 18, mr: 1 }} />
-                    Save
-                  </MenuItem>
-                )}
-              </Menu>        
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={Boolean(menuAnchorEl)}
+              onClose={() => setMenuAnchorEl(null)}
+            >
+              {savedPosts.includes(post.id) ? (
+                <MenuItem
+                  onClick={() => {
+                    toggleSavePost(post.id);
+                    setUnsavedPopupOpen(true);
+                    setMenuAnchorEl(null);
+                  }}
+                >
+                  <Bookmark sx={{ fontSize: 18, mr: 1 }} />
+                  <Box>
+                    <Typography fontWeight="bold">Unsave</Typography>
+                    <Typography fontSize="0.75rem" color="gray">
+                      Unsave from your saved list
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ) : (
+                <MenuItem
+                  onClick={() => {
+                    toggleSavePost(post.id);
+                    setSavedPopupOpen(true);
+                    setMenuAnchorEl(null);
+                  }}
+                >
+                  <Bookmark sx={{ fontSize: 18, mr: 1 }} />
+                  Save
+                </MenuItem>
+              )}
+            </Menu>
           </>
         }
       />
@@ -115,23 +122,23 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Typography>
       </Box>
 
-      {/* Post buttons */}
+      {/* Post Action Buttons (Like with Reactions) */}
       <PostActions
         postId={post.id}
-        liked={likedPosts.includes(post.id)}
-        reposted={repostedPosts.includes(post.id)}
-        onLike={() => likePost(post.id)}
+        liked={!!postReactions[post.id]}
+        reposted={false} // handled by repostedPosts if needed
+        onLike={() => {}} // handled in Reactions component
         onRepost={() => repostPost(post.id)}
         onCommentClick={() => setShowCommentInput(!showCommentInput)}
       />
 
-      {/* Comments Section */}
       <Comment
         post={post}
         showCommentInput={showCommentInput}
         showComments={showComments}
         setShowComments={setShowComments}
       />
+
       <SavePostPopup />
       <UnsavePopup />
     </Card>
