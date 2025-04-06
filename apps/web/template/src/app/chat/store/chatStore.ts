@@ -24,6 +24,8 @@ type chatStore ={
     setUnreadMessagesById: (id: number, unreadcount: number | ((prev: number)=>number))=>void;
     markConversationAsRead: (id:number)=>void;
     markConversationAsUnread:(id:number)=>void;
+    typingStatus:{[conversationId: number]: boolean};
+    setTypingStatus: (id:number, isTyping:boolean)=>void;
     
 }
 
@@ -82,7 +84,15 @@ export const useChatStore = create<chatStore>((set)=>({
         unreadMessagesById: {
             ...state.unreadMessagesById, [id]: 1,
         }
-    }))
+    })),
+    typingStatus:{},
+    setTypingStatus: (id,isTyping)=>
+        set((state)=>({
+            typingStatus: {
+                ...state.typingStatus,
+                [id]:isTyping,
+            },
+        })),
 
 
 }));

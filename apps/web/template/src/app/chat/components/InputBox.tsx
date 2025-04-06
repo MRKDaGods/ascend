@@ -1,16 +1,24 @@
 "use client";
 import { Box,TextField,IconButton,Button, Typography} from "@mui/material";
-import {useState,useRef} from "react";
+import {useState,useRef, useEffect} from "react";
 import { useChatStore } from "../store/chatStore";
 import axios from "axios";
 
 export default function InputBox(){
+    const selectedConversationId = useChatStore(state => state.selectedConversationId);
     console.log("InputBox rendered");
     const [messageText,setMessageText]=useState("");
     const [selectedFiles,setselectedFiles]=useState<File[]>([]);
 
     const imageInputRef = useRef<HTMLInputElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+
+    //useEffect + setState -> rerender when said state changes 
+    //clear input when selected conv changes
+    useEffect(()=>{
+        setMessageText("");
+    },[selectedConversationId])
 
     //function to upload media to firebase and recieve urls to send with post message
     const uploadMediaFiles = async (files: File[]): Promise<string[]>=>{
@@ -36,7 +44,7 @@ export default function InputBox(){
     }
 
 
-
+    //handle send when user clicks send
     const handleSend = async () => {
         const {
           appendMessageToConversation,
@@ -81,7 +89,23 @@ export default function InputBox(){
           console.error("Failed to send message:", error);
         }
       };
+
+      //emit typing when user types
+      useEffect(()=>{
+        if (!messageText.trim()) return;
+        const conversationId = useChatStore.getState().selectedConversationId; //just a snapshot to send with the typing event
+        if (!conversationId) return;
+
+         // later will emit to socket here:
+         // socket.emit("typing", { conversationId, userId });
+
+         console.log("Typing event for conversation", conversationId);
+
+      },[messageText]);
       
+
+
+
     return(
         <>
         <Box sx={{display:"flex",alignItems:"center",gap:1,padding:1,borderTop:"1px solid #ccc",backgroundColor:"#fff"}}>

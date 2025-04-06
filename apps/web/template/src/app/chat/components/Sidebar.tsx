@@ -22,6 +22,8 @@ export type conversation = {
     avatar: string;
     lastMessage: string;
     unreadCount: number;
+    userId: string;
+    isBlockedByPartner: boolean;
   }
 
 
@@ -90,12 +92,14 @@ export default function Sidebar(){
        {
             width:{xs:250,md:"30%"},
             boxSizing: 'border-box',
-            maxWidth: 350},
+            maxWidth: 350,
+            paddingTop: "130px",
+          },
            
        }}>
-        <Box sx={{p:2, bgcolor:"#f5f5f5", }}>
+        {/* <Box sx={{p:2, bgcolor:"#f5f5f5", }}>
             <Typography variant="h6">Chats</Typography>
-        </Box>
+        </Box> */}
         {
             conversations.length!==0? (
                 <List sx={{overflowY:"auto",maxHeight:"calc(100vh-64px)"}}> 
@@ -162,6 +166,8 @@ export default function Sidebar(){
 }}>
   Trigger Test Message
 </Button>  
+
+ 
  </Drawer>
 
 
