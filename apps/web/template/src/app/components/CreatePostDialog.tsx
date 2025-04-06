@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useEffect} from "react";
 import {
   Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
   IconButton, Stack, TextField, Typography
@@ -8,21 +8,35 @@ import {
 import { Close, Edit, Delete } from "@mui/icons-material";
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
+import DiscardPostDialog from "./DiscardPostDialog";
+import DraftSavedPopup from "./DraftSavedPopup";
 
-const PostDialog: React.FC = () => {
+const CreatePostDialog: React.FC = () => {
   const {
     open,
     postText,
     setPostText,
     resetPost,
+    draftPost,
     addPost,
     editPost,
     editingPost,
-    setPopupOpen,
+    setUserPostPopupOpen,
+    discardPostDialogOpen,
+    closeDiscardPostDialog,
+    openDiscardPostDialog,
+    setDraftSavedPopupOpen,    
   } = usePostStore();
   const {
-    mediaPreviews, mediaFiles, removeMediaFile, clearAllMedia, openEditor
+    mediaPreviews, removeMediaFile, clearAllMedia, openEditor,
   } = useMediaStore();
+
+  useEffect(() => {
+      if (open) {
+        setDraftSavedPopupOpen(false); // Reset the popup each time the dialog opens
+      }
+    }, [open, setDraftSavedPopupOpen]);
+  
 
   const handleSubmit = () => {
     if (!postText.trim() && mediaPreviews.length === 0) return;
@@ -36,16 +50,20 @@ const PostDialog: React.FC = () => {
     } else {
       // Add new post with text + optional media
       addPost(postText, media, type === "image" ? "image" : "video");
-      setPopupOpen(true);
+      setUserPostPopupOpen(true);
     }
   
     resetPost();
     clearAllMedia();
   };
   
+  const handleClose = () => {
+    if (postText.length > 0) openDiscardPostDialog();  
+    else resetPost();};
 
   return (
-    <Dialog open fullWidth maxWidth="md" onClose={resetPost}>
+    <>
+    <Dialog open fullWidth maxWidth="md" onClose={handleClose}>
       <DialogTitle>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Stack direction="row" spacing={2} alignItems="center">
@@ -55,7 +73,7 @@ const PostDialog: React.FC = () => {
               <Typography fontSize="0.8rem">Post to Connections only</Typography>
             </Box>
           </Stack>
-          <IconButton onClick={resetPost}><Close /></IconButton>
+          <IconButton onClick={handleClose}><Close /></IconButton>
         </Stack>
       </DialogTitle>
 
@@ -90,7 +108,17 @@ const PostDialog: React.FC = () => {
     </DialogActions>
 
     </Dialog>
+    <DiscardPostDialog open={discardPostDialogOpen} onClose={closeDiscardPostDialog} onDiscard={() => {
+      closeDiscardPostDialog();
+      resetPost();
+    }} onSave={() => {
+      setDraftSavedPopupOpen(true);
+      closeDiscardPostDialog();
+      draftPost();
+    }} />
+    <DraftSavedPopup />
+    </>
   );
 };
 
-export default PostDialog;
+export default CreatePostDialog;

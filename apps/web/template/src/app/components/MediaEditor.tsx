@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef } from "react";
 import {
   Dialog, DialogTitle, DialogContent, IconButton, Typography, Box, Button
@@ -5,14 +7,14 @@ import {
 import { Close } from "@mui/icons-material";
 import { useMediaStore } from "../stores/useMediaStore";
 import MediaPreview from "./MediaPreview";
-import DiscardDialog from "./DiscardDialog";
+import DiscardMediaDialog from "./DiscardMediaDialog";
 import { usePostStore } from "../stores/usePostStore";
 
 const MediaEditor: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     mediaFiles, setMediaFiles, editorOpen, closeEditor,
-    discardDialogOpen, closeDiscardDialog, openDiscardDialog, clearAllMedia
+    discardMediaDialogOpen, closeDiscardMediaDialog, openDiscardMediaDialog, clearAllMedia
   } = useMediaStore();
   const { setOpen } = usePostStore();
 
@@ -30,7 +32,7 @@ const MediaEditor: React.FC = () => {
   };
 
   const handleClose = () => {
-    if (mediaFiles.length > 0) openDiscardDialog();
+    if (mediaFiles.length > 0) openDiscardMediaDialog();
     else closeEditor();
   };
 
@@ -73,9 +75,9 @@ const MediaEditor: React.FC = () => {
         )}
       </Dialog>
 
-      <DiscardDialog open={discardDialogOpen} onClose={closeDiscardDialog} onDiscard={() => {
+      <DiscardMediaDialog open={discardMediaDialogOpen} onClose={closeDiscardMediaDialog} onDiscard={() => {
         clearAllMedia();
-        closeDiscardDialog();
+        closeDiscardMediaDialog();
         closeEditor();
       }} />
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useEffect} from "react";
 import {
   Avatar,
   Box,
@@ -11,11 +11,11 @@ import {
 import { usePostStore } from "../stores/usePostStore";
 import AddMedia from "./AddMedia";
 import UserPostPopup from "./UserPostPopup";
-import PostDialog from "./PostDialog";
+import CreatePostDialog from "./CreatePostDialog";
 
 const CreatePost: React.FC = () => {
   const theme = useTheme();
-  const { open, setOpen, setPostText } = usePostStore();
+  const { open, setOpen } = usePostStore();
 
   return (
     <div>
@@ -58,10 +58,11 @@ const CreatePost: React.FC = () => {
         <AddMedia />
       </Box>
 
-     {typeof window !== 'undefined' && open && <PostDialog />}
+     {typeof window !== 'undefined' && open && <CreatePostDialog />}
 
       {/* ✅ Popup shown only on post creation */}
       <UserPostPopup />
+
     </div>
   );
 };

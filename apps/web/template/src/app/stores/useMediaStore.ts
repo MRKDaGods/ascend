@@ -4,7 +4,7 @@ interface MediaStoreState {
   mediaFiles: File[];
   mediaPreviews: string[];
   editorOpen: boolean;
-  discardDialogOpen: boolean;
+  discardMediaDialogOpen: boolean;
 
   setMediaFiles: (files: File[]) => void;
   addMediaFile: (file: File) => void;
@@ -14,15 +14,15 @@ interface MediaStoreState {
   openEditor: () => void;
   closeEditor: () => void;
 
-  openDiscardDialog: () => void;
-  closeDiscardDialog: () => void;
+  openDiscardMediaDialog: () => void;
+  closeDiscardMediaDialog: () => void;
 }
 
 export const useMediaStore = create<MediaStoreState>((set) => ({
   mediaFiles: [],
   mediaPreviews: [],
   editorOpen: false,
-  discardDialogOpen: false,
+  discardMediaDialogOpen: false,
 
   setMediaFiles: (files) => {
     const previews = files.map((file) => URL.createObjectURL(file));
@@ -52,6 +52,6 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
   openEditor: () => set({ editorOpen: true }),
   closeEditor: () => set({ editorOpen: false }),
 
-  openDiscardDialog: () => set({ discardDialogOpen: true }),
-  closeDiscardDialog: () => set({ discardDialogOpen: false }),
+  openDiscardMediaDialog: () => set({ discardMediaDialogOpen: true }),
+  closeDiscardMediaDialog: () => set({ discardMediaDialogOpen: false }),
 }));

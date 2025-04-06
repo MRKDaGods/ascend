@@ -1,7 +1,9 @@
 "use client";
+
 import React, { useState } from "react";
+
 import UserPost from "@/app/components/UserPost";
-import PostDialog from "@/app/components/PostDialog";
+import PostDialog from "@/app/components/CreatePostDialog";
 import DeletePostDialog from "@/app/components/DeletePostDialog";
 import { usePostStore } from "@/app/stores/usePostStore";
 import { Typography, Box } from "@mui/material";

@@ -1,7 +1,18 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { v4 as uuidv4 } from "uuid";
+
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
+
+const generateNumericId = () => {
+  return parseInt(uuidv4().replace(/-/g, "").substring(0, 12), 16);
+};
+
+export interface Tag {
+  id: number;
+  name: string;
+}
 
 export type PostType = {
   id: number;
@@ -19,32 +30,40 @@ export type PostType = {
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
+  tags?: Tag[]; // ✅ Post tags
+  commentTags?: { [commentIndex: number]: Tag[] }; // ✅ Comment-specific tags
 };
 
 interface PostStoreState {
   open: boolean;
   postText: string;
-  popupOpen: boolean;
+  userPostPopupOpen: boolean;
   savedPopupOpen: boolean;
   unsavedPopupOpen: boolean;
+  draftSavedPopupOpen: boolean;
   lastUserPostId: number | null;
   isLastPostDeleted: boolean;
+  discardPostDialogOpen: boolean;
 
   posts: PostType[];
   repostedPosts: number[];
   savedPosts: number[];
+  postReactions: { [postId: number]: ReactionType };
 
   editingPost: PostType | null;
-  postReactions: { [postId: number]: ReactionType };
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
-  setPopupOpen: (open: boolean) => void;
+
+  setUserPostPopupOpen: (open: boolean) => void;
   setSavedPopupOpen: (open: boolean) => void;
   setUnsavedPopupOpen: (open: boolean) => void;
+  setDraftSavedPopupOpen: (open: boolean) => void;
+
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
+  draftPost: () => void;
 
   addPost: (content: string, media?: string, mediaType?: "image" | "video") => void;
   deletePost: (postId: number) => void;
@@ -59,6 +78,14 @@ interface PostStoreState {
 
   commentOnPost: (id: number, comment: string) => void;
   deleteComment: (postId: number, commentIndex: number) => void;
+
+  addTagToPost: (postId: number, tag: Tag) => void;
+  removeTagFromPost: (postId: number, tagId: number) => void;
+  addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
+  removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
+
+  openDiscardPostDialog: () => void;
+  closeDiscardPostDialog: () => void;
 }
 
 export const usePostStore = create<PostStoreState>()(
@@ -66,60 +93,40 @@ export const usePostStore = create<PostStoreState>()(
     (set, get) => ({
       open: false,
       postText: "",
-      popupOpen: false,
+      userPostPopupOpen: false,
       savedPopupOpen: false,
       unsavedPopupOpen: false,
+      draftSavedPopupOpen: false,
       lastUserPostId: null,
       isLastPostDeleted: false,
       editingPost: null,
       postReactions: {},
+      discardPostDialogOpen: false,
 
-      posts: [
-        {
-          id: 1,
-          profilePic: "/man.jpg",
-          username: "John Doe",
-          followers: "500+ connections",
-          timestamp: "2h ago",
-          content: "Excited to share my latest project! 🚀",
-          image: "/post.jpg",
-          likes: 34,
-          comments: 12,
-          reposts: 5,
-          commentsList: [],
-        },
-        {
-          id: 2,
-          profilePic: "/profile2.jpg",
-          username: "Jane Smith",
-          followers: "1,200 followers",
-          timestamp: "1d ago",
-          content: "Feature works doesn’t mean you're done. 😅",
-          image: "/post1.jpg",
-          likes: 89,
-          comments: 23,
-          reposts: 10,
-          commentsList: [],
-        },
-      ],
+      posts: [],
 
       repostedPosts: [],
       savedPosts: [],
 
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
-      setPopupOpen: (open) => set({ popupOpen: open }),
+      setUserPostPopupOpen: (open) => set({ userPostPopupOpen: open }),
       setSavedPopupOpen: (open) => set({ savedPopupOpen: open }),
       setUnsavedPopupOpen: (open) => set({ unsavedPopupOpen: open }),
+      setDraftSavedPopupOpen: (open) => set({draftSavedPopupOpen: open}),
       setLastUserPostId: (id) => set({ lastUserPostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
 
+      openDiscardPostDialog: () => set({ discardPostDialogOpen: true }),
+      closeDiscardPostDialog: () => set({ discardPostDialogOpen: false }),
+
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
+      draftPost: () => set({ open: false, postText: "", editingPost: null }),
 
       addPost: (content, media, mediaType) =>
         set((state) => {
           const newPost: PostType = {
-            id: Date.now(),
+            id: generateNumericId(), //id generator, converted to number not string
             profilePic: "/profile.jpg",
             username: "User",
             followers: "You",
@@ -132,10 +139,12 @@ export const usePostStore = create<PostStoreState>()(
             reposts: 0,
             commentsList: [],
             isUserPost: true,
+            tags: [],
+            commentTags: {},
           };
           return {
             posts: [...state.posts, newPost],
-            popupOpen: true,
+            userPostPopupOpen: true,
             lastUserPostId: newPost.id,
             isLastPostDeleted: false,
           };
@@ -163,28 +172,6 @@ export const usePostStore = create<PostStoreState>()(
           open: true,
         }),
 
-      // setReaction: (postId, reaction) =>
-      //   set((state) => ({
-      //     posts: state.posts.map((post) =>
-      //       post.id === postId
-      //         ? {
-      //             ...post,
-      //             reaction,
-      //             likes: post.reaction ? post.likes : post.likes + 1,
-      //           }
-      //         : post
-      //     ),
-      //   })),
-
-      // clearReaction: (postId) =>
-      //   set((state) => ({
-      //     posts: state.posts.map((post) =>
-      //       post.id === postId && post.reaction
-      //         ? { ...post, reaction: undefined, likes: post.likes - 1 }
-      //         : post
-      //     ),
-      //   })),
-
       setReaction: (postId, reaction) =>
         set((state) => ({
           postReactions: {
@@ -197,7 +184,7 @@ export const usePostStore = create<PostStoreState>()(
               : post
           ),
         })),
-      
+
       clearReaction: (postId) =>
         set((state) => {
           const { [postId]: _, ...rest } = state.postReactions;
@@ -207,7 +194,7 @@ export const usePostStore = create<PostStoreState>()(
               post.id === postId ? { ...post, likes: post.likes - 1 } : post
             ),
           };
-        }),      
+        }),
 
       repostPost: (id) =>
         set((state) => {
@@ -217,7 +204,9 @@ export const usePostStore = create<PostStoreState>()(
               ? state.repostedPosts.filter((pid) => pid !== id)
               : [...state.repostedPosts, id],
             posts: state.posts.map((post) =>
-              post.id === id ? { ...post, reposts: isReposted ? post.reposts - 1 : post.reposts + 1 } : post
+              post.id === id
+                ? { ...post, reposts: isReposted ? post.reposts - 1 : post.reposts + 1 }
+                : post
             ),
           };
         }),
@@ -258,6 +247,54 @@ export const usePostStore = create<PostStoreState>()(
                 }
               : post
           ),
+        })),
+
+      addTagToPost: (postId, tag) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  tags: post.tags ? [...post.tags, tag] : [tag],
+                }
+              : post
+          ),
+        })),
+
+      removeTagFromPost: (postId, tagId) =>
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  tags: post.tags?.filter((t) => t.id !== tagId) || [],
+                }
+              : post
+          ),
+        })),
+
+      addTagToComment: (postId, commentIndex, tag) =>
+        set((state) => ({
+          posts: state.posts.map((post) => {
+            if (post.id !== postId) return post;
+            const updatedTags = {
+              ...post.commentTags,
+              [commentIndex]: [...(post.commentTags?.[commentIndex] || []), tag],
+            };
+            return { ...post, commentTags: updatedTags };
+          }),
+        })),
+
+      removeTagFromComment: (postId, commentIndex, tagId) =>
+        set((state) => ({
+          posts: state.posts.map((post) => {
+            if (post.id !== postId) return post;
+            const updatedTags = {
+              ...post.commentTags,
+              [commentIndex]: post.commentTags?.[commentIndex]?.filter((t) => t.id !== tagId) || [],
+            };
+            return { ...post, commentTags: updatedTags };
+          }),
         })),
     }),
     {

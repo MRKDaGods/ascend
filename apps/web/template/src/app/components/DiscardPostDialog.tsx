@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Dialog,
@@ -10,27 +12,28 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 
-interface DiscardDialogProps {
+interface DiscardPostDialogProps {
   open: boolean;
   onClose: () => void;
   onDiscard: () => void;
+  onSave: () => void;
 }
 
-const DiscardDialog: React.FC<DiscardDialogProps> = ({ open, onClose, onDiscard }) => {
+const DiscardPostDialog: React.FC<DiscardPostDialogProps> = ({ open, onClose, onDiscard, onSave }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <IconButton onClick={onClose} sx={{ position: "absolute", top: 8, right: 8, color: "gray" }}>
         <Close />
       </IconButton>
       <DialogTitle sx={{ fontWeight: "bold", fontSize: "1.2rem", textAlign: "center" }}>
-        Discard changes
+        Save this post as a draft?
       </DialogTitle>
       <DialogContent sx={{ textAlign: "center", color: "gray" }}>
-        <Typography>Are you sure you want to discard the changes you have made?</Typography>
+        <Typography>The post you started will be here when you return.</Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
         <Button
-          onClick={onClose}
+          onClick={onDiscard}
           sx={{
             textTransform: "none",
             fontWeight: "bold",
@@ -45,10 +48,10 @@ const DiscardDialog: React.FC<DiscardDialogProps> = ({ open, onClose, onDiscard 
             },
           }}
         >
-          Cancel
+          Discard
         </Button>
         <Button
-          onClick={onDiscard}
+          onClick={onSave}
           sx={{
             textTransform: "none",
             fontWeight: "bold",
@@ -63,11 +66,11 @@ const DiscardDialog: React.FC<DiscardDialogProps> = ({ open, onClose, onDiscard 
             },
           }}
         >
-          Discard
+          Save as draft
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default DiscardDialog;
+export default DiscardPostDialog;

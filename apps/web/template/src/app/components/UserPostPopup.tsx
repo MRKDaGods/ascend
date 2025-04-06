@@ -4,23 +4,24 @@ import { Snackbar, Alert, Link, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
+import { use } from "react";
 
 const UserPostPopup = () => {
-  const { popupOpen, setPopupOpen } = usePostStore();
+  const { userPostPopupOpen, setUserPostPopupOpen } = usePostStore();
   const router = useRouter();
 
   const handleClose = () => {
-    setPopupOpen(false);
+    setUserPostPopupOpen(false);
   };
 
   const handleViewPost = () => {
-    setPopupOpen(false);
+    setUserPostPopupOpen(false);
     router.push("/feed/mypost");
   };
 
   return (
     <Snackbar
-      open={popupOpen}
+      open={userPostPopupOpen}
       anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       onClose={handleClose}
     >

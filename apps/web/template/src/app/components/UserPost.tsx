@@ -53,11 +53,9 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
   const theme = useTheme();
   const {
     deletePost,
-    likePost,
     setOpen,
     setPostText,
     setEditingPost,
-    likedPosts,
   } = usePostStore();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -166,10 +164,10 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
           startIcon={<ThumbUp />}
           sx={{
             textTransform: "none",
-            color: likedPosts.includes(post.id) ? "#0a66c2" : theme.palette.text.secondary,
+            // color: likedPosts.includes(post.id) ? "#0a66c2" : theme.palette.text.secondary,
             fontWeight: "bold",
           }}
-          onClick={() => likePost(post.id)}
+          onClick={() => {}}
         >
           Like
         </Button>
