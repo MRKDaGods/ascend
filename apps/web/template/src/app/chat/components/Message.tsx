@@ -1,5 +1,6 @@
 "use client";
 import { Box, Avatar,Paper, Typography} from "@mui/material";
+import { useChatStore } from "../store/chatStore";
 
 export type messageProps = {
     id: string;
@@ -59,17 +60,40 @@ function formatTime(isoString:string): string{
 
 export default function Message({id,content,sender,recipient,mediaUrls,createdAt,status}:messageProps){
 
+    const conversations = useChatStore((state) => state.conversations);
+    const selectedConversationId = useChatStore((state) => state.selectedConversationId);
+    
     //Temporary username:
     const currentUsername = "Ruaa";
     const isSentByYou= sender.name===currentUsername;
+    const conversation = conversations.find((c) => c.id === selectedConversationId);
+    const isBlockedByPartner = conversation?.name === "LinkedIn User";
+    const displayName = !isSentByYou && isBlockedByPartner
+  ? "LinkedIn User"
+  : sender.name;
    
     console.log("Message rendered", { content, sender, status, isSentByYou });
-
+    
+    
     return (
         <Box sx={{display:"flex", gap:1.5, alignItems:"flex-start", mb: 2}}>
-            <Avatar src={sender.profilePictureUrl} alt = {sender.name} sx={{ width: 50, height: 50 }}>
-            {sender.name.charAt(0)}
-                </Avatar>
+    
+
+<Avatar
+  src={
+    !isSentByYou && isBlockedByPartner
+      ? ""
+      : !isSentByYou
+        ? conversation?.avatar
+        : sender.profilePictureUrl
+  }
+  alt={displayName}
+  sx={{ width: 50, height: 50 }}
+>
+  {displayName.charAt(0)}
+</Avatar>
+
+
             <Paper elevation ={0} 
             sx={{
                 p:0.5,
@@ -83,9 +107,10 @@ export default function Message({id,content,sender,recipient,mediaUrls,createdAt
 
            { /*sender name*/ }
            <Box sx={{display:"flex", gap:1,alignItems:"center"}}>
-           <Typography variant="body2" sx={{fontWeight: "bold", mb:0.5}}>
-                {sender.name}
+             <Typography variant="body2" sx={{ fontWeight: "bold", mb: 0.5 }}>
+             {displayName}
             </Typography>
+
             <Typography variant="caption" sx={{ color: "gray", fontWeight:"bold"}}>
                     &middot;
             </Typography>
