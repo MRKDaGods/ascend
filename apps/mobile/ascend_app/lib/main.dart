@@ -7,6 +7,9 @@ import 'features/profile/bloc/user_profile_event.dart';
 import 'features/home/bloc/post_bloc/post_bloc.dart';
 import 'features/home/bloc/post_bloc/post_event.dart';
 import 'features/home/repositories/post_repository.dart';
+import 'package:ascend_app/features/settings/presentation/pages/settings_main_page.dart';
+import 'package:ascend_app/features/settings/presentation/pages/account_preferences_page.dart';
+import 'package:ascend_app/features/settings/presentation/pages/sign_in_security_page.dart';
 
 void main() {
   runApp(const MainApp());
@@ -23,9 +26,8 @@ class MainApp extends StatelessWidget {
           create: (context) => UserProfileBloc()..add(const LoadUserProfile()),
         ),
         BlocProvider<PostBloc>(
-          create: (context) => PostBloc(
-            PostRepository(),  // Change to positional parameter
-          )..add(const LoadPosts()),
+          create:
+              (context) => PostBloc(PostRepository())..add(const LoadPosts()),
         ),
         // Add other BLoCs here as needed
       ],
@@ -33,7 +35,14 @@ class MainApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
-        home: const Welcome(),
+        initialRoute: '/', // Set the initial route to '/'
+        routes: {
+          '/': (context) => const Welcome(), // Open Welcome page on app start
+          '/settings': (context) => const SettingsMainPage(),
+          '/accountPreferences': (context) => const AccountPreferencesPage(),
+          '/signInSecurity': (context) => const SignInSecurityPage(),
+          // Add other routes here
+        },
       ),
     );
   }
