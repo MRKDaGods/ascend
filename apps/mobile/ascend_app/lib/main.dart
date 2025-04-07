@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/profile/bloc/user_profile_event.dart';
 import 'package:ascend_app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/welcome.dart';
@@ -73,13 +74,9 @@ class MainApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        // Initialize UserProfileBloc lazily - only create it, don't load data yet
+        // Initialize UserProfileBloc and load profile data at startup
         BlocProvider<UserProfileBloc>(
-          create: (context) {
-
-            return UserProfileBloc();
-          },
-          // We'll load profile data when needed, not at startup
+          create: (context) => UserProfileBloc()..add(LoadUserProfile()),
         ),
         
         // Initialize PostBloc lazily - only create it, don't load data yet
