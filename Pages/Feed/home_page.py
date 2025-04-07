@@ -26,6 +26,8 @@ class HomePage(BasePage):
     POST_BUTTON = HomeLocators.POST_BUTTON
     VIEW_THE_FULL_POST = HomeLocators.VIEW_THE_FULL_POST
     REACTIONS_COUNT = HomeLocators.REACTIONS_COUNT
+    SEARCH_BAR = HomeLocators.SEARCH_BAR
+    
 
     
     def click_sidebar(self):

@@ -20,8 +20,9 @@ def setup_test(appium_driver):
     experience_page = WorkExperiencePage(appium_driver)
     sidebar_page = SideBarPage(appium_driver)
     logger.info("Testing experience page")
+    utils = UtilityFunctions(appium_driver)
     # if user is logged in, open profile page then edit profile page , else login then open profile page 
-    UtilityFunctions.navigation_to_profile_then_click(appium_driver, profile_page.click_add_experience , swipe = True)
+    utils.navigation_to_profile_then_click(profile_page.click_add_experience , swipe = True)
 
     return experience_page, profile_page
 

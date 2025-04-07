@@ -4,8 +4,8 @@ class HomeLocators:
     SIDEBAR_BUTTON = (By.ACCESSIBILITY_ID, 'My Profile and Communities')
     WELCOME_MESSAGE = (By.ID, 'com.linkedin.android:id/summary_header')
     CLOSE_BUTTON = (By.ACCESSIBILITY_ID, 'Close')
-    # SEARCH_BAR = (By.ID, 'com.linkedin.android:id/search_bar') 
-    # SEARCH_BAR_SEND_TEXT = (By.ID, 'com.linkedin.android:id/search_bar_edit_text')
+    SEARCH_BAR = (By.ID, 'com.linkedin.android:id/search_bar') 
+    SEARCH_BAR_SEND_TEXT = (By.ID, 'com.linkedin.android:id/search_bar_edit_text')
     MESSAGING_BUTTON =  (By.ACCESSIBILITY_ID, 'messaging')
     VIEW_THE_FULL_POST = (By.ID, 'com.linkedin.android:id/feed_render_item_text') #to click on post to view all engagments 
     REACTIONS_COUNT = (By.ID , 'com.linkedin.android:id/feed_conversations_reactions_count')

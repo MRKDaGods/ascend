@@ -14,9 +14,10 @@ def setup_test(appium_driver):
     edit_profile_page = EditProfilePage(appium_driver)
     home_page = HomePage(appium_driver)
     landing_page = LandingPage(appium_driver)
+    utils = UtilityFunctions(appium_driver)
     logger.info("Testing edit profile page")
     # if user is logged in, open profile page then edit profile page , else login then open profile page and edit profile page
-    UtilityFunctions.navigation_to_profile_then_click(appium_driver, profile_page.click_edit_profile)
+    utils.navigation_to_profile_then_click(profile_page.click_edit_profile, False)
     # try:
     #     if home_page.get_text(home_page.SEARCH_BAR) == "Search":
     #         UtilityFunctions.open_profile_page(appium_driver)
