@@ -14,6 +14,8 @@ class PostCommentsSection extends StatefulWidget {
   final Function(String, String?) onAddComment; // Updated to include user info
   final String postId;
   final String currentUserId; // Add this to identify current user
+  final String currentUserName;
+  final String? currentUserAvatarUrl;
 
   const PostCommentsSection({
     Key? key,
@@ -27,6 +29,8 @@ class PostCommentsSection extends StatefulWidget {
     required this.onAddComment,
     required this.postId,
     required this.currentUserId,
+    required this.currentUserName,
+    this.currentUserAvatarUrl,
   }) : super(key: key);
 
   @override
@@ -71,6 +75,8 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
           } : null,
           onSubmit: (text) => _addComment(context, text),
           onTap: widget.onTapCommentArea,
+          userName: widget.currentUserName,
+          userAvatarUrl: widget.currentUserAvatarUrl,
         ),
         
         const SizedBox(height: 16),
