@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
 import '@testing-library/jest-dom';
+import { act } from 'react-dom/test-utils';
+
 import EducationModal from '../EducationModal';
 
 const mockOnClose = jest.fn();

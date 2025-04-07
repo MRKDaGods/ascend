@@ -1,7 +1,4 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+// next.config.js
+module.exports = {
+  pageExtensions: ['tsx', 'ts', 'js', 'jsx'], // don't include .test.tsx
 };
-
-export default nextConfig;

@@ -1,8 +1,7 @@
 import React from 'react';  // Add this import
 
 import LinkedInDashboard from '../LinkedInDashboard';
-import '@testing-library/jest-dom'; // Import this at the top
-import '@testing-library/jest-dom';  // Import jest-dom here for matchers
+
 import { render, screen, waitFor } from '@testing-library/react';
 
 
