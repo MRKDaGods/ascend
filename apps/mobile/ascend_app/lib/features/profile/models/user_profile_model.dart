@@ -57,7 +57,17 @@ class UserProfileModel {
   
   // A method to create an empty profile
   factory UserProfileModel.empty() {
-    return const UserProfileModel();
+    return const UserProfileModel(
+      name: '',
+      position: '',
+      location: '',
+      companyName: '',
+      companyLogoUrl: '',
+      profileViewers: 0,
+      postImpressions: 0,
+      isPremium: false,
+      avatarUrl: '',
+    );
   }
   
   // A method to create a copy of this profile with some values updated

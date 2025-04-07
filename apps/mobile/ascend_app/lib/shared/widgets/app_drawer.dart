@@ -5,25 +5,22 @@ import '../../features/profile/bloc/user_profile_state.dart';
 import '../../features/profile/models/user_profile_model.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({
-    Key? key,
-  }) : super(key: key);
+  const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UserProfileBloc, UserProfileState>(
       builder: (context, state) {
-        // Determine which profile to use based on the state
+        // Extract profile from state or use empty profile if not loaded
         final profile = state is UserProfileLoaded 
             ? state.profile 
             : UserProfileModel.empty();
-        
+
         return Drawer(
           child: Column(
             children: [
               Expanded(
                 child: ListView(
-                  padding: EdgeInsets.zero,
                   children: [
                     Container(
                       width: double.infinity,
@@ -109,39 +106,9 @@ class AppDrawer extends StatelessWidget {
                         Navigator.pop(context);
                       },
                     ),
-                    // Rest of your drawer items...
-                    // ...
+                    // Add more list tiles as needed
                   ],
                 ),
-              ),
-              // Settings at the bottom
-              const Divider(),
-              // Only show "Try premium" if the user is not a premium user
-              if (!profile.isPremium)
-                ListTile(
-                  dense: true,
-                  leading: const Icon(Icons.payments_rounded, color: Colors.amber),
-                  horizontalTitleGap: 5,
-                  title: const Text(
-                    'Try premium for EGP0',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Navigate to premium subscription
-                  },
-                ),
-              ListTile(
-                horizontalTitleGap: 5,
-                leading: const Icon(Icons.settings),
-                title: const Text(
-                  'Settings',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Navigate to settings
-                },
               ),
               const SizedBox(height: 16), // Add some padding at the bottom
             ],
