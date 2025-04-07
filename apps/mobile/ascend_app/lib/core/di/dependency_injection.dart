@@ -61,15 +61,24 @@ class ServiceLocator {
     final client = http.Client();
     
     // Data sources
+    // final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
+    //   client: client,
+    //   baseUrl: 'https://api.ascend-46a60.com/api', // Your actual API URL
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Accept': 'application/json',
+    //     // Remove auth token if not needed or add actual token if available
+    //   },
+    // );
     final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
-      client: client,
-      baseUrl: 'https://your-api-base-url.com/api', // Replace with your actual API base URL
-      headers: {
-        'Authorization': 'Bearer your-auth-token', // Replace with actual auth token
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    );
+  client: client,
+  baseUrl: 'https://mock-api.example.com', // This can be any placeholder
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  useMockData: true, // Add a flag to use mock data instead of real API calls
+);
     
     final notificationLocalDataSource = NotificationLocalDataSourceImpl(
       sharedPreferences: sharedPreferences,
