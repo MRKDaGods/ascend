@@ -120,6 +120,20 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   addpost: false,
                   settings: true,
                 ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: NotificationFilter(
+                      availableTypes: ['Jobs', 'My posts', 'Mentions'],
+                      selectedType: _selectedFilterType,
+                      onFilterSelected: (type) {
+                        setState(() {
+                          _selectedFilterType = type;
+                        });
+                      },
+                    ),
+                  ),
+                ),
                 // Using SliverFillRemaining to properly fill the remaining space
                 SliverFillRemaining(
                   child: NotificationList(

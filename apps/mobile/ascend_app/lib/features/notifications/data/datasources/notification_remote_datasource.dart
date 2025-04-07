@@ -41,15 +41,57 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   final http.Client client;
   final String baseUrl;
   final Map<String, String> headers;
-  
+  final bool useMockData;
+
   NotificationRemoteDataSourceImpl({
     required this.client,
     required this.baseUrl,
     required this.headers,
+    this.useMockData = false,
   });
-  
+
   @override
   Future<List<NotificationModel>> getNotifications() async {
+    if (useMockData) {
+      // Return mock data with all required fields
+      return Future.delayed(const Duration(milliseconds: 800), () {
+        return [
+          NotificationModel(
+            id: '1',
+            title: 'New connection request',
+            message: 'John Doe wants to connect with you',
+            createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+            isRead: false,
+            type: 'connection',
+            relatedItemId: 'user123',
+            senderName: 'John Doe',
+            senderAvatarUrl: "assets/logo.jpg", // Remove the unreliable URL
+          ),
+          NotificationModel(
+            id: '2',
+            title: 'Post interaction',
+            message: 'Sarah liked your recent post about Flutter development',
+            createdAt: DateTime.now().subtract(const Duration(days: 1)),
+            isRead: true,
+            type: 'My posts',
+            relatedItemId: 'post123',
+            senderName: 'Sarah Johnson',
+            senderAvatarUrl: "assets/logo.jpg",
+          ),
+          NotificationModel(
+            id: '3',
+            title: 'Job opportunity',
+            message: 'New job matching your profile: Flutter Developer at Google',
+            createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+            isRead: false,
+            type: 'Jobs',
+            relatedItemId: 'job456',
+          ),
+          // Add more mock notifications here
+        ];
+      });
+    }
+
     try {
       final response = await client.get(
         Uri.parse('$baseUrl${ApiEndpoints.notifications}'),
