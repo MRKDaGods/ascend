@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/StartPages/Model/secure_storage_helper.dart';
 
 class SignOutPage extends StatefulWidget {
   const SignOutPage({super.key});
@@ -19,14 +20,14 @@ class _SignOutPageState extends State<SignOutPage> {
             const Text('Are you sure you want to sign out?'),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                // Handle sign out logic here
-                Navigator.pushNamed(
+              onPressed: () async {
+                await SecureStorageHelper.clearAll(); // Clear stored data
+                Navigator.pushReplacementNamed(
                   context,
-                  '/',
-                ); // Navigate to the welcome page
+                  '/signIn',
+                ); // Navigate to SignIn
               },
-              child: const Text('Sign Out'),
+              child: const Text('Logout'),
             ),
           ],
         ),

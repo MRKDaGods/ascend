@@ -1,6 +1,6 @@
-import 'package:ascend_app/features/StartPages/SignIn.dart';
-import 'package:ascend_app/features/StartPages/Widget/ContinueButton.dart';
-import 'package:ascend_app/features/StartPages/Widget/InputWidgets.dart'; // Add this import
+import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart'; // Add this import
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 
