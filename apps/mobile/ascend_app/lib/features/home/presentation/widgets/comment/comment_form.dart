@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/shared/widgets/user_avatar.dart';
 
 class CommentForm extends StatelessWidget {
   final TextEditingController controller;
@@ -7,6 +8,7 @@ class CommentForm extends StatelessWidget {
   final VoidCallback? onTap;
   final String? hintText;
   final String? userAvatarUrl;
+  final String? userName; // Add userName parameter
   final String? replyingTo;
   final VoidCallback? onCancelReply;
 
@@ -18,12 +20,17 @@ class CommentForm extends StatelessWidget {
     this.onTap,
     this.hintText,
     this.userAvatarUrl,
+    this.userName, // Add to constructor
     this.replyingTo,
     this.onCancelReply,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Use passed userName and userAvatarUrl directly
+    final String displayName = userName ?? 'You';
+    final bool hasAvatar = userAvatarUrl != null && userAvatarUrl!.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Column(
@@ -59,11 +66,9 @@ class CommentForm extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
+              UserAvatar(
+                imageUrl: userAvatarUrl,
                 radius: 16,
-                backgroundImage: userAvatarUrl != null && userAvatarUrl!.isNotEmpty
-                    ? NetworkImage(userAvatarUrl!) as ImageProvider
-                    : const AssetImage('assets/logo.jpg'),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -74,7 +79,7 @@ class CommentForm extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: replyingTo != null
                         ? 'Reply to $replyingTo...'
-                        : (hintText ?? 'Add a comment...'),
+                        : (hintText ?? 'Add a comment as $displayName...'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide.none,
