@@ -172,6 +172,7 @@ class _PostState extends State<Post> {
                     commentsCount: post.commentsCount,
                     reactionIcon: _getReactionIcon(post),
                     reactionColor: _getReactionColor(post),
+                    postId: post.id, // Add this line
                   ),
                 ),
 

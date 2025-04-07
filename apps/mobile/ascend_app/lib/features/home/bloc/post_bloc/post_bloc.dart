@@ -11,12 +11,71 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<LoadPosts>(_onLoadPosts);
     on<LoadMorePosts>(_onLoadMorePosts);
     on<TogglePostReaction>(_onTogglePostReaction);
-    on<AddComment>(_onAddComment);
+    on<AddComment>((event, emit) async {
+      final currentState = state;
+      if (currentState is PostsLoaded) {
+        try {
+          final newComment = Comment.create(
+            text: event.text,
+            authorId: event.authorId,
+            authorName: event.authorName,
+            authorImageUrl: event.authorImageUrl,
+          );
+          
+          final updatedPosts = currentState.posts.map((post) {
+            if (post.id == event.postId) {
+              return post.copyWith(
+                comments: [...post.comments, newComment],
+              );
+            }
+            return post;
+          }).toList();
+          
+          emit(PostsLoaded(updatedPosts));
+        } catch (e) {
+          emit(PostsError("Failed to add comment: ${e.toString()}"));
+        }
+      }
+    });
     on<ToggleCommentReaction>(_onToggleCommentReaction);
     on<UpdatePostComments>(_onUpdatePostComments);
     on<HidePost>(_onHidePost);
     on<ShowPostFeedbackOptions>(_onShowPostFeedbackOptions);
     on<HidePostFeedbackOptions>(_onHidePostFeedbackOptions);
+    on<AddCommentReply>((event, emit) async {
+      final currentState = state;
+      if (currentState is PostsLoaded) {
+        try {
+          final newReply = Comment.create(
+            text: event.text,
+            authorId: event.authorId,
+            authorName: event.authorName,
+            authorImageUrl: event.authorImageUrl,
+            parentId: event.parentId,
+          );
+          
+          final updatedPosts = currentState.posts.map((post) {
+            if (post.id == event.postId) {
+              final updatedComments = post.comments.map((comment) {
+                if (comment.id == event.parentId) {
+                  return comment.copyWith(
+                    replies: [...comment.replies, newReply],
+                  );
+                }
+                return comment;
+              }).toList();
+              
+              return post.copyWith(comments: updatedComments);
+            }
+            return post;
+          }).toList();
+          
+          emit(PostsLoaded(updatedPosts));
+        } catch (e) {
+          emit(PostsError("Failed to add reply: ${e.toString()}"));
+        }
+      }
+    });
     // Register other events here
   }
   
@@ -77,41 +136,6 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       } catch (e) {
         emit(PostsError('Failed to update reaction: $e'));
         emit(currentState); // Revert to previous state
-      }
-    }
-  }
-  
-  Future<void> _onAddComment(AddComment event, Emitter<PostState> emit) async {
-    if (state is PostsLoaded) {
-      final currentState = state as PostsLoaded;
-      try {
-        final post = currentState.getPostById(event.postId);
-        if (post == null) return;
-        
-        // Create new comment
-        final newComment = Comment.create(
-          text: event.text,
-          parentId: event.parentId,
-          authorName: event.authorName,
-          authorImageUrl: event.authorImageUrl,
-          authorOccupation: event.authorOccupation,
-        );
-        
-        // Add comment to post
-        final updatedPost = post.addComment(newComment);
-        
-        // Update repository
-        await _postRepository.updatePost(updatedPost);
-        
-        // Update state
-        final posts = currentState.posts.map((p) => 
-          p.id == updatedPost.id ? updatedPost : p
-        ).toList();
-        
-        emit(PostsLoaded(posts));
-      } catch (e) {
-        emit(PostsError('Failed to add comment: $e'));
-        emit(currentState);
       }
     }
   }

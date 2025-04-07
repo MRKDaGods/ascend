@@ -10,7 +10,10 @@ class PostCommentsSection extends StatefulWidget {
   final Function(List<Comment>) onCommentsChanged;
   final VoidCallback? onTapCommentArea;
   final Function(String, String?)? onReaction;
+  final Function(Comment parentComment, Comment replyingTo)? onNavigateToReply;
+  final Function(String, String?) onAddComment; // Updated to include user info
   final String postId;
+  final String currentUserId; // Add this to identify current user
 
   const PostCommentsSection({
     Key? key,
@@ -20,7 +23,10 @@ class PostCommentsSection extends StatefulWidget {
     required this.onCommentsChanged,
     this.onTapCommentArea,
     this.onReaction,
+    this.onNavigateToReply,
+    required this.onAddComment,
     required this.postId,
+    required this.currentUserId,
   }) : super(key: key);
 
   @override
@@ -70,67 +76,50 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
         const SizedBox(height: 16),
         
         // Comments list
-        ...widget.comments.map((comment) => Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: CommentItem(
-            comment: comment,
-            showReplies: _expandedComments[comment.id] ?? false,
-            onReaction: widget.onReaction,
-            onReply: (commentId) => _handleReply(context, commentId, comment.authorName),
-            onMenuAction: (commentId, action) => _handleMenuAction(context, commentId, action),
-            onViewRepliesTap: (commentId) {
-              setState(() {
-                _expandedComments[commentId] = true;
-              });
-            },
-            onHideRepliesTap: (commentId) {
-              setState(() {
-                _expandedComments[commentId] = false;
-              });
-            },
-          ),
-        )).toList(),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: widget.comments.length,
+          itemBuilder: (context, index) {
+            final comment = widget.comments[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: CommentItem(
+                comment: comment,
+                showReplies: _expandedComments[comment.id] ?? false,
+                isCurrentUser: comment.authorId == widget.currentUserId, // Pass this flag
+                onReaction: widget.onReaction,
+                onReply: (commentId) => _handleReply(context, commentId, comment.authorName),
+                onMenuAction: (commentId, action) => _handleMenuAction(context, commentId, action),
+                onViewRepliesTap: (commentId) {
+                  setState(() {
+                    _expandedComments[commentId] = true;
+                  });
+                },
+                onHideRepliesTap: (commentId) {
+                  setState(() {
+                    _expandedComments[commentId] = false;
+                  });
+                },
+              ),
+            );
+          },
+        ),
       ],
     );
   }
 
   void _addComment(BuildContext context, String text) {
-    if (text.isEmpty) return;
-    
-    final newComment = Comment(
-      id: 'comment_${DateTime.now().millisecondsSinceEpoch}',
-      authorName: 'Current User', // Replace with actual user info
-      authorImageUrl: 'assets/images/avatar.png', // Replace with actual user avatar
-      text: text,
-      timePosted: 'Just now',
-      parentId: _replyingToCommentId,
-    );
-    
-    // Update comments list - either add a new top-level comment or a reply
-    List<Comment> updatedComments;
-    
+    // Pass the text and parent ID (if replying) to the callback
     if (_replyingToCommentId != null) {
-      // Add a reply to an existing comment
-      updatedComments = widget.comments.map((c) {
-        if (c.id == _replyingToCommentId) {
-          // Add reply to this comment
-          List<Comment> updatedReplies = [...c.replies, newComment];
-          return c.copyWith(replies: updatedReplies);
-        }
-        return c;
-      }).toList();
+      widget.onAddComment(text, _replyingToCommentId);
     } else {
-      // Add a new top-level comment
-      updatedComments = [...widget.comments, newComment];
+      widget.onAddComment(text, null);
     }
     
-    // Notify parent
-    widget.onCommentsChanged(updatedComments);
-    
-    // Clear the form
+    // Clear the form and reset reply state
     widget.commentController.clear();
     
-    // Reset reply state
     if (_replyingToCommentId != null) {
       setState(() {
         _replyingToCommentId = null;
@@ -140,6 +129,37 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
   }
 
   void _handleReply(BuildContext context, String commentId, String authorName) {
+    // Find the comment we're replying to
+    Comment? targetComment;
+    Comment? parentComment;
+    
+    // Find the target comment (could be parent or reply)
+    for (final comment in widget.comments) {
+      if (comment.id == commentId) {
+        targetComment = comment;
+        parentComment = comment; // If it's a parent comment, they're the same
+        break;
+      }
+      
+      // Check if it's a reply
+      for (final reply in comment.replies) {
+        if (reply.id == commentId) {
+          targetComment = reply;
+          parentComment = comment; // The parent of this reply
+          break;
+        }
+      }
+      
+      if (targetComment != null) break;
+    }
+    
+    // If we found the comments and have a navigation callback, navigate
+    if (targetComment != null && parentComment != null && widget.onNavigateToReply != null) {
+      widget.onNavigateToReply!(parentComment, targetComment);
+      return;
+    }
+    
+    // Fallback to the original behavior
     setState(() {
       _replyingToCommentId = commentId;
       _replyingToAuthor = authorName;

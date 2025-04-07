@@ -1,103 +1,113 @@
 import 'package:equatable/equatable.dart';
-import 'package:uuid/uuid.dart';
 
 class Comment extends Equatable {
   final String id;
+  final String text;
+  final String authorId; // Add this field to identify the author
   final String authorName;
   final String authorImageUrl;
   final String authorOccupation;
-  final String text;
   final String timePosted;
-  final String? parentId;
-  final List<Comment> replies;
   final int likesCount;
   final bool isLiked;
   final String? currentReaction;
-  
-  static final Uuid _uuid = Uuid();
-  
+  final List<Comment> replies;
+  final String? parentId;
+
+
   const Comment({
     required this.id,
+    required this.text,
+    required this.authorId,
     required this.authorName,
     required this.authorImageUrl,
     this.authorOccupation = '',
-    required this.text,
     required this.timePosted,
-    this.parentId,
-    this.replies = const [],
     this.likesCount = 0,
     this.isLiked = false,
     this.currentReaction,
+    this.replies = const [],
+    this.parentId,
   });
-  
-  // Factory method to create a new comment
-  static Comment create({
+
+  // Factory method for creating a new comment with current user info
+  factory Comment.create({
     required String text,
+    required String authorId,
+    required String authorName,
+    required String authorImageUrl,
+    String authorOccupation = '',
     String? parentId,
-    String authorName = 'Current User',
-    String authorImageUrl = 'assets/images/profile/current_user.jpg',
-    String authorOccupation = 'User',
   }) {
     return Comment(
-      id: _uuid.v4(),
+      id: 'comment_${DateTime.now().millisecondsSinceEpoch}',
+      text: text,
+      authorId: authorId,
       authorName: authorName,
       authorImageUrl: authorImageUrl,
       authorOccupation: authorOccupation,
-      text: text,
       timePosted: 'Just now',
+      likesCount: 0,
+      isLiked: false,
+      currentReaction: null,
+      replies: [],
       parentId: parentId,
     );
   }
-  
+
   @override
   List<Object?> get props => [
-    id, 
-    authorName, 
-    authorImageUrl, 
-    authorOccupation, 
-    text,
-    timePosted,
-    parentId,
-    replies,
-    likesCount,
-    isLiked,
-    currentReaction,
-  ];
-  
+        id,
+        text,
+        authorId,
+        authorName,
+        authorImageUrl,
+        authorOccupation,
+        timePosted,
+        likesCount,
+        isLiked,
+        currentReaction,
+        replies,
+        parentId,
+      ];
+
+  // Add copyWith method
   Comment copyWith({
     String? id,
+    String? text,
+    String? authorId,
     String? authorName,
     String? authorImageUrl,
     String? authorOccupation,
-    String? text,
     String? timePosted,
-    String? parentId,
-    List<Comment>? replies,
     int? likesCount,
     bool? isLiked,
     String? currentReaction,
+    List<Comment>? replies,
+    String? parentId,
   }) {
     return Comment(
       id: id ?? this.id,
+      text: text ?? this.text,
+      authorId: authorId ?? this.authorId,
       authorName: authorName ?? this.authorName,
       authorImageUrl: authorImageUrl ?? this.authorImageUrl,
       authorOccupation: authorOccupation ?? this.authorOccupation,
-      text: text ?? this.text,
       timePosted: timePosted ?? this.timePosted,
-      parentId: parentId ?? this.parentId,
-      replies: replies ?? this.replies,
       likesCount: likesCount ?? this.likesCount,
       isLiked: isLiked ?? this.isLiked,
       currentReaction: currentReaction ?? this.currentReaction,
+      replies: replies ?? this.replies,
+      parentId: parentId ?? this.parentId,
     );
   }
-  
+
   // Helper method to add a new reply
   Comment copyWithNewReply(Comment reply) {
     final updatedReplies = [...replies, reply];
     return copyWith(replies: updatedReplies);
   }
-  
+
   // Helper to toggle reaction
   Comment toggleReaction(String? reactionType) {
     if (isLiked && reactionType == currentReaction) {
@@ -122,10 +132,11 @@ class Comment extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'text': text,
+      'authorId': authorId,
       'authorName': authorName,
       'authorImageUrl': authorImageUrl,
       'authorOccupation': authorOccupation,
-      'text': text,
       'timePosted': timePosted,
       'likesCount': likesCount,
       'isLiked': isLiked,
@@ -139,10 +150,11 @@ class Comment extends Equatable {
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
       id: json['id'] as String,
+      text: json['text'] as String,
+      authorId: json['authorId'] as String,
       authorName: json['authorName'] as String,
       authorImageUrl: json['authorImageUrl'] as String,
       authorOccupation: json['authorOccupation'] as String? ?? '',
-      text: json['text'] as String,
       timePosted: json['timePosted'] as String,
       likesCount: json['likesCount'] as int? ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,

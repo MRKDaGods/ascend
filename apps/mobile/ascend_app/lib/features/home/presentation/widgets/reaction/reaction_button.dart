@@ -54,7 +54,14 @@ class _ReactionButtonState extends State<ReactionButton> with SingleTickerProvid
         if (widget.onTap != null) {
           widget.onTap!();
         } else {
-          widget.manager.toggleReaction();
+          // Check if we need to remove current reaction or toggle to default
+          if (widget.manager.isLiked) {
+            // If already has a reaction, remove it
+            widget.manager.removeReaction();
+          } else {
+            // If no reaction, add the default one
+            widget.manager.toggleReaction();
+          }
           setState(() {}); // Force a rebuild with the new state
         }
       },
