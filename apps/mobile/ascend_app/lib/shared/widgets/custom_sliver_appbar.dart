@@ -68,64 +68,61 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
           ),
         ),
       ),
-      title: BlocProvider(
-        create: (context) => SearchBloc(),
-        child: BlocBuilder<SearchBloc, SearchState>(
-          builder: (context, state) {
-            return Card.outlined(
-              child: TextField(
-                onTap: () {
-                  // Handle the tap event
-                  if (widget.onJobAction != null) {
-                    widget.onJobAction!();
-                  }
-                },
-                onChanged: (value) {
-                  context.read<SearchBloc>().add(SearchTextChanged(value));
-                },
-                decoration: InputDecoration(
-                  prefixIcon:
-                      widget.jobs
-                          ? const Icon(Icons.work_rounded)
-                          : const Icon(Icons.search),
-                  hintText: widget.jobs ? 'Search Jobs' : 'Search',
-                  border: InputBorder.none,
-                  suffixIcon:
-                      state.showDeleteButton
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              context.read<SearchBloc>().add(
-                                SearchTextChanged(''),
-                              );
-                            },
-                          )
-                          : IconButton(
-                            icon: const Icon(Icons.qr_code),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder:
-                                    (context) => AlertDialog(
-                                      title: const Text('QR Code'),
-                                      content: const Text('This is a QR Code'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('OK'),
-                                        ),
-                                      ],
-                                    ),
-                              );
-                            },
-                          ),
-                ),
+      title: BlocBuilder<SearchBloc, SearchState>(
+        builder: (context, state) {
+          return Card.outlined(
+            child: TextField(
+              onTap: () {
+                // Handle the tap event
+                if (widget.onJobAction != null) {
+                  widget.onJobAction!();
+                }
+              },
+              onChanged: (value) {
+                context.read<SearchBloc>().add(SearchTextChanged(value));
+              },
+              decoration: InputDecoration(
+                prefixIcon:
+                    widget.jobs
+                        ? const Icon(Icons.work_rounded)
+                        : const Icon(Icons.search),
+                hintText: widget.jobs ? 'Search Jobs' : 'Search',
+                border: InputBorder.none,
+                suffixIcon:
+                    state.showDeleteButton
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            context.read<SearchBloc>().add(
+                              SearchTextChanged(''),
+                            );
+                          },
+                        )
+                        : IconButton(
+                          icon: const Icon(Icons.qr_code),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: const Text('QR Code'),
+                                    content: const Text('This is a QR Code'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                          },
+                        ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
       actions: [
         Row(
