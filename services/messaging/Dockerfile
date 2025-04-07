@@ -16,4 +16,5 @@ WORKDIR /app/services/messaging
 RUN npm run build
 
 EXPOSE 3010
+EXPOSE 3011
 CMD ["npm", "start"]
