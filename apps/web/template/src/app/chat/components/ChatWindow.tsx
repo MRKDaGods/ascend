@@ -40,38 +40,38 @@ export default function ChatWindow(){
     // TEMPORARYY TO CHECK IF SOMEONE BLOCKED ME
     
       
-              useEffect(() => {
-                const interval = setInterval(async () => {
-                  try {
-                    const res = await axios.get("http://localhost:3001/conversations");
+            //   useEffect(() => {
+            //     const interval = setInterval(async () => {
+            //       try {
+            //         const res = await axios.get("http://localhost:3001/conversations");
                     
-                    const updatedConversations = res.data; // this has isBlockedByPartner
+            //         const updatedConversations = res.data; // this has isBlockedByPartner
               
-                    const blockedUserIds: string[] = [];
+            //         const blockedUserIds: string[] = [];
               
-                    //  Update conversations
-                    const updatedConvos = updatedConversations.map((updated:conversation) => {
-                      if (updated.isBlockedByPartner) {
-                        blockedUserIds.push(updated.userId); // collect the blocked user's ID
-                        return {
-                          ...updated,
-                          name: "LinkedIn User",
-                          avatar: "",
-                        };
-                      }
-                      return updated;
-                    });
+            //         //  Update conversations
+            //         const updatedConvos = updatedConversations.map((updated:conversation) => {
+            //           if (updated.isBlockedByPartner) {
+            //             blockedUserIds.push(updated.userId); // collect the blocked user's ID
+            //             return {
+            //               ...updated,
+            //               name: "LinkedIn User",
+            //               avatar: "",
+            //             };
+            //           }
+            //           return updated;
+            //         });
               
-                    // Set conversations
-                    useChatStore.getState().setConversations(updatedConvos);
+            //         // Set conversations
+            //         useChatStore.getState().setConversations(updatedConvos);
 
-                  } catch (e) {
-                    console.error("Polling for block updates failed:", e);
-                  }
-                }, 10000); // every 10s
+            //       } catch (e) {
+            //         console.error("Polling for block updates failed:", e);
+            //       }
+            //     }, 10000); // every 10s
               
-                return () => clearInterval(interval);
-              }, []);
+            //     return () => clearInterval(interval);
+            //   }, []);
               
 
       //PERMANENT check for blocks (NOT FINAL COULD NEED UPDATES)
@@ -229,9 +229,10 @@ export default function ChatWindow(){
             return;
           }
       
-          await axios.post("http://localhost:3001/messages/block", {
+          const res = await axios.post("http://localhost:3001/messages/block", {
             userId: conversation.userId,
           });
+          console.log(res.data)
       
           setConversations(conversations.filter((c) => c.id !== selectedConversationId));
           setSelectedConversationId(null);

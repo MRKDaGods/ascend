@@ -12,7 +12,7 @@ type chatStore ={
     selectedConversationId: number | null;
     setSelectedConversationId: (id: number | null) => void;
     conversations: conversation[];
-    setConversations: (convos: conversation[])=>void;
+    setConversations: (convos: conversation[] | ((prev:conversation[])=>conversation[]))=>void;
     updateLastMessage: (conversationId: number,newLastMessage:string) =>void;
     messagesByConversation: { [conversationId: number]: messageProps[]};
     setMessagesForConversation: (id: number, msgs: messageProps[] | ((prev: messageProps[])=>messageProps[]))=>void;
@@ -35,7 +35,11 @@ export const useChatStore = create<chatStore>((set)=>({
     selectedConversationId: null,
     setSelectedConversationId: (id)=>set({selectedConversationId: id}),
     conversations:[],
-    setConversations: (convos)=>set({conversations: convos}),
+    setConversations: (convosOrFn)=>
+        typeof convosOrFn === "function"
+        ? set((state)=> ({conversations:convosOrFn(state.conversations)}))
+        : set({conversations:convosOrFn})
+     ,
     updateLastMessage: (conversationId,newLastMessage)=> set((state)=>({
         conversations: state.conversations.map((conv)=> 
         conv.id===conversationId? {...conv,lastMessage:newLastMessage} : conv
