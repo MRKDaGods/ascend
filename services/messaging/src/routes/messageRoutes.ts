@@ -4,18 +4,18 @@ import {
   handleGetConversations,
   handleGetMessages,
   handleSendMessage,
-  handleUnseenCount,
+  handleGetUnseenCount,
 } from "../controllers/messageController";
 
-const router = Router();
+const messageRouter = Router();
 
-router.post("/", authenticateToken, handleSendMessage);
-router.get("/unseen-count", authenticateToken, handleUnseenCount);
-router.get("/conversations", authenticateToken, handleGetConversations);
-router.get(
+messageRouter.post("/", authenticateToken, handleSendMessage);
+messageRouter.get("/unseen-count", authenticateToken, handleGetUnseenCount);
+messageRouter.get("/conversations", authenticateToken, handleGetConversations);
+messageRouter.get(
   "/conversations/:conversationId",
   authenticateToken,
   handleGetMessages
 );
 
-export default router;
+export default messageRouter;

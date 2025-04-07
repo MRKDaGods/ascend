@@ -1,108 +1,195 @@
-import db from "@shared/config/db";
+import database from "@shared/config/db";
+import { Message, Conversation } from "packages/shared/src/models/message";
 
 interface PaginatedResponse<T> {
   data: T[];
   pagination: {
-    total_records: number;
-    total_pages: number;
-    current_page: number;
-    next_page: number | null;
-    prev_page: number | null;
+    totalRecords: number;
+    totalPages: number;
+    currentPage: number;
+    nextPage: number | null;
+    previousPage: number | null;
   };
 }
 
-interface Conversation {
-  conversationId: number;
-  connectedUserId: number;
-  lastMessageContent: string;
-  lastMessageTimestamp: Date;
-  unseenCount: number;
-}
+/**
+ * Validates if a user belongs to a conversation
+ * @param {number} conversationId - The conversation ID to check
+ * @param {number} userId - The user ID to validate
+ * @returns {Promise<boolean>} Whether the user is in the conversation
+ */
+export const validateUserInConversation = async (
+  conversationId: number,
+  userId: number
+): Promise<boolean> => {
+  try {
+    const queryResult = await database.query(
+      `
+      SELECT conversation_id
+      FROM messaging_service.conversations
+      WHERE conversation_id = $1 AND (user1_id = $2 OR user2_id = $2)
+      `,
+      [conversationId, userId]
+    );
 
-interface Message {
-  messageId: number;
-  senderId: number;
-  content: string;
-  mediaId: number;
-  sentAt: Date;
-  readAt: Date;
-  isRead: boolean;
-  isEdited: boolean;
-  isDeleted: boolean;
-}
+    return queryResult.rows.length > 0;
+  } catch (error) {
+    console.error("Error validating user in conversation:", error);
+    throw new Error("Failed to validate user in conversation");
+  }
+};
 
+/**
+ * Gets the ID of the other user in a conversation
+ * @param {number} conversationId - The conversation ID
+ * @param {number} userId - The current user's ID
+ * @returns {Promise<number>} The other user's ID
+ */
+export const getOtherUserId = async (
+  conversationId: number,
+  userId: number
+): Promise<number> => {
+  try {
+    const queryResult = await database.query(
+      `
+      SELECT
+          CASE
+              WHEN user1_id = $1 THEN user2_id
+              ELSE user1_id
+          END AS other_user_id
+      FROM messaging_service.conversations
+      WHERE conversation_id = $2
+      `,
+      [userId, conversationId]
+    );
+
+    return parseInt(queryResult.rows[0].other_user_id);
+  } catch (error) {
+    console.error("Error fetching other user ID:", error);
+    throw new Error("Failed to fetch other user ID");
+  }
+};
+
+/**
+ * Marks unread messages from a sender in a conversation as read
+ * @param {number} conversationId - The conversation ID
+ * @param {number} senderId - The sender's ID whose messages to mark as read
+ * @returns {Promise<void>}
+ */
+export const markMessagesAsRead = async (
+  conversationId: number,
+  senderId: number
+): Promise<void> => {
+  try {
+    await database.query(
+      `
+      UPDATE messaging_service.messages
+      SET is_read = TRUE, read_at = NOW()
+      WHERE conversation_id = $1 AND sender_id = $2 AND is_read = FALSE
+      `,
+      [conversationId, senderId]
+    );
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    throw new Error("Failed to mark messages as read");
+  }
+};
+
+/**
+ * Sends a message between users, creating a conversation if needed
+ * @param {number} senderId - The sender's ID
+ * @param {number} receiverId - The receiver's ID
+ * @param {string} messageContent - The message content
+ * @param {boolean} includesFiles - Whether the message includes files
+ * @returns {Promise<{conversationId: number, messageId: number, content: string, sentAt: Date}>}
+ */
 export const sendMessage = async (
   senderId: number,
   receiverId: number,
-  content: string,
-  hasFiles: boolean
-): Promise<boolean> => {
+  messageContent: string,
+  includesFiles: boolean
+): Promise<{
+  conversationId: number;
+  messageId: number;
+  content: string;
+  sentAt: Date;
+}> => {
   try {
-    // get conversationId
-    const conversationResult = await db.query(
+    let conversationId: string;
+
+    const conversationQueryResult = await database.query(
       `SELECT conversation_id FROM messaging_service.conversations WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)`,
       [senderId, receiverId]
     );
 
-    let conversationId: string;
-    // check if conversation exists
-    if (conversationResult.rows.length > 0) {
-      conversationId = conversationResult.rows[0].conversation_id;
+    if (conversationQueryResult.rows.length > 0) {
+      conversationId = conversationQueryResult.rows[0].conversation_id;
     } else {
-      // create new conversation
-      const newConversationResult = await db.query(
+      const newConversationResult = await database.query(
         `INSERT INTO messaging_service.conversations (user1_id, user2_id) VALUES ($1, $2) RETURNING conversation_id`,
         [senderId, receiverId]
       );
       conversationId = newConversationResult.rows[0].conversation_id;
     }
 
-    // insert message
-    const messageResult = await db.query(
-      `INSERT INTO messaging_service.messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING message_id`,
-      [conversationId, senderId, content]
+    const messageInsertResult = await database.query(
+      `INSERT INTO messaging_service.messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING message_id, sent_at`,
+      [conversationId, senderId, messageContent]
     );
 
-    // update conversation with last message id
-    await db.query(
+    await database.query(
       `UPDATE messaging_service.conversations SET last_message_id = $1 WHERE conversation_id = $2`,
-      [messageResult.rows[0].message_id, conversationId]
+      [messageInsertResult.rows[0].message_id, conversationId]
     );
 
-    return true;
+    return {
+      conversationId: parseInt(conversationId),
+      messageId: parseInt(messageInsertResult.rows[0].message_id),
+      content: messageContent,
+      sentAt: messageInsertResult.rows[0].sent_at,
+    };
   } catch (error) {
     console.error("Error sending message:", error);
     throw new Error("Failed to send message");
   }
 };
 
+/**
+ * Gets the count of unseen messages for a user
+ * @param {number} userId - The user's ID
+ * @returns {Promise<number>} The number of unseen messages
+ */
 export const getUnseenCount = async (userId: number): Promise<number> => {
   try {
-    const result = await db.query(
+    const queryResult = await database.query(
       `
-        SELECT COUNT(*)
-        FROM messaging_service.messages
-        WHERE is_read = FALSE AND sender_id != $1 AND
-        conversation_id IN
-        (SELECT conversation_id FROM messaging_service.conversations WHERE user1_id = $1 OR user2_id = $1)
+        SELECT COUNT(m.message_id)
+        FROM messaging_service.messages m
+        JOIN messaging_service.conversations c ON m.conversation_id = c.conversation_id
+        WHERE m.is_read = FALSE AND m.sender_id != $1 AND (c.user1_id = $1 OR c.user2_id = $1)
         `,
       [userId]
     );
 
-    return result.rows.length > 0 ? parseInt(result.rows[0].count) : 0;
+    return parseInt(queryResult.rows[0].count) || 0;
   } catch (error) {
     console.error("Error fetching unseen count:", error);
     throw new Error("Failed to fetch unseen count");
   }
 };
 
+/**
+ * Retrieves paginated conversations for a user
+ * @param {number} userId - The user's ID
+ * @param {number} pageNumber - The page number to fetch
+ * @returns {Promise<PaginatedResponse<Conversation>>} Paginated conversation data
+ */
 export const getConversations = async (
   userId: number,
-  page: number
+  pageNumber: number
 ): Promise<PaginatedResponse<Conversation>> => {
   try {
-    // Get total count for pagination
-    const countResult = await db.query(
+    const countQueryResult = await database.query(
       `
         SELECT COUNT(*) as total
         FROM messaging_service.conversations c
@@ -111,13 +198,12 @@ export const getConversations = async (
       [userId]
     );
 
-    const LIMIT = 20; // Limit for pagination
-    const totalRecords = parseInt(countResult.rows[0].total);
-    const totalPages = Math.ceil(totalRecords / LIMIT);
-    const offset = (page - 1) * LIMIT;
+    const PAGE_SIZE = 20;
+    const totalRecordsCount = parseInt(countQueryResult.rows[0].total);
+    const totalPageCount = Math.ceil(totalRecordsCount / PAGE_SIZE);
+    const pageOffset = (pageNumber - 1) * PAGE_SIZE;
 
-    // Get paginated conversations
-    const result = await db.query(
+    const conversationsQueryResult = await database.query(
       `
         SELECT
             c.conversation_id,
@@ -136,25 +222,25 @@ export const getConversations = async (
         ORDER BY last_message_timestamp DESC NULLS LAST
         LIMIT $2 OFFSET $3
         `,
-      [userId, LIMIT, offset]
+      [userId, PAGE_SIZE, pageOffset]
     );
 
-    const conversations = result.rows.map((row) => ({
+    const conversationList = conversationsQueryResult.rows.map((row) => ({
       conversationId: row.conversation_id,
-      connectedUserId: row.connected_user_id,
+      otherUserId: row.connected_user_id,
       lastMessageContent: row.last_message_content,
       lastMessageTimestamp: row.last_message_timestamp,
-      unseenCount: parseInt(row.unseen_count),
+      unseenMessageCount: parseInt(row.unseen_count),
     }));
 
     return {
-      data: conversations,
+      data: conversationList,
       pagination: {
-        total_records: totalRecords,
-        current_page: page,
-        total_pages: totalPages,
-        next_page: page < totalPages ? page + 1 : null,
-        prev_page: page > 1 ? page - 1 : null,
+        totalRecords: totalRecordsCount,
+        currentPage: pageNumber,
+        totalPages: totalPageCount,
+        nextPage: pageNumber < totalPageCount ? pageNumber + 1 : null,
+        previousPage: pageNumber > 1 ? pageNumber - 1 : null,
       },
     };
   } catch (error) {
@@ -163,29 +249,18 @@ export const getConversations = async (
   }
 };
 
+/**
+ * Retrieves paginated messages for a conversation
+ * @param {number} conversationId - The conversation ID
+ * @param {number} pageNumber - The page number to fetch
+ * @returns {Promise<PaginatedResponse<Message>>} Paginated message data
+ */
 export const getMessages = async (
-  conversationId: string,
-  userId: number,
-  page: number
+  conversationId: number,
+  pageNumber: number
 ): Promise<PaginatedResponse<Message>> => {
   try {
-    // First, validate that this conversation belongs to this user
-    const conversationCheck = await db.query(
-      `
-      SELECT conversation_id
-      FROM messaging_service.conversations
-      WHERE conversation_id = $1 AND (user1_id = $2 OR user2_id = $2)
-      `,
-      [conversationId, userId]
-    );
-
-    // If no matching conversation is found, the user doesn't have access
-    if (conversationCheck.rows.length === 0) {
-      throw new Error("Unauthorized access to conversation");
-    }
-
-    // Get total count for pagination
-    const countResult = await db.query(
+    const countQueryResult = await database.query(
       `
       SELECT COUNT(*) as total
       FROM messaging_service.messages
@@ -194,13 +269,12 @@ export const getMessages = async (
       [conversationId]
     );
 
-    const LIMIT = 20; // Limit for pagination
-    const totalRecords = parseInt(countResult.rows[0].total);
-    const totalPages = Math.ceil(totalRecords / LIMIT);
-    const offset = (page - 1) * LIMIT;
+    const PAGE_SIZE = 20;
+    const totalRecordsCount = parseInt(countQueryResult.rows[0].total);
+    const totalPageCount = Math.ceil(totalRecordsCount / PAGE_SIZE);
+    const pageOffset = (pageNumber - 1) * PAGE_SIZE;
 
-    // Get paginated messages
-    const result = await db.query(
+    const messagesQueryResult = await database.query(
       `
       SELECT
           m.message_id,
@@ -217,10 +291,10 @@ export const getMessages = async (
       ORDER BY sent_at DESC
       LIMIT $2 OFFSET $3
       `,
-      [conversationId, LIMIT, offset]
+      [conversationId, PAGE_SIZE, pageOffset]
     );
 
-    const messages = result.rows.map((row) => ({
+    const messageList = messagesQueryResult.rows.map((row) => ({
       messageId: row.message_id,
       senderId: row.sender_id,
       content: row.content,
@@ -232,24 +306,14 @@ export const getMessages = async (
       isDeleted: row.is_deleted,
     }));
 
-    // Also mark messages as read if they were sent by the other user
-    await db.query(
-      `
-      UPDATE messaging_service.messages
-      SET is_read = TRUE, read_at = NOW()
-      WHERE conversation_id = $1 AND sender_id != $2 AND is_read = FALSE
-      `,
-      [conversationId, userId]
-    );
-
     return {
-      data: messages,
+      data: messageList,
       pagination: {
-        total_records: totalRecords,
-        current_page: page,
-        total_pages: totalPages,
-        next_page: page < totalPages ? page + 1 : null,
-        prev_page: page > 1 ? page - 1 : null,
+        totalRecords: totalRecordsCount,
+        currentPage: pageNumber,
+        totalPages: totalPageCount,
+        nextPage: pageNumber < totalPageCount ? pageNumber + 1 : null,
+        previousPage: pageNumber > 1 ? pageNumber - 1 : null,
       },
     };
   } catch (error) {
