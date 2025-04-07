@@ -13,33 +13,43 @@ class CommentManager {
     this.userProfile,
   });
   
-  void addComment(String text, {String? authorName, String? authorImage, String? authorOccupation}) {
+  void addComment(String text, {String? authorId, String? authorName, String? authorImage, String? authorOccupation}) {
     if (text.isEmpty) return;
     
     // Use current user's data from UserProfileModel if available
     final newComment = Comment(
       id: DateTime.now().toString(),
-      authorName: authorName ?? userProfile?.name ?? 'You',
-      authorImageUrl: authorImage ?? userProfile?.avatarUrl ?? 'assets/logo.jpg',
+      authorId: authorId ?? userProfile?.id ?? 'unknown',  // Add authorId
+      authorName: authorName ?? userProfile?.name ?? 'Anonymous',
+      authorImageUrl: authorImage ?? userProfile?.avatarUrl ?? 'assets/default_avatar.png',
       authorOccupation: authorOccupation ?? userProfile?.position ?? '',
       text: text,
       timePosted: 'Just now',
+      likesCount: 0,
+      isLiked: false,
+      currentReaction: null,
+      replies: [],
     );
     
     final updatedComments = [...comments, newComment];
     onCommentsChanged(updatedComments);
   }
   
-  void addReply(String text, String parentId, {String? authorName, String? authorImage, String? authorOccupation}) {
+  void addReply(String text, String parentId, {String? authorId, String? authorName, String? authorImage, String? authorOccupation}) {
     if (text.isEmpty) return;
     
     final newReply = Comment(
       id: DateTime.now().toString(),
-      authorName: authorName ?? userProfile?.name ?? 'You',
-      authorImageUrl: authorImage ?? userProfile?.avatarUrl ?? 'assets/logo.jpg',
+      authorId: authorId ?? userProfile?.id ?? 'unknown',  // Add authorId
+      authorName: authorName ?? userProfile?.name ?? 'Anonymous',
+      authorImageUrl: authorImage ?? userProfile?.avatarUrl ?? 'assets/default_avatar.png',
       authorOccupation: authorOccupation ?? userProfile?.position ?? '',
       text: text,
       timePosted: 'Just now',
+      likesCount: 0,
+      isLiked: false,
+      currentReaction: null,
+      replies: [],
       parentId: parentId,
     );
     
