@@ -1,11 +1,12 @@
 import 'package:ascend_app/features/Logo/LogoWidget.dart';
-import 'package:ascend_app/features/StartPages/JoinAscend.dart';
-import 'package:ascend_app/features/StartPages/Widget/InputWidgets.dart';
+import 'package:ascend_app/features/StartPages/Model/secure_storage_helper.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/JoinAscend.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/StartPages/welcome.dart';
-import 'package:ascend_app/features/StartPages/Widget/ContinueButton.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -194,13 +195,30 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       SizedBox(height: screenHeight * 0.01),
                       buildOutlinedButton(
-                        onPressed: () {
-                          // Handle the email data
+                        onPressed: () async {
                           final email = _emailController.text;
-                          if (InputValidators.isValidEmailOrPhone(email)) {
+                          final password = _passwordController.text;
+
+                          // Validate email and password
+                          if (InputValidators.isValidEmailOrPhone(email) &&
+                              password.isNotEmpty) {
                             setState(() {
                               _emailError = '';
+                              _passwordError = '';
                             });
+
+                            // Simulate API call and response
+                            final authToken =
+                                'sample_auth_token'; // Replace with actual token from API
+                            final userId =
+                                '12345'; // Replace with actual user ID from API
+
+                            // Save data to secure storage
+                            await SecureStorageHelper.saveEmail(email);
+                            await SecureStorageHelper.saveAuthToken(authToken);
+                            await SecureStorageHelper.saveUserId(userId);
+
+                            // Navigate to the main app
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -211,8 +229,11 @@ class _SignInPageState extends State<SignInPage> {
                             );
                           } else {
                             setState(() {
-                              _emailError =
-                                  'Email address or phone number is not valid';
+                              _emailError = 'Invalid email or phone number';
+                              _passwordError =
+                                  password.isEmpty
+                                      ? 'Password cannot be empty'
+                                      : '';
                             });
                           }
                         },
