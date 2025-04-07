@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/post_bloc/post_bloc.dart';
+import '../bloc/post_bloc/post_event.dart';
 
 class ReactionManager {
   // Static maps for reaction icons and colors
@@ -23,40 +26,65 @@ class ReactionManager {
   // Instance properties
   bool _isLiked = false;
   String? _currentReaction;
+  final String? postId;
+  final BuildContext? context;
   
   // Getters
   bool get isLiked => _isLiked;
   String? get currentReaction => _currentReaction;
   
   // Constructor - can initialize with existing reaction state
-  ReactionManager({bool isLiked = false, String? currentReaction}) {
+  ReactionManager({
+    bool isLiked = false, 
+    String? currentReaction,
+    this.postId,
+    this.context,
+  }) {
     _isLiked = isLiked;
     _currentReaction = currentReaction;
   }
   
-  // Toggle the default reaction (like)
+  // Toggle the default reaction with Bloc integration
   void toggleReaction() {
-    if (_isLiked && _currentReaction == 'like') {
-      // If already liked with default reaction, remove it
+    if (_isLiked) {
       _isLiked = false;
       _currentReaction = null;
     } else {
-      // Otherwise set to default like
       _isLiked = true;
       _currentReaction = 'like';
     }
+    
+    // Update the Bloc if we have context and postId
+    _updateBloc();
   }
   
   // Update to a specific reaction
   void updateReaction(String reactionType) {
-    _isLiked = true;
-    _currentReaction = reactionType;
+    // If selecting the same reaction that's already active, remove it
+    if (_isLiked && _currentReaction == reactionType) {
+      removeReaction();
+
+    } else {
+      _isLiked = true;
+      _currentReaction = reactionType;
+      _updateBloc();
+    }
   }
   
   // Remove reaction
   void removeReaction() {
     _isLiked = false;
     _currentReaction = null;
+    _updateBloc();
+  }
+  
+  // Private method to update the Bloc when reactions change
+  void _updateBloc() {
+    if (context != null && postId != null) {
+      context!.read<PostBloc>().add(
+        TogglePostReaction(postId!, _currentReaction)
+      );
+    }
   }
   
   // Get current reaction icon

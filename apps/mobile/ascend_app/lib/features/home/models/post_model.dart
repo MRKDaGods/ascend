@@ -106,7 +106,24 @@ class PostModel extends Equatable {
   
   // Updated to return PostModel
   PostModel toggleReaction(String? reactionType) {
-    return PostManager.toggleReaction(this, reactionType);
+    // If removing reaction (reactionType is null)
+    if (reactionType == null) {
+      // If currently liked, decrement like count
+      final newLikesCount = isLiked ? likesCount - 1 : likesCount;
+      return copyWith(
+        isLiked: false, 
+        currentReaction: null,
+        likesCount: newLikesCount
+      );
+    }
+    
+    // If adding or changing reaction
+    final newLikesCount = isLiked ? likesCount : likesCount + 1;
+    return copyWith(
+      isLiked: true,
+      currentReaction: reactionType,
+      likesCount: newLikesCount
+    );
   }
 
   // Updated to return PostModel

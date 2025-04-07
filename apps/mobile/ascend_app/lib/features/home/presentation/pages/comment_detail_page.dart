@@ -35,7 +35,7 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
 
   late Comment _currentParentComment;
   Comment? _replyingTo;
-  bool _showReplies = true; // Add a flag to toggle replies visibility
+// Add a flag to toggle replies visibility
 
   @override
   void initState() {
