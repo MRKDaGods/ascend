@@ -78,18 +78,18 @@ class PushNotificationService {
         // If you have a payload, parse it and add to the stream for handling
         if (response.payload != null && response.payload!.isNotEmpty) {
           try {
-            final Map<String, dynamic> data = Map<String, dynamic>.from(
-              Map<String, dynamic>.from({
-                'data': response.payload,
-                'notification': {
-                  'title': response.notificationResponseType.toString(),
-                  'body': response.payload
-                }
-              })
-            );
+            final Map<String, dynamic> data = {
+              'notificationId': response.payload,
+            };
             
-            // Create a simple message structure to maintain consistency with FCM
-            _onNotificationTap.add(RemoteMessage(data: data));
+            // Create a RemoteMessage more safely
+            _onNotificationTap.add(RemoteMessage(
+              data: data,
+              notification: RemoteNotification(
+                title: "Notification",
+                body: response.payload,
+              ),
+            ));
           } catch (e) {
             if (kDebugMode) {
               print('Error parsing notification payload: $e');
