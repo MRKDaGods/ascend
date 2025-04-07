@@ -16,11 +16,12 @@ def setup_test(appium_driver):
     landing_page = LandingPage(appium_driver)
     profile_photo_page = ProfilePhotoPage(appium_driver)
     logger.info("Testing profile photo page")
+    utils = UtilityFunctions(appium_driver)
     # if user is logged in, open profile page then edit profile page , else login then open profile page and edit profile page
-    UtilityFunctions.navigation_to_profile_then_click(appium_driver, profile_page.click_edit_profile_image)
+    utils.navigation_to_profile_then_click(profile_page.click_edit_profile_image, False)
 
     return profile_photo_page, profile_page
-
+#make sure that no photo is selected before running the test
 def test_upload_invalid_corrupted_image(appium_driver, setup_test):
     profile_photo_page, _ = setup_test
     logger.info("Testing edit invalid profile image")

@@ -7,7 +7,8 @@ import time
 from utility import UtilityFunctions 
 from logger import logger
 import pytest
-
+from Pages.Navigation.sidebar_page import SideBarPage
+from Pages.Navigation.searchbar_page import SearchBarPage
 
 @pytest.fixture
 def setup_test(appium_driver):
@@ -15,14 +16,16 @@ def setup_test(appium_driver):
     home_page = HomePage(appium_driver)
     landing_page = LandingPage(appium_driver)
     cover_photo_page = CoverPhotoPage(appium_driver)
+    search_bar_page = SearchBarPage(appium_driver)
     logger.info("Testing Cover photo page")
+    utils = UtilityFunctions(appium_driver)
     # if user is logged in, open profile page then edit profile page , else login then open profile page 
-    UtilityFunctions.navigation_to_profile_then_click(appium_driver, profile_page.click_edit_cover_image)
+    utils.navigation_to_profile_then_click(profile_page.click_edit_cover_image, False)
     # try:
-    #     if home_page.get_text(home_page.SEARCH_BAR) == "Search":
-    #         UtilityFunctions.open_profile_page(appium_driver)
-    #         profile_page.click_edit_cover_image()
-    #         time.sleep(2)
+    # if home_page.get_text(home_page.SEARCH_BAR) == "Search":
+        # UtilityFunctions.open_profile_page(appium_driver)
+        # profile_page.click_edit_cover_image()
+        # time.sleep(2)
     # except:
     #     try:
     #         # if the user in landing page , click sign in with email and proceed to login
@@ -34,7 +37,7 @@ def setup_test(appium_driver):
     #             profile_page.click_edit_cover_image()
     #             time.sleep(2)
     #     except:
-    #         #if the user is not in landing page , then the user is in login page , login then open profile page 
+    #         # if the user is not in landing page , then the user is in login page , login then open profile page 
     #         UtilityFunctions.login(appium_driver)
     #         UtilityFunctions.open_profile_page(appium_driver)
     #         profile_page.click_edit_cover_image()
@@ -101,5 +104,32 @@ def test_edit_valid_image(appium_driver, setup_test):
         logger.error(f"Edit valid cover image test failed: {e}")
         assert False, "Edit valid cover image test failed"
         
-
+# def test_set_up(appium_driver):
+#     """Test setup function to ensure the app is in the correct state."""
+#     # Add any necessary setup code here, such as launching the app or navigating to a specific screen.
+#     profile_page = ProfiePage(appium_driver)
+#     home_page = HomePage(appium_driver)
+#     landing_page = LandingPage(appium_driver)
+#     cover_photo_page = CoverPhotoPage(appium_driver)
+#     logger.info("outside")
+#     sidebar_page = SideBarPage(appium_driver)
+#     search_bar_page = SearchBarPage(appium_driver)
+    
+   
+#         # time.sleep(2)
+#     if search_bar_page.is_visible(search_bar_page.SEARCH_BAR_BUTTON):
+#         logger.info("inside")
+#         home_page.click_sidebar()
+#         time.sleep(1)
+#         sidebar_page.click_Myprofile()
+#         time.sleep(1)
+#         profile_page.click_edit_cover_image()
+       
+        # UtilityFunctions.open_profile_page(appium_driver)
+    # if home_page.get_text(home_page.SEARCH_BAR) == "Search":
+    #     logger.info("inside")
+        
+#         # UtilityFunctions.open_profile_page(appium_driver)
+       
+    
     

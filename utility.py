@@ -2,85 +2,87 @@ from Pages.Feed.home_page import HomePage
 from Pages.Navigation.sidebar_page import SideBarPage
 from Pages.Authentication.login_page import LoginPage
 from Pages.Authentication.landing_page import LandingPage
-from Test_Cases_Data.Authentication import LoginTestCasesData as TC
 from Pages.Feed.home_page import HomePage
 from Pages.Profile.profile_page import ProfiePage
-import time
+from Pages.Navigation.searchbar_page import SearchBarPage
+from Test_Cases_Data.Authentication import LoginTestCasesData as TC
 from logger import logger
+import time
 
 class UtilityFunctions:
-    def signout(appium_driver):
-        home_page = HomePage(appium_driver)
-        side_bar_page = SideBarPage(appium_driver)
-        home_page.click_Sidebar()
-        side_bar_page.click_Settings()
+    def __init__(self, appium_driver):
+        self.driver = appium_driver
+        self.home_page = HomePage(appium_driver)
+        self.sidebar_page = SideBarPage(appium_driver)
+        self.login_page = LoginPage(appium_driver)
+        self.landing_page = LandingPage(appium_driver)
+        self.search_bar_page = SearchBarPage(appium_driver)
+        self.profile_page = ProfiePage(appium_driver)  # if needed
+
+    def signout(self):
+        self.home_page.click_sidebar()
+        self.sidebar_page.click_Settings()
         time.sleep(5)
-        appium_driver.swipe(500, 1400, 500, 100, 1000)
-        side_bar_page.click_Signout()
+        self.driver.swipe(500, 1400, 500, 100, 1000)
+        self.sidebar_page.click_Signout()
         time.sleep(1)
-        side_bar_page.click_Confirm_Signout()
+        self.sidebar_page.click_Confirm_Signout()
         time.sleep(1)
         
-    def login(appium_driver):
-        login_page = LoginPage(appium_driver)
-        landing_page = LandingPage(appium_driver)
+    def login(self):
         try:
-            landing_page.click_sign_in_with_email()
+            self.landing_page.click_sign_in_with_email()
         except:
             pass
-        login_page.enter_email(TC.TEST_EMAIL)
-        appium_driver.hide_keyboard()
+        self.login_page.enter_email(TC.TEST_EMAIL)
+        self.driver.hide_keyboard()
         time.sleep(2)
-        login_page.enter_password(TC.TEST_VALID_PASSWORD)
-        appium_driver.hide_keyboard()
+        self.login_page.enter_password(TC.TEST_VALID_PASSWORD)
+        self.driver.hide_keyboard()
         time.sleep(2)
-        login_page.click_remember_me()
+        self.login_page.click_remember_me()
         time.sleep(1)
-        login_page.click_continue()
+        self.login_page.click_continue()
         time.sleep(2)
         try:
-            HomePage.click_close_button()
+            self.home_page.click_close_button()
         except: 
             pass
     
-
-    def open_profile_page(appium_driver):
-        home_page = HomePage(appium_driver)
-        sidebar_page = SideBarPage(appium_driver)
-        home_page.click_Sidebar()
+    def open_profile_page(self):
+        self.home_page.click_sidebar()
         time.sleep(1)
-        sidebar_page.click_Myprofile()
+        self.sidebar_page.click_Myprofile()
         time.sleep(1)
     
-    def navigation_to_profile_then_click(appium_driver, click, swipe = False):
-            landing_page = LandingPage(appium_driver)
-            home_page = HomePage(appium_driver)
-            try:
-                if home_page.get_text(home_page.SEARCH_BAR) == "Search":
-                    UtilityFunctions.open_profile_page(appium_driver)
-                    if swipe:
-                        appium_driver.swipe(583, 1900, 583, 50, 1000)
-                        appium_driver.swipe(583, 1000, 583, 400, 1000)
-                    click()
-                    time.sleep(2)
-            except:
-                try:
-                    # if the user in landing page , click sign in with email and proceed to login
-                    if landing_page.get_text(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
-                        logger.info("User is in landing page")
-                        landing_page.click_sign_in_with_email()
-                        UtilityFunctions.login(appium_driver)
-                        UtilityFunctions.open_profile_page(appium_driver)
-                        if swipe:
-                            appium_driver.swipe(583, 1900, 583, 50, 1000)
-                            appium_driver.swipe(583, 1000, 583, 400, 1000)
-                        click()
-                        time.sleep(2)
-                except:
-                    #if the user is not in landing page , then the user is in login page , login then open profile page and edit profile page
-                    UtilityFunctions.login(appium_driver)
-                    UtilityFunctions.open_profile_page(appium_driver)
-                    if swipe:
-                        appium_driver.swipe(583, 1900, 583, 50, 1000)
-                        appium_driver.swipe(583, 1000, 583, 400, 1000)
-                    click()
+    def navigation_to_profile_then_click(self, click, swipe):
+        try:
+            if self.search_bar_page.is_visible(self.search_bar_page.SEARCH_BAR_BUTTON):
+                logger.info("Search bar button found")
+                self.open_profile_page()
+                if swipe:
+                    self.driver.swipe(583, 1900, 583, 50, 1000)
+                    self.driver.swipe(583, 1000, 583, 400, 1000)
+                click()
+                time.sleep(2)
+        except Exception as e:
+            logger.info(f"error here {e}")
+            # Uncomment and adapt fallback flow as needed
+            # try:
+            #     if self.landing_page.get_text(self.landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
+            #         logger.info("User is in landing page")
+            #         self.landing_page.click_sign_in_with_email()
+            #         self.login()
+            #         self.open_profile_page()
+            #         if swipe:
+            #             self.driver.swipe(583, 1900, 583, 50, 1000)
+            #             self.driver.swipe(583, 1000, 583, 400, 1000)
+            #         click()
+            #         time.sleep(2)
+            # except:
+            #     self.login()
+            #     self.open_profile_page()
+            #     if swipe:
+            #         self.driver.swipe(583, 1900, 583, 50, 1000)
+            #         self.driver.swipe(583, 1000, 583, 400, 1000)
+            #     click()

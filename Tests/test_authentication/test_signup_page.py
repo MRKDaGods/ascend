@@ -15,8 +15,8 @@ def setup_test(appium_driver):
     landing_page = LandingPage(appium_driver)
     signip_page = SignupPage(appium_driver)
 
-    try:
-        if  landing_page.get_text(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
+    try: 
+        if  landing_page.get_text(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals": #change it to landing_page.is_visible(landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE)
             landing_page.click_agree_join_button()
             is_from_landing_page = True
     except:
