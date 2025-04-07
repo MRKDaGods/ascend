@@ -135,6 +135,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 commentsCount: post.commentsCount,
                                 reactionIcon: _getReactionIcon(post),
                                 reactionColor: _getReactionColor(post),
+                                postId: post.id,
                               ),
                             ),
                             
@@ -152,9 +153,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     manager: ReactionManager(
                                       isLiked: post.isLiked,
                                       currentReaction: post.currentReaction,
-                                    ),
-                                    onTap: () => context.read<PostBloc>().add(
-                                      TogglePostReaction(post.id, post.isLiked ? null : 'like')
+                                      postId: post.id,
+                                      context: context,
                                     ),
                                     onLongPressStart: () {
                                       final RenderBox box = _reactionButtonKey.currentContext!
