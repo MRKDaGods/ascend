@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/StartPages/Model/secure_storage_helper.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class SignOutPage extends StatefulWidget {
   const SignOutPage({super.key});
