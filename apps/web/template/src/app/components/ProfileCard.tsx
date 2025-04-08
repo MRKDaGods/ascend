@@ -3,62 +3,53 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, Typography, Box, Avatar, Skeleton, Alert } from "@mui/material";
+import { useProfileStore } from "../store/useProfileStore";
 
-interface UserProfile {
-  name: string;
-  role: string;
-  location: string;
-  profilePhoto: string;
-  coverPhoto: string;
-  entity: string;
-  entityLink: string;
-}
-
-const ProfileCard = () => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const ProfileCard: React.FC = () => {
+  const { userData, setUserData } = useProfileStore();
+  const [isLoading, setIsLoading] = useState(!userData); // Only load if no data
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/user");
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-        const data: UserProfile = await response.json();
-        setUser(data);
-
-        // Set user images if available
-        if (data.profilePhoto) setProfileImg(data.profilePhoto);
-        if (data.coverPhoto) setCoverImg(data.coverPhoto);
-      } catch (error) {
+        const res = await fetch("http://localhost:5000/api/user");
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
         setError("Failed to fetch user data. Please try again.");
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, []);
+    if (!userData) {
+      fetchUserData();
+    }
+  }, [userData, setUserData]);
+
+  const profileImg = userData?.profilePhoto || "/default-avatar.jpg";
+  const coverImg = userData?.coverPhoto || "/default-cover.jpg";
+  const isOpenToWork = userData?.opentowork;
 
   return (
     <Link href="/profile" style={{ textDecoration: "none", color: "inherit" }}>
-     <Card
-  sx={{
-    width: 300, // Fixed width
-    minHeight: 180, // Ensures it never gets cut
-    borderRadius: 3,
-    overflow: "hidden",
-    boxShadow: 3,
-    backgroundColor: "white",
-  }}
->
-
-
+      <Card
+        sx={{
+          maxWidth: 300,
+          width: "100%",
+          minHeight: 180,
+          borderRadius: 3,
+          overflow: "hidden",
+          boxShadow: 3,
+          backgroundColor: "white",
+          mt: 2,
+        }}
+      >
         {error && <Alert severity="error">{error}</Alert>}
 
-        {/* Cover Image */}
         <Box sx={{ width: "100%", height: 120, position: "relative" }}>
           {isLoading ? (
             <Skeleton variant="rectangular" width="100%" height={120} />
@@ -66,31 +57,47 @@ const ProfileCard = () => {
             <img
               src={coverImg}
               alt="Cover Image"
-              onError={() => setCoverImg("/default-cover.jpg")}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{ width: "100%", height: "50%", objectFit: "cover" }}
+              onError={(e) => ((e.target as HTMLImageElement).src = "/default-cover.jpg")}
             />
           )}
         </Box>
 
         <CardContent sx={{ textAlign: "left", position: "relative", mt: -6, px: 2 }}>
-          {/* Profile Image */}
           {isLoading ? (
             <Skeleton variant="circular" width={80} height={80} sx={{ mt: -5 }} />
           ) : (
-            <Avatar
-              src={profileImg}
-              alt={user?.name || "User"}
-              sx={{
-                width: 80,
-                height: 80,
-                border: "3px solid white",
-                mt: -5,
-              }}
-              onError={() => setProfileImg("/default-avatar.jpg")}
-            />
+            <Box sx={{ position: "relative", display: "inline-block" }}>
+              <Avatar
+                src={profileImg}
+                alt={userData?.name || "User"}
+                sx={{ width: 80, height: 80, border: "3px solid white", mt: -5 }}
+                onError={(e) => ((e.target as HTMLImageElement).src = "/default-avatar.jpg")}
+              />
+              {isOpenToWork && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: -5,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    backgroundColor: "#008000",
+                    color: "white",
+                    fontSize: "10px",
+                    fontWeight: "bold",
+                    borderRadius: "12px",
+                    padding: "4px 10px",
+                    whiteSpace: "nowrap",
+                    boxShadow: "0px 0px 10px rgba(0, 128, 0, 0.8)",
+                    textAlign: "center",
+                  }}
+                >
+                  Open to Work
+                </Box>
+              )}
+            </Box>
           )}
 
-          {/* User Info */}
           {isLoading ? (
             <>
               <Skeleton width="60%" sx={{ mt: 2 }} />
@@ -98,23 +105,17 @@ const ProfileCard = () => {
               <Skeleton width="50%" sx={{ mt: 1 }} />
             </>
           ) : (
-            user && (
+            userData && (
               <>
-                {/* Name */}
                 <Typography variant="h6" fontWeight={600} sx={{ mt: 1, color: "black" }}>
-                  {user.name}
+                  {userData.name}
                 </Typography>
-
-                {/* Role & Entity in One Line */}
                 <Typography variant="body2" color="text.secondary">
-                  {user.role} at {user.entity}
+                  {userData.role} at {userData.entity}
                 </Typography>
-
-                {/* Location */}
                 <Typography variant="body2" color="text.secondary">
-                  {user.location}
+                  {userData.location}
                 </Typography>
-
               </>
             )
           )}

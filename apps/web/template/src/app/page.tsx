@@ -1,5 +1,5 @@
 import styles from "./page.module.css";
-import JobPreferences from "./components/JobPrefrences";
+import JobPreferences from "./components/lookingfor";
 import Navbar from "./components/navbar";
 import ProfileCard from "./components/ProfileCard";
 import Jobs from "./components/MyPosts";

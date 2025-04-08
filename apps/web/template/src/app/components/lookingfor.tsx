@@ -4,7 +4,7 @@ import { Card, CardContent, Button, IconButton, Typography, Box } from "@mui/mat
 import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
 
-const JobPreferences = () => {
+const lookingfor = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [isClient, setIsClient] = useState(false);
 
@@ -81,4 +81,4 @@ const JobPreferences = () => {
   );
 };
 
-export default JobPreferences;
+export default lookingfor;

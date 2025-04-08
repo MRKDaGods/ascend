@@ -37,6 +37,22 @@ const JobPicks = () => {
     fetchJobs();
   }, []);
 
+  // Delete Job Handler
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/jobs/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error(`Failed to delete job with id ${id}`);
+
+      // Remove job from UI
+      setJobs(prevJobs => prevJobs.filter(job => job.id !== id));
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
+  };
+
   return (
     <Card sx={{ maxWidth: 700, mx: "auto", my: 3, boxShadow: 3, borderRadius: 3, p: 2 }}>
       <CardContent>
@@ -51,10 +67,10 @@ const JobPicks = () => {
           {jobs.map((job, index) => (
             <React.Fragment key={job.id}>
               <ListItem sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                <Avatar src={job.logo} alt={job.company} sx={{ width: 50, height: 50 }} />
+                <Avatar src={job.logo} alt={job.company} sx={{ width: 50, height: 50 , cursor: "pointer"}} onClick={() => router.push(`/companypage`)} />
 
                 <div style={{ flexGrow: 1 }}>
-                  <Typography variant="body1" sx={{ fontWeight: "", color: "#0073b1", cursor: "pointer", ":hover": { textDecoration: "underline" } }}>
+                  <Typography variant="body1" sx={{ fontWeight: "", color: "#0073b1", cursor: "pointer", ":hover": { textDecoration: "underline" } }} onClick={() => router.push(`/companypage`)}>
                     {job.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "gray" }}>
@@ -82,7 +98,6 @@ const JobPicks = () => {
                       </Typography>
                     )}
 
-                    
                     <LinkedInIcon fontSize="small" sx={{ color: "#0077b5" }} />
                     <Typography
                       variant="caption"
@@ -94,7 +109,7 @@ const JobPicks = () => {
                   </div>
                 </div>
 
-                <IconButton size="small">
+                <IconButton size="small" onClick={() => handleDelete(job.id)}>
                   <CloseIcon fontSize="small" sx={{ color: "gray" }} />
                 </IconButton>
               </ListItem>
@@ -104,7 +119,6 @@ const JobPicks = () => {
           ))}
         </List>
 
-        {/* ✅ "Show All" Button (Routes to /apply) */}
         <Typography
           variant="body2"
           sx={{
