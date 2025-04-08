@@ -19,10 +19,6 @@ const ProfileCard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fallback images
-  const [profileImg, setProfileImg] = useState("/default-avatar.jpg");
-  const [coverImg, setCoverImg] = useState("/default-cover.jpg");
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
