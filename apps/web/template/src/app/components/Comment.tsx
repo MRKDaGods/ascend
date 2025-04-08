@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import {
-  Avatar, Box, IconButton, Typography, Stack, TextField, Menu,
+  Avatar, Box, IconButton, Typography, Stack, Menu,
   MenuItem, Dialog, DialogActions, DialogTitle, useTheme,
 } from "@mui/material";
 import { MoreHoriz, Link, Edit, Delete } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
+import TagInput from "./TagInput";
 
 interface CommentProps {
   post: PostType;
@@ -16,10 +17,13 @@ interface CommentProps {
 }
 
 const Comment: React.FC<CommentProps> = ({
-  post, showCommentInput, showComments, setShowComments
+  post,
+  showCommentInput,
+  showComments,
+  setShowComments,
 }) => {
   const theme = useTheme();
-  const { commentOnPost, deleteComment } = usePostStore();
+  const { commentOnPost, deleteComment, addTagToComment } = usePostStore();
 
   const [commentText, setCommentText] = useState("");
   const [commentMenuAnchor, setCommentMenuAnchor] = useState<null | HTMLElement>(null);
@@ -36,22 +40,36 @@ const Comment: React.FC<CommentProps> = ({
   return (
     <>
       {showCommentInput && (
-        <Box sx={{ px: 2, pb: 2, display: "flex", gap: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Box
+          sx={{
+            px: 2,
+            pb: 2,
+            display: "flex",
+            gap: 2,
+            borderTop: `1px solid ${theme.palette.divider}`,
+          }}
+        >
           <Avatar src="/profile.jpg" sx={{ width: 36, height: 36 }} />
-          <TextField
-            fullWidth
-            placeholder="Write a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            size="small"
-          />
+          <Box sx={{ flexGrow: 1 }}>
+            <TagInput
+              postId={post.id}
+              isComment
+              commentText={commentText}
+              setCommentText={setCommentText}
+              commentIndex={post.commentsList.length}
+              placeholder="Write a comment..."
+              onTagSelect={(tag) => {
+                addTagToComment(post.id, post.commentsList.length, tag);
+              }}
+            />
+          </Box>
           <Stack>
             <button
               onClick={() => {
                 if (commentText.trim()) {
                   commentOnPost(post.id, commentText);
                   setCommentText("");
-                  setShowComments(true); // ✅ Show comments immediately after
+                  setShowComments(true);
                 }
               }}
               style={{
@@ -76,11 +94,14 @@ const Comment: React.FC<CommentProps> = ({
               <Box key={index} sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Avatar src="/profile.jpg" sx={{ width: 32, height: 32 }} />
-                  <Typography variant="body2" sx={{
-                    backgroundColor: theme.palette.background.paper,
-                    p: 1,
-                    borderRadius: 2,
-                  }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      backgroundColor: theme.palette.background.paper,
+                      p: 1,
+                      borderRadius: 2,
+                    }}
+                  >
                     {comment}
                   </Typography>
                 </Box>
@@ -95,14 +116,17 @@ const Comment: React.FC<CommentProps> = ({
               </Box>
             ))
           ) : (
-            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, py: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: theme.palette.text.secondary, py: 1 }}
+            >
               No comments yet. Be the first to comment!
             </Typography>
           )}
         </Box>
       )}
 
-      {/* 3-dot menu for comment */}
+      {/* Menu for comment actions */}
       <Menu
         anchorEl={commentMenuAnchor}
         open={Boolean(commentMenuAnchor)}
@@ -115,7 +139,7 @@ const Comment: React.FC<CommentProps> = ({
         </MenuItem>
       </Menu>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete confirmation */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Are you sure you want to delete your comment?</DialogTitle>
         <DialogActions>

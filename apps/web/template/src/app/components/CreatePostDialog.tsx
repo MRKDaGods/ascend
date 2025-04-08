@@ -10,6 +10,7 @@ import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
 import DiscardPostDialog from "./DiscardPostDialog";
 import DraftSavedPopup from "./DraftSavedPopup";
+import TagInput from "./TagInput";
 
 const CreatePostDialog: React.FC = () => {
   const {
@@ -27,10 +28,18 @@ const CreatePostDialog: React.FC = () => {
     openDiscardPostDialog,
     setDraftSavedPopupOpen,
     setDraftText,    
+    addTagToPost,
+    removeTagFromPost,
+    posts,
+    lastUserPostId,
   } = usePostStore();
   const {
     mediaPreviews, removeMediaFile, clearAllMedia, openEditor,
   } = useMediaStore();
+
+  // Get tags for the current (editing or new) post
+  const currentPostId = editingPost?.id ?? lastUserPostId ?? -1;
+  const currentTags = posts.find((p) => p.id === currentPostId)?.tags ?? [];
 
   useEffect(() => {
     if (open && draftText && !editingPost) {
@@ -79,14 +88,8 @@ const CreatePostDialog: React.FC = () => {
         </Stack>
       </DialogTitle>
 
-      <DialogContent>
-        <TextField
-          fullWidth multiline rows={4}
-          placeholder="What do you want to talk about?"
-          value={postText}
-          onChange={(e) => setPostText(e.target.value)}
-          variant="standard"
-        />
+      <DialogContent sx={{ borderBottom: "none", mt: 0 }}>
+        <TagInput postId={editingPost?.id ?? lastUserPostId ?? -1} />
 
         {mediaPreviews.length > 0 && (
           <Box sx={{ position: "relative", mt: 2 }}>
