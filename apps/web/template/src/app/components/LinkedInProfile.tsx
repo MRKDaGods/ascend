@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import './LinkedInProfile.css';
 import { FaPencilAlt, FaTrash, FaPlus, FaImage, FaUniversity, FaFilePdf, FaFileUpload } from 'react-icons/fa';
 import { MdAddAPhoto, MdCameraAlt } from 'react-icons/md';
@@ -6,95 +6,123 @@ import EducationModal from "./EducationModal"; // Import Education modal
 import ExperienceModal from "./ExperienceModal"; // Import Experience modal
 import SkillsModal from "./SkillsModal"; // Import SkillsModal
 import VisibilityDropdown from "./VisibilityDropdown"; // Import VisibilityDropdown
-
-interface Profile {
-  name: string;
-  headline: string;
-  location: string;
-  bannerImage: string;
-  profileImage: string;
-}
-
-interface Education {
-  school: string;
-  degree: string;
-  field: string;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-  description: string;
-}
-
-interface Skill {
-  name: string;
-}
+import { api } from "@/api";
+import { Profile, Education, Skill } from "@ascend/api-client/models";
 
 const LinkedInProfile: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isBannerOpen, setIsBannerOpen] = useState<boolean>(false);
   const [isExperienceOpen, setIsExperienceOpen] = useState<boolean>(false);
   const [isEducationOpen, setIsEducationOpen] = useState<boolean>(false);
   const [isSkillsOpen, setIsSkillsOpen] = useState<boolean>(false);
   const [resume, setResume] = useState<File | null>(null); // State for resume upload
-  const [profile, setProfile] = useState<Profile>({
-    name: 'Nooran Haridy',
-    headline: 'CH Bachelor Programs - Faculty of Engineering Cairo University',
-    location: 'New Cairo, Cairo, Egypt',
-    bannerImage: '',
-    profileImage: 'your-uploaded-image-url',
-  });
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [savedEducation, setSavedEducation] = useState<Education | null>(null);
   const [skills, setSkills] = useState<Skill[]>([]); // State for the skills list
 
+  useEffect(() => {
+    // Fake login
+    setIsLoggedIn(false);
+    api.auth.login("ammar@ascendx.tech", "123").then(() => {
+      setIsLoggedIn(true);
+
+      // fetch user data
+      api.user.getLocalUserProfile().then((user) => {
+        console.log("User data:", user);
+        setProfile(user); // Set the profile data
+        // Initialize skills from profile if available
+        if (user.skills) {
+          setSkills(user.skills);
+        }
+      }).catch((err) => {
+        console.log("Cannot fetch user data:", err);
+      });
+    }).catch((err) => {
+      console.log("Cannot login:", err);
+    });
+  }, []);
+
   const handleSaveEducation = (education: Education) => {
-    setSavedEducation(education); // Save the education data
-    setIsEducationOpen(false); // Close the modal after saving
+    // Update the profile with the new education
+    if (profile) {
+      const updatedProfile = { 
+        ...profile, 
+        education: profile.education ? [...profile.education, education] : [education] 
+      };
+      
+      // Update via API
+      api.user.updateLocalUserProfile(updatedProfile as any)
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+        })
+        .catch(err => {
+          console.error("Failed to save education:", err);
+        });
+    }
+    setIsEducationOpen(false);
   };
 
-  const handleDeleteEducation = () => {
+  const handleDeleteEducation = (education: Education) => {
     if (window.confirm("Are you sure you want to delete this education?")) {
-      setSavedEducation(null); // Reset the saved education to null
+      if (profile && profile.education) {
+        const updatedEducation = profile.education.filter(edu => edu.id !== education.id);
+        const updatedProfile = { ...profile, education: updatedEducation };
+        
+        // Update via API
+        api.user.updateLocalUserProfile(updatedProfile as any)
+          .then(updatedProfile => {
+            setProfile(updatedProfile);
+          })
+          .catch(err => {
+            console.error("Failed to delete education:", err);
+          });
+      }
     }
   };
 
   const handleBannerImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfile((prevProfile) => ({
-          ...prevProfile,
-          bannerImage: reader.result as string,
-        }));
-        setIsBannerOpen(false);
-      };
-      reader.readAsDataURL(file);
+      // Upload cover photo via API
+      api.user.uploadCoverPhoto(file)
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+          setIsBannerOpen(false);
+        })
+        .catch(err => {
+          console.error("Failed to upload cover photo:", err);
+        });
     }
   };
 
   const handleProfileImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfile((prevProfile) => ({
-          ...prevProfile,
-          profileImage: reader.result as string,
-        }));
-        setIsProfileOpen(false);
-      };
-      reader.readAsDataURL(file);
+      // Upload profile picture via API
+      api.user.uploadProfilePicture(file)
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+          setIsProfileOpen(false);
+        })
+        .catch(err => {
+          console.error("Failed to upload profile picture:", err);
+        });
     }
   };
 
   const handleDeleteProfileImage = () => {
     if (window.confirm("Are you sure you want to delete this profile image?")) {
-      setProfile((prevProfile) => ({
-        ...prevProfile,
-        profileImage: '',
-      }));
-      setIsProfileOpen(false);
+      // Delete profile picture via API
+      api.user.deleteProfilePicture()
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+          setIsProfileOpen(false);
+        })
+        .catch(err => {
+          console.error("Failed to delete profile picture:", err);
+        });
     }
   };
 
@@ -103,6 +131,15 @@ const LinkedInProfile: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       setResume(file);
+      
+      // Upload resume via API
+      api.user.uploadResume(file)
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+        })
+        .catch(err => {
+          console.error("Failed to upload resume:", err);
+        });
     }
   };
 
@@ -110,23 +147,56 @@ const LinkedInProfile: React.FC = () => {
   const handleDeleteResume = () => {
     if (window.confirm("Are you sure you want to delete this resume?")) {
       setResume(null);
+      
+      // Delete resume via API
+      api.user.deleteResume()
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+        })
+        .catch(err => {
+          console.error("Failed to delete resume:", err);
+        });
     }
   };
 
   const handleSaveSkill = (newSkill: Skill) => {
-    setSkills((prevSkills) => [...prevSkills, newSkill]); // Update the skills list
+    // Update the local skills state
+    setSkills(prevSkills => [...prevSkills, newSkill]);
+    
+    // Update the profile with the new skill
+    if (profile) {
+      const updatedSkills = profile.skills ? [...profile.skills, newSkill] : [newSkill];
+      const updatedProfile = { ...profile, skills: updatedSkills };
+      
+      // Update via API
+      api.user.updateLocalUserProfile(updatedProfile)
+        .then(updatedProfile => {
+          setProfile(updatedProfile);
+        })
+        .catch(err => {
+          console.error("Failed to save skill:", err);
+        });
+    }
   };
+
+  if (!isLoggedIn) {
+    return <div>Logging in...</div>;
+  }
+
+  if (!profile) {
+    return <div>Loading profile...</div>;
+  }
 
   return (
     <div className="linkedin-profile">
       <header className="profile-header">
         <div className="profile-banner">
-          {profile.bannerImage ? (
-            <img src={profile.bannerImage} className="banner-image" alt="Banner" />
+          {profile.cover_photo_url ? (
+            <img src={profile.cover_photo_url} className="banner-image" alt="Banner" />
           ) : (
             <div className="banner-placeholder"></div>
           )}
-          {profile.bannerImage ? (
+          {profile.cover_photo_url ? (
             <FaPencilAlt
               className="camera-icon"
               onClick={() => document.getElementById('bannerImageInput')?.click()}
@@ -147,8 +217,8 @@ const LinkedInProfile: React.FC = () => {
         </div>
         <div className="profile-info-container">
           <div className="profile-picture-container" onClick={() => setIsProfileOpen(true)}>
-            {profile.profileImage ? (
-              <img src={profile.profileImage} className="profile-picture" alt="Profile" />
+            {profile.profile_picture_url ? (
+              <img src={profile.profile_picture_url} className="profile-picture" alt="Profile" />
             ) : (
               <div className="profile-picture-placeholder">
                 <MdAddAPhoto className="add-photo-icon" />
@@ -157,7 +227,7 @@ const LinkedInProfile: React.FC = () => {
           </div>
           <div className="profile-info">
             <div className="profile-name">
-              <h1>{profile.name}</h1>
+              <h1>{profile.first_name} {profile.last_name}</h1>
               <div className="profile-icons">
                 <a href="https://www.cairo-university.edu.eg/" target="_blank" rel="noopener noreferrer">
                   <FaUniversity className="cairo-university-icon" />
@@ -166,7 +236,7 @@ const LinkedInProfile: React.FC = () => {
               </div>
               <FaPencilAlt className="edit-icon" />
             </div>
-            <h2>{profile.headline}</h2>
+            <h2>{profile.bio}</h2>
             <p>{profile.location} <a href="#">· Contact info</a></p>
             <div className="profile-actions">
               <button className="open-to">Open to</button>
@@ -200,16 +270,25 @@ const LinkedInProfile: React.FC = () => {
           Showcase your accomplishments and get up to <strong>2X</strong> as many profile views and connections
         </p>
 
-        <div className="experience-card">
-          <div className="experience-icon">
-            <FaImage className="experience-placeholder-icon" />
-          </div>
-          <div className="experience-info">
-            <h4>Job Title</h4>
-            <p>Organization</p>
-            <p>2023 - Present</p>
-          </div>
-        </div>
+        {profile.experience && profile.experience.length > 0 ? (
+          profile.experience.map((exp, index) => (
+            <div className="experience-card" key={index}>
+              <div className="experience-icon">
+                <FaImage className="experience-placeholder-icon" />
+              </div>
+              <div className="experience-info">
+                <h4>{exp.position}</h4>
+                <p>{exp.company}</p>
+                <p>
+                  {exp.start_date ? new Date(exp.start_date).toLocaleDateString() : ''} - {exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}
+                </p>
+                {exp.description && <p>{exp.description}</p>}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p>No experience added yet.</p>
+        )}
 
         <button className="add-experience-button" onClick={() => setIsExperienceOpen(true)}>
           Add experience
@@ -223,19 +302,21 @@ const LinkedInProfile: React.FC = () => {
           Show your qualifications and be up to <strong>2X</strong> more likely to receive a recruiter InMail
         </p>
 
-        {savedEducation ? (
-          <div className="education-item">
-            <p>
-              <strong>{savedEducation.school}</strong> - {savedEducation.degree} in {savedEducation.field}
-            </p>
-            <p>
-              {savedEducation.startMonth} {savedEducation.startYear} - {savedEducation.endMonth} {savedEducation.endYear}
-            </p>
-            <p>{savedEducation.description}</p>
-            <button className="delete-education-button" onClick={handleDeleteEducation}>
-              Delete Education
-            </button>
-          </div>
+        {profile.education && profile.education.length > 0 ? (
+          profile.education.map((edu, index) => (
+            <div className="education-item" key={index}>
+              <p>
+                <strong>{edu.school}</strong> - {edu.degree} in {edu.field_of_study}
+              </p>
+              <p>
+                {edu.start_date ? new Date(edu.start_date).toLocaleDateString() : ''} - {edu.end_date ? edu.end_date : 'Present'}
+              </p>
+              <p>{/* edu.description */} PLACEHOLDER DESC</p>
+              <button className="delete-education-button" onClick={() => handleDeleteEducation(edu)}>
+                Delete Education
+              </button>
+            </div>
+          ))
         ) : (
           <p>No education added yet.</p>
         )}
@@ -252,9 +333,13 @@ const LinkedInProfile: React.FC = () => {
         </p>
 
         <div className="skills-list">
-          {skills.map((skill, index) => (
-            <p key={index}>{skill.name}</p>
-          ))}
+          {profile && profile.skills && profile.skills.length > 0 ? (
+            profile.skills.map((skill, index) => (
+              <p key={index}>{skill.name}</p>
+            ))
+          ) : (
+            <p>No skills added yet.</p>
+          )}
         </div>
 
         <button className="add-skills-button" onClick={() => setIsSkillsOpen(true)}>
@@ -266,10 +351,13 @@ const LinkedInProfile: React.FC = () => {
       <div className="resume-section">
         <h3>Resume</h3>
         <p>Upload your resume to enhance your profile and job applications.</p>
-        {resume ? (
+        {profile && profile.resume_url ? (
           <div className="resume-item">
             <FaFilePdf className="resume-icon" />
-            <span className="resume-name">{resume.name}</span>
+            <span className="resume-name">Resume</span>
+            <a href={profile.resume_url} target="_blank" rel="noopener noreferrer" className="view-resume-button">
+              View Resume
+            </a>
             <button className="delete-resume-button" onClick={handleDeleteResume}>
               <FaTrash /> Delete
             </button>
@@ -304,18 +392,18 @@ const LinkedInProfile: React.FC = () => {
         <ExperienceModal
           isOpen={isExperienceOpen}
           onClose={() => setIsExperienceOpen(false)}
-          onSave={() => {}}
+          onSave={() => { }}
         />
       )}
 
       {/* Skills Modal */}
-      {isSkillsOpen && (
+      {/* {isSkillsOpen && (
         <SkillsModal
           isOpen={isSkillsOpen}
           onClose={() => setIsSkillsOpen(false)}
           onSave={handleSaveSkill}
         />
-      )}
+      )} */}
 
       {/* Profile Modal */}
       {isProfileOpen && (
@@ -326,7 +414,7 @@ const LinkedInProfile: React.FC = () => {
               <span className="close-button" onClick={() => setIsProfileOpen(false)}>&times;</span>
             </div>
             <div className="modal-body">
-              <img src={profile.profileImage} className="full-size-profile" alt="Profile" />
+              <img src={profile.profile_picture_url} className="full-size-profile" alt="Profile" />
               <div className="visibility-dropdown-container">
                 <VisibilityDropdown />
               </div>
@@ -357,8 +445,6 @@ const LinkedInProfile: React.FC = () => {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }

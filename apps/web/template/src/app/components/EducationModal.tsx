@@ -1,16 +1,6 @@
 'use client';
+import { Education } from '@ascend/api-client/models';
 import React, { useState, useEffect } from 'react';
-
-interface Education {
-  school: string;
-  degree: string;
-  field: string;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-  description: string;
-}
 
 interface EducationModalProps {
   isOpen: boolean;
@@ -20,14 +10,15 @@ interface EducationModalProps {
 
 const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave }) => {
   const [education, setEducation] = useState<Education>({
+    id: 0,
+    user_id: 0,
     school: '',
     degree: '',
-    field: '',
-    startMonth: '',
-    startYear: '',
-    endMonth: '',
-    endYear: '',
-    description: ''
+    field_of_study: '',
+    start_date: new Date(),
+    end_date: undefined,
+    created_at: new Date(),
+    updated_at: new Date()
   });
 
   // Fetch data from Mockoon when modal opens
@@ -35,7 +26,7 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
     const fetchEducation = async () => {
       try {
         const response = await fetch("http://localhost:3001/api/education"); // Ensure Mockoon is running
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -44,7 +35,15 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
         console.log("Fetched Education Data:", data);
 
         if (Array.isArray(data) && data.length > 0) {
-          setEducation(data[0]); // Using the first education object
+          // Convert string dates to Date objects
+          const formattedData = {
+            ...data[0],
+            start_date: data[0].start_date ? new Date(data[0].start_date) : new Date(),
+            end_date: data[0].end_date ? new Date(data[0].end_date) : undefined,
+            created_at: data[0].created_at ? new Date(data[0].created_at) : new Date(),
+            updated_at: data[0].updated_at ? new Date(data[0].updated_at) : new Date()
+          };
+          setEducation(formattedData);
         } else {
           console.warn("No education data found.");
         }
@@ -63,11 +62,27 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
     setEducation((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDateChange = (name: string, value: string) => {
+    if (name === 'start_date') {
+      setEducation((prev) => ({ ...prev, start_date: new Date(value) }));
+    } else if (name === 'end_date') {
+      setEducation((prev) => ({ ...prev, end_date: value || undefined }));
+    }
+  };
+
   const handleSubmit = () => {
     onSave(education);
   };
 
   if (!isOpen) return null;
+
+  // Format dates for input fields
+  const formatDateForInput = (date?: Date) => {
+    if (!date) return '';
+    return date instanceof Date
+      ? date.toISOString().split('T')[0]
+      : new Date(date).toISOString().split('T')[0];
+  };
 
   return (
     <div style={styles.modalOverlay}>
@@ -97,8 +112,8 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
 
         <label>Field of Study</label>
         <input
-          name="field"
-          value={education.field}
+          name="field_of_study"
+          value={education.field_of_study}
           onChange={handleChange}
           placeholder="Ex: Business"
           style={styles.input}
@@ -107,49 +122,31 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
         <div style={styles.dateGroup}>
           <div style={styles.dateFields}>
             <label>Start Date</label>
-            <select name="startMonth" value={education.startMonth} onChange={handleChange} style={styles.input}>
-              <option value="">Month</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i} value={(i + 1).toString()}>
-                  {new Date(0, i).toLocaleString('en', { month: 'long' })}
-                </option>
-              ))}
-            </select>
-            <select name="startYear" value={education.startYear} onChange={handleChange} style={styles.input}>
-              <option value="">Year</option>
-              {[...Array(20)].map((_, i) => (
-                <option key={i} value={(2025 - i).toString()}>
-                  {2025 - i}
-                </option>
-              ))}
-            </select>
+            <input
+              type="date"
+              name="start_date"
+              value={formatDateForInput(education.start_date)}
+              onChange={(e) => handleDateChange('start_date', e.target.value)}
+              style={styles.input}
+            />
           </div>
 
           <div style={styles.dateFields}>
             <label>End Date (or expected)</label>
-            <select name="endMonth" value={education.endMonth} onChange={handleChange} style={styles.input}>
-              <option value="">Month</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i} value={(i + 1).toString()}>
-                  {new Date(0, i).toLocaleString('en', { month: 'long' })}
-                </option>
-              ))}
-            </select>
-            <select name="endYear" value={education.endYear} onChange={handleChange} style={styles.input}>
-              <option value="">Year</option>
-              {[...Array(20)].map((_, i) => (
-                <option key={i} value={(2010 + i).toString()}>
-                  {2010 + i}
-                </option>
-              ))}
-            </select>
+            <input
+              type="date"
+              name="end_date"
+              value={formatDateForInput(new Date(education.end_date || ''))}
+              onChange={(e) => handleDateChange('end_date', e.target.value)}
+              style={styles.input}
+            />
           </div>
         </div>
 
         <label>Description</label>
         <textarea
           name="description"
-          value={education.description}
+          // value={education.description || ''}
           onChange={handleChange}
           style={styles.textarea}
         ></textarea>
