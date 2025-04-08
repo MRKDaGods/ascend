@@ -4,73 +4,98 @@ import { body, ValidationChain } from "express-validator";
  * Validation rules for creating a new job
  */
 export const newJobValidationRules: ValidationChain[] = [
-    // Title
-    body("title")
-        .isString()
-        .trim()
-        .notEmpty()
-        .withMessage("Title is required")
-        .isLength({ max: 255 })
-        .withMessage("Title must be at most 255 characters"),
+  // Title
+  body("title").isString().trim().notEmpty().withMessage("Title is required"),
 
-    // Description
-    body("description")
-        .isString()
-        .trim()
-        .notEmpty()
-        .withMessage("Description is required"),
+  // Description
+  body("description")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Description is required"),
 
-    // Location
-    body("location")
-        .optional()
-        .isString()
-        .trim()
-        .notEmpty()
-        .withMessage("Location is required")
-        .isLength({ max: 255 })
-        .withMessage("Location must be at most 255 characters"),
+  // Industry
+  body("industry")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Industry is required"),
 
-    // Industry
-    body("industry")
-        .isString()
-        .trim()
-        .notEmpty()
-        .withMessage("Industry is required")
-        .isLength({ max: 255 })
-        .withMessage("Industry must be at most 255 characters"),
+  // Type
+  body("type")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Type is required")
+    .isIn([
+      "Full-time",
+      "Part-time",
+      "Contract",
+      "Temporary",
+      "Volunteer",
+      "Internship",
+      "Other",
+    ])
+    .withMessage(
+      "Invalid type. Allowed values: Full-time, Part-time, Contract, Temporary, Volunteer, Internship, Other"
+    ),
 
-    // Experience Level
-    body("experience_level")
-        .isIn(["Internship", "Entry Level", "Associate", "Mid-Senior Level", "Director"])
-        .withMessage("Invalid experience level. Allowed values: Internship, Entry Level, Associate, Mid-Senior Level, Director"),
+  // Experience Level
+  body("experience_level")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Experience level is required")
+    .isIn(["Internship", "Entry", "Associate", "Mid", "Director"])
+    .withMessage(
+      "Invalid experience level. Allowed values: Internship, Entry, Associate, Mid, Director"
+    ),
 
-    // Salary Range Min
-    body("salary_range_min")
-        .optional()
-        .isNumeric()
-        .withMessage("Salary range min must be a valid number")
-        .custom(value => value >= 0)
-        .withMessage("Salary range min must be at least 0"),
+  // Location
+  body("location")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Location is required"),
 
-    // Salary Range Max
-    body("salary_range_max")
-        .optional()
-        .isNumeric()
-        .withMessage("Salary range max must be a valid number")
-        .custom((value, { req }) => {
-            if (req.body.salary_range_min && Number(value) < Number(req.body.salary_range_min)) {
-                throw new Error("Salary range max must be greater than or equal to salary range min");
-            }
-            return true;
-        }),
+  // Workplace Type
+  body("workplace_type")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Workplace type is required")
+    .isIn(["On-site", "Hybrid", "Remote"])
+    .withMessage(
+      "Invalid workplace type. Allowed values: On-site, Hybrid, Remote"
+    ),
 
-    // Company ID (Required Foreign Key)
-    body("company_id")
-        .isInt({ gt: 0 })
-        .withMessage("Valid company_id is required"),
+  // Salary min range
+  body("salary_min_range")
+    .optional()
+    .isNumeric()
+    .withMessage("Salary min range must be a valid number")
+    .custom((value) => value >= 0)
+    .withMessage("Salary min range must be at least 0"),
 
-    // Posted By (Required Foreign Key)
-    body("posted_by")
-        .isInt({ gt: 0 })
-        .withMessage("Valid posted_by user ID is required"),
+  // Salary max range
+  body("salary_max_range")
+    .optional()
+    .isNumeric()
+    .withMessage("Salary max range must be a valid number")
+    .custom((salary_range_max, { req }) => {
+      if (
+        req.body.salary_range_min &&
+        Number(salary_range_max) < Number(req.body.salary_range_min)
+      ) {
+        throw new Error(
+          "Salary max range must be greater than or equal to salary min range"
+        );
+      }
+      return true;
+    }),
+
+  // Company ID (Required Foreign Key)
+  body("company_id")
+    .isInt({ gt: 0 })
+    .withMessage("Valid company_id is required"),
 ];
