@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/StartPages/Model/secure_storage_helper.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
@@ -19,20 +19,33 @@ import 'features/home/repositories/post_repository.dart';
 import 'package:ascend_app/features/settings/presentation/pages/settings_main_page.dart';
 import 'package:ascend_app/features/settings/presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/presentation/pages/sign_in_security_page.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:logger/logger.dart';
+
+final Logger _logger = Logger();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDocumentDir.path);
 
   // Debugging: Print stored values
   final isFirstTime = await SecureStorageHelper.isFirstTimeUser();
   final authToken = await SecureStorageHelper.getAuthToken();
-  print('Is First Time User: $isFirstTime');
-  print('Auth Token: $authToken');
-  //-------------
-  // WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
-  // await SecureStorageHelper.setFirstTimeUser(
-  //   true,
-  // ); // Reset first-time user flag for testing
+  _logger.i('Is First Time User: $isFirstTime');
+  _logger.i('Auth Token: $authToken');
+    // Test logger output
+  final Logger testLogger = Logger();
+  testLogger.i('Logger is working!');
+  // Call printAllData to log stored data
+  await SecureStorageHelper.printAllData();
+  // //-------------
+    WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
+    await SecureStorageHelper.setFirstTimeUser(
+      true,
+    ); // Reset first-time user flag for testing
 
   runApp(const MainApp());
 }
@@ -100,6 +113,12 @@ class MainApp extends StatelessWidget {
     }
 
     final authToken = await SecureStorageHelper.getAuthToken();
-    return authToken != null ? '/home' : '/signIn'; // Route based on auth token
+    // Check if the authToken is valid (add your validation logic here)
+    if (authToken != null && authToken.isNotEmpty) {
+      // Optionally, validate the token with your backend or check expiration
+      return '/home'; // Route to Home page
+    }
+
+    return '/signIn'; // Route to Sign In page
   }
 }

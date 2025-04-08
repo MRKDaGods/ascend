@@ -2,7 +2,7 @@ import 'package:ascend_app/features/StartPages/Presentation/Pages/JoinAscend.dar
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
-import 'package:ascend_app/features/StartPages/Model/secure_storage_helper.dart'; // Import SecureStorageHelper
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
@@ -64,7 +64,7 @@ class _WelcomeState extends State<Welcome> {
                         context,
                         MaterialPageRoute(
                           builder: (context) {
-                            return const Joinascend();
+                            return const JoinAscend();
                           },
                         ),
                       );

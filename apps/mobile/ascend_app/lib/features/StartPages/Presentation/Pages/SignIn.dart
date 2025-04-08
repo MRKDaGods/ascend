@@ -1,5 +1,5 @@
 import 'package:ascend_app/features/Logo/LogoWidget.dart';
-import 'package:ascend_app/features/StartPages/Model/secure_storage_helper.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/JoinAscend.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
@@ -64,11 +64,11 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) {
-                                return const Joinascend();
+                                return const JoinAscend();
                               },
                             ),
                           );
@@ -219,7 +219,7 @@ class _SignInPageState extends State<SignInPage> {
                             await SecureStorageHelper.saveUserId(userId);
 
                             // Navigate to the main app
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                 builder: (context) {
