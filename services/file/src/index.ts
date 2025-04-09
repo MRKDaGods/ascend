@@ -1,6 +1,6 @@
 import {
   consumeEvents,
-  events,
+  Events,
   getQueueName,
   setupRPCServer,
 } from "@shared/rabbitMQ";
@@ -18,8 +18,8 @@ startSharedService("File", fileRoutes, {
     async () => {
       // Register the file delete consumer
       await consumeEvents(
-        getQueueName(events.FILE_DELETE),
-        events.FILE_DELETE,
+        getQueueName(Events.FILE_DELETE),
+        Events.FILE_DELETE,
         handleFileDelete
       );
     },
@@ -30,11 +30,11 @@ startSharedService("File", fileRoutes, {
   },
   postMQInit: async () => {
     // Setup RPC server for pre-signed URLs
-    await setupRPCServer(getQueueName(events.FILE_URL_RPC), handleGetPresignedUrlRPC);
+    await setupRPCServer(getQueueName(Events.FILE_URL_RPC), handleGetPresignedUrlRPC);
 
     // Setup RPC server for file uploads
     // Transferring files through the broker isnt really recommended
     // but we have a 5mb limit, so we're fine
-    await setupRPCServer(getQueueName(events.FILE_UPLOAD_RPC), handleFileUploadRPC);
+    await setupRPCServer(getQueueName(Events.FILE_UPLOAD_RPC), handleFileUploadRPC);
   },
 });

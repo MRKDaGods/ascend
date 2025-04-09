@@ -1,16 +1,15 @@
+import { Services } from "@ascend/shared";
 import db from "@shared/config/db";
 import { Profile } from "@shared/models";
 import {
   callRPC,
-  events,
+  Events,
   FileDeletePayload,
-  FilePresignedUrlRequestPayload,
-  FilePresignedUrlResponsePayload,
-  FileUploadRequestPayload,
-  FileUploadResponsePayload,
-  getQueueName,
+  FileUploadPayload,
+  getRPCQueueName,
   publishEvent,
 } from "@shared/rabbitMQ";
+import { getPresignedUrl } from "@shared/utils/files";
 
 /** Retrieves a user's profile
  *
@@ -33,32 +32,6 @@ export const getProfile = async (
   }
 
   const profile = profileResult.rows[0];
-
-  // Quick rpc call to get presigned URL of whatever
-  const getPresignedUrl = async (
-    fileId: number | null
-  ): Promise<string | null> => {
-    if (!fileId) {
-      return null;
-    }
-
-    try {
-      const fileRpcQueue = getQueueName(events.FILE_URL_RPC);
-      const payload: FilePresignedUrlRequestPayload = {
-        file_id: fileId,
-      };
-
-      const response = await callRPC<FilePresignedUrlResponsePayload>(
-        fileRpcQueue,
-        payload
-      );
-
-      return response.presigned_url;
-    } catch (error) {
-      console.error(`Error getting presigned URL for file ${fileId}:`, error);
-      return null;
-    }
-  };
 
   // DB only stores file IDs, so we need to get the presigned URL for each file
   if (profile.profile_picture_id) {
@@ -425,7 +398,8 @@ export const uploadProfilePicture = async (
   let fileId = null;
   if (file) {
     // Construct payload and call the rpc
-    const payload: FileUploadRequestPayload = {
+    const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+    const payload: FileUploadPayload.Request = {
       user_id: userId,
       file_buffer: file.buffer.toString("base64"),
       file_name: file.originalname,
@@ -434,8 +408,8 @@ export const uploadProfilePicture = async (
       context: "profile_picture",
     };
 
-    const fileResponse = await callRPC<FileUploadResponsePayload>(
-      getQueueName(events.FILE_UPLOAD_RPC),
+    const fileResponse = await callRPC<FileUploadPayload.Response>(
+      fileRpcQueue,
       payload,
       60000
     );
@@ -448,7 +422,7 @@ export const uploadProfilePicture = async (
     const deletePayload: FileDeletePayload = {
       file_id: profile.profile_picture_id,
     };
-    await publishEvent(events.FILE_DELETE, deletePayload);
+    await publishEvent(Events.FILE_DELETE, deletePayload);
   }
 
   await db.query(
@@ -480,7 +454,8 @@ export const uploadCoverPhoto = async (
   let fileId = null;
   if (file) {
     // Construct payload and call the rpc
-    const payload: FileUploadRequestPayload = {
+    const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+    const payload: FileUploadPayload.Request = {
       user_id: userId,
       file_buffer: file.buffer.toString("base64"),
       file_name: file.originalname,
@@ -489,8 +464,8 @@ export const uploadCoverPhoto = async (
       context: "cover_photo",
     };
 
-    const fileResponse = await callRPC<FileUploadResponsePayload>(
-      getQueueName(events.FILE_UPLOAD_RPC),
+    const fileResponse = await callRPC<FileUploadPayload.Response>(
+      fileRpcQueue,
       payload,
       60000
     );
@@ -503,7 +478,7 @@ export const uploadCoverPhoto = async (
     const deletePayload: FileDeletePayload = {
       file_id: profile.cover_photo_id,
     };
-    await publishEvent(events.FILE_DELETE, deletePayload);
+    await publishEvent(Events.FILE_DELETE, deletePayload);
   }
 
   await db.query(
@@ -535,7 +510,8 @@ export const uploadResume = async (
   let fileId = null;
   if (file) {
     // Construct payload and call the rpc
-    const payload: FileUploadRequestPayload = {
+    const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+    const payload: FileUploadPayload.Request = {
       user_id: userId,
       file_buffer: file.buffer.toString("base64"),
       file_name: file.originalname,
@@ -544,8 +520,8 @@ export const uploadResume = async (
       context: "resume",
     };
 
-    const fileResponse = await callRPC<FileUploadResponsePayload>(
-      getQueueName(events.FILE_UPLOAD_RPC),
+    const fileResponse = await callRPC<FileUploadPayload.Response>(
+      fileRpcQueue,
       payload,
       60000
     );
@@ -558,7 +534,7 @@ export const uploadResume = async (
     const deletePayload: FileDeletePayload = {
       file_id: profile.resume_id,
     };
-    await publishEvent(events.FILE_DELETE, deletePayload);
+    await publishEvent(Events.FILE_DELETE, deletePayload);
   }
 
   await db.query(
@@ -570,4 +546,17 @@ export const uploadResume = async (
 
   const updatedProfile = await getProfile(userId);
   return updatedProfile as Profile;
+};
+
+/**
+ * Retrieves a user's profile picture URL
+ *
+ * @param userId - The unique identifier of the user
+ * @returns The URL of the user's profile picture, or null if no profile picture was found
+ */
+export const getUserProfilePictureURL = async (
+  userId: number
+): Promise<string | null> => {
+  const profile = await getProfile(userId, false);
+  return profile?.profile_picture_url || null;
 };
