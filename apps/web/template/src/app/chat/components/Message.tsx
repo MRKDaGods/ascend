@@ -1,6 +1,8 @@
 "use client";
 import { Box, Avatar,Paper, Typography} from "@mui/material";
 import { useChatStore } from "../store/chatStore";
+import React from "react";
+
 
 export type messageProps = {
     id: string;
@@ -90,7 +92,7 @@ export default function Message({id,content,sender,recipient,mediaUrls,createdAt
   alt={displayName}
   sx={{ width: 50, height: 50 }}
 >
-  {displayName.charAt(0)}
+  {displayName?.charAt(0) || "?"}
 </Avatar>
 
 
@@ -143,7 +145,7 @@ export default function Message({id,content,sender,recipient,mediaUrls,createdAt
                     } else if(url.endsWith(".mp4")|| url.endsWith(".mov")){
                         return(
                             <Box key={index}>
-                                <video src={url} controls style={{maxWidth:"100%",borderRadius:8,marginTop:8}}/>
+                                <video data-testid="video-element" src={url} controls style={{maxWidth:"100%",borderRadius:8,marginTop:8}}/>
                             </Box>                        
                         );
                     } else {

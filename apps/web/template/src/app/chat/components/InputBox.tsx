@@ -3,6 +3,8 @@ import { Box,TextField,IconButton,Button, Typography} from "@mui/material";
 import {useState,useRef, useEffect} from "react";
 import { useChatStore } from "../store/chatStore";
 import axios from "axios";
+import React from "react";
+
 
 export default function InputBox(){
     const selectedConversationId = useChatStore(state => state.selectedConversationId);
@@ -110,6 +112,7 @@ export default function InputBox(){
         <>
         <Box sx={{display:"flex",alignItems:"center",gap:1,padding:1,borderTop:"1px solid #ccc",backgroundColor:"#fff"}}>
             <input 
+            data-testid="upload"
             type="file" 
             multiple //to allow multiple file selection
             accept="image/*" 
