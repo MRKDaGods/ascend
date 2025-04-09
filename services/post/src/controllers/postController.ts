@@ -2,7 +2,6 @@ import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import validate from "@shared/middleware/validationMiddleware";
 import { Response } from "express";
 import postService from "../services/postService";
-import postFileProducer from "../producers/postProducer";
 import {
   createPostValidationRules,
   updatePostValidationRules,
@@ -12,6 +11,16 @@ import {
   searchValidationRules,
   mediaUploadValidationRules,
 } from "../validations/postValidation";
+import {
+  callRPC,
+  Events,
+  FileUploadPayload,
+  getRPCQueueName,
+  FileDeletePayload,
+  publishEvent
+} from "@shared/rabbitMQ";
+import { Services } from "@ascend/shared";
+import { getPresignedUrl } from "@shared/utils/files";
 
 // Feed Controllers
 export const getFeed = async (req: AuthenticatedRequest, res: Response) => {
@@ -62,8 +71,7 @@ export const createPost = [
         await Promise.all(
           files.map(async (file) => {
             // Upload file to file service
-            //const fileId = await postFileProducer.uploadFile(file, userId);
-            const fileId = 12321123; // Mocked fileId for testing
+            const fileId = await uploadFile(file, userId, 'post_media');
             // Add media to post with received URL
             return postService.addMediaToPost({
               post_id: postId,
@@ -552,3 +560,63 @@ export const deleteReport = async (req: AuthenticatedRequest, res: Response) => 
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
+
+
+/**
+ * Uploads a file to the file service using RPC
+ * @param file - The file to upload
+ * @param userId - The user ID
+ * @param context - The context of the file (e.g., 'post_media')
+ * @returns Promise with the file ID
+ */
+const uploadFile = async (
+  file: Express.Multer.File,
+  userId: number,
+  context: string = 'post_media'
+): Promise<number> => {
+  try {
+    // Create RPC queue name for file upload
+    const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+    
+    // Prepare payload
+    const payload: FileUploadPayload.Request = {
+      user_id: userId,
+      file_buffer: file.buffer.toString('base64'),
+      file_name: file.originalname,
+      mime_type: file.mimetype,
+      file_size: file.size,
+      context: context
+    };
+    
+    // Make RPC call with a 60-second timeout
+    const response = await callRPC<FileUploadPayload.Response>(
+      fileRpcQueue,
+      payload,
+      60000
+    );
+    
+    // Return the file ID
+    return response.file_id;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw new Error('File upload failed');
+  }
+};
+
+/**
+ * Delete a file from the file service
+ * @param fileId - The ID of the file to delete
+ */
+const deleteFile = async (fileId: number): Promise<void> => {
+  if (!fileId) return;
+  
+  try {
+    const deletePayload: FileDeletePayload = {
+      file_id: fileId
+    };
+    await publishEvent(Events.FILE_DELETE, deletePayload);
+  } catch (error) {
+    console.error('Error deleting file:', error);
+  }
+};
+

@@ -19,6 +19,7 @@ interface TagPosition {
   startIndex: number;
   endIndex: number;
 }
+import { getPresignedUrl } from "@shared/utils/files";
 
 export class PostService {
   // Post CRUD operations
@@ -349,6 +350,23 @@ export class PostService {
     return result.rows[0];
   }
 
+  /**
+   * Get the presigned URL for a file
+   * @param fileId - The ID of the file
+   * @returns Promise with the presigned URL
+   */
+  private getFileUrl = async (fileId: number): Promise<string> => {
+    try {
+      return (await getPresignedUrl(fileId)) || String(fileId); // Fallback to the original ID if we can't get the URL
+    } catch (error) {
+      console.error(
+        `Error getting presigned URL for file ID ${fileId}:`,
+        error
+      );
+      return String(fileId); // Fallback to the original ID if we can't get the URL
+    }
+  };
+
   // Feed operations
   async getFeed(
     userId: number,
@@ -399,17 +417,39 @@ export class PostService {
        LIMIT $2 OFFSET $3`,
       [userId, limit, offset]
     );
-  
+
     const feed = result.rows;
-  
+
     // Enhance feed items with engagement metrics
     for (const item of feed) {
       item.media = await this.getPostMedia(item.id);
       item.likes_count = await this.getPostLikesCount(item.id);
       item.comments_count = await this.getPostCommentsCount(item.id);
       item.shares_count = await this.getPostSharesCount(item.id);
+
+      // Process media URLs
+      if (item.media && item.media.length > 0) {
+        for (const media of item.media) {
+          // Replace URL with presigned URL
+          media.original_url = media.url; // Save the original URL/ID
+          media.url = await this.getFileUrl(media.url);
+
+          // Also handle thumbnail URL if present
+          if (media.thumbnail_url) {
+            media.original_thumbnail_url = media.thumbnail_url;
+            media.thumbnail_url = await this.getFileUrl(media.thumbnail_url);
+          }
+        }
+      }
+
+      // Process user profile picture
+      if (item.user && item.user.profile_picture_id) {
+        item.user.profile_picture_url = await this.getFileUrl(
+          item.user.profile_picture_id
+        );
+      }
     }
-  
+
     return feed;
   }
 
