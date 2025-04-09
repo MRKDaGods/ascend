@@ -38,7 +38,7 @@ class _SchoolsSearchingState extends State<SchoolsSearching> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search Followers',
+            hintText: 'Search Schools',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
               borderSide: const BorderSide(color: Colors.grey, width: 1.0),

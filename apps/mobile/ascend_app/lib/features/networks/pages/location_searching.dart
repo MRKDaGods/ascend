@@ -19,7 +19,7 @@ class LocationSearching extends StatelessWidget {
         foregroundColor: Colors.black,
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Column(
@@ -79,7 +79,7 @@ class LocationSearching extends StatelessWidget {
         } else if (state is LocationSearchLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is LocationSearchLoaded) {
-          if (state.isSearching) {
+          if (state.isSearching && state.locations.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -87,12 +87,37 @@ class LocationSearching extends StatelessWidget {
             return const Center(child: Text('No locations found'));
           }
 
-          return ListView.builder(
-            itemCount: state.locations.length,
-            itemBuilder: (context, index) {
-              final location = state.locations[index];
-              return _buildLocationTile(context, location);
+          return NotificationListener<ScrollNotification>(
+            onNotification: (scrollNotification) {
+              // Check if user has reached the bottom of the list
+              if (scrollNotification is ScrollEndNotification &&
+                  scrollNotification.metrics.extentAfter == 0 &&
+                  !state.isLoadingMore &&
+                  !state.hasReachedMax) {
+                // Load more data
+                context.read<LocationSearchBloc>().add(
+                  const LocationLoadMoreRequested(),
+                );
+              }
+              return false;
             },
+            child: ListView.builder(
+              itemCount: state.locations.length + (state.isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                // Show loading indicator at the bottom when loading more items
+                if (index == state.locations.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                final location = state.locations[index];
+                return _buildLocationTile(context, location);
+              },
+            ),
           );
         } else if (state is LocationSearchError) {
           return Center(child: Text('Error: ${state.message}'));

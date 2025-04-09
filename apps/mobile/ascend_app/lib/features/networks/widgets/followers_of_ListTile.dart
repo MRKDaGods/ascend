@@ -72,7 +72,7 @@ Widget buildFollowersOfList(
       onfollowersOfSearchingRemoved,
     ),
     trailing: Text(
-      followersOfSearching.length > 0 ? 'Any' : 'Edit',
+      followersOfSearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

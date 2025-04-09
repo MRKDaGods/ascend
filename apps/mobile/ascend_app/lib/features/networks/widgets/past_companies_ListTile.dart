@@ -65,7 +65,7 @@ Widget buildPastCompanyList(
     ),
     subtitle: printpastCompanies(pastCompanies, onpastCompaniesRemoved),
     trailing: Text(
-      pastCompanies.length > 0 ? 'Any' : 'Edit',
+      pastCompanies.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

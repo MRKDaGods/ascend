@@ -72,7 +72,7 @@ Widget buildConnectionsOfList(
       onConnectionsOfSearchingRemoved,
     ),
     trailing: Text(
-      connectionsOfSearching.length > 0 ? 'Any' : 'Edit',
+      connectionsOfSearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

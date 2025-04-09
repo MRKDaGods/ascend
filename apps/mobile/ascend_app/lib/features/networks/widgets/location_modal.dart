@@ -197,23 +197,25 @@ void _navigateToLocationSearch(
   BuildContext context,
   SearchFiltersBloc searchFiltersBloc,
 ) {
-  // Close the current modal first to prevent memory stacking
+  final locationSearchBloc = LocationSearchBloc();
+
+  locationSearchBloc.add(LocationSearchStarted());
+
   Navigator.of(context).pop();
 
-  // Small delay to ensure the animation completes
+  // Small delay to ensure animations complete
   Future.delayed(const Duration(milliseconds: 100), () {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder:
-            (newContext) => MultiBlocProvider(
+            (context) => MultiBlocProvider(
               providers: [
-                // Provide the existing SearchFiltersBloc by value
-                BlocProvider.value(value: searchFiltersBloc),
-                // Create a new LocationSearchBloc only when needed
-                BlocProvider<LocationSearchBloc>(
-                  create:
-                      (_) => LocationSearchBloc()..add(LocationSearchStarted()),
+                // Provide LocationSearchBloc
+                BlocProvider<LocationSearchBloc>.value(
+                  value: locationSearchBloc,
                 ),
+                // Also provide SearchFiltersBloc so it can be accessed in LocationSearching
+                BlocProvider<SearchFiltersBloc>.value(value: searchFiltersBloc),
               ],
               child: const LocationSearching(),
             ),

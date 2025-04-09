@@ -71,7 +71,7 @@ Widget buildProfileLanguageList(
       onprofileLanguageSearchingRemoved,
     ),
     trailing: Text(
-      profileLanguageSearching.length > 0 ? 'Any' : 'Edit',
+      profileLanguageSearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

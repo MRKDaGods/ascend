@@ -53,6 +53,8 @@ Widget buildLocationList(
 ) {
   return ListTile(
     onTap: () {
+      // Close the current modal
+      Navigator.pop(context);
       showLocationModal(context);
     },
     contentPadding: EdgeInsets.zero,
