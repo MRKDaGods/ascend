@@ -29,6 +29,9 @@ type chatStore ={
     
 }
 
+export type { chatStore };
+
+
 //actual store el lama ba call useChateStore byraga3ly the state object passed to set
 //ana lama ba setWTV i update the state object bel object el b3taha l set 
 export const useChatStore = create<chatStore>((set)=>({
