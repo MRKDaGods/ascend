@@ -1,0 +1,25 @@
+{
+  "name": "@ascend/api-client",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "api_client_bg.wasm",
+    "api_client.js",
+    "api_client.d.ts",
+    "mrk.js",
+    "mrk.d.ts",
+    "models"
+  ],
+  "main": "api_client.js",
+  "types": "api_client.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "/* Postprocessed */": ""
+}

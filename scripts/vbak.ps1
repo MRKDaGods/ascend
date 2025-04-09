@@ -1,3 +1,12 @@
+cd ..
+
+# Ask for confirmation
+$confirmation = Read-Host "This will create backups of all Docker volumes. Continue? (y/N)"
+if ($confirmation -ne 'y') {
+    Write-Output "Backup cancelled."
+    exit
+}
+
 # Define volumes to back up
 $volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data", "ascend_rabbitmq_data")
 
