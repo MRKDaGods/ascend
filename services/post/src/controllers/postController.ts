@@ -17,11 +17,18 @@ import {
   FileUploadPayload,
   getRPCQueueName,
   FileDeletePayload,
-  publishEvent
+  publishEvent,
 } from "@shared/rabbitMQ";
 import { Services } from "@ascend/shared";
 import { getPresignedUrl } from "@shared/utils/files";
 
+/**
+ * Get the user's feed with posts from connections and followed users
+ * @route GET /feed
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of posts per page (default: 10)
+ * @returns {object} Object containing feed posts and pagination info
+ */
 // Feed Controllers
 export const getFeed = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
@@ -71,7 +78,7 @@ export const createPost = [
         await Promise.all(
           files.map(async (file) => {
             // Upload file to file service
-            const fileId = await uploadFile(file, userId, 'post_media');
+            const fileId = await uploadFile(file, userId, "post_media");
             // Add media to post with received URL
             return postService.addMediaToPost({
               post_id: postId,
@@ -100,7 +107,12 @@ export const createPost = [
     }
   },
 ];
-
+/**
+ * Get a post by its ID
+ * @route GET /posts/:postId
+ * @param {string} postId - The ID of the post to retrieve
+ * @returns {object} Post object with media and author information
+ */
 export const getPostById = async (req: AuthenticatedRequest, res: Response) => {
   const postId = parseInt(req.params.postId);
 
@@ -118,7 +130,14 @@ export const getPostById = async (req: AuthenticatedRequest, res: Response) => {
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
-
+/**
+ * Update an existing post
+ * @route PUT /posts/:postId
+ * @param {string} postId - The ID of the post to update
+ * @param {string} content - Updated post content
+ * @param {string} privacy - Updated privacy setting ('public'|'private'|'connections')
+ * @returns {object} Updated post object
+ */
 export const updatePost = [
   ...updatePostValidationRules,
   validate,
@@ -126,7 +145,7 @@ export const updatePost = [
     const postId = parseInt(req.params.postId);
     const { content, privacy } = req.body;
     try {
-      const post = await postService.updatePost(postId, content,privacy);
+      const post = await postService.updatePost(postId, content, privacy);
       if (!post) {
         return res.status(404).json({
           success: false,
@@ -140,7 +159,12 @@ export const updatePost = [
     }
   },
 ];
-
+/**
+ * Delete a post and its associated media
+ * @route DELETE /posts/:postId
+ * @param {string} postId - The ID of the post to delete
+ * @returns {object} Success message
+ */
 export const deletePost = async (req: AuthenticatedRequest, res: Response) => {
   const postId = parseInt(req.params.postId);
   const userId = req.user!.id;
@@ -148,34 +172,33 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response) => {
   try {
     // First, get the post to access its media
     const post = await postService.getPostById(postId);
-    
+
     if (!post) {
       return res.status(404).json({
         success: false,
-        error: "Post not found"
+        error: "Post not found",
       });
     }
-    
+
     // Check if user is authorized to delete this post
     if (post.user_id !== userId) {
       return res.status(403).json({
         success: false,
-        error: "Unauthorized to delete this post"
+        error: "Unauthorized to delete this post",
       });
     }
-    
+
     // Extract media file IDs before deleting the post
     const mediaFileIds: number[] = [];
     if (post.media && post.media.length > 0) {
-      post.media.forEach(media => {
+      post.media.forEach((media) => {
         // Get the original file ID (either from url or by parsing url)
-        const fileId =  parseInt(media.url) 
+        const fileId = parseInt(media.url);
 
-          
         if (!isNaN(fileId)) {
           mediaFileIds.push(fileId);
         }
-        
+
         // Also get thumbnail if it exists
         if (media.thumbnail_url) {
           const thumbnailId = parseInt(media.url);
@@ -185,33 +208,38 @@ export const deletePost = async (req: AuthenticatedRequest, res: Response) => {
         }
       });
     }
-    
+
     // Delete the post from database
     const deleted = await postService.deletePost(postId);
-    
+
     if (!deleted) {
       return res.status(500).json({
         success: false,
-        error: "Failed to delete post"
+        error: "Failed to delete post",
       });
     }
-    
+
     // Now delete all associated media files
     if (mediaFileIds.length > 0) {
-      await Promise.all(
-        mediaFileIds.map(fileId => deleteFile(fileId))
-      );
+      await Promise.all(mediaFileIds.map((fileId) => deleteFile(fileId)));
     }
-    
+
     res.json({
       success: true,
-      message: "Post and associated media deleted successfully"
+      message: "Post and associated media deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting post:", error);
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
+
+/**
+ * Like or unlike a post
+ * @route POST /posts/:postId/like
+ * @param {string} postId - The ID of the post to like/unlike
+ * @returns {object} Success message
+ */
 // Engagement Controllers
 export const likePost = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
@@ -228,8 +256,15 @@ export const likePost = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+/**
+ * Create a comment on a post
+ * @route POST /posts/:postId/comments
+ * @param {string} postId - The ID of the post to comment on
+ * @param {string} content - Comment content
+ * @param {number} [parentCommentId] - Optional parent comment ID for replies
+ * @returns {object} Created comment object
+ */
 export const createComment = [
-
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
     const postId = parseInt(req.params.postId);
@@ -249,6 +284,14 @@ export const createComment = [
   },
 ];
 
+/**
+ * Get comments for a post
+ * @route GET /posts/:postId/comments
+ * @param {string} postId - The ID of the post to get comments for
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of comments per page (default: 10)
+ * @returns {object} Comments and pagination info
+ */
 export const getPostComments = async (
   req: AuthenticatedRequest,
   res: Response
@@ -276,6 +319,13 @@ export const getPostComments = async (
   }
 };
 
+/**
+ * Update a comment
+ * @route PUT /comments/:commentId
+ * @param {string} commentId - The ID of the comment to update
+ * @param {string} content - Updated comment content
+ * @returns {object} Updated comment object
+ */
 export const updateComment = [
   ...commentValidationRules,
   validate,
@@ -304,6 +354,12 @@ export const updateComment = [
   },
 ];
 
+/**
+ * Delete a comment
+ * @route DELETE /comments/:commentId
+ * @param {string} commentId - The ID of the comment to delete
+ * @returns {object} Success message
+ */
 export const deleteComment = async (
   req: AuthenticatedRequest,
   res: Response
@@ -329,6 +385,14 @@ export const deleteComment = async (
   }
 };
 
+/**
+ * Share a post
+ * @route POST /posts/:postId/share
+ * @param {string} postId - The ID of the post to share
+ * @param {string} [comment] - Optional comment with the share
+ * @param {string} [privacy] - Privacy setting for the share
+ * @returns {object} Created share object
+ */
 export const sharePost = [
   ...sharePostValidationRules,
   validate,
@@ -347,6 +411,15 @@ export const sharePost = [
   },
 ];
 
+/**
+ * Get engagement metrics for a post
+ * @route GET /posts/:postId/engagement
+ * @param {string} postId - The ID of the post to get engagement for
+ * @param {boolean} likes - Whether to include likes data
+ * @param {boolean} comments - Whether to include comments data
+ * @param {boolean} shares - Whether to include shares data
+ * @returns {object} Post engagement metrics
+ */
 // Utility Controllers
 export const getPostEngagement = async (
   req: AuthenticatedRequest,
@@ -358,9 +431,9 @@ export const getPostEngagement = async (
   try {
     const engagement = await postService.getPostEngagement(
       postId,
-      Boolean(likes === 'true'),
-      Boolean(comments === 'true'),
-      Boolean(shares === 'true')
+      Boolean(likes === "true"),
+      Boolean(comments === "true"),
+      Boolean(shares === "true")
     );
     res.json({ success: true, data: engagement });
   } catch (error) {
@@ -369,6 +442,12 @@ export const getPostEngagement = async (
   }
 };
 
+/**
+ * Save or unsave a post
+ * @route POST /posts/:postId/save
+ * @param {string} postId - The ID of the post to save/unsave
+ * @returns {object} Success message
+ */
 export const savePost = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
   const postId = parseInt(req.params.postId);
@@ -388,6 +467,13 @@ export const savePost = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+/**
+ * Get posts saved by the user
+ * @route GET /posts/saved
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of posts per page (default: 10)
+ * @returns {object} Saved posts
+ */
 export const getSavedPosts = async (
   req: AuthenticatedRequest,
   res: Response
@@ -409,6 +495,14 @@ export const getSavedPosts = async (
   }
 };
 
+/**
+ * Search for posts
+ * @route POST /posts/search
+ * @param {string} q - Search query
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of results per page (default: 10)
+ * @returns {object} Matching posts
+ */
 export const searchPosts = async (req: AuthenticatedRequest, res: Response) => {
   const query = req.body.q as string;
   const page = parseInt(req.body.page as string) || 1;
@@ -427,28 +521,36 @@ export const searchPosts = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
+/**
+ * Tag users in a post or comment
+ * @route POST /tags
+ * @param {string} contentType - Type of content ('post' or 'comment')
+ * @param {number} contentId - ID of the content to tag users in
+ * @param {Array} tags - Array of user tags with userId, startIndex, and endIndex
+ * @returns {object} Created tags
+ */
 export const tagUsers = async (req: AuthenticatedRequest, res: Response) => {
   const { contentType, contentId, tags } = req.body;
-    // Check if user is authenticated
-    if (!req.user?.id) {
-      return res.status(401).json({
-        success: false,
-        error: "User not authenticated"
-      });
-    }
+  // Check if user is authenticated
+  if (!req.user?.id) {
+    return res.status(401).json({
+      success: false,
+      error: "User not authenticated",
+    });
+  }
   // Validate required fields
   if (!contentType || !contentId || !tags) {
-    return res.status(400).json({ 
-      success: false, 
-      error: "Missing required fields: contentType, contentId, or tags" 
+    return res.status(400).json({
+      success: false,
+      error: "Missing required fields: contentType, contentId, or tags",
     });
   }
 
   // Validate contentType
-  if (!['post', 'comment'].includes(contentType)) {
-    return res.status(400).json({ 
-      success: false, 
-      error: "Invalid contentType. Must be 'post' or 'comment'" 
+  if (!["post", "comment"].includes(contentType)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid contentType. Must be 'post' or 'comment'",
     });
   }
 
@@ -457,7 +559,7 @@ export const tagUsers = async (req: AuthenticatedRequest, res: Response) => {
     const tagData = tags.map((tag: any) => ({
       userId: tag.userId,
       startIndex: tag.startIndex,
-      endIndex: tag.endIndex
+      endIndex: tag.endIndex,
     }));
 
     // Call service layer
@@ -465,55 +567,70 @@ export const tagUsers = async (req: AuthenticatedRequest, res: Response) => {
       contentType,
       contentId: parseInt(contentId),
       tags: tagData,
-      taggerUserId: req.user.id 
+      taggerUserId: req.user.id,
     });
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       data: {
         contentType,
         contentId,
-        tags: createdTags
-      }
+        tags: createdTags,
+      },
     });
-
   } catch (error) {
     console.error("Error tagging users:", error);
-    
 
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
-export const getTaggedUsers = async (req: AuthenticatedRequest, res: Response) => {
+
+/**
+ * Get users tagged in a post or comment
+ * @route GET /tags/:contentType/:contentId
+ * @param {string} contentType - Type of content ('post' or 'comment')
+ * @param {number} contentId - ID of the content
+ * @returns {object} Tagged users
+ */
+export const getTaggedUsers = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   const { contentType, contentId } = req.params;
 
   // Validate contentType
-  if (!['post', 'comment'].includes(contentType)) {
-    return res.status(400).json({ 
-      success: false, 
-      error: "Invalid contentType. Must be 'post' or 'comment'" 
+  if (!["post", "comment"].includes(contentType)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid contentType. Must be 'post' or 'comment'",
     });
   }
 
   try {
     const taggedUsers = await postService.getTaggedUsers({
       contentType: contentType as "post" | "comment",
-      contentId: parseInt(contentId)
+      contentId: parseInt(contentId),
     });
 
-    res.json({ 
-      success: true, 
-      data: taggedUsers 
+    res.json({
+      success: true,
+      data: taggedUsers,
     });
   } catch (error) {
     console.error("Error getting tagged users:", error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Server error" 
+    res.status(500).json({
+      success: false,
+      error: "Server error",
     });
   }
 };
 
+/**
+ * Remove a user tag
+ * @route DELETE /tags/:tagId
+ * @param {string} tagId - The ID of the tag to remove
+ * @returns {object} Success message
+ */
 export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
   const tagId = parseInt(req.params.tagId);
   const userId = req.user!.id;
@@ -521,21 +638,20 @@ export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const removedTag = await postService.removeTag({
       tagId,
-      userId
+      userId,
     });
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       data: removedTag,
-      message: "Tag removed successfully"
+      message: "Tag removed successfully",
     });
   } catch (error) {
     console.error("Error removing tag:", error);
-    
 
-    res.status(500).json({ 
-      success: false, 
-      error: "Server error" 
+    res.status(500).json({
+      success: false,
+      error: "Server error",
     });
   }
 };
@@ -548,6 +664,14 @@ enum ReportReason {
   MISINFORMATION = "misinformation",
   OTHER = "other",
 }
+/**
+ * Report a post
+ * @route POST /posts/:postId/report
+ * @param {string} postId - The ID of the post to report
+ * @param {string} reason - Reason for reporting ('spam'|'harassment'|'violence'|'hate_speech'|'misinformation'|'other')
+ * @param {string} [description] - Optional description of the report
+ * @returns {object} Created report
+ */
 export const reportPost = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
   const postId = Number(req.params.postId);
@@ -558,7 +682,9 @@ export const reportPost = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   if (!Object.values(ReportReason).includes(reason)) {
-    return res.status(400).json({ success: false, error: "Invalid report reason" });
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid report reason" });
   }
 
   try {
@@ -580,13 +706,20 @@ export const reportPost = async (req: AuthenticatedRequest, res: Response) => {
   }
 };
 
-
-
-export const deleteReport = async (req: AuthenticatedRequest, res: Response) => {
+/**
+ * Delete a report
+ * @route DELETE /reports/:reportId
+ * @param {string} reportId - The ID of the report to delete
+ * @returns {object} Success message
+ */
+export const deleteReport = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   const reportId = Number(req.params.reportId);
   const userId = req.user!.id;
   // const isAdmin = req.user!.role === "admin"; // Assuming role exists in `req.user`
-  const isAdmin = true // Temp until someone implements the user roles
+  const isAdmin = true; // Temp until someone implements the user roles
   if (isNaN(reportId)) {
     return res.status(400).json({ success: false, error: "Invalid report ID" });
   }
@@ -595,11 +728,15 @@ export const deleteReport = async (req: AuthenticatedRequest, res: Response) => 
     const report = await postService.getReportById(reportId);
 
     if (!report) {
-      return res.status(404).json({ success: false, error: "Report not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Report not found" });
     }
 
     if (report.reporter_id !== userId && !isAdmin) {
-      return res.status(403).json({ success: false, error: "Unauthorized to delete this report" });
+      return res
+        .status(403)
+        .json({ success: false, error: "Unauthorized to delete this report" });
     }
 
     await postService.deleteReport(reportId);
@@ -611,7 +748,6 @@ export const deleteReport = async (req: AuthenticatedRequest, res: Response) => 
   }
 };
 
-
 /**
  * Uploads a file to the file service using RPC
  * @param file - The file to upload
@@ -622,34 +758,34 @@ export const deleteReport = async (req: AuthenticatedRequest, res: Response) => 
 const uploadFile = async (
   file: Express.Multer.File,
   userId: number,
-  context: string = 'post_media'
+  context: string = "post_media"
 ): Promise<number> => {
   try {
     // Create RPC queue name for file upload
     const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
-    
+
     // Prepare payload
     const payload: FileUploadPayload.Request = {
       user_id: userId,
-      file_buffer: file.buffer.toString('base64'),
+      file_buffer: file.buffer.toString("base64"),
       file_name: file.originalname,
       mime_type: file.mimetype,
       file_size: file.size,
-      context: context
+      context: context,
     };
-    
+
     // Make RPC call with a 60-second timeout
     const response = await callRPC<FileUploadPayload.Response>(
       fileRpcQueue,
       payload,
       60000
     );
-    
+
     // Return the file ID
     return response.file_id;
   } catch (error) {
-    console.error('Error uploading file:', error);
-    throw new Error('File upload failed');
+    console.error("Error uploading file:", error);
+    throw new Error("File upload failed");
   }
 };
 
@@ -659,14 +795,13 @@ const uploadFile = async (
  */
 const deleteFile = async (fileId: number): Promise<void> => {
   if (!fileId) return;
-  
+
   try {
     const deletePayload: FileDeletePayload = {
-      file_id: fileId
+      file_id: fileId,
     };
     await publishEvent(Events.FILE_DELETE, deletePayload);
   } catch (error) {
-    console.error('Error deleting file:', error);
+    console.error("Error deleting file:", error);
   }
 };
-
