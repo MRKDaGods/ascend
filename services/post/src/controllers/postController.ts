@@ -143,25 +143,75 @@ export const updatePost = [
 
 export const deletePost = async (req: AuthenticatedRequest, res: Response) => {
   const postId = parseInt(req.params.postId);
+  const userId = req.user!.id;
 
   try {
-    const deleted = await postService.deletePost(postId);
-    if (!deleted) {
+    // First, get the post to access its media
+    const post = await postService.getPostById(postId);
+    
+    if (!post) {
       return res.status(404).json({
         success: false,
-        error: "Post not found",
+        error: "Post not found"
       });
     }
+    
+    // Check if user is authorized to delete this post
+    if (post.user_id !== userId) {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized to delete this post"
+      });
+    }
+    
+    // Extract media file IDs before deleting the post
+    const mediaFileIds: number[] = [];
+    if (post.media && post.media.length > 0) {
+      post.media.forEach(media => {
+        // Get the original file ID (either from url or by parsing url)
+        const fileId =  parseInt(media.url) 
+
+          
+        if (!isNaN(fileId)) {
+          mediaFileIds.push(fileId);
+        }
+        
+        // Also get thumbnail if it exists
+        if (media.thumbnail_url) {
+          const thumbnailId = parseInt(media.url);
+          if (!isNaN(thumbnailId)) {
+            mediaFileIds.push(thumbnailId);
+          }
+        }
+      });
+    }
+    
+    // Delete the post from database
+    const deleted = await postService.deletePost(postId);
+    
+    if (!deleted) {
+      return res.status(500).json({
+        success: false,
+        error: "Failed to delete post"
+      });
+    }
+    
+    // Now delete all associated media files
+    if (mediaFileIds.length > 0) {
+      await Promise.all(
+        mediaFileIds.map(fileId => deleteFile(fileId))
+      );
+    }
+    
     res.json({
       success: true,
-      message: "Post deleted successfully",
+      message: "Post and associated media deleted successfully"
     });
   } catch (error) {
     console.error("Error deleting post:", error);
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
-
 // Engagement Controllers
 export const likePost = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;

@@ -66,6 +66,26 @@ export class PostService {
     post.comments_count = await this.getPostCommentsCount(postId);
     post.shares_count = await this.getPostSharesCount(postId);
 
+     // Process media URLs
+  if (post.media && post.media.length > 0) {
+    for (const media of post.media) {
+      // Replace URL with presigned URL
+      media.original_url = media.url; // Save the original URL/ID
+      media.url = await this.getFileUrl(media.url);
+      
+      // Also handle thumbnail URL if present
+      if (media.thumbnail_url) {
+        media.original_thumbnail_url = media.thumbnail_url;
+        media.thumbnail_url = await this.getFileUrl(media.thumbnail_url);
+      }
+    }
+  }
+  
+  // Process user profile picture
+  if (post.user && post.user.profile_picture_id) {
+    post.user.profile_picture_url = await this.getFileUrl(post.user.profile_picture_id);
+  }
+  
     return post;
   }
 
