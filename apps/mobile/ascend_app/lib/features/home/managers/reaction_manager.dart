@@ -1,95 +1,129 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/post_bloc/post_bloc.dart';
+import '../bloc/post_bloc/post_event.dart';
 
 class ReactionManager {
-  bool _isLiked;
-  String _currentReaction;
-  int _likesCount;
-  final Function(bool, String, int) onReactionChanged;
-  
-  // Add a variable to track if the reaction panel is showing
-  bool _isShowingReactionPanel = false;
-
+  // Static maps for reaction icons and colors
   static const Map<String, IconData> reactionIcons = {
     'like': Icons.thumb_up,
     'love': Icons.favorite,
     'haha': Icons.sentiment_very_satisfied,
-    'wow': Icons.sentiment_satisfied_alt,
+    'wow': Icons.emoji_emotions,
     'sad': Icons.sentiment_dissatisfied,
-    'angry': Icons.sentiment_very_dissatisfied,
+    'angry': Icons.mood_bad,
   };
-
+  
   static const Map<String, Color> reactionColors = {
     'like': Colors.blue,
     'love': Colors.red,
     'haha': Colors.amber,
     'wow': Colors.amber,
-    'sad': Colors.amber,
+    'sad': Colors.purple,
     'angry': Colors.orange,
   };
   
-  // Add reaction labels
-  static const Map<String, String> reactionLabels = {
-    'like': 'Like',
-    'love': 'Love',
-    'haha': 'Haha',
-    'wow': 'Wow',
-    'sad': 'Sad',
-    'angry': 'Angry',
-  };
-
+  // Instance properties
+  bool _isLiked = false;
+  String? _currentReaction;
+  final String? postId;
+  final BuildContext? context;
+  
+  // Getters
+  bool get isLiked => _isLiked;
+  String? get currentReaction => _currentReaction;
+  
+  // Constructor - can initialize with existing reaction state
   ReactionManager({
-    required bool isLiked,
-    required String currentReaction,
-    required int likesCount,
-    required this.onReactionChanged,
-  })  : _isLiked = isLiked,
-        _currentReaction = currentReaction,
-        _likesCount = likesCount;
-
-  IconData getCurrentReactionIcon() {
-    return _isLiked ? reactionIcons[_currentReaction]! : Icons.thumb_up_outlined;
-  }
-
-  Color getCurrentReactionColor() {
-    return _isLiked ? reactionColors[_currentReaction]! : Colors.grey;
+    bool isLiked = false, 
+    String? currentReaction,
+    this.postId,
+    this.context,
+  }) {
+    _isLiked = isLiked;
+    _currentReaction = currentReaction;
   }
   
-  String getCurrentReactionLabel() {
-    return _isLiked ? reactionLabels[_currentReaction]! : 'Like';
-  }
-  
-  // Getter for reaction panel visibility
-  bool get isShowingReactionPanel => _isShowingReactionPanel;
-  
-  // Methods to control reaction panel visibility
-  void showReactionPanel() {
-    _isShowingReactionPanel = true;
-  }
-  
-  void hideReactionPanel() {
-    _isShowingReactionPanel = false;
-  }
-
-  void toggleReaction(String reactionType) {
-    // If already liked with the same reaction, unlike it
-    if (_isLiked && _currentReaction == reactionType) {
+  // Toggle the default reaction with Bloc integration
+  void toggleReaction() {
+    if (_isLiked) {
       _isLiked = false;
-      _likesCount--; // This is the key fix - decrement count when unliking
-      onReactionChanged(_isLiked, _currentReaction, _likesCount);
-      return;
+      _currentReaction = null;
+    } else {
+      _isLiked = true;
+      _currentReaction = 'like';
     }
+    
+    // Update the Bloc if we have context and postId
+    _updateBloc();
+  }
+  
+  // Update to a specific reaction
+  void updateReaction(String reactionType) {
+    // If selecting the same reaction that's already active, remove it
+    if (_isLiked && _currentReaction == reactionType) {
+      removeReaction();
 
-    // If already liked but with a different reaction, just change the reaction type
-    // If not liked, like it with the given reaction type
-    bool wasLiked = _isLiked;
-    _isLiked = true;
-    _currentReaction = reactionType;
-    
-    // Only increment count if this is a new like, not a reaction change
-    if (!wasLiked) {
-      _likesCount++;
+    } else {
+      _isLiked = true;
+      _currentReaction = reactionType;
+      _updateBloc();
+    }
+  }
+  
+  // Remove reaction
+  void removeReaction() {
+    _isLiked = false;
+    _currentReaction = null;
+    _updateBloc();
+  }
+  
+  // Private method to update the Bloc when reactions change
+  void _updateBloc() {
+    if (context != null && postId != null) {
+      context!.read<PostBloc>().add(
+        TogglePostReaction(postId!, _currentReaction)
+      );
+    }
+  }
+  
+  // Get current reaction icon
+  IconData getCurrentReactionIcon() {
+    if (!_isLiked) {
+      return Icons.thumb_up_outlined;
+    }
+    return reactionIcons[_currentReaction] ?? Icons.thumb_up;
+  }
+  
+  // Get current reaction color
+  Color getCurrentReactionColor() {
+    if (!_isLiked) {
+      return Colors.grey;
+    }
+    return reactionColors[_currentReaction] ?? Colors.blue;
+  }
+  
+  // Get current reaction label
+  String getCurrentReactionLabel() {
+    if (!_isLiked) {
+      return 'Like';
     }
     
-    onReactionChanged(_isLiked, _currentReaction, _likesCount);
+    switch (_currentReaction) {
+      case 'like':
+        return 'Like';
+      case 'love':
+        return 'Love';
+      case 'haha':
+        return 'Haha';
+      case 'wow':
+        return 'Wow';
+      case 'sad':
+        return 'Sad';
+      case 'angry':
+        return 'Angry';
+      default:
+        return 'Like';
+    }
   }
 }
