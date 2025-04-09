@@ -65,7 +65,7 @@ interface PostStoreState {
 
   addPost: (content: string, media?: string, mediaType?: "image" | "video") => void;
   deletePost: (postId: number) => void;
-  editPost: (id: number, newText: string) => void;
+  editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
   setEditingPost: (post: PostType | null) => void;
 
   setReaction: (postId: number, reaction: ReactionType) => void;
@@ -84,6 +84,9 @@ interface PostStoreState {
 
   openDiscardPostDialog: () => void;
   closeDiscardPostDialog: () => void;
+
+  createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
+
 }
 
 export const usePostStore = create<PostStoreState>()(
@@ -155,20 +158,64 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
+        createPostViaAPI: async (content: string, media?: string, mediaType?: "image" | "video") => {
+          const response = await fetch("http://localhost:5001/createpost", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content, media, mediaType }),
+          });
+
+          console.log("API response status:", response.status);
+
+        
+          if (!response.ok) {
+            console.error("Failed to create post via API");
+            return;
+          }
+        
+          const newPost: PostType = await response.json();
+        
+          // Add the post to Zustand state
+          set((state) => ({
+            posts: [...state.posts, newPost],
+            userPostPopupOpen: true,
+            lastUserPostId: newPost.id,
+            isLastPostDeleted: false,
+          }));
+        },
+
       deletePost: (postId) =>
         set((state) => ({
           posts: state.posts.filter((post) => !(post.id === postId && post.isUserPost)),
         })),
 
-      editPost: (id, newText) =>
+      // editPost: (id, newText) =>
+      //   set((state) => ({
+      //     posts: state.posts.map((post) =>
+      //       post.id === id ? { ...post, content: newText } : post
+      //     ),
+      //     editingPost: null,
+      //     postText: "",
+      //     open: false,
+      //   })),
+
+      editPost: (id, newText, newMedia?, mediaType?) =>
         set((state) => ({
           posts: state.posts.map((post) =>
-            post.id === id ? { ...post, content: newText } : post
+            post.id === id
+              ? {
+                  ...post,
+                  content: newText,
+                  image: mediaType === "image" ? newMedia : post.image,
+                  video: mediaType === "video" ? newMedia : post.video,
+                }
+              : post
           ),
           editingPost: null,
           postText: "",
           open: false,
         })),
+      
 
       setEditingPost: (post) =>
         set({

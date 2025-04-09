@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import { MoreHoriz, ThumbUp, Comment, Delete, Edit } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
-
+import DeletePost from "./DeletePost";
 interface UserPostProps {
   post: PostType;
   onDeleteClick?: () => void;
@@ -56,6 +56,8 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
     setOpen,
     setPostText,
     setEditingPost,
+    isLastPostDeleted, 
+    setLastPostDeleted,
   } = usePostStore();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -69,20 +71,27 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
     setAnchorEl(null);
   };
 
+  // const handleEditPost = () => {
+  //   setPostText(post.content);
+  //   setEditingPost(post);
+  //   setOpen(true);
+  //   handleMenuClose();
+  // };
+
   const handleEditPost = () => {
-    setPostText(post.content);
     setEditingPost(post);
-    setOpen(true);
     handleMenuClose();
-  };
+  };  
 
   const handleDelete = () => {
     deletePost(post.id);
     setDeleteDialogOpen(false);
+    setLastPostDeleted(true);
     handleMenuClose();
   };
 
   return (
+    <>
     <Card
       sx={{
         mt: 2,
@@ -196,6 +205,8 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
         </DialogActions>
       </Dialog>
     </Card>
+    <DeletePost />
+    </>
   );
 };
 
