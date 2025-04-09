@@ -72,7 +72,7 @@ Widget buildSchoolsList(
       onschoolsSearchingRemoved,
     ),
     trailing: Text(
-      schoolsSearching.length > 0 ? 'Any' : 'Edit',
+      schoolsSearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

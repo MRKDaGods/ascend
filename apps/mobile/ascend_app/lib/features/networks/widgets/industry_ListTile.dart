@@ -73,7 +73,7 @@ Widget buildIndustryList(
       onindustrySearchingRemoved,
     ),
     trailing: Text(
-      industrySearching.length > 0 ? 'Any' : 'Edit',
+      industrySearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

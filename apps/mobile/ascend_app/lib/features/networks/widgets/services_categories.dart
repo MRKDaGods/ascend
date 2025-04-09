@@ -71,7 +71,7 @@ Widget buildServicesCategoriesList(
       onservicesCategoriesSearchingRemoved,
     ),
     trailing: Text(
-      servicesCategoriesSearching.length > 0 ? 'Any' : 'Edit',
+      servicesCategoriesSearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

@@ -1,4 +1,3 @@
-// location_search_event.dart
 part of 'location_search_bloc.dart';
 
 abstract class LocationSearchEvent extends Equatable {
@@ -8,7 +7,9 @@ abstract class LocationSearchEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LocationSearchStarted extends LocationSearchEvent {}
+class LocationSearchStarted extends LocationSearchEvent {
+  const LocationSearchStarted();
+}
 
 class LocationSearchQueryChanged extends LocationSearchEvent {
   final String query;
@@ -26,4 +27,8 @@ class LocationSelected extends LocationSearchEvent {
 
   @override
   List<Object?> get props => [location];
+}
+
+class LocationLoadMoreRequested extends LocationSearchEvent {
+  const LocationLoadMoreRequested();
 }

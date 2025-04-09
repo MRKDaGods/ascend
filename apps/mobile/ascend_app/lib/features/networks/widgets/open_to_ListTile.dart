@@ -68,7 +68,7 @@ Widget buildopenToList(
     ),
     subtitle: printopenToSearching(openToSearching, onopenToSearchingRemoved),
     trailing: Text(
-      openToSearching.length > 0 ? 'Any' : 'Edit',
+      openToSearching.length > 0 ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,
