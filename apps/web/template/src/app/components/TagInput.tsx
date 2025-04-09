@@ -78,6 +78,9 @@ const TagInput: React.FC<TagInputProps> = ({
         value={text}
         onChange={(e) => setText(e.target.value)}
         variant="standard"
+        InputProps={{
+          disableUnderline: true, // 👈 THIS disables the line
+        }}
       />
 
       <Popper

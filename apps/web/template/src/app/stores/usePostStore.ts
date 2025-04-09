@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
+import { useMediaStore } from "./useMediaStore";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -26,11 +27,12 @@ export type PostType = {
   image?: string;
   video?: string;
   file?: string;
+  title?: string;
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
-  tags?: Tag[]; // ✅ Post tags
-  commentTags?: { [commentIndex: number]: Tag[] }; // ✅ Comment-specific tags
+  tags?: Tag[];
+  commentTags?: { [commentIndex: number]: Tag[] };
 };
 
 interface PostStoreState {
@@ -217,12 +219,39 @@ export const usePostStore = create<PostStoreState>()(
         })),
       
 
-      setEditingPost: (post) =>
+      // setEditingPost: (post) =>
+      //   set({
+      //     editingPost: post,
+      //     postText: post?.content ?? "",
+      //     open: true,
+      //   }),
+
+      setEditingPost: (post) => {
+        const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
+      
+        const mediaPreviews: string[] = [];
+      
+        if (post?.image) {
+          mediaPreviews.push(post.image);
+        }
+        if (post?.video) {
+          mediaPreviews.push(post.video);
+        }
+        if (post?.file) {
+          mediaPreviews.push(post.file);
+        }
+      
         set({
           editingPost: post,
           postText: post?.content ?? "",
           open: true,
-        }),
+        });
+      
+        // Restore media previews (URLs only)
+        setMediaFiles([]); // Files are not available during edit
+        setMediaPreviews(mediaPreviews); // ✅ Add this
+      },
+      
 
       setReaction: (postId, reaction) =>
         set((state) => ({

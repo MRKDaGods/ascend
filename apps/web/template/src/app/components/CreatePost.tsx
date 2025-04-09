@@ -64,7 +64,7 @@ const CreatePost: React.FC = () => {
 
      {typeof window !== 'undefined' && open && <CreatePostDialog />}
 
-     <DraftSavedPopup />
+    <DraftSavedPopup />
     <UserPostPopup />
 
     </div>

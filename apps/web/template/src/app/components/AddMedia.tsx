@@ -7,7 +7,7 @@ import { useMediaStore } from "../stores/useMediaStore";
 
 const AddMedia: React.FC = () => {
   const theme = useTheme();
-  const { editorOpen, openEditor } = useMediaStore();
+  const { openEditor } = useMediaStore();
 
   return (
     <>
@@ -27,7 +27,7 @@ const AddMedia: React.FC = () => {
           <Button startIcon={<VideoLibrary sx={{ color: "#228B22" }} />} onClick={openEditor} sx={{ textTransform: "none" }}>
             Video
           </Button>
-          <Button startIcon={<Article sx={{ color: "#D9534F" }} />} sx={{ textTransform: "none" }}>
+          <Button startIcon={<Article sx={{ color: "#D9534F" }} />} onClick={openEditor} sx={{ textTransform: "none" }}>
             Write article
           </Button>
         </Stack>

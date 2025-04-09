@@ -22,6 +22,11 @@ import {
 import { MoreHoriz, ThumbUp, Comment, Delete, Edit } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import DeletePost from "./DeletePost";
+import DocumentPreview from "./DocumentPreview";
+// pdfConfig.ts (or inside the component file)
+import { pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
 interface UserPostProps {
   post: PostType;
   onDeleteClick?: () => void;
@@ -70,13 +75,6 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
-  // const handleEditPost = () => {
-  //   setPostText(post.content);
-  //   setEditingPost(post);
-  //   setOpen(true);
-  //   handleMenuClose();
-  // };
 
   const handleEditPost = () => {
     setEditingPost(post);
@@ -154,8 +152,8 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
           <CardMedia
             component="img"
             image={post.image}
-            alt="Post Image"
-            sx={{ borderRadius: 2, mt: 2, maxHeight: 400 }}
+            alt="Uploaded Post Image"
+            sx={{ borderRadius: 2, mt: 2, width: "100%", height: "100%" }}
           />
         )}
         {post.video && (
@@ -206,6 +204,9 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
       </Dialog>
     </Card>
     <DeletePost />
+    {post.file && post.title && (
+      <DocumentPreview fileUrl={post.file} title={post.title} />
+    )}
     </>
   );
 };
