@@ -1,7 +1,7 @@
 "use client";
 
 import Sidebar from "./components/Sidebar";
-import { Box,Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import ChatWindow from "./components/ChatWindow";
 import CreateIcon from '@mui/icons-material/Create';
 import TempNavbar from "./components/TempNavbar";
@@ -10,9 +10,7 @@ import { useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import React from "react";
 
-
-
-export default function Page(){
+export default function Page() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleOpenDropdown = (e: React.MouseEvent<HTMLElement>) => {
@@ -22,60 +20,73 @@ export default function Page(){
   const handleCloseDropdown = () => {
     setAnchorEl(null);
   };
-    return(
-      
-   <>
-        <Box sx={{ display: "flex", height: "100vh",flexDirection:"column",width:"100vw" }}>
-          <TempNavbar/>
 
-          {/* spacing for UI polish */}
-          <Box
-        sx={{
-          height: "16px",
-          backgroundColor: "#f3f3f3",
-          zIndex: 1302, //a bit over sidebar zindex so we can go atop it
-          position: "absolute",
-          top: "64px",
-          left: 0,
-          width: "100%",
-        }}
-      />
+  return (
+    <>
+      <Box sx={{ display: "flex", height: "100vh", flexDirection: "column", width: "100vw" }}>
+        <TempNavbar />
 
-      {/* Icon bar */}
+        {/* spacing for UI polish */}
         <Box
-        sx={{
-          position: "absolute",
-          top: "80px",
-          left:0,
-          width: "100%",
-          height: "50px",
-          backgroundColor:"#fff",
-          border: "1px solid #ddd",
-          display:"flex",
-          alignItems:"center",
-          zIndex:1301,
-          px:2, //(padding keft AND right)
-          justifyContent: "flex-end",
+          sx={{
+            height: "16px",
+            backgroundColor: "#f3f3f3",
+            zIndex: 1302,
+            position: "absolute",
+            top: "64px",
+            left: 0,
+            width: "100%",
+          }}
+        />
 
-        }}>
-          <IconButton  onClick={handleOpenDropdown}>
+        {/* Icon bar */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: "80px",
+            left: 0,
+            width: "100%",
+            height: "50px",
+            backgroundColor: "#fff",
+            border: "1px solid #ddd",
+            display: "flex",
+            alignItems: "center",
+            zIndex: 1301,
+            px: 2,
+            justifyContent: "flex-end",
+          }}
+        >
+          <IconButton onClick={handleOpenDropdown}>
             <CreateIcon />
           </IconButton>
         </Box>
 
-          <Box sx={{display: "flex", flexGrow: 1, minHeight: 0}}>
-          <Sidebar /> 
-          <ChatWindow />
-          </Box>
-          
-        </Box>
-      
-      
-       
-      <NewConversationDropdown anchorEl={anchorEl} onClose={handleCloseDropdown} />
-      </>
-    );
-   
-   
+        {/* Main layout */}
+        <Box sx={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
+          <Sidebar />
 
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              backgroundColor: "#f5f5f5", // gray background when there's space
+            }}
+          >
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: "900px", // adjust as needed
+                height: "100%",
+                backgroundColor: "#fff", // white background for ChatWindow
+              }}
+            >
+              <ChatWindow />
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      <NewConversationDropdown anchorEl={anchorEl} onClose={handleCloseDropdown} />
+    </>
+  );
 }
