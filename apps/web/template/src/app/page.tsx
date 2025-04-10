@@ -1,5 +1,7 @@
 import styles from "./page.module.css";
 import Link from 'next/link';
+import SidebarPreview from "./chat/components/SidebarPreview";
+
 
 
 function Home() {
@@ -9,7 +11,8 @@ function Home() {
       <Link href="/chat">
                 <button>Go to Chat</button>
             </Link>
-      
+            {/* trying akenaha fel feed */}
+            <SidebarPreview />
     </div>
   );
 }
