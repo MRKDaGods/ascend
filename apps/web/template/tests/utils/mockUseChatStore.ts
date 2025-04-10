@@ -30,6 +30,8 @@ type MockedStore = ((selector?: (state: ChatStore) => any) => any) & {
   subscribe: StoreApi<ChatStore>["subscribe"];
   mockReset: () => void;
   mockClear: () => void;
+  setSelectedConversationId: jest.Mock;
+  appendMessageToConversation: jest.Mock;
 };
 
 export const mockUseChatStore = (initialState: Partial<ChatStore> = {}): MockedStore => {
@@ -54,7 +56,6 @@ export const mockUseChatStore = (initialState: Partial<ChatStore> = {}): MockedS
     ...initialState,
   }));
 
-  // Create the selector function
   const mockSelectorFn = ((selector?: any) => {
     const state = actualStore.getState();
     return selector ? selector(state) : state;
@@ -64,6 +65,10 @@ export const mockUseChatStore = (initialState: Partial<ChatStore> = {}): MockedS
   mockSelectorFn.getState = actualStore.getState;
   mockSelectorFn.setState = actualStore.setState;
   mockSelectorFn.subscribe = actualStore.subscribe;
+
+  // Direct access to frequently used mocks
+  mockSelectorFn.setSelectedConversationId = actualStore.getState().setSelectedConversationId as jest.Mock;
+  mockSelectorFn.appendMessageToConversation = actualStore.getState().appendMessageToConversation as jest.Mock;
 
   // Add manual mocks
   mockSelectorFn.mockReset = () => {
