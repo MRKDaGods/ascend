@@ -266,7 +266,7 @@ export default function ChatWindow() {
 
   return (
     <>
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, paddingTop: "62px" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, paddingTop: "62px", width: "100"}}>
         <Box
           sx={{
             display: "flex",

@@ -97,15 +97,17 @@ export default function Message({id,content,sender,recipient,mediaUrls,createdAt
 
 
             <Paper elevation ={0} 
+        
             sx={{
-                p:0.5,
-                // "&:hover": {
-                //     bgcolor:"#f1f1f1",
-                // },
-                maxWidth: "70%",
-                borderRadius: "8px",
-                //transition: "background-color 0.2s ease"
-                }}>
+              width: "fit-content",
+              maxWidth: "100%", // ✅ Allow to expand fully
+              p: 0.5,
+              borderRadius: "8px",
+              overflowWrap: "break-word",
+              wordBreak: "break-word",
+            }}
+          >
+          
 
            { /*sender name*/ }
            <Box sx={{display:"flex", gap:1,alignItems:"center"}}>
@@ -139,13 +141,24 @@ export default function Message({id,content,sender,recipient,mediaUrls,createdAt
                     if (url.endsWith(".jpg") || url.endsWith(".jpeg") || url.endsWith(".png")){
                         return(
                             <Box key={index}>
-                            <img src = {url} alt="media" style={{maxWidth:"100%", borderRadius: 8,marginTop:8}}/>
+                            <img src = {url} alt="media" style={{
+    maxWidth: "400px", // ✅ Responsive cap
+    width: "100%",     // ✅ Stretches to parent
+    height: "auto",
+    borderRadius: 8,
+    marginTop: 8,
+  }}/>
                         </Box>
                         );   
                     } else if(url.endsWith(".mp4")|| url.endsWith(".mov")){
                         return(
                             <Box key={index}>
-                                <video data-testid="video-element" src={url} controls style={{maxWidth:"100%",borderRadius:8,marginTop:8}}/>
+                                <video data-testid="video-element" src={url} controls style={{
+    maxWidth: "400px",
+    width: "100%",
+    borderRadius: 8,
+    marginTop: 8,
+  }}/>
                             </Box>                        
                         );
                     } else {
