@@ -136,6 +136,19 @@ export const markNotificationAsRead = async (
   }
 };
 
+/**
+ * Deletes a notification
+ *
+ * @param userId - The user ID to delete the notification for
+ * @param notificationId - The ID of the notification to be deleted
+ */
+export const deleteNotification = async (userId: number, notificationId: number): Promise<void> => {
+  await db.query(
+    `DELETE FROM notification_service.notifications
+     WHERE id = $1 AND user_id = $2`,
+     [notificationId, userId]);
+};
+
 export const sendWelcomeNotification = async (
   userId: number
 ): Promise<void> => {

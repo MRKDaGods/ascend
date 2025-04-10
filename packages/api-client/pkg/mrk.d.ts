@@ -166,5 +166,6 @@ declare class NotificationService {
      * @throws Error if the update fails
      */
     markNotificationAsRead(notificationId: number): Promise<void>;
+    deleteNotification(notificationId: number): Promise<void>;
 }
 export {};
