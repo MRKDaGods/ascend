@@ -3,12 +3,16 @@ import React, { useState, useEffect } from "react";
 interface SkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (newSkill: { name: string }) => void;
+  onSave: (newSkills: Skill[]) => void;
+}
+
+interface Skill {
+  id?: number; // Optional id for each skill
+  name: string;
 }
 
 const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [skill, setSkill] = useState<string>("");
-  const [existingSkills, setExistingSkills] = useState<{ name: string }[]>([]);
+  const [skillsForm, setSkillsForm] = useState<Skill[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,34 +22,37 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
           if (!response.ok) throw new Error("Failed to fetch skills");
           return response.json();
         })
-        .then((data) => setExistingSkills(data))
+        .then((data: Skill[]) => setSkillsForm(data))
         .catch((error) => setError(error.message));
     }
   }, [isOpen]);
 
+  const handleAddSkill = () => {
+    const newSkill: Skill = { name: "" };
+    setSkillsForm([...skillsForm, newSkill]);
+  };
+
+  const handleUpdateSkill = (index: number, value: string) => {
+    const updatedSkills = [...skillsForm];
+    updatedSkills[index].name = value;
+    setSkillsForm(updatedSkills);
+  };
+
+  const handleRemoveSkill = (index: number) => {
+    const updatedSkills = [...skillsForm];
+    updatedSkills.splice(index, 1);
+    setSkillsForm(updatedSkills);
+  };
+
   const handleSave = () => {
-    if (!skill.trim()) {
-      alert("Skill cannot be empty");
+    if (skillsForm.some((skill) => !skill.name.trim())) {
+      alert("All skills must have a name.");
       return;
     }
 
-    fetch("http://localhost:3002/skills", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name: skill }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Failed to save skill");
-        return response.json();
-      })
-      .then((newSkill) => {
-        onSave(newSkill);
-        setSkill("");
-        onClose();
-      })
-      .catch((error) => setError(error.message));
+    onSave(skillsForm.map((skill, index) => ({ ...skill, id: skill.id || index + 1 }))); // Ensure each skill has an id
+    setSkillsForm([]);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -82,7 +89,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
             alignItems: "center",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "20px" }}>Add a Skill</h2>
+          <h2 style={{ margin: 0, fontSize: "20px" }}>Manage Skills</h2>
           <button
             onClick={onClose}
             style={{
@@ -96,62 +103,56 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
           </button>
         </div>
 
-        <label
-          style={{
-            fontSize: "14px",
-            fontWeight: "bold",
-            marginTop: "10px",
-            display: "block",
-          }}
-        >
-          Skill*
-        </label>
-        <input
-          type="text"
-          value={skill}
-          onChange={(e) => setSkill(e.target.value)}
-          placeholder="Skill (ex: Project Management)"
-          style={{
-            width: "100%",
-            padding: "8px",
-            marginTop: "5px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-          }}
-        />
-
         {error && (
           <p style={{ color: "red", fontSize: "13px", marginTop: "5px" }}>{error}</p>
         )}
 
-        <div
-          style={{
-            background: "#f3f2f0",
-            padding: "10px",
-            marginTop: "10px",
-            borderRadius: "5px",
-            position: "relative",
-          }}
-        >
-          <strong style={{ display: "block", fontSize: "14px", marginBottom: "5px" }}>
-            Consider adding your experience
-          </strong>
-          <p style={{ fontSize: "13px", margin: 0 }}>
-            We recommend adding work experience to your profile, so you can show recruiters how you put your skill to use.
-          </p>
+        <div>
+          {skillsForm.map((skill, index) => (
+            <div
+              key={index}
+              style={{
+                marginBottom: "10px",
+                padding: "10px",
+                border: "1px solid #eee",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <input
+                type="text"
+                value={skill.name}
+                onChange={(e) => handleUpdateSkill(index, e.target.value)}
+                placeholder="Skill name"
+                style={{ flex: 1, padding: "8px", marginRight: "10px" }}
+              />
+              <button
+                onClick={() => handleRemoveSkill(index)}
+                style={{
+                  color: "red",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
           <button
-            onClick={() => {}}
+            onClick={handleAddSkill}
             style={{
-              position: "absolute",
-              top: "5px",
-              right: "10px",
+              padding: "8px 15px",
+              background: "#4CAF50",
+              color: "white",
               border: "none",
-              background: "none",
-              fontSize: "18px",
+              borderRadius: "4px",
               cursor: "pointer",
+              marginTop: "10px",
             }}
           >
-            ×
+            Add Skill
           </button>
         </div>
 
@@ -169,9 +170,29 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
             marginTop: "15px",
           }}
         >
-          Save
+          Save All
         </button>
       </div>
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  const [isSkillsOpen, setIsSkillsOpen] = useState(false);
+
+  return (
+    <div>
+      <button
+        className="add-skills-button"
+        onClick={() => setIsSkillsOpen(true)}
+      >
+        Add skills
+      </button>
+      <SkillsModal
+        isOpen={isSkillsOpen}
+        onClose={() => setIsSkillsOpen(false)}
+        onSave={(skills) => console.log("Saved skills:", skills)}
+      />
     </div>
   );
 };

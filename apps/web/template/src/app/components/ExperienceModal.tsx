@@ -1,230 +1,204 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-// Type definitions
-
+// Types
 type ExperienceModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: ExperienceData) => void;
+  onSave: (data: Experience[]) => void;
 };
 
-type ExperienceData = {
-  jobTitle: string;
+type Experience = {
   company: string;
-  employmentType: string;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-  location: string;
-  locationType: string;
-  isCurrentlyWorking: boolean;
+  position: string;
   description: string;
-};
-
-type JobData = {
-  id: number;
-  company: string;
+  start_date: Date;
+  end_date?: Date;
 };
 
 const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState<ExperienceData>({
-    jobTitle: '',
-    company: '',
-    employmentType: '',
-    startMonth: '',
-    startYear: '',
-    endMonth: '',
-    endYear: '',
-    location: '',
-    locationType: '',
-    isCurrentlyWorking: false,
-    description: ''
-  });
+  const [experienceForm, setExperienceForm] = useState<Experience[]>([]);
 
-  const [jobData, setJobData] = useState<JobData[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  // Handlers for Experience
+  const handleAddExperience = () => {
+    const newExperience: Partial<Experience> = {
+      company: '',
+      position: '',
+      description: '',
+      start_date: new Date(),
+    };
+    setExperienceForm([...experienceForm, newExperience as Experience]);
+  };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetch('http://localhost:3002/experience')
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Failed to fetch data');
-          }
-          return response.json();
-        })
-        .then((data: JobData[]) => setJobData(data))
-        .catch((error) => {
-          console.error('Error fetching job data:', error);
-          setError('Failed to load job data');
-        });
-    }
-  }, [isOpen]);
+  const handleUpdateExperience = (index: number, field: keyof Experience, value: any) => {
+    const updatedExperience = [...experienceForm];
+    updatedExperience[index] = { ...updatedExperience[index], [field]: value };
+    setExperienceForm(updatedExperience);
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
+  const handleRemoveExperience = (index: number) => {
+    const updatedExperience = [...experienceForm];
+    updatedExperience.splice(index, 1);
+    setExperienceForm(updatedExperience);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    setFormData({
-      jobTitle: '',
-      company: '',
-      employmentType: '',
-      startMonth: '',
-      startYear: '',
-      endMonth: '',
-      endYear: '',
-      location: '',
-      locationType: '',
-      isCurrentlyWorking: false,
-      description: ''
-    });
+    onSave(experienceForm);
+    setExperienceForm([]);
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'rgba(0,0,0,0.3)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}
-    >
-      <div
-        style={{
-          background: 'white',
-          padding: 20,
-          width: 500,
-          borderRadius: 10,
-          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: 20 }}>Add Experience</h2>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}
-          >
-            ×
-          </button>
+    <div style={overlayStyle}>
+      <div style={modalStyle}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <h2 style={{ margin: 0, fontSize: 20 }}>Manage Experiences</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <label style={labelStyle}>Title*</label>
-          <input
-            type="text"
-            name="jobTitle"
-            value={formData.jobTitle}
-            onChange={handleChange}
-            placeholder="Ex: Software Engineer"
-            required
-            style={inputStyle}
-          />
+          {experienceForm.map((exp, index) => (
+            <div
+              key={index}
+              style={{
+                marginBottom: '20px',
+                padding: '10px',
+                border: '1px solid #eee',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '10px',
+                }}
+              >
+                <h4>Experience #{index + 1}</h4>
+                <button
+                  onClick={() => handleRemoveExperience(index)}
+                  style={{
+                    color: 'red',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
 
-          <label style={labelStyle}>Employment Type</label>
-          <select
-            name="employmentType"
-            value={formData.employmentType}
-            onChange={handleChange}
-            style={inputStyle}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '10px',
+                }}
+              >
+                <div>
+                  <label>Company:</label>
+                  <input
+                    type="text"
+                    value={exp.company || ''}
+                    onChange={(e) => handleUpdateExperience(index, 'company', e.target.value)}
+                    style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                  />
+                </div>
+                <div>
+                  <label>Position:</label>
+                  <input
+                    type="text"
+                    value={exp.position || ''}
+                    onChange={(e) => handleUpdateExperience(index, 'position', e.target.value)}
+                    style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                  />
+                </div>
+                <div style={{ gridColumn: '1 / span 2' }}>
+                  <label>Description:</label>
+                  <textarea
+                    value={exp.description || ''}
+                    onChange={(e) => handleUpdateExperience(index, 'description', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      marginTop: '5px',
+                      minHeight: '80px',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label>Start Date:</label>
+                  <input
+                    type="date"
+                    value={
+                      exp.start_date instanceof Date
+                        ? exp.start_date.toISOString().split('T')[0]
+                        : new Date(exp.start_date).toISOString().split('T')[0]
+                    }
+                    onChange={(e) =>
+                      handleUpdateExperience(index, 'start_date', new Date(e.target.value))
+                    }
+                    style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                  />
+                </div>
+                <div>
+                  <label>End Date (leave empty if current):</label>
+                  <input
+                    type="date"
+                    value={
+                      exp.end_date instanceof Date
+                        ? exp.end_date.toISOString().split('T')[0]
+                        : exp.end_date
+                        ? new Date(exp.end_date).toISOString().split('T')[0]
+                        : ''
+                    }
+                    onChange={(e) =>
+                      handleUpdateExperience(
+                        index,
+                        'end_date',
+                        e.target.value ? new Date(e.target.value) : undefined
+                      )
+                    }
+                    style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={handleAddExperience}
+            style={{
+              padding: '8px 15px',
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '10px',
+            }}
           >
-            <option value="">Please select</option>
-            <option value="Full-time">Full-time</option>
-            <option value="Part-time">Part-time</option>
-            <option value="Contract">Contract</option>
-            <option value="Internship">Internship</option>
-          </select>
-
-          <label style={labelStyle}>Company or Organization*</label>
-          <select name="company" value={formData.company} onChange={handleChange} style={inputStyle}>
-            <option value="">Please select</option>
-            {jobData.length > 0 ? (
-              jobData.map((job) => (
-                <option key={job.id} value={job.company}>
-                  {job.company}
-                </option>
-              ))
-            ) : (
-              <option value="" disabled>
-                {error || 'Loading...'}
-              </option>
-            )}
-          </select>
-
-          <label style={labelStyle}>Start Date*</label>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <select name="startMonth" value={formData.startMonth} onChange={handleChange} style={inputStyle}>
-              <option>Month</option>
-              {[
-                'January',
-                'February',
-                'March',
-                'April',
-                'May',
-                'June',
-                'July',
-                'August',
-                'September',
-                'October',
-                'November',
-                'December'
-              ].map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-            <select name="startYear" value={formData.startYear} onChange={handleChange} style={inputStyle}>
-              <option>Year</option>
-              {Array.from({ length: 30 }, (_, i) => (
-                <option key={i} value={(new Date().getFullYear() - i).toString()}>
-                  {new Date().getFullYear() - i}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <label style={labelStyle}>Description</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Describe your role and responsibilities"
-            style={{ ...inputStyle, height: '80px' }}
-          />
+            Add Experience
+          </button>
 
           <button
             type="submit"
             style={{
+              marginTop: '20px',
               background: '#0073b1',
-              color: 'white',
-              padding: '10px 16px',
+              color: '#fff',
               border: 'none',
+              padding: '10px 20px',
               borderRadius: '20px',
-              fontSize: '14px',
               fontWeight: 'bold',
               cursor: 'pointer',
-              marginTop: '15px'
             }}
           >
-            Save
+            Save All
           </button>
         </form>
       </div>
@@ -232,19 +206,28 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
   );
 };
 
-const inputStyle: React.CSSProperties = {
+// Styles
+const overlayStyle: React.CSSProperties = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '100%',
   width: '100%',
-  padding: '8px',
-  marginTop: '5px',
-  border: '1px solid #ccc',
-  borderRadius: '5px'
+  background: 'rgba(0, 0, 0, 0.3)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 999,
 };
 
-const labelStyle: React.CSSProperties = {
-  fontSize: '14px',
-  fontWeight: 'bold',
-  marginTop: '10px',
-  display: 'block'
+const modalStyle: React.CSSProperties = {
+  background: '#fff',
+  padding: 24,
+  borderRadius: 10,
+  width: 600,
+  maxHeight: '90vh',
+  overflowY: 'auto',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
 };
 
 export default ExperienceModal;
