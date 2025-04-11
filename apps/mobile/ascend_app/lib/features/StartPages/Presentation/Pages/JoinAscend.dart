@@ -1,8 +1,12 @@
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart';
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class JoinAscend extends StatefulWidget {
   const JoinAscend({super.key});
@@ -100,6 +104,37 @@ class _JoinAscendState extends State<JoinAscend>
         _validateNameFields();
       }
     });
+
+    if (showNameFields && firstNameError.isEmpty && lastNameError.isEmpty) {
+      final email = emailController.text.trim();
+      final password = passwordController.text.trim();
+      final firstName = firstNameController.text.trim();
+      final lastName = lastNameController.text.trim();
+
+      // Dispatch SignUpRequested event to AuthBloc
+      context.read<AuthBloc>().add(
+        SignUpRequested(
+          email: email,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+        ),
+      );
+      context.read<AuthBloc>().stream.listen((state) {
+        if (state is AuthSuccess) {
+          // Handle successful sign-up
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
+          );
+        } else if (state is AuthFailure) {
+          // Handle sign-up failure
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.error)));
+        }
+      });
+    }
   }
 
   void _validateEmail() {

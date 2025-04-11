@@ -22,6 +22,9 @@ import 'package:ascend_app/features/settings/presentation/pages/sign_in_security
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:logger/logger.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/StartPages/Repository/auth_repository.dart';
+import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
 
 final Logger _logger = Logger();
 
@@ -36,16 +39,19 @@ void main() async {
   final authToken = await SecureStorageHelper.getAuthToken();
   _logger.i('Is First Time User: $isFirstTime');
   _logger.i('Auth Token: $authToken');
-    // Test logger output
+  // Test logger output
   final Logger testLogger = Logger();
   testLogger.i('Logger is working!');
   // Call printAllData to log stored data
   await SecureStorageHelper.printAllData();
   // //-------------
-    WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
-    await SecureStorageHelper.setFirstTimeUser(
-      true,
-    ); // Reset first-time user flag for testing
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
+  await SecureStorageHelper.setFirstTimeUser(
+    true,
+  ); // Reset first-time user flag for testing
+
+  final apiClient = ApiClient(); // Create an instance of ApiClient
+  print('ApiClient instance created: $apiClient');
 
   runApp(const MainApp());
 }
@@ -55,6 +61,8 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiClient = ApiClient(); // Create an instance of ApiClient
+
     return FutureBuilder(
       future: _getInitialRoute(),
       builder: (context, snapshot) {
@@ -74,6 +82,13 @@ class MainApp extends StatelessWidget {
               create:
                   (context) =>
                       PostBloc(PostRepository())..add(const LoadPosts()),
+            ),
+            BlocProvider<AuthBloc>(
+              create:
+                  (context) => AuthBloc(
+                    authRepository: AuthRepository(apiClient: apiClient),
+                    apiClient: apiClient, // Pass the ApiClient instance here
+                  ),
             ),
             // Add other BLoCs here as needed
           ],
