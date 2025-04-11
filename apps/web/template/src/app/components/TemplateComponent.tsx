@@ -1,8 +1,11 @@
+// Component file: template pour moi, to be deleted at the end
+
 "use client"
 
 import React from "react";
 
-function TemplateComponent() {
+const TemplateComponent = () => 
+{
   return(
     <>
     <div>

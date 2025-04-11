@@ -1,3 +1,5 @@
+// Component file: message appears after user deletes their own created post
+
 "use client";
 
 import React from "react";

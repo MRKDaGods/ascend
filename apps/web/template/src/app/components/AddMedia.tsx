@@ -1,3 +1,5 @@
+// Component file: adding media bar to create post
+
 import React from "react";
 import { Button, Stack, Box } from "@mui/material";
 import { Image, VideoLibrary, Article } from "@mui/icons-material";

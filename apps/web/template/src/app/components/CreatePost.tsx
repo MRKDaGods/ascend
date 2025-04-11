@@ -1,3 +1,5 @@
+// Component file: user can create a new post "Start a Post"
+
 "use client";
 
 import React, {useEffect} from "react";

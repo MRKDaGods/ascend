@@ -1,3 +1,5 @@
+// Component file: document preview (work in progress)
+
 "use client";
 
 import React, { useState } from "react";

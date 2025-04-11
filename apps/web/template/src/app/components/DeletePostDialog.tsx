@@ -1,3 +1,5 @@
+// Component file: after the user clicks Delete, to delete their own created post "are you sure?"
+
 "use client";
 
 import React from "react";

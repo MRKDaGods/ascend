@@ -1,3 +1,5 @@
+// Component file: navigation bar on top, template for most modules (work in progress)
+
 "use client";
 
 import React from "react";

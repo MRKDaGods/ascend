@@ -1,3 +1,5 @@
+// Component file: Tag component used in Created Posts and Comments
+
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -79,7 +81,7 @@ const TagInput: React.FC<TagInputProps> = ({
         onChange={(e) => setText(e.target.value)}
         variant="standard"
         InputProps={{
-          disableUnderline: true, // 👈 THIS disables the line
+          disableUnderline: true,
         }}
       />
 

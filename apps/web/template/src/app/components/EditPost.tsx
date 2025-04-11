@@ -1,3 +1,5 @@
+// Component file: AFTER user creates post, they can edit the text
+
 "use client";
 
 import React, { useEffect } from "react";

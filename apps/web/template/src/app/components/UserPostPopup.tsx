@@ -1,3 +1,5 @@
+// Component file: popup appears after creating a new post
+
 "use client";
 
 import { Snackbar, Alert, Link, IconButton } from "@mui/material";

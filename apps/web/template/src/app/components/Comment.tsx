@@ -1,3 +1,5 @@
+// Component file: comment for each connection post
+
 "use client";
 
 import React, { useState } from "react";

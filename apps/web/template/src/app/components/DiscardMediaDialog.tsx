@@ -1,3 +1,5 @@
+// Component file: discarding while adding MEDIA to a newly created post
+
 "use client"
 
 import React from "react";

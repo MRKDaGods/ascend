@@ -1,3 +1,5 @@
+// Component file: when user clicks on Photo/Video
+
 "use client";
 
 import React, { useEffect, useRef } from "react";

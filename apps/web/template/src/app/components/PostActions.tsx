@@ -1,3 +1,5 @@
+// Component file: likes, comments, reposts, and send buttons (work in progress)
+
 "use client";
 
 import React from "react";

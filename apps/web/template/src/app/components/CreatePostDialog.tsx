@@ -1,3 +1,5 @@
+// Component file: appears after user clicks on CreatePost (start a post)
+
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";

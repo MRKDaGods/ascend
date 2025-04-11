@@ -1,3 +1,5 @@
+// Component file: creating a new post
+
 "use client";
 
 import React, { useState } from "react";

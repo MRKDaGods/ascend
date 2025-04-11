@@ -1,3 +1,5 @@
+// Component file: appears inside the MediaEditor, to preview the uploaded image/video
+
 "use client";
 
 import React, { useState } from "react";

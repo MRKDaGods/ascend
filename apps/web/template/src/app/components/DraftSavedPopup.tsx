@@ -1,3 +1,5 @@
+// Component file: poup appears when user successfully saves post as draft
+
 "use client";
 
 import { Snackbar, Alert, IconButton } from "@mui/material";

@@ -1,3 +1,5 @@
+// Component file: Reactions bar (like, celebrate, etc.) not just likes
+
 "use client";
 
 import React, { useState } from "react";

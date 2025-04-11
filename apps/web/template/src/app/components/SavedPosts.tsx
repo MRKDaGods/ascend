@@ -1,3 +1,5 @@
+// Component file: list of all user's saved posts
+
 "use client";
 
 import React from "react";
