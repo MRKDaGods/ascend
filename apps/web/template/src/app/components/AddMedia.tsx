@@ -21,13 +21,22 @@ const AddMedia: React.FC = () => {
         }}
       >
         <Stack direction="row" spacing={6} sx={{ width: "100%", justifyContent: "center" }}>
-          <Button startIcon={<Image sx={{ color: "#0073b1" }} />} onClick={openEditor} sx={{ textTransform: "none" }}>
+          <Button 
+          startIcon={<Image sx={{ color: "#0073b1" }} />} 
+          onClick={openEditor} 
+          sx={{ textTransform: "none", color: "gray", fontWeight: "bold" }}>
             Photo
           </Button>
-          <Button startIcon={<VideoLibrary sx={{ color: "#228B22" }} />} onClick={openEditor} sx={{ textTransform: "none" }}>
+          <Button 
+          startIcon={<VideoLibrary sx={{ color: "#228B22" }} />} 
+          onClick={openEditor} 
+          sx={{ textTransform: "none", color: "gray", fontWeight: "bold"  }}>
             Video
           </Button>
-          <Button startIcon={<Article sx={{ color: "#D9534F" }} />} onClick={openEditor} sx={{ textTransform: "none" }}>
+          <Button 
+          startIcon={<Article sx={{ color: "#D9534F" }} />} 
+          onClick={openEditor} 
+          sx={{ textTransform: "none", color: "gray", fontWeight: "bold"  }}>
             Write article
           </Button>
         </Stack>

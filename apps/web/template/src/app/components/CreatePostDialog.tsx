@@ -33,6 +33,7 @@ const CreatePostDialog: React.FC = () => {
     setDraftText,
     lastUserPostId,
     createPostViaAPI,
+    addPost,
   } = usePostStore();
 
   const {
@@ -49,16 +50,21 @@ const CreatePostDialog: React.FC = () => {
     }
   }, [open, draftText]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!postText.trim() && mediaPreviews.length === 0) return;
-
+  
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
+  
+    // ✅ Add post directly to Zustand state
+    addPost(postText, media, type);
 
-    await createPostViaAPI(postText, media, type);
+    // ✅ Testing backend
+    // await createPostViaAPI(postText, media, type);
+
+    // ✅ UI handling
     setUserPostPopupOpen(true);
     setDraftText("");
-
     resetPost();
     clearAllMedia();
   };

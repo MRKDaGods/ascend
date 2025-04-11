@@ -191,16 +191,6 @@ export const usePostStore = create<PostStoreState>()(
           posts: state.posts.filter((post) => !(post.id === postId && post.isUserPost)),
         })),
 
-      // editPost: (id, newText) =>
-      //   set((state) => ({
-      //     posts: state.posts.map((post) =>
-      //       post.id === id ? { ...post, content: newText } : post
-      //     ),
-      //     editingPost: null,
-      //     postText: "",
-      //     open: false,
-      //   })),
-
       editPost: (id, newText, newMedia?, mediaType?) =>
         set((state) => ({
           posts: state.posts.map((post) =>
@@ -217,14 +207,6 @@ export const usePostStore = create<PostStoreState>()(
           postText: "",
           open: false,
         })),
-      
-
-      // setEditingPost: (post) =>
-      //   set({
-      //     editingPost: post,
-      //     postText: post?.content ?? "",
-      //     open: true,
-      //   }),
 
       setEditingPost: (post) => {
         const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
