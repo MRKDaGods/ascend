@@ -11,7 +11,6 @@ import {
   Typography, 
   useTheme,
 } from "@mui/material";
-import { MoreHoriz, Bookmark } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import PostActions from "./PostActions";
 import Comment from "./Comment";
@@ -21,16 +20,11 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const {
     repostPost,
-    savedPosts,
-    toggleSavePost,
-    setSavedPopupOpen,
-    setUnsavedPopupOpen,
     postReactions,
   } = usePostStore();
 
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   return (
     <Card
@@ -52,11 +46,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
             {post.followers} • {post.timestamp}
           </Typography>
         }
-        action={
-          <>
-            <Save post={post} />
-          </>
-        }
+        action={ <Save post={post} /> }
       />
 
       <CardContent sx={{ pt: 0 }}>
@@ -92,7 +82,6 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Typography>
       </Box>
 
-      {/* Post Action Buttons (Like with Reactions) */}
       <PostActions
         postId={post.id}
         liked={!!postReactions[post.id]}
