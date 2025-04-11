@@ -1,15 +1,20 @@
 "use client";
-import React from "react";
+import React, {useEffect} from "react";
 import { Box } from "@mui/material";
+import Navbar from "../components/Navbar";
 import ConnectionPost from "../components/ConnectionPost";
 import CreatePost from "../components/CreatePost";
 import { usePostStore } from "../stores/usePostStore";
-import Navbar from "../components/Navbar";
 
 const Feed: React.FC = () => {
   const { posts } = usePostStore();
-
   const visiblePosts = posts.filter((post) => post.isUserPost !== true);
+
+  const fetchNewsFeedFromAPI = usePostStore((state) => state.fetchNewsFeedFromAPI);
+
+  useEffect(() => {
+    fetchNewsFeedFromAPI();
+  }, []);
 
   return (
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mt: 2 }}>

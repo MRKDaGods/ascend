@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
+import { fetchNewsFeed } from "../api/posts";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -88,6 +89,8 @@ interface PostStoreState {
   closeDiscardPostDialog: () => void;
 
   createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
+
+  fetchNewsFeedFromAPI: () => Promise<void>;
 
 }
 
@@ -185,6 +188,35 @@ export const usePostStore = create<PostStoreState>()(
             isLastPostDeleted: false,
           }));
         },
+
+        fetchNewsFeedFromAPI: async () => {
+          try {
+            const feedPosts = await fetchNewsFeed();
+        
+            const mappedPosts: PostType[] = feedPosts.map((post) => ({
+              id: post.id,
+              username: `${post.user.first_name} ${post.user.last_name}`,
+              profilePic: post.user.profile_picture_url || "/profile.jpg",
+              content: post.content,
+              followers: "• 1st", // placeholder
+              timestamp: new Date(post.created_at).toLocaleString(),
+              likes: post.likes_count,
+              reposts: post.shares_count,
+              comments: post.comments_count,
+              image: post.media?.find((m) => m.type === "image")?.url,
+              video: post.media?.find((m) => m.type === "video")?.url,
+              file: post.media?.find((m) => m.type === "document")?.url,
+              title: post.media?.[0]?.title,
+              commentsList: [],
+              isUserPost: false,
+            }));
+        
+            set({ posts: mappedPosts });
+          } catch (error) {
+            console.error("Failed to fetch news feed:", error);
+          }
+        },
+        
 
       deletePost: (postId) =>
         set((state) => ({
