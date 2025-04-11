@@ -2,10 +2,9 @@ import styles from "./page.module.css";
 import JobPreferences from "./components/lookingfor";
 import Navbar from "./components/navbar";
 import ProfileCard from "./components/ProfileCard";
-import Jobs from "./components/MyPosts";
 import JobPicks from "./components/JobPicks"; 
-import MyPosts from "./components/MyPosts";
 import Recommends from "./components/recommends";
+import ListCard from "./components/ListCard";
 
 function Home() {
   return (
@@ -24,7 +23,7 @@ function Home() {
         {/* Left Column: Profile & Jobs */}
         <div style={{ flexShrink: 0, width: "fit-content", display: "flex", flexDirection: "column", gap: "20px" }}>
           <ProfileCard />
-          <MyPosts />
+          <ListCard />
         </div>
 
         {/* Right Column: Job Preferences & Job Picks */}

@@ -1,70 +1,40 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // Import Next.js router
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Card,
-  CardContent,
-  Typography,
-  Chip,
-  IconButton,
-  Box,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box, Card, CardContent, Typography, Chip, IconButton,
+  Button, Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
+import { useSearchStore } from "../store/useSearchStore";
+import{useEffect} from "react";
+
+
 
 const jobSearches = ["marketing manager", "hr", "legal", "sales", "amazon", "google", "analyst"];
 
 const Recommends = () => {
-  const router = useRouter(); // Initialize router
-  const [selectedSearches, setSelectedSearches] = useState<{ job: string; location: string }[]>([]);
+  const router = useRouter();
+  const { recentSearches, addSearch, clearSearches } = useSearchStore();
   const [showRecommends, setShowRecommends] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
 
-  // Load saved searches from localStorage on mount
   useEffect(() => {
-    const storedSearches = localStorage.getItem("recentJobSearches");
-    if (storedSearches) {
-      setSelectedSearches(JSON.parse(storedSearches));
+    const stored = localStorage.getItem("recentJobSearches");
+    if (stored) {
+      useSearchStore.getState().setRecentSearches(JSON.parse(stored));
     }
   }, []);
 
-  // Save to localStorage whenever selectedSearches changes
-  useEffect(() => {
-    localStorage.setItem("recentJobSearches", JSON.stringify(selectedSearches));
-  }, [selectedSearches]);
-
-  // Handle selecting a job search
   const handleSelectSearch = (job: string) => {
-    const newSearch = { job, location: "Egypt" };
-
-    // Prevent duplicates in recent searches
-    setSelectedSearches((prev) => {
-      const isDuplicate = prev.some((search) => search.job === job);
-      if (!isDuplicate) {
-        return [...prev, newSearch];
-      }
-      return prev;
-    });
-
-    // Navigate to the search page
+    const search = { job, location: "Egypt" };
+    addSearch(search);
     router.push(`/search?job=${encodeURIComponent(job)}`);
-  };
-
-  // Handle clearing recent searches (after confirmation)
-  const handleConfirmClear = () => {
-    setSelectedSearches([]);
-    localStorage.removeItem("recentJobSearches"); // Remove from localStorage
-    setOpenDialog(false);
   };
 
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", my: 2 }}>
-      {/* Suggested Job Searches Card */}
       {showRecommends && (
         <Card sx={{ p: 2, boxShadow: 3, borderRadius: 3 }}>
           <CardContent>
@@ -91,7 +61,7 @@ const Recommends = () => {
                     "&:hover": { backgroundColor: "#e8f4fa" },
                     cursor: "pointer",
                   }}
-                  onClick={() => handleSelectSearch(job)} // Click to route
+                  onClick={() => handleSelectSearch(job)}
                   clickable
                 />
               ))}
@@ -100,8 +70,7 @@ const Recommends = () => {
         </Card>
       )}
 
-      {/* Recent Job Searches Card */}
-      {selectedSearches.length > 0 && (
+      {recentSearches.length > 0 && (
         <Card sx={{ p: 2, boxShadow: 3, borderRadius: 3, mt: 2 }}>
           <CardContent>
             <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -113,12 +82,12 @@ const Recommends = () => {
               </Button>
             </Box>
 
-            {selectedSearches.map((search, index) => (
+            {recentSearches.map((search, index) => (
               <Box
                 key={index}
                 mt={1}
                 sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f5f5f5" }, p: 1, borderRadius: 1 }}
-                onClick={() => handleSelectSearch(search.job)} // Click to route
+                onClick={() => handleSelectSearch(search.job)}
               >
                 <Typography variant="body1" sx={{ fontWeight: "bold", color: "#0073b1" }}>
                   {search.job}
@@ -132,7 +101,7 @@ const Recommends = () => {
         </Card>
       )}
 
-      {/* Clear Search History Dialog */}
+      {/* Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle sx={{ fontWeight: "bold" }}>Clear search history?</DialogTitle>
         <IconButton
@@ -144,13 +113,16 @@ const Recommends = () => {
         </IconButton>
         <DialogContent>
           <Typography variant="body2" sx={{ color: "gray" }}>
-            Your search history is only visible to you, and it helps us to show you better results.
+            Your search history is only visible to you and helps us show better results.
             Are you sure you want to clear it?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
           <Button
-            onClick={handleConfirmClear}
+            onClick={() => {
+              clearSearches();
+              setOpenDialog(false);
+            }}
             variant="outlined"
             sx={{ borderColor: "#0073b1", color: "#0073b1", borderRadius: 5 }}
           >
