@@ -1,13 +1,29 @@
+'use client';
+
 import React, { useEffect, useState } from "react";
 import './LinkedInProfile.css';
 import { FaPencilAlt, FaTrash, FaPlus, FaImage, FaUniversity, FaFilePdf, FaFileUpload } from 'react-icons/fa';
 import { MdAddAPhoto, MdCameraAlt } from 'react-icons/md';
 import EducationModal from "./EducationModal"; // Import Education modal
 import ExperienceModal from "./ExperienceModal"; // Import Experience modal
-import SkillsModal from "./SkillsModal"; // Import SkillsModal
+import SkillsModal from './SkillsModal'; // Import SkillsModal
 import VisibilityDropdown from "./VisibilityDropdown"; // Import VisibilityDropdown
+import InterestsModal from "./interestmodal"; // Import InterestsModal
 import { api } from "@/api";
-import { Profile, Education, Skill } from "@ascend/api-client/models";
+import { Profile as UserProfile, Education } from "@ascend/api-client/models";
+import { Skill } from "@ascend/api-client/models";
+
+type Experience = {
+  company: string;
+  position: string;
+  description: string;
+  start_date: Date;
+  end_date?: Date;
+};
+
+type Interest = {
+  name: string;
+};
 
 const LinkedInProfile: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -17,10 +33,13 @@ const LinkedInProfile: React.FC = () => {
   const [isExperienceOpen, setIsExperienceOpen] = useState<boolean>(false);
   const [isEducationOpen, setIsEducationOpen] = useState<boolean>(false);
   const [isSkillsOpen, setIsSkillsOpen] = useState<boolean>(false);
+  const [isInterestsOpen, setIsInterestsOpen] = useState<boolean>(false);
   const [resume, setResume] = useState<File | null>(null); // State for resume upload
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [savedEducation, setSavedEducation] = useState<Education | null>(null);
   const [skills, setSkills] = useState<Skill[]>([]); // State for the skills list
+  const [experiences, setExperiences] = useState<Experience[]>([]); // State for experiences
+  const [interests, setInterests] = useState<Interest[]>([]); // State for interests
 
   useEffect(() => {
     // Fake login
@@ -179,6 +198,22 @@ const LinkedInProfile: React.FC = () => {
     }
   };
 
+  const handleSaveExperiences = (data: Experience[]) => {
+    setExperiences(data); // Store the saved experiences
+  };
+
+  const handleDeleteExperience = (index: number) => {
+    if (window.confirm("Are you sure you want to delete this experience?")) {
+      const updatedExperiences = experiences.filter((_, idx) => idx !== index);
+      setExperiences(updatedExperiences);
+    }
+  };
+
+  const handleSaveInterests = (newInterests: Interest[]) => {
+    setInterests(newInterests); // Update the interests state
+    setIsInterestsOpen(false); // Close the modal
+  };
+
   if (!isLoggedIn) {
     return <div>Logging in...</div>;
   }
@@ -270,29 +305,59 @@ const LinkedInProfile: React.FC = () => {
           Showcase your accomplishments and get up to <strong>2X</strong> as many profile views and connections
         </p>
 
-        {profile.experience && profile.experience.length > 0 ? (
-          profile.experience.map((exp, index) => (
-            <div className="experience-card" key={index}>
-              <div className="experience-icon">
-                <FaImage className="experience-placeholder-icon" />
-              </div>
-              <div className="experience-info">
-                <h4>{exp.position}</h4>
-                <p>{exp.company}</p>
-                <p>
-                  {exp.start_date ? new Date(exp.start_date).toLocaleDateString() : ''} - {exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}
-                </p>
-                {exp.description && <p>{exp.description}</p>}
-              </div>
+        {experiences.length === 0 ? (
+          <p>No experience added yet.</p>
+        ) : (
+          experiences.map((exp, idx) => (
+            <div key={idx} style={{ marginBottom: '1rem', position: 'relative' }}>
+              <h4>
+                {exp.position} at {exp.company}
+              </h4>
+              <p>{exp.description}</p>
+              <p>
+                {new Date(exp.start_date).toLocaleDateString()} -{' '}
+                {exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}
+              </p>
+              <button
+                onClick={() => handleDeleteExperience(idx)}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  background: 'none',
+                  border: 'none',
+                  color: 'red',
+                  cursor: 'pointer',
+                }}
+              >
+                <FaTrash /> Remove
+              </button>
             </div>
           ))
-        ) : (
-          <p>No experience added yet.</p>
         )}
 
-        <button className="add-experience-button" onClick={() => setIsExperienceOpen(true)}>
-          Add experience
+        <button
+          onClick={() => setIsExperienceOpen(true)}
+          style={{
+            marginTop: '20px',
+            background: '#fff',
+            color: '#0073b1',
+            border: '2px solid #0073b1',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+          
+        >
+          Add Experience
         </button>
+
+        <ExperienceModal
+          isOpen={isExperienceOpen}
+          onClose={() => setIsExperienceOpen(false)}
+          onSave={handleSaveExperiences}
+        />
       </div>
 
       {/* Education Section */}
@@ -333,17 +398,108 @@ const LinkedInProfile: React.FC = () => {
         </p>
 
         <div className="skills-list">
-          {profile && profile.skills && profile.skills.length > 0 ? (
-            profile.skills.map((skill, index) => (
-              <p key={index}>{skill.name}</p>
+          {skills.length > 0 ? (
+            skills.map((skill, index) => (
+              <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+                <p style={{ marginRight: "10px" }}>{skill.name}</p>
+                <button
+                  onClick={() => {
+                    const updatedSkills = skills.filter((_, idx) => idx !== index);
+                    setSkills(updatedSkills);
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "red",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             ))
           ) : (
             <p>No skills added yet.</p>
           )}
         </div>
 
-        <button className="add-skills-button" onClick={() => setIsSkillsOpen(true)}>
+        <button
+          className="add-skills-button"
+          onClick={() => setIsSkillsOpen(true)}
+          style={{
+            marginTop: '20px',
+            background: '#fff',
+            color: '#0073b1',
+            border: '2px solid #0073b1',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+          
+        >
           Add skills
+        </button>
+      </div>
+
+      {/* Interests Section */}
+      <div className="interests-section">
+        <h3> Interests</h3>
+        <p className="interests-subtext">
+          Showcase your interests to connect with like-minded professionals.
+        </p>
+
+        <div className="interests-list">
+          {interests.length > 0 ? (
+            interests.map((interest, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                }}
+              >
+                <p style={{ marginRight: "10px" }}>{interest.name}</p>
+                <button
+                  onClick={() => {
+                    const updatedInterests = interests.filter(
+                      (_, idx) => idx !== index
+                    );
+                    setInterests(updatedInterests);
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "red",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No interests added yet.</p>
+          )}
+        </div>
+
+        <button
+          className="add-interests-button"
+          onClick={() => setIsInterestsOpen(true)}
+          style={{
+            marginTop: '20px',
+            background: '#fff',
+            color: '#0073b1',
+            border: '2px solid #0073b1',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+          }}
+          
+        >
+          Add Interests
         </button>
       </div>
 
@@ -392,18 +548,36 @@ const LinkedInProfile: React.FC = () => {
         <ExperienceModal
           isOpen={isExperienceOpen}
           onClose={() => setIsExperienceOpen(false)}
-          onSave={() => { }}
+          onSave={handleSaveExperiences}
         />
       )}
 
       {/* Skills Modal */}
-      {/* {isSkillsOpen && (
+      {isSkillsOpen && (
         <SkillsModal
           isOpen={isSkillsOpen}
           onClose={() => setIsSkillsOpen(false)}
-          onSave={handleSaveSkill}
+          onSave={(newSkills) => {
+            setSkills((prevSkills) => [
+              ...prevSkills,
+              ...newSkills.map((skill, index) => ({
+                ...skill,
+                id: skill.id ?? index + 1, // Ensure each skill has a valid id
+              })),
+            ]);
+            setIsSkillsOpen(false); // Close the modal
+          }}
         />
-      )} */}
+      )}
+
+      {/* Interests Modal */}
+      {isInterestsOpen && (
+        <InterestsModal
+          isOpen={isInterestsOpen}
+          onClose={() => setIsInterestsOpen(false)}
+          onSave={handleSaveInterests}
+        />
+      )}
 
       {/* Profile Modal */}
       {isProfileOpen && (

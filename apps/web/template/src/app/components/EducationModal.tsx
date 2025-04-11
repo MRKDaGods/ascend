@@ -18,44 +18,33 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
     start_date: new Date(),
     end_date: undefined,
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
   });
 
-  // Fetch data from Mockoon when modal opens
+  const [educationList, setEducationList] = useState<Education[]>([]);
+  const [editingEducation, setEditingEducation] = useState<Education | null>(null);
+
   useEffect(() => {
-    const fetchEducation = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/education"); // Ensure Mockoon is running
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched Education Data:", data);
-
-        if (Array.isArray(data) && data.length > 0) {
-          // Convert string dates to Date objects
-          const formattedData = {
-            ...data[0],
-            start_date: data[0].start_date ? new Date(data[0].start_date) : new Date(),
-            end_date: data[0].end_date ? new Date(data[0].end_date) : undefined,
-            created_at: data[0].created_at ? new Date(data[0].created_at) : new Date(),
-            updated_at: data[0].updated_at ? new Date(data[0].updated_at) : new Date()
-          };
-          setEducation(formattedData);
-        } else {
-          console.warn("No education data found.");
-        }
-      } catch (error) {
-        console.error("Error fetching education data:", error);
-      }
-    };
-
-    if (isOpen) {
-      fetchEducation();
+    if (isOpen && editingEducation) {
+      setEducation({
+        ...editingEducation,
+        start_date: new Date(editingEducation.start_date),
+        end_date: editingEducation.end_date ? new Date(editingEducation.end_date).toISOString() : undefined,
+      });
+    } else if (isOpen) {
+      setEducation({
+        id: 0,
+        user_id: 0,
+        school: '',
+        degree: '',
+        field_of_study: '',
+        start_date: new Date(),
+        end_date: undefined,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, editingEducation]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -72,26 +61,70 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
 
   const handleSubmit = () => {
     onSave(education);
+    setEditingEducation(null); // Reset editing state
   };
 
   if (!isOpen) return null;
 
-  // Format dates for input fields
-  const formatDateForInput = (date?: Date) => {
+  const formatDateForInput = (date?: Date | string): string => {
     if (!date) return '';
-    return date instanceof Date
-      ? date.toISOString().split('T')[0]
-      : new Date(date).toISOString().split('T')[0];
+    const parsedDate = new Date(date);
+
+    // Check if date is valid
+    if (isNaN(parsedDate.getTime())) return '';
+
+    return parsedDate.toISOString().split('T')[0];
   };
 
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
         <div style={styles.modalHeader}>
-          <h3 style={{ margin: 0 }}>Add Education</h3>
+          <h3 style={{ margin: 0 }}>{editingEducation ? 'Edit Education' : 'Add Education'}</h3>
           <button style={styles.closeButton} onClick={onClose}>×</button>
         </div>
 
+        {/* Education List */}
+        <div style={styles.educationList}>
+          <h4>Existing Education Entries</h4>
+          {educationList.length > 0 ? (
+            <div>
+              {educationList.map((edu) => (
+                <div
+                  key={edu.id}
+                  style={{
+                    borderBottom: '1px solid #ddd',
+                    padding: '16px 0',
+                  }}
+                >
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>{edu.school}</h4>
+                  <p style={{ margin: '0', color: '#666' }}>
+                    {edu.degree} • {edu.field_of_study}
+                  </p>
+                  <p style={{ margin: '4px 0', color: '#888', fontSize: '14px' }}>
+                    {new Date(edu.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })} -{' '}
+                    {edu.end_date
+                      ? new Date(edu.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+                      : 'Present'}
+                  </p>
+                  <button
+                    style={styles.editButton}
+                    onClick={() => {
+                      setEditingEducation(edu);
+                      onClose();
+                    }}
+                  >
+                    Edit
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No education entries found.</p>
+          )}
+        </div>
+
+        {/* Add/Edit Education Form */}
         <label>School*</label>
         <input
           name="school"
@@ -146,7 +179,6 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
         <label>Description</label>
         <textarea
           name="description"
-          // value={education.description || ''}
           onChange={handleChange}
           style={styles.textarea}
         ></textarea>
@@ -162,7 +194,7 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
   );
 };
 
-// Styles remain unchanged
+// Add styles for the edit button
 const styles: { [key: string]: React.CSSProperties } = {
   modalOverlay: {
     position: 'fixed',
@@ -237,7 +269,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
     cursor: 'pointer',
     marginTop: '15px'
-  }
+  },
+  educationList: {
+    marginBottom: '20px'
+  },
+  list: {
+    listStyleType: 'none',
+    padding: 0
+  },
+  listItem: {
+    marginBottom: '10px',
+    padding: '10px',
+    background: '#f9f9f9',
+    borderRadius: '5px'
+  },
+  editButton: {
+    marginTop: '10px',
+    background: '#0073b1',
+    color: 'white',
+    padding: '6px 12px',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
 };
 
 export default EducationModal;
