@@ -9,7 +9,7 @@ void main() {
       // Arrange
       await tester.pumpWidget(
         const MaterialApp(
-          home: Joinascend(),
+          home: JoinAscend(),
         ),
       );
 
@@ -23,7 +23,7 @@ void main() {
       // Arrange
       await tester.pumpWidget(
         const MaterialApp(
-          home: Joinascend(),
+          home: JoinAscend(),
         ),
       );
 
@@ -40,7 +40,7 @@ void main() {
       // Arrange
       await tester.pumpWidget(
         const MaterialApp(
-          home: Joinascend(),
+          home: JoinAscend(),
         ),
       );
 
