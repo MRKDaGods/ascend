@@ -136,3 +136,8 @@ dist
 .pnp.*
 
 **/.DS_Store
+
+apps/mobile/dummy_cross
+apps/mobile/dummy_cross/windows/flutter/generated_plugins.cmake
+apps/mobile/dummy_cross/macos/Flutter/GeneratedPluginRegistrant.swift
+apps/mobile/dummy_cross/linux/flutter/generated_plugins.cmake
