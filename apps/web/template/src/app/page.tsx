@@ -32,14 +32,20 @@ export default function Home() {
     };
 
     const fetchNotifications = async () => {
-      api.notification.getNotifications(1) // Page number 1 for the latest 10 notifications
-        .then((response) => {
-          console.log("Fetched notifications:", response);
-          setNotifications(response);
-        })
-        .catch((error) => {
-          console.error("Error fetching notifications:", error);
-        });
+      api.auth.login("ammar@ascendx.tech", "123").then((response) => {
+        console.log("Login response:", response);
+        api.notification.getNotifications(1) // Page number 1 for the latest 10 notifications
+          .then((response) => {
+            console.log("Fetched notifications:", response);
+            setNotifications(response);
+          })
+          .catch((error) => {
+            console.error("Error fetching notifications:", error);
+          });
+      }).catch((error) => {
+        console.error("Login error:", error);
+      }
+      );
     };
 
     setIsClient(true);
