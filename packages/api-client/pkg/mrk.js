@@ -299,4 +299,7 @@ class NotificationService {
     async markNotificationAsRead(notificationId) {
         return this.client.mark_notification_as_read(notificationId);
     }
+    async deleteNotification(notificationId) {
+        return this.client.delete_notification(notificationId);
+    }
 }

@@ -18,8 +18,7 @@ export const NotificationsPanel: React.FC = () => {
       setError(null);
     } catch (err) {
       setError(
-        `Failed to fetch notifications: ${
-          err instanceof Error ? err.message : String(err)
+        `Failed to fetch notifications: ${err instanceof Error ? err.message : String(err)
         }`
       );
     } finally {
@@ -41,8 +40,23 @@ export const NotificationsPanel: React.FC = () => {
       );
     } catch (err) {
       setError(
-        `Failed to mark notification as read: ${
-          err instanceof Error ? err.message : String(err)
+        `Failed to mark notification as read: ${err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+  };
+
+  const deleteNotification = async (notificationId: number) => {
+    try {
+      await api.notification.deleteNotification(notificationId);
+
+      // Update the local state
+      setNotifications(
+        notifications.filter((notif) => notif.id != notificationId)
+      );
+    } catch (err) {
+      setError(
+        `Failed to delete notification: ${err instanceof Error ? err.message : String(err)
         }`
       );
     }
@@ -82,9 +96,8 @@ export const NotificationsPanel: React.FC = () => {
           {notifications.map((notification) => (
             <li
               key={notification.id}
-              className={`${styles.notificationItem} ${
-                notification.is_read ? styles.read : styles.unread
-              }`}
+              className={`${styles.notificationItem} ${notification.is_read ? styles.read : styles.unread
+                }`}
             >
               <div className={styles.notificationContent}>
                 <span className={styles.notificationType}>
@@ -96,7 +109,7 @@ export const NotificationsPanel: React.FC = () => {
                     {expandedPayloads[notification.id] ? (
                       <>
                         <pre>{JSON.stringify(notification.payload, null, 2)}</pre>
-                        <button 
+                        <button
                           className={styles.payloadToggle}
                           onClick={() => togglePayload(notification.id)}
                         >
@@ -109,7 +122,7 @@ export const NotificationsPanel: React.FC = () => {
                           {JSON.stringify(notification.payload).substring(0, 100)}
                           {JSON.stringify(notification.payload).length > 100 ? '...' : ''}
                         </pre>
-                        <button 
+                        <button
                           className={styles.payloadToggle}
                           onClick={() => togglePayload(notification.id)}
                         >
@@ -133,6 +146,12 @@ export const NotificationsPanel: React.FC = () => {
                   Mark as read
                 </button>
               )}
+              <button
+                  className={styles.markReadButton}
+                  onClick={() => deleteNotification(notification.id)}
+                >
+                  Delete
+                </button>
             </li>
           ))}
         </ul>
