@@ -287,8 +287,8 @@ class NotificationService {
      * @returns An array of notifications
      * @throws Error if the retrieval fails
      */
-    async getNotifications() {
-        const notifications = await this.client.get_notifications();
+    async getNotifications(page) {
+        const notifications = await this.client.get_notifications(page);
         return sanitizeMaps(notifications);
     }
     /**
@@ -299,6 +299,11 @@ class NotificationService {
     async markNotificationAsRead(notificationId) {
         return this.client.mark_notification_as_read(notificationId);
     }
+    /**
+     * Deletes a notification
+     * @param notificationId - The ID of the notification to delete
+     * @throws Error if the deletion fails
+     */
     async deleteNotification(notificationId) {
         return this.client.delete_notification(notificationId);
     }
