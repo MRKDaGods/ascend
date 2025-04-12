@@ -1,11 +1,11 @@
+import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
 
 class SuggestedConnectionsPage extends StatefulWidget {
   final String Message;
-  final List<UserModel> users;
-  final Map<String, List<UserModel>> mutualUsers;
+  final List<UserSuggestedtoConnect> users;
   final Function(String) onSend;
   final bool showAll;
 
@@ -13,7 +13,6 @@ class SuggestedConnectionsPage extends StatefulWidget {
     super.key,
     required this.Message,
     required this.users,
-    required this.mutualUsers,
     required this.onSend,
     required this.showAll,
   });
@@ -64,7 +63,6 @@ class _SuggestedConnectionsPageState extends State<SuggestedConnectionsPage> {
               //ConnectionSuggestions PAGE
               ConnectionSuggestions(
                 suggestedUsers: widget.users,
-                connectionsMap: widget.mutualUsers,
                 onSend: widget.onSend,
                 ShowAll: widget.showAll,
               ),

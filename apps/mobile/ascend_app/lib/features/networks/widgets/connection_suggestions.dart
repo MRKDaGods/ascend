@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:ascend_app/features/networks/widgets/single_connection.dart';
-import 'package:ascend_app/features/networks/managers/connection_manager.dart';
 
 class ConnectionSuggestions extends StatefulWidget {
-  final List<UserModel> suggestedUsers;
-  final Map<String, List<UserModel>> connectionsMap;
-
+  final List<UserSuggestedtoConnect> suggestedUsers;
   final Function(String) onSend;
   final bool ShowAll;
 
   const ConnectionSuggestions({
     super.key,
     required this.suggestedUsers,
-    required this.connectionsMap,
     required this.onSend,
     required this.ShowAll,
   });
@@ -23,7 +19,7 @@ class ConnectionSuggestions extends StatefulWidget {
 }
 
 class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
-  List<UserModel> localsuggestedUsers = [];
+  List<UserSuggestedtoConnect> localsuggestedUsers = [];
   final Set<String> connectedUsers = {};
 
   @override
@@ -34,7 +30,7 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
   void _handleConnect(String userId) {
     setState(() {
       connectedUsers.add(userId);
-      localsuggestedUsers.removeWhere((user) => user.id == userId);
+      localsuggestedUsers.removeWhere((user) => user.user_id == userId);
     });
     widget.onSend(userId); // Trigger the onSend callback
   }
@@ -68,8 +64,6 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
                 : localsuggestedUsers.length
             : localsuggestedUsers.length;
 
-    final Map<String, List<UserModel>> MutualConnectionsMap =
-        getMutualConnectionsforeachUser("1", widget.connectionsMap);
     return GridView.builder(
       shrinkWrap: true, // Prevents infinite height issues
       physics: NeverScrollableScrollPhysics(), // Disables GridView's scrolling
@@ -83,18 +77,16 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
       itemCount: itemCount,
       itemBuilder: (context, index) {
         final user = localsuggestedUsers[index];
-        final bool isConnected = connectedUsers.contains(user.id);
+        final bool isConnected = connectedUsers.contains(user.user_id!);
         return SingleConnection(
-          key: ValueKey(user.id),
+          key: ValueKey(user.user_id!),
           user: user,
           onSend: _handleConnect,
           ShowAll: widget.ShowAll,
           isConnected: isConnected,
-          mutualUsers: MutualConnectionsMap[user.id] ?? [],
-          acceptedConnections: widget.connectionsMap[user.id] ?? [],
           onHide: (userId) {
             setState(() {
-              localsuggestedUsers.removeWhere((user) => user.id == userId);
+              localsuggestedUsers.removeWhere((user) => user.user_id == userId);
             });
           },
         );

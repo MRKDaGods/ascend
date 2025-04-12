@@ -1,12 +1,11 @@
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/utils/enums.dart';
 import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 
 Widget buildSent(
-  List<UserModel> allUsers,
-  List<ConnectionRequestModel> pendingConnectionRequests,
+  List<UserPendingModel> pendingConnectionRequests,
   Function(String) onRemove,
   ConnectionRequestSentFilterMode filterMode,
 ) {
@@ -14,65 +13,51 @@ Widget buildSent(
     case ConnectionRequestSentFilterMode.People:
       return Expanded(
         child: ListView.builder(
-          itemCount: allUsers.length,
+          itemCount: pendingConnectionRequests.length,
           itemBuilder: (context, index) {
-            final invitation = allUsers[index];
-            final connectionRequest = pendingConnectionRequests.firstWhere(
-              (element) => element.receiverId == invitation.id,
-              orElse:
-                  () => ConnectionRequestModel(
-                    requestId: '',
-                    senderId: '',
-                    receiverId: '',
-                    timestamp: DateTime.now(),
-                    status: '',
+            final invitation = pendingConnectionRequests[index];
+            return Column(
+              children: [
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage:
+                        invitation.profile_image_id!.startsWith('http')
+                            ? NetworkImage(invitation.profile_image_id!)
+                            : AssetImage(invitation.profile_image_id!)
+                                as ImageProvider,
                   ),
+                  title: Text(
+                    '${invitation.first_name} ${invitation.last_name}',
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        invitation.bio!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        timeDifference(invitation.requestedAt!),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: TextButton(
+                    onPressed: () => onRemove(invitation.request_id!),
+                    child: const Text('Withdraw'),
+                  ),
+                ),
+                const Divider(thickness: 3, height: 16),
+              ],
             );
-
-            if (connectionRequest.requestId != '') {
-              return Column(
-                children: [
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage:
-                          invitation.profilePic.startsWith('http')
-                              ? NetworkImage(invitation.profilePic)
-                              : AssetImage(invitation.profilePic)
-                                  as ImageProvider,
-                    ),
-                    title: Text(invitation.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          invitation.bio,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          timeDifference(connectionRequest.timestamp),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: TextButton(
-                      onPressed: () => onRemove(connectionRequest.requestId),
-                      child: const Text('Withdraw'),
-                    ),
-                  ),
-                  const Divider(thickness: 3, height: 16),
-                ],
-              );
-            } else {
-              return const SizedBox.shrink();
-            }
           },
         ),
       );

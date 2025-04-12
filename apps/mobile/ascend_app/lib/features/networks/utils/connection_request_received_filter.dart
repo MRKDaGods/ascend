@@ -1,13 +1,11 @@
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/widgets/selection_buttons.dart';
 import 'package:ascend_app/features/networks/utils/enums.dart';
 import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 
 Widget buildReceived(
-  List<UserModel> allUsers,
-  List<ConnectionRequestModel> pendingRequestsReceived,
+  List<UserPendingModel> pendingRequestsReceived,
   ConnectionRequestReceivedFilterMode selection,
   Function(String) onAccept,
   Function(String) onDecline,
@@ -16,22 +14,10 @@ Widget buildReceived(
     case ConnectionRequestReceivedFilterMode.All:
       return Expanded(
         child: ListView.builder(
-          itemCount: allUsers.length,
+          itemCount: pendingRequestsReceived.length,
           itemBuilder: (context, index) {
-            final invitation = allUsers[index];
-            final connectionRequest = pendingRequestsReceived.firstWhere(
-              (element) => element.senderId == invitation.id,
-              orElse:
-                  () => ConnectionRequestModel(
-                    requestId: '',
-                    senderId: '',
-                    receiverId: '',
-                    status: '',
-                    timestamp: DateTime.now(),
-                  ),
-            );
-
-            if (connectionRequest.requestId != '') {
+            final invitation = pendingRequestsReceived[index];
+            if (invitation is UserPendingModel) {
               return Column(
                 children: [
                   Padding(
@@ -43,9 +29,9 @@ Widget buildReceived(
                         CircleAvatar(
                           radius: 24,
                           backgroundImage:
-                              invitation.profilePic.startsWith('http')
-                                  ? NetworkImage(invitation.profilePic)
-                                  : AssetImage(invitation.profilePic)
+                              invitation.profile_image_id!.startsWith('http')
+                                  ? NetworkImage(invitation.profile_image_id!)
+                                  : AssetImage(invitation.profile_image_id!)
                                       as ImageProvider,
                         ),
                         const SizedBox(
@@ -57,7 +43,7 @@ Widget buildReceived(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                invitation.name,
+                                '${invitation.first_name} ${invitation.last_name}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -65,7 +51,7 @@ Widget buildReceived(
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                invitation.bio,
+                                invitation.bio!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -75,7 +61,7 @@ Widget buildReceived(
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                timeDifference(connectionRequest.timestamp),
+                                timeDifference(invitation.requestedAt!),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
@@ -91,7 +77,7 @@ Widget buildReceived(
                         SelectionButtons(
                           onAccept: onAccept,
                           onDecline: onDecline,
-                          connectionRequest: connectionRequest,
+                          userpending: invitation,
                         ),
                       ],
                     ),
@@ -122,22 +108,10 @@ Widget buildReceived(
     case ConnectionRequestReceivedFilterMode.People:
       return Expanded(
         child: ListView.builder(
-          itemCount: allUsers.length,
+          itemCount: pendingRequestsReceived.length,
           itemBuilder: (context, index) {
-            final invitation = allUsers[index];
-            final connectionRequest = pendingRequestsReceived.firstWhere(
-              (element) => element.senderId == invitation.id,
-              orElse:
-                  () => ConnectionRequestModel(
-                    requestId: '',
-                    senderId: '',
-                    receiverId: '',
-                    status: '',
-                    timestamp: DateTime.now(),
-                  ),
-            );
-
-            if (connectionRequest.requestId != '') {
+            final invitation = pendingRequestsReceived[index];
+            if (invitation is UserPendingModel) {
               return Column(
                 children: [
                   Padding(
@@ -149,9 +123,9 @@ Widget buildReceived(
                         CircleAvatar(
                           radius: 24,
                           backgroundImage:
-                              invitation.profilePic.startsWith('http')
-                                  ? NetworkImage(invitation.profilePic)
-                                  : AssetImage(invitation.profilePic)
+                              invitation.profile_image_id!.startsWith('http')
+                                  ? NetworkImage(invitation.profile_image_id!)
+                                  : AssetImage(invitation.profile_image_id!)
                                       as ImageProvider,
                         ),
                         const SizedBox(
@@ -163,7 +137,7 @@ Widget buildReceived(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                invitation.name,
+                                '${invitation.first_name} ${invitation.last_name}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -171,7 +145,7 @@ Widget buildReceived(
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                invitation.bio,
+                                invitation.bio!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -181,7 +155,7 @@ Widget buildReceived(
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                timeDifference(connectionRequest.timestamp),
+                                timeDifference(invitation.requestedAt!),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
@@ -197,7 +171,7 @@ Widget buildReceived(
                         SelectionButtons(
                           onAccept: onAccept,
                           onDecline: onDecline,
-                          connectionRequest: connectionRequest,
+                          userpending: invitation,
                         ),
                       ],
                     ),

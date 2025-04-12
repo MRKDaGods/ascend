@@ -3,23 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/connection_requests_sent.dart';
 import 'package:ascend_app/features/networks/widgets/connection_request_received_list_full.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/pages/invitations_settings_page.dart';
 import 'package:ascend_app/features/networks/pages/network_invites_settings_page.dart';
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 
 class ConnectionRequestsPage extends StatefulWidget {
-  final List<UserModel> invitationsReceived;
-  final List<UserModel> invitationsSent;
-  final List<ConnectionRequestModel> pendingRequestsReceived;
-  final List<ConnectionRequestModel> pendingRequestsSent;
+  final List<UserPendingModel> sentUsers;
+  final List<UserPendingModel> receivedUsers;
 
   const ConnectionRequestsPage({
     super.key,
-    required this.invitationsReceived,
-    required this.invitationsSent,
-    required this.pendingRequestsReceived,
-    required this.pendingRequestsSent,
+    required this.sentUsers,
+    required this.receivedUsers,
   });
   @override
   _ConnectionRequestsPageState createState() => _ConnectionRequestsPageState();
@@ -204,8 +199,6 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
             return isReceivedSelected
                 ? state.pendingRequestsReceived.isNotEmpty
                     ? ConnectionRequestsReceivedListFull(
-                      invitations: widget.invitationsReceived,
-                      pendingRequestsReceived: state.pendingRequestsReceived,
                       onAccept: (requestId) {
                         context.read<ConnectionRequestBloc>().add(
                           AcceptConnectionRequest(requestId: requestId),
@@ -228,8 +221,6 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
                     )
                 : state.pendingRequestsSent.isNotEmpty
                 ? ConnectionRequestsSent(
-                  invitations: widget.invitationsSent,
-                  pendingRequestsSent: state.pendingRequestsSent,
                   onRemove: (requestId) {
                     context.read<ConnectionRequestBloc>().add(
                       CancelConnectionRequest(requestId: requestId),

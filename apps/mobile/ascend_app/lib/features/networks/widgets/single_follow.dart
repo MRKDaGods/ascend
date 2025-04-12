@@ -1,11 +1,12 @@
-import 'package:ascend_app/features/networks/Mock%20Data/follow.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/mutual_follow.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 
 class SingleFollow extends StatefulWidget {
-  final UserModel user;
-  final List<UserModel> mutualUsers;
+  final UserSuggestedtoFollow user;
+  final List<ConnectedUser> mutualUsers;
+  final int numFollowers;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
   final Function(String) onHide;
@@ -14,6 +15,7 @@ class SingleFollow extends StatefulWidget {
     super.key,
     required this.user,
     required this.mutualUsers,
+    required this.numFollowers,
     required this.onFollow,
     required this.onUnfollow,
     required this.onHide,
@@ -32,9 +34,9 @@ class _FollowState extends State<SingleFollow> {
     setState(() {
       isFollowing = !isFollowing;
       if (isFollowing) {
-        widget.onFollow(widget.user.id);
+        widget.onFollow(widget.user.user_id!);
       } else {
-        widget.onUnfollow(widget.user.id);
+        widget.onUnfollow(widget.user.user_id!);
       }
     });
   }
@@ -62,7 +64,7 @@ class _FollowState extends State<SingleFollow> {
             children: [
               // Cover picture
               Image.asset(
-                widget.user.coverpic,
+                'assets/EmptyUser.png',
                 height: 100,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -99,8 +101,8 @@ class _FollowState extends State<SingleFollow> {
                 child: CircleAvatar(
                   radius: 40,
                   backgroundImage:
-                      widget.user.profilePic.isNotEmpty
-                          ? AssetImage(widget.user.profilePic)
+                      widget.user.profile_image_id!.isNotEmpty
+                          ? AssetImage(widget.user.profile_image_id!)
                           : const AssetImage("assets/EmptyUser.png"),
                 ),
               ),
@@ -142,7 +144,7 @@ class _FollowState extends State<SingleFollow> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        widget.user.name,
+                        widget.user.first_name!,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -155,7 +157,7 @@ class _FollowState extends State<SingleFollow> {
                         vertical: 4,
                       ),
                       child: Text(
-                        widget.user.bio,
+                        widget.user.bio!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
@@ -168,11 +170,7 @@ class _FollowState extends State<SingleFollow> {
                       ),
                       child: MutualFollow(
                         mutualUsers: widget.mutualUsers,
-                        numFollowers:
-                            fetchFollowers(
-                              generateFollowers(),
-                              widget.user.id,
-                            ).length,
+                        numFollowers: widget.numFollowers,
                       ),
                     ),
                   ],

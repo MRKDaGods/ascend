@@ -1,15 +1,15 @@
+import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/mutual_follow.dart';
 
 class MutualConnections extends StatelessWidget {
-  final List<UserModel> mutualUsers;
-  final int numFollowers;
+  final List<ConnectedUser> mutualUsers;
+  final int numConnections;
 
   const MutualConnections({
     super.key,
     required this.mutualUsers,
-    required this.numFollowers,
+    required this.numConnections,
   });
 
   @override
@@ -27,8 +27,8 @@ class MutualConnections extends StatelessWidget {
                 radius: 15,
                 backgroundImage:
                     mutualUsers.isNotEmpty
-                        ? AssetImage(mutualUsers[0].profilePic)
-                        : null,
+                        ? NetworkImage(mutualUsers[0].profile_image_id!)
+                        : AssetImage('assets/EmptyUser.png') as ImageProvider,
               ),
             ),
             SizedBox(width: mutualUsers.isNotEmpty ? 5 : 0),
@@ -50,15 +50,15 @@ class MutualConnections extends StatelessWidget {
     );
   }
 
-  String _buildMutualConnecctionsText(List<UserModel> mutualUsers) {
+  String _buildMutualConnecctionsText(List<ConnectedUser> mutualUsers) {
     if (mutualUsers.isEmpty) {
-      return "$numFollowers Connections";
+      return "$numConnections Connections";
     } else if (mutualUsers.length == 1) {
-      return "${mutualUsers[0].name} is a mutual connection";
+      return "${mutualUsers[0].first_name} is a mutual connection";
     } else if (mutualUsers.length == 2) {
-      return "${mutualUsers[0].name} and ${mutualUsers[1].name} are mutual connections";
+      return "${mutualUsers[0].first_name} and ${mutualUsers[1].first_name} are mutual connections";
     } else {
-      return "${mutualUsers[0].name}, ${mutualUsers[1].name} and ${mutualUsers.length - 2} other mutual connection";
+      return "${mutualUsers[0].first_name}, ${mutualUsers[1].first_name} and ${mutualUsers.length - 2} other mutual connection";
     }
   }
 }

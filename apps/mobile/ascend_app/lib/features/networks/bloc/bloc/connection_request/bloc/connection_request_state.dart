@@ -14,13 +14,15 @@ final class ConnectionRequestError extends ConnectionRequestState {
 }
 
 final class ConnectionRequestSuccess extends ConnectionRequestState {
-  final List<ConnectionRequestModel> pendingRequestsReceived;
-  final List<ConnectionRequestModel> pendingRequestsSent;
-  final List<ConnectionRequestModel> acceptedConnections;
+  final List<UserPendingModel> pendingRequestsReceived;
+  final List<UserPendingModel> pendingRequestsSent;
+  final List<ConnectedUser> acceptedConnections;
+  final List<UserSuggestedtoConnect> suggestedToConnect;
 
   ConnectionRequestSuccess({
     required this.pendingRequestsReceived,
     required this.pendingRequestsSent,
     required this.acceptedConnections,
+    required this.suggestedToConnect,
   });
 }

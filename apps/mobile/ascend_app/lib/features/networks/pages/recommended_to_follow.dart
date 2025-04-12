@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 
 class RecommendedToFollow extends StatefulWidget {
   final String Message;
-  final List<UserModel> users;
-  final Map<String, List<UserModel>> mutualUsers;
+  final List<UserSuggestedtoFollow> users;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
   final bool showAll;
@@ -14,7 +13,6 @@ class RecommendedToFollow extends StatefulWidget {
     super.key,
     required this.Message,
     required this.users,
-    required this.mutualUsers,
     required this.onFollow,
     required this.onUnfollow,
     required this.showAll,
@@ -62,7 +60,6 @@ class _RecommendedToFollowState extends State<RecommendedToFollow> {
               const SizedBox(height: 5),
               PeopleToFollow(
                 users: widget.users,
-                mutualUsers: widget.mutualUsers,
                 onFollow: (userId) {
                   widget.onFollow(userId);
                 },
