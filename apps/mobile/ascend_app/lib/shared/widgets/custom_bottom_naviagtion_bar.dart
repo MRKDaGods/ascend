@@ -8,10 +8,10 @@ class AppBottomNavigation extends StatelessWidget {
   final Function(int) onTap;
 
   const AppBottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,12 +61,12 @@ class _NotificationIconWithBadge extends StatelessWidget {
         if (state is NotificationLoaded) {
           unreadCount = state.unreadCount;
         }
-        
+
         // If no unread notifications, just show the icon
         if (unreadCount == 0) {
           return const Icon(Icons.notifications);
         }
-        
+
         // Otherwise show badge
         return Stack(
           clipBehavior: Clip.none,
@@ -81,10 +81,7 @@ class _NotificationIconWithBadge extends StatelessWidget {
                   color: Theme.of(context).colorScheme.error,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 child: Center(
                   child: Text(
                     unreadCount > 99 ? '99+' : '$unreadCount',

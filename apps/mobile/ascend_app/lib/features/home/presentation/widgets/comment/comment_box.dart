@@ -9,22 +9,22 @@ class CommentBox extends StatelessWidget {
   final String timePosted;
   final String text;
   final String avatarImage;
-  
+
   // Replace generic onMenuTap with specific handlers
   final Function(String) onMenuOptionSelected;
-  
+
   final VoidCallback? onReplyTap;
   final VoidCallback? onReactionTap;
   final VoidCallback? onReactionLongPress;
   final bool isLiked;
   final String? reaction;
   final int likeCount;
-  
+
   // Optional: Allow child widgets to be passed in instead of text
   final Widget? child;
-  
+
   const CommentBox({
-    Key? key,
+    super.key,
     required this.authorName,
     this.authorOccupation,
     required this.timePosted,
@@ -38,21 +38,18 @@ class CommentBox extends StatelessWidget {
     this.reaction,
     this.likeCount = 0,
     this.child,
-  }) : super(key: key);
-  
+  });
+
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Avatar
-        CircleAvatar(
-          backgroundImage: AssetImage(avatarImage),
-          radius: 16,
-        ),
-        
+        CircleAvatar(backgroundImage: AssetImage(avatarImage), radius: 16),
+
         const SizedBox(width: 8),
-        
+
         // Comment content and actions
         Expanded(
           child: Column(
@@ -82,7 +79,7 @@ class CommentBox extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
+
                         // Right side with time and menu dots on the same line
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,7 +92,7 @@ class CommentBox extends StatelessWidget {
                                 fontSize: 12,
                               ),
                             ),
-                            
+
                             // Menu dots - aligned with time and name
                             InkWell(
                               onTap: () => _showOptionsSheet(context),
@@ -112,9 +109,10 @@ class CommentBox extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     // Author occupation if available - below the name
-                    if (authorOccupation != null && authorOccupation!.isNotEmpty)
+                    if (authorOccupation != null &&
+                        authorOccupation!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2.0),
                         child: Text(
@@ -125,15 +123,15 @@ class CommentBox extends StatelessWidget {
                           ),
                         ),
                       ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Comment text or custom child widget
                     child ?? Text(text),
                   ],
                 ),
               ),
-              
+
               // Interaction buttons (like and reply)
               Padding(
                 padding: const EdgeInsets.only(left: 12.0, top: 4.0),
@@ -168,9 +166,9 @@ class CommentBox extends StatelessWidget {
                             ),
                         ],
                       ),
-                    
+
                     const SizedBox(width: 16),
-                    
+
                     // Always show Reply button if onReplyTap is provided
                     if (onReplyTap != null)
                       GestureDetector(
@@ -192,7 +190,7 @@ class CommentBox extends StatelessWidget {
       ],
     );
   }
-  
+
   // Use SheetHelpers, but connect to our callback system
   void _showOptionsSheet(BuildContext context) {
     SheetHelpers.showPostOptionsSheet(

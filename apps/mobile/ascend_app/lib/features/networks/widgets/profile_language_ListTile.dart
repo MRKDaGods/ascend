@@ -14,7 +14,7 @@ Widget? printprofileLanguageSearching(
           children: [
             profileLanguageSearching.length == 1
                 ? Text(
-                  "${profileLanguageSearching[0]}",
+                  profileLanguageSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ Widget buildProfileLanguageList(
       onprofileLanguageSearchingRemoved,
     ),
     trailing: Text(
-      profileLanguageSearching.length > 0 ? 'Edit' : 'Any',
+      profileLanguageSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

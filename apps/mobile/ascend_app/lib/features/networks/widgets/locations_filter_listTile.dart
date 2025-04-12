@@ -64,7 +64,7 @@ Widget buildLocationList(
     ),
     subtitle: printLocations(locations, onLocationsRemoved),
     trailing: Text(
-      locations.length > 0 ? 'Edit' : 'Any',
+      locations.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

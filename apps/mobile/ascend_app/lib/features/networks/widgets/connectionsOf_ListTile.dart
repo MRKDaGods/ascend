@@ -15,7 +15,7 @@ Widget? printConnectionsOfSearching(
           children: [
             connectionsOfSearching.length == 1
                 ? Text(
-                  "${connectionsOfSearching[0]}",
+                  connectionsOfSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -72,7 +72,7 @@ Widget buildConnectionsOfList(
       onConnectionsOfSearchingRemoved,
     ),
     trailing: Text(
-      connectionsOfSearching.length > 0 ? 'Edit' : 'Any',
+      connectionsOfSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

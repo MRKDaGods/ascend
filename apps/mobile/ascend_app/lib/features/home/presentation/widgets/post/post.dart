@@ -22,8 +22,7 @@ class Post extends StatefulWidget {
   final String postId;
   final Comment? previewComment;
 
-  const Post({Key? key, required this.postId, this.previewComment})
-    : super(key: key);
+  const Post({super.key, required this.postId, this.previewComment});
 
   @override
   State<Post> createState() => _PostState();
@@ -108,7 +107,9 @@ class _PostState extends State<Post> {
                     onOptionsPressed: null, // Let it use the default behavior
                     onShowFeedbackOptions: () {
                       // Use BLoC event instead of setState
-                      context.read<PostBloc>().add(ShowPostFeedbackOptions(post.id));
+                      context.read<PostBloc>().add(
+                        ShowPostFeedbackOptions(post.id),
+                      );
                     },
                     onHidePost: (reason) {
                       context.read<PostBloc>().add(HidePost(post.id, reason));

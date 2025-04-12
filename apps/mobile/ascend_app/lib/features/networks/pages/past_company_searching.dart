@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/company_search/bloc/company_search_bloc.dart';
 import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/utils/search_filter.dart';
 import 'package:ascend_app/features/networks/widgets/past_company_modal.dart';
 
 class PastCompaniesSearching extends StatefulWidget {

@@ -4,7 +4,7 @@ import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
 
-  const EasyApplyPage({Key? key, required this.job}) : super(key: key);
+  const EasyApplyPage({super.key, required this.job});
 
   @override
   _EasyApplyPageState createState() => _EasyApplyPageState();

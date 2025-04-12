@@ -15,7 +15,7 @@ Widget? printfollowersOfSearching(
           children: [
             followersOfSearching.length == 1
                 ? Text(
-                  "${followersOfSearching[0]}",
+                  followersOfSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -72,7 +72,7 @@ Widget buildFollowersOfList(
       onfollowersOfSearchingRemoved,
     ),
     trailing: Text(
-      followersOfSearching.length > 0 ? 'Edit' : 'Any',
+      followersOfSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

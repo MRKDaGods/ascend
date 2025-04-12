@@ -136,3 +136,4 @@ dist
 .pnp.*
 
 **/.DS_Store
+apps/mobile/ascend_app/firebase.exe

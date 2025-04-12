@@ -1,8 +1,5 @@
-import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/utils/overlay_builder.dart';
 import 'package:ascend_app/features/networks/widgets/selection_buttons.dart';
 import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 

@@ -9,14 +9,14 @@ class CustomTextFormField extends StatefulWidget {
   final Function(String)? onFieldSubmitted;
 
   const CustomTextFormField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     required this.errorText,
     this.obscureText = false,
     this.onChanged,
     this.onFieldSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   _CustomTextFormFieldState createState() => _CustomTextFormFieldState();

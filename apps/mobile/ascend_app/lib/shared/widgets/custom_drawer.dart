@@ -9,13 +9,13 @@ class CustomDrawer extends StatelessWidget {
   final Curve closeCurve;
 
   const CustomDrawer({
-    Key? key,
+    super.key,
     required this.child,
     this.openDuration = const Duration(milliseconds: 250),
     this.closeDuration = const Duration(milliseconds: 200),
     this.openCurve = Curves.easeInOut,
     this.closeCurve = Curves.easeIn,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,19 +37,20 @@ class _CustomDrawerController extends StatefulWidget {
   final Curve closeCurve;
 
   const _CustomDrawerController({
-    Key? key,
+    super.key,
     required this.child,
     required this.openDuration,
     required this.closeDuration,
     required this.openCurve,
     required this.closeCurve,
-  }) : super(key: key);
+  });
 
   @override
   _CustomDrawerControllerState createState() => _CustomDrawerControllerState();
 }
 
-class _CustomDrawerControllerState extends State<_CustomDrawerController> with SingleTickerProviderStateMixin {
+class _CustomDrawerControllerState extends State<_CustomDrawerController>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isDrawerOpen = false;
 
@@ -68,7 +69,6 @@ class _CustomDrawerControllerState extends State<_CustomDrawerController> with S
     _controller.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {

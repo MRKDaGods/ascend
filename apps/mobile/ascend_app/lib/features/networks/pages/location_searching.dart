@@ -6,7 +6,7 @@ import 'package:ascend_app/features/networks/model/location_model.dart';
 import 'package:ascend_app/features/networks/widgets/location_modal.dart'; // Import to access showLocationModal
 
 class LocationSearching extends StatelessWidget {
-  const LocationSearching({Key? key}) : super(key: key);
+  const LocationSearching({super.key});
 
   @override
   Widget build(BuildContext context) {

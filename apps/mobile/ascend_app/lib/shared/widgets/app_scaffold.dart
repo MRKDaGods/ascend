@@ -11,7 +11,7 @@ class AppScaffold extends StatelessWidget {
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final Widget? bottomNavigationBar;
-  
+
   // Drawer animation properties
   final Duration drawerOpenDuration;
   final Duration drawerCloseDuration;
@@ -19,7 +19,7 @@ class AppScaffold extends StatelessWidget {
   final Curve drawerCloseCurve;
 
   const AppScaffold({
-    Key? key,
+    super.key,
     required this.body,
     this.title,
     this.actions,
@@ -33,7 +33,7 @@ class AppScaffold extends StatelessWidget {
     this.drawerCloseDuration = const Duration(milliseconds: 200),
     this.drawerOpenCurve = Curves.easeInOut,
     this.drawerCloseCurve = Curves.easeIn,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

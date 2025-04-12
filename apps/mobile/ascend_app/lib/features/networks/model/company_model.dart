@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class CompanyModel {
   final String companyId;
   final String companyName;

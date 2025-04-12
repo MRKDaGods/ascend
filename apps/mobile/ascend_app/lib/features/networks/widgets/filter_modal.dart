@@ -40,7 +40,7 @@ void showFilterModal(BuildContext context) {
                   );
                 } else if (state is SearchFiltersLoaded) {
                   final filters = state.filters;
-                  final bool _isReset = checkIfReset(filters);
+                  final bool isReset = checkIfReset(filters);
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -75,7 +75,7 @@ void showFilterModal(BuildContext context) {
                                 ),
                               ),
                               trailing:
-                                  !_isReset
+                                  !isReset
                                       ? TextButton(
                                         onPressed: () {
                                           BlocProvider.of<SearchFiltersBloc>(

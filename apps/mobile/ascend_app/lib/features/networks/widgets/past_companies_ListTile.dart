@@ -17,7 +17,7 @@ Widget? printpastCompanies(
           children: [
             pastCompanies.length == 1
                 ? Text(
-                  "${pastCompanies[0].companyName}",
+                  pastCompanies[0].companyName,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -65,7 +65,7 @@ Widget buildPastCompanyList(
     ),
     subtitle: printpastCompanies(pastCompanies, onpastCompaniesRemoved),
     trailing: Text(
-      pastCompanies.length > 0 ? 'Edit' : 'Any',
+      pastCompanies.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,
