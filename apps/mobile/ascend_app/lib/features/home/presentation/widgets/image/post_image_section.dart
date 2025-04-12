@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post_images_grid_shape.dart';
+import 'package:ascend_app/features/home/presentation/widgets/image/post_images_grid_shape.dart';
 
 class PostImageSection extends StatelessWidget {
   final List<String> images;
   final bool useCarousel;
-  final bool isSponsored; // Add this parameter to check if the post is sponsored
-  final Function(int)? onTap;
+  final bool isSponsored; 
+  final Function(int)? onTapImage;  // Renamed to match your Post widget
 
   const PostImageSection({
     super.key,
     required this.images,
     this.useCarousel = false,
-    this.isSponsored = false, // Default to false
-    this.onTap,
+    this.isSponsored = false,
+    this.onTapImage,  // Updated parameter name
   });
-
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,7 @@ class PostImageSection extends StatelessWidget {
           return Builder(
             builder: (BuildContext context) {
               return GestureDetector(
-                onTap: () => onTap?.call(index),
+                onTap: () => onTapImage?.call(index),  // Use the renamed parameter
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   margin: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -70,7 +69,7 @@ class PostImageSection extends StatelessWidget {
       return ImagesGridShape(
         imageCount: images.length,
         images: images,
-        onTap: onTap,
+        onTap: onTapImage,  // Pass the renamed parameter to ImagesGridShape
       );
     }
   }

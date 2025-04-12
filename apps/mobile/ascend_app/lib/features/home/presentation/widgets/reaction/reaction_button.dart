@@ -5,12 +5,14 @@ class ReactionButton extends StatefulWidget {
   final ReactionManager manager;
   final VoidCallback onLongPressStart;
   final VoidCallback onLongPressEnd;
+  final VoidCallback? onTap;
   
   const ReactionButton({
     Key? key,
     required this.manager,
     required this.onLongPressStart,
     required this.onLongPressEnd,
+    this.onTap,
   }) : super(key: key);
   
   @override
@@ -49,9 +51,19 @@ class _ReactionButtonState extends State<ReactionButton> with SingleTickerProvid
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Just toggle default like reaction
-        widget.manager.toggleReaction('like');
-        setState(() {});
+        if (widget.onTap != null) {
+          widget.onTap!();
+        } else {
+          // Check if we need to remove current reaction or toggle to default
+          if (widget.manager.isLiked) {
+            // If already has a reaction, remove it
+            widget.manager.removeReaction();
+          } else {
+            // If no reaction, add the default one
+            widget.manager.toggleReaction();
+          }
+          setState(() {}); // Force a rebuild with the new state
+        }
       },
       onLongPressStart: (_) {
         setState(() {
@@ -77,7 +89,6 @@ class _ReactionButtonState extends State<ReactionButton> with SingleTickerProvid
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Animated icon that moves up when pressed
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
@@ -92,13 +103,13 @@ class _ReactionButtonState extends State<ReactionButton> with SingleTickerProvid
             },
           ),
           
-          // Conditional rendering of the label - only when long pressed
           if (_isLongPressed) ...[
             const SizedBox(width: 8),
             Text(
               widget.manager.getCurrentReactionLabel(),
               style: TextStyle(
                 color: widget.manager.getCurrentReactionColor(),
+                fontWeight: widget.manager.isLiked ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
