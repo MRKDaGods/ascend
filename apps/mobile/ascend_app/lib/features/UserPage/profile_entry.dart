@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-
 class ProfileEntryWidget extends StatefulWidget {
-  final String? title;
-  final String? subtitle;
-  final String? description;
-  final String? imageUrl;
-  final Icon? icon;
-  final List<Widget>? extraContent;
+  String? title;
+  String? subtitle;
+  String? description;
+  String? imageUrl;
+  Icon? icon;
+  List<Widget>? extraContent;
 
-  const ProfileEntryWidget({
+  ProfileEntryWidget({
     super.key,
     this.title,
     this.subtitle,

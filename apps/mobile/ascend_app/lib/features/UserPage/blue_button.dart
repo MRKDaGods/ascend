@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
 class BlueButton extends StatelessWidget {
-  const BlueButton({super.key, required this.text, this.action, this.icon});
+  const BlueButton({
+    super.key,
+    required this.text,
+    this.action,
+    this.icon,
+    this.isMyProfile = false,
+  });
 
   final VoidCallback? action;
   final String text;
   final IconData? icon;
-
+  final bool isMyProfile; // Assuming this is a placeholder
   @override
   Widget build(BuildContext context) {
     return icon != null
@@ -17,7 +23,7 @@ class BlueButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.black,
             backgroundColor: Colors.blue,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.symmetric(vertical: !isMyProfile ? 8 : 3),
           ),
           onPressed: action ?? () {},
         )
@@ -25,7 +31,7 @@ class BlueButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.black,
             backgroundColor: Colors.blue,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: EdgeInsets.symmetric(vertical: !isMyProfile ? 8 : 3),
           ),
           onPressed: action ?? () {},
           child: Text(text),

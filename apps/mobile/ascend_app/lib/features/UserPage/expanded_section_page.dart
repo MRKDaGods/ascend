@@ -2,10 +2,10 @@ import 'package:ascend_app/features/UserPage/models/profile_section.dart';
 import 'package:flutter/material.dart';
 import 'section_builder.dart';
 
-class EditSectionPage extends StatelessWidget {
+class ExpandedSectionPage extends StatelessWidget {
   final ProfileSection section;
   final bool isMyProfile;
-  const EditSectionPage({
+  const ExpandedSectionPage({
     super.key,
     required this.section,
     required this.isMyProfile,
