@@ -2,10 +2,12 @@ import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:ascend_app/features/networks/widgets/mutual_connection.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging/bloc/messaging_bloc.dart';
 
 class SingleConnection extends StatefulWidget {
   final UserSuggestedtoConnect user;
   final Function(String) onSend;
+  final Function(String) onSentMessageRequest;
   final bool ShowAll;
   final bool isConnected;
   final Function(String) onHide;
@@ -14,6 +16,7 @@ class SingleConnection extends StatefulWidget {
     super.key,
     required this.user,
     required this.onSend,
+    required this.onSentMessageRequest,
     required this.ShowAll,
     required this.isConnected,
     required this.onHide,

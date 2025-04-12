@@ -54,7 +54,7 @@ class ConnectionRequestBloc
   ) async {
     emit(ConnectionRequestLoading());
     try {
-      await repository.sendConnectionRequest(event.connectionRequest);
+      await repository.sendConnectionRequest(event.connctionId);
       add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
