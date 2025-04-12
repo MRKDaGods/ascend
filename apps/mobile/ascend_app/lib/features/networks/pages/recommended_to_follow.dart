@@ -5,6 +5,7 @@ import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart
 class RecommendedToFollow extends StatefulWidget {
   final String Message;
   final List<UserSuggestedtoFollow> users;
+  final Function(String) onSentMessageRequest;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
   final bool showAll;
@@ -13,6 +14,7 @@ class RecommendedToFollow extends StatefulWidget {
     super.key,
     required this.Message,
     required this.users,
+    required this.onSentMessageRequest,
     required this.onFollow,
     required this.onUnfollow,
     required this.showAll,
@@ -66,7 +68,10 @@ class _RecommendedToFollowState extends State<RecommendedToFollow> {
                 onUnfollow: (userId) {
                   widget.onUnfollow(userId);
                 },
-                showAll: true,
+                onSentMessageRequest: (userId) {
+                  widget.onSentMessageRequest(userId);
+                },
+                showAll: widget.showAll,
               ),
             ],
           ),

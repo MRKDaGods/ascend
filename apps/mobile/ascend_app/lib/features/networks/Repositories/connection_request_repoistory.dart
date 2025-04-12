@@ -23,12 +23,17 @@ class ConnectionRequestRepository {
   //_authService = authService ?? AuthService();
 
   /// Send a connection request to another user
-  Future<void> sendConnectionRequest(
-    ConnectionRequestModel connectionRequest,
-  ) async {
+  Future<void> sendConnectionRequest(String connectionId) async {
     try {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
+
+      // Create request body with user_id and message
+      final requestBody = {
+        'user_id': connectionId,
+        'message': "hi ,  let's connect",
+      };
+
       final response = await _client.post(
         Uri.parse(
           '${ApiBases.Connection_Base}${ApiEndpoints.connectionRequest}',
@@ -37,7 +42,7 @@ class ConnectionRequestRepository {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode(connectionRequest.receiverId),
+        body: json.encode(requestBody),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -46,7 +51,7 @@ class ConnectionRequestRepository {
     } catch (e) {
       // For development, use mock implementation
       await Future.delayed(const Duration(milliseconds: 500));
-      addConnectionRequest(connectionRequests, connectionRequest);
+      //addConnectionRequest(connectionRequests, connectionRequest);
     }
   }
 
@@ -74,7 +79,7 @@ class ConnectionRequestRepository {
     } catch (e) {
       // For development, use mock implementation
       await Future.delayed(const Duration(milliseconds: 500));
-      acceptConnectionRequest(requestId);
+      //acceptConnectionRequest(requestId);
     }
   }
 

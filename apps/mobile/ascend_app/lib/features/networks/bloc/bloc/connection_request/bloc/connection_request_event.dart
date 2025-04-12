@@ -4,8 +4,8 @@ part of 'connection_request_bloc.dart';
 sealed class ConnectionRequestEvent {}
 
 class SendConnectionRequest extends ConnectionRequestEvent {
-  final ConnectionRequestModel connectionRequest;
-  SendConnectionRequest({required this.connectionRequest});
+  final String connctionId;
+  SendConnectionRequest({required this.connctionId});
 }
 
 class AcceptConnectionRequest extends ConnectionRequestEvent {
