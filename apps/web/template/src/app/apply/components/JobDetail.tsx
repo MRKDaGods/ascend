@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { Typography, Box, Paper, Button } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useJobStore } from '../store/useJobStore';
+import SaveJobPopup from './SaveJobPopup';
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Box mb={4}>
@@ -17,15 +19,14 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const JobDetails = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-
+  const { setSavedJobPopupOpen, saveJob } = useJobStore();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Make sure this only runs on client
     setIsReady(true);
   }, []);
 
-  if (!isReady) return null; // Don't render anything on server
+  if (!isReady) return null;
 
   const id = parseInt(searchParams.get('id') || '0');
   const title = searchParams.get('title') || '';
@@ -36,28 +37,27 @@ const JobDetails = () => {
   const about = searchParams.get('about') || '';
   const requirements = searchParams.get('requirements')?.split(',') || [];
 
-  const handleSave = async () => {
-    try {
-      await fetch('http://localhost:5000/my-jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          title,
-          company,
-          location,
-          type,
-          description,
-          about,
-          requirements,
-        }),
-      });
+  const handleSave = () => {
+    const job = {
+      id,
+      title,
+      company,
+      location,
+      type,
+      description,
+      about,
+      requirements,
+      status: 'Saved' as 'Saved' | 'Applied', // Define JobStatus inline
+    };
+  
+    saveJob(job);
+    setSavedJobPopupOpen(true);
+  
+    setTimeout(() => {
       router.push('/MyJobs');
-    } catch (err) {
-      console.error('Failed to save job:', err);
-    }
+    }, 1000);
   };
-
+  
   return (
     <Paper elevation={3} sx={{ p: 4, maxWidth: '900px', mx: 'auto', mt: 5, mb: 3, borderRadius: 3 }}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -93,6 +93,8 @@ const JobDetails = () => {
           ))}
         </ul>
       </Section>
+
+      <SaveJobPopup />
     </Paper>
   );
 };

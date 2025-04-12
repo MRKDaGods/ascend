@@ -5,5 +5,5 @@ import React from 'react';
 import JobDetails from './components/JobDetail';
 
 export default function ApplyPage() {
-  return <JobDetails />; // no props needed
+  return <JobDetails />; 
 }
