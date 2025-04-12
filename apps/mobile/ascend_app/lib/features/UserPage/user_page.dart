@@ -60,11 +60,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late bool _isFollow;
   late bool _isPending;
   late String _degree;
-
+  late List<ProfileSection> _sections;
   @override
   void initState() {
     super.initState();
     _isConnect = widget.isconnect;
+    _sections = List.from(widget.sections);
     _degree = widget.degree;
     if (_isConnect) {
       _isPending = false;
@@ -74,6 +75,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
     _isFollow = widget.isfollow;
     _isPending = widget.isPending;
+  }
+
+  void _updateSection(ProfileSection updatedSection) {
+    setState(() {
+      // Find the index of the section to update
+      final int index = _sections.indexWhere(
+        (section) => section.title == updatedSection.title,
+      );
+      if (index != -1) {
+        _sections[index] = updatedSection; // Update the section
+      }
+    });
   }
 
   void _toggleConnect() {
@@ -133,6 +146,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  // Function to handle refresh
+  Future<void> _onRefresh() async {
+    // Simulate a network call or data refresh
+    await Future.delayed(Duration(seconds: 2));
+    // Update the state or data as needed
+    setState(() {
+      // Example: Refresh the sections or any other data
+      _sections = List.from(widget.sections);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,53 +187,67 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ProfileMainImages(
-              profilePic: widget.profileImageUrl,
-              coverPic: widget.coverImageUrl,
-            ),
-            SizedBox(height: 50),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ProfileHeader(
-                    name: widget.name,
-                    verified: widget.verified,
-                    degree: _degree,
-                    bio: widget.bio,
-                    location: widget.location,
-                    latestEducation: widget.latestEducation,
-                    connections: widget.connections,
-                    isconnect: _isConnect,
-                    isPending: _isPending,
-                    mutualConnections: widget.mutualConnections,
-                    links: widget.links,
-                  ),
-                  SizedBox(height: 15),
-                  ProfileButtons(
-                    isfollowing: _isFollow,
-                    isConnect: _isConnect,
-                    isPending: _isPending,
-                    toggleConnect: _toggleConnect,
-                    withdrawRequest: _showWarningDialogForPending,
-                    toggleFollow: _toggleFollow,
-                    removeConnection: _showWarningDialogForRemovingConnection,
-                  ),
-                  SizedBox(height: 30),
-                ],
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ProfileMainImages(
+                profilePic: widget.profileImageUrl,
+                coverPic: widget.coverImageUrl,
               ),
-            ),
-            for (var section in widget.sections)
-              SectionBuilder(
-                section: section,
-                isMyProfile:
-                    widget.profileType == ProfileType.myprofile ? true : false,
+              SizedBox(height: 50),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ProfileHeader(
+                      name: widget.name,
+                      verified: widget.verified,
+                      degree: _degree,
+                      bio: widget.bio,
+                      location: widget.location,
+                      latestEducation: widget.latestEducation,
+                      connections: widget.connections,
+                      isconnect: _isConnect,
+                      isPending: _isPending,
+                      mutualConnections: widget.mutualConnections,
+                      links: widget.links,
+                      isMyProfile:
+                          widget.profileType == ProfileType.myprofile
+                              ? true
+                              : false,
+                    ),
+                    SizedBox(height: 15),
+                    ProfileButtons(
+                      isfollowing: _isFollow,
+                      isMyProfile:
+                          widget.profileType == ProfileType.myprofile
+                              ? true
+                              : false,
+                      isConnect: _isConnect,
+                      isPending: _isPending,
+                      toggleConnect: _toggleConnect,
+                      withdrawRequest: _showWarningDialogForPending,
+                      toggleFollow: _toggleFollow,
+                      removeConnection: _showWarningDialogForRemovingConnection,
+                    ),
+                    SizedBox(height: 30),
+                  ],
+                ),
               ),
-          ],
+              for (var section in _sections)
+                SectionBuilder(
+                  section: section,
+                  isMyProfile:
+                      widget.profileType == ProfileType.myprofile
+                          ? true
+                          : false,
+                  onUpdateSection: _updateSection,
+                ),
+            ],
+          ),
         ),
       ),
     );
