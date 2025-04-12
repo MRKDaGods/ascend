@@ -3,8 +3,12 @@ import 'profile_entry.dart';
 
 class EditEntryPage extends StatefulWidget {
   final ProfileEntryWidget entry;
-
-  const EditEntryPage({super.key, required this.entry});
+  final void Function(ProfileEntryWidget) saveEntry;
+  const EditEntryPage({
+    super.key,
+    required this.entry,
+    required this.saveEntry,
+  });
 
   @override
   _EditEntryPageState createState() => _EditEntryPageState();
@@ -28,39 +32,60 @@ class _EditEntryPageState extends State<EditEntryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
-      appBar: AppBar(title: Text('Edit Entry')),
+      appBar: AppBar(title: const Text('Edit Entry')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(labelText: 'Title'),
             ),
+            const SizedBox(height: 15),
             TextField(
               controller: subtitleController,
-              decoration: InputDecoration(labelText: 'Subtitle'),
+              decoration: const InputDecoration(labelText: 'Subtitle'),
             ),
+            const SizedBox(height: 15),
             TextField(
               controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 3,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Save the changes and go back
-                Navigator.pop(
-                  context,
-                  ProfileEntryWidget(
-                    title: titleController.text,
-                    subtitle: subtitleController.text,
-                    description: descriptionController.text,
-                  ),
+                // Create a new ProfileEntryWidget with updated fields
+                final updatedEntry = ProfileEntryWidget(
+                  title:
+                      titleController.text.isNotEmpty
+                          ? titleController.text
+                          : widget.entry.title, // Retain original if unchanged
+                  subtitle:
+                      subtitleController.text.isNotEmpty
+                          ? subtitleController.text
+                          : widget
+                              .entry
+                              .subtitle, // Retain original if unchanged
+                  description:
+                      descriptionController.text.isNotEmpty
+                          ? descriptionController.text
+                          : widget
+                              .entry
+                              .description, // Retain original if unchanged
+                  imageUrl:
+                      widget.entry.imageUrl, // Keep other fields unchanged
+                  icon: widget.entry.icon,
+                  extraContent: widget.entry.extraContent,
                 );
+
+                // Call saveEntry with the updated entry
+                widget.saveEntry(updatedEntry);
+
+                // Navigate back
+                Navigator.pop(context);
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         ),
