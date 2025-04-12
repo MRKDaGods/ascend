@@ -167,6 +167,12 @@ declare class NotificationService {
      */
     markNotificationAsRead(notificationId: number): Promise<void>;
     /**
+     * Marks a notification as unread
+     * @param notificationId - The ID of the notification to mark as unread
+     * @throws Error if the update fails
+     */
+    markNotificationAsUnread(notificationId: number): Promise<void>;
+    /**
      * Deletes a notification
      * @param notificationId - The ID of the notification to delete
      * @throws Error if the deletion fails

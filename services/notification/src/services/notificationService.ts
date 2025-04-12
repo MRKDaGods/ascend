@@ -138,6 +138,28 @@ export const markNotificationAsRead = async (
 };
 
 /**
+ * Marks a notification as unread
+ *
+ * @param userId - The user ID to mark the notification as unread for
+ * @param notificationId - The ID of the notification to mark as unread
+ */
+export const markNotificationAsUnread = async (
+  userId: number,
+  notificationId: number
+): Promise<void> => {
+  const result = await db.query(
+    `UPDATE notification_service.notifications 
+     SET is_read = FALSE 
+     WHERE id = $1 AND user_id = $2`,
+    [notificationId, userId]
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Notification not found");
+  }
+}
+
+/**
  * Deletes a notification
  *
  * @param userId - The user ID to delete the notification for

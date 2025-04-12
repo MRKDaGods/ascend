@@ -38,6 +38,20 @@ impl<'a> NotificationService<'a> {
         utils::handle_text_response(response).await.map(|_| ())
     }
 
+    pub async fn mark_as_unread(&self, notification_id: i32) -> Result<(), ApiError> {
+        let url = self.client.construct_url(&format!("notifications/{}", notification_id));
+        let token = self.client.auth_token()?;
+        let response = self
+            .client
+            .http_client()
+            .post(&url)
+            .bearer_auth(token)
+            .send()
+            .await?;
+
+        utils::handle_text_response(response).await.map(|_| ())
+    }
+
     pub async fn delete_notification(&self, notification_id: i32) -> Result<(), ApiError> {
         let url = self.client.construct_url(&format!("notifications/{}", notification_id));
         let token = self.client.auth_token()?;
