@@ -85,7 +85,10 @@ class NotificationList extends StatelessWidget {
         // Notifications list
         Expanded(
           child: ListView.builder(
-            controller: scrollController,
+            // Only use the controller if we're not inside another scrollable:
+            controller: isMainPage ? scrollController : null,
+            // Alternative approach: use primary scrolling when no controller is provided
+            // primary: scrollController == null,
             itemCount: displayedNotifications.length + (isLoading ? 1 : 0) + (maxNotifications != null && notifications.length > maxNotifications! ? 1 : 0),
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 8.0),

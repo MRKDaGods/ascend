@@ -19,69 +19,131 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      elevation: 0,
-      color: notification.isRead 
-          ? null 
-          : Theme.of(context).colorScheme.primary.withOpacity(0.05),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left: Avatar or Icon
-              _buildLeadingWidget(),
-              
-              const SizedBox(width: 12),
-              
-              // Center: Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title with optional sender name
-                    if (notification.senderName != null)
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: notification.senderName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: ' ${notification.title}'),
-                          ],
-                        ),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      )
-                    else
-                      Text(
-                        notification.title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    
-                    const SizedBox(height: 4),
-                    
-                    // Message body
-                    Text(
-                      notification.message,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+    return Dismissible(
+      key: Key(notification.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20.0),
+        color: Colors.red,
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Confirm"),
+              content: const Text("Are you sure you want to delete this notification?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text("CANCEL"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text("DELETE"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      onDismissed: (direction) {
+        if (onDelete != null) {
+          onDelete!();
+        }
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        elevation: 0,
+        // Blue hue background when not read
+        color: notification.isRead 
+            ? null 
+            : Colors.blue.withOpacity(0.08), // Changed to blue hue
+        child: InkWell(
+          onTap: () {
+            if (!notification.isRead && onMarkAsRead != null) {
+              onMarkAsRead!();
+            }
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Blue dot indicator for unread notifications
+                if (!notification.isRead)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(right: 4, top: 6),
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
                     ),
-                    
-                    const SizedBox(height: 8),
-                    
+                  ),
+                
+                // Left: Avatar or Icon
+                _buildLeadingWidget(),
+                
+                const SizedBox(width: 12),
+                
+                // Center: Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title with optional sender name
+                      if (notification.senderName != null)
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: notification.senderName,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: ' ${notification.title}'),
+                            ],
+                          ),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        )
+                      else
+                        Text(
+                          notification.title,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      
+                      const SizedBox(height: 4),
+                      
+                      // Message body
+                      Text(
+                        notification.message,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Right: Timestamp and more actions
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     // Timestamp
                     Text(
                       DateFormatter.formatRelativeTime(notification.createdAt),
@@ -90,34 +152,25 @@ class NotificationCard extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    // More options button
+                    IconButton(
+                      icon: Icon(
+                        Icons.more_horiz,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        _showOptionsMenu(context);
+                      },
+                    ),
                   ],
                 ),
-              ),
-              
-              // Right: Actions
-              if (!notification.isRead || onDelete != null)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!notification.isRead && onMarkAsRead != null)
-                      IconButton(
-                        icon: const Icon(Icons.check_circle_outline),
-                        tooltip: 'Mark as read',
-                        visualDensity: VisualDensity.compact,
-                        iconSize: 20,
-                        onPressed: onMarkAsRead,
-                      ),
-                    if (onDelete != null)
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: 'Delete',
-                        visualDensity: VisualDensity.compact,
-                        iconSize: 20,
-                        onPressed: onDelete,
-                      ),
-                  ],
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -171,6 +224,35 @@ class NotificationCard extends StatelessWidget {
         color: iconColor,
         size: 20,
       ),
+    );
+  }
+
+  void _showOptionsMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: <Widget>[
+            if (!notification.isRead)
+              ListTile(
+                leading: const Icon(Icons.check_circle_outline),
+                title: const Text('Mark as read'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  if (onMarkAsRead != null) onMarkAsRead!();
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Delete'),
+              onTap: () {
+                Navigator.of(context).pop();
+                if (onDelete != null) onDelete!();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

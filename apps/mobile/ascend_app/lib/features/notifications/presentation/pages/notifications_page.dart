@@ -139,9 +139,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   child: NotificationList(
                     notifications: filteredNotifications,
                     isLoading: _isLoading || state is NotificationLoading,
-                    isMainPage: true,
+                    isMainPage: false, // Set to false since it's inside CustomScrollView
                     onLoadMore: _loadMoreNotifications,
-                    scrollController: _scrollController,
+                    // Remove scrollController parameter or set to null
                   ),
                 ),
               ],
