@@ -6,6 +6,7 @@ import {
   getRPCQueueName,
   AuthFCMTokenPayload,
   UserProfilePicPayload,
+  UserProfilePayload,
 } from "@shared/rabbitMQ";
 import { Notification, NotificationType } from "@shared/models";
 import { Services } from "@ascend/shared";
@@ -76,33 +77,33 @@ export const getNotifications = async (
         key.endsWith("user_id")
       );
 
-      // For each user found, fetch profile picture
+      // For each user found, fetch profile
       for (const key of userIdKeys) {
         const relatedUserId = notification.payload[key];
         if (relatedUserId) {
-          const pictureKey = key.replace("user_id", "profile_picture_url");
+          const profileKey = key.replace("user_id", "profile");
 
           try {
-            // Get user profile picture
+            // Get user profile
             const profileRpcQueue = getRPCQueueName(
               Services.USER,
-              Events.USER_PROFILE_PIC_RPC
+              Events.USER_PROFILE_RPC
             );
-            const payload: UserProfilePicPayload.Request = {
+            const payload: UserProfilePayload.Request = {
               user_id: relatedUserId,
             };
-            const profilePic = await callRPC<UserProfilePicPayload.Response>(
+            const profileRes = await callRPC<UserProfilePayload.Response>(
               profileRpcQueue,
               payload
             );
 
             // Add profile picture to payload
-            if (profilePic && profilePic.profile_pic_url) {
-              notification.payload[pictureKey] = profilePic.profile_pic_url;
+            if (profileRes && profileRes.profile) {
+              notification.payload[profileKey] = profileRes.profile;
             }
           } catch (error) {
             console.error(
-              `Failed to fetch profile picture for user ${relatedUserId}:`,
+              `Failed to fetch profile for user ${relatedUserId}:`,
               error
             );
           }
@@ -137,16 +138,42 @@ export const markNotificationAsRead = async (
 };
 
 /**
+ * Marks a notification as unread
+ *
+ * @param userId - The user ID to mark the notification as unread for
+ * @param notificationId - The ID of the notification to mark as unread
+ */
+export const markNotificationAsUnread = async (
+  userId: number,
+  notificationId: number
+): Promise<void> => {
+  const result = await db.query(
+    `UPDATE notification_service.notifications 
+     SET is_read = FALSE 
+     WHERE id = $1 AND user_id = $2`,
+    [notificationId, userId]
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Notification not found");
+  }
+}
+
+/**
  * Deletes a notification
  *
  * @param userId - The user ID to delete the notification for
  * @param notificationId - The ID of the notification to be deleted
  */
-export const deleteNotification = async (userId: number, notificationId: number): Promise<void> => {
+export const deleteNotification = async (
+  userId: number,
+  notificationId: number
+): Promise<void> => {
   await db.query(
     `DELETE FROM notification_service.notifications
      WHERE id = $1 AND user_id = $2`,
-     [notificationId, userId]);
+    [notificationId, userId]
+  );
 };
 
 export const sendWelcomeNotification = async (
