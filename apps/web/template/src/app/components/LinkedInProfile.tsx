@@ -588,13 +588,23 @@ const LinkedInProfile: React.FC = () => {
               <span className="close-button" onClick={() => setIsProfileOpen(false)}>&times;</span>
             </div>
             <div className="modal-body">
-              <img src={profile.profile_picture_url} className="full-size-profile" alt="Profile" />
+              {profile.profile_picture_url ? (
+                <img src={profile.profile_picture_url} className="full-size-profile" alt="Profile" />
+              ) : (
+                <div className="profile-picture-placeholder">
+                  <MdAddAPhoto className="add-photo-icon" />
+                </div>
+              )}
               <div className="visibility-dropdown-container">
                 <VisibilityDropdown />
               </div>
               <div className="modal-buttons">
                 <div className="left-buttons">
-                  <button className="modal-button" onClick={() => document.getElementById('profileImageInput')?.click()}>
+                  {/* Edit Button */}
+                  <button
+                    className="modal-button"
+                    onClick={() => document.getElementById('profileImageInput')?.click()}
+                  >
                     <FaPencilAlt className="modal-icon" /> Edit
                   </button>
                   <input
@@ -604,9 +614,15 @@ const LinkedInProfile: React.FC = () => {
                     style={{ display: 'none' }}
                     onChange={handleProfileImageChange}
                   />
-                  <button className="modal-button">
-                    <FaPlus className="modal-icon" /> Add Photos
+
+                  {/* Add Photo Button */}
+                  <button
+                    className="modal-button"
+                    onClick={() => document.getElementById('profileImageInput')?.click()}
+                  >
+                    <FaPlus className="modal-icon" /> Add Photo
                   </button>
+
                   <button className="modal-button">
                     <FaImage className="modal-icon" /> Frames
                   </button>
