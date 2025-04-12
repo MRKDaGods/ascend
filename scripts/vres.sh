@@ -18,7 +18,7 @@ cd "$PACKAGE_ROOT" || {
     exit 1
 }
 
-VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data" "ascend_rabbitmq_data")
+VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data")
 
 # Backup directory
 BACKUP_DIR="$(pwd)/docker_backups"
