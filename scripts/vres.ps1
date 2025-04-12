@@ -1,3 +1,12 @@
+cd ..
+
+# Ask for confirmation
+$confirmation = Read-Host "This will restore all Docker volumes from backups. Continue? (y/N)"
+if ($confirmation -ne 'y') {
+    Write-Output "Restore cancelled."
+    exit
+}
+
 # Define volumes to restore
 $volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data", "ascend_rabbitmq_data")
 

@@ -11,18 +11,34 @@ startSharedService("Gateway", undefined, {
     // Attach logger
     app.use(logger);
 
+    const globalProxyOptions = {
+      parseReqBody: false,
+    };
+
     // Health check route
     app.get("/health", (_, res) => {
       res.send("Gateway is up and running");
     });
 
     // Auth service
-    app.use("/auth", proxy("http://auth:3001"));
+    app.use("/auth", proxy("http://auth:3001", globalProxyOptions));
 
     // User service
-    app.use("/user", proxy("http://user:3002"));
+    app.use("/user", proxy("http://user:3002", globalProxyOptions));
 
-    // File service
-    app.use("/files", proxy("http://file:3003"));
+    // Post service
+    app.use("/post", proxy("http://post:3005"));
+
+    // Connection service
+    app.use("/connection", proxy("http://connection:3006"));
+
+    // Admin service
+    app.use("/admin", proxy("http://admin:3007"));
+    
+    // File service with multipart form data handling
+    app.use("/files", proxy("http://file:3003", globalProxyOptions));
+
+    // Notification service
+    app.use("/notifications", proxy("http://notification:3004", globalProxyOptions));
   },
 });
