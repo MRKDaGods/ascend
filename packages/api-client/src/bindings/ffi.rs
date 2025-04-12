@@ -213,6 +213,14 @@ impl FfiApiClient {
             .map_err(map_error)
     }
 
+    pub async fn mark_notification_as_unread(&self, notification_id: i32) -> Result<(), String> {
+        self.inner
+            .notification()
+            .mark_as_unread(notification_id)
+            .await
+            .map_err(map_error)
+    }
+
     pub async fn delete_notification(&self, notification_id: i32) -> Result<(), String> {
         self.inner
             .notification()
