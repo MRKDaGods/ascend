@@ -1,10 +1,9 @@
-export default function MyJobsPage() {
-    return (
-      <div style={{ padding: "20px", color: "black" }}>
-        <h1>apply</h1>
-        <p>apply here.</p>
-      </div>
-    );
-  }
-  
-    
+// ✅ FIXED ApplyPage.tsx (use this)
+'use client';
+
+import React from 'react';
+import JobDetails from './components/JobDetail';
+
+export default function ApplyPage() {
+  return <JobDetails />; // no props needed
+}

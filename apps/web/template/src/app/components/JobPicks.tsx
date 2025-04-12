@@ -16,6 +16,10 @@ interface JobType {
   reviewTime: string;
   promoted?: boolean;
   viewed?: boolean;
+  description: string;
+  about: string;
+  requirements: string[];
+  qualifications: string[];
 }
 
 const JobPicks = () => {
@@ -37,7 +41,21 @@ const JobPicks = () => {
     fetchJobs();
   }, []);
 
-  // Delete Job Handler
+  const handleNavigate = (job: JobType) => {
+    const params = new URLSearchParams({
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      description: job.description,
+      type: job.type,
+      id: job.id.toString(),
+      about: job.about || '',
+      requirements: job.requirements?.join(',') || '',
+      qualifications: job.qualifications?.join(',') || ''
+    });
+    router.push(`/apply?${params.toString()}`);
+  };
+
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(`http://localhost:5000/api/jobs/${id}`, {
@@ -45,8 +63,6 @@ const JobPicks = () => {
       });
 
       if (!response.ok) throw new Error(`Failed to delete job with id ${id}`);
-
-      // Remove job from UI
       setJobs(prevJobs => prevJobs.filter(job => job.id !== id));
     } catch (error) {
       console.error("Error deleting job:", error);
@@ -67,10 +83,18 @@ const JobPicks = () => {
           {jobs.map((job, index) => (
             <React.Fragment key={job.id}>
               <ListItem sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                <Avatar src={job.logo} alt={job.company} sx={{ width: 50, height: 50 , cursor: "pointer"}} onClick={() => router.push(`/companypage`)} />
-
+                <Avatar
+                  src={job.logo}
+                  alt={job.company}
+                  sx={{ width: 50, height: 50, cursor: "pointer" }}
+                  onClick={() => handleNavigate(job)}
+                />
                 <div style={{ flexGrow: 1 }}>
-                  <Typography variant="body1" sx={{ fontWeight: "", color: "#0073b1", cursor: "pointer", ":hover": { textDecoration: "underline" } }} onClick={() => router.push(`/companypage`)}>
+                  <Typography
+                    variant="body1"
+                    sx={{ color: "#0073b1", cursor: "pointer", ":hover": { textDecoration: "underline" } }}
+                    onClick={() => handleNavigate(job)}
+                  >
                     {job.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "gray" }}>
@@ -102,7 +126,7 @@ const JobPicks = () => {
                     <Typography
                       variant="caption"
                       sx={{ color: "#0077b5", fontWeight: "bold", cursor: "pointer" }}
-                      onClick={() => router.push(`/apply`)}
+                      onClick={() => handleNavigate(job)}
                     >
                       Easy Apply
                     </Typography>
@@ -132,7 +156,7 @@ const JobPicks = () => {
             alignItems: "center",
             gap: 1,
           }}
-          onClick={() => router.push(`/apply`)}
+          onClick={() => router.push(`/jobs`)}
         >
           Show all →
         </Typography>
