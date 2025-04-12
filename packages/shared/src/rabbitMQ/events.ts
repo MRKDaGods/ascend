@@ -6,6 +6,7 @@ export enum Events {
   // =======================USER-EVENTS=======================
   USER_CREATED = "user_created", // A new user has been created
   USER_PROFILE_PIC_RPC = "profile_pic_rpc", // User profile picture RPC request
+  USER_PROFILE_RPC = "profile_rpc", // User profile RPC request
 
   // =======================FILE-EVENTS=======================
   FILE_URL_RPC = "file_url_rpc",
