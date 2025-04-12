@@ -9,8 +9,8 @@ export interface Conversation {
 export interface Message {
   messageId: number;
   senderId: number;
-  content: string;
-  mediaId: number;
+  content: string | null;
+  fileUrl: string | null;
   sentAt: Date;
   readAt: Date;
   isRead: boolean;

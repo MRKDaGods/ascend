@@ -1,5 +1,13 @@
 import database from "@shared/config/db";
+import { Services } from "@ascend/shared";
+import { getPresignedUrl } from "@shared/utils/files";
 import { Message, Conversation } from "packages/shared/src/models/message";
+import {
+  callRPC,
+  Events,
+  FileUploadPayload,
+  getRPCQueueName,
+} from "@shared/rabbitMQ";
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -99,24 +107,28 @@ export const markMessagesAsRead = async (
  * Sends a message between users, creating a conversation if needed
  * @param {number} senderId - The sender's ID
  * @param {number} receiverId - The receiver's ID
- * @param {string} messageContent - The message content
- * @param {boolean} includesFiles - Whether the message includes files
- * @returns {Promise<{conversationId: number, messageId: number, content: string, sentAt: Date}>}
+ * @param {string} messageContent - The message content to be sent (if any)
+ * @param {Express.Multer.File} file - The file to be sent (if any)
+ * @returns {Promise<{conversationId: number, messageId: number, content: string | null, fileUrl: string | null, sentAt: Date}>}
  */
 export const sendMessage = async (
   senderId: number,
   receiverId: number,
   messageContent: string,
-  includesFiles: boolean
+  file: Express.Multer.File | undefined
 ): Promise<{
   conversationId: number;
   messageId: number;
-  content: string;
+  content: string | null;
+  fileUrl: string | null;
   sentAt: Date;
 }> => {
   try {
-    let conversationId: string;
+    let conversationId: number;
 
+    // Check if a conversation already exists between the sender and receiver
+    // If it does, use that conversation ID; if not, create a new conversation
+    // and get the new conversation ID
     const conversationQueryResult = await database.query(
       `SELECT conversation_id FROM messaging_service.conversations WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)`,
       [senderId, receiverId]
@@ -132,20 +144,53 @@ export const sendMessage = async (
       conversationId = newConversationResult.rows[0].conversation_id;
     }
 
+    // Handle file upload if a file is provided
+    let fileId = null;
+    let fileUrl = null;
+
+    if (file) {
+      // Construct payload and call the rpc
+      const fileRpcQueue = getRPCQueueName(
+        Services.FILE,
+        Events.FILE_UPLOAD_RPC
+      );
+
+      const payload: FileUploadPayload.Request = {
+        user_id: senderId,
+        file_buffer: file.buffer.toString("base64"),
+        file_name: file.originalname,
+        mime_type: file.mimetype,
+        file_size: file.size,
+        context: "message",
+      };
+
+      const fileResponse = await callRPC<FileUploadPayload.Response>(
+        fileRpcQueue,
+        payload,
+        60000
+      );
+
+      fileId = fileResponse.file_id;
+      fileUrl = await getPresignedUrl(fileId);
+    }
+
+    // Insert the message into the database
     const messageInsertResult = await database.query(
-      `INSERT INTO messaging_service.messages (conversation_id, sender_id, content) VALUES ($1, $2, $3) RETURNING message_id, sent_at`,
-      [conversationId, senderId, messageContent]
+      `INSERT INTO messaging_service.messages (conversation_id, sender_id, content, media_id) VALUES ($1, $2, $3, $4) RETURNING message_id, sent_at`,
+      [conversationId, senderId, messageContent, fileId]
     );
 
+    // Update the conversation with the last message ID
     await database.query(
       `UPDATE messaging_service.conversations SET last_message_id = $1 WHERE conversation_id = $2`,
       [messageInsertResult.rows[0].message_id, conversationId]
     );
 
     return {
-      conversationId: parseInt(conversationId),
+      conversationId: conversationId,
       messageId: parseInt(messageInsertResult.rows[0].message_id),
       content: messageContent,
+      fileUrl: fileUrl,
       sentAt: messageInsertResult.rows[0].sent_at,
     };
   } catch (error) {
@@ -189,6 +234,7 @@ export const getConversations = async (
   pageNumber: number
 ): Promise<PaginatedResponse<Conversation>> => {
   try {
+    // Get the total count of conversations for pagination
     const countQueryResult = await database.query(
       `
         SELECT COUNT(*) as total
@@ -198,11 +244,20 @@ export const getConversations = async (
       [userId]
     );
 
+    // Calculate pagination details
     const PAGE_SIZE = 20;
     const totalRecordsCount = parseInt(countQueryResult.rows[0].total);
     const totalPageCount = Math.ceil(totalRecordsCount / PAGE_SIZE);
     const pageOffset = (pageNumber - 1) * PAGE_SIZE;
+    const paginationData = {
+      totalRecords: totalRecordsCount,
+      currentPage: pageNumber,
+      totalPages: totalPageCount,
+      nextPage: pageNumber < totalPageCount ? pageNumber + 1 : null,
+      previousPage: pageNumber > 1 ? pageNumber - 1 : null,
+    };
 
+    // Fetch conversations with pagination
     const conversationsQueryResult = await database.query(
       `
         SELECT
@@ -225,6 +280,7 @@ export const getConversations = async (
       [userId, PAGE_SIZE, pageOffset]
     );
 
+    // Map the results to a more usable format
     const conversationList = conversationsQueryResult.rows.map((row) => ({
       conversationId: row.conversation_id,
       otherUserId: row.connected_user_id,
@@ -235,13 +291,7 @@ export const getConversations = async (
 
     return {
       data: conversationList,
-      pagination: {
-        totalRecords: totalRecordsCount,
-        currentPage: pageNumber,
-        totalPages: totalPageCount,
-        nextPage: pageNumber < totalPageCount ? pageNumber + 1 : null,
-        previousPage: pageNumber > 1 ? pageNumber - 1 : null,
-      },
+      pagination: paginationData,
     };
   } catch (error) {
     console.error("Error fetching conversations:", error);
@@ -260,6 +310,7 @@ export const getMessages = async (
   pageNumber: number
 ): Promise<PaginatedResponse<Message>> => {
   try {
+    // Get the total count of messages for pagination
     const countQueryResult = await database.query(
       `
       SELECT COUNT(*) as total
@@ -269,10 +320,18 @@ export const getMessages = async (
       [conversationId]
     );
 
+    // Calculate pagination details
     const PAGE_SIZE = 20;
     const totalRecordsCount = parseInt(countQueryResult.rows[0].total);
     const totalPageCount = Math.ceil(totalRecordsCount / PAGE_SIZE);
     const pageOffset = (pageNumber - 1) * PAGE_SIZE;
+    const paginationData = {
+      totalRecords: totalRecordsCount,
+      currentPage: pageNumber,
+      totalPages: totalPageCount,
+      nextPage: pageNumber < totalPageCount ? pageNumber + 1 : null,
+      previousPage: pageNumber > 1 ? pageNumber - 1 : null,
+    };
 
     const messagesQueryResult = await database.query(
       `
@@ -294,27 +353,32 @@ export const getMessages = async (
       [conversationId, PAGE_SIZE, pageOffset]
     );
 
-    const messageList = messagesQueryResult.rows.map((row) => ({
-      messageId: row.message_id,
-      senderId: row.sender_id,
-      content: row.content,
-      mediaId: row.media_id,
-      sentAt: row.sent_at,
-      readAt: row.read_at,
-      isRead: row.is_read,
-      isEdited: row.is_edited,
-      isDeleted: row.is_deleted,
-    }));
+    const messageList = await Promise.all(
+      messagesQueryResult.rows.map(async (row) => {
+        const message: Message = {
+          messageId: row.message_id,
+          senderId: row.sender_id,
+          content: row.content,
+          fileUrl: null,
+          sentAt: row.sent_at,
+          readAt: row.read_at,
+          isRead: row.is_read,
+          isEdited: row.is_edited,
+          isDeleted: row.is_deleted,
+        };
+
+        // If a file is associated with the message, fetch its URL
+        if (row.media_id) {
+          message.fileUrl = await getPresignedUrl(row.media_id);
+        }
+
+        return message;
+      })
+    );
 
     return {
       data: messageList,
-      pagination: {
-        totalRecords: totalRecordsCount,
-        currentPage: pageNumber,
-        totalPages: totalPageCount,
-        nextPage: pageNumber < totalPageCount ? pageNumber + 1 : null,
-        previousPage: pageNumber > 1 ? pageNumber - 1 : null,
-      },
+      pagination: paginationData,
     };
   } catch (error) {
     console.error("Error fetching messages:", error);

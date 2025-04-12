@@ -1,6 +1,8 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { getSocketServer, getOnlineUsersMap } from "../socket/socketServer";
+import { messageValidationRules } from "../validations/messageValidation";
+import validate from "@shared/middleware/validationMiddleware";
 import {
   sendMessage,
   getUnseenCount,
@@ -16,42 +18,52 @@ import {
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
  */
-export const handleSendMessage = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  try {
-    const senderId = req.user!.id;
-    const { receiverId, content, hasFiles } = req.body;
+export const handleSendMessage = [
+  ...messageValidationRules,
+  validate,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const senderId = req.user!.id;
+      const file = req.file;
+      const { receiverId, content } = req.body;
 
-    const messageResult = await sendMessage(
-      senderId,
-      receiverId,
-      content,
-      hasFiles
-    );
+      // Check that there is a content (text or file)
+      if (!content && !file) {
+        return res.status(400).json({ error: "Message is empty" });
+      }
 
-    const receiverSocketId = getOnlineUsersMap().get(receiverId);
-    if (receiverSocketId) {
-      getSocketServer().to(receiverSocketId).emit("message:receive", {
+      const messageResult = await sendMessage(
         senderId,
+        receiverId,
+        content,
+        file
+      );
+
+      // Send the message to the receiver via WebSocket
+      const receiverSocketId = getOnlineUsersMap().get(receiverId);
+      if (receiverSocketId) {
+        getSocketServer().to(receiverSocketId).emit("message:receive", {
+          senderId,
+          conversationId: messageResult.conversationId,
+          messageId: messageResult.messageId,
+          content: messageResult.content,
+          fileUrl: messageResult.fileUrl,
+          sentAt: messageResult.sentAt,
+        });
+      }
+
+      return res.status(200).json({
         conversationId: messageResult.conversationId,
         messageId: messageResult.messageId,
-        content: messageResult.content,
+        fileUrl: messageResult.fileUrl,
         sentAt: messageResult.sentAt,
       });
+    } catch (error) {
+      console.error("Error in handleSendMessage:", error);
+      return res.status(500).json({ error: "Server error" });
     }
-
-    return res.status(200).json({
-      conversationId: messageResult.conversationId,
-      messageId: messageResult.messageId,
-      sentAt: messageResult.sentAt,
-    });
-  } catch (error) {
-    console.error("Error in handleSendMessage:", error);
-    return res.status(500).json({ error: "Server error" });
-  }
-};
+  },
+];
 
 /**
  * Handles retrieving the count of unseen messages
