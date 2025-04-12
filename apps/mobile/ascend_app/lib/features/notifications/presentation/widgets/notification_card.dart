@@ -239,7 +239,15 @@ class NotificationCard extends StatelessWidget {
                 title: const Text('Mark as read'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  if (onMarkAsRead != null) onMarkAsRead!();
+                  if (onMarkAsRead != null) {
+                    // Call the callback that was passed in
+                    onMarkAsRead!();
+                    
+                    // Alternatively, dispatch event directly to BLoC
+                    // context.read<NotificationBloc>().add(
+                    //   MarkNotificationAsRead(notification.id)
+                    // );
+                  }
                 },
               ),
             ListTile(
@@ -247,7 +255,15 @@ class NotificationCard extends StatelessWidget {
               title: const Text('Delete'),
               onTap: () {
                 Navigator.of(context).pop();
-                if (onDelete != null) onDelete!();
+                if (onDelete != null) {
+                  // Call the callback that was passed in
+                  onDelete!();
+                  
+                  // Alternatively, dispatch event directly to BLoC
+                  // context.read<NotificationBloc>().add(
+                  //   DeleteNotification(notification.id)
+                  // );
+                }
               },
             ),
           ],
