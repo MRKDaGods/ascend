@@ -66,6 +66,9 @@ export class ApiClient {
         this._user = new UserService(this.client);
         this._notification = new NotificationService(this.client);
     }
+    get initialized() {
+        return this.client !== null;
+    }
     // Services
     get auth() {
         if (!this._auth) {
@@ -295,5 +298,8 @@ class NotificationService {
      */
     async markNotificationAsRead(notificationId) {
         return this.client.mark_notification_as_read(notificationId);
+    }
+    async deleteNotification(notificationId) {
+        return this.client.delete_notification(notificationId);
     }
 }

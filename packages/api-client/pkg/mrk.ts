@@ -75,6 +75,10 @@ export class ApiClient {
     this._notification = new NotificationService(this.client);
   }
 
+  get initialized(): boolean {
+    return this.client !== null;
+  }
+
   // Services
   get auth(): AuthService {
     if (!this._auth) {
@@ -329,8 +333,8 @@ class NotificationService {
    * @returns An array of notifications
    * @throws Error if the retrieval fails
    */
-  async getNotifications(): Promise<Notification[]> {
-    const notifications = await this.client.get_notifications();
+  async getNotifications(page?: number): Promise<Notification[]> {
+    const notifications = await this.client.get_notifications(page);
     return sanitizeMaps(notifications);
   }
 
@@ -341,5 +345,14 @@ class NotificationService {
    */
   async markNotificationAsRead(notificationId: number): Promise<void> {
     return this.client.mark_notification_as_read(notificationId);
+  }
+
+  /**
+   * Deletes a notification
+   * @param notificationId - The ID of the notification to delete
+   * @throws Error if the deletion fails
+   */
+  async deleteNotification(notificationId: number): Promise<void> {
+    return this.client.delete_notification(notificationId);
   }
 }
