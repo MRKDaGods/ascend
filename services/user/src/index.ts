@@ -7,8 +7,9 @@ import {
   setupRPCServer,
 } from "@shared/rabbitMQ";
 import {
+  handleGetUserProfileRequestRPC,
   handleUserCreated,
-  handleUserProfilePicRequestRPC as handleGetUserProfilePicRpc,
+  handleUserProfilePicRequestRPC,
 } from "./consumers/userConsumer";
 
 startSharedService("User", userRoutes, {
@@ -27,7 +28,13 @@ startSharedService("User", userRoutes, {
     // Setup RPC server for profile picture requests
     await setupRPCServer(
       getQueueName(Events.USER_PROFILE_PIC_RPC),
-      handleGetUserProfilePicRpc
+      handleUserProfilePicRequestRPC
+    );
+
+    // Setup RPC server for profile requests
+    await setupRPCServer(
+      getQueueName(Events.USER_PROFILE_RPC),
+      handleGetUserProfileRequestRPC
     );
   },
 });
