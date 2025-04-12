@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
@@ -8,16 +9,9 @@ import 'package:ascend_app/features/networks/utils/connection_request_sent_filte
 import 'package:ascend_app/features/networks/utils/enums.dart';
 
 class ConnectionRequestsSent extends StatefulWidget {
-  final List<UserModel> invitations;
-  final List<ConnectionRequestModel> pendingRequestsSent;
   final Function(String) onRemove;
 
-  const ConnectionRequestsSent({
-    super.key,
-    required this.invitations,
-    required this.pendingRequestsSent,
-    required this.onRemove,
-  });
+  const ConnectionRequestsSent({super.key, required this.onRemove});
 
   @override
   _ConnectionRequestsSentState createState() => _ConnectionRequestsSentState();
@@ -93,22 +87,19 @@ class _ConnectionRequestsSentState extends State<ConnectionRequestsSent>
               const Divider(thickness: 1),
               if (isSelectedList[0]) ...[
                 buildSent(
-                  widget.invitations,
                   state.pendingRequestsSent,
                   widget.onRemove,
                   ConnectionRequestSentFilterMode.People,
                 ),
               ] else if (isSelectedList[1]) ...[
                 buildSent(
-                  widget.invitations,
-                  state.pendingRequestsReceived,
+                  state.pendingRequestsSent,
                   widget.onRemove,
                   ConnectionRequestSentFilterMode.Pages,
                 ),
               ] else if (isSelectedList[2]) ...[
                 buildSent(
-                  widget.invitations,
-                  state.pendingRequestsReceived,
+                  state.pendingRequestsSent,
                   widget.onRemove,
                   ConnectionRequestSentFilterMode.Events,
                 ),

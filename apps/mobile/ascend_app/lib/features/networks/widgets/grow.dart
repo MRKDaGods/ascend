@@ -1,4 +1,3 @@
-import 'package:ascend_app/features/networks/Mock%20Data/users.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
@@ -7,16 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/connection_request_recieved_list_partial.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
-import 'package:ascend_app/features/networks/Repositories/user_repoistory.dart';
 import 'package:ascend_app/features/networks/pages/connection_requests_page.dart';
 import 'package:ascend_app/features/networks/pages/manage_my_network.dart';
-import 'package:ascend_app/features/networks/model/follow_model.dart';
 import 'package:ascend_app/features/networks/widgets/single_follow.dart';
-import 'package:ascend_app/features/networks/Mock Data/follow.dart';
 import 'package:ascend_app/features/networks/pages/recommended_to_follow.dart';
 import 'package:ascend_app/features/networks/Mock%20Data/connections_request.dart';
 import 'package:ascend_app/features/networks/managers/follow_manager.dart';
-import 'package:ascend_app/features/networks/managers/connection_manager.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
 import 'package:uuid/uuid.dart';
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
@@ -57,45 +52,13 @@ class _GrowState extends State<Grow> {
             } else if (connectionState is ConnectionRequestSuccess &&
                 followState is FollowSuccess) {
               final invitationsReceived =
-                  connectionState.pendingRequestsReceived
-                      .map((request) => getUser(request.senderId))
-                      .toList();
-
-              final connections =
-                  connectionState.acceptedConnections.map((request) {
-                    return request.senderId == "1"
-                        ? getUser(request.receiverId)
-                        : getUser(request.senderId);
-                  }).toList();
-
-              final followedUsers =
-                  followState.following
-                      .map((followModel) => getUser(followModel.followingId))
-                      .toList();
-
-              final suggestedUserstoFollow = getSuggestedUsersforFollow(
-                connections,
-                followedUsers,
-                invitationsReceived,
-                connectionState.pendingRequestsSent
-                    .map((request) => getUser(request.receiverId))
-                    .toList(),
-              );
-
-              final mutualConnectionsforFollowSuggestions =
-                  getallconnectionsforMutualFollow(connections);
-
-              final getSuggestedConnections = getSuggestedUsersforConnection(
-                connections,
-                connectionState.pendingRequestsSent
-                    .map((request) => getUser(request.receiverId))
-                    .toList(),
-                invitationsReceived,
-              );
-
-              final getAllconnections = getAllconnectionsforEachUser(
-                ConnectionRequests(),
-              );
+                  connectionState.pendingRequestsReceived;
+              final connections = connectionState.acceptedConnections;
+              final invitationsSent = connectionState.pendingRequestsSent;
+              final suggestedUserstoConnect =
+                  connectionState.suggestedToConnect;
+              final suggestedUserstoFollow = followState.suggestedUsers;
+              final followedUsers = followState.following;
 
               return SingleChildScrollView(
                 controller: _scrollController, // Add scroll controller
@@ -128,18 +91,8 @@ class _GrowState extends State<Grow> {
                                 return BlocProvider.value(
                                   value: bloc,
                                   child: ConnectionRequestsPage(
-                                    invitationsReceived: invitationsReceived,
-                                    pendingRequestsReceived:
-                                        connectionState.pendingRequestsReceived,
-                                    invitationsSent:
-                                        connectionState.pendingRequestsSent
-                                            .map(
-                                              (request) =>
-                                                  getUser(request.receiverId),
-                                            )
-                                            .toList(),
-                                    pendingRequestsSent:
-                                        connectionState.pendingRequestsSent,
+                                    sentUsers: invitationsSent,
+                                    receivedUsers: invitationsReceived,
                                   ),
                                 );
                               },
@@ -149,7 +102,6 @@ class _GrowState extends State<Grow> {
                       ),
                       const Divider(thickness: 3, height: 0),
                       ConnectionRequestsReceivedListPartial(
-                        invitations: invitationsReceived,
                         pendingRequestsReceived:
                             connectionState.pendingRequestsReceived,
                         onAccept: (requestId) {
@@ -229,7 +181,6 @@ class _GrowState extends State<Grow> {
                           const SizedBox(height: 5),
                           PeopleToFollow(
                             users: suggestedUserstoFollow,
-                            mutualUsers: mutualConnectionsforFollowSuggestions,
                             onFollow: (userId) {
                               context.read<FollowBloc>().add(
                                 FollowUser(userId: userId),
@@ -260,8 +211,6 @@ class _GrowState extends State<Grow> {
                                     Message:
                                         'People to follow based on your activity',
                                     users: suggestedUserstoFollow,
-                                    mutualUsers:
-                                        mutualConnectionsforFollowSuggestions,
                                     onFollow: (userId) {
                                       context.read<FollowBloc>().add(
                                         FollowUser(userId: userId),
@@ -311,8 +260,7 @@ class _GrowState extends State<Grow> {
 
                           // Connection Suggestions widget
                           ConnectionSuggestions(
-                            suggestedUsers: getSuggestedConnections,
-                            connectionsMap: getAllconnections,
+                            suggestedUsers: suggestedUserstoConnect,
                             onSend: (userId) {
                               final requestId = Uuid().v4();
                               context.read<ConnectionRequestBloc>().add(
@@ -343,9 +291,7 @@ class _GrowState extends State<Grow> {
                                       child: SuggestedConnectionsPage(
                                         Message:
                                             'People to Connect based on your activity',
-                                        users: getSuggestedConnections,
-                                        mutualUsers: getAllconnections,
-
+                                        users: suggestedUserstoConnect,
                                         onSend: (userId) {
                                           context
                                               .read<ConnectionRequestBloc>()

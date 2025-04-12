@@ -1,5 +1,5 @@
+import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
@@ -7,10 +7,12 @@ import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/model/followed_user.dart';
 
 class ManageMyNetwork extends StatelessWidget {
-  final List<UserModel> connections;
-  final List<UserModel> followed;
+  final List<ConnectedUser> connections;
+  final List<FollowedUser> followed;
 
   const ManageMyNetwork({
     super.key,

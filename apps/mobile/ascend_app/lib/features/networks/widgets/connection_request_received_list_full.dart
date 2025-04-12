@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
@@ -10,15 +10,11 @@ import 'package:ascend_app/features/networks/utils/enums.dart';
 import 'package:ascend_app/features/networks/widgets/custom_filter_chip.dart';
 
 class ConnectionRequestsReceivedListFull extends StatefulWidget {
-  final List<UserModel> invitations;
-  final List<ConnectionRequestModel> pendingRequestsReceived;
   final Function(String) onAccept;
   final Function(String) onDecline;
 
   const ConnectionRequestsReceivedListFull({
     super.key,
-    required this.invitations,
-    required this.pendingRequestsReceived,
     required this.onAccept,
     required this.onDecline,
   });
@@ -103,7 +99,6 @@ class _ConnectionRequestsReceivedListFullState
               const Divider(thickness: 1),
               if (isSelectedList[0]) ...[
                 buildReceived(
-                  widget.invitations,
                   state.pendingRequestsReceived,
                   ConnectionRequestReceivedFilterMode.All,
                   widget.onAccept,
@@ -111,7 +106,6 @@ class _ConnectionRequestsReceivedListFullState
                 ),
               ] else if (isSelectedList[1]) ...[
                 buildReceived(
-                  widget.invitations,
                   state.pendingRequestsReceived,
                   ConnectionRequestReceivedFilterMode.Newsletter,
                   widget.onAccept,
@@ -119,7 +113,6 @@ class _ConnectionRequestsReceivedListFullState
                 ),
               ] else if (isSelectedList[2]) ...[
                 buildReceived(
-                  widget.invitations,
                   state.pendingRequestsReceived,
                   ConnectionRequestReceivedFilterMode.People,
                   widget.onAccept,

@@ -1,10 +1,10 @@
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 import 'package:ascend_app/features/networks/widgets/single_follow.dart';
 import 'package:flutter/material.dart';
 
 class PeopleToFollow extends StatefulWidget {
-  final List<UserModel> users;
-  final Map<String, List<UserModel>> mutualUsers;
+  final List<UserSuggestedtoFollow> users;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
   final bool showAll;
@@ -12,7 +12,6 @@ class PeopleToFollow extends StatefulWidget {
   const PeopleToFollow({
     super.key,
     required this.users,
-    required this.mutualUsers,
     required this.onFollow,
     required this.onUnfollow,
     required this.showAll,
@@ -22,7 +21,7 @@ class PeopleToFollow extends StatefulWidget {
 }
 
 class _PeopleToFollowState extends State<PeopleToFollow> {
-  late List<UserModel> localUsers; // Local copy of the users list
+  late List<UserSuggestedtoFollow> localUsers; // Local copy of the users list
 
   @override
   void initState() {
@@ -33,7 +32,7 @@ class _PeopleToFollowState extends State<PeopleToFollow> {
   void _handleFollow(String userId) {
     setState(() {
       localUsers.removeWhere(
-        (user) => user.id == userId,
+        (user) => user.user_id == userId,
       ); // Remove the user locally
     });
     widget.onFollow(userId); // Trigger the onFollow callback
@@ -42,7 +41,7 @@ class _PeopleToFollowState extends State<PeopleToFollow> {
   void _handleHide(String userId) {
     setState(() {
       localUsers.removeWhere(
-        (user) => user.id == userId,
+        (user) => user.user_id == userId,
       ); // Remove the user locally
     });
   }
@@ -64,15 +63,16 @@ class _PeopleToFollowState extends State<PeopleToFollow> {
         Column(
           children:
               localUsers.take(countFollows).map((user) {
-                List<UserModel> mutuals = widget.mutualUsers[user.id] ?? [];
+                List<ConnectedUser> mutuals = user.MutualUsers!;
                 return Padding(
                   padding: const EdgeInsets.only(
                     bottom: 8.0,
                   ), // Add spacing between items
                   child: SingleFollow(
-                    key: ValueKey(user.id),
+                    key: ValueKey(user.user_id),
                     user: user,
                     mutualUsers: mutuals,
+                    numFollowers: 0, //user.num_followers,
                     onFollow: _handleFollow,
                     onUnfollow: widget.onUnfollow,
                     onHide: _handleHide, // Use the local hide handler

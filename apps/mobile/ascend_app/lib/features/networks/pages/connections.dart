@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +8,7 @@ import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/searc
 import 'package:ascend_app/features/networks/model/search_model.dart';
 
 class Connections extends StatelessWidget {
-  final List<UserModel> connections;
+  final List<ConnectedUser> connections;
   final Function(String) onRemove;
 
   const Connections({
@@ -87,31 +88,16 @@ class Connections extends StatelessWidget {
                     child: ListView.separated(
                       itemCount: state.acceptedConnections.length,
                       itemBuilder: (context, index) {
-                        final connection = connections.firstWhere(
-                          (user) =>
-                              user.id ==
-                                  state.acceptedConnections[index].receiverId ||
-                              user.id ==
-                                  state.acceptedConnections[index].senderId,
-                          orElse:
-                              () => UserModel(
-                                id: '',
-                                name: '',
-                                profilePic: '',
-                                coverpic: '',
-                                companyId: '',
-                                bio: '',
-                                firstFollow: false,
-                                firstConnect: false,
-                              ),
-                        );
+                        final connection = connections[index];
 
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage(connection.profilePic),
+                            backgroundImage: AssetImage(
+                              connection.profile_image_id!,
+                            ),
                           ),
                           title: Text(
-                            connection.name,
+                            '${connection.first_name} ${connection.last_name}',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -121,12 +107,13 @@ class Connections extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                connection.bio,
+                                connection.bio ?? 'No bio available',
                                 maxLines: 2,
                                 style: TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'connected on ${state.acceptedConnections[index].timestamp}',
+                                'connected on ${connection.connectedAt}',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
@@ -165,7 +152,7 @@ class Connections extends StatelessWidget {
                                       context,
                                       state
                                           .acceptedConnections[index]
-                                          .requestId,
+                                          .request_id!,
                                     ), // Three-dot icon
                               ),
                             ],

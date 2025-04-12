@@ -1,13 +1,10 @@
-import 'package:ascend_app/features/networks/model/user_model.dart';
-import 'package:ascend_app/features/networks/widgets/mutual_connection.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/Mock%20Data/connections_request.dart';
-import 'package:ascend_app/features/networks/managers/connection_manager.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
+import 'package:ascend_app/features/networks/widgets/mutual_connection.dart';
 
 class SingleConnection extends StatefulWidget {
-  final UserModel user;
-  final List<UserModel> mutualUsers;
-  final List<UserModel> acceptedConnections;
+  final UserSuggestedtoConnect user;
   final Function(String) onSend;
   final bool ShowAll;
   final bool isConnected;
@@ -16,8 +13,6 @@ class SingleConnection extends StatefulWidget {
   const SingleConnection({
     super.key,
     required this.user,
-    required this.mutualUsers,
-    required this.acceptedConnections,
     required this.onSend,
     required this.ShowAll,
     required this.isConnected,
@@ -34,7 +29,7 @@ class _SingleConnectionState extends State<SingleConnection> {
   void _HideWidget() {
     setState(() {
       _isVisible = false;
-      widget.onHide(widget.user.id);
+      widget.onHide(widget.user.user_id!);
     });
   }
 
@@ -54,7 +49,8 @@ class _SingleConnectionState extends State<SingleConnection> {
               children: [
                 // Cover picture
                 Image.asset(
-                  widget.user.coverpic,
+                  //widget.user.coverpic,
+                  'assets/EmptyUser.png',
                   fit: BoxFit.cover,
                   width: parentWidth,
                   height: parentHeight * 0.3,
@@ -89,7 +85,7 @@ class _SingleConnectionState extends State<SingleConnection> {
                   right: parentWidth * 0.25,
                   child: CircleAvatar(
                     radius: parentWidth * 0.3,
-                    backgroundImage: AssetImage(widget.user.profilePic),
+                    backgroundImage: AssetImage(widget.user.profile_image_id!),
                   ),
                 ),
 
@@ -103,7 +99,7 @@ class _SingleConnectionState extends State<SingleConnection> {
                     children: [
                       // Name
                       Text(
-                        widget.user.name,
+                        '${widget.user.first_name!} ${widget.user.last_name!}',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -117,7 +113,7 @@ class _SingleConnectionState extends State<SingleConnection> {
                         width: parentWidth * 0.8,
                         height: 45,
                         child: Text(
-                          widget.user.bio,
+                          widget.user.bio!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -131,8 +127,8 @@ class _SingleConnectionState extends State<SingleConnection> {
 
                       // Mutual connections
                       MutualConnections(
-                        mutualUsers: widget.mutualUsers,
-                        numFollowers: widget.acceptedConnections.length,
+                        mutualUsers: widget.user.MutualUsers!,
+                        numConnections: widget.user.connectionsCount!,
                       ),
                       const SizedBox(height: 8),
 
@@ -146,7 +142,7 @@ class _SingleConnectionState extends State<SingleConnection> {
                                 widget.isConnected
                                     ? null
                                     : () {
-                                      widget.onSend(widget.user.id);
+                                      widget.onSend(widget.user.user_id!);
                                     },
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/follow_button.dart';
+import 'package:ascend_app/features/networks/model/followed_user.dart';
 
 class Followings extends StatelessWidget {
-  final List<UserModel> followingUsers;
+  final List<FollowedUser> followingUsers;
   final Function(String) onFollow;
   final Function(String) onUnFollow;
 
@@ -45,11 +45,15 @@ class Followings extends StatelessWidget {
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundImage: AssetImage(
-                        followingUsers[index].profilePic,
+                        followingUsers[index].profile_image_id!.startsWith(
+                              'http',
+                            )
+                            ? followingUsers[index].profile_image_id!
+                            : 'assets/images/default_profile.png',
                       ),
                     ),
                     title: Text(
-                      followingUsers[index].name,
+                      '${followingUsers[index].first_name} ${followingUsers[index].last_name}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -59,7 +63,7 @@ class Followings extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          followingUsers[index].bio,
+                          followingUsers[index].bio!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 12),
@@ -67,7 +71,7 @@ class Followings extends StatelessWidget {
                       ],
                     ),
                     trailing: FollowButton(
-                      userId: followingUsers[index].id,
+                      userId: followingUsers[index].user_id!,
                       onFollow: onFollow,
                       onUnFollow: onUnFollow,
                     ),

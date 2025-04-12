@@ -2,6 +2,9 @@ import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/Repositories/connection_request_repoistory.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 
 part 'connection_request_event.dart';
 part 'connection_request_state.dart';
@@ -19,20 +22,25 @@ class ConnectionRequestBloc
     on<FetchConnectionRequests>(_fetchConnectionRequests);
   }
 
-  void _fetchConnectionRequests(
+  Future<void> _fetchConnectionRequests(
     FetchConnectionRequests event,
     Emitter<ConnectionRequestState> emit,
-  ) {
+  ) async {
     emit(ConnectionRequestLoading());
     try {
-      final pendingRequestsReceived = repository.fetchPendingRequestsReceived();
-      final pendingRequestsSent = repository.fetchPendingRequestsSent();
-      final acceptedConnections = repository.fetchAcceptedConnections();
+      final pendingRequestsReceived =
+          await repository.fetchPendingRequestsReceived();
+      final pendingRequestsSent = await repository.fetchPendingRequestsSent();
+      final acceptedConnections = await repository.fetchAcceptedConnections();
+      final suggestedToConnect =
+          await repository
+              .getConnectionRecommendations(); // Fetch suggested users
       emit(
         ConnectionRequestSuccess(
           pendingRequestsReceived: pendingRequestsReceived,
           pendingRequestsSent: pendingRequestsSent,
           acceptedConnections: acceptedConnections,
+          suggestedToConnect: suggestedToConnect,
         ),
       );
     } catch (e) {
@@ -40,65 +48,65 @@ class ConnectionRequestBloc
     }
   }
 
-  void _sendConnectionRequest(
+  Future<void> _sendConnectionRequest(
     SendConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
-  ) {
+  ) async {
     emit(ConnectionRequestLoading());
     try {
-      repository.sendConnectionRequestRepository(event.connectionRequest);
+      await repository.sendConnectionRequest(event.connectionRequest);
       add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
   }
 
-  void _acceptConnectionRequest(
+  Future<void> _acceptConnectionRequest(
     AcceptConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
-  ) {
+  ) async {
     emit(ConnectionRequestLoading());
     try {
-      repository.acceptConnectionRequestRepoistory(event.requestId);
+      await repository.acceptConnectionRequest(event.requestId);
       add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
   }
 
-  void _declineConnectionRequest(
+  Future<void> _declineConnectionRequest(
     DeclineConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
-  ) {
+  ) async {
     emit(ConnectionRequestLoading());
     try {
-      repository.DeclineConnectionRequestRepoistory(event.requestId);
+      await repository.declineConnectionRequest(event.requestId);
       add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
   }
 
-  void _cancelConnectionRequest(
+  Future<void> _cancelConnectionRequest(
     CancelConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
-  ) {
+  ) async {
     emit(ConnectionRequestLoading());
     try {
-      repository.cancelConnectionRequest(event.requestId);
+      await repository.cancelConnectionRequest(event.requestId);
       add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));
     }
   }
 
-  void _removeConnection(
+  Future<void> _removeConnection(
     RemoveConnection event,
     Emitter<ConnectionRequestState> emit,
-  ) {
+  ) async {
     emit(ConnectionRequestLoading());
     try {
-      repository.removeConnection(event.connectionId);
+      await repository.removeConnection(event.connectionId);
       add(FetchConnectionRequests());
     } catch (e) {
       emit(ConnectionRequestError(e.toString()));

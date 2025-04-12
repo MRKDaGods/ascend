@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/utils/overlay_builder.dart';
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 
 class SelectionButtons extends StatelessWidget {
   final Function(String) onAccept;
   final Function(String) onDecline;
-  final ConnectionRequestModel connectionRequest;
+  final UserPendingModel userpending;
 
   const SelectionButtons({
     super.key,
     required this.onAccept,
     required this.onDecline,
-    required this.connectionRequest,
+    required this.userpending,
   });
 
   @override
@@ -33,7 +33,7 @@ class SelectionButtons extends StatelessWidget {
           child: IconButton(
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.close, color: Colors.grey),
-            onPressed: () => onDecline(connectionRequest.requestId),
+            onPressed: () => onDecline(userpending.request_id!),
             tooltip: 'Decline',
           ),
         ),
@@ -53,7 +53,7 @@ class SelectionButtons extends StatelessWidget {
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.check, color: Colors.lightBlue),
             onPressed: () {
-              onAccept(connectionRequest.requestId);
+              onAccept(userpending.request_id!);
               showSnackBar(context);
             },
             tooltip: 'Accept',
