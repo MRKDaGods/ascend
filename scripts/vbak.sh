@@ -17,7 +17,7 @@ cd "$PACKAGE_ROOT" || {
 }
 
 # Define volumes to back up
-VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data" "ascend_rabbitmq_data")
+VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data")
 
 # Backup directory (Ensure it exists)
 BACKUP_DIR="$(pwd)/docker_backups"
