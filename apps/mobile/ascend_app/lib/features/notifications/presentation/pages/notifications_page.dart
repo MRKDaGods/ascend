@@ -158,6 +158,7 @@ class FilteredNotificationList extends StatelessWidget {
         isMainPage: isMainPage,
         onLoadMore: onLoadMore,
         scrollController: scrollController,
+        filterType: filterType, // Add this line
       );
     }
     
@@ -217,6 +218,7 @@ class FilteredNotificationList extends StatelessWidget {
           isMainPage: isMainPage,
           onLoadMore: onLoadMore,
           scrollController: scrollController,
+          filterType: filterType, // Add this line
         );
       },
     );
