@@ -1,6 +1,7 @@
 import startSharedService from "@shared/sharedService";
 import morgan from "morgan";
 import proxy from "express-http-proxy";
+import { Request, Response, NextFunction } from "express";
 
 // Setup logger
 const logger = morgan("combined");
@@ -11,8 +12,17 @@ startSharedService("Gateway", undefined, {
     // Attach logger
     app.use(logger);
 
-    const globalProxyOptions = {
-      parseReqBody: false,
+    // Conditional proxy-ing middleware
+    // We dont want to parse the body ourselves if we're uploading files
+    // aka multi-part requests
+    const conditionalProxy = (target: string) => {
+      return (req: Request, res: Response, next: NextFunction) => {
+        const proxyOptions = {
+          parseReqBody: !req.headers["x-no-parse-body"],
+        };
+        
+        return proxy(target, proxyOptions)(req, res, next);
+      };
     };
 
     // Health check route
@@ -21,10 +31,10 @@ startSharedService("Gateway", undefined, {
     });
 
     // Auth service
-    app.use("/auth", proxy("http://auth:3001", globalProxyOptions));
+    app.use("/auth", conditionalProxy("http://auth:3001"));
 
     // User service
-    app.use("/user", proxy("http://user:3002", globalProxyOptions));
+    app.use("/user", conditionalProxy("http://user:3002"));
 
     // Post service
     app.use("/post", proxy("http://post:3005"));
@@ -34,11 +44,14 @@ startSharedService("Gateway", undefined, {
 
     // Admin service
     app.use("/admin", proxy("http://admin:3007"));
-    
-    // File service with multipart form data handling
-    app.use("/files", proxy("http://file:3003", globalProxyOptions));
+
+    // File service
+    app.use("/files", conditionalProxy("http://file:3003"));
 
     // Notification service
-    app.use("/notifications", proxy("http://notification:3004", globalProxyOptions));
+    app.use(
+      "/notifications",
+      conditionalProxy("http://notification:3004")
+    );
   },
 });
