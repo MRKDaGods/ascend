@@ -1,11 +1,13 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
+import 'package:ascend_app/features/networks/Repositories/block_repoistory.dart';
 
 part 'block_event.dart';
 part 'block_state.dart';
 
 class BlockBloc extends Bloc<BlockEvent, BlockState> {
+  final BlockRepository _repository = BlockRepository();
   BlockBloc() : super(BlockInitial()) {
     on<BlockUserEvent>(_onBlockUserEvent);
     on<UnblockUserEvent>(_onUnblockUserEvent);
@@ -18,9 +20,8 @@ class BlockBloc extends Bloc<BlockEvent, BlockState> {
   ) async {
     emit(BlockLoading());
     try {
-      // Simulate blocking a user
-      await Future.delayed(Duration(seconds: 1));
-      emit(BlockedUsersLoaded([])); // Update with actual blocked users
+      await _repository.blockUser(event.BlockedId); // Block the user
+      add(FetchBlockedUsersEvent());
     } catch (e) {
       emit(BlockedUserError(e.toString()));
     }
@@ -32,9 +33,8 @@ class BlockBloc extends Bloc<BlockEvent, BlockState> {
   ) async {
     emit(BlockLoading());
     try {
-      // Simulate unblocking a user
-      await Future.delayed(Duration(seconds: 1));
-      emit(BlockedUsersLoaded([])); // Update with actual blocked users
+      await _repository.unblockUser(event.BlockedId); // Unblock the user
+      add(FetchBlockedUsersEvent());
     } catch (e) {
       emit(BlockedUserError(e.toString()));
     }
@@ -46,9 +46,11 @@ class BlockBloc extends Bloc<BlockEvent, BlockState> {
   ) async {
     emit(BlockLoading());
     try {
-      // Simulate fetching blocked users
-      await Future.delayed(Duration(seconds: 1));
-      emit(BlockedUsersLoaded([])); // Update with actual blocked users
+      final blockedUsers =
+          await _repository.fetchBlockedUsers(); // Fetch blocked users
+      emit(
+        BlockedUsersLoaded(blockedUsers),
+      ); // Update with actual blocked users
     } catch (e) {
       emit(BlockedUserError(e.toString()));
     }
