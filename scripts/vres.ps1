@@ -18,7 +18,7 @@ if (-not $?) {
 Write-Host "Working directory: $(Get-Location)"
 
 # Define volumes to restore
-$volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data", "ascend_rabbitmq_data")
+$volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data")
 
 # Backup directory (Ensure it exists)
 $backupDir = "$PWD\docker_backups"
