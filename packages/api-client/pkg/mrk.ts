@@ -348,6 +348,15 @@ class NotificationService {
   }
 
   /**
+   * Marks a notification as unread
+   * @param notificationId - The ID of the notification to mark as unread
+   * @throws Error if the update fails
+   */
+  async markNotificationAsUnread(notificationId: number): Promise<void> {
+    return this.client.mark_notification_as_unread(notificationId);
+  }
+
+  /**
    * Deletes a notification
    * @param notificationId - The ID of the notification to delete
    * @throws Error if the deletion fails
