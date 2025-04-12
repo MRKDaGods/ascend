@@ -20,20 +20,27 @@ export default function Home() {
   useEffect(() => {
     // Fake login 3shn nhave any notifs
 
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/user");
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const data = await response.json();
-        setUserData(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
+    // const fetchUserData = async () => {
+    //   try {
+    //     const response = await fetch("http://localhost:5000/api/user");
+    //     if (!response.ok) throw new Error("Failed to fetch user data");
+    //     const data = await response.json();
+    //     setUserData(data);
+    //   } catch (error) {
+    //     console.error("Error fetching user data:", error);
+    //   }
+    // };
 
     const fetchNotifications = async () => {
       api.auth.login("ammar@ascendx.tech", "123").then((response) => {
         console.log("Login response:", response);
+
+        // Set the user data in the store
+        api.user.getLocalUserProfile().then((user) => {
+          console.log("Fetched user data:", user);
+          setUserData(user);
+        });
+
         api.notification.getNotifications(1) // Page number 1 for the latest 10 notifications
           .then((response) => {
             console.log("Fetched notifications:", response);
@@ -50,7 +57,7 @@ export default function Home() {
 
     setIsClient(true);
 
-    fetchUserData();
+    //fetchUserData();
     fetchNotifications();
   }, []);
 
