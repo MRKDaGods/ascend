@@ -20,7 +20,7 @@ startSharedService("Gateway", undefined, {
         const proxyOptions = {
           parseReqBody: !req.headers["x-no-parse-body"],
         };
-        
+
         return proxy(target, proxyOptions)(req, res, next);
       };
     };
@@ -37,21 +37,18 @@ startSharedService("Gateway", undefined, {
     app.use("/user", conditionalProxy("http://user:3002"));
 
     // Post service
-    app.use("/post", proxy("http://post:3005"));
+    app.use("/post", conditionalProxy("http://post:3005"));
 
     // Connection service
-    app.use("/connection", proxy("http://connection:3006"));
+    app.use("/connection", conditionalProxy("http://connection:3006"));
 
     // Admin service
-    app.use("/admin", proxy("http://admin:3007"));
+    app.use("/admin", conditionalProxy("http://admin:3007"));
 
     // File service
     app.use("/files", conditionalProxy("http://file:3003"));
 
     // Notification service
-    app.use(
-      "/notifications",
-      conditionalProxy("http://notification:3004")
-    );
+    app.use("/notifications", conditionalProxy("http://notification:3004"));
   },
 });
