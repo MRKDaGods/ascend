@@ -92,19 +92,74 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     MarkNotificationAsRead event,
     Emitter<NotificationState> emit,
   ) async {
-    try {
-      await markAsRead(event.id);
+    // First check if we have notifications loaded
+    if (state is NotificationLoaded) {
+      final currentState = state as NotificationLoaded;
+      final currentNotifications = currentState.notifications;
       
-      emit(const NotificationActionSuccess(
-        message: 'Notification marked as read',
+      // Create an optimistically updated list
+      final updatedNotifications = currentNotifications.map((notification) {
+        if (notification.id == event.id) {
+          // Create a new notification with isRead set to true
+          return notification.copyWith(isRead: true);
+        }
+        return notification;
+      }).toList();
+      
+      // Update unread count
+      final unreadCount = updatedNotifications.where((n) => !n.isRead).length;
+      
+      // Immediately emit updated state for UI to react
+      emit(NotificationLoaded(
+        notifications: updatedNotifications,
+        unreadCount: unreadCount,
       ));
       
-      // Refresh notifications after marking as read
-      add(const FetchNotifications());
-    } on Failure catch (failure) {
-      emit(NotificationError(message: failure.message));
-    } catch (e) {
-      emit(NotificationError(message: e.toString()));
+      // Then perform the actual API call
+      try {
+        await markAsRead(event.id);
+        
+        // API call succeeded, emit success message but keep notifications
+        emit(const NotificationActionSuccess(
+          message: 'Notification marked as read',
+        ));
+        
+        // Emit the notifications state again to ensure UI consistency 
+        emit(NotificationLoaded(
+          notifications: updatedNotifications,
+          unreadCount: unreadCount,
+        ));
+        
+        // No need to fetch all notifications again
+        // remove: add(const FetchNotifications());
+      } on Failure catch (failure) {
+        // If API call fails, revert to previous state
+        emit(NotificationLoaded(
+          notifications: currentNotifications,
+          unreadCount: currentState.unreadCount,
+        ));
+        emit(NotificationError(message: failure.message));
+      } catch (e) {
+        // Same for other errors
+        emit(NotificationLoaded(
+          notifications: currentNotifications,
+          unreadCount: currentState.unreadCount,
+        ));
+        emit(NotificationError(message: e.toString()));
+      }
+    } else {
+      // If we don't have notifications loaded, fall back to original behavior
+      try {
+        await markAsRead(event.id);
+        emit(const NotificationActionSuccess(
+          message: 'Notification marked as read',
+        ));
+        add(const FetchNotifications());
+      } on Failure catch (failure) {
+        emit(NotificationError(message: failure.message));
+      } catch (e) {
+        emit(NotificationError(message: e.toString()));
+      }
     }
   }
   
@@ -134,19 +189,53 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     DeleteNotification event,
     Emitter<NotificationState> emit,
   ) async {
-    try {
-      await deleteNotification(event.id);
+    if (state is NotificationLoaded) {
+      final currentState = state as NotificationLoaded;
       
-      emit(const NotificationActionSuccess(
-        message: 'Notification deleted',
+      // Optimistically remove the notification from the list
+      final updatedNotifications = currentState.notifications
+          .where((notification) => notification.id != event.id)
+          .toList();
+      
+      // Update unread count
+      final unreadCount = updatedNotifications.where((n) => !n.isRead).length;
+      
+      // Immediately emit updated state
+      emit(NotificationLoaded(
+        notifications: updatedNotifications,
+        unreadCount: unreadCount,
       ));
       
-      // Refresh notifications after deletion
-      add(const FetchNotifications());
-    } on Failure catch (failure) {
-      emit(NotificationError(message: failure.message));
-    } catch (e) {
-      emit(NotificationError(message: e.toString()));
+      // Then perform the API call
+      try {
+        await deleteNotification(event.id);
+        
+        emit(const NotificationActionSuccess(
+          message: 'Notification deleted',
+        ));
+        
+        // Refresh notifications after deletion
+        add(const FetchNotifications());
+      } on Failure catch (failure) {
+        emit(NotificationError(message: failure.message));
+      } catch (e) {
+        emit(NotificationError(message: e.toString()));
+      }
+    } else {
+      try {
+        await deleteNotification(event.id);
+        
+        emit(const NotificationActionSuccess(
+          message: 'Notification deleted',
+        ));
+        
+        // Refresh notifications after deletion
+        add(const FetchNotifications());
+      } on Failure catch (failure) {
+        emit(NotificationError(message: failure.message));
+      } catch (e) {
+        emit(NotificationError(message: e.toString()));
+      }
     }
   }
   
