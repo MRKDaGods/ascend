@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../models/notification_model.dart';
 import '../../../../core/errors/exceptions.dart';

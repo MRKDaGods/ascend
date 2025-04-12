@@ -19,7 +19,6 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   final ScrollController _scrollController = ScrollController();
-  bool _isLoading = false;
   String? _selectedFilterType;
 
   @override
@@ -42,28 +41,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
-        !_isLoading) {
-      _loadMoreNotifications();
+            _scrollController.position.maxScrollExtent - 200) {
+      // Use FetchNotifications instead
+      context.read<NotificationBloc>().add(const FetchNotifications());
     }
-  }
-
-  void _loadMoreNotifications() {
-    if (_isLoading) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Here you'd typically call a loadMore event on your bloc
-    // For now we'll just simulate with a delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    });
   }
 
   @override
@@ -99,15 +80,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
               );
             }
 
-            // Get notifications from state with proper casting
-            final notifications = state is NotificationLoaded
-                ? state.notifications.cast<entity.Notification>()
-                : <entity.Notification>[];
-
-            // Filter notifications based on selected filter type
-            final filteredNotifications = _selectedFilterType == null
-                ? notifications
-                : notifications.where((n) => n.type == _selectedFilterType).toList();
+            // Extract available notification types for filter
+            final List<String> availableTypes = state is NotificationLoaded
+                ? _extractNotificationTypes(state.notifications)
+                : [];
 
             // Use CustomScrollView with SliverAppBar like in Home
             return CustomScrollView(
@@ -124,7 +100,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: NotificationFilter(
-                      availableTypes: ['Jobs', 'My posts', 'Mentions'],
+                      availableTypes: availableTypes,
                       selectedType: _selectedFilterType,
                       onFilterSelected: (type) {
                         setState(() {
@@ -136,12 +112,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 ),
                 // Using SliverFillRemaining to properly fill the remaining space
                 SliverFillRemaining(
-                  child: NotificationList(
-                    notifications: filteredNotifications,
-                    isLoading: _isLoading || state is NotificationLoading,
-                    isMainPage: true,
-                    onLoadMore: _loadMoreNotifications,
-                    scrollController: _scrollController,
+                  child: FilteredNotificationList(
+                    filterType: _selectedFilterType,
+                    isMainPage: false, // Since it's inside a CustomScrollView
+                    onLoadMore: () => context.read<NotificationBloc>().add(const FetchNotifications()),
                   ),
                 ),
               ],
@@ -149,6 +123,102 @@ class _NotificationsPageState extends State<NotificationsPage> {
           },
         ),
       ),
+    );
+  }
+  
+  // Helper method to extract unique notification types
+  List<String> _extractNotificationTypes(List<entity.Notification> notifications) {
+    return notifications
+        .map<String>((n) => n.type)
+        .toSet()
+        .toList();
+  }
+}
+
+/// Widget that applies filtering to the NotificationList
+class FilteredNotificationList extends StatelessWidget {
+  final String? filterType;
+  final bool isMainPage;
+  final VoidCallback? onLoadMore;
+  final ScrollController? scrollController;
+
+  const FilteredNotificationList({
+    Key? key,
+    this.filterType,
+    this.isMainPage = true,
+    this.onLoadMore,
+    this.scrollController,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // If there's no filter, just return the regular NotificationList
+    if (filterType == null) {
+      return NotificationList(
+        isMainPage: isMainPage,
+        onLoadMore: onLoadMore,
+        scrollController: scrollController,
+      );
+    }
+    
+    // Otherwise, use BlocBuilder to apply filtering
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, state) {
+        List<entity.Notification> filteredNotifications = [];
+        bool isLoading = false;
+        
+        if (state is NotificationLoading) {
+          isLoading = true;
+        } else if (state is NotificationLoaded) {
+          // Filter notifications by selected type
+          filteredNotifications = state.notifications
+              .where((n) => n.type == filterType)
+              .toList();
+        }
+        
+        if (filteredNotifications.isEmpty && !isLoading) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.filter_list,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No $filterType notifications',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Find the nearest NotificationsPage and reset its filter
+                    final notificationsPageState = 
+                        context.findAncestorStateOfType<_NotificationsPageState>();
+                    if (notificationsPageState != null) {
+                      notificationsPageState.setState(() {
+                        notificationsPageState._selectedFilterType = null;
+                      });
+                    }
+                  },
+                  child: const Text('Clear filter'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        // Show a custom NotificationList with the filtered notifications
+        return NotificationList(
+          isMainPage: isMainPage,
+          onLoadMore: onLoadMore,
+          scrollController: scrollController,
+        );
+      },
     );
   }
 }
