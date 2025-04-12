@@ -4,6 +4,7 @@ import {
   deleteNotification as serviceDeleteNotification,
   getNotifications,
   markNotificationAsRead,
+  markNotificationAsUnread,
 } from "../services/notificationService";
 
 /**
@@ -55,6 +56,31 @@ export const markAsRead = async (
     res.status(500).send("Failed to mark notification as read");
   }
 };
+
+/**
+ * Marks a notification as unread
+ *
+ * @param req
+ *
+ * @returns HTTP response
+ * - 200 if successful
+ * - 500 if server error occurrs
+ **/
+export const markAsUnread = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const userId = req.user!.id;
+
+  try {
+    const notificationId = parseInt(req.params.id);
+    await markNotificationAsUnread(userId, notificationId);
+    res.json({ message: "Notification marked as unread" });
+  } catch (error) {
+    console.error("Failed to mark notification as unread:", error);
+    res.status(500).send("Failed to mark notification as unread");
+  }
+}
 
 /**
  * Deletes a notification
