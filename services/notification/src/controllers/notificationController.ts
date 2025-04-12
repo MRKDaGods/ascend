@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { Response } from "express";
 import {
+  deleteNotification as serviceDeleteNotification,
   getNotifications,
   markNotificationAsRead,
 } from "../services/notificationService";
@@ -52,5 +53,30 @@ export const markAsRead = async (
   } catch (error) {
     console.error("Failed to mark notification as read:", error);
     res.status(500).send("Failed to mark notification as read");
+  }
+};
+
+/**
+ * Deletes a notification
+ *
+ * @param req
+ *
+ * @returns HTTP response
+ * - 200 if successful
+ * - 500 if server error occurrs
+ **/
+export const deleteNotification = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const userId = req.user!.id;
+
+  try {
+    const notificationId = parseInt(req.params.id);
+    await serviceDeleteNotification(userId, notificationId);
+    res.json({ message: "Notification deleted" });
+  } catch (error) {
+    console.error("Failed to delete notification:", error);
+    res.status(500).send("Failed to delete notification");
   }
 };
