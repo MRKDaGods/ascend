@@ -6,10 +6,12 @@ import { Image, VideoLibrary, Article } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import MediaEditor from "./MediaEditor";
 import { useMediaStore } from "../stores/useMediaStore";
+import { usePostStore } from "../stores/usePostStore";
 
 const AddMedia: React.FC = () => {
   const theme = useTheme();
   const { openEditor } = useMediaStore();
+  const { setOpen } = usePostStore();
 
   return (
     <>
@@ -37,7 +39,7 @@ const AddMedia: React.FC = () => {
           </Button>
           <Button 
           startIcon={<Article sx={{ color: "#D9534F" }} />} 
-          onClick={openEditor} 
+          onClick={() => setOpen(true) }
           sx={{ textTransform: "none", color: "gray", fontWeight: "bold"  }}>
             Write article
           </Button>

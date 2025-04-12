@@ -1,5 +1,3 @@
-// Component file: creating a new post
-
 "use client";
 
 import React, { useState } from "react";
@@ -22,8 +20,6 @@ import { MoreHoriz, ThumbUp, Comment, Delete, Edit } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import DeletePostDialog from "./DeletePostDialog";
 import DocumentPreview from "./DocumentPreview";
-import { pdfjs } from "react-pdf";
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 interface UserPostProps {
   post: PostType;
@@ -51,12 +47,12 @@ const renderTextWithLinks = (text: string) => {
   );
 };
 
-const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
+const UserPost: React.FC<UserPostProps> = ({ post }) => {
   const theme = useTheme();
   const { setEditingPost } = usePostStore();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false); // ✅ fix here
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -72,7 +68,7 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
   };
 
   const handleDeleteClick = () => {
-    setDeleteDialogOpen(true); // ✅ show dialog on click
+    setDeleteDialogOpen(true);
     handleMenuClose();
   };
 
@@ -132,6 +128,7 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
               sx={{ borderRadius: 2, mt: 2, width: "100%", height: "100%" }}
             />
           )}
+
           {post.video && (
             <CardMedia
               component="video"
@@ -140,12 +137,19 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
               sx={{ borderRadius: 2, mt: 2, maxHeight: 400 }}
             />
           )}
+
+          {/* ✅ Show document preview */}
+          {post.file && post.fileTitle && (
+            <Box sx={{ mt: 2 }}>
+              <DocumentPreview fileUrl={post.file} title={post.fileTitle} />
+            </Box>
+          )}
         </CardContent>
 
         <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
           <Button
             startIcon={<ThumbUp />}
-            sx={{ textTransform: "none", fontWeight: "bold" }}
+            sx={{ textTransform: "none", color: theme.palette.text.secondary, fontWeight: "bold" }}
           >
             Like
           </Button>
@@ -157,17 +161,12 @@ const UserPost: React.FC<UserPostProps> = ({ post, onDeleteClick }) => {
           </Button>
         </Stack>
 
-        {/* ✅ Delete Confirmation Dialog */}
         <DeletePostDialog
           open={deleteDialogOpen}
           postId={post.id}
           onClose={() => setDeleteDialogOpen(false)}
         />
       </Card>
-
-      {post.file && post.title && (
-        <DocumentPreview fileUrl={post.file} title={post.title} />
-      )}
     </>
   );
 };

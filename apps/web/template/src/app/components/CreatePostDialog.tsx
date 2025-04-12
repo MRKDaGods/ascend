@@ -1,21 +1,24 @@
-// Component file: appears after user clicks on CreatePost (start a post)
-
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import {
   Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
-  IconButton, Stack, Typography, TextField, Tooltip, Popper
+  IconButton, Stack, Typography, Tooltip, Popper
 } from "@mui/material";
-import { Close, Edit, Delete, Image, OndemandVideo, Article } from "@mui/icons-material";
+import {
+  Close, Edit, Delete, Image, OndemandVideo, Article
+} from "@mui/icons-material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import ClickAwayListener from "@mui/material/ClickAwayListener"; // ✅ Add this import at the top
 
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
+
+import TagInput from "./TagInput";
 import DiscardPostDialog from "./DiscardPostDialog";
 import DraftSavedPopup from "./DraftSavedPopup";
-import TagInput from "./TagInput";
 import Document from "./Document";
+import DocumentPreview from "./DocumentPreview";
 
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
@@ -34,12 +37,16 @@ const CreatePostDialog: React.FC = () => {
     setDraftSavedPopupOpen,
     setDraftText,
     lastUserPostId,
-    createPostViaAPI,
     addPost,
   } = usePostStore();
 
   const {
-    mediaPreviews, removeMediaFile, clearAllMedia, openEditor,
+    mediaPreviews,
+    removeMediaFile,
+    clearAllMedia,
+    openEditor,
+    documentPreview,
+    clearDocumentPreview,
   } = useMediaStore();
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -53,27 +60,29 @@ const CreatePostDialog: React.FC = () => {
   }, [open, draftText]);
 
   const handleSubmit = () => {
-    if (!postText.trim() && mediaPreviews.length === 0) return;
-  
+    if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
+
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
-  
-    // ✅ Add post directly to Zustand state
-    addPost(postText, media, type);
 
-    // ✅ Testing backend
-    // await createPostViaAPI(postText, media, type);
+    // ✅ Add post to Zustand
+    addPost(postText, media, type, documentPreview ?? undefined);
+
 
     // ✅ UI handling
     setUserPostPopupOpen(true);
     setDraftText("");
     resetPost();
     clearAllMedia();
+    clearDocumentPreview(); // remove doc preview on post
   };
 
   const handleClose = () => {
-    if (postText.length > 0) openDiscardPostDialog();
-    else resetPost();
+    if (postText.length > 0 || mediaPreviews.length > 0 || documentPreview) {
+      openDiscardPostDialog();
+    } else {
+      resetPost();
+    }
   };
 
   return (
@@ -93,31 +102,30 @@ const CreatePostDialog: React.FC = () => {
         </DialogTitle>
 
         <DialogContent sx={{ pt: 1 }}>
-        <Box
-          sx={{
-            mt: 2,
-            minHeight: "100px",
-            fontSize: "1rem",
-            width: "100%",
-            outline: "none",
-            backgroundColor: "transparent",
-            '& textarea': {
-              fontSize: '1rem',
-              lineHeight: 1.5,
-              padding: 0,
-              border: "none",
-              resize: "none",
+          <Box
+            sx={{
+              mt: 2,
+              minHeight: "100px",
+              fontSize: "1rem",
               width: "100%",
-              fontFamily: "inherit",
-              background: "transparent",
-              outline: "none",
-            }
-          }}
-        >
-          <TagInput postId={lastUserPostId ?? -1} />
-        </Box>
+              backgroundColor: "transparent",
+              '& textarea': {
+                fontSize: '1rem',
+                lineHeight: 1.5,
+                padding: 0,
+                border: "none",
+                resize: "none",
+                width: "100%",
+                fontFamily: "inherit",
+                background: "transparent",
+                outline: "none",
+              }
+            }}
+          >
+            <TagInput postId={lastUserPostId ?? -1} />
+          </Box>
 
-
+          {/* Image/Video Preview */}
           {mediaPreviews.length > 0 && (
             <Box sx={{ position: "relative", mt: 2 }}>
               <img
@@ -130,17 +138,28 @@ const CreatePostDialog: React.FC = () => {
                   maxHeight: "400px",
                 }}
               />
-              <Box sx={{
-                position: "absolute",
-                top: 8,
-                right: 8,
-                display: "flex",
-                gap: 1,
-              }}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  display: "flex",
+                  gap: 1,
+                }}
+              >
                 <IconButton sx={{ bgcolor: "white" }} onClick={openEditor}><Edit /></IconButton>
                 <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
               </Box>
             </Box>
+          )}
+
+          {/* Document Preview */}
+          {documentPreview && (
+            <DocumentPreview
+              fileUrl={documentPreview.url}
+              title={documentPreview.title}
+              onRemove={clearDocumentPreview}
+            />
           )}
         </DialogContent>
 
@@ -148,7 +167,7 @@ const CreatePostDialog: React.FC = () => {
           <Stack direction="row" spacing={1}>
             <Tooltip title="Add a photo"><IconButton onClick={openEditor}><Image /></IconButton></Tooltip>
             <Tooltip title="Add a video"><IconButton onClick={openEditor}><OndemandVideo /></IconButton></Tooltip>
-            <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article/></IconButton></Tooltip>
+            <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
             <Tooltip title="Add an emoji">
               <IconButton
                 ref={emojiAnchorRef}
@@ -162,7 +181,7 @@ const CreatePostDialog: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!postText.trim() && mediaPreviews.length === 0}
+            disabled={!postText.trim() && mediaPreviews.length === 0 && !documentPreview}
             sx={{
               textTransform: "none",
               px: 4,
@@ -173,22 +192,24 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Emoji Picker */}
       <Popper
         open={showEmojiPicker}
         anchorEl={emojiAnchorRef.current}
         placement="top-start"
-        modifiers={[{ name: 'zIndex', enabled: true }]}
-        style={{ zIndex: 1600 }} // 👈 ensure it's above MUI Dialogs
+        style={{ zIndex: 1600 }}
       >
-        <Box sx={{ zIndex: 1600 }}>
-          <Picker
-            data={data}
-            onEmojiSelect={(emoji: any) => {
-              setPostText(postText + emoji.native);
-              setShowEmojiPicker(false);
-            }}
-          />
-        </Box>
+        <ClickAwayListener onClickAway={() => setShowEmojiPicker(false)}>
+          <Box sx={{ zIndex: 1600 }}>
+            <Picker
+              data={data}
+              onEmojiSelect={(emoji: any) => {
+                setPostText(postText + emoji.native);
+                setShowEmojiPicker(false);
+              }}
+            />
+          </Box>
+        </ClickAwayListener>
       </Popper>
 
       <DiscardPostDialog
@@ -197,12 +218,16 @@ const CreatePostDialog: React.FC = () => {
         onDiscard={() => {
           closeDiscardPostDialog();
           resetPost();
+          clearAllMedia();
+          clearDocumentPreview();
         }}
         onSave={() => {
           setDraftText(postText);
           setDraftSavedPopupOpen(true);
           closeDiscardPostDialog();
           resetPost();
+          clearAllMedia();
+          clearDocumentPreview();
         }}
       />
 

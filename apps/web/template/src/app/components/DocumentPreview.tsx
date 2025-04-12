@@ -1,16 +1,9 @@
-// Component file: document preview (work in progress)
-
 "use client";
 
-import React, { useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
-import { Box, Typography, IconButton } from "@mui/material";
+import React from "react";
+import { Box, Typography, IconButton, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-
-// setup worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+import ArticleIcon from "@mui/icons-material/Article";
 
 interface DocumentPreviewProps {
   fileUrl: string;
@@ -19,67 +12,56 @@ interface DocumentPreviewProps {
 }
 
 const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileUrl, title, onRemove }) => {
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageNumber, setPageNumber] = useState(1);
-
-  const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-  };
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
 
   return (
-    <Box sx={{ position: "relative", mt: 2, borderRadius: 2, overflow: "hidden" }}>
-      {/* Header */}
-      <Box sx={{ backgroundColor: "#2c2c2c", color: "white", px: 2, py: 1, display: "flex", alignItems: "center" }}>
-        <Typography fontWeight="bold" fontSize="0.9rem" sx={{ flex: 1 }}>
-          {title} {numPages ? `• ${numPages} pages` : ""}
-        </Typography>
-        {onRemove && (
-          <IconButton size="small" onClick={onRemove} sx={{ color: "white" }}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        )}
+    <Box
+      sx={{
+        mt: 2,
+        border: `1px solid ${isDarkMode ? "#444" : "#ccc"}`,
+        borderRadius: 2,
+        overflow: "hidden",
+        position: "relative",
+        p: 2,
+        backgroundColor: isDarkMode ? "#1e1e1e" : "#f9f9f9",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <ArticleIcon sx={{ color: "#0a66c2" }} />
+        <Box>
+          <Typography
+            fontWeight={600}
+            fontSize="0.95rem"
+            sx={{ color: theme.palette.text.primary }}
+          >
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#0a66c2",
+                textDecoration: "none",
+                wordBreak: "break-word",
+              }}
+            >
+              {title}
+            </a>
+          </Typography>
+          <Typography fontSize="0.75rem" color="text.secondary">
+            PDF document — click to open
+          </Typography>
+        </Box>
       </Box>
 
-      {/* PDF Preview */}
-      <Box sx={{ backgroundColor: "#f0f0f0", textAlign: "center" }}>
-        <Document
-          file={fileUrl}
-          onLoadSuccess={handleDocumentLoadSuccess}
-        >
-          <Page pageNumber={pageNumber} width={600} />
-        </Document>
-
-        {/* Pagination */}
-        {numPages && numPages > 1 && (
-          <Box sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 1,
-            py: 1,
-            backgroundColor: "#2c2c2c",
-            color: "white",
-          }}>
-            <IconButton
-              disabled={pageNumber <= 1}
-              onClick={() => setPageNumber((prev) => prev - 1)}
-              size="small"
-              sx={{ color: "white" }}
-            >
-              <ArrowBackIosNewIcon fontSize="small" />
-            </IconButton>
-            <Typography fontSize="0.75rem">{pageNumber} / {numPages}</Typography>
-            <IconButton
-              disabled={pageNumber >= numPages}
-              onClick={() => setPageNumber((prev) => prev + 1)}
-              size="small"
-              sx={{ color: "white" }}
-            >
-              <ArrowForwardIosIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        )}
-      </Box>
+      {onRemove && (
+        <IconButton size="small" onClick={onRemove} sx={{ color: theme.palette.text.secondary }}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 };

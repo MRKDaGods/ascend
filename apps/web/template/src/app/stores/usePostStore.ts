@@ -27,8 +27,8 @@ export type PostType = {
   comments: number;
   image?: string;
   video?: string;
-  file?: string;
-  title?: string;
+  file?: string;        // Document preview URL
+  fileTitle?: string;   // Title of the document
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
@@ -66,7 +66,7 @@ interface PostStoreState {
   setDraftText: (text: string) => void;
   resetPost: () => void;
 
-  addPost: (content: string, media?: string, mediaType?: "image" | "video") => void;
+  addPost: (content: string, media?: string, mediaType?: "image" | "video", document?: { url: string; title: string } ) => void;
   deletePost: (postId: number) => void;
   editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
   setEditingPost: (post: PostType | null) => void;
@@ -136,7 +136,7 @@ export const usePostStore = create<PostStoreState>()(
           editingPost: null,
         })),
 
-      addPost: (content, media, mediaType) =>
+      addPost: (content, media, mediaType, document?: { url: string; title: string }) =>
         set((state) => {
           const newPost: PostType = {
             id: generateNumericId(),
@@ -147,6 +147,8 @@ export const usePostStore = create<PostStoreState>()(
             content,
             image: mediaType === "image" ? media : undefined,
             video: mediaType === "video" ? media : undefined,
+            file: document?.url,            // ✅ add this
+            fileTitle: document?.title,     // ✅ add this
             likes: 0,
             comments: 0,
             reposts: 0,
@@ -155,6 +157,7 @@ export const usePostStore = create<PostStoreState>()(
             tags: [],
             commentTags: {},
           };
+          
           return {
             posts: [...state.posts, newPost],
             userPostPopupOpen: true,
@@ -205,8 +208,6 @@ export const usePostStore = create<PostStoreState>()(
               comments: post.comments_count,
               image: post.media?.find((m) => m.type === "image")?.url,
               video: post.media?.find((m) => m.type === "video")?.url,
-              file: post.media?.find((m) => m.type === "document")?.url,
-              title: post.media?.[0]?.title,
               commentsList: [],
               isUserPost: false,
             }));
@@ -250,9 +251,6 @@ export const usePostStore = create<PostStoreState>()(
         }
         if (post?.video) {
           mediaPreviews.push(post.video);
-        }
-        if (post?.file) {
-          mediaPreviews.push(post.file);
         }
       
         set({

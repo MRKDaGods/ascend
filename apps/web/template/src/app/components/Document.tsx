@@ -1,15 +1,12 @@
-// Component file: adding a document to a created post
-
 "use client";
 
 import React, { useState } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, IconButton, Typography, Box, Input, TextField, Divider,
+  Button, IconButton, Typography, Box, Input, TextField
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
-import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
 
 interface DocumentProps {
@@ -23,15 +20,23 @@ const Document: React.FC<DocumentProps> = ({ open, onClose }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && file.type === "application/pdf") {
       setSelectedFile(file);
-      setDocumentTitle(file.name.replace(/\.[^/.]+$/, "")); // auto fill title
+      setDocumentTitle(file.name.replace(/\.[^/.]+$/, ""));
     }
   };
 
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setDocumentTitle("");
+  };
+
+  const handleDone = () => {
+    if (!selectedFile || !documentTitle.trim()) return;
+
+    const url = URL.createObjectURL(selectedFile);
+    useMediaStore.getState().setDocumentPreview(selectedFile, documentTitle);
+    onClose();
   };
 
   return (
@@ -43,51 +48,45 @@ const Document: React.FC<DocumentProps> = ({ open, onClose }) => {
 
       <DialogContent sx={{ pt: 2, pb: 2 }}>
         {!selectedFile ? (
-          <>
-            <Box
-              component="label"
-              htmlFor="upload-doc"
-              sx={{
-                display: "block",
-                border: "1px solid #0a66c2",
-                color: "#0a66c2",
-                textAlign: "center",
-                borderRadius: 20,
-                px: 3,
-                py: 1,
-                cursor: "pointer",
-                fontWeight: 500,
-                mt: 1,
-                mb: 2,
-                "&:hover": {
-                  backgroundColor: "rgba(10, 102, 194, 0.1)"
-                }
-              }}
-            >
-              Choose file
-              <Input
-                type="file"
-                id="upload-doc"
-                sx={{ display: "none" }}
-                onChange={handleFileChange}
-                inputProps={{
-                  accept: ".doc,.docx,.pdf,.ppt,.pptx"
-                }}
-              />
-            </Box>
-          </>
+          <Box
+            component="label"
+            htmlFor="upload-doc"
+            sx={{
+              display: "block",
+              border: "1px solid #0a66c2",
+              color: "#0a66c2",
+              textAlign: "center",
+              borderRadius: 20,
+              px: 3,
+              py: 1,
+              cursor: "pointer",
+              fontWeight: 500,
+              mt: 1,
+              mb: 2,
+              "&:hover": {
+                backgroundColor: "rgba(10, 102, 194, 0.1)"
+              }
+            }}
+          >
+            Choose file
+            <Input
+              type="file"
+              id="upload-doc"
+              sx={{ display: "none" }}
+              onChange={handleFileChange}
+              inputProps={{ accept: ".pdf" }}
+            />
+          </Box>
         ) : (
           <>
             <TextField
               label="Document title"
-              required
               fullWidth
-              variant="outlined"
               size="small"
+              required
               value={documentTitle}
               onChange={(e) => setDocumentTitle(e.target.value)}
-              placeholder="Add a descriptive title to your document"
-              sx={{  mt: 1, mb: 2 }}
+              sx={{ mt: 1, mb: 2 }}
             />
 
             <Box
@@ -102,19 +101,13 @@ const Document: React.FC<DocumentProps> = ({ open, onClose }) => {
               }}
             >
               <InsertDriveFileIcon fontSize="large" color="disabled" sx={{ mr: 2 }} />
-
               <Box>
                 <Typography fontWeight={500}>{selectedFile.name}</Typography>
                 <Typography variant="caption" color="text.secondary">
                   {(selectedFile.size / 1024).toFixed(0)} KB
                 </Typography>
               </Box>
-
-              <IconButton
-                size="small"
-                onClick={handleRemoveFile}
-                sx={{ position: "absolute", top: 8, right: 8 }}
-              >
+              <IconButton size="small" onClick={handleRemoveFile} sx={{ position: "absolute", top: 8, right: 8 }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
@@ -122,7 +115,7 @@ const Document: React.FC<DocumentProps> = ({ open, onClose }) => {
         )}
 
         <Typography variant="body2" color="text.secondary" fontSize={12}>
-          For accessibility purposes, LinkedIn members who can view your post will be able to download your document as a PDF.&nbsp;
+          Viewers can download your document as a PDF.{" "}
           <a href="https://www.linkedin.com/help/linkedin/answer/119964" target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
             Learn more
           </a>
@@ -134,45 +127,13 @@ const Document: React.FC<DocumentProps> = ({ open, onClose }) => {
           Back
         </Button>
         <Button
-            variant="contained"
-            disabled={!selectedFile || !documentTitle.trim()}
-            sx={{ borderRadius: 20 }}
-            onClick={() => {
-                if (!selectedFile) return;
-
-                const previewUrl = URL.createObjectURL(selectedFile);
-
-                // Save media to media store
-                useMediaStore.getState().setMediaPreviews([previewUrl]);
-
-                // Save file title to post store
-                const postStore = usePostStore.getState();
-                const editing = postStore.editingPost;
-
-                postStore.setEditingPost({
-                ...(editing || {
-                    id: Date.now(), // fallback dummy id
-                    username: "You",
-                    profilePic: "/profile.jpg",
-                    followers: "You",
-                    timestamp: "Just now",
-                    content: "",
-                    likes: 0,
-                    reposts: 0,
-                    comments: 0,
-                    commentsList: [],
-                    isUserPost: true,
-                }),
-                file: previewUrl,
-                title: documentTitle,
-                });
-
-                onClose(); // close dialog
-            }}
-            >
-            Done
-            </Button>
-
+          onClick={handleDone}
+          variant="contained"
+          disabled={!selectedFile || !documentTitle.trim()}
+          sx={{ borderRadius: 20 }}
+        >
+          Done
+        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -6,7 +6,6 @@ import { Snackbar, Alert, Link, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
-import { use } from "react";
 
 const UserPostPopup = () => {
   const { userPostPopupOpen, setUserPostPopupOpen } = usePostStore();
