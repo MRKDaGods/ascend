@@ -16,6 +16,7 @@ class ProfileHeader extends StatelessWidget {
     this.mutualConnections = const [],
     this.links = const [],
     this.badges = const [],
+    this.isMyProfile = false,
   });
 
   final String name;
@@ -30,6 +31,7 @@ class ProfileHeader extends StatelessWidget {
   final List<String> mutualConnections;
   final List<Map<String, String>> links;
   final List<String> badges; // New - Stores profile badges
+  final bool isMyProfile; // New - Indicates if the profile is the user's own
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +54,8 @@ class ProfileHeader extends StatelessWidget {
         if (connections > 0) _buildConnectionsSection(),
         const SizedBox(height: 5),
 
-        if (mutualConnections.isNotEmpty) _buildMutualConnections(context),
+        if (mutualConnections.isNotEmpty && !isMyProfile)
+          _buildMutualConnections(context),
       ],
     );
   }

@@ -9,6 +9,7 @@ class SectionBuilder extends StatefulWidget {
   final bool isMyProfile;
   final bool isExpanded;
   final bool inEditMode;
+  final void Function(ProfileSection)? onUpdateSection;
 
   const SectionBuilder({
     super.key,
@@ -16,6 +17,7 @@ class SectionBuilder extends StatefulWidget {
     required this.isMyProfile,
     this.isExpanded = false,
     this.inEditMode = false,
+    this.onUpdateSection,
   });
 
   @override
@@ -31,6 +33,37 @@ class _SectionBuilderState extends State<SectionBuilder> {
     "Accomplishments",
     "Organizations",
   ];
+  ProfileEntryWidget? editedItem;
+  void saveEntry(ProfileEntryWidget newData) {
+    setState(() {
+      // Find the index of the edited item
+      final int index = widget.section.content.indexWhere(
+        (entry) => entry == editedItem,
+      );
+      if (index != -1) {
+        // Replace the old entry with the new data
+        widget.section.content[index] = newData;
+      }
+      widget.onUpdateSection?.call(widget.section);
+      editedItem = null; // Reset the edited item
+      // Notify the parent
+    });
+  }
+
+  void _editEntry(BuildContext context, ProfileEntryWidget entry) {
+    // Navigate to a new page to edit the entry
+    setState(() {
+      editedItem = entry;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => EditEntryPage(entry: entry, saveEntry: saveEntry),
+        ),
+      );
+      print(entry.title);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +132,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => EditSectionPage(
+                                    (context) => ExpandedSectionPage(
                                       section: widget.section,
                                       isMyProfile: widget.isMyProfile,
                                     ),
@@ -132,7 +165,8 @@ class _SectionBuilderState extends State<SectionBuilder> {
                 Row(
                   children: [
                     Expanded(child: item),
-                    if (widget.inEditMode)
+                    if (widget.inEditMode &&
+                        widget.section.title != "Analytics")
                       IconButton(
                         icon: const Icon(
                           Icons.edit_outlined,
@@ -140,6 +174,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                         ),
                         onPressed: () {
                           _editEntry(context, item as ProfileEntryWidget);
+                          editedItem = item;
                         },
                       ),
                   ],
@@ -159,7 +194,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                       context,
                       MaterialPageRoute(
                         builder:
-                            (context) => EditSectionPage(
+                            (context) => ExpandedSectionPage(
                               section: widget.section,
                               isMyProfile: widget.isMyProfile,
                             ),
@@ -186,14 +221,6 @@ class _SectionBuilderState extends State<SectionBuilder> {
           ),
         ),
       ],
-    );
-  }
-
-  void _editEntry(BuildContext context, ProfileEntryWidget entry) {
-    // Navigate to a new page to edit the entry
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditEntryPage(entry: entry)),
     );
   }
 }
