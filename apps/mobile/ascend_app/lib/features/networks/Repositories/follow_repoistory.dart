@@ -29,9 +29,7 @@ class FollowRepoistory {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.post(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.follow}/:${userId}',
-        ),
+        Uri.parse('${ApiBases.Connection_Base}${ApiEndpoints.follow}/:$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -54,9 +52,7 @@ class FollowRepoistory {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.delete(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.follow}/:${userId}',
-        ),
+        Uri.parse('${ApiBases.Connection_Base}${ApiEndpoints.follow}/:$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

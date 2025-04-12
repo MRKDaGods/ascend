@@ -25,8 +25,9 @@ class CompanySearchBloc extends Bloc<CompanySearchEvent, CompanySearchState> {
       if (companies.isEmpty) {
         emit(CompanySearchError(error: "No companies found"));
         return;
-      } else
+      } else {
         emit(CompanySearchLoaded(companies: companies));
+      }
     } catch (e) {
       emit(CompanySearchError(error: e.toString()));
     }

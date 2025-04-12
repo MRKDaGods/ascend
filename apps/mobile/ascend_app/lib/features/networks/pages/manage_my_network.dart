@@ -6,9 +6,7 @@ import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.d
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
-import 'package:ascend_app/features/networks/model/followed_user.dart';
 
 class ManageMyNetwork extends StatelessWidget {
   final List<ConnectedUser> connections;

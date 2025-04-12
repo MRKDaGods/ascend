@@ -11,13 +11,13 @@ class PostEngagementStats extends StatelessWidget {
   final String? postId; // Add postId parameter
 
   const PostEngagementStats({
-    Key? key,
+    super.key,
     required this.likesCount,
     required this.commentsCount,
     required this.reactionIcon,
     required this.reactionColor,
     this.postId, // Make it optional for backward compatibility
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

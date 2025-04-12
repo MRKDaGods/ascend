@@ -1,6 +1,4 @@
-import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/model/followed_user.dart';
-import 'package:ascend_app/features/networks/Mock Data/mock_connected_users.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_blocked_users.dart';
 
 class MockFollowedUsers {

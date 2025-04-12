@@ -14,7 +14,7 @@ Widget? printServicesCategoriesSearching(
           children: [
             servicesCategoriesSearching.length == 1
                 ? Text(
-                  "${servicesCategoriesSearching[0]}",
+                  servicesCategoriesSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -71,7 +71,7 @@ Widget buildServicesCategoriesList(
       onservicesCategoriesSearchingRemoved,
     ),
     trailing: Text(
-      servicesCategoriesSearching.length > 0 ? 'Edit' : 'Any',
+      servicesCategoriesSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

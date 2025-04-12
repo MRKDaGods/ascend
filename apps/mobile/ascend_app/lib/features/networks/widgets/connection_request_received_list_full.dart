@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_pending_model.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
-import 'package:ascend_app/features/networks/utils/overlay_builder.dart';
-import 'package:ascend_app/features/networks/widgets/selection_buttons.dart';
 import 'package:ascend_app/features/networks/utils/connection_request_received_filter.dart';
 import 'package:ascend_app/features/networks/utils/enums.dart';
 import 'package:ascend_app/features/networks/widgets/custom_filter_chip.dart';

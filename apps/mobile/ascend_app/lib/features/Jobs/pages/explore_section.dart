@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/pages/more_categories_section.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 
 class ExploreScreen extends StatelessWidget {

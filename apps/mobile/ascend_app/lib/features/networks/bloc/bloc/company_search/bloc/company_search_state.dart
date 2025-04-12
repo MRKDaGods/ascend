@@ -14,7 +14,7 @@ class CompanySearchLoading extends CompanySearchState {}
 class CompanySearchLoaded extends CompanySearchState {
   final List<CompanyModel> companies;
 
-  CompanySearchLoaded({required this.companies});
+  const CompanySearchLoaded({required this.companies});
 
   CompanySearchLoaded copyWith({List<CompanyModel>? companies}) {
     return CompanySearchLoaded(companies: companies ?? this.companies);
@@ -27,7 +27,7 @@ class CompanySearchLoaded extends CompanySearchState {
 class CompanySearchError extends CompanySearchState {
   final String error;
 
-  CompanySearchError({required this.error});
+  const CompanySearchError({required this.error});
 
   @override
   List<Object> get props => [error];

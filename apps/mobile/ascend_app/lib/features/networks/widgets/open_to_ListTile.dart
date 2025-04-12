@@ -14,7 +14,7 @@ Widget? printopenToSearching(
           children: [
             openToSearching.length == 1
                 ? Text(
-                  "${openToSearching[0]}",
+                  openToSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -68,7 +68,7 @@ Widget buildopenToList(
     ),
     subtitle: printopenToSearching(openToSearching, onopenToSearchingRemoved),
     trailing: Text(
-      openToSearching.length > 0 ? 'Edit' : 'Any',
+      openToSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

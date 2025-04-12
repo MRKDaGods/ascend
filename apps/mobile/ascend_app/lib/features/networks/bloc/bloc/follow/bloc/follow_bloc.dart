@@ -1,10 +1,7 @@
-import 'dart:math';
-
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/Repositories/follow_repoistory.dart';
-import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 
 part 'follow_event.dart';

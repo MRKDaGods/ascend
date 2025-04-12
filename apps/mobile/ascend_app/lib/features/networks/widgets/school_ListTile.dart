@@ -15,7 +15,7 @@ Widget? printschoolsSearching(
           children: [
             schoolsSearching.length == 1
                 ? Text(
-                  "${schoolsSearching[0]}",
+                  schoolsSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -72,7 +72,7 @@ Widget buildSchoolsList(
       onschoolsSearchingRemoved,
     ),
     trailing: Text(
-      schoolsSearching.length > 0 ? 'Edit' : 'Any',
+      schoolsSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

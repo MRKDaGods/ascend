@@ -1,5 +1,4 @@
 import 'package:ascend_app/features/networks/model/company_model.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/model/location_model.dart';
 
 class SearchModel {

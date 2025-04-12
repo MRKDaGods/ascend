@@ -1,6 +1,4 @@
-import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
-import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 
 import 'package:flutter/material.dart';
 

@@ -239,8 +239,7 @@ Widget buildLocationSelectedButtons(
 class LocationButtonsWidget extends StatefulWidget {
   final List<LocationModel> locations;
 
-  const LocationButtonsWidget({Key? key, required this.locations})
-    : super(key: key);
+  const LocationButtonsWidget({super.key, required this.locations});
 
   @override
   State<LocationButtonsWidget> createState() => _LocationButtonsWidgetState();

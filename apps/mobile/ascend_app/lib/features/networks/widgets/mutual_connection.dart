@@ -1,6 +1,5 @@
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/widgets/mutual_follow.dart';
 
 class MutualConnections extends StatelessWidget {
   final List<ConnectedUser> mutualUsers;

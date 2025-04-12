@@ -18,7 +18,7 @@ Widget? printcurrentCompanies(
           children: [
             currentCompanies.length == 1
                 ? Text(
-                  "${currentCompanies[0].companyName}",
+                  currentCompanies[0].companyName,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -69,7 +69,7 @@ Widget buildCurrentCompanyList(
       oncurrentCompaniesRemoved,
     ),
     trailing: Text(
-      currentCompanies.length > 0 ? 'Edit' : 'Any',
+      currentCompanies.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

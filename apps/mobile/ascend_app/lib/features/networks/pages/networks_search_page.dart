@@ -5,17 +5,17 @@ import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/widgets/filter_modal.dart';
 
 class NetworksSearchPage extends StatefulWidget {
-  NetworksSearchPage({super.key});
+  const NetworksSearchPage({super.key});
 
   @override
   State<NetworksSearchPage> createState() => _NetworksSearchPageState();
 }
 
 class _NetworksSearchPageState extends State<NetworksSearchPage> {
-  TextEditingController _searchController = TextEditingController();
-  ScrollController _scrollController = ScrollController();
-  FocusNode _searchFocusNode = FocusNode();
-  bool _isReset = false;
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final bool _isReset = false;
 
   @override
   void initState() {

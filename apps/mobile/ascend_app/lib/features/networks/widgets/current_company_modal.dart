@@ -11,8 +11,7 @@ import 'package:ascend_app/features/networks/Repositories/company_repository.dar
 class CompanyButtonsWidget extends StatefulWidget {
   final List<CompanyModel> companies;
 
-  const CompanyButtonsWidget({Key? key, required this.companies})
-    : super(key: key);
+  const CompanyButtonsWidget({super.key, required this.companies});
 
   @override
   State<CompanyButtonsWidget> createState() => _CompanyButtonsWidgetState();
@@ -265,8 +264,7 @@ Widget _buildModalContent(
             const SizedBox(height: 20),
 
             // Company buttons - use ListView.builder for better memory management
-            if (state.filters.currentCompanies != null &&
-                state.filters.currentCompanies!.isNotEmpty)
+            if (state.filters.currentCompanies.isNotEmpty)
               buildCompanySelectedButtons(
                 context,
                 state.filters.currentCompanies,

@@ -1,4 +1,3 @@
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
 
 bool checkIfReset(SearchModel filters) {

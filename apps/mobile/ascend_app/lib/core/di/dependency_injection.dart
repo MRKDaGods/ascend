@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../features/notifications/data/datasources/notification_local_datasource.dart';
 import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
@@ -21,45 +20,43 @@ import '../../core/network/network_info.dart';
 class ServiceLocator {
   // Singleton instance
   static final ServiceLocator _instance = ServiceLocator._internal();
-  
+
   // Factory constructor
   factory ServiceLocator() => _instance;
-  
+
   // Internal constructor
   ServiceLocator._internal();
-  
+
   // Navigator key for navigation from background
   final navigatorKey = GlobalKey<NavigatorState>();
-  
+
   // Services
   late final PushNotificationService pushNotificationService;
   late final NetworkInfo networkInfo;
-  
+
   // Repositories
   late final NotificationRepositoryImpl notificationRepository;
-  
+
   // Use cases
   late final GetNotifications getNotifications;
   late final MarkAsRead markAsRead;
   late final MarkAllAsRead markAllAsRead;
   late final ListenForNotifications listenForNotifications;
   late final DeleteNotificationUseCase deleteNotification;
-  
+
   // BLOCs
   late final NotificationBloc notificationBloc;
   late final SearchBloc searchBloc;
-  
+
   /// Initialize all dependencies
   Future<void> init() async {
     // Core
-    networkInfo = NetworkInfoImpl(
-      InternetConnectionChecker.createInstance(),
-    );
-    
+    networkInfo = NetworkInfoImpl(InternetConnectionChecker.createInstance());
+
     // External
     final sharedPreferences = await SharedPreferences.getInstance();
     final client = http.Client();
-    
+
     // Data sources
     // final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
     //   client: client,
@@ -71,37 +68,38 @@ class ServiceLocator {
     //   },
     // );
     final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
-  client: client,
-  baseUrl: 'https://mock-api.example.com', // This can be any placeholder
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  useMockData: true, // Add a flag to use mock data instead of real API calls
-);
-    
+      client: client,
+      baseUrl: 'https://mock-api.example.com', // This can be any placeholder
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      useMockData:
+          true, // Add a flag to use mock data instead of real API calls
+    );
+
     final notificationLocalDataSource = NotificationLocalDataSourceImpl(
       sharedPreferences: sharedPreferences,
     );
-    
+
     // Repositories
     notificationRepository = NotificationRepositoryImpl(
       remoteDataSource: notificationRemoteDataSource,
       localDataSource: notificationLocalDataSource,
       networkInfo: networkInfo,
     );
-    
+
     // Use cases
     getNotifications = GetNotifications(notificationRepository);
     markAsRead = MarkAsRead(notificationRepository);
     markAllAsRead = MarkAllAsRead(notificationRepository);
     listenForNotifications = ListenForNotifications(notificationRepository);
     deleteNotification = DeleteNotificationUseCase(notificationRepository);
-    
+
     // Initialize push notification service
     pushNotificationService = PushNotificationService();
     await pushNotificationService.initialize();
-    
+
     // BLOCs
     notificationBloc = NotificationBloc(
       getNotifications: getNotifications,
@@ -112,7 +110,7 @@ class ServiceLocator {
     );
     searchBloc = SearchBloc();
   }
-  
+
   /// Dispose of resources when app is closed
   void dispose() {
     notificationBloc.close();

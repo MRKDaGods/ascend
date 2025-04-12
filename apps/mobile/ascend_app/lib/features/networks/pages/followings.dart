@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/follow_button.dart';
 import 'package:ascend_app/features/networks/model/followed_user.dart';
 

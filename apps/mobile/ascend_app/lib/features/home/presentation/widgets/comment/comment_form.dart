@@ -13,7 +13,7 @@ class CommentForm extends StatelessWidget {
   final VoidCallback? onCancelReply;
 
   const CommentForm({
-    Key? key,
+    super.key,
     required this.controller,
     this.focusNode,
     required this.onSubmit,
@@ -23,7 +23,7 @@ class CommentForm extends StatelessWidget {
     this.userName, // Add to constructor
     this.replyingTo,
     this.onCancelReply,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +52,13 @@ class CommentForm extends StatelessWidget {
                   if (onCancelReply != null)
                     TextButton(
                       onPressed: onCancelReply,
-                      child: const Text('Cancel'),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         textStyle: const TextStyle(fontSize: 12.0),
                       ),
+                      child: const Text('Cancel'),
                     ),
                 ],
               ),
@@ -66,10 +66,7 @@ class CommentForm extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              UserAvatar(
-                imageUrl: userAvatarUrl,
-                radius: 16,
-              ),
+              UserAvatar(imageUrl: userAvatarUrl, radius: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
@@ -77,9 +74,10 @@ class CommentForm extends StatelessWidget {
                   focusNode: focusNode,
                   onTap: onTap,
                   decoration: InputDecoration(
-                    hintText: replyingTo != null
-                        ? 'Reply to $replyingTo...'
-                        : (hintText ?? 'Add a comment as $displayName...'),
+                    hintText:
+                        replyingTo != null
+                            ? 'Reply to $replyingTo...'
+                            : (hintText ?? 'Add a comment as $displayName...'),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                       borderSide: BorderSide.none,

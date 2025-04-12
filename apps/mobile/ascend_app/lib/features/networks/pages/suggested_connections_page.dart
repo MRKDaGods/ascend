@@ -1,6 +1,5 @@
 import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
 
 class SuggestedConnectionsPage extends StatefulWidget {

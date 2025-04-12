@@ -18,7 +18,7 @@ import 'package:ascend_app/features/networks/pages/suggested_connections_page.da
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 
 class Grow extends StatefulWidget {
-  const Grow({Key? key}) : super(key: key);
+  const Grow({super.key});
 
   @override
   _GrowState createState() => _GrowState();

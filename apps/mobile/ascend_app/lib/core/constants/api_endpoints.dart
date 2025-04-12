@@ -36,7 +36,7 @@ class ApiEndpoints {
   static const String connectionResponse = '/response';
   static const String connectionList = '/connections';
   static const String deleteConnection = '/';
-  static const String connectionPending = '${connectionList}/pending';
+  static const String connectionPending = '$connectionList/pending';
 
   // message request specific endpoints
   static const String messageRequest = '/message-request';

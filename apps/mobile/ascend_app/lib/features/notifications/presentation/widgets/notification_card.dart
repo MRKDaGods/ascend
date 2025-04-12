@@ -10,21 +10,22 @@ class NotificationCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const NotificationCard({
-    Key? key,
+    super.key,
     required this.notification,
     required this.onTap,
     this.onMarkAsRead,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       elevation: 0,
-      color: notification.isRead 
-          ? null 
-          : Theme.of(context).colorScheme.primary.withOpacity(0.05),
+      color:
+          notification.isRead
+              ? null
+              : Theme.of(context).colorScheme.primary.withOpacity(0.05),
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -34,9 +35,9 @@ class NotificationCard extends StatelessWidget {
             children: [
               // Left: Avatar or Icon
               _buildLeadingWidget(),
-              
+
               const SizedBox(width: 12),
-              
+
               // Center: Content
               Expanded(
                 child: Column(
@@ -49,7 +50,9 @@ class NotificationCard extends StatelessWidget {
                           children: [
                             TextSpan(
                               text: notification.senderName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             TextSpan(text: ' ${notification.title}'),
                           ],
@@ -68,9 +71,9 @@ class NotificationCard extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                    
+
                     const SizedBox(height: 4),
-                    
+
                     // Message body
                     Text(
                       notification.message,
@@ -79,21 +82,23 @@ class NotificationCard extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Timestamp
                     Text(
                       DateFormatter.formatRelativeTime(notification.createdAt),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               // Right: Actions
               if (!notification.isRead || onDelete != null)
                 Column(
@@ -127,16 +132,13 @@ class NotificationCard extends StatelessWidget {
   Widget _buildLeadingWidget() {
     // If notification has a sender avatar, show it
     if (notification.senderAvatarUrl != null) {
-      return UserAvatar(
-        imageUrl: notification.senderAvatarUrl,
-        radius: 20,
-      );
+      return UserAvatar(imageUrl: notification.senderAvatarUrl, radius: 20);
     }
-    
+
     // Otherwise show an icon based on notification type
     IconData iconData;
     Color iconColor;
-    
+
     switch (notification.type) {
       case 'comment':
         iconData = Icons.comment;
@@ -162,15 +164,11 @@ class NotificationCard extends StatelessWidget {
         iconData = Icons.notifications;
         iconColor = Colors.grey;
     }
-    
+
     return CircleAvatar(
       radius: 20,
       backgroundColor: iconColor.withOpacity(0.1),
-      child: Icon(
-        iconData,
-        color: iconColor,
-        size: 20,
-      ),
+      child: Icon(iconData, color: iconColor, size: 20),
     );
   }
 }

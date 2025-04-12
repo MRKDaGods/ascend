@@ -1,6 +1,5 @@
 import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/utils/enums.dart';
 import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 
