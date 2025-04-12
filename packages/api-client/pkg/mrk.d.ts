@@ -159,13 +159,18 @@ declare class NotificationService {
      * @returns An array of notifications
      * @throws Error if the retrieval fails
      */
-    getNotifications(): Promise<Notification[]>;
+    getNotifications(page?: number): Promise<Notification[]>;
     /**
      * Marks a notification as read
      * @param notificationId - The ID of the notification to mark as read
      * @throws Error if the update fails
      */
     markNotificationAsRead(notificationId: number): Promise<void>;
+    /**
+     * Deletes a notification
+     * @param notificationId - The ID of the notification to delete
+     * @throws Error if the deletion fails
+     */
     deleteNotification(notificationId: number): Promise<void>;
 }
 export {};

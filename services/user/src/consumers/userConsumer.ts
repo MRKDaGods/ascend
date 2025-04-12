@@ -1,9 +1,14 @@
 import {
   checkProfileExists,
   createOrUpdateProfile,
+  getProfile,
   getUserProfilePictureURL,
 } from "../services/userService";
-import { UserCreatedPayload, UserProfilePicPayload } from "@shared/rabbitMQ";
+import {
+  UserCreatedPayload,
+  UserProfilePayload,
+  UserProfilePicPayload,
+} from "@shared/rabbitMQ";
 
 /**
  * Handles the user.created event
@@ -54,11 +59,42 @@ export const handleUserProfilePicRequestRPC = async (
     return null;
   }
 
-  console.log(`Retrieved profile picture for user ${user_id}: ${profilePicUrl}`);
+  console.log(
+    `Retrieved profile picture for user ${user_id}: ${profilePicUrl}`
+  );
 
   const response: UserProfilePicPayload.Response = {
     user_id,
     profile_pic_url: profilePicUrl,
+  };
+  return response;
+};
+
+/**
+ * Handles the user.profile_rpc event
+ **/
+export const handleGetUserProfileRequestRPC = async (
+  payload: UserProfilePayload.Request
+): Promise<UserProfilePayload.Response | null> => {
+  console.log("Received user.profile_rpc event:", payload);
+
+  const user_id = payload.user_id;
+  if (!user_id) {
+    console.error("Invalid user ID");
+    return null;
+  }
+
+  // Get the user's profile
+  const profile = await getProfile(user_id);
+  if (!profile) {
+    console.error(`Failed to retrieve profile for user ${user_id}`);
+    return null;
+  }
+
+  console.log(`Retrieved profile for user ${user_id}`);
+
+  const response: UserProfilePayload.Response = {
+    profile,
   };
   return response;
 };
