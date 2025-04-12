@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 
 Widget jobCard({
   required BuildContext context, // Added BuildContext parameter
@@ -22,7 +23,12 @@ Widget jobCard({
       ],
     ),
     child: GestureDetector(
-      onTap: onTap, // Trigger the callback when the card is tapped
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => JobDetailsPage(job: job)),
+        );
+      }, // Trigger the callback when the card is tapped
       child: Container(
         color:
             isDarkMode ? const Color.fromARGB(255, 29, 34, 38) : Colors.white,
