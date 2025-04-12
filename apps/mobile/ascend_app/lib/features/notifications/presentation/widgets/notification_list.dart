@@ -20,6 +20,9 @@ class NotificationList extends StatelessWidget {
   
   /// The scroll controller to use
   final ScrollController? scrollController;
+  
+  /// Optional filter to only show certain notification types
+  final String? filterType;
 
   const NotificationList({
     Key? key,
@@ -27,6 +30,7 @@ class NotificationList extends StatelessWidget {
     this.onLoadMore,
     this.maxNotifications,
     this.scrollController,
+    this.filterType,
   }) : super(key: key);
 
   @override
@@ -34,14 +38,23 @@ class NotificationList extends StatelessWidget {
     // Using BlocBuilder to react to notification state changes
     return BlocBuilder<NotificationBloc, NotificationState>(
       builder: (context, state) {
-        // Determine the list of notifications and loading state from BLoC state
+        // Initialize lists and flags
         List<entity.Notification> notifications = [];
         bool isLoading = false;
         
+        // Update from state
         if (state is NotificationLoading) {
           isLoading = true;
         } else if (state is NotificationLoaded) {
-          notifications = state.notifications;
+          // If a filter type is provided, filter the notifications
+          if (filterType != null) {
+            notifications = state.notifications
+                .where((notification) => notification.type == filterType)
+                .toList();
+          } else {
+            // Otherwise show all notifications
+            notifications = state.notifications;
+          }
         }
         
         if (notifications.isEmpty) {
