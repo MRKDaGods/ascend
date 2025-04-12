@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Container, Typography, Divider } from '@mui/material';
 import JobTabs from './components/JobTabs';
 import JobCard, { JobStatus } from './components/JobCard';
-import { useJobStore } from './store/useJobStore';
+import { useJobStore } from '@/app/shared/store/useJobStore';
 
 interface Job {
   title: string;

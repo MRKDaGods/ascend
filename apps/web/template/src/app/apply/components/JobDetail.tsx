@@ -4,8 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { Typography, Box, Paper, Button } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useJobStore } from '../store/useJobStore';
 import SaveJobPopup from './SaveJobPopup';
+import { useJobStore } from '@/app/shared/store/useJobStore';
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Box mb={4}>

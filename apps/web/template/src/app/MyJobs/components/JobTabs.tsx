@@ -1,8 +1,7 @@
 'use client';
 import React from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
-import { useJobStore } from '../store/useJobStore';
-
+import { useJobStore } from '@/app/shared/store/useJobStore';
 type TabValue = 'Saved' | 'In Progress' | 'Applied' | 'Archived';
 const tabLabels: TabValue[] = ['Saved', 'In Progress', 'Applied', 'Archived'];
 

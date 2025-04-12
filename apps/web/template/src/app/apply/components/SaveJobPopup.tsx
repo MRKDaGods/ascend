@@ -2,7 +2,8 @@
 import { Snackbar, Alert, Box, Typography, Avatar, Link, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useRouter } from 'next/navigation';
-import { useJobStore } from '../store/useJobStore';
+import { useJobStore } from '@/app/shared/store/useJobStore';
+
 
 const SaveJobPopup = () => {
   const { savedJobPopupOpen, setSavedJobPopupOpen } = useJobStore();
