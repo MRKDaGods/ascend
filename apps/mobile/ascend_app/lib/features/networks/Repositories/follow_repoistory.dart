@@ -76,7 +76,6 @@ class FollowRepoistory {
   }) async {
     try {
       final token = 'your_token_here';
-
       final uri = Uri.parse(
         '${ApiBases.Connection_Base}${ApiEndpoints.follow}',
       ).replace(

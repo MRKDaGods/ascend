@@ -6,7 +6,12 @@ import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.d
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
+import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/model/followed_user.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/pages/blocked_page.dart';
 
 class ManageMyNetwork extends StatelessWidget {
   final List<ConnectedUser> connections;
@@ -28,7 +33,7 @@ class ManageMyNetwork extends StatelessWidget {
         ),
       ),
       body: ListView.separated(
-        itemCount: 7, // Number of ListTiles
+        itemCount: 6, // Number of ListTiles
         itemBuilder: (context, index) {
           if (index == 0) {
             return ListTile(
@@ -136,17 +141,32 @@ class ManageMyNetwork extends StatelessWidget {
               ),
               onTap: () {},
             );
+          } else if (index == 6) {
+            return ListTile(
+              leading: Icon(Icons.block),
+              title: Text(
+                'Blocked Users',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (_) => BlocProvider.value(
+                          value: BlocProvider.of<BlockBloc>(context),
+                          child: BlockedPage(),
+                        ),
+                  ),
+                );
+              },
+            );
           } else {
-            return SizedBox.shrink();
+            return SizedBox.shrink(); // Return an empty widget for other indices
           }
         },
         separatorBuilder:
-            (context, index) => Divider(
-              color: Colors.grey,
-              thickness: 1,
-              indent: 16,
-              endIndent: 16,
-            ),
+            (context, index) =>
+                Divider(color: Colors.grey[300], thickness: 1, height: 1),
       ),
     );
   }

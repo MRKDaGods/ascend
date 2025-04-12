@@ -68,9 +68,7 @@ class Connections extends StatelessWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.filter_list),
-                        onPressed: () {
-                          // Add filter functionality here
-                        },
+                        onPressed: () {},
                       ),
                     ],
                   ),

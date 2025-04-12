@@ -6,6 +6,7 @@ import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart
 class SingleFollow extends StatefulWidget {
   final UserSuggestedtoFollow user;
   final List<ConnectedUser> mutualUsers;
+  final Function(String) onSentMessageRequest;
   final int numFollowers;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
@@ -15,6 +16,7 @@ class SingleFollow extends StatefulWidget {
     super.key,
     required this.user,
     required this.mutualUsers,
+    required this.onSentMessageRequest,
     required this.numFollowers,
     required this.onFollow,
     required this.onUnfollow,
@@ -136,6 +138,7 @@ class _FollowState extends State<SingleFollow> {
                   ),
                 ),
               ),
+
               Positioned(
                 top: 150,
                 child: Column(

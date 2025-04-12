@@ -1,5 +1,7 @@
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
+import 'package:ascend_app/features/networks/model/connection_preferences.dart';
 import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,8 @@ import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart
 import 'package:uuid/uuid.dart';
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging/bloc/messaging_bloc.dart';
 
 class Grow extends StatefulWidget {
   const Grow({super.key});
@@ -151,6 +155,16 @@ class _GrowState extends State<Grow> {
                                               context,
                                             ),
                                       ),
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<
+                                          ConnectionPreferencesBloc
+                                        >(context),
+                                      ),
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<BlockBloc>(
+                                          context,
+                                        ),
+                                      ),
                                     ],
                                     child: ManageMyNetwork(
                                       connections: connections,
@@ -181,6 +195,11 @@ class _GrowState extends State<Grow> {
                           const SizedBox(height: 5),
                           PeopleToFollow(
                             users: suggestedUserstoFollow,
+                            onSentMessageRequest: (userId) {
+                              context.read<MessagingBloc>().add(
+                                SendMessageRequest(receiverId: userId),
+                              );
+                            },
                             onFollow: (userId) {
                               context.read<FollowBloc>().add(
                                 FollowUser(userId: userId),
@@ -221,7 +240,11 @@ class _GrowState extends State<Grow> {
                                         UnfollowUser(userId: userId),
                                       );
                                     },
-
+                                    onSentMessageRequest: (userId) {
+                                      context.read<MessagingBloc>().add(
+                                        SendMessageRequest(receiverId: userId),
+                                      );
+                                    },
                                     showAll: true,
                                   ),
                                 );
@@ -261,18 +284,14 @@ class _GrowState extends State<Grow> {
                           // Connection Suggestions widget
                           ConnectionSuggestions(
                             suggestedUsers: suggestedUserstoConnect,
+                            onSentMessageRequest: (userId) {
+                              context.read<MessagingBloc>().add(
+                                SendMessageRequest(receiverId: userId),
+                              );
+                            },
                             onSend: (userId) {
-                              final requestId = Uuid().v4();
                               context.read<ConnectionRequestBloc>().add(
-                                SendConnectionRequest(
-                                  connectionRequest: ConnectionRequestModel(
-                                    requestId: requestId,
-                                    senderId: "1",
-                                    receiverId: userId,
-                                    status: "pending",
-                                    timestamp: DateTime.now(),
-                                  ),
-                                ),
+                                SendConnectionRequest(connctionId: userId),
                               );
                             },
                             ShowAll: false,
@@ -297,15 +316,7 @@ class _GrowState extends State<Grow> {
                                               .read<ConnectionRequestBloc>()
                                               .add(
                                                 SendConnectionRequest(
-                                                  connectionRequest:
-                                                      ConnectionRequestModel(
-                                                        requestId: Uuid().v4(),
-                                                        senderId: "1",
-                                                        receiverId: userId,
-                                                        status: "pending",
-                                                        timestamp:
-                                                            DateTime.now(),
-                                                      ),
+                                                  connctionId: userId,
                                                 ),
                                               );
                                         },

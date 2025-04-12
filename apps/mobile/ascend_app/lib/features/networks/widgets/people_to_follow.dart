@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class PeopleToFollow extends StatefulWidget {
   final List<UserSuggestedtoFollow> users;
+  final Function(String) onSentMessageRequest;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
   final bool showAll;
@@ -12,6 +13,7 @@ class PeopleToFollow extends StatefulWidget {
   const PeopleToFollow({
     super.key,
     required this.users,
+    required this.onSentMessageRequest,
     required this.onFollow,
     required this.onUnfollow,
     required this.showAll,
@@ -72,6 +74,7 @@ class _PeopleToFollowState extends State<PeopleToFollow> {
                     key: ValueKey(user.user_id),
                     user: user,
                     mutualUsers: mutuals,
+                    onSentMessageRequest: widget.onSentMessageRequest,
                     numFollowers: 0, //user.num_followers,
                     onFollow: _handleFollow,
                     onUnfollow: widget.onUnfollow,

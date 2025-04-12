@@ -4,12 +4,14 @@ import 'package:ascend_app/features/networks/widgets/single_connection.dart';
 
 class ConnectionSuggestions extends StatefulWidget {
   final List<UserSuggestedtoConnect> suggestedUsers;
+  final Function(String) onSentMessageRequest;
   final Function(String) onSend;
   final bool ShowAll;
 
   const ConnectionSuggestions({
     super.key,
     required this.suggestedUsers,
+    required this.onSentMessageRequest,
     required this.onSend,
     required this.ShowAll,
   });
@@ -82,6 +84,7 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
           key: ValueKey(user.user_id!),
           user: user,
           onSend: _handleConnect,
+          onSentMessageRequest: widget.onSentMessageRequest,
           ShowAll: widget.ShowAll,
           isConnected: isConnected,
           onHide: (userId) {
