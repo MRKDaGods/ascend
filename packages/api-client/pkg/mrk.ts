@@ -346,4 +346,13 @@ class NotificationService {
   async markNotificationAsRead(notificationId: number): Promise<void> {
     return this.client.mark_notification_as_read(notificationId);
   }
+
+  /**
+   * Deletes a notification
+   * @param notificationId - The ID of the notification to delete
+   * @throws Error if the deletion fails
+   */
+  async deleteNotification(notificationId: number): Promise<void> {
+    return this.client.delete_notification(notificationId);
+  }
 }
