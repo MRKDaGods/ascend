@@ -33,8 +33,7 @@ export const useNotificationStore = create<NotificationStore>()(
         );
         set({
           notifications: updatedNotifications,
-          unreadCount: updatedNotifications.filter((n) => !n.is_read)
-            .length,
+          unreadCount: updatedNotifications.filter((n) => !n.is_read).length,
         });
       },
 
@@ -68,77 +67,63 @@ export const useNotificationStore = create<NotificationStore>()(
       },
 
       markAsUnread: async (id) => {
-        try {
-          const response = await fetch(
-            `http://localhost:5000/api/notifications/${id}`,
-            {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ is_read: false }),
-            }
-          );
+        api.notification
+          .markNotificationAsUnread(id)
+          .then(() => {
+            // Update Zustand state after API success
+            set((state) => {
+              const updatedNotifications = state.notifications.map((notif) =>
+                notif.id === id
+                  ? { ...notif, is_read: false /*seen: true*/ }
+                  : notif
+              );
 
-          if (!response.ok) throw new Error("Failed to mark as unread");
+              localStorage.setItem(
+                "notifications",
+                JSON.stringify(updatedNotifications)
+              );
 
-          set((state) => {
-            const updatedNotifications = state.notifications.map((notif) =>
-              notif.id === id ? { ...notif, is_read: false } : notif
-            );
-            localStorage.setItem(
-              "notifications",
-              JSON.stringify(updatedNotifications)
-            );
-            return {
-              notifications: updatedNotifications,
-              unreadCount: updatedNotifications.filter((n) => !n.is_read)
-                .length,
-            };
+              return {
+                notifications: updatedNotifications,
+                unreadCount: updatedNotifications.filter((n) => !n.is_read)
+                  .length,
+              };
+            });
+          })
+          .catch((error) => {
+            console.error("Error marking notification as unread:", error);
           });
-        } catch (error) {
-          console.error("Error marking notification as unread:", error);
-        }
       },
 
       deleteNotification: async (id) => {
-        try {
-          throw new Error("Not implemented yet");
-          // const response = await fetch(
-          //   `http://localhost:5000/api/notifications/${id}`,
-          //   {
-          //     method: "DELETE",
-          //   }
-          // );
+        api.notification
+          .deleteNotification(id)
+          .then(() => {
+            set((state) => {
+              const updatedNotifications = state.notifications.filter(
+                (notif) => notif.id !== id
+              );
 
-          // if (!response.ok) {
-          //   throw new Error(
-          //     `Failed to delete notification: ${response.statusText}`
-          //   );
-          // }
+              //  Store deleted IDs separately in localStorage
+              const deletedIds = JSON.parse(
+                localStorage.getItem("deletedNotifications") || "[]"
+              );
+              deletedIds.push(id);
+              localStorage.setItem(
+                "deletedNotifications",
+                JSON.stringify(deletedIds)
+              );
 
-          // set((state) => {
-          //   const updatedNotifications = state.notifications.filter(
-          //     (notif) => notif.id !== id
-          //   );
-
-          //   //  Store deleted IDs separately in localStorage
-          //   const deletedIds = JSON.parse(
-          //     localStorage.getItem("deletedNotifications") || "[]"
-          //   );
-          //   deletedIds.push(id);
-          //   localStorage.setItem(
-          //     "deletedNotifications",
-          //     JSON.stringify(deletedIds)
-          //   );
-
-          //   localStorage.setItem(
-          //     "notifications",
-          //     JSON.stringify(updatedNotifications)
-          //   );
-          //   return { notifications: updatedNotifications };
-          // });
-        } catch (error) {
-          console.error("Error deleting notification:", error);
-        }
+              localStorage.setItem(
+                "notifications",
+                JSON.stringify(updatedNotifications)
+              );
+              return { notifications: updatedNotifications };
+            });
+          })
+          .catch((error) => {
+            console.error("Error deleting notification:", error);
+          });
       },
 
       setHydrated: (hydrated) => {

@@ -13,36 +13,17 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Home, People, Work, Chat, Notifications } from "@mui/icons-material";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  profilePhoto: string;
-  role: string;
-  entity: string;
-}
+import { useProfileStore } from "../store/useProfileStore";
+import { api } from "../../api";
 
 const Navbar: React.FC = () => {
-  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const { userData } = useProfileStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isClient, setIsClient] = useState(false);
   const open = Boolean(anchorEl);
 
   useEffect(() => {
     setIsClient(true); // Prevents SSR mismatch
-
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/user");
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const data: UserProfile = await response.json();
-        setUserData(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
   }, []);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -53,7 +34,28 @@ const Navbar: React.FC = () => {
     setAnchorEl(null);
   };
 
+  const handleLogout = async () => {
+    try {
+      await api.auth.logout();
+      window.location.reload(); // Reload page after logout
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    setAnchorEl(null);
+  };
+
   if (!isClient) return null; // Prevents SSR-related hydration issues
+
+  // Get current company/role from experiences if available
+  const currentExperience = userData?.experience?.sort((a, b) => {
+    const dateA = a.end_date ? new Date(a.end_date) : new Date();
+    const dateB = b.end_date ? new Date(b.end_date) : new Date();
+    return dateB.getTime() - dateA.getTime();
+  })[0];
+
+  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "";
+  const currentRole = currentExperience?.position || "";
+  const currentCompany = currentExperience?.company || "";
 
   return (
     <AppBar position="fixed" color="default" sx={{ boxShadow: 1 }}>
@@ -76,22 +78,24 @@ const Navbar: React.FC = () => {
         {userData ? (
           <>
             <IconButton onClick={handleMenuOpen}>
-              <Avatar src={userData.profilePhoto || "/default-avatar.jpg"} alt={userData.name} />
+              <Avatar src={userData.profile_picture_url || "/default-avatar.jpg"} alt={fullName} />
             </IconButton>
             <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
               <MenuItem disabled>
                 <Typography variant="body1" fontWeight="bold">
-                  {userData.name}
+                  {fullName}
                 </Typography>
               </MenuItem>
-              <MenuItem disabled>
-                <Typography variant="body2" color="text.secondary">
-                  {userData.role} at {userData.entity}
-                </Typography>
-              </MenuItem>
+              {currentRole && currentCompany && (
+                <MenuItem disabled>
+                  <Typography variant="body2" color="text.secondary">
+                    {currentRole} at {currentCompany}
+                  </Typography>
+                </MenuItem>
+              )}
               <MenuItem onClick={handleMenuClose}>View Profile</MenuItem>
               <MenuItem onClick={handleMenuClose}>Settings & Privacy</MenuItem>
-              <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>
           </>
         ) : (
