@@ -11,7 +11,7 @@ class PostReactionsPopup extends StatelessWidget {
   final bool isComment;
 
   const PostReactionsPopup({
-    super.key,
+    Key? key,
     this.reactionIcons,
     this.reactionColors,
     this.manager,
@@ -21,7 +21,8 @@ class PostReactionsPopup extends StatelessWidget {
   }) : assert(
          (reactionIcons != null && reactionColors != null) || manager != null,
          'Either provide both reactionIcons and reactionColors, or provide a manager',
-       );
+       ),
+       super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -97,12 +98,12 @@ class ReactionOption extends StatefulWidget {
   final VoidCallback onTap;
 
   const ReactionOption({
-    super.key,
+    Key? key,
     required this.reactionType,
     required this.icon,
     required this.color,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   State<ReactionOption> createState() => _ReactionOptionState();

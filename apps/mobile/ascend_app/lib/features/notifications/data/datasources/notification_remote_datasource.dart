@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../models/notification_model.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -9,28 +10,28 @@ import '../../../../core/constants/api_endpoints.dart';
 abstract class NotificationRemoteDataSource {
   /// Gets all notifications for the current user from the API
   Future<List<NotificationModel>> getNotifications();
-
+  
   /// Gets a specific notification by ID
   Future<NotificationModel?> getNotificationById(String id);
-
+  
   /// Marks a notification as read on the server
   Future<void> markAsRead(String id);
-
+  
   /// Marks all notifications as read on the server
   Future<void> markAllAsRead();
-
+  
   /// Deletes a notification from the server
   Future<void> deleteNotification(String id);
-
+  
   /// Registers device token with the backend for push notifications
   Future<void> registerDeviceToken(String token);
-
+  
   /// Unregisters device token when the user logs out
   Future<void> unregisterDeviceToken(String token);
-
+  
   /// Sends a test notification (useful for development)
   Future<void> sendTestNotification();
-
+  
   /// Gets count of unread notifications
   Future<int> getUnreadCount();
 }
@@ -80,8 +81,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
           NotificationModel(
             id: '3',
             title: 'Job opportunity',
-            message:
-                'New job matching your profile: Flutter Developer at Google',
+            message: 'New job matching your profile: Flutter Developer at Google',
             createdAt: DateTime.now().subtract(const Duration(hours: 5)),
             isRead: false,
             type: 'Jobs',
@@ -97,16 +97,13 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}'),
         headers: headers,
       );
-
+      
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body) as Map<String, dynamic>;
         final data = jsonData['data'] as List<dynamic>;
-
+        
         return data
-            .map(
-              (item) =>
-                  NotificationModel.fromJson(item as Map<String, dynamic>),
-            )
+            .map((item) => NotificationModel.fromJson(item as Map<String, dynamic>))
             .toList();
       } else {
         throw ServerException(
@@ -120,7 +117,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<NotificationModel?> getNotificationById(String id) async {
     try {
@@ -128,11 +125,11 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}/$id'),
         headers: headers,
       );
-
+      
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body) as Map<String, dynamic>;
         final data = jsonData['data'] as Map<String, dynamic>;
-
+        
         return NotificationModel.fromJson(data);
       } else if (response.statusCode == 404) {
         return null; // Notification not found
@@ -148,7 +145,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<void> markAsRead(String id) async {
     try {
@@ -156,7 +153,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}/$id/read'),
         headers: headers,
       );
-
+      
       if (response.statusCode != 200) {
         throw ServerException(
           message: 'Failed to mark notification as read',
@@ -169,7 +166,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<void> markAllAsRead() async {
     try {
@@ -177,7 +174,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}/read-all'),
         headers: headers,
       );
-
+      
       if (response.statusCode != 200) {
         throw ServerException(
           message: 'Failed to mark all notifications as read',
@@ -190,7 +187,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<void> deleteNotification(String id) async {
     try {
@@ -198,7 +195,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}/$id'),
         headers: headers,
       );
-
+      
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw ServerException(
           message: 'Failed to delete notification',
@@ -211,7 +208,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<void> registerDeviceToken(String token) async {
     try {
@@ -220,7 +217,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         headers: headers,
         body: json.encode({'token': token}),
       );
-
+      
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
           message: 'Failed to register device token',
@@ -233,7 +230,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<void> unregisterDeviceToken(String token) async {
     try {
@@ -241,7 +238,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.deviceTokens}/$token'),
         headers: headers,
       );
-
+      
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw ServerException(
           message: 'Failed to unregister device token',
@@ -254,7 +251,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<void> sendTestNotification() async {
     try {
@@ -262,7 +259,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}/test'),
         headers: headers,
       );
-
+      
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw ServerException(
           message: 'Failed to send test notification',
@@ -275,7 +272,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       );
     }
   }
-
+  
   @override
   Future<int> getUnreadCount() async {
     try {
@@ -283,7 +280,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
         Uri.parse('$baseUrl${ApiEndpoints.notifications}/unread-count'),
         headers: headers,
       );
-
+      
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body) as Map<String, dynamic>;
         return jsonData['count'] as int? ?? 0;

@@ -16,14 +16,14 @@ class CommentDetailPage extends StatefulWidget {
   final String postId; // Add postId to find the post in the state
 
   const CommentDetailPage({
-    super.key,
+    Key? key,
     required this.parentComment,
     this.replyingTo,
     required this.onAddReply,
     this.onReaction,
     required this.currentUserId,
     required this.postId,
-  });
+  }) : super(key: key);
 
   @override
   State<CommentDetailPage> createState() => _CommentDetailPageState();
@@ -35,7 +35,7 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
 
   late Comment _currentParentComment;
   Comment? _replyingTo;
-  // Add a flag to toggle replies visibility
+// Add a flag to toggle replies visibility
 
   @override
   void initState() {
@@ -97,29 +97,25 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                             onReaction: widget.onReaction,
                           ),
                           if (updatedParentComment.replies.isNotEmpty) ...[
-                            ...List.generate(
-                              updatedParentComment.replies.length,
-                              (index) {
-                                final reply =
-                                    updatedParentComment.replies[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 40.0),
-                                  child: CommentItem(
-                                    comment: reply,
-                                    showReplies: false,
-                                    isCurrentUser:
-                                        reply.authorId == widget.currentUserId,
-                                    onReaction: widget.onReaction,
-                                    onReply: (commentId) {
-                                      setState(() {
-                                        _replyingTo = reply;
-                                      });
-                                      _replyFocusNode.requestFocus();
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
+                            
+                            ...List.generate(updatedParentComment.replies.length, (index) {
+                              final reply = updatedParentComment.replies[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 40.0),
+                                child: CommentItem(
+                                  comment: reply,
+                                  showReplies: false,
+                                  isCurrentUser: reply.authorId == widget.currentUserId,
+                                  onReaction: widget.onReaction,
+                                  onReply: (commentId) {
+                                    setState(() {
+                                      _replyingTo = reply;
+                                    });
+                                    _replyFocusNode.requestFocus();
+                                  },
+                                ),
+                              );
+                            }),
                           ],
                         ],
                       ),

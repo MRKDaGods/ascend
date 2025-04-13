@@ -21,9 +21,12 @@ import 'package:ascend_app/features/home/presentation/pages/comment_detail_page.
 
 class PostDetailPage extends StatefulWidget {
   final String postId;
-
-  const PostDetailPage({super.key, required this.postId});
-
+  
+  const PostDetailPage({
+    Key? key,
+    required this.postId,
+  }) : super(key: key);
+  
   @override
   State<PostDetailPage> createState() => _PostDetailPageState();
 }
@@ -32,14 +35,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   final GlobalKey _reactionButtonKey = GlobalKey();
-
+  
   @override
   void dispose() {
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PostBloc, PostState>(
@@ -49,21 +52,20 @@ class _PostDetailPageState extends State<PostDetailPage> {
             (p) => p.id == widget.postId,
             orElse: () => PostModel.empty(),
           );
-
+          
           return BlocBuilder<UserProfileBloc, UserProfileState>(
             builder: (context, profileState) {
-              final userProfile =
-                  profileState is UserProfileLoaded
-                      ? profileState.profile
-                      : UserProfileModel.empty();
-
+              final userProfile = profileState is UserProfileLoaded 
+                  ? profileState.profile 
+                  : UserProfileModel.empty();
+              
               if (post.id.isEmpty) {
                 return Scaffold(
                   appBar: AppBar(title: const Text('Post not found')),
                   body: const Center(child: Text('Post not found')),
                 );
               }
-
+              
               return Scaffold(
                 appBar: AppBar(
                   title: const Text('Post'),
@@ -91,25 +93,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 followers: post.followers,
                                 onOptionsPressed: () {},
                                 onHidePost: (reason) {
-                                  context.read<PostBloc>().add(
-                                    HidePost(post.id, reason),
-                                  );
+                                  context.read<PostBloc>().add(HidePost(post.id, reason));
                                 },
                               ),
                             ),
-
+                            
                             // Post content
                             if (post.description.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                 child: PostContent(
                                   title: post.title,
                                   description: post.description,
                                 ),
                               ),
-
+                            
                             // Post images
                             if (post.images.isNotEmpty)
                               PostImageSection(
@@ -119,23 +117,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder:
-                                          (_) => FullScreenImageViewer(
-                                            images: post.images,
-                                            initialIndex: index,
-                                            postId: post.id,
-                                          ),
+                                      builder: (_) => FullScreenImageViewer(
+                                        images: post.images,
+                                        initialIndex: index,
+                                        postId: post.id,
+                                      ),
                                     ),
                                   );
                                 },
                               ),
-
+                            
                             // Engagement stats
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 8.0,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                               child: PostEngagementStats(
                                 likesCount: post.likesCount,
                                 commentsCount: post.commentsCount,
@@ -144,17 +138,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 postId: post.id,
                               ),
                             ),
-
+                            
                             const Divider(height: 1),
-
+                            
                             // Action buttons
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   // Like/React button
                                   ReactionButton(
@@ -166,32 +157,22 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       context: context,
                                     ),
                                     onLongPressStart: () {
-                                      final RenderBox box =
-                                          _reactionButtonKey.currentContext!
-                                                  .findRenderObject()
-                                              as RenderBox;
-                                      final position = box.localToGlobal(
-                                        Offset.zero,
-                                      );
-
+                                      final RenderBox box = _reactionButtonKey.currentContext!
+                                          .findRenderObject() as RenderBox;
+                                      final position = box.localToGlobal(Offset.zero);
+                                      
                                       ReactionUtils.showReactionsPopup(
                                         context: context,
                                         position: position,
                                         itemId: post.id,
                                         isComment: false,
-                                        onReactionSelected:
-                                            (id, reaction) =>
-                                                context.read<PostBloc>().add(
-                                                  TogglePostReaction(
-                                                    id,
-                                                    reaction,
-                                                  ),
-                                                ),
+                                        onReactionSelected: (id, reaction) => 
+                                          context.read<PostBloc>().add(TogglePostReaction(id, reaction)),
                                       );
                                     },
                                     onLongPressEnd: () {},
                                   ),
-
+                                  
                                   // Comment button
                                   PostActionButton(
                                     icon: Icons.comment_outlined,
@@ -200,7 +181,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       _commentFocusNode.requestFocus();
                                     },
                                   ),
-
+                                  
                                   // Share button
                                   PostActionButton(
                                     icon: Icons.share_outlined,
@@ -210,9 +191,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 ],
                               ),
                             ),
-
+                            
                             const Divider(),
-
+                            
                             // Comments section - Using PostCommentsSection widget
                             Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -225,10 +206,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 currentUserId: userProfile.id,
                                 onCommentsChanged: (updatedComments) {
                                   context.read<PostBloc>().add(
-                                    UpdatePostComments(
-                                      post.id,
-                                      updatedComments,
-                                    ),
+                                    UpdatePostComments(post.id, updatedComments)
                                   );
                                 },
                                 onTapCommentArea: () {
@@ -236,11 +214,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 },
                                 onReaction: (commentId, reactionType) {
                                   context.read<PostBloc>().add(
-                                    ToggleCommentReaction(
-                                      post.id,
-                                      commentId,
-                                      reactionType,
-                                    ),
+                                    ToggleCommentReaction(post.id, commentId, reactionType)
                                   );
                                 },
                                 onNavigateToReply: (parentComment, replyingTo) {
@@ -248,37 +222,28 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder:
-                                          (context) => CommentDetailPage(
-                                            parentComment: parentComment,
-                                            replyingTo: replyingTo,
-                                            currentUserId: userProfile.id,
-                                            onAddReply: (text, parentId) {
-                                              context.read<PostBloc>().add(
-                                                AddCommentReply(
-                                                  post.id,
-                                                  parentId,
-                                                  text,
-                                                  userProfile.id,
-                                                  userProfile.name,
-                                                  userProfile.avatarUrl,
-                                                ),
-                                              );
-                                            },
-                                            onReaction: (
-                                              commentId,
-                                              reactionType,
-                                            ) {
-                                              context.read<PostBloc>().add(
-                                                ToggleCommentReaction(
-                                                  post.id,
-                                                  commentId,
-                                                  reactionType,
-                                                ),
-                                              );
-                                            },
-                                            postId: '',
-                                          ),
+                                      builder: (context) => CommentDetailPage(
+                                        parentComment: parentComment,
+                                        replyingTo: replyingTo,
+                                        currentUserId: userProfile.id,
+                                        onAddReply: (text, parentId) {
+                                          context.read<PostBloc>().add(
+                                            AddCommentReply(
+                                              post.id,
+                                              parentId,
+                                              text,
+                                              userProfile.id,
+                                              userProfile.name,
+                                              userProfile.avatarUrl,
+                                            )
+                                          );
+                                        },
+                                        onReaction: (commentId, reactionType) {
+                                          context.read<PostBloc>().add(
+                                            ToggleCommentReaction(post.id, commentId, reactionType)
+                                          );
+                                        }, postId: '',
+                                      ),
                                     ),
                                   );
                                 },
@@ -293,7 +258,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         userProfile.id,
                                         userProfile.name,
                                         userProfile.avatarUrl,
-                                      ),
+                                      )
                                     );
                                   } else {
                                     // Adding a reply
@@ -305,7 +270,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         userProfile.id,
                                         userProfile.name,
                                         userProfile.avatarUrl,
-                                      ),
+                                      )
                                     );
                                   }
                                 },
@@ -318,10 +283,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ],
                 ),
               );
-            },
+            }
           );
         }
-
+        
         return Scaffold(
           appBar: AppBar(title: const Text('Loading...')),
           body: const Center(child: CircularProgressIndicator()),
@@ -329,13 +294,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
       },
     );
   }
-
+  
   IconData _getReactionIcon(PostModel post) {
     if (!post.isLiked) return Icons.thumb_up_outlined;
-    return ReactionManager.reactionIcons[post.currentReaction] ??
-        Icons.thumb_up;
+    return ReactionManager.reactionIcons[post.currentReaction] ?? Icons.thumb_up;
   }
-
+  
   Color _getReactionColor(PostModel post) {
     if (!post.isLiked) return Colors.grey;
     return ReactionManager.reactionColors[post.currentReaction] ?? Colors.blue;

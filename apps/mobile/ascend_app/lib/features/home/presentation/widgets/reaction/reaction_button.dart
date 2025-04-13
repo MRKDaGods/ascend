@@ -6,25 +6,24 @@ class ReactionButton extends StatefulWidget {
   final VoidCallback onLongPressStart;
   final VoidCallback onLongPressEnd;
   final VoidCallback? onTap;
-
+  
   const ReactionButton({
-    super.key,
+    Key? key,
     required this.manager,
     required this.onLongPressStart,
     required this.onLongPressEnd,
     this.onTap,
-  });
-
+  }) : super(key: key);
+  
   @override
   State<ReactionButton> createState() => _ReactionButtonState();
 }
 
-class _ReactionButtonState extends State<ReactionButton>
-    with SingleTickerProviderStateMixin {
+class _ReactionButtonState extends State<ReactionButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _slideUpAnimation;
   bool _isLongPressed = false;
-
+  
   @override
   void initState() {
     super.initState();
@@ -32,19 +31,22 @@ class _ReactionButtonState extends State<ReactionButton>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
-
+    
     _slideUpAnimation = Tween<double>(
       begin: 0.0,
       end: -10.0, // How far up the icon moves when pressed
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
   }
-
+  
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -100,17 +102,14 @@ class _ReactionButtonState extends State<ReactionButton>
               );
             },
           ),
-
+          
           if (_isLongPressed) ...[
             const SizedBox(width: 8),
             Text(
               widget.manager.getCurrentReactionLabel(),
               style: TextStyle(
                 color: widget.manager.getCurrentReactionColor(),
-                fontWeight:
-                    widget.manager.isLiked
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                fontWeight: widget.manager.isLiked ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],

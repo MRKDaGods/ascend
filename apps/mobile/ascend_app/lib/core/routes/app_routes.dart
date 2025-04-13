@@ -8,14 +8,13 @@ import '../../features/StartPages/welcome.dart';
 class RouteNames {
   // Private constructor to prevent instantiation
   RouteNames._();
-
+  
   // Route name constants
   static const String welcome = '/welcome';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
   static const String settings = '/settings';
-  static const String networks = '/networks';
   // Add more routes as needed
 }
 
@@ -23,10 +22,10 @@ class RouteNames {
 class AppRoutes {
   // Private constructor to prevent instantiation
   AppRoutes._();
-
+  
   /// The initial route when the app starts
   static const String initialRoute = '/';
-
+  
   /// Route definitions for MaterialApp
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -35,21 +34,21 @@ class AppRoutes {
       // Add more routes as needed
     };
   }
-
+  
   /// Get the initial page widget for the app
   static Widget getInitialPage() {
     // You can add logic here to determine the initial page
     // based on authentication state or first-time user, etc.
     return const SplashScreen();
   }
-
+  
   /// Handle dynamic routes or complex navigation logic
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     // Handle routes that aren't defined in the routes map
     // or routes with dynamic parameters
-
+    
     final args = settings.arguments;
-
+    
     switch (settings.name) {
       case '/post-details':
         // Example of a dynamic route with parameters
@@ -60,20 +59,23 @@ class AppRoutes {
           );
         }
         return _errorRoute();
-
+        
       default:
         return _errorRoute();
     }
   }
-
+  
   /// Fallback for undefined routes
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(
-      builder:
-          (_) => Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: const Center(child: Text('Route not found')),
-          ),
+      builder: (_) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Error'),
+        ),
+        body: const Center(
+          child: Text('Route not found'),
+        ),
+      ),
     );
   }
 }
@@ -81,21 +83,28 @@ class AppRoutes {
 /// Example of a dynamic route page class
 class PostDetailsPage extends StatelessWidget {
   final String postId;
-
-  const PostDetailsPage({super.key, required this.postId});
-
+  
+  const PostDetailsPage({
+    Key? key,
+    required this.postId,
+  }) : super(key: key);
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Post Details')),
-      body: Center(child: Text('Post ID: $postId')),
+      appBar: AppBar(
+        title: const Text('Post Details'),
+      ),
+      body: Center(
+        child: Text('Post ID: $postId'),
+      ),
     );
   }
 }
 
 /// Splash screen widget
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
