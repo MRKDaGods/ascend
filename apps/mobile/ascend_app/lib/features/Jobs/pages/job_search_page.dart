@@ -1,28 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/Jobs/pages/Search_jobs.dart';
 
-class JobSearchPage extends StatelessWidget {
-  final VoidCallback toalljobs;
+class JobSearchPage extends StatefulWidget {
+  const JobSearchPage({super.key});
 
-  const JobSearchPage({super.key, required this.toalljobs});
+  @override
+  _JobSearchPageState createState() => _JobSearchPageState();
+}
 
+class _JobSearchPageState extends State<JobSearchPage> {
+  bool firstlocation =
+      true; // Flag to check if it's the first time the location is set
+  bool locationsearch = false;
+  // Flag to check if location search is active
   @override
   Widget build(BuildContext context) {
     final double searchBoxHeight =
         MediaQuery.of(context).size.height * 0.06; // 6% of screen height
+    TextEditingController searchController = TextEditingController();
+    TextEditingController locationController = TextEditingController();
+    if (firstlocation) {
+      firstlocation = false;
+      locationController.text = 'Egypt';
+    } // Set default location to Egypt
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         title: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: toalljobs, // Trigger the callback to navigate back
-            ),
             Expanded(
               child: SizedBox(
                 height: searchBoxHeight,
                 child: TextField(
+                  controller: searchController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search),
                     hintText: 'Search by title, skill, or company',
@@ -43,18 +54,26 @@ class JobSearchPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 10),
-            SizedBox(
-              height: searchBoxHeight,
+            Padding(
+              padding: const EdgeInsets.only(left: 50.0),
+              child: SizedBox(
+                height: searchBoxHeight,
+                child: TextField(
+                  controller: locationController,
 
-              child: TextField(
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.location_on),
-                  hintText: 'City, state, or zip code',
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
+                  onTap: () {
+                    setState(() {
+                      locationsearch = true;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.location_on),
+                    hintText: 'City, state, or zip code',
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
@@ -62,18 +81,40 @@ class JobSearchPage extends StatelessWidget {
             const SizedBox(height: 20),
             const Text('Try searching for', style: TextStyle(fontSize: 16)),
             const SizedBox(height: 10),
-            _buildSearchSuggestion('remote'),
-            _buildSearchSuggestion('marketing manager'),
-            _buildSearchSuggestion('hr'),
-            _buildSearchSuggestion('legal'),
-            _buildSearchSuggestion('sales'),
+            if (locationsearch) ...[
+              _buildSearchSuggestion(
+                'Cairo, Cairo, Egypt',
+                locationController,
+                context,
+              ),
+              _buildSearchSuggestion(
+                'Cairo, Egypt',
+                locationController,
+                context,
+              ),
+              _buildSearchSuggestion('Remote', locationController, context),
+            ] else ...[
+              _buildSearchSuggestion('remote', searchController, context),
+              _buildSearchSuggestion(
+                'marketing manager',
+                searchController,
+                context,
+              ),
+              _buildSearchSuggestion('hr', searchController, context),
+              _buildSearchSuggestion('legal', searchController, context),
+              _buildSearchSuggestion('sales', searchController, context),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSearchSuggestion(String text) {
+  Widget _buildSearchSuggestion(
+    String text,
+    TextEditingController controller,
+    BuildContext context,
+  ) {
     return ListTile(
       leading: const Icon(Icons.search),
       title: Text(
@@ -82,8 +123,11 @@ class JobSearchPage extends StatelessWidget {
       ),
       trailing: const Icon(Icons.arrow_forward),
       onTap: () {
-        // Handle search suggestion tap
-        print('Search suggestion tapped: $text');
+        controller.text = text;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchJobsPage()),
+        );
       },
     );
   }
