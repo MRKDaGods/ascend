@@ -31,19 +31,15 @@ class ProfileOptionsSheet extends StatelessWidget {
             Container(
               width: double.infinity, // Full width background
               height: 35, // Slightly taller to match reference
-              color: const Color.fromARGB(
-                255,
-                27,
-                27,
-                27,
-              ), // Slightly darker background
+              // Slightly darker background
             ),
             Center(
               child: Container(
                 width: 54, // Proper width as in the reference image
                 height: 7, // Slightly thicker
                 decoration: BoxDecoration(
-                  color: Colors.white, // Drag handle color
+                  color: Colors.grey[400], // Drag handle color
+                  // Drag handle color
                   borderRadius: BorderRadius.circular(3), // Rounded edges
                 ),
                 margin: const EdgeInsets.symmetric(
@@ -137,8 +133,8 @@ class ProfileOptionsSheet extends StatelessWidget {
     dynamic onTap,
   ) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(text, style: const TextStyle(color: Colors.white)),
+      leading: Icon(icon),
+      title: Text(text),
       onTap: () {
         Navigator.pop(context);
         if (onTap != null) {

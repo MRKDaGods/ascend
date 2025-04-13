@@ -1,0 +1,2 @@
+C:/DDrive/College/ascend/apps/mobile/ascend_app/android/app/.cxx/RelWithDebInfo/1d6r4b5z/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/DDrive/College/ascend/apps/mobile/ascend_app/android/app/.cxx/RelWithDebInfo/1d6r4b5z/armeabi-v7a/CMakeFiles/rebuild_cache.dir
