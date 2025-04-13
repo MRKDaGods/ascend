@@ -32,6 +32,9 @@ jobs:
           echo "$PEM_KEY" > key.pem
           chmod 600 key.pem
 
+          echo "Adding host to known_hosts"
+          ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
+
           echo Copying deploy script
           # Copy the deploy.sh file to the VM
           scp -i key.pem deploy.sh $VM_USER@$VM_HOST:~/deploy.sh
