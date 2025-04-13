@@ -6,7 +6,7 @@ services:
     environment:
       # Service
       - SERVICE_NAME=gateway-reverse-proxy
-      - PROXY_TARGET=https://zany-carnival-xrv6w67px5xf9p4w-8080.app.github.dev
+      - PROXY_TARGET=${REVERSE_PROXY_TARGET}
 
       # JWT
       - JWT_SECRET=${JWT_SECRET}
