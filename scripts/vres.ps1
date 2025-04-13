@@ -1,5 +1,3 @@
-cd ..
-
 # Ask for confirmation
 $confirmation = Read-Host "This will restore all Docker volumes from backups. Continue? (y/N)"
 if ($confirmation -ne 'y') {
@@ -7,8 +5,20 @@ if ($confirmation -ne 'y') {
     exit
 }
 
+# Ensure that we're in root
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PACKAGE_ROOT = Split-Path -Parent $SCRIPT_DIR
+
+Set-Location $PACKAGE_ROOT
+if (-not $?) {
+    Write-Host "Failed to navigate to package root"
+    exit 1
+}
+
+Write-Host "Working directory: $(Get-Location)"
+
 # Define volumes to restore
-$volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data", "ascend_rabbitmq_data")
+$volumes = @("ascend_minio_data", "ascend_pgadmin_data", "ascend_postgres_data")
 
 # Backup directory (Ensure it exists)
 $backupDir = "$PWD\docker_backups"

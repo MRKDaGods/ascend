@@ -8,10 +8,16 @@ if [[ "$confirmation" != "y" ]]; then
     exit
 fi
 
-cd ..
+# Ensure that we're in root
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+PACKAGE_ROOT=$(dirname "$SCRIPT_DIR")
+cd "$PACKAGE_ROOT" || {
+    echo "Failed to navigate to package root"
+    exit 1
+}
 
 # Define volumes to back up
-VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data" "ascend_rabbitmq_data")
+VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data")
 
 # Backup directory (Ensure it exists)
 BACKUP_DIR="$(pwd)/docker_backups"
