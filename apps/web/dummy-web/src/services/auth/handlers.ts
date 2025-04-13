@@ -1,6 +1,4 @@
-import { ApiClient } from "@ascend/api-client/mrk";
-
-const api = new ApiClient("http://127.0.0.1:8080");
+import { api } from "@/api";
 
 export async function handleLogin(email: string, password: string) {
   try {
@@ -122,16 +120,6 @@ export function getAuthToken() {
     return { success: true, token: currentToken };
   } catch (err: any) {
     return { success: false, error: err.toString() };
-  }
-}
-
-export async function initializeApi() {
-  try {
-    await api.initialize();
-    return { success: true };
-  } catch (error) {
-    console.error("Failed to initialize API client:", error);
-    return { success: false, error: error };
   }
 }
 

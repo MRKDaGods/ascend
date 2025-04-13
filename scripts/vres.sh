@@ -1,16 +1,24 @@
 #!/bin/bash
 
 # Ask for confirmation
-echo "This will restore all Docker volumes from backups. Continue? (y/N)"
-read -r confirmation
-if [[ "$confirmation" != "y" ]]; then
-    echo "Restore cancelled."
-    exit
+if [[ "$1" != "--skip" ]]; then
+    echo "This script will restore all Docker volumes from backups. Are you sure you want to continue? (y/N)"
+    read -r confirmation
+    if [[ "$confirmation" != "y" ]]; then
+        echo "Restore cancelled."
+        exit
+    fi
 fi
 
-cd ..
+# Ensure that we're in root
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+PACKAGE_ROOT=$(dirname "$SCRIPT_DIR")
+cd "$PACKAGE_ROOT" || {
+    echo "Failed to navigate to package root"
+    exit 1
+}
 
-VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data" "ascend_rabbitmq_data")
+VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data")
 
 # Backup directory
 BACKUP_DIR="$(pwd)/docker_backups"

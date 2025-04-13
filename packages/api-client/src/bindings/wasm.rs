@@ -191,4 +191,20 @@ impl WasmApiClient {
     ) -> Result<JsValue, JsValue> {
         wasm_wrap!(self.notification().mark_as_read(notification_id: i32))
     }
+
+    #[wasm_bindgen]
+    pub async fn mark_notification_as_unread(
+        &self,
+        notification_id: i32,
+    ) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.notification().mark_as_unread(notification_id: i32))
+    }
+
+    #[wasm_bindgen]
+    pub async fn delete_notification(
+        &self,
+        notification_id: i32,
+    ) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.notification().delete_notification(notification_id: i32))
+    }
 }
