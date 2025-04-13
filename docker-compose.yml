@@ -84,23 +84,6 @@ services:
     networks:
       - ascend-network
 
-  gateway-reverse-proxy:
-    build:
-      context: .
-      dockerfile: services/gateway-reverse-proxy/Dockerfile
-    environment:
-      # Service
-      - SERVICE_NAME=gateway-reverse-proxy
-      - PROXY_TARGET=https://zany-carnival-xrv6w67px5xf9p4w-8080.app.github.dev
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=80
-    ports:
-      - "80:80"
-
   auth:
     hostname: auth
     build:
