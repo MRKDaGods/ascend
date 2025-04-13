@@ -190,7 +190,9 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Stream<List<Notification>> watchNotifications() {
     // Start by fetching the latest notifications
     getNotifications().catchError((_) {
+      print( 'Error fetching notifications for stream');
       // Silently handle error - the stream will just not emit a new value
+      return <Notification>[];
     });
     
     return _notificationsStreamController.stream;
