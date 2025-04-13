@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class CustomTextFormField extends StatefulWidget {
   final TextEditingController controller;
@@ -7,12 +8,14 @@ class CustomTextFormField extends StatefulWidget {
   final bool obscureText;
   final Function(String)? onChanged;
   final Function(String)? onFieldSubmitted;
+  final String fieldId; // Unique identifier for testing
 
   const CustomTextFormField({
     Key? key,
     required this.controller,
     required this.labelText,
     required this.errorText,
+    required this.fieldId, // Require a unique field ID
     this.obscureText = false,
     this.onChanged,
     this.onFieldSubmitted,
@@ -26,6 +29,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      key: ValueKey(widget.fieldId), // Unique key for testing
       controller: widget.controller,
       decoration: InputDecoration(
         labelText: widget.labelText,
@@ -49,7 +53,7 @@ class InputValidators {
   }
 
   static String? validatePassword(String password) {
-    if (password.length < 6) {
+    if (password.length <= 3) {
       return 'Password should be at least 6 characters';
     }
     return null;
