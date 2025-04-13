@@ -37,11 +37,11 @@ jobs:
 
           echo Copying deploy script
           # Copy the deploy.sh file to the VM
-          scp -i key.pem deploy.sh $VM_USER@$VM_HOST:~/deploy.sh
+          scp -i key.pem -o StrictHostKeyChecking=no deploy.sh $VM_USER@$VM_HOST:~/deploy.sh
 
           echo SSH-ing into VM
           # SSH into the VM, add execute permissions, and run the script
-          ssh -i key.pem $VM_USER@$VM_HOST << 'EOF'
+          ssh -i key.pem -o StrictHostKeyChecking=no $VM_USER@$VM_HOST << 'EOF'
           cd ~
           chmod +x deploy.sh
           sudo ./deploy.sh
