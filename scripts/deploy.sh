@@ -1,5 +1,8 @@
 # !/bin/bash
 
+# Stop all running containers
+docker rm -f $(docker ps -aq)
+
 # Clone if needed
 if [ ! -d "ascend" ]; then
     echo "ascend directory not found. Cloning..."
