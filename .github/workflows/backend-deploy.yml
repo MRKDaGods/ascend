@@ -32,9 +32,6 @@ jobs:
           echo "$PEM_KEY" > key.pem
           chmod 600 key.pem
 
-          echo "Adding host to known_hosts"
-          ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
-
           echo "Testing SSH connectivity"
           ssh -i key.pem -o StrictHostKeyChecking=no -v $VM_USER@$VM_HOST exit
 
