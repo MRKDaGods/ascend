@@ -8,30 +8,30 @@ import '../bloc/notification_state.dart';
 class NotificationBadge extends StatelessWidget {
   /// The child widget that the badge will be displayed on top of
   final Widget child;
-
+  
   /// The position of the badge relative to the child
   final Alignment alignment;
-
+  
   /// The size of the badge
   final double size;
-
+  
   /// The padding inside the badge
   final EdgeInsetsGeometry padding;
-
+  
   /// The text style for the badge count
   final TextStyle? textStyle;
-
+  
   /// The color of the badge
   final Color? badgeColor;
-
+  
   /// The maximum count to display before showing "99+"
   final int maxCount;
-
+  
   /// Whether to hide the badge when there are no unread notifications
   final bool hideWhenZero;
 
   const NotificationBadge({
-    super.key,
+    Key? key,
     required this.child,
     this.alignment = Alignment.topRight,
     this.size = 18.0,
@@ -40,7 +40,7 @@ class NotificationBadge extends StatelessWidget {
     this.badgeColor,
     this.maxCount = 99,
     this.hideWhenZero = true,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +58,12 @@ class NotificationBadge extends StatelessWidget {
         if (state is NotificationLoaded) {
           unreadCount = state.unreadCount;
         }
-
+        
         // Hide badge if there are no unread notifications and hideWhenZero is true
         if (unreadCount == 0 && hideWhenZero) {
           return child;
         }
-
+        
         return Stack(
           alignment: alignment,
           children: [
@@ -77,20 +77,21 @@ class NotificationBadge extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: badgeColor ?? Theme.of(context).colorScheme.error,
                 ),
-                constraints: BoxConstraints(minWidth: size, minHeight: size),
+                constraints: BoxConstraints(
+                  minWidth: size,
+                  minHeight: size,
+                ),
                 child: Center(
                   child: Padding(
                     padding: const EdgeInsets.all(2.0),
                     child: FittedBox(
                       child: Text(
                         unreadCount > maxCount ? '$maxCount+' : '$unreadCount',
-                        style:
-                            textStyle ??
-                            TextStyle(
-                              color: Theme.of(context).colorScheme.onError,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: textStyle ?? TextStyle(
+                          color: Theme.of(context).colorScheme.onError,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

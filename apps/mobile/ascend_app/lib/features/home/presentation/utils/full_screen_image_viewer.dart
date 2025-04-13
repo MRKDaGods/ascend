@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
+
 class FullScreenImageViewer extends StatefulWidget {
   final List<String> images;
   final int initialIndex;
   final String postId;
 
   const FullScreenImageViewer({
-    super.key,
+    Key? key,
     required this.images,
     this.initialIndex = 0,
     required this.postId,
-  });
+  }) : super(key: key);
 
   @override
   State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
@@ -51,22 +52,23 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Center(child: _buildImage(widget.images[index])),
+            child: Center(
+              child: _buildImage(widget.images[index]),
+            ),
           );
         },
       ),
-      bottomNavigationBar:
-          widget.images.length > 1
-              ? Container(
-                color: Colors.black,
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  '${_currentIndex + 1} / ${widget.images.length}',
-                  style: const TextStyle(color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              )
-              : null,
+      bottomNavigationBar: widget.images.length > 1
+          ? Container(
+              color: Colors.black,
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                '${_currentIndex + 1} / ${widget.images.length}',
+                style: const TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+            )
+          : null,
     );
   }
 
@@ -85,10 +87,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                 children: [
                   Icon(Icons.broken_image, size: 64, color: Colors.white54),
                   const SizedBox(height: 16),
-                  Text(
-                    "Image not available",
-                    style: TextStyle(color: Colors.white54),
-                  ),
+                  Text("Image not available", style: TextStyle(color: Colors.white54)),
                 ],
               ),
             );
@@ -106,10 +105,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                 children: [
                   Icon(Icons.broken_image, size: 64, color: Colors.white54),
                   const SizedBox(height: 16),
-                  Text(
-                    "Image not available",
-                    style: TextStyle(color: Colors.white54),
-                  ),
+                  Text("Image not available", style: TextStyle(color: Colors.white54)),
                 ],
               ),
             );
@@ -124,10 +120,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
           children: [
             Icon(Icons.error_outline, size: 64, color: Colors.white54),
             const SizedBox(height: 16),
-            Text(
-              "Error loading image",
-              style: TextStyle(color: Colors.white54),
-            ),
+            Text("Error loading image", style: TextStyle(color: Colors.white54)),
           ],
         ),
       );
