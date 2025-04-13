@@ -1,10 +1,17 @@
+import { createServer } from "http";
+import express from "express";
 import { Server } from "socket.io";
 import { verifyToken } from "@shared/utils/jwt";
 
 // Maps user IDs to their socket IDs for tracking online status
 const onlineUsersMap = new Map<number, string>();
 
-const socketServer = new Server({
+// Set up Express and HTTP server
+const app = express();
+const httpServer = createServer(app);
+
+// Set up Socket.IO with CORS
+const socketServer = new Server(httpServer, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
@@ -12,9 +19,9 @@ const socketServer = new Server({
 });
 
 const SERVER_PORT = 3011;
-socketServer.listen(SERVER_PORT);
-
-console.log(`Socket server listening on port ${SERVER_PORT}`);
+httpServer.listen(SERVER_PORT, () => {
+  console.log(`Socket server listening on port ${SERVER_PORT}`);
+});
 
 /**
  * Handles socket connections and events
