@@ -39,7 +39,18 @@ class _JobAppState extends State<JobApp> {
       activescreen = JobHomePage(isDarkMode: isDarkTheme);
     }
     if (screen == "searchbar") {
-      activescreen = JobSearchPage(toalljobs: tojobs);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JobSearchPage(),
+          ),
+        ).then((_) {
+          setState(() {
+            screen = "job-home"; // Reset to job-home when back is pressed
+          });
+        });
+      });
     }
     return MaterialApp(
       theme: isDarkTheme ? AppTheme.dark : AppTheme.light,

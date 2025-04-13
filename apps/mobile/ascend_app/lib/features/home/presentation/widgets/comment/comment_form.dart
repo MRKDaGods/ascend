@@ -29,7 +29,7 @@ class CommentForm extends StatelessWidget {
   Widget build(BuildContext context) {
     // Use passed userName and userAvatarUrl directly
     final String displayName = userName ?? 'You';
-    final bool hasAvatar = userAvatarUrl != null && userAvatarUrl!.isNotEmpty;
+    //final bool hasAvatar = userAvatarUrl != null && userAvatarUrl!.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
