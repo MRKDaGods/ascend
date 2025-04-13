@@ -35,6 +35,9 @@ jobs:
           echo "Adding host to known_hosts"
           ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
 
+          echo "Testing SSH connectivity"
+          ssh -i key.pem -o StrictHostKeyChecking=no -v $VM_USER@$VM_HOST exit
+
           echo Copying deploy script
           # Copy the deploy.sh file to the VM
           scp -i key.pem -o StrictHostKeyChecking=no deploy.sh $VM_USER@$VM_HOST:~/deploy.sh
