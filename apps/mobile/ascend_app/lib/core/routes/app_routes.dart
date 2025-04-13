@@ -1,7 +1,7 @@
+import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/notifications/presentation/pages/notifications_page.dart';
-import '../../features/StartPages/welcome.dart';
 // Import other page files as needed
 
 /// Class containing all the route names as constants
