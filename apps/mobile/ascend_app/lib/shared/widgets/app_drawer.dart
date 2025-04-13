@@ -110,6 +110,35 @@ class AppDrawer extends StatelessWidget {
                   ],
                 ),
               ),
+              // Settings at the bottom
+              const Divider(),
+              // Only show "Try premium" if the user is not a premium user
+              if (!profile.isPremium)
+                ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.payments_rounded, color: Colors.amber),
+                  horizontalTitleGap: 5,
+                  title: const Text(
+                    'Try premium for EGP0',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to premium subscription
+                  },
+                ),
+              ListTile(
+                horizontalTitleGap: 5,
+                leading: const Icon(Icons.settings),
+                title: const Text(
+                  'Settings',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                onTap: () {
+                  Navigator.pop(context);// Close the drawer
+                  Navigator.pushNamed(context, '/settings');// Navigate to settings
+                },
+              ),
               const SizedBox(height: 16), // Add some padding at the bottom
             ],
           ),

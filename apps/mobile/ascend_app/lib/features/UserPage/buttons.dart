@@ -62,12 +62,11 @@ class ProfileButtons extends StatelessWidget {
               width: 40,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[900],
-                  border: Border.all(color: Colors.white70),
+                  border: Border.all(),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.more_horiz, color: Colors.white),
+                  icon: Icon(Icons.more_horiz),
                   onPressed:
                       () => _showProfileOptionsSheet(
                         context,
@@ -105,15 +104,11 @@ class ProfileButtons extends StatelessWidget {
                   width: 38,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      border: Border.all(color: Colors.white70),
+                      border: Border.all(),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(
-                        Icons.more_horiz,
-                        color: Colors.white,
-                      ), // Smaller icon
+                      icon: const Icon(Icons.more_horiz), // Smaller icon
                       padding: EdgeInsets.zero, // Removes internal padding
                       onPressed:
                           () => _showProfileOptionsSheet(
@@ -158,7 +153,6 @@ class ProfileButtons extends StatelessWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
