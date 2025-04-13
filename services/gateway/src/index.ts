@@ -20,7 +20,7 @@ startSharedService("Gateway", undefined, {
         const proxyOptions = {
           parseReqBody: !req.headers["x-no-parse-body"],
         };
-        
+
         return proxy(target, proxyOptions)(req, res, next);
       };
     };
@@ -40,15 +40,12 @@ startSharedService("Gateway", undefined, {
     app.use("/files", conditionalProxy("http://file:3003"));
 
     // Job service
-    app.use("/jobs", proxy("http://job:3008"));
+    app.use("/jobs", conditionalProxy("http://job:3008"));
 
     // Messaging service
-    app.use("/messages", proxy("http://message:3010"));
+    app.use("/messages", conditionalProxy("http://message:3010"));
 
     // Notification service
-    app.use(
-      "/notifications",
-      conditionalProxy("http://notification:3004")
-    );
+    app.use("/notifications", conditionalProxy("http://notification:3004"));
   },
 });
