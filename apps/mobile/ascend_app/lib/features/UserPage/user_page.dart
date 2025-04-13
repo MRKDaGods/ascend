@@ -188,6 +188,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ProfileMainImages(
                 profilePic: widget.profileImageUrl,
                 coverPic: widget.coverImageUrl,
+                isMyProfile:
+                    widget.profileType == ProfileType.myprofile ? true : false,
               ),
               SizedBox(height: 50),
               Padding(
