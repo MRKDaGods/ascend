@@ -43,7 +43,6 @@ class ProfileMainImages extends StatelessWidget {
             onTap: () => _showFullScreenImage(context, profilePic),
             child: CircleAvatar(
               radius: 60,
-              backgroundColor: Colors.black,
               child: CircleAvatar(
                 radius: 58,
                 backgroundImage: NetworkImage(profilePic),
