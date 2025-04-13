@@ -7,6 +7,12 @@ class Jobsattributes {
     required this.salary,
     required this.easyapply,
 
+    this.isPartTime, // Indicates if job is part-time
+    this.isRemote, // Indicates if job is remote
+    this.isHybrid, // Indicates if job is hybrid
+    this.isConstruction, // Indicates if job is in construction
+    this.isEducation, // Indicates if job is in education
+    this.isSmallBusiness, // Indicates if job is in small business
     this.companyPhoto,
     this.isBookmarked = false,
     this.jobDescription,
@@ -19,6 +25,12 @@ class Jobsattributes {
     this.applicationForm,
   });
 
+  final bool? isHybrid; // Indicates if job is hybrid
+  final bool? isConstruction; // Indicates if job is in construction
+  final bool? isEducation; // Indicates if job is in education
+  final bool? isSmallBusiness; // Indicates if job is in small business
+  final bool? isPartTime; // Indicates if job is part-time
+  final bool? isRemote; // Indicates if job is remote
   final String title; // Job title
   final String company; // Company name
   final String? companyPhoto; // URL for company logo
