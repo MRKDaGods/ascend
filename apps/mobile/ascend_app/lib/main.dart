@@ -1,109 +1,132 @@
-import 'package:ascend_app/features/profile/bloc/user_profile_event.dart';
-import 'package:ascend_app/theme.dart';
+import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/StartPages/welcome.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
+
+import 'core/app/app_initializer.dart';
+import 'core/di/dependency_injection.dart';
+import 'core/routes/app_routes.dart';
 import 'features/profile/bloc/user_profile_bloc.dart';
+import 'features/profile/bloc/user_profile_event.dart';
 import 'features/home/bloc/post_bloc/post_bloc.dart';
 import 'features/home/repositories/post_repository.dart';
-
-// Custom BlocObserver to trace all bloc events and state changes
-class AppBlocObserver extends BlocObserver {
-  @override
-  void onCreate(BlocBase bloc) {
-    super.onCreate(bloc);
-
-  }
-
-  @override
-  void onEvent(Bloc bloc, Object? event) {
-    super.onEvent(bloc, event);
-
-  }
-
-  @override
-  void onChange(BlocBase bloc, Change change) {
-    super.onChange(bloc, change);
-
-  }
-
-  @override
-  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
-
-    super.onError(bloc, error, stackTrace);
-  }
-
-  @override
-  void onClose(BlocBase bloc) {
-    super.onClose(bloc);
-
-  }
-}
+import 'features/notifications/presentation/bloc/notification_bloc.dart';
+import 'features/notifications/presentation/bloc/notification_event.dart';
+import 'theme.dart';
 
 void main() {
   // Set up error handling
-  FlutterError.onError = (FlutterErrorDetails details) {
+  AppInitializer.setupErrorHandling((error, stack) {
+    debugPrint('Global error: $error');
+    // In production, you'd want to log this to a service
+  });
 
-    FlutterError.dumpErrorToConsole(details);
-  };
+  // Run app in an error zone to catch all errors
+  runZonedGuarded(() async {
+    // Initialize all services and dependencies
+    await AppInitializer.initialize();
+    
+    // Set up BLoC observer for debugging
+    AppInitializer.setupBlocObserver();
 
-  // Set up global error handling
-  runZonedGuarded(() {
-    // Initialize Flutter binding
-    WidgetsFlutterBinding.ensureInitialized();
-    
-    // Set up bloc observer
-    Bloc.observer = AppBlocObserver();
-    
-    // Optimize image caching
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 100 * 1024 * 1024; // 100 MB
-    
-
+    // Run the app
     runApp(const MainApp());
   }, (error, stackTrace) {
-
+    debugPrint('Error in runZonedGuarded: $error');
+    // In production, you'd want to log this to a service
   });
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<MainApp> createState() => _MainAppState();
+}
 
+class _MainAppState extends State<MainApp> {
+  bool _isInitialized = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _setupPushNotifications();
+    setState(() {
+      _isInitialized = true;
+    });
+  }
+  
+  // Method to set up push notification handlers
+  Future<void> _setupPushNotifications() async {
+    try {
+      // Listen for notification taps
+      sl.pushNotificationService.onNotificationTap.listen((message) {
+        final notificationId = message.data['notificationId'];
+        if (notificationId != null) {
+          sl.notificationBloc.add(FetchNotificationById(notificationId));
+          sl.navigatorKey.currentState?.pushNamed(RouteNames.notifications);
+        }
+      });
+    } catch (e) {
+      debugPrint('Error setting up push notifications: $e');
+    }
+  }
+  
+  @override
+  void dispose() {
+    sl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return MaterialApp(
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+    
     return MultiBlocProvider(
       providers: [
-        // Initialize UserProfileBloc and load profile data at startup
+        // Your existing providers
         BlocProvider<UserProfileBloc>(
           create: (context) => UserProfileBloc()..add(LoadUserProfile()),
         ),
-        
-        // Initialize PostBloc lazily - only create it, don't load data yet
         BlocProvider<PostBloc>(
           create: (context) {
-
             try {
               final repo = PostRepository();
-
               final bloc = PostBloc(repo);
-
               return bloc;
             } catch (e) {
-
-              // Return a minimal implementation to avoid crashes
               return PostBloc(PostRepository());
             }
           },
-          // We'll load posts when needed, not at startup
         ),
-        // Add other BLoCs here as needed
+        
+        // Add the notification bloc
+        BlocProvider<NotificationBloc>.value(value: sl.notificationBloc),
+        
+        // Add SearchBloc to the providers
+        BlocProvider<SearchBloc>.value(value: sl.searchBloc),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
-        // Improve performance with optimized scroll behavior
+        navigatorKey: sl.navigatorKey,
+        
+        // Use the routes from AppRoutes
+        initialRoute: AppRoutes.initialRoute,
+        routes: AppRoutes.getRoutes(),
+        onGenerateRoute: AppRoutes.onGenerateRoute,
+        
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: ScrollBehavior().copyWith(
@@ -113,52 +136,7 @@ class MainApp extends StatelessWidget {
             child: child!,
           );
         },
-        home: const SplashScreen(),
-      ),
-    );
-  }
-}
-
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
-  Future<void> _initialize() async {
-    try {
-      // Initialize critical services here
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const Welcome()),
-        );
-      }
-    } catch (e) {
-      // Handle initialization errors
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(height: 24),
-            Text("Loading Ascend...", style: TextStyle(fontSize: 18)),
-          ],
-        ),
+        home: AppRoutes.getInitialPage(),
       ),
     );
   }

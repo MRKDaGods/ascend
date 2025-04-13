@@ -198,6 +198,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: PostCommentsSection(
+                                currentUserName: userProfile.name,
+                                currentUserAvatarUrl: userProfile.avatarUrl,
                                 comments: post.comments,
                                 commentController: _commentController,
                                 commentFocusNode: _commentFocusNode,
