@@ -2,18 +2,23 @@
 
 import React from "react";
 import { Button, Stack, useTheme } from "@mui/material";
-import { Comment, Repeat, Send } from "@mui/icons-material";
+import { Comment, Send } from "@mui/icons-material";
 import Reactions from "./Reactions";
 import { usePostStore } from "../stores/usePostStore";
-import SendPostDialog from "./SendPostDialog";
 import { useUserStore } from "../stores/useUserStore";
+import SendPostDialog from "./SendPostDialog";
 import CopyPostPopup from "./CopyPostPopup";
 import RepostOptions from "./RepostOptions";
 
 interface Props {
   postId: number;
+  liked: boolean;
+  reposted: boolean;
+  onLike: () => void;
+  onRepost: () => void;
   onCommentClick: () => void;
 }
+
 
 const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
   const theme = useTheme();
@@ -22,8 +27,8 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
     repostedPosts,
     setReaction,
     clearReaction,
-    repostPost,
     posts,
+    setCopyPostPopupOpen,
   } = usePostStore();
 
   const {
@@ -34,7 +39,6 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
 
   const liked = postReactions[postId] !== undefined;
   const reposted = repostedPosts.includes(postId);
-
   const post = posts.find((p) => p.id === postId);
   const authorName = post?.username ?? "this user";
 
@@ -47,15 +51,20 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
     isAuthor: conn.name === authorName,
   }));
 
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/feed/post/${postId}`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopyPostPopupOpen(true);
+    });
+  };
+
   return (
     <>
-      <Stack direction="row" justifyContent="space-around" sx={{ px: 2, py: 1 }}>
+      <Stack direction="row" justifyContent="space-around" sx={{ px: 2, py: 1, position: "relative" }}>
         <Reactions
           postId={postId}
           liked={liked}
-          onLike={() =>
-            liked ? clearReaction(postId) : setReaction(postId, "Like")
-          }
+          onLike={() => (liked ? clearReaction(postId) : setReaction(postId, "Like"))}
         />
 
         <Button
@@ -90,7 +99,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
         onClose={() => setSendDialogOpen(false)}
         authorName={authorName}
         connections={enrichedConnections}
-        postId={postId} // ✅ Pass postId
+        postId={postId}
       />
 
       <CopyPostPopup />

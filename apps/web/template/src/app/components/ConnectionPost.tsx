@@ -1,3 +1,5 @@
+// Component file: posts in feed page, from connections and followers
+
 "use client";
 
 import React, { useState } from "react";

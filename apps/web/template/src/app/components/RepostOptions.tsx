@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Menu, MenuItem, Typography, Box } from "@mui/material";
+import { Button, Menu, MenuItem, Typography, Box, useTheme } from "@mui/material";
 import { Repeat, Edit } from "@mui/icons-material";
 import { usePostStore } from "../stores/usePostStore";
 
 const RepostOptions: React.FC<{ postId: number }> = ({ postId }) => {
+  const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { repostPost } = usePostStore();
 
@@ -34,7 +35,11 @@ const RepostOptions: React.FC<{ postId: number }> = ({ postId }) => {
       <Button
         startIcon={<Repeat />}
         onClick={handleClick}
-        sx={{ textTransform: "none", fontWeight: "bold" }}
+        sx={{
+          textTransform: "none",
+          fontWeight: "bold",
+          color: theme.palette.text.secondary,
+        }}
       >
         Repost
       </Button>
