@@ -48,7 +48,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
       <div style={modalStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ margin: 0, fontSize: 20 }}>Manage Interests</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24 }}>×</button>
+          <button id="close-modal" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24 }}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -64,6 +64,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
               }}
             >
               <input
+                id={`interest-input-${index}`}
                 type="text"
                 value={interest.name || ''}
                 onChange={(e) => handleUpdateInterest(index, e.target.value)}
@@ -71,6 +72,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
                 style={{ flex: 1, padding: '8px', marginRight: '10px' }}
               />
               <button
+                id={`remove-interest-${index}`}
                 type="button"
                 onClick={() => handleRemoveInterest(index)}
                 style={{
@@ -86,6 +88,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
           ))}
 
           <button
+            id="add-interest"
             type="button"
             onClick={handleAddInterest}
             style={{
@@ -102,6 +105,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
           </button>
 
           <button
+            id="submit-all"
             type="submit"
             style={{
               marginTop: '20px',
