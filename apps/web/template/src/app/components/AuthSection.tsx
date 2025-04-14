@@ -25,7 +25,7 @@ const AuthSection = () => {
         <Link href="#" id="cookie-policy-link" sx={{ ml: 0.5 }}> Cookie Policy</Link>.
       </Typography>
       <Typography mt={2} sx={{ textAlign: "center", position: "relative", maxWidth: 400 }}>
-        New to LinkedIn? <Link href="#" id="join-now-link" onClick={() => router.push("/NewToLinkedin")}>Join now</Link>
+        New to LinkedIn? <Link href="#" id="join-now-link" onClick={() => router.push("/authen/NewToLinkedin")}>Join now</Link>
       </Typography>
     </Box>
   );

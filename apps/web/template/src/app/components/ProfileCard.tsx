@@ -2,7 +2,7 @@
 
 import { Card, CardContent, Typography, Box, Avatar, Skeleton, Alert } from "@mui/material";
 import Link from "next/link";
-import { useProfileStore } from "../store/useProfileStore";
+import { useProfileStore } from "../stores/useProfileStore";
 import { Profile } from "@ascend/api-client/models";
 
 const ProfileCard: React.FC = () => {

@@ -39,7 +39,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/babel.config.js",
-    "src/app/jest.config.js"
+    "src/app/jest.config.js",
+    "src", 
+    "src/types",
   ],
   "exclude": [
     "node_modules"

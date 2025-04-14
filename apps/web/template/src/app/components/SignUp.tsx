@@ -51,7 +51,7 @@ const SignUp = () => {
     loginWithGoogle().then((response) => {
       console.log("Google login successful:", response);
       alert("Logged in successfully! ID: " + 0);
-      router.push("/dashboard");
+      router.push("/feed");
     }).catch((error) => {
       console.error("Google login error:", error);
       setError("An error occurred during Google login. Please try again.");

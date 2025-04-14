@@ -48,7 +48,7 @@ export default function LoginBox() {
       .then((response) => {
         console.log("Login successful:", response);
         alert("Logged in successfully! ID: " + response.user_id + "\nToken: " + response.token);
-        router.push("/dashboard");
+        router.push("/feed");
       }).catch((error) => {
         console.error("Login error:", error);
         setError("An error occurred during login. Please try again.");
@@ -172,7 +172,7 @@ export default function LoginBox() {
               justifyContent: "flex-start",
               textTransform: "none"
             }}
-            onClick={() => router.push("/ForgetPassword")}
+            onClick={() => router.push("/authen/ForgetPassword")}
             id="forgot-password-link"
           >
             Forgot password?

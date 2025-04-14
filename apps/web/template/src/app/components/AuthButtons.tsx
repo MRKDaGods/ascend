@@ -13,7 +13,7 @@ const AuthButtons = () => {
         id="sign-in-with-google-button"
         fullWidth
         variant="outlined"
-        onClick={() => router.push("/continueAsMehrati")} // ✅ Added navigation
+        onClick={() => router.push("/authen/continueAsMehrati")} // ✅ Added navigation
         startIcon={<img src="/google.webp" alt="Google logo" width={24} height={24} />}
         sx={{
           borderRadius: "5em",
@@ -29,7 +29,7 @@ const AuthButtons = () => {
         id="sign-in-with-microsoft-button"
         fullWidth
         variant="outlined"
-        onClick={() => router.push("/continueWithMicrosoft")} // ✅ Added navigation
+        onClick={() => router.push("/authen/continueWithMicrosoft")} // ✅ Added navigation
         startIcon={<img src="/microsoft.png" alt="Microsoft logo" width={24} height={24} />}
         sx={{
           borderRadius: "5em",
@@ -45,7 +45,7 @@ const AuthButtons = () => {
         id="sign-in-with-email-button"
         fullWidth
         variant="outlined"
-        onClick={() => router.push("/signInWithEmail")}
+        onClick={() => router.push("/authen/signInWithEmail")}
         sx={{
           borderRadius: "5em",
           borderColor: "black",

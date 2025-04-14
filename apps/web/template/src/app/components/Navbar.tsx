@@ -13,7 +13,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Home, People, Work, Chat, Notifications } from "@mui/icons-material";
-import { useProfileStore } from "../store/useProfileStore";
+import { useProfileStore } from "../stores/useProfileStore";
 import { api } from "../../api";
 
 const Navbar: React.FC = () => {

@@ -18,7 +18,7 @@ import {
   Button,
   ButtonGroup,
 } from "@mui/material";
-import { useNotificationStore } from "../store/useNotificationStore";
+import { useNotificationStore } from "../stores/useNotificationStore";
 import { Notification, NotificationType } from "@ascend/api-client/models";
 import { Profile } from "@ascend/api-client/models";
 
