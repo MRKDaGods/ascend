@@ -25,6 +25,8 @@ export class WasmApiClient {
   delete_resume(): Promise<any>;
   get_notifications(page?: number | null): Promise<any>;
   mark_notification_as_read(notification_id: number): Promise<any>;
+  mark_notification_as_unread(notification_id: number): Promise<any>;
+  delete_notification(notification_id: number): Promise<any>;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -55,6 +57,8 @@ export interface InitOutput {
   readonly wasmapiclient_delete_resume: (a: number) => any;
   readonly wasmapiclient_get_notifications: (a: number, b: number) => any;
   readonly wasmapiclient_mark_notification_as_read: (a: number, b: number) => any;
+  readonly wasmapiclient_mark_notification_as_unread: (a: number, b: number) => any;
+  readonly wasmapiclient_delete_notification: (a: number, b: number) => any;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
@@ -63,9 +67,9 @@ export interface InitOutput {
   readonly __wbindgen_export_5: WebAssembly.Table;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h161ea80870872a43: (a: number, b: number) => void;
-  readonly closure255_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure303_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h3360e2c19bacbc8b: (a: number, b: number) => void;
+  readonly closure260_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure308_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 

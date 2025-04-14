@@ -9,11 +9,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_rust_bridge: 2.9.0
+  rust_lib_dummy_cross:
+    path: rust_builder
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  integration_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true

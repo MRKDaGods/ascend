@@ -23,9 +23,9 @@ const cache = createCache({ key: "css", prepend: true });
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <CacheProvider value={cache}>
       <ThemeProvider theme={theme}>
