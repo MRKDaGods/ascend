@@ -77,31 +77,41 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
   };
 
   return (
-    <div style={styles.modalOverlay}>
-      <div style={styles.modalContent}>
+    <div style={styles.modalOverlay} id="education-modal-overlay">
+      <div style={styles.modalContent} id="education-modal">
         <div style={styles.modalHeader}>
-          <h3 style={{ margin: 0 }}>{editingEducation ? 'Edit Education' : 'Add Education'}</h3>
-          <button style={styles.closeButton} onClick={onClose}>×</button>
+          <h3 style={{ margin: 0 }} id="education-modal-title">
+            {editingEducation ? 'Edit Education' : 'Add Education'}
+          </h3>
+          <button style={styles.closeButton} onClick={onClose} id="education-modal-close-button">
+            ×
+          </button>
         </div>
 
         {/* Education List */}
-        <div style={styles.educationList}>
+        <div style={styles.educationList} id="education-list">
           <h4>Existing Education Entries</h4>
           {educationList.length > 0 ? (
             <div>
-              {educationList.map((edu) => (
+              {educationList.map((edu, index) => (
                 <div
                   key={edu.id}
                   style={{
                     borderBottom: '1px solid #ddd',
                     padding: '16px 0',
                   }}
+                  id={`education-item-${index}`}
                 >
-                  <h4 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>{edu.school}</h4>
-                  <p style={{ margin: '0', color: '#666' }}>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '16px' }} id={`education-school-${index}`}>
+                    {edu.school}
+                  </h4>
+                  <p style={{ margin: '0', color: '#666' }} id={`education-degree-${index}`}>
                     {edu.degree} • {edu.field_of_study}
                   </p>
-                  <p style={{ margin: '4px 0', color: '#888', fontSize: '14px' }}>
+                  <p
+                    style={{ margin: '4px 0', color: '#888', fontSize: '14px' }}
+                    id={`education-dates-${index}`}
+                  >
                     {new Date(edu.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })} -{' '}
                     {edu.end_date
                       ? new Date(edu.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
@@ -113,6 +123,7 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
                       setEditingEducation(edu);
                       onClose();
                     }}
+                    id={`edit-education-button-${index}`}
                   >
                     Edit
                   </button>
@@ -120,13 +131,14 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
               ))}
             </div>
           ) : (
-            <p>No education entries found.</p>
+            <p id="no-education-message">No education entries found.</p>
           )}
         </div>
 
         {/* Add/Edit Education Form */}
-        <label>School*</label>
+        <label htmlFor="school-input">School*</label>
         <input
+          id="school-input"
           name="school"
           value={education.school}
           onChange={handleChange}
@@ -134,8 +146,9 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
           style={styles.input}
         />
 
-        <label>Degree*</label>
+        <label htmlFor="degree-input">Degree*</label>
         <input
+          id="degree-input"
           name="degree"
           value={education.degree}
           onChange={handleChange}
@@ -143,8 +156,9 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
           style={styles.input}
         />
 
-        <label>Field of Study</label>
+        <label htmlFor="field-of-study-input">Field of Study</label>
         <input
+          id="field-of-study-input"
           name="field_of_study"
           value={education.field_of_study}
           onChange={handleChange}
@@ -154,8 +168,9 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
 
         <div style={styles.dateGroup}>
           <div style={styles.dateFields}>
-            <label>Start Date</label>
+            <label htmlFor="start-date-input">Start Date</label>
             <input
+              id="start-date-input"
               type="date"
               name="start_date"
               value={formatDateForInput(education.start_date)}
@@ -165,8 +180,9 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
           </div>
 
           <div style={styles.dateFields}>
-            <label>End Date (or expected)</label>
+            <label htmlFor="end-date-input">End Date (or expected)</label>
             <input
+              id="end-date-input"
               type="date"
               name="end_date"
               value={formatDateForInput(new Date(education.end_date || ''))}
@@ -176,17 +192,18 @@ const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave
           </div>
         </div>
 
-        <label>Description</label>
+        <label htmlFor="description-input">Description</label>
         <textarea
+          id="description-input"
           name="description"
           onChange={handleChange}
           style={styles.textarea}
         ></textarea>
 
-        <button style={styles.saveButton} onClick={handleSubmit}>
+        <button style={styles.saveButton} onClick={handleSubmit} id="save-education-button">
           Save
         </button>
-        <button style={styles.closeButtonText} onClick={onClose}>
+        <button style={styles.closeButtonText} onClick={onClose} id="close-education-modal-button">
           Close
         </button>
       </div>
@@ -205,25 +222,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'rgba(0, 0, 0, 0.3)',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   modalContent: {
     background: 'white',
     padding: '20px',
     width: '500px',
     borderRadius: '10px',
-    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)'
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
   },
   modalHeader: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   closeButton: {
     background: 'none',
     border: 'none',
     fontSize: '24px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   closeButtonText: {
     marginTop: 10,
@@ -231,7 +248,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #ccc',
     padding: '8px 12px',
     borderRadius: '8px',
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   input: {
     width: '100%',
@@ -239,17 +256,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '12px',
     padding: '8px',
     border: '1px solid #ccc',
-    borderRadius: '5px'
+    borderRadius: '5px',
   },
   dateGroup: {
     display: 'flex',
     gap: '20px',
-    marginTop: '10px'
+    marginTop: '10px',
   },
   dateFields: {
     display: 'flex',
     flexDirection: 'column',
-    flex: 1
+    flex: 1,
   },
   textarea: {
     width: '100%',
@@ -257,7 +274,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '10px',
     padding: '8px',
     border: '1px solid #ccc',
-    borderRadius: '5px'
+    borderRadius: '5px',
   },
   saveButton: {
     background: '#0073b1',
@@ -268,20 +285,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
     fontWeight: 'bold',
     cursor: 'pointer',
-    marginTop: '15px'
+    marginTop: '15px',
   },
   educationList: {
-    marginBottom: '20px'
-  },
-  list: {
-    listStyleType: 'none',
-    padding: 0
-  },
-  listItem: {
-    marginBottom: '10px',
-    padding: '10px',
-    background: '#f9f9f9',
-    borderRadius: '5px'
+    marginBottom: '20px',
   },
   editButton: {
     marginTop: '10px',

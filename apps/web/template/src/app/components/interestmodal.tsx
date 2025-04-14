@@ -44,14 +44,20 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
   if (!isOpen) return null;
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
+    <div style={overlayStyle} id="interests-modal-overlay">
+      <div style={modalStyle} id="interests-modal">
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <h2 style={{ margin: 0, fontSize: 20 }}>Manage Interests</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24 }}>×</button>
+          <h2 style={{ margin: 0, fontSize: 20 }} id="interests-modal-title">Manage Interests</h2>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', fontSize: 24 }}
+            id="interests-modal-close-button"
+          >
+            ×
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} id="interests-form">
           {interestsForm.map((interest, index) => (
             <div
               key={index}
@@ -62,9 +68,11 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
                 display: 'flex',
                 alignItems: 'center',
               }}
+              id={`interest-item-${index}`}
             >
               <input
                 type="text"
+                id={`interest-input-${index}`}
                 value={interest.name || ''}
                 onChange={(e) => handleUpdateInterest(index, e.target.value)}
                 placeholder="Interest name"
@@ -79,6 +87,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
                   border: 'none',
                   cursor: 'pointer',
                 }}
+                id={`remove-interest-button-${index}`}
               >
                 Remove
               </button>
@@ -97,6 +106,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
               cursor: 'pointer',
               marginTop: '10px',
             }}
+            id="add-interest-button"
           >
             Add Interest
           </button>
@@ -113,6 +123,7 @@ const InterestsModal: React.FC<InterestsModalProps> = ({ isOpen, onClose, onSave
               fontWeight: 'bold',
               cursor: 'pointer',
             }}
+            id="save-interests-button"
           >
             Save All
           </button>

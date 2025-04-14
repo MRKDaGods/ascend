@@ -71,6 +71,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
         alignItems: "center",
         zIndex: 1000,
       }}
+      id="skills-modal-overlay"
     >
       <div
         style={{
@@ -81,6 +82,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
           boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
           fontFamily: "Arial, sans-serif",
         }}
+        id="skills-modal"
       >
         <div
           style={{
@@ -89,7 +91,9 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
             alignItems: "center",
           }}
         >
-          <h2 style={{ margin: 0, fontSize: "20px" }}>Manage Skills</h2>
+          <h2 style={{ margin: 0, fontSize: "20px" }} id="skills-modal-title">
+            Manage Skills
+          </h2>
           <button
             onClick={onClose}
             style={{
@@ -98,16 +102,22 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
               fontSize: "24px",
               cursor: "pointer",
             }}
+            id="skills-modal-close-button"
           >
             ×
           </button>
         </div>
 
         {error && (
-          <p style={{ color: "red", fontSize: "13px", marginTop: "5px" }}>{error}</p>
+          <p
+            style={{ color: "red", fontSize: "13px", marginTop: "5px" }}
+            id="skills-modal-error"
+          >
+            {error}
+          </p>
         )}
 
-        <div>
+        <div id="skills-list">
           {skillsForm.map((skill, index) => (
             <div
               key={index}
@@ -118,9 +128,11 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
                 display: "flex",
                 alignItems: "center",
               }}
+              id={`skill-item-${index}`}
             >
               <input
                 type="text"
+                id={`skill-input-${index}`}
                 value={skill.name}
                 onChange={(e) => handleUpdateSkill(index, e.target.value)}
                 placeholder="Skill name"
@@ -134,6 +146,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
                   border: "none",
                   cursor: "pointer",
                 }}
+                id={`remove-skill-button-${index}`}
               >
                 Remove
               </button>
@@ -151,6 +164,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
               cursor: "pointer",
               marginTop: "10px",
             }}
+            id="add-skill-button"
           >
             Add Skill
           </button>
@@ -169,6 +183,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
             cursor: "pointer",
             marginTop: "15px",
           }}
+          id="save-skills-button"
         >
           Save All
         </button>
@@ -185,6 +200,7 @@ const App: React.FC = () => {
       <button
         className="add-skills-button"
         onClick={() => setIsSkillsOpen(true)}
+        id="open-skills-modal-button"
       >
         Add skills
       </button>
