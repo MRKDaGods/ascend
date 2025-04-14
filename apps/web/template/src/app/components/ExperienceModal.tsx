@@ -53,11 +53,17 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
   if (!isOpen) return null;
 
   return (
-    <div style={overlayStyle}>
+    <div style={overlayStyle} data-testid="experience-modal">
       <div style={modalStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ margin: 0, fontSize: 20 }}>Manage Experiences</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24 }}>×</button>
+          <button 
+            onClick={onClose} 
+            style={{ background: 'none', border: 'none', fontSize: 24 }}
+            data-testid="close-modal-button"
+          >
+            ×
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -69,6 +75,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                 padding: '10px',
                 border: '1px solid #eee',
               }}
+              data-testid={`experience-item-${index}`}
             >
               <div
                 style={{
@@ -86,6 +93,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                     border: 'none',
                     cursor: 'pointer',
                   }}
+                  data-testid={`remove-experience-${index}`}
                 >
                   Remove
                 </button>
@@ -105,6 +113,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                     value={exp.company || ''}
                     onChange={(e) => handleUpdateExperience(index, 'company', e.target.value)}
                     style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                    data-testid={`company-input-${index}`}
                   />
                 </div>
                 <div>
@@ -114,6 +123,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                     value={exp.position || ''}
                     onChange={(e) => handleUpdateExperience(index, 'position', e.target.value)}
                     style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                    data-testid={`position-input-${index}`}
                   />
                 </div>
                 <div style={{ gridColumn: '1 / span 2' }}>
@@ -127,6 +137,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                       marginTop: '5px',
                       minHeight: '80px',
                     }}
+                    data-testid={`description-input-${index}`}
                   />
                 </div>
                 <div>
@@ -134,14 +145,20 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                   <input
                     type="date"
                     value={
-                      exp.start_date instanceof Date
-                        ? exp.start_date.toISOString().split('T')[0]
-                        : new Date(exp.start_date).toISOString().split('T')[0]
+                      exp.start_date
+                        ? (exp.start_date instanceof Date
+                            ? exp.start_date.toISOString().split('T')[0]
+                            : new Date(exp.start_date).toString() !== 'Invalid Date'
+                              ? new Date(exp.start_date).toISOString().split('T')[0]
+                              : '')
+                        : ''
                     }
+                    
                     onChange={(e) =>
                       handleUpdateExperience(index, 'start_date', new Date(e.target.value))
                     }
                     style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                    data-testid={`start-date-input-${index}`}
                   />
                 </div>
                 <div>
@@ -163,6 +180,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
                       )
                     }
                     style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                    data-testid={`end-date-input-${index}`}
                   />
                 </div>
               </div>
@@ -181,6 +199,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
               cursor: 'pointer',
               marginTop: '10px',
             }}
+            data-testid="add-experience-button"
           >
             Add Experience
           </button>
@@ -197,6 +216,7 @@ const ExperienceModal: React.FC<ExperienceModalProps> = ({ isOpen, onClose, onSa
               fontWeight: 'bold',
               cursor: 'pointer',
             }}
+            data-testid="save-experiences-button"
           >
             Save All
           </button>
