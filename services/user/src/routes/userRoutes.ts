@@ -5,6 +5,7 @@ import {
   deleteProfilePicture,
   deleteResume,
   getUserProfile,
+  getUserProfileById,
   updateUserProfile,
   uploadCoverPhoto,
   uploadProfilePicture,
@@ -22,6 +23,7 @@ const router = Router();
 // Profile routes
 router.get("/profile", authenticateToken, getUserProfile);
 router.put("/profile", authenticateToken, updateUserProfile);
+router.get("/profile/:id", authenticateToken, getUserProfileById);
 
 // Profile picture routes
 router.post(

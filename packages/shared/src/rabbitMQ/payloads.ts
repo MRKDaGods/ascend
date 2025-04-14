@@ -1,5 +1,7 @@
 // =======================AUTH-EVENTS=======================
 
+import { Profile } from "@shared/models";
+
 /**
  * [RPC] Represents the payload for an admin user request event
  */
@@ -26,7 +28,6 @@ export namespace AuthFCMTokenPayload {
     fcm_token: string;
   }
 }
-
 
 // =======================USER-EVENTS=======================
 
@@ -63,6 +64,18 @@ export namespace UserProfilePicPayload {
   }
 }
 
+/**
+ * [RPC] Represents the payload for a user profile request event
+ */
+export namespace UserProfilePayload {
+  export interface Request {
+    user_id: number;
+  }
+
+  export interface Response {
+    profile: Profile;
+  }
+}
 
 // =======================FILE-EVENTS=======================
 
