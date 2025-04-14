@@ -1,83 +1,99 @@
-// import React from 'react';
-// import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-// import SkillsModal from '../SkillsModal';
+import { render, screen, fireEvent, waitFor } from  '@testing-library/react';
+import SkillsModal from '../SkillsModal';
+import '@testing-library/jest-dom';
+import { vi, expect, test, describe, beforeEach } from 'vitest';
 
-// beforeEach(() => {
-//   global.fetch = jest.fn(() =>
-//     Promise.resolve({
-//       ok: true,
-//       json: () => Promise.resolve([]), // Default mock response
-//     })
-//   ) as jest.Mock;
-// });
+// Mocking the fetch function globally
+global.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: async () => [{ id: 1, name: 'JavaScript' }],
+}) as unknown as typeof fetch;
 
-// const mockOnClose = jest.fn();
-// const mockOnSave = jest.fn();
+describe('SkillsModal Component', () => {
+  const mockOnSave = vi.fn().mockResolvedValue(undefined);
+  const mockOnClose = vi.fn();
 
-// describe('SkillsModal Component', () => {
-//   beforeEach(() => {
-//     jest.clearAllMocks();
-//   });
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockOnSave.mockClear();
+    mockOnClose.mockClear();
+    (global.fetch as ReturnType<typeof vi.fn>).mockClear();
+    global.alert = vi.fn();
+  });
 
-//   it('renders when open', () => {
-//     render(<SkillsModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-//     expect(screen.getByText('Add a Skill')).toBeInTheDocument();
-//   });
+  test('renders the modal when isOpen is true', () => {
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    expect(screen.getByText(/Manage Skills/i)).toBeInTheDocument();
+  });
 
-//   it('does not render when closed', () => {
-//     const { container } = render(
-//       <SkillsModal isOpen={false} onClose={mockOnClose} onSave={mockOnSave} />
-//     );
-//     expect(container.firstChild).toBeNull();
-//   });
+  test('does not render the modal when isOpen is false', () => {
+    render(<SkillsModal isOpen={false} onSave={mockOnSave} onClose={mockOnClose} />);
+    expect(screen.queryByText(/Manage Skills/i)).not.toBeInTheDocument();
+  });
 
-//   it('fetches and displays skills when opened', async () => {
-//     (global.fetch as jest.Mock).mockResolvedValueOnce({
-//       ok: true,
-//       json: async () => [{ name: 'React' }, { name: 'JavaScript' }],
-//     });
+  test('fetches skills when modal is opened', async () => {
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    await waitFor(() => expect(screen.getByDisplayValue('JavaScript')).toBeInTheDocument());
+  });
 
-//     render(<SkillsModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+  test('shows error when fetch fails', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('Failed to fetch skills'));
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    await waitFor(() => expect(screen.getByText(/Failed to fetch skills/i)).toBeInTheDocument());
+  });
 
-//     // Debug the DOM
-//     screen.debug();
+  test('adds a new skill', async () => {
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    fireEvent.click(screen.getByText(/Add Skill/i));
+    await waitFor(() => {
+      expect(screen.getAllByPlaceholderText('Skill name').length).toBeGreaterThan(0);
+    });
+  });
 
-//     await waitFor(() => expect(fetch).toHaveBeenCalledWith('http://localhost:3002/skills'));
-//     expect(await screen.findByText('React')).toBeInTheDocument();
-//     expect(await screen.findByText('JavaScript')).toBeInTheDocument();
-//   });
+  test('removes a skill', async () => {
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    fireEvent.click(screen.getByText(/Add Skill/i));
+    await waitFor(() => {
+      const input = screen.getAllByPlaceholderText('Skill name')[0];
+      fireEvent.change(input, { target: { value: 'React' } });
+    });
+    const removeButton = screen.getByText(/Remove/i);
+    fireEvent.click(removeButton);
+    await waitFor(() => {
+      expect(screen.queryByDisplayValue('React')).not.toBeInTheDocument();
+    });
+  });
 
-//   it('handles input changes', () => {
-//     render(<SkillsModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-//     const input = screen.getByPlaceholderText('Skill (ex: Project Management)');
-//     fireEvent.change(input, { target: { value: 'TypeScript' } });
-//     expect(input).toHaveValue('TypeScript');
-//   });
+  test('alerts when saving if any skill name is empty', async () => {
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    fireEvent.click(screen.getByText(/Add Skill/i));
+    fireEvent.click(screen.getByText(/Save All/i));
+    await waitFor(() => {
+      expect(global.alert).toHaveBeenCalledWith('All skills must have a name.');
+    });
+  });
 
-//   it('calls onSave with correct data', async () => {
-//     (global.fetch as jest.Mock).mockResolvedValueOnce({
-//       ok: true,
-//       json: async () => ({ name: 'TypeScript' }),
-//     });
-//     render(<SkillsModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-//     const input = screen.getByPlaceholderText('Skill (ex: Project Management)');
-//     fireEvent.change(input, { target: { value: 'TypeScript' } });
-//     fireEvent.click(screen.getByText('Save'));
-//     await waitFor(() => expect(mockOnSave).toHaveBeenCalledWith({ name: 'TypeScript' }));
-//   });
+  test('calls onSave when saving skills', async () => {
+    // override fetch to return empty
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    fireEvent.click(screen.getByText(/Add Skill/i));
+    const input = screen.getByPlaceholderText('Skill name');
+    fireEvent.change(input, { target: { value: 'JavaScript' } });
+    fireEvent.click(screen.getByText(/Save All/i));
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledWith([
+        { name: 'JavaScript', id: expect.any(Number) },
+      ]);
+    });
+  });
 
-//   it('displays an error message on API failure', async () => {
-//     (global.fetch as jest.Mock).mockResolvedValueOnce({
-//       ok: false,
-//     });
-//     render(<SkillsModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-//     fireEvent.click(screen.getByText('Save'));
-//     await waitFor(() => expect(screen.getByText('Failed to save skill')).toBeInTheDocument());
-//   });
-
-//   it('closes the modal when close button is clicked', () => {
-//     render(<SkillsModal isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-//     fireEvent.click(screen.getByText('×'));
-//     expect(mockOnClose).toHaveBeenCalled();
-//   });
-// });
+  test('closes the modal when the close button is clicked', () => {
+    render(<SkillsModal isOpen={true} onSave={mockOnSave} onClose={mockOnClose} />);
+    fireEvent.click(screen.getByText('×'));
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+});
