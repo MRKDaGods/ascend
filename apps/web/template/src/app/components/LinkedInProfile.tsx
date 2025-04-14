@@ -491,7 +491,7 @@ const LinkedInProfile: React.FC = () => {
             marginTop: '20px',
             background: '#fff',
             color: '#0073b1',
-            border: '2px solid #0073b1',
+            border: '2px solidrgb(45, 66, 78)',
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',

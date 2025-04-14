@@ -65,7 +65,7 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
         left: 0,
         width: "100%",
         height: "100%",
-        background: "rgba(0, 0, 0, 0.3)",
+        background: "rgba(9, 9, 9, 0.3)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
