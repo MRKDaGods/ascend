@@ -16,7 +16,7 @@ export default function ProvideMoreInfo() {
       return;
     }
     setError(""); // Clear error message
-    router.push("/CloseAccountPassword");
+    router.push("/authen/CloseAccountPassword");
   };
 
   return (

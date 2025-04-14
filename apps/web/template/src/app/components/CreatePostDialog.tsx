@@ -9,7 +9,7 @@ import {
   Close, Edit, Delete, Image, OndemandVideo, Article
 } from "@mui/icons-material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import ClickAwayListener from "@mui/material/ClickAwayListener"; // ✅ Add this import at the top
+import ClickAwayListener from "@mui/material/ClickAwayListener";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
@@ -20,8 +20,8 @@ import DraftSavedPopup from "./DraftSavedPopup";
 import Document from "./Document";
 import DocumentPreview from "./DocumentPreview";
 
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
+// import Picker from "@emoji-mart/react";
+// import data from "@emoji-mart/data";
 
 const CreatePostDialog: React.FC = () => {
   const {
@@ -49,8 +49,8 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview,
   } = useMediaStore();
 
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
+  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -65,16 +65,13 @@ const CreatePostDialog: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
 
-    // ✅ Add post to Zustand
     addPost(postText, media, type, documentPreview ?? undefined);
 
-
-    // ✅ UI handling
     setUserPostPopupOpen(true);
     setDraftText("");
     resetPost();
     clearAllMedia();
-    clearDocumentPreview(); // remove doc preview on post
+    clearDocumentPreview();
   };
 
   const handleClose = () => {
@@ -125,7 +122,6 @@ const CreatePostDialog: React.FC = () => {
             <TagInput postId={lastUserPostId ?? -1} />
           </Box>
 
-          {/* Image/Video Preview */}
           {mediaPreviews.length > 0 && (
             <Box sx={{ position: "relative", mt: 2 }}>
               <img
@@ -153,7 +149,6 @@ const CreatePostDialog: React.FC = () => {
             </Box>
           )}
 
-          {/* Document Preview */}
           {documentPreview && (
             <DocumentPreview
               fileUrl={documentPreview.url}
@@ -168,32 +163,28 @@ const CreatePostDialog: React.FC = () => {
             <Tooltip title="Add a photo"><IconButton onClick={openEditor}><Image /></IconButton></Tooltip>
             <Tooltip title="Add a video"><IconButton onClick={openEditor}><OndemandVideo /></IconButton></Tooltip>
             <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
-            <Tooltip title="Add an emoji">
+            {/* <Tooltip title="Add an emoji">
               <IconButton
                 ref={emojiAnchorRef}
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
               >
                 <EmojiEmotionsIcon />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
 
           <Button
             variant="contained"
             onClick={handleSubmit}
             disabled={!postText.trim() && mediaPreviews.length === 0 && !documentPreview}
-            sx={{
-              textTransform: "none",
-              px: 4,
-            }}
+            sx={{ textTransform: "none", px: 4 }}
           >
             Post
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Emoji Picker */}
-      <Popper
+      {/* <Popper
         open={showEmojiPicker}
         anchorEl={emojiAnchorRef.current}
         placement="top-start"
@@ -204,13 +195,16 @@ const CreatePostDialog: React.FC = () => {
             <Picker
               data={data}
               onEmojiSelect={(emoji: any) => {
-                setPostText(postText + emoji.native);
+                setPostText((prev: string) => prev + emoji.native);
                 setShowEmojiPicker(false);
               }}
+              previewPosition="none"
+              theme="light"
+              perLine={9}
             />
           </Box>
         </ClickAwayListener>
-      </Popper>
+      </Popper> */}
 
       <DiscardPostDialog
         open={discardPostDialogOpen}

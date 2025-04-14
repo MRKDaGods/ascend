@@ -16,7 +16,7 @@ export default function AccountManagement() {
         <ListItemButton id="hibernate-account-button">
           <ListItemText primary="Hibernate account" />
         </ListItemButton>
-        <ListItemButton id="close-account-button" onClick={() => router.push("/CloseAccount")}>
+        <ListItemButton id="close-account-button" onClick={() => router.push("/authen/CloseAccount")}>
           <ListItemText primary="Close account" />
         </ListItemButton>
       </List>

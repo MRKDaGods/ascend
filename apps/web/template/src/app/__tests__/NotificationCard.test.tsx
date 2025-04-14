@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import NotificationCard from "../components/NotificationCard";
-import { useNotificationStore } from "../store/useNotificationStore";
+import { useNotificationStore } from "../stores/useNotificationStore";
 import { act } from "react";
 import { useRouter } from "next/navigation";
 

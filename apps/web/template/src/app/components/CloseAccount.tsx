@@ -44,7 +44,7 @@ export default function CloseAccount({ username }: { username: string }) {
             borderRadius: "20px",
             padding: "6px 16px",
           }}
-          onClick={() => router.push("/ReasonToClose")}
+          onClick={() => router.push("/authen/ReasonToClose")}
         >
           Continue
         </Button>

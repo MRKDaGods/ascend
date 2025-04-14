@@ -12,9 +12,9 @@ export default function ReasonToClose({ username }: { username: string }) {
 
   const handleNext = () => {
     if (selectedReason === "Other") {
-      router.push("/ProvideMoreInfo"); // Route to ProvideMoreInfo page
+      router.push("/authen/ProvideMoreInfo"); // Route to ProvideMoreInfo page
     } else {
-      router.push("/CloseAccountPassword"); // Route elsewhere
+      router.push("/authen/CloseAccountPassword"); // Route elsewhere
     }
   };
 

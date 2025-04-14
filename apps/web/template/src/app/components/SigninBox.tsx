@@ -59,7 +59,7 @@ const SigninBox = () => {
           justifyContent="flex-start"
           p={2} 
           sx={{ cursor: "pointer", "&:hover": { bgcolor: "grey.100" } }}
-          onClick={() => router.push("/signup")}
+          onClick={() => router.push("/authen/signup")}
           id="sign-in-another-account-button"
         >
           <Avatar sx={{ width: 32, height: 32, bgcolor: "grey.300", mr: 2 }} />
@@ -77,7 +77,7 @@ const SigninBox = () => {
           color="primary" 
           fontWeight="bold" 
           sx={{ cursor: "pointer" }}
-          onClick={() => router.push("/NewToLinkedin")}
+          onClick={() => router.push("/authen/NewToLinkedin")}
           id="join-now-link"
         >
           Join now

@@ -27,14 +27,14 @@ const Header = () => {
         <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
           <Button
             id="join-now-button"
-            onClick={() => router.push("/signInWithEmail")}
+            onClick={() => router.push("/authen/signInWithEmail")}
             sx={{ color: "black", textTransform: "none", fontSize: { xs: "0.875rem", md: "1rem" } }}
           >
             Join now
           </Button>
           <Button
             id="sign-in-button"
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/authen/signup")}
             variant="outlined"
             sx={{
               borderRadius: 50,
