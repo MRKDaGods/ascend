@@ -11,12 +11,20 @@ const Feed: React.FC = () => {
 
   const visiblePosts = posts.filter((post) => post.isUserPost !== true);
 
+  // useEffect(() => {
+  //   const fetchAndLog = async () => {
+  //     await fetchNewsFeedFromAPI();
+  //     console.log("✅ Posts in Zustand store:", usePostStore.getState().posts); // 🟢 Console log here
+  //   };
+
+  //   fetchAndLog();
+  // }, []);
+
   useEffect(() => {
     const fetchAndLog = async () => {
       await fetchNewsFeedFromAPI();
-      console.log("✅ Posts in Zustand store:", usePostStore.getState().posts); // 🟢 Console log here
+      console.log("Loaded posts:", posts);
     };
-
     fetchAndLog();
   }, []);
 

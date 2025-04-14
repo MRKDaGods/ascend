@@ -1,4 +1,4 @@
-import API from "@/api/api"; // Adjust the import path as necessary
+import API from "./api";
 import { Post } from "./types";
 
 interface NewsFeedResponse {

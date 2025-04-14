@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-import { fetchNewsFeed } from "../api/posts";
+import { fetchNewsFeed } from "@/api/posts";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -35,6 +35,21 @@ export type PostType = {
   tags?: Tag[];
   commentTags?: { [commentIndex: number]: Tag[] };
 };
+
+interface RawPost {
+  id: number;
+  user: {
+    first_name: string;
+    last_name: string;
+    profile_picture_url: string;
+  };
+  content: string;
+  created_at: string;
+  likes_count: number;
+  shares_count: number;
+  comments_count: number;
+  media?: { type: string; url: string }[];
+}
 
 interface PostStoreState {
   open: boolean;
@@ -119,7 +134,7 @@ export const usePostStore = create<PostStoreState>()(
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
       setUserPostPopupOpen: (open) => set({ userPostPopupOpen: open }),
-      setCopyPostPopupOpen: (val: boolean) => set({ copyPostPopupOpen: val }),      
+      setCopyPostPopupOpen: (val) => set({ copyPostPopupOpen: val }),
       setRepostPopupOpen: (open) => set({ repostPopupOpen: open }),
       setSavedPopupOpen: (open) => set({ savedPopupOpen: open }),
       setUnsavedPopupOpen: (open) => set({ unsavedPopupOpen: open }),
@@ -170,8 +185,6 @@ export const usePostStore = create<PostStoreState>()(
           body: JSON.stringify({ content, media, mediaType }),
         });
 
-        console.log("API response status:", response.status);
-
         if (!response.ok) {
           console.error("Failed to create post via API");
           return;
@@ -189,8 +202,21 @@ export const usePostStore = create<PostStoreState>()(
 
       fetchNewsFeedFromAPI: async () => {
         try {
-          const feedPosts = await fetchNewsFeed();
-
+          const res: unknown = await fetchNewsFeed();
+          console.log("📦 Raw API response:", res);
+      
+          let feedPosts: RawPost[] = [];
+      
+          if (Array.isArray(res)) {
+            console.log("✅ Response is an array of posts.");
+            feedPosts = res;
+          } else if (res && typeof res === "object" && "data" in res) {
+            console.log("✅ Response has a 'data' field.");
+            feedPosts = (res as { data: RawPost[] }).data;
+          } else {
+            console.warn("⚠️ Unexpected response format. Feed may be empty or malformed.");
+          }
+      
           const mappedPosts: PostType[] = feedPosts.map((post) => ({
             id: post.id,
             username: `${post.user.first_name} ${post.user.last_name}`,
@@ -206,12 +232,14 @@ export const usePostStore = create<PostStoreState>()(
             commentsList: [],
             isUserPost: false,
           }));
-
+      
+          console.log("🧩 Mapped Posts:", mappedPosts);
+      
           set({ posts: mappedPosts });
         } catch (error) {
-          console.error("Failed to fetch news feed:", error);
+          console.error("❌ Failed to fetch news feed:", error);
         }
-      },
+      },      
 
       deletePost: (postId) =>
         set((state) => ({
@@ -237,7 +265,6 @@ export const usePostStore = create<PostStoreState>()(
 
       setEditingPost: (post) => {
         const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
-
         const mediaPreviews: string[] = [];
 
         if (post?.image) mediaPreviews.push(post.image);
@@ -385,8 +412,7 @@ export const usePostStore = create<PostStoreState>()(
       name: "post-storage",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        posts: state.posts, // 👈 add this if it’s not being saved
-        // optionally include savedPosts, repostedPosts, etc.
+        posts: state.posts,
       }),
     }
   )

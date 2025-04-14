@@ -1,22 +1,17 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3005", // or your deployed API URL
+  baseURL: "http://api.ascendx.tech/post",
 });
 
-// Replace with your real token logic
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ0NDgzNTQ3LCJleHAiOjE3NDQ1MjY3NDd9.bJLtX_NZkNBcnC1u1Na3dkdIxeVam6ZRwEkTIa17xRM";
+// Static token for now 
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ0NjU2NjY2LCJleHAiOjE3NDQ2OTk4NjZ9.MUss-3OVisxAgxfZveo0PVthmN5ZFVRQg-SK7uc6QXE";
 
-// ✅ Type-safe interceptor
 API.interceptors.request.use((config) => {
-  if (!config.headers) {
-    config.headers = {};
-  }
-
-  // Set Authorization header safely
-  (config.headers as any)["Authorization"] = `Bearer ${token}`;
-
+  config.headers = {
+    ...config.headers,
+    Authorization: `Bearer ${token}`,
+  };
   return config;
 });
 
