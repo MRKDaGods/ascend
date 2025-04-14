@@ -12,7 +12,8 @@
         "paths": {
             "@shared/*": [
                 "packages/shared/src/*"
-            ]
+            ],
+            "@ascend/api-client/*": ["packages/api-client/pkg/*"]
         }
     },
     "include": [
