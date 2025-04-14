@@ -164,7 +164,7 @@ const NotificationCard: React.FC = () => {
           <Notifications sx={{ mr: 1, color: "gray" }} />
           Notifications
         </Typography>
-        {unseenCount > 0 && <Badge badgeContent={unseenCount} color="error" />}
+        {unseenCount > 0 && <Badge badgeContent={unseenCount} color="error" data-testid="unseen-count-badge"/>}
       </Box>
 
       {/*  Filter Buttons */}
