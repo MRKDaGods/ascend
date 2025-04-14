@@ -1,0 +1,9 @@
+node_modules
+dist
+apps
+scripts
+
+.git
+.gitignore
+.gitattributes
+.github/*
