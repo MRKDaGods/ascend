@@ -14,6 +14,9 @@ class SideBarPage(BasePage):
     BLOCKED_LIST_BUTTON = SideBarLocators.BLOCKED_LIST_BUTTON
     UNBLOCK_BUTTON = SideBarLocators.UNBLOCK_BUTTON
     SAVED_POSTS_BUTTON = SideBarLocators.SAVED_POSTS_BUTTON
+    CONFIRM_PASS_INPUT = SideBarLocators.CONFIRM_PASS_INPUT
+    UNBLOCKED_MESSAGE = SideBarLocators.UNBLOCKED_MESSAGE
+    CONFIRM_UNBLOCK_BUTTON = SideBarLocators.CONFIRM_UNBLOCK_BUTTON
 
         
     def click_Myprofile(self):
@@ -44,4 +47,10 @@ class SideBarPage(BasePage):
     #     return self.get_text(self.MESSAGE)
     def click_Saved_Posts_Button(self):
         self.click(self.SAVED_POSTS_BUTTON)
+
+    def enter_Confirm_Pass_Input(self, text):
+        self.click(self.CONFIRM_PASS_INPUT) 
+        self.send_keys(self.CONFIRM_PASS_INPUT, text)
     
+    def click_Confirm_Unblock_Button(self):
+        self.click(self.CONFIRM_UNBLOCK_BUTTON)

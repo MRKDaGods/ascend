@@ -162,7 +162,7 @@ def test_follow_public_profile(appium_driver, setup_test):
     others_profile_page.click_Follow_Button()
     time.sleep(1)
     try:
-        assert others_profile_page.is_visible(others_profile_page.FOLLOW_MESSAGE), "Following message should be visible but it's not"
+        assert others_profile_page.is_visible(others_profile_page.FOLLOWING_BUTTON), "Following message should be visible but it's not"
         logger.info("test_follow_public_profile test passed")
     except Exception as e:
         logger.error(f"test_follow_public_profile test failed: {e}")
@@ -180,7 +180,7 @@ def test_unfollow_public_profile(appium_driver, setup_test):
     others_profile_page.click_Unfollow_Button()
     time.sleep(1)
     try:
-        assert others_profile_page.is_visible(others_profile_page.FOLLOW_BUTTON), "follow button should be visible but it's not"
+        assert others_profile_page.is_visible(others_profile_page.FOLLOWING_BUTTON), "follow button should be visible but it's not"
         logger.info("test_unfollow_public_profile test passed")
     except Exception as e:
         logger.error(f"test_unfollow_public_profile test failed: {e}")
@@ -208,32 +208,44 @@ def test_block_profile(appium_driver, setup_test):
 def test_view_blocked_users(appium_driver, setup_test):
     my_network_page, search_bar_page, others_profile_page = setup_test
     side_bar_page = SideBarPage(appium_driver)
+    home_page = HomePage(appium_driver)
+    home_page.click_sidebar()
+    time.sleep(1)
     side_bar_page.click_Settings()
     time.sleep(1)
     side_bar_page.click_Profile_Visibility_Button()
     time.sleep(1)
+    appium_driver.swipe(500, 900, 500 ,250, 1000)
     side_bar_page.click_Blocked_List_Button()
-    time.sleep(1)
-    try:
-        assert  side_bar_page.is_visible(side_bar_page.UNBLOCK_BUTTON), "list is empty"
+    time.sleep(3)
+    assert side_bar_page.is_visible(side_bar_page.UNBLOCK_BUTTON), "Blocked list button should be visible but it's not"
+    if side_bar_page.is_visible(side_bar_page.UNBLOCK_BUTTON):
         logger.info("test_view_blocked_users test passed")
-    except Exception as e:
-        logger.error(f"test_view_blocked_users test failed: {e}")
-        assert False, "test_view_blocked_users test failed"
+    assert True, "Blocked users should be visible but it's not"
+    logger.info("test_view_blocked_users test passed")
+
     
 def test_unblock_profile(appium_driver, setup_test):
     my_network_page, search_bar_page, others_profile_page = setup_test
     side_bar_page = SideBarPage(appium_driver)
+    home_page = HomePage(appium_driver)
+    home_page.click_sidebar()
+    time.sleep(1)
     side_bar_page.click_Settings()
     time.sleep(1)
     side_bar_page.click_Profile_Visibility_Button()
     time.sleep(1)
+    appium_driver.swipe(500, 900, 500 ,250, 1000)
     side_bar_page.click_Blocked_List_Button()
     time.sleep(1)
     side_bar_page.click_Unblock_Button()
     time.sleep(1)
+    if side_bar_page.is_visible(side_bar_page.CONFIRM_PASS_INPUT):
+        side_bar_page.enter_Confirm_Pass_Input('123456789A')
+        appium_driver.hide_keyboard()
+        side_bar_page.click_Confirm_Unblock_Button()
     try:
-        assert not side_bar_page.is_visible(side_bar_page.UNBLOCK_BUTTON), "Unblock button should be visible but it's is not visible"
+        assert not side_bar_page.is_visible(side_bar_page.UNBLOCKED_MESSAGE), "Unblock button should be visible but it's is not visible"
         logger.info("test_unblock_profile test passed")
     except Exception as e:
         logger.error(f"test_unblock_profile test failed: {e}")

@@ -21,6 +21,7 @@ class OtherProfilePage(BasePage):
     CONFIM_BLOCK_BUTTON = OthersProfilePageLocaters.CONFIRM_BLOCK_BUTTON
     CONFIRM_AGAIN_BLOCK_BUTTON = OthersProfilePageLocaters.CONFIRM_AGAIN_BLOCK_BUTTON
     BLOCKED_MESSAGE = OthersProfilePageLocaters.BLOCKED_MESSAGE
+    FOLLOWING_BUTTON = OthersProfilePageLocaters.FOLLOWING_BUTTON
     
     def click_Connect_Button(self):
         try:
