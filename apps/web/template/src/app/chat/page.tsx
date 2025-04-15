@@ -4,7 +4,7 @@ import React from "react";
 import { Box } from "@mui/material";
 import Navbar from "../components/Navbar";
 import Link from 'next/link';
-import SidebarPreview from "@/app/components/SidebarPreview";
+import SidebarPreview from "../components/SidebarPreview";
 
 function Home() {
   return (
