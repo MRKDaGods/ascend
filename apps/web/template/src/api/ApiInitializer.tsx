@@ -1,11 +1,18 @@
+import React, { useEffect, useState } from "react";
 import { api } from "./apiDef";
 
-const React = require("react");
-const { useEffect, useState } = React;
+type InitState = {
+  initializing: boolean;
+  error: string;
+};
 
-export const ApiInitializer = ({ content }) => {
+type ApiInitializerProps = {
+  content?: () => React.ReactNode;
+};
+
+export const ApiInitializer: React.FC<ApiInitializerProps> = ({ content }) => {
   const [retry, setRetry] = useState(false);
-  const [initState, setInitState] = useState({
+  const [initState, setInitState] = useState<InitState>({
     initializing: true,
     error: "",
   });
@@ -14,8 +21,8 @@ export const ApiInitializer = ({ content }) => {
     try {
       if (!api.initialized) {
         console.log("Initializing API client...");
-
         setInitState({ initializing: true, error: "" });
+
         await api.initialize();
 
         console.log("API client initialized successfully.");
@@ -24,10 +31,13 @@ export const ApiInitializer = ({ content }) => {
       console.error("Error initializing API client:", error);
       setInitState({
         initializing: false,
-        error: `Failed to initialize API client ${error}`,
+        error: `Failed to initialize API client: ${String(error)}`,
       });
     } finally {
-      setInitState(prevState => ({ ...prevState, initializing: false }));
+      setInitState((prevState) => ({
+        ...prevState,
+        initializing: false,
+      }));
     }
   };
 
@@ -37,9 +47,7 @@ export const ApiInitializer = ({ content }) => {
 
   useEffect(() => {
     if (retry) {
-      initializeApi().finally(() => {
-        setRetry(false);
-      });
+      initializeApi().finally(() => setRetry(false));
     }
   }, [retry]);
 
@@ -57,10 +65,7 @@ export const ApiInitializer = ({ content }) => {
       <div className="api-error">
         <h3>Error</h3>
         <p>{initState.error}</p>
-        <button 
-          className="retry-button" 
-          onClick={() => setRetry(true)}
-        >
+        <button className="retry-button" onClick={() => setRetry(true)}>
           Retry Connection
         </button>
       </div>
@@ -72,10 +77,7 @@ export const ApiInitializer = ({ content }) => {
       <div className="api-error">
         <h3>API Not Initialized</h3>
         <p>Unable to initialize the API client.</p>
-        <button 
-          className="retry-button"
-          onClick={() => setRetry(true)}
-        >
+        <button className="retry-button" onClick={() => setRetry(true)}>
           Retry Initialization
         </button>
       </div>

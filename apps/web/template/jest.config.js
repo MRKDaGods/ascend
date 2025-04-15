@@ -1,6 +1,6 @@
 module.exports = {
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)?$': ['babel-jest', { configFile: './src/app/babel.config.js' }] // Explicitly specify Babel config
+    '^.+\\.(ts|tsx|js|jsx)?$': ['babel-jest', { configFile: './src/app/babel.config.cjs' }] // Explicitly specify Babel config
   },
   transformIgnorePatterns: [
     '/node_modules/' // Ensure Jest processes all files, including those in node_modules that might require transformation
