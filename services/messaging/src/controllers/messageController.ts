@@ -28,6 +28,13 @@ export const handleSendMessage = [
       const file = req.file || null;
       const content = req.body.content || null;
 
+      console.log("***************************************");
+      console.log("Sender ID:", senderId);
+      console.log("Receiver ID:", receiverId);
+      console.log("File:", file);
+      console.log("Content:", content);
+      console.log("***************************************");
+
       // Check that there is a content (text or file)
       if (!content && !file) {
         return res.status(400).json({ error: "Message is empty" });
