@@ -2,8 +2,8 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import InputBox from "@/app/chat/components/InputBox";
-import { useChatStore } from "@/app/chat/store/chatStore";
+import InputBox from "@/app/components/InputBox";
+import { useChatStore } from "@/app/stores/chatStore";
 
 jest.mock("@/app/chat/store/chatStore");
 const mockUseChatStore = useChatStore as unknown as jest.Mock;

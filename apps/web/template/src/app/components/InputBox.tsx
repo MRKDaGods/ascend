@@ -1,7 +1,7 @@
 "use client";
 import { Box,TextField,IconButton,Button, Typography} from "@mui/material";
 import {useState,useRef, useEffect} from "react";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore } from "../stores/chatStore";
 import axios from "axios";
 import React from "react";
 

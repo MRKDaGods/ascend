@@ -1,7 +1,7 @@
 import { render, screen, fireEvent,waitFor } from "@testing-library/react";
-import SidebarPreview from "@/app/chat/components/SidebarPreview";
+import SidebarPreview from "@/app/components/SidebarPreview";
 import { useRouter } from "next/navigation";
-import { useChatStore } from "@/app/chat/store/chatStore";
+import { useChatStore } from "@/app/stores/chatStore";
 import { act } from "react-dom/test-utils";
 
 // Mock the chat store

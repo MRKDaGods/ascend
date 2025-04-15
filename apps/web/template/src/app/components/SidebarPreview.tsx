@@ -10,7 +10,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import Sidebar from "./Sidebar";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore } from "../stores/chatStore";
 
 export default function SidebarPreview() {
   const [open, setOpen] = useState(false);

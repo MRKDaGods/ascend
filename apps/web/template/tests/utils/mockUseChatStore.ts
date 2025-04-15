@@ -1,6 +1,6 @@
 import { createStore, StoreApi } from "zustand";
-import { conversation } from "@/app/chat/components/Sidebar";
-import { messageProps } from "@/app/chat/components/Message";
+import { conversation } from "@/app/components/Sidebar";
+import { messageProps } from "@/app/components/Message";
 
 // Define your ChatStore type
 type ChatStore = {

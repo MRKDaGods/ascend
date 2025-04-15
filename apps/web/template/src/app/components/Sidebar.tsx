@@ -7,9 +7,9 @@ import {
   Badge, ListItemButton, Menu, MenuItem
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { useChatStore } from "../store/chatStore";
-import { markAsRead } from "../utils/api";
-import { handleIncomingMessage } from "../utils/fireBaseHandlers";
+import { useChatStore } from "../stores/chatStore";
+import { markAsRead } from "../chat/utils/api";
+import { handleIncomingMessage } from "../chat/utils/fireBaseHandlers";
 
 export type conversation = {
   id: number;

@@ -2,8 +2,8 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import ChatWindow from "@/app/chat/components/ChatWindow";
-import { useChatStore } from "@/app/chat/store/chatStore";
+import ChatWindow from "@/app/components/ChatWindow";
+import { useChatStore } from "@/app/stores/chatStore";
 import axios from "axios";
 
 // Setup scrollIntoView mock

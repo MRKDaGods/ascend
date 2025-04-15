@@ -1,8 +1,8 @@
 // __tests__/Message.test.tsx
 import { render, screen } from "@testing-library/react";
-import Message from "@/app/chat/components/Message";
+import Message from "@/app/components/Message";
 import { mockUseChatStore } from "../tests/utils/mockUseChatStore";
-import { useChatStore } from "@/app/chat/store/chatStore";
+import { useChatStore } from "@/app/stores/chatStore";
 
 jest.mock("@/app/chat/store/chatStore", () => ({
   useChatStore: jest.fn(),

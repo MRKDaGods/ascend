@@ -1,10 +1,10 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import NewConversationDropdown from "@/app/chat/components/NewConversationDropdown";
+import NewConversationDropdown from "@/app/components/NewConversationDropdown";
 import axios from "axios";
-import { useChatStore } from "@/app/chat/store/chatStore";
-import type { chatStore } from "@/app/chat/store/chatStore";
+import { useChatStore } from "@/app/stores/chatStore";
+import type { chatStore } from "@/app/stores/chatStore";
 import userEvent from "@testing-library/user-event";
 
 
