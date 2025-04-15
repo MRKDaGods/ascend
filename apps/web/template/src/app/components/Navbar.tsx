@@ -105,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ notification }) => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Messaging">
-            <IconButton>
+            <IconButton onClick={() => router.push("/chat")}>
               <Message sx={{ color: muiTheme.palette.text.secondary }} />
             </IconButton>
           </Tooltip>

@@ -1,4 +1,4 @@
-import { messageProps } from "../components/Message";
+import { messageProps } from "../../components/Message";
 
 // ✅ SAFE VERSION: No zustand calls inside
 export function handleIncomingMessage(

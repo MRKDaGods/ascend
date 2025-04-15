@@ -1,11 +1,11 @@
 "use client";
 import { Box, Typography, Button, Avatar, IconButton } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore } from "../stores/chatStore";
 import axios from "axios";
 import Message from "./Message";
 import InputBox from "./InputBox";
-import { handleIncomingMessage } from "../utils/fireBaseHandlers";
+import { handleIncomingMessage } from "../chat/utils/fireBaseHandlers";
 import { Socket } from "dgram";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Menu from '@mui/material/Menu';

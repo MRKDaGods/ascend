@@ -1,6 +1,6 @@
 import axios from "axios";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import Sidebar from "@/app/chat/components/Sidebar";
+import Sidebar from "@/app/components/Sidebar";
 import { mockUseChatStore } from "../tests/utils/mockUseChatStore";
 
 // Mock axios
@@ -13,7 +13,7 @@ jest.mock("@/app/chat/store/chatStore", () => ({
 }));
 
 // Import after mock declaration
-import { useChatStore } from "@/app/chat/store/chatStore";
+import { useChatStore } from "@/app/stores/chatStore";
 
 describe("Sidebar Component", () => {
     const mockConversations = [

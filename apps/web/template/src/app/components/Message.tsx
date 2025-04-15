@@ -1,6 +1,6 @@
 "use client";
 import { Box, Avatar,Paper, Typography} from "@mui/material";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore } from "../stores/chatStore";
 import React from "react";
 
 

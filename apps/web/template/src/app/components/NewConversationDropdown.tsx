@@ -8,7 +8,7 @@ import {
   } from "@mui/material";
   import { useEffect, useState } from "react";
   import axios from "axios";
-  import { useChatStore } from "../store/chatStore";
+  import { useChatStore } from "../stores/chatStore";
 
   type connection = {
     userId: string;
