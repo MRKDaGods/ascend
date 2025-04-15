@@ -1,6 +1,10 @@
 import database from "@shared/config/db";
 import { Services } from "@ascend/shared";
 import { getPresignedUrl } from "@shared/utils/files";
+import {
+  getUserFullName,
+  getUserProfilePictureUrl,
+} from "@shared/utils/userProfile";
 import { Message, Conversation } from "packages/shared/src/models/message";
 import {
   callRPC,
@@ -281,13 +285,28 @@ export const getConversations = async (
     );
 
     // Map the results to a more usable format
-    const conversationList = conversationsQueryResult.rows.map((row) => ({
-      conversationId: row.conversation_id,
-      otherUserId: row.connected_user_id,
-      lastMessageContent: row.last_message_content,
-      lastMessageTimestamp: row.last_message_timestamp,
-      unseenMessageCount: parseInt(row.unseen_count),
-    }));
+    const conversationList = await Promise.all(
+      conversationsQueryResult.rows.map(async (row) => {
+        const conversation = {
+          conversationId: row.conversation_id,
+          otherUserId: row.connected_user_id,
+          otherUserFullName: "",
+          otherUserProfilePictureUrl: null as string | null,
+          lastMessageContent: row.last_message_content,
+          lastMessageTimestamp: row.last_message_timestamp,
+          unseenMessageCount: parseInt(row.unseen_count),
+        };
+
+        conversation.otherUserFullName = await getUserFullName(
+          conversation.otherUserId
+        );
+
+        conversation.otherUserProfilePictureUrl =
+          await getUserProfilePictureUrl(conversation.otherUserId);
+
+        return conversation;
+      })
+    );
 
     return {
       data: conversationList,
@@ -360,11 +379,10 @@ export const getMessages = async (
           senderId: row.sender_id,
           content: row.content,
           fileUrl: null,
+          fileType: null,
           sentAt: row.sent_at,
           readAt: row.read_at,
           isRead: row.is_read,
-          isEdited: row.is_edited,
-          isDeleted: row.is_deleted,
         };
 
         // If a file is associated with the message, fetch its URL
