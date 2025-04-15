@@ -17,7 +17,7 @@ class CustomAlertDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1C1C1E), // Dark background
+      // Dark background
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16), // Smooth rounded corners
       ),
@@ -27,7 +27,6 @@ class CustomAlertDialog extends StatelessWidget {
                 child: Text(
                   title!,
                   style: const TextStyle(
-                    color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -36,7 +35,7 @@ class CustomAlertDialog extends StatelessWidget {
               : null,
       content: Text(
         description,
-        style: const TextStyle(color: Colors.white70, fontSize: 14),
+        style: const TextStyle(fontSize: 14),
         textAlign: TextAlign.center,
       ),
       actions: [
@@ -44,7 +43,7 @@ class CustomAlertDialog extends StatelessWidget {
           decoration: const BoxDecoration(
             border: Border(
               top: BorderSide(
-                color: Color(0xFF2C2C2E), // Slightly lighter border for realism
+                // Slightly lighter border for realism
               ),
             ),
           ),
@@ -53,13 +52,12 @@ class CustomAlertDialog extends StatelessWidget {
               _buildActionButton(
                 context,
                 label: "Cancel",
-                textColor: Colors.white,
+                textColor: Colors.black,
                 onTap: () => Navigator.pop(context),
               ),
               Container(
                 width: 1, // Thin divider between buttons
                 height: 48,
-                color: const Color(0xFF2C2C2E),
               ),
               _buildActionButton(
                 context,

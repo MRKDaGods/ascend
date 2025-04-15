@@ -14,12 +14,11 @@ class ExpandedSectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
+        
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white70),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -27,7 +26,7 @@ class ExpandedSectionPage extends StatelessWidget {
         title: Text(
           section.title,
           style: const TextStyle(
-            color: Colors.white,
+
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -36,13 +35,13 @@ class ExpandedSectionPage extends StatelessWidget {
             isMyProfile
                 ? [
                   IconButton(
-                    icon: const Icon(Icons.reorder, color: Colors.white70),
+                    icon: const Icon(Icons.reorder),
                     onPressed: () {
                       // Handle settings action
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add, color: Colors.white70),
+                    icon: const Icon(Icons.add),
                     onPressed: () {
                       // Handle add action
                     },

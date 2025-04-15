@@ -10,7 +10,7 @@ enum ProfileType { myprofile, otherUserProfile }
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({
-    this.profileType = ProfileType.myprofile,
+    this.profileType = ProfileType.otherUserProfile,
     super.key,
     this.name = 'Maged Amgad',
     this.bio = "Computer engineering student at Cairo University",
@@ -160,29 +160,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         title: Container(
           height: 40,
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(8),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
           child: TextField(
-            style: TextStyle(color: Colors.black87),
             decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search, color: Colors.black87),
+              prefixIcon: Icon(Icons.search),
               border: InputBorder.none,
               hintText: 'Search',
-              hintStyle: TextStyle(color: Colors.black87),
             ),
           ),
         ),
@@ -195,6 +188,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ProfileMainImages(
                 profilePic: widget.profileImageUrl,
                 coverPic: widget.coverImageUrl,
+                isMyProfile:
+                    widget.profileType == ProfileType.myprofile ? true : false,
               ),
               SizedBox(height: 50),
               Padding(

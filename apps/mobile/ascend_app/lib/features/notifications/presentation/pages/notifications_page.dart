@@ -201,6 +201,7 @@ class FilteredNotificationList extends StatelessWidget {
                     final notificationsPageState = 
                         context.findAncestorStateOfType<_NotificationsPageState>();
                     if (notificationsPageState != null) {
+                      // ignore: invalid_use_of_protected_member
                       notificationsPageState.setState(() {
                         notificationsPageState._selectedFilterType = null;
                       });

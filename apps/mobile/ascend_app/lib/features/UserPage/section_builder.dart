@@ -83,7 +83,11 @@ class _SectionBuilderState extends State<SectionBuilder> {
       children: [
         // Full-width Black Divider
         if (!widget.isExpanded)
-          Container(height: 6, width: double.infinity, color: Colors.black),
+          Container(
+            height: 6,
+            width: double.infinity,
+            color: const Color.fromARGB(255, 180, 180, 180),
+          ),
 
         // Section Content with Padding
         Padding(
@@ -102,7 +106,6 @@ class _SectionBuilderState extends State<SectionBuilder> {
                         Text(
                           widget.section.title,
                           style: const TextStyle(
-                            color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -117,16 +120,13 @@ class _SectionBuilderState extends State<SectionBuilder> {
                       children: [
                         if (widget.section.title != "About")
                           IconButton(
-                            icon: const Icon(Icons.add, color: Colors.white),
+                            icon: const Icon(Icons.add),
                             onPressed: () {
                               // Handle add action
                             },
                           ),
                         IconButton(
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            color: Colors.white,
-                          ),
+                          icon: const Icon(Icons.edit_outlined),
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -148,12 +148,9 @@ class _SectionBuilderState extends State<SectionBuilder> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: const [
-                    Icon(Icons.remove_red_eye, color: Colors.white54),
+                    Icon(Icons.remove_red_eye),
                     SizedBox(width: 5),
-                    Text(
-                      "Private to you",
-                      style: TextStyle(color: Colors.white54),
-                    ),
+                    Text("Private to you"),
                   ],
                 ),
               const SizedBox(height: 5),
@@ -168,10 +165,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                     if (widget.inEditMode &&
                         widget.section.title != "Analytics")
                       IconButton(
-                        icon: const Icon(
-                          Icons.edit_outlined,
-                          color: Colors.white54,
-                        ),
+                        icon: const Icon(Icons.edit_outlined),
                         onPressed: () {
                           _editEntry(context, item as ProfileEntryWidget);
                           editedItem = item;
@@ -180,9 +174,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                   ],
                 ),
                 if (item != displayedContent.last)
-                  const Divider(
-                    color: Colors.white38,
-                  ), // Grey divider between items
+                  const Divider(), // Grey divider between items
               ],
 
               // "Show All" Button if more content exists
@@ -208,9 +200,8 @@ class _SectionBuilderState extends State<SectionBuilder> {
                       children: [
                         Text(
                           'Show all ${widget.section.title != "Analytics" ? contentCount : ""} ${widget.section.title.toLowerCase()}',
-                          style: const TextStyle(color: Colors.blue),
                         ),
-                        const Icon(Icons.arrow_forward, color: Colors.blue),
+                        const Icon(Icons.arrow_forward),
                       ],
                     ),
                   ),
