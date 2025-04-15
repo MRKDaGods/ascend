@@ -125,6 +125,7 @@ export const sendMessage = async (
   messageId: number;
   content: string | null;
   fileUrl: string | null;
+  fileType: string | null;
   sentAt: Date;
 }> => {
   try {
@@ -151,6 +152,7 @@ export const sendMessage = async (
     // Handle file upload if a file is provided
     let fileId = null;
     let fileUrl = null;
+    let fileType = null;
 
     if (file) {
       // Construct payload and call the rpc
@@ -176,6 +178,7 @@ export const sendMessage = async (
 
       fileId = fileResponse.file_id;
       fileUrl = await getPresignedUrl(fileId);
+      fileType = file.mimetype;
     }
 
     // Insert the message into the database
@@ -195,6 +198,7 @@ export const sendMessage = async (
       messageId: parseInt(messageInsertResult.rows[0].message_id),
       content: messageContent,
       fileUrl: fileUrl,
+      fileType: fileType,
       sentAt: messageInsertResult.rows[0].sent_at,
     };
   } catch (error) {

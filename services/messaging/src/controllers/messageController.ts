@@ -54,6 +54,7 @@ export const handleSendMessage = [
           messageId: messageResult.messageId,
           content: messageResult.content,
           fileUrl: messageResult.fileUrl,
+          fileType: messageResult.fileType,
           sentAt: messageResult.sentAt,
         });
       }
@@ -63,6 +64,7 @@ export const handleSendMessage = [
         messageId: messageResult.messageId,
         content: messageResult.content,
         fileUrl: messageResult.fileUrl,
+        fileType: messageResult.fileType,
         sentAt: messageResult.sentAt,
       });
     } catch (error) {
