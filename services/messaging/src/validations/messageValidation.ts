@@ -1,13 +1,6 @@
 import { body, ValidationChain } from "express-validator";
 
 export const messageValidationRules: ValidationChain[] = [
-  // Validate receiverId
-  body("receiverId")
-    .notEmpty()
-    .withMessage("Receiver ID is required")
-    .isNumeric()
-    .withMessage("Receiver ID must be a number"),
-
   // Validate content
   body("content").optional().isString().withMessage("Content must be a string"),
 
