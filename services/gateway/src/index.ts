@@ -45,9 +45,6 @@ startSharedService("Gateway", undefined, {
     // Messaging service
     app.use("/messaging", conditionalProxy("http://messaging:3010"));
 
-    // Socket.io endpoint for messaging
-    app.use("/socket.io", proxy("http://messaging:3011"));
-
     // Notification service
     app.use("/notifications", conditionalProxy("http://notification:3004"));
   },
