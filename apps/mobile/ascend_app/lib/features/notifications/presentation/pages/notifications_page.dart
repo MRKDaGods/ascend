@@ -94,7 +94,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
               controller: _scrollController,
               slivers: [
                 const CustomSliverAppBar(
-                  showAppBar: true,
                   pinned: false,
                   floating: true,
                   addpost: false,
