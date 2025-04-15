@@ -40,9 +40,9 @@ class BasePage:
                 EC.visibility_of_element_located(locator)
             )
             logger.info(f"Element {locator} is visible.")
-            return 1
+            return True
         except TimeoutException:
-            return 0
+            return False
     # def hold_click(self, element, duration=3):
     #     """Hold click on an element for a given duration (in seconds)."""
 

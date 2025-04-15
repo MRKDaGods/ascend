@@ -32,7 +32,8 @@ class UtilityFunctions:
     def login(self):
         try:
             self.landing_page.click_sign_in_with_email()
-        except:
+        except Exception as e:
+            logger.info(f"error here {e}")
             pass
         self.login_page.enter_email(TC.TEST_EMAIL)
         self.driver.hide_keyboard()
@@ -68,21 +69,21 @@ class UtilityFunctions:
         except Exception as e:
             logger.info(f"error here {e}")
             # Uncomment and adapt fallback flow as needed
-            # try:
-            #     if self.landing_page.get_text(self.landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
-            #         logger.info("User is in landing page")
-            #         self.landing_page.click_sign_in_with_email()
-            #         self.login()
-            #         self.open_profile_page()
-            #         if swipe:
-            #             self.driver.swipe(583, 1900, 583, 50, 1000)
-            #             self.driver.swipe(583, 1000, 583, 400, 1000)
-            #         click()
-            #         time.sleep(2)
-            # except:
-            #     self.login()
-            #     self.open_profile_page()
-            #     if swipe:
-            #         self.driver.swipe(583, 1900, 583, 50, 1000)
-            #         self.driver.swipe(583, 1000, 583, 400, 1000)
-            #     click()
+            try:
+                if self.landing_page.get_text(self.landing_page.JOIN_A_TRUSTED_COMMUNITY_MESSAGE) == "Join a trusted community of 1B professionals":
+                    logger.info("User is in landing page")
+                    self.landing_page.click_sign_in_with_email()
+                    self.login()
+                    self.open_profile_page()
+                    if swipe:
+                        self.driver.swipe(583, 1900, 583, 50, 1000)
+                        self.driver.swipe(583, 1000, 583, 400, 1000)
+                    click()
+                    time.sleep(2)
+            except:
+                self.login()
+                self.open_profile_page()
+                if swipe:
+                    self.driver.swipe(583, 1900, 583, 50, 1000)
+                    self.driver.swipe(583, 1000, 583, 400, 1000)
+                click()
