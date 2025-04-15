@@ -3,15 +3,15 @@ import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class ApiClient {
-  final String _baseUrl =
-      'http://16.171.3.50/auth'; // Replace with your API base URL
+  final String _baseUrl = 'http://api.ascendx.tech';
 
   // Helper method to get headers (e.g., for authentication)
   Future<Map<String, String>> _getHeaders() async {
     final token = await SecureStorageHelper.getAuthToken();
     return {
-      'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
     };
   }
 
@@ -19,7 +19,9 @@ class ApiClient {
   Future<http.Response> get(String endpoint) async {
     final headers = await _getHeaders();
     final url = Uri.parse('$_baseUrl$endpoint');
-    final response = await http.get(url, headers: headers);
+    final response = await http
+        .get(url, headers: headers)
+        .timeout(Duration(seconds: 10));
 
     _handleResponse(response);
     return response;
@@ -44,7 +46,9 @@ class ApiClient {
   // POST request for login
   Future<http.Response> login(String email, String password) async {
     final headers = {'Content-Type': 'application/json'};
-    final url = Uri.parse('$_baseUrl/login'); // Append /login to the base URL
+    final url = Uri.parse(
+      '$_baseUrl/auth/login',
+    ); // Append /login to the base URL
     final body = jsonEncode({'email': email, 'password': password});
 
     print('Sending POST request to $url with body: $body'); // Debugging log
@@ -87,6 +91,22 @@ class ApiClient {
     final headers = await _getHeaders();
     final url = Uri.parse('$_baseUrl$endpoint');
     final response = await http.delete(url, headers: headers);
+    _handleResponse(response);
+    return response;
+  }
+
+  // PATCH request
+  Future<http.Response> patch(
+    String endpoint, {
+    Map<String, dynamic>? data,
+  }) async {
+    final headers = await _getHeaders();
+    final url = Uri.parse('$_baseUrl$endpoint');
+    final response = await http.patch(
+      url,
+      headers: headers,
+      body: jsonEncode(data),
+    );
     _handleResponse(response);
     return response;
   }
