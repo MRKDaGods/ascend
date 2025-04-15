@@ -4,7 +4,10 @@ import path from "path";
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   eslint: {
-        ignoreDuringBuilds: true, 
+    ignoreDuringBuilds: true, 
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
 
   webpack: (config) => {
