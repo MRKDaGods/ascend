@@ -2,7 +2,9 @@
   "name": "template",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "dev": "next dev",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -11,6 +13,9 @@
     "lint": "next lint",
     "test": "jest"
   },
+  "setupFilesAfterEnv": [
+    "<rootDir>/src/setupTests.ts"
+  ],
   "dependencies": {
     "@ascend/api-client": "file:../../../packages/api-client/pkg",
     "@emoji-mart/data": "^1.2.1",
@@ -46,6 +51,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "babel-jest": "^29.7.0",
     "babel-jest": "^29.7.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
