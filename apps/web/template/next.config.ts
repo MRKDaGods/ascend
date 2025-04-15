@@ -3,14 +3,14 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
+  eslint: {
+        ignoreDuringBuilds: true, 
+  },
 
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      "@ascend/api-client": path.resolve(__dirname, "../../../packages/api-client/pkg"),
-      eslint: {
-        ignoreDuringBuilds: true, 
-      }
+      "@ascend/api-client": path.resolve(__dirname, "../../../packages/api-client/pkg")
     };
     return config;
   },
