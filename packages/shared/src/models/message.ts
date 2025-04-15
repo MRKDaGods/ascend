@@ -3,6 +3,7 @@ export interface Conversation {
   otherUserId: number;
   otherUserFullName: string;
   otherUserProfilePictureUrl: string | null;
+  isBlocked: boolean;
   lastMessageContent: string;
   lastMessageTimestamp: Date;
   unseenMessageCount: number;
