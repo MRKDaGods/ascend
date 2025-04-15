@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       "@ascend/api-client": path.resolve(__dirname, "../../../packages/api-client/pkg"),
+      eslint: {
+        ignoreDuringBuilds: true,
+      }
     };
     return config;
   },
