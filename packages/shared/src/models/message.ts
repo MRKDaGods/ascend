@@ -1,6 +1,8 @@
 export interface Conversation {
   conversationId: number;
   otherUserId: number;
+  otherUserFullName: string;
+  otherUserProfilePictureUrl: string | null;
   lastMessageContent: string;
   lastMessageTimestamp: Date;
   unseenMessageCount: number;
@@ -11,9 +13,8 @@ export interface Message {
   senderId: number;
   content: string | null;
   fileUrl: string | null;
+  fileType: string | null;
   sentAt: Date;
   readAt: Date;
   isRead: boolean;
-  isEdited: boolean;
-  isDeleted: boolean;
 }
