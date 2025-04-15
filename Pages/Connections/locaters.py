@@ -36,4 +36,5 @@ class OthersProfilePageLocaters:
     INVITATION_SENT_MESSAGE = (By.ACCESSIBILITY_ID,'Invitation sent')
     FOLLOW_MESSAGE = (By.ACCESSIBILITY_ID,'Following')
     UNFOLLOW_BUTTON = (By.ID,'com.linkedin.android:id/invitations_unfollow_friction_confirm_button')
+    FOLLOWING_BUTTON = (By.ID,'com.linkedin.android:id/profile_top_card_profile_picture_v2')
     

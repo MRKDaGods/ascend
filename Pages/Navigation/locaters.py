@@ -6,10 +6,13 @@ class SideBarLocators:
     SIGNOUT_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("sign_out")')
     CONFIRM_SIGNOUT = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/growth_login_remember_me_pre_logout_bottomsheet_negative_option")')
     CONFIRM_SIGNOUT_2 = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("android:id/button1")')
-    PROFILE_VISIBILITY_BUTTON = (By.ID, 'PROFILE_VISIBILITY')
-    BLOCKED_LIST_BUTTON = (By.ID, 'manageByBlockedList')
-    UNBLOCK_BUTTON = (By.ID, 'ember30')
+    PROFILE_VISIBILITY_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("PROFILE_VISIBILITY")')
+    BLOCKED_LIST_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("manageByBlockedList")')
+    UNBLOCK_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("ember30")')
+    CONFIRM_UNBLOCK_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("ember31")')
     SAVED_POSTS_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Saved posts")')
+    CONFIRM_PASS_INPUT = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("password-input")')
+    UNBLOCKED_MESSAGE = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.view.View").instance(3)')
     
 
 class NavigationBarLocaters:
