@@ -47,4 +47,37 @@ class Jobsattributes {
   final bool easyapply; // Indicates if job supports easy apply
   bool viewed; // Track if job has been viewed
   final String? applicationForm; // URL for application form
+
+  DateTime? get timePostedDate {
+    try {
+      final parts = timePosted.split(' ');
+      if (parts.length == 3) {
+        final value = int.parse(parts[0]);
+        final unit = parts[1].toLowerCase();
+
+        switch (unit) {
+          case 'minute':
+          case 'minutes':
+            return DateTime.now().subtract(Duration(minutes: value));
+          case 'hour':
+          case 'hours':
+            return DateTime.now().subtract(Duration(hours: value));
+          case 'day':
+          case 'days':
+            return DateTime.now().subtract(Duration(days: value));
+          case 'week':
+          case 'weeks':
+            return DateTime.now().subtract(Duration(days: value * 7));
+          case 'month':
+          case 'months':
+            return DateTime.now().subtract(Duration(days: value * 30));
+          default:
+            return null;
+        }
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  }
 }
