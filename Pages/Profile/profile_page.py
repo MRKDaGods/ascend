@@ -30,6 +30,13 @@ class ProfiePage(BasePage):
     LOCATION = ProfiePageLocaters.LOCATION
     ADD_POSTION_BUTTON = ProfiePageLocaters.ADD_POSTION_BUTTON
     EXPERIENCE_MESSAGE = ProfiePageLocaters.EXPERIENCE_MESSAGE
+    SHOW_ALL_POSTS_BUTTON = ProfiePageLocaters.SHOW_ALL_POSTS_BUTTON
+    POST_OPTIONS_BUTTON = ProfiePageLocaters.POST_OPTIONS_BUTTON
+    EDIT_POST_BUTTON = ProfiePageLocaters.EDIT_POST_BUTTON
+    DELETE_POST_BUTTON = ProfiePageLocaters.DELETE_POST_BUTTON
+    EDIT_POST_MESSAGE = ProfiePageLocaters.EDIT_POST_MESSAGE
+    CONFIRM_DELETE_BUTTON = ProfiePageLocaters.CONFIRM_DELETE_BUTTON
+   
     
 
     def click_edit_profile(self):
@@ -98,3 +105,17 @@ class ProfiePage(BasePage):
     def get_message(self, MESSAGE):
         return self.get_text(MESSAGE)
     
+    def click_show_all_posts(self):
+        self.click(self.SHOW_ALL_POSTS_BUTTON)
+    
+    def click_post_options(self):
+        self.click(self.POST_OPTIONS_BUTTON)
+    
+    def click_edit_post(self):
+        self.click(self.EDIT_POST_BUTTON)
+    
+    def click_delete_post(self):
+        self.click(self.DELETE_POST_BUTTON)
+    
+    def click_confirm_delete(self):
+        self.click(self.CONFIRM_DELETE_BUTTON)

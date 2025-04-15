@@ -34,9 +34,19 @@ class HomePage(BasePage):
     POST_INFO = HomeLocators.POST_INFO
     LIKE_BUTTON1 = HomeLocators.LIKE_BUTTON1
     POST_UPLOADED_SUCCESFUL_MESSAGE = HomeLocators.POST_UPLOADED_SUCCESFUL_MESSAGE
+    COMMENTS_AND_REPOST_COUNT = HomeLocators.COMMENTS_AND_REPOST_COUNT
+    WRITE_COMMENT = HomeLocators.WRITE_COMMENT
+    TAG_USER_BUTTON = HomeLocators.TAG_USER_BUTTON
+    VIEW_SAVED_POSTS = HomeLocators.VIEW_SAVED_POSTS
+    UNSAVE_POST_BUTTON = HomeLocators.UNSAVE_POST_BUTTON
+    EDIT_SAVED_POSTS = HomeLocators.EDIT_SAVED_POSTS
+    DISMISS_BUTOTN0 = HomeLocators.DISSMISS_BUTTON0
+    EMPTY_POSTS_MESSAGE = HomeLocators.EMPTY_POSTS_MESSAGE
+    NOTIFICATION_FREEZE_BUTTON = HomeLocators.NOTIFICATION_FREEZE_BUTTON
+    ADD_IMAGE_BUTOTN = HomeLocators.ADD_IMAGE_BUTOTN
+    NEXT_BUTTON2 = HomeLocators.NEXT_BUTTON2
+    POST_COMMENT_BUTTON = HomeLocators.POST_COMMENT_BUTTON
     
-    
-
     
     def click_sidebar(self):
         self.click(self.SIDEBAR_BUTTON)
@@ -119,6 +129,34 @@ class HomePage(BasePage):
         self.click(self.DOCUMENT_FILE)
     
     def click_next_button(self):
-        self.click(self.NEXT_BUTTON)
+        try:
+            self.click(self.NEXT_BUTTON)
+        except:
+            self.click(self.NEXT_BUTTON2)
     
+    def write_comment(self, comment):
+        self.click(self.WRITE_COMMENT)
+        self.send_keys(self.WRITE_COMMENT, comment)
     
+    def click_tag_user_button(self):
+        self.click(self.TAG_USER_BUTTON)
+    
+    def click_view_saved_posts(self):
+        self.click(self.VIEW_SAVED_POSTS)
+    
+    def click_unsave_post_button(self):
+        self.click(self.UNSAVE_POST_BUTTON)
+    
+    def click_edit_saved_posts(self):
+        self.click(self.EDIT_SAVED_POSTS)
+        
+    def click_dismiss_button(self):
+        self.click(self.DISMISS_BUTOTN)
+        
+    def click_notification_freeze_button(self):
+        self.click(self.NOTIFICATION_FREEZE_BUTTON)
+        
+    def click_add_image_button(self):
+        self.click(self.ADD_IMAGE_BUTOTN)
+    def click_post_comment_button(self):
+        self.click(self.POST_COMMENT_BUTTON)
