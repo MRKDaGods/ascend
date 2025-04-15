@@ -1,6 +1,6 @@
 import database from "@shared/config/db";
 import { Services } from "@ascend/shared";
-import { getPresignedUrl } from "@shared/utils/files";
+import { getPresignedUrl, getFileMetadata } from "@shared/utils/files";
 import {
   getUserFullName,
   getUserProfilePictureUrl,
@@ -388,6 +388,8 @@ export const getMessages = async (
         // If a file is associated with the message, fetch its URL
         if (row.media_id) {
           message.fileUrl = await getPresignedUrl(row.media_id);
+          const fileMetadata = await getFileMetadata(row.media_id);
+          message.fileType = fileMetadata?.mime_type || null;
         }
 
         return message;
