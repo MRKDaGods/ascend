@@ -292,6 +292,7 @@ export const getConversations = async (
           otherUserId: row.connected_user_id,
           otherUserFullName: "",
           otherUserProfilePictureUrl: null as string | null,
+          isBlocked: false,
           lastMessageContent: row.last_message_content,
           lastMessageTimestamp: row.last_message_timestamp,
           unseenMessageCount: parseInt(row.unseen_count),
