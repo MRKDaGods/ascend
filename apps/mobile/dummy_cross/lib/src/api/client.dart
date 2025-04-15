@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const API_URL_DEV = "http://10.0.2.2:8080";
 const API_URL_PROD = "http://api.ascendx.tech";
 
-final _api = FfiApiClient(baseUrl: API_URL_DEV);
+final _api = FfiApiClient(baseUrl: API_URL_PROD);
 late final SharedPreferences _prefs;
 
 class ApiClient {
