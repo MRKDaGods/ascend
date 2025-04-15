@@ -28,12 +28,10 @@ export const handleSendMessage = [
       const file = req.file || null;
       const content = req.body.content || null;
 
-      console.log("***************************************");
-      console.log("Sender ID:", senderId);
-      console.log("Receiver ID:", receiverId);
-      console.log("File:", file);
-      console.log("Content:", content);
-      console.log("***************************************");
+      // Check if no receiverId is provided
+      if (!receiverId) {
+        return res.status(400).json({ error: "Receiver ID is required" });
+      }
 
       // Check that there is a content (text or file)
       if (!content && !file) {
@@ -63,6 +61,7 @@ export const handleSendMessage = [
       return res.status(200).json({
         conversationId: messageResult.conversationId,
         messageId: messageResult.messageId,
+        content: messageResult.content,
         fileUrl: messageResult.fileUrl,
         sentAt: messageResult.sentAt,
       });
