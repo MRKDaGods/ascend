@@ -27,6 +27,14 @@ class HomePage(BasePage):
     VIEW_THE_FULL_POST = HomeLocators.VIEW_THE_FULL_POST
     REACTIONS_COUNT = HomeLocators.REACTIONS_COUNT
     SEARCH_BAR = HomeLocators.SEARCH_BAR
+    CHOOSE_DOCUMENT_FILE = HomeLocators.CHOOSE_DOCUMENT_FILE
+    WRITE_DOCUMENT_TITLE = HomeLocators.WRITE_DOCUMENT_TITLE
+    DOCUMENT_FILE = HomeLocators.DOCUMENT_FILE
+    NEXT_BUTTON = HomeLocators.NEXT_BUTTON
+    POST_INFO = HomeLocators.POST_INFO
+    LIKE_BUTTON1 = HomeLocators.LIKE_BUTTON1
+    POST_UPLOADED_SUCCESFUL_MESSAGE = HomeLocators.POST_UPLOADED_SUCCESFUL_MESSAGE
+    
     
 
     
@@ -46,8 +54,11 @@ class HomePage(BasePage):
         self.click(self.MESSAGING_BUTTON)
     
     def click_like_button(self):
-        self.click(self.LIKE_BUTTON)
-    
+        try:
+            self.click(self.LIKE_BUTTON)
+        except:
+            self.click(self.LIKE_BUTTON1)
+        
     def click_comment_button(self):
         self.click(self.COMMENT_BUTTON)
     
@@ -92,7 +103,22 @@ class HomePage(BasePage):
         self.click(self.POST_BUTTON)
     
     def click_view_the_full_post(self):
-        self.click(self.VIEW_THE_FULL_POST)
+        self.click(self.REACTIONS_COUNT)
     
     def click_reactions_count(self):
         self.click(self.REACTIONS_COUNT)
+    
+    def click_choose_document_file(self):
+        self.click(self.CHOOSE_DOCUMENT_FILE)
+    
+    def click_write_document_title(self, title):
+        self.click(self.WRITE_DOCUMENT_TITLE)
+        self.send_keys(self.WRITE_DOCUMENT_TITLE, title)
+    
+    def click_document_file(self):
+        self.click(self.DOCUMENT_FILE)
+    
+    def click_next_button(self):
+        self.click(self.NEXT_BUTTON)
+    
+    

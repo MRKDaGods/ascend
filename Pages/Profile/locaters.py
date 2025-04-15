@@ -43,6 +43,9 @@ class EditProfilePageLocaters:
     DISCARD_CHANGES_BUTTON = (By.ID, 'android:id/button1')
     NAME_ERROR_MESSAGE_1 = (By.XPATH, '(//android.widget.TextView[@resource-id="com.linkedin.android:id/textinput_error"])[1]') 
     NAME_ERROR_MESSAGE_2 = (By.XPATH, '(//android.widget.TextView[@resource-id="com.linkedin.android:id/textinput_error"])[2]')
+    SHOW_ALL_POSTS_BUTTON = (By.ID, 'com.linkedin.android:id/profile_content_collections_component_show_all_activity_button')
+    POST_OPTIONS_BUTTON = (By.ACCESSIBILITY_ID, 'Post options')
+    
     # EDIT CONTACT INFO , WEBSITE, SHOW SCHOOL INFO CHECKBOX    
 
 class CoverPhotoLocaters:
