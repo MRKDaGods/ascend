@@ -11,15 +11,6 @@ const Feed: React.FC = () => {
 
   const visiblePosts = posts.filter((post) => post.isUserPost !== true);
 
-  // useEffect(() => {
-  //   const fetchAndLog = async () => {
-  //     await fetchNewsFeedFromAPI();
-  //     console.log("✅ Posts in Zustand store:", usePostStore.getState().posts); // 🟢 Console log here
-  //   };
-
-  //   fetchAndLog();
-  // }, []);
-
   useEffect(() => {
     const fetchAndLog = async () => {
       await fetchNewsFeedFromAPI();
@@ -30,7 +21,7 @@ const Feed: React.FC = () => {
 
   return (
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mt: 2 }}>
-      <Navbar />
+      <Navbar /> 
       <CreatePost />
       <br />
       {visiblePosts.map((post) => (

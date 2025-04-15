@@ -84,8 +84,8 @@ const NotificationCard: React.FC = () => {
 
     // TODO:  Assuming link is stored in the payload
     if (notification.payload?.link) {
-      router.push(notification.payload.link);
-    }
+      router.push(`/notif${notification.payload.link}`);
+        }
   };
 
   // Helper function to get profile picture

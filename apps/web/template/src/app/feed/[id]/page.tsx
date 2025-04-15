@@ -23,7 +23,11 @@ const FullPostPage: React.FC = () => {
 
   return (
     <>
-    <Navbar />
+    <Navbar notification={{
+        payload: {
+          link: ""
+        }
+      }} />
     <br></br>
     <Box sx={{
       mb: 2,
