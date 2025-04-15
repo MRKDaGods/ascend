@@ -72,7 +72,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
                   CircleAvatar(
                     radius: 20, // Profile image size
                     backgroundImage: NetworkImage(
-                      'https://via.placeholder.com/150', // Replace with user's profile image URL
+                      '', // Replace with user's profile image URL
                     ),
                   ),
                   const SizedBox(width: 10), // Spacing between image and text

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/notification.dart' as entity;
+import 'package:ascend_app/shared/models/notification.dart' as entity;
 import '../../../../shared/widgets/user_avatar.dart';
 import '../../../../shared/utils/date_formatter.dart';
 
@@ -20,16 +20,13 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dismissible(
-      key: Key(notification.id),
+      key: Key(notification.id.toString()),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20.0),
         color: Colors.red,
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
       confirmDismiss: (direction) async {
         return await showDialog(
@@ -37,7 +34,9 @@ class NotificationCard extends StatelessWidget {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text("Confirm"),
-              content: const Text("Are you sure you want to delete this notification?"),
+              content: const Text(
+                "Are you sure you want to delete this notification?",
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
@@ -61,9 +60,10 @@ class NotificationCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
         elevation: 0,
         // Blue hue background when not read
-        color: notification.isRead 
-            ? null 
-            : Colors.blue.withOpacity(0.08), // Changed to blue hue
+        color:
+            notification.isRead
+                ? null
+                : Colors.blue.withOpacity(0.08), // Changed to blue hue
         child: InkWell(
           onTap: () {
             if (!notification.isRead && onMarkAsRead != null) {
@@ -87,12 +87,12 @@ class NotificationCard extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                   ),
-                
+
                 // Left: Avatar or Icon
                 _buildLeadingWidget(),
-                
+
                 const SizedBox(width: 12),
-                
+
                 // Center: Content
                 Expanded(
                   child: Column(
@@ -105,9 +105,11 @@ class NotificationCard extends StatelessWidget {
                             children: [
                               TextSpan(
                                 text: notification.senderName,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              TextSpan(text: ' ${notification.title}'),
+                              TextSpan(text: ' ${notification.message}'),
                             ],
                           ),
                           style: TextStyle(
@@ -117,16 +119,16 @@ class NotificationCard extends StatelessWidget {
                         )
                       else
                         Text(
-                          notification.title,
+                          notification.message,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                      
+
                       const SizedBox(height: 4),
-                      
+
                       // Message body
                       Text(
                         notification.message,
@@ -138,7 +140,7 @@ class NotificationCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // Right: Timestamp and more actions
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -146,10 +148,12 @@ class NotificationCard extends StatelessWidget {
                   children: [
                     // Timestamp
                     Text(
-                      DateFormatter.formatRelativeTime(notification.createdAt),
+                      DateFormatter.formatRelativeTime(notification.createdAt!),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -180,34 +184,31 @@ class NotificationCard extends StatelessWidget {
   Widget _buildLeadingWidget() {
     // If notification has a sender avatar, show it
     if (notification.senderAvatarUrl != null) {
-      return UserAvatar(
-        imageUrl: notification.senderAvatarUrl,
-        radius: 20,
-      );
+      return UserAvatar(imageUrl: notification.senderAvatarUrl, radius: 20);
     }
-    
+
     // Otherwise show an icon based on notification type
     IconData iconData;
     Color iconColor;
-    
+
     switch (notification.type) {
-      case 'comment':
+      case entity.NotificationType.comment:
         iconData = Icons.comment;
         iconColor = Colors.blue;
         break;
-      case 'like':
+      case entity.NotificationType.like:
         iconData = Icons.favorite;
         iconColor = Colors.red;
         break;
-      case 'follow':
+      case entity.NotificationType.follow:
         iconData = Icons.person_add;
         iconColor = Colors.green;
         break;
-      case 'mention':
+      case entity.NotificationType.mention:
         iconData = Icons.alternate_email;
         iconColor = Colors.orange;
         break;
-      case 'system':
+      case entity.NotificationType.welcome:
         iconData = Icons.notifications;
         iconColor = Colors.purple;
         break;
@@ -215,15 +216,11 @@ class NotificationCard extends StatelessWidget {
         iconData = Icons.notifications;
         iconColor = Colors.grey;
     }
-    
+
     return CircleAvatar(
       radius: 20,
       backgroundColor: iconColor.withOpacity(0.1),
-      child: Icon(
-        iconData,
-        color: iconColor,
-        size: 20,
-      ),
+      child: Icon(iconData, color: iconColor, size: 20),
     );
   }
 
@@ -242,7 +239,7 @@ class NotificationCard extends StatelessWidget {
                   if (onMarkAsRead != null) {
                     // Call the callback that was passed in
                     onMarkAsRead!();
-                    
+
                     // Alternatively, dispatch event directly to BLoC
                     // context.read<NotificationBloc>().add(
                     //   MarkNotificationAsRead(notification.id)
@@ -258,7 +255,7 @@ class NotificationCard extends StatelessWidget {
                 if (onDelete != null) {
                   // Call the callback that was passed in
                   onDelete!();
-                  
+
                   // Alternatively, dispatch event directly to BLoC
                   // context.read<NotificationBloc>().add(
                   //   DeleteNotification(notification.id)
