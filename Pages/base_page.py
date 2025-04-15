@@ -4,7 +4,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.pointer_input import PointerInput
 from selenium.common.exceptions import TimeoutException
 from logger import logger
-# from selenium.webdriver.common.actions.interaction import POINTER_INPUT
+# from selenium.webdriver.common.actions.interaction import Interaction
 
 
 class BasePage:
@@ -54,3 +54,4 @@ class BasePage:
     #     actions.w3c_actions.add_action(pointer.create_pause(duration))  # Hold for 'duration' seconds
     #     actions.w3c_actions.add_action(pointer.create_pointer_up(0))  # Release
     #     actions.perform()
+  

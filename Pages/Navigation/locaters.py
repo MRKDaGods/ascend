@@ -9,6 +9,7 @@ class SideBarLocators:
     PROFILE_VISIBILITY_BUTTON = (By.ID, 'PROFILE_VISIBILITY')
     BLOCKED_LIST_BUTTON = (By.ID, 'manageByBlockedList')
     UNBLOCK_BUTTON = (By.ID, 'ember30')
+    SAVED_POSTS_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Saved posts")')
     
 
 class NavigationBarLocaters:

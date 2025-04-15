@@ -13,6 +13,7 @@ class SideBarPage(BasePage):
     PROFILE_VISIBILITY_BUTTON = SideBarLocators.PROFILE_VISIBILITY_BUTTON
     BLOCKED_LIST_BUTTON = SideBarLocators.BLOCKED_LIST_BUTTON
     UNBLOCK_BUTTON = SideBarLocators.UNBLOCK_BUTTON
+    SAVED_POSTS_BUTTON = SideBarLocators.SAVED_POSTS_BUTTON
 
         
     def click_Myprofile(self):
@@ -41,4 +42,6 @@ class SideBarPage(BasePage):
 
     # def get_message(self):
     #     return self.get_text(self.MESSAGE)
+    def click_Saved_Posts_Button(self):
+        self.click(self.SAVED_POSTS_BUTTON)
     

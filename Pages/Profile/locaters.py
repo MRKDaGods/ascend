@@ -25,6 +25,12 @@ class ProfiePageLocaters:
     HEADLINE = (By.ID, 'com.linkedin.android:id/profile_top_card_headline')
     LOCATION = (By.ID, 'com.linkedin.android:id/profile_top_card_location')
     EXPERIENCE_MESSAGE = (By.ACCESSIBILITY_ID, 'Experience')
+    SHOW_ALL_POSTS_BUTTON = (By.ID, 'com.linkedin.android:id/profile_content_collections_component_show_all_activity_button')
+    POST_OPTIONS_BUTTON = (By.ACCESSIBILITY_ID, 'Post options')
+    EDIT_POST_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/feed_control_panel_container").instance(3)')
+    DELETE_POST_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/feed_control_panel_container").instance(4)')
+    EDIT_POST_MESSAGE = (By.ID, 'com.linkedin.android:id/feed_actor_secondary_headline')
+    CONFIRM_DELETE_BUTTON = (By.ID, 'android:id/button1')
 
 class EditProfilePageLocaters:
     FIRST_NAME = (By.XPATH, '//android.widget.EditText[@resource-id="com.linkedin.android:id/form_edit_text_dash" and contains(@text, "Ta")]') # DYNAMIC LOCATER
@@ -43,6 +49,8 @@ class EditProfilePageLocaters:
     DISCARD_CHANGES_BUTTON = (By.ID, 'android:id/button1')
     NAME_ERROR_MESSAGE_1 = (By.XPATH, '(//android.widget.TextView[@resource-id="com.linkedin.android:id/textinput_error"])[1]') 
     NAME_ERROR_MESSAGE_2 = (By.XPATH, '(//android.widget.TextView[@resource-id="com.linkedin.android:id/textinput_error"])[2]')
+    
+    
     # EDIT CONTACT INFO , WEBSITE, SHOW SCHOOL INFO CHECKBOX    
 
 class CoverPhotoLocaters:

@@ -22,6 +22,7 @@ class EditProfilePage(BasePage):
     NAME_ERROR_MESSAGE_1 = EditProfilePageLocaters.NAME_ERROR_MESSAGE_1
     NAME_ERROR_MESSAGE_2 = EditProfilePageLocaters.NAME_ERROR_MESSAGE_2
     HEADLINE_ERROR_MESSAGE = None
+    
     # EDIT CONTACT INFO , WEBSITE, SHOW SCHOOL INFO CHECKBOX
     
     def click_dismiss(self):
