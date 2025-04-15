@@ -24,8 +24,9 @@ export const handleSendMessage = [
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const senderId = req.user!.id;
-      const file = req.file;
-      const { receiverId, content } = req.body;
+      const receiverId = parseInt(req.body.receiverId);
+      const file = req.file || null;
+      const content = req.body.content || null;
 
       // Check that there is a content (text or file)
       if (!content && !file) {

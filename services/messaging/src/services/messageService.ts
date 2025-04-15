@@ -114,8 +114,8 @@ export const markMessagesAsRead = async (
 export const sendMessage = async (
   senderId: number,
   receiverId: number,
-  messageContent: string,
-  file: Express.Multer.File | undefined
+  messageContent: string | null,
+  file: Express.Multer.File | null
 ): Promise<{
   conversationId: number;
   messageId: number;
