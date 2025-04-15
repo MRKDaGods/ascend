@@ -10,6 +10,7 @@ class LandingPage(BasePage):
     CONTINUE_WITH_GOOGLE = LandingLocators.CONTINUE_WITH_GOOGLE
     SIGN_IN_WITH_EMAIL = LandingLocators.SIGN_IN_WITH_EMAIL
     JOIN_A_TRUSTED_COMMUNITY_MESSAGE = LandingLocators.JOIN_A_TRUSTED_COMMUNITY_MESSAGE
+    SIGN_IN_WITH_EMAIL2 = LandingLocators.SIGN_IN_WITH_EMAIL2
 
     def click_continue_with_google(self):
         self.click(self.CONTINUE_WITH_GOOGLE)
@@ -18,4 +19,7 @@ class LandingPage(BasePage):
         self.click(self.AGREE_JOIN_BUTTON)
     
     def click_sign_in_with_email(self):
-        self.click(self.SIGN_IN_WITH_EMAIL)
+        try:
+            self.click(self.SIGN_IN_WITH_EMAIL)
+        except:
+            self.click(self.SIGN_IN_WITH_EMAIL2)

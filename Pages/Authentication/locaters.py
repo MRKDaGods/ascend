@@ -12,7 +12,8 @@ class SignupLocators:
 class LandingLocators:
     AGREE_JOIN_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/growth_prereg_fragment_join_button")')
     CONTINUE_WITH_GOOGLE = (By.ID, 'com.linkedin.android:id/growth_prereg_fragment_join_with_google_button')
-    SIGN_IN_WITH_EMAIL = (By.ID, 'com.linkedin.android:id/growth_prereg_fragment_login_button')
+    SIGN_IN_WITH_EMAIL = (By.ID, 'com.linkedin.android:id/growth_prereg_fragment_login_button') # com.linkedin.android:id/growth_prereg_fragment_login_button
+    SIGN_IN_WITH_EMAIL2 = (By.ID,'com.linkedin.android:id/growth_prereg_fragment_signin_button')
     JOIN_A_TRUSTED_COMMUNITY_MESSAGE = (By.ID, 'com.linkedin.android:id/growth_prereg_logo_text')
 
 class LoginLocators:
