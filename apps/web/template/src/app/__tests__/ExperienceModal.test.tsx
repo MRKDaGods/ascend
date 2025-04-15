@@ -1,7 +1,7 @@
 import React from 'react';  // Add this import
 
-import LinkedInDashboard from '../LinkedInDashboard';
-import ExperienceModal from '../ExperienceModal';
+import LinkedInDashboard from '../components/LinkedInDashboard';
+import ExperienceModal from '../components/ExperienceModal';
 
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';

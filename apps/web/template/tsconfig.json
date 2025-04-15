@@ -6,11 +6,6 @@
       "dom.iterable",
       "esnext"
     ],
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
     "allowJs": true,
     "skipLibCheck": true,
     "types": [
@@ -43,12 +38,11 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/babel.config.js",
+    "src/app/babel.config.cjs",
     "src/app/jest.config.js",
     "src", 
     "src/types",
+    "next-env.d.ts", "**/*.ts", "**/*.tsx"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules", ".next"]
 }

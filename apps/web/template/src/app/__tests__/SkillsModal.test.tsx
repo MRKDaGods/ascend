@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from  '@testing-library/react';
-import SkillsModal from '../SkillsModal';
+import SkillsModal from '../components/SkillsModal';
 import '@testing-library/jest-dom';
 import { vi, expect, test, describe, beforeEach } from 'vitest';
 

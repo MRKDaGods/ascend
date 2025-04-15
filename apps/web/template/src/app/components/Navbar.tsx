@@ -153,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({ notification }) => {
             <Box px={2} py={1.5} display="flex" flexDirection="column" alignItems="center">
               <Avatar src="/man.jpg" sx={{ width: 56, height: 56 }} />
               <Typography fontWeight="bold" mt={1}>Developing Ascend</Typography>
-              <Button variant="outlined" sx={{ mt: 1, textTransform: "none", fontWeight: "bold" }}>
+              <Button onClick={()=>router.push("/profile")} variant="outlined" sx={{ mt: 1, textTransform: "none", fontWeight: "bold" }}>
                 View Profile
               </Button>
             </Box>
