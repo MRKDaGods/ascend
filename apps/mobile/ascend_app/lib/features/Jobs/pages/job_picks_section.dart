@@ -50,7 +50,7 @@ class JobPicksSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                //color: Colors.grey,
               ),
               overflow: TextOverflow.visible,
               softWrap: true,
@@ -76,7 +76,7 @@ class JobPicksSection extends StatelessWidget {
                   },
                 ),
                 Divider(
-                  color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+                  //color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
                   thickness: 1,
                   height: 10,
                 ),
@@ -93,8 +93,8 @@ class JobPicksSection extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text("Show all ", style: TextStyle(color: Colors.grey)),
-                    Icon(Icons.arrow_forward, color: Colors.grey),
+                    Text("Show all ", style: TextStyle()),
+                    Icon(Icons.arrow_forward),
                   ],
                 ),
               ),
