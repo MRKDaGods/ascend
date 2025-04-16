@@ -4,14 +4,17 @@ const API = axios.create({
   baseURL: "https://api.ascendx.tech/post",
 });
 
-// Static token for now
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ0NjU2NjY2LCJleHAiOjE3NDQ2OTk4NjZ9.MUss-3OVisxAgxfZveo0PVthmN5ZFVRQg-SK7uc6QXE";
-
+// Automatically attach the token using AxiosHeaders-compatible syntax
 API.interceptors.request.use((config) => {
-  // Ensure headers is an instance of AxiosHeaders
-  if (config.headers && typeof config.headers.set === "function") {
-    config.headers.set("Authorization", `Bearer ${token}`);
+  const token = localStorage.getItem("accessToken");
+
+  if (token) {
+    if (config.headers && typeof config.headers.set === "function") {
+      config.headers.set("Authorization", `Bearer ${token}`);
+    } else if (config.headers) {
+      // 🔁 Patch for cases where headers is a plain object (older Axios)
+      (config.headers as any)["Authorization"] = `Bearer ${token}`;
+    }
   }
 
   return config;
