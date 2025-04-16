@@ -8,8 +8,8 @@ class PremiumSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color:
-            isDarkMode ? const Color.fromARGB(255, 29, 34, 38) : Colors.white,
+        //color:
+        //  isDarkMode ? const Color.fromARGB(255, 29, 34, 38) : Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
       ),
       child: Column(
@@ -24,8 +24,8 @@ class PremiumSection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color:
-                      isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                  // color:
+                  //     isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
                 ),
               ),
             ],
@@ -36,7 +36,7 @@ class PremiumSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black,
+              //color: isDarkMode ? Colors.white : Colors.black,
             ),
             overflow: TextOverflow.visible,
           ),
@@ -45,7 +45,7 @@ class PremiumSection extends StatelessWidget {
             "Apply to jobs where you'd be a top applicant",
             style: TextStyle(
               fontSize: 14,
-              color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+              //color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
             ),
             overflow: TextOverflow.visible,
           ),
@@ -68,7 +68,7 @@ class PremiumSection extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: isDarkMode ? Colors.white : Colors.black,
+                        //color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -92,10 +92,10 @@ class PremiumSection extends StatelessWidget {
                           "Mohamed and millions of other members use Premium",
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                isDarkMode
-                                    ? Colors.grey.shade400
-                                    : Colors.grey.shade600,
+                            // color:
+                            //     isDarkMode
+                            //         ? Colors.grey.shade400
+                            //         : Colors.grey.shade600,
                           ),
                         ),
                       ],
@@ -121,7 +121,7 @@ class PremiumSection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  //color: Colors.black,
                 ),
               ),
             ),
@@ -131,7 +131,7 @@ class PremiumSection extends StatelessWidget {
             "Free 1-month trial with 24/7 support. Cancel anytime.",
             style: TextStyle(
               fontSize: 12,
-              color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600,
+              //color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600,
             ),
           ),
         ],
