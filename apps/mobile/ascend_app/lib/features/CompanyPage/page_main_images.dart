@@ -14,12 +14,12 @@ class ProfileMainImages extends StatelessWidget {
   final String profilePic;
   final String coverPic;
   final bool isMyProfile;
-  final ImageProvider? profileImageProvider; //= AssetImage(
+  final ImageProvider?
+  profileImageProvider; //= AssetImage('assets/company_placeholder.png',); // Add this for testing
+  final ImageProvider? coverImageProvider; //= AssetImage(
   //   'assets/company_placeholder.png',
   // ); // Add this for testing
-  final ImageProvider? coverImageProvider; // = AssetImage(
-  //   'assets/company_placeholder.png',
-  // ); // Add this for testing
+
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     Navigator.push(
       context,
@@ -38,7 +38,7 @@ class ProfileMainImages extends StatelessWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       isScrollControlled: true, // Allows the sheet to expand properly
@@ -102,12 +102,19 @@ class ProfileMainImages extends StatelessWidget {
                 ); // Go full screen directly
               }
             },
-            child: CircleAvatar(
-              radius: 60,
-              child: CircleAvatar(
-                radius: 58,
-                backgroundImage:
-                    profileImageProvider ?? NetworkImage(profilePic),
+            child: Container(
+              width: 80, // Width of the square
+              height: 80, // Height of the square
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(0), // Rounded corners
+                image: DecorationImage(
+                  image: profileImageProvider ?? NetworkImage(profilePic),
+                  fit: BoxFit.cover,
+                ),
+                border: Border.all(
+                  color: Colors.white, // Border color
+                  width: 2, // Border width
+                ),
               ),
             ),
           ),
