@@ -151,4 +151,4 @@ export const findCompaniesCreatedBetween = async (date1: Date,  date2: Date,  li
 export const deleteCompany = async (id : number) : Promise<boolean> => {
     const result = await db.query("DELETE FROM company_service.company WHERE company_id = $1 RETURNING *", [id]);
     return result.rows.length > 0;
-}
+};

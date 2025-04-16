@@ -11,13 +11,19 @@ export const getFeaturePaymentsByUser = async (user_id : number) : Promise<Array
     return result.rows;
 };
 
-export const checkIfFeaturePurchasedByUser = async (user_id : number, feature_name : string) : Promise<boolean> => {
-    const result = await db.query("SELECT * FROM payment_service.feature_payment WHERE user_id = $1 AND feature_purchased = $2", [user_id, feature_name]);
-    return result.rows.length > 0;
-}
 
-export const insertFeaturePayment = async (user_id : number, session_id : string, feature_purchased : string, payment_date : Date, amount_paid : number, currency : string, is_successful : boolean) : Promise<FeaturePayment|null> => {
-    const result = await db.query("INSERT INTO payment_service.feature_payment (user_id, session_id, feature_purchased, payment_date, amount_paid, currency, is_successful) VALUES ($1, $2, $3, $4, $5, $6, $7)", [user_id, session_id, feature_purchased, payment_date, amount_paid, currency, is_successful]);
+export const insertFeaturePayment = async (user_id : number, session_id : string, feature_purchased : string, payment_date : Date, amount_paid : number, currency : string) : Promise<FeaturePayment|null> => {
+    const result = await db.query("INSERT INTO payment_service.feature_payment (user_id, session_id, feature_purchased, payment_date, amount_paid, currency, is_successful) VALUES ($1, $2, $3, $4, $5, $6)", [user_id, session_id, feature_purchased, payment_date, amount_paid, currency]);
     return result.rows.length > 0 ? result.rows[0] : null;
 };
 
+
+export const getFeatureLimits = async () : Promise<Map<string, any>> => {
+    const results = await db.query("SELECT (feature_name , usage_field_affected , limit) FROM payment_service.features_limit");
+    let map = new Map<string, any>();
+    for(const result of results.rows){
+        map.set(result[0], {usage_field_affected : result[1], limit : result[2]});
+    }
+
+    return map;
+}
