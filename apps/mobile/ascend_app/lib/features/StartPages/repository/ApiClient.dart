@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class ApiClient {
-  final String _baseUrl = 'http://api.ascendx.tech';
+  final String _baseUrl = 'https://api.ascendx.tech';
 
   // Helper method to get headers (e.g., for authentication)
   Future<Map<String, String>> _getHeaders() async {
