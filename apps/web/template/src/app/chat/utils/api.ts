@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const markAsRead = async (conversationId: number)=>{
     try{
-        const res = await axios.put(`http://localhost:3001/messages/conversations/${conversationId}/read`);
+        const res = await axios.put(`https://localhost:3001/messages/conversations/${conversationId}/read`);
         return res.data;
     }catch (err){
         console.error("Failed to mark messages as read:",err);

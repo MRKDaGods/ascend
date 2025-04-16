@@ -31,7 +31,7 @@ export const createPost = async ({
 
   console.log("FormDataaaaaaaaaaaaaaaaaaaaaa:", formData); // Log FormData for debugging
 
-  const response = await API.post("http://api.ascendx.tech/post/", formData, {
+  const response = await API.post("https://api.ascendx.tech/post/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       "x-no-parse-body": "1", // required for backend to skip JSON parsing
