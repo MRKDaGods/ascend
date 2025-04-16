@@ -69,7 +69,7 @@ class BlockRepository {
       final token = 'your_token_here';
 
       final uri = Uri.parse(
-        '${ApiBases.Connection_Base}${ApiEndpoints.blockedUsers}',
+        '${ApiBases.Connection_Base}${ApiEndpoints.fetchBlockedUsers}',
       ).replace(
         queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       );

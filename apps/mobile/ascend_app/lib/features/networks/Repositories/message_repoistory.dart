@@ -27,7 +27,7 @@ class MessageRequestRepoistory {
       final token = 'your_token_here';
       final response = await _client.post(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.messageRequest}/:${userId}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.sendMessageRequest}/:${userId}',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ class MessageRequestRepoistory {
       final token = 'your_token_here';
       final response = await _client.put(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.messageRequest}/:${requestId}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.acceptConnectionRequest}/:${requestId}',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ class MessageRequestRepoistory {
       final token = 'your_token_here';
       final response = await _client.put(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.messageRequest}/:${requestId}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.rejectMessageRequest}/:${requestId}',
         ),
         headers: {
           'Content-Type': 'application/json',

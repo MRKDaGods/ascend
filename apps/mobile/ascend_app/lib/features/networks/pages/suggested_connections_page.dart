@@ -63,6 +63,7 @@ class _SuggestedConnectionsPageState extends State<SuggestedConnectionsPage> {
               ConnectionSuggestions(
                 suggestedUsers: widget.users,
                 onSend: widget.onSend,
+                onSentMessageRequest: widget.onSend,
                 ShowAll: widget.showAll,
               ),
             ],
