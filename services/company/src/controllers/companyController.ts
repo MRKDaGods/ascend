@@ -1,12 +1,8 @@
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { Response } from "express";
 import { createCompany, deleteCompany, findCompaniesCreatedByUser, findCompanyById, updateCompanyProfile } from "../services/companyService";
-import { createJob, deleteJob, findJobById, findJobsByCompanyId, findNumberOfJobPostForCompany } from "../services/jobService";
-import { ExperienceLevel } from "@shared/models/job";
 import { createFollowRelationShip, deleteFollowRelationShip, findFollowersOfCompany, findNumberOfFollowersOfCompany } from "../services/followsService";
-import { findJobApplicationsToCompany, findNumberOfJobApplicationsForCompany, updateJobAppStatus } from "../services/jobApplicationService";
 import { createAnnouncement, deleteAnnouncement, findAnnouncementById, findAnnouncementsByCompanyId, findNumberOfAnnouncements } from "../services/announcementService";
-import { ApplicationStatus } from "@shared/models/job_application";
 import { Company } from "@shared/models/company";
 import { validationResult } from "express-validator";
 import { error } from "console";
@@ -193,153 +189,6 @@ export const getCompanyProfile = async (req : AuthenticatedRequest, res : Respon
     }
 };
 
-
-/**
- * @route POST /api/companies/:companyId/jobs
- * @description create a job post for the company with the given ID
- * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
- * @param comanyId - path parameter
- * @returns {Response} - HTTP Response
- * - 401 if the user who sent the request is not authorized 
- * - 403 if the user is not the creator of the company
- * - 404 if no company with the given ID was found 
- * - 400 if the request parameters and/or body are not in the required format
- * - 200 with the new job post
- * - 500 if internal errors occur
- */
-export const createJobPost = async (req : AuthenticatedRequest, res : Response) => {
-    const user_id = req.user?.id;
-    if(!user_id){
-        return res.status(401).json({error : "unauthorized"});
-    }
-
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({error : errors.array()});
-    }
-    const company_id = parseInt(req.params.companyId, 10);
-    const {title , description, location, salary_range_max, salary_range_min, industry, experience_level} = req.body;
-    try {
-        const company = await findCompanyById(company_id);
-        if(!company){
-            return res.status(404).json({error : "company not found"});
-        }
-        if(company?.created_by !== user_id){
-            return res.status(403).json({error : "forbidden"});
-        }
-        const new_job_post = await createJob(company_id, title, description, industry, new Date(), experience_level, user_id, !location?"":location, !salary_range_max?-1:salary_range_max, !salary_range_min?-1:salary_range_min)
-        return res.status(200).json({
-            data : {
-                job : new_job_post
-            },
-            error : null
-        });
-    }catch(e : any){
-        console.log(e);
-        console.log(`Internal error : ${e}`);
-        return res.status(500).json({error : "Internal error"});
-    }
-};
-
-
-/**
- * @route DELETE /api/companies/:companyId/jobs/:jobId
- * @description delete the job post for the company with the given ID
- * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
- * @param companyId - path parameter
- * @param jobId - path parameter 
- * @returns {Response} - HTTP Response
- * - 401 if the user who sent the request is not authorized 
- * - 403 if the user is not the creator of the company
- * - 404 if no company profile with the given ID was found or no job post with the given ID was found  
- * - 400 if the request parameters and/or body are not in the required format
- * - 200 with message indicating success of job post deletion
- * - 500 if internal errors occur
- */
-export const deleteJobPost = async (req : AuthenticatedRequest, res : Response) => {
-    const user_id = req.user?.id;
-    if(!user_id){
-        return res.status(401).json({error : "unauthorized"});
-    }
-
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({error : errors.array()});
-
-    }
-
-    const company_id = parseInt(req.params.companyId, 10);
-    const job_id = parseInt(req.params.jobId, 10);    
-    try {
-        const company = await findCompanyById(company_id);
-        const job = await findJobById(job_id);
-        if(!company){
-            return res.status(404).json({error : "company not found"});
-        }
-        if(!job){
-            return res.status(404).json({error : "job not found"});
-        }
-        if(company?.created_by !== user_id || company?.company_id !== job?.company_id){
-            return res.status(403).json({error : "forbidden"});
-        }
-        const job_deleted = await deleteJob(job_id);
-        if(job_deleted){
-            return res.status(200).json({
-                data : {
-                    msg : "Job post deleted successfully"
-                },
-                error : null
-            });
-        }else{
-            return res.status(404).json({error : "job not found"});
-        }
-    }catch(e){
-        console.log(`Internal error : ${e}`)
-        return res.status(500).json({error : "Internal error"});
-    }
-};
-
-
-/**
- * @route GET /api/companies/jobs/:jobId
- * @description get job post with the given ID
- * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
- * @param jobId - path parameter
- * @returns {Response} - HTTP Response
- * - 401 if the user who sent the request is not authorized
- * - 404 if no job post with the given ID was found 
- * - 400 if the request parameters and/or body are not in the required format
- * - 200 with the job post
- * - 500 if internal errors occur
- */
-export const getJobPost = async (req : AuthenticatedRequest, res : Response) => {
-    const user_id = req.user?.id;
-    if(!user_id){
-        return res.status(401).json({error : "unauthorized"});
-    }
-
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({error : errors.array()});
-    }
-    const job_id = parseInt(req.params.jobId, 10);
-    try {
-        const job_post = await findJobById(job_id);
-        if(job_post){
-            return res.status(200).json({
-                data : {
-                    job : job_post
-                },
-                error : null
-            });
-        }else{
-            return res.status(404).json({error : "Job post not found"});
-        }
-    }catch(e){
-        console.log(`Internal error : ${e}`);
-        return res.status(500).json({error : "Internal error"});
-    }
-};
 
 
 /**
@@ -549,54 +398,6 @@ export const getCompanyFollowers = async (req : AuthenticatedRequest, res : Resp
 
 
 /**
- * @route GET /api/companies/:companyId/jobs
- * @description get all job posts of the company with the given ID
- * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
- * @param comanyId - path parameter
- * @param limit - query parameter indicating the length of the retrieved page
- * @param page - query parameter indicating the number of the page to be returned , starting from 1
- * @returns {Response} - HTTP Response
- * - 401 if the user who sent the request is not authorized
- * - 404 if the company with given ID was not found 
- * - 400 if the request parameters and/or body are not in the required format
- * - 200 with array of job posts of the company with the given ID
- * - 500 if internal errors occur
- */
-export const getCompanyJobPosts = async (req : AuthenticatedRequest, res : Response) => {
-    const user_id = req.user?.id;
-    if(!user_id){
-        return res.status(401).json({error : "unauthorized"});
-    }
-
-    const company_id = parseInt(req.params.companyId, 10);
-    const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
-    const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
-    try {
-        let job_posts;
-        if(limit === -1){
-            job_posts = await findJobsByCompanyId(company_id);
-        }else{
-            job_posts = await findJobsByCompanyId(company_id, limit, page-1);
-        }
-
-        return res.status(200).json({
-            data : {
-                posts : job_posts
-            }, 
-            error : null            
-        });
-    }catch(e : any){
-        if(e.code === "23503"){
-            return res.status(404).json({error : "company not found"});
-        }
-        console.log(`Internal error : ${e}`);
-        return res.status(500).json({error : "Internal error"});
-    }   
-};
-
-
-
-/**
  * @route GET /api/companies/:companyId/announcements
  * @description get all announcement posts of the company with the given ID
  * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
@@ -650,112 +451,6 @@ export const getCompanyAnnouncements = async (req : AuthenticatedRequest, res : 
 
 
 /**
- * @route GET /api/companies/:companyId/applications
- * @description get all job applications associated with the company with the given ID
- * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
- * @param comanyId - path parameter
- * @param limit - query parameter indicating the length of the retrieved page
- * @param page - query parameter indicating the number of the page to be returned , starting from 1
- * @returns {Response} - HTTP Response
- * - 401 if the user who sent the request is not authorized
- * - 403 if the user is not the creator of the company
- * - 404 if the company with given ID was not found 
- * - 400 if the request parameters and/or body are not in the required format
- * - 200 with array of job applications of the company with the given ID
- * - 500 if internal errors occur
- */
-export const getCompanyJobsApplications = async (req : AuthenticatedRequest, res : Response) => {
-    const user_id = req.user?.id;
-    if(!user_id){
-        return res.status(401).json({error : "unauthorized"});
-    }
-
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        return res.status(400).json({error : errors.array()});
-    }
-
-    const company_id = parseInt(req.params.companyId, 10);
-    const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
-    const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
-    try{
-        const company = await findCompanyById(company_id);
-        if(!company){
-            return res.status(404).json({error : "company not found"});
-        }
-        if(company?.created_by !== user_id){
-            return res.status(403).json({error : "forbidden"});
-        }
-        let job_applications;
-        if(limit === -1){
-            job_applications = await findJobApplicationsToCompany(company_id);
-        }else{
-            job_applications = await findJobApplicationsToCompany(company_id, limit, page-1);
-        }
-        return res.status(200).json({
-            error : null,
-            data : {
-                applications : job_applications
-            }
-        });
-    }catch(e){
-        console.log(`Internal error : ${e}`);
-        return res.status(500).json({error : "Internal error"});
-    }
-};
-
-
-/**
- * @route PATCH /api/companies/:companyId/applications/:applicationId
- * @description update job application status
- * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
- * @param comanyId - path parameter
- * @param applicationId - path parameter
- * @returns {Response} - HTTP Response
- * - 401 if the user who sent the request is not authorized 
- * - 403 if the user is not the creator of the company profile
- * - 404 if no company and/or job application with the given ID was found 
- * - 400 if the request parameters and/or body are not in the required format
- * - 200 with the updated job application
- * - 500 if internal errors occur
- */
-export const updateJobApplicationStatus = async (req : AuthenticatedRequest, res : Response) => {
-    const user_id = req.user?.id;
-    if(!user_id){
-        return res.status(401).json({error : "unauthorized"});
-    }
-    const company_id = parseInt(req.params.comanyId, 10);
-    const job_application_id = parseInt(req.params.applicationId, 10);
-    const {status} = req.body;
-    try{
-        const company = await findCompanyById(company_id);
-        if(!company){
-            return res.status(404).json({error : "company not found"});
-        }
-        if(company?.created_by !== user_id){
-            return res.status(403).json({error : "forbidden"});
-        }
-        const new_job_application = await updateJobAppStatus(job_application_id, status as ApplicationStatus);
-        if(new_job_application){
-            return res.status(200).json({
-                error : null,
-                data : {
-                    application : new_job_application
-                }
-            });
-        }else{
-            return res.status(404).json({
-                error : "job application not found"
-            });
-        }         
-    }catch(e){
-        console.log(`Internal error : ${e}`);
-        return res.status(500).json({error : "Internal error"});
-    }
-}
-
-
-/**
  * @route GET /api/companies/:companyId/analytics
  * @description get analytics of the company with the given ID
  * @param {AuthenticatedRequest} req - AuthenticatedRequest object (coming from authorization middleware)
@@ -794,8 +489,8 @@ export const getCompanyAnalytics = async (req : AuthenticatedRequest, res : Resp
         if(company?.created_by !== user_id){
             return res.status(403).json({error : "forbidden"});
         }
-        const job_application_analytics = await findNumberOfJobApplicationsForCompany(company_id);
-        const number_of_jobs = await findNumberOfJobPostForCompany(company_id);
+        const job_application_analytics = 0; // get from job services
+        const number_of_jobs = 0; // get from job service
         const number_of_followrs = await findNumberOfFollowersOfCompany(company_id);
         const number_of_announcements = await findNumberOfAnnouncements(company_id);
         return res.status(200).json({

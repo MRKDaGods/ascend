@@ -1,3 +1,5 @@
+import { Follows } from "@shared/models/follows";
+
 /**
  * Represents the payload for a user creation event.
  *
@@ -12,20 +14,20 @@ export interface UserCreatedPayload {
   first_name: string;
   last_name: string;
   email: string;
-}
+};
 
 export interface FileDeletePayload {
   file_id: number;
-}
+};
 
 export interface FilePresignedUrlRequestPayload {
   file_id: number;
-}
+};
 
 export interface FilePresignedUrlResponsePayload {
   file_id: number;
   presigned_url: string;
-}
+};
 
 export interface FileUploadRequestPayload {
   user_id: number;
@@ -34,8 +36,38 @@ export interface FileUploadRequestPayload {
   mime_type: string;
   file_size: number;
   context?: string;
-}
+};
 
 export interface FileUploadResponsePayload {
   file_id: number;
+};
+
+export interface CompanyAnnouncementCreated {
+  announcement_id: number;
+  company_id: number;
+  created_at: Date;
+  posted_by: number;
+  content : string;
+};
+
+
+export namespace IsCompanyCreator {
+  export interface Request{
+    company_id : number,
+    user_id : number
+  }
+
+  export interface Response{
+    is_company_creator : boolean
+  }
+};
+
+export namespace GetCompanyFollowers {
+  export interface Request{
+    company_id : number
+  }
+
+  export interface Response{
+    company_followers : Array<Follows>
+  }
 }

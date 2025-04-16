@@ -15,7 +15,12 @@ export const events = {
   JOB_CREATED : "job.created",
 
   // -------Job application event----
-  JOB_APPLICATION_STATUS_UPDATED : "job_application.updated"
+  JOB_APPLICATION_STATUS_UPDATED : "job_application.updated",
+
+  // ---Company made announcement----
+  COMPANY_ANNOUNCEMENT : "company.announcement",
+  IS_COMPANY_CREATOR : "company.is_creator",
+  GET_COMPANY_FOLLOWERS : "company.followers"
 };
 
 export const getQueueName = (event: string) => {

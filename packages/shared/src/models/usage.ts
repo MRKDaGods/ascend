@@ -10,6 +10,7 @@
  * @property {number} connections_limit - maximum number of connections the user with user_id can make
  * @property {number} job_applications_limit - maximum number of job applications the user with user_id can make in the duration of 1 month after last_date 
  * @property {Date} last_date - reference date used to track usage and make sure usage doesn't break the limit
+ * @property {string} stripe_customer_id - ID used to identify customer in stripe
  */
 export interface Usage {
     user_id : number,
@@ -19,5 +20,6 @@ export interface Usage {
     messages_per_day_limit : number,
     conenctions_limit : number,
     job_applications_limit : number,
-    last_date : Date
+    last_date : Date,
+    stripe_customer_id : string
 };
