@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
+//import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
 import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 
 class JobFilterScreen extends StatefulWidget {
-  JobFilterScreen({super.key, required this.chosenCategory});
+  JobFilterScreen({
+    super.key,
+    required this.chosenCategory,
+    required this.jobs,
+  });
+  final List<Jobsattributes> jobs; // List of job attributes
   final String chosenCategory; // Category selected by the user
 
   @override
@@ -37,13 +42,15 @@ class _JobFilterScreenState extends State<JobFilterScreen> {
 
   Map<String, List<Jobsattributes>> getJobsByCategory() {
     return {
-      "Easy Apply": jobs.where((job) => job.easyapply).toList(),
-      "Part-time": jobs.where((job) => job.isPartTime == true).toList(),
-      "Remote": jobs.where((job) => job.isRemote == true).toList(),
-      "Hybrid": jobs.where((job) => job.isHybrid == true).toList(),
-      "Construction": jobs.where((job) => job.isConstruction == true).toList(),
-      "Education": jobs.where((job) => job.isEducation == true).toList(),
-      "Small biz": jobs.where((job) => job.isSmallBusiness == true).toList(),
+      "Easy Apply": widget.jobs.where((job) => job.easyapply).toList(),
+      "Part-time": widget.jobs.where((job) => job.isPartTime == true).toList(),
+      "Remote": widget.jobs.where((job) => job.isRemote == true).toList(),
+      "Hybrid": widget.jobs.where((job) => job.isHybrid == true).toList(),
+      "Construction":
+          widget.jobs.where((job) => job.isConstruction == true).toList(),
+      "Education": widget.jobs.where((job) => job.isEducation == true).toList(),
+      "Small biz":
+          widget.jobs.where((job) => job.isSmallBusiness == true).toList(),
       // Add other categories as needed...
     };
   }
@@ -51,6 +58,7 @@ class _JobFilterScreenState extends State<JobFilterScreen> {
   @override
   Widget build(BuildContext context) {
     final jobsByCategory = getJobsByCategory();
+    final List<String> jobNames = jobsByCategory.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +73,9 @@ class _JobFilterScreenState extends State<JobFilterScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => JobSearchPage()),
+              MaterialPageRoute(
+                builder: (context) => JobSearchPage(false, jobs: widget.jobs),
+              ),
             );
           },
         ),
@@ -122,11 +132,11 @@ class _JobFilterScreenState extends State<JobFilterScreen> {
                                 child: Text(
                                   "No jobs available for this filter.",
                                   style: TextStyle(
-                                    color:
-                                        Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.white
-                                            : Colors.black,
+                                    // color:
+                                    //     Theme.of(context).brightness ==
+                                    //             Brightness.dark
+                                    //         ? Colors.white
+                                    //         : Colors.black,
                                   ),
                                 ),
                               );

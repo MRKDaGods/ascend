@@ -25,7 +25,7 @@ class MoreJobsSection extends StatelessWidget {
           Text(
             "More Jobs for You",
             style: TextStyle(
-              color: isDarkMode ? Colors.white : Colors.black,
+              //color: isDarkMode ? Colors.white : Colors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -47,16 +47,16 @@ class MoreJobsSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey,
+                      // color: Colors.grey,
                     ),
                   ),
                 ),
                 Container(
                   height: 10,
-                  color:
-                      isDarkMode
-                          ? Colors.black
-                          : Colors.grey[300], // Gray if not dark mode
+                  // color:
+                  //     isDarkMode
+                  //         ? Colors.black
+                  //         : Colors.grey[300], // Gray if not dark mode
                 ),
               ],
             )
