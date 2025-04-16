@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
 import 'package:ascend_app/features/Jobs/pages/job_picks_section.dart';
 import 'package:ascend_app/features/Jobs/pages/premium_section.dart';
 import 'package:ascend_app/features/Jobs/pages/explore_section.dart';
@@ -9,7 +8,8 @@ import 'package:ascend_app/features/Jobs/pages/saved_section.dart';
 
 class JobHomePage extends StatefulWidget {
   final bool isDarkMode;
-  const JobHomePage({super.key, required this.isDarkMode});
+  const JobHomePage({super.key, required this.isDarkMode, required this.jobs});
+  final List<Jobsattributes> jobs; // List of job attributes
 
   @override
   State<JobHomePage> createState() => _JobHomePageState();
@@ -17,9 +17,11 @@ class JobHomePage extends StatefulWidget {
 
 class _JobHomePageState extends State<JobHomePage> {
   final TextEditingController searchController = TextEditingController();
-  List<Jobsattributes> jobsList = List.from(
-    jobs,
-  ); // Create a mutable copy of jobs
+  late List<Jobsattributes> jobsList; // Create a mutable copy of jobs
+  void initState() {
+    super.initState();
+    jobsList = List.from(widget.jobs); // Initialize jobsList in initState
+  }
 
   void removeJob(Jobsattributes job) {
     setState(() {
@@ -35,13 +37,13 @@ class _JobHomePageState extends State<JobHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final savedJobs = jobs.where((job) => job.isBookmarked).toList();
+    final savedJobs = widget.jobs.where((job) => job.isBookmarked).toList();
     _randomizeJobs(); // Randomize the order of the jobs
     return Scaffold(
-      backgroundColor:
-          widget.isDarkMode
-              ? const Color.fromARGB(255, 29, 34, 38)
-              : Colors.white,
+      // backgroundColor:
+      //     widget.isDarkMode
+      //         ? const Color.fromARGB(255, 29, 34, 38)
+      //         : Colors.white,
       body: RefreshIndicator(
         onRefresh: _refreshJobs,
         child: LayoutBuilder(
@@ -104,10 +106,10 @@ class _JobHomePageState extends State<JobHomePage> {
                     ),
                     Container(
                       height: 10,
-                      color:
-                          widget.isDarkMode
-                              ? Colors.black
-                              : Colors.grey[300], // Gray if not dark mode
+                      // color:
+                      //     widget.isDarkMode
+                      //         ? Colors.black
+                      //         : Colors.grey[300], // Gray if not dark mode
                     ),
 
                     JobPicksSection(
@@ -117,10 +119,10 @@ class _JobHomePageState extends State<JobHomePage> {
                     ),
                     Container(
                       height: 10,
-                      color:
-                          widget.isDarkMode
-                              ? Colors.black
-                              : Colors.grey[300], // Gray if not dark mode
+                      // color:
+                      //     widget.isDarkMode
+                      //         ? Colors.black
+                      //         : Colors.grey[300], // Gray if not dark mode
                     ),
 
                     // Saved Section (only if there are saved jobs)
@@ -128,20 +130,20 @@ class _JobHomePageState extends State<JobHomePage> {
                       SavedPage(isDarkMode: widget.isDarkMode, jobs: jobsList),
                       Container(
                         height: 10,
-                        color:
-                            widget.isDarkMode
-                                ? Colors.black
-                                : Colors.grey[300], // Gray if not dark mode
+                        // color:
+                        //     widget.isDarkMode
+                        //         ? Colors.black
+                        //         : Colors.grey[300], // Gray if not dark mode
                       ),
                     ],
                     Container(height: 3, color: Colors.amber),
                     PremiumSection(isDarkMode: widget.isDarkMode),
                     Container(
                       height: 10,
-                      color:
-                          widget.isDarkMode
-                              ? Colors.black
-                              : Colors.grey[300], // Gray if not dark mode
+                      // color:
+                      //     widget.isDarkMode
+                      //         ? Colors.black
+                      //         : Colors.grey[300], // Gray if not dark mode
                     ),
 
                     ExploreScreen(
@@ -150,10 +152,10 @@ class _JobHomePageState extends State<JobHomePage> {
                     ),
                     Container(
                       height: 10,
-                      color:
-                          widget.isDarkMode
-                              ? Colors.black
-                              : Colors.grey[300], // Gray if not dark mode
+                      // color:
+                      //     widget.isDarkMode
+                      //         ? Colors.black
+                      //         : Colors.grey[300], // Gray if not dark mode
                     ),
 
                     MoreJobsSection(
@@ -181,12 +183,12 @@ class _JobHomePageState extends State<JobHomePage> {
         //         : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         side: BorderSide(
-          color: widget.isDarkMode ? Colors.grey : Colors.black, // Border color
+          // color: widget.isDarkMode ? Colors.grey : Colors.black, // Border color
           width: 0.5, // Border width
         ),
       ),
 
-      child: Text(title, style: TextStyle(color: Colors.grey, fontSize: 13)),
+      child: Text(title, style: TextStyle(fontSize: 13)),
     );
   }
 
@@ -197,7 +199,7 @@ class _JobHomePageState extends State<JobHomePage> {
     print("Refreshed jobs");
     setState(() {
       // Update the jobs list or any other state
-      jobsList = List.from(jobs); // Reset the jobs list
+      jobsList = List.from(widget.jobs); // Reset the jobs list
       _randomizeJobs(); // Randomize the order of the jobs
     });
   }

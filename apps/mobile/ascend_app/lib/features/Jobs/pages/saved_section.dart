@@ -36,7 +36,7 @@ class SavedPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
+                    //color: isDarkMode ? Colors.white : Colors.black,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -50,12 +50,12 @@ class SavedPage extends StatelessWidget {
                     Text(
                       "Show all",
                       style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.black,
+                        //color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     Icon(
                       Icons.arrow_forward,
-                      color: isDarkMode ? Colors.white : Colors.black,
+                      //color: isDarkMode ? Colors.white : Colors.black,
                       size: 16,
                     ),
                   ],
@@ -79,17 +79,17 @@ class SavedPage extends StatelessWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      isDarkMode
-                          ? const Color.fromARGB(255, 29, 34, 38)
-                          : Colors.white,
+                  // color:
+                  //     isDarkMode
+                  //         ? const Color.fromARGB(255, 29, 34, 38)
+                  //         : Colors.white,
                   borderRadius: BorderRadius.circular(10.0),
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          isDarkMode
-                              ? Colors.black.withOpacity(0.5)
-                              : Colors.grey,
+                      // color:
+                      //     isDarkMode
+                      //         ? Colors.black.withOpacity(0.5)
+                      //         : Colors.grey,
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -109,14 +109,14 @@ class SavedPage extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4.0),
                           child: Container(
-                            color:
-                                firstSavedJob.companyPhoto != null
-                                    ? (Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.white
-                                        : Colors
-                                            .white) // Contrasting background color
-                                    : Colors.transparent,
+                            // color:
+                            //     firstSavedJob.companyPhoto != null
+                            //         ? (Theme.of(context).brightness ==
+                            //                 Brightness.dark
+                            //             ? Colors.white
+                            //             : Colors
+                            //                 .white) // Contrasting background color
+                            //         : Colors.transparent,
                             child: SizedBox(
                               width: 50,
                               height: 50,
@@ -141,7 +141,7 @@ class SavedPage extends StatelessWidget {
                                                     (context) => Icon(
                                                       Icons.image_not_supported,
                                                       size: 50,
-                                                      color: Colors.grey,
+                                                      //color: Colors.grey,
                                                     ),
                                               )
                                               : Image.network(
@@ -165,7 +165,7 @@ class SavedPage extends StatelessWidget {
                                                   return Icon(
                                                     Icons.image_not_supported,
                                                     size: 50,
-                                                    color: Colors.grey,
+                                                    //color: Colors.grey,
                                                   );
                                                 },
                                               ))
@@ -184,14 +184,14 @@ class SavedPage extends StatelessWidget {
                                               return Icon(
                                                 Icons.image_not_supported,
                                                 size: 50,
-                                                color: Colors.grey,
+                                                //color: Colors.grey,
                                               );
                                             },
                                           ))
                                       : Icon(
                                         Icons.image_not_supported,
                                         size: 50,
-                                        color: Colors.grey,
+                                        //color: Colors.grey,
                                       ),
                             ),
                           ),
@@ -208,8 +208,8 @@ class SavedPage extends StatelessWidget {
                               Text(
                                 firstSavedJob.title,
                                 style: TextStyle(
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black,
+                                  // color:
+                                  //     isDarkMode ? Colors.white : Colors.black,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -220,10 +220,10 @@ class SavedPage extends StatelessWidget {
                               Text(
                                 firstSavedJob.company,
                                 style: TextStyle(
-                                  color:
-                                      isDarkMode
-                                          ? Colors.white54
-                                          : Colors.black54,
+                                  // color:
+                                  //     isDarkMode
+                                  //         ? Colors.white54
+                                  //         : Colors.black54,
                                   fontSize: 14,
                                 ),
                               ),
@@ -233,10 +233,10 @@ class SavedPage extends StatelessWidget {
                               Text(
                                 firstSavedJob.location,
                                 style: TextStyle(
-                                  color:
-                                      isDarkMode
-                                          ? Colors.white54
-                                          : Colors.black54,
+                                  // color:
+                                  //     isDarkMode
+                                  //         ? Colors.white54
+                                  //         : Colors.black54,
                                   fontSize: 14,
                                 ),
                               ),
@@ -308,7 +308,7 @@ class SavedPage extends StatelessWidget {
                               Text(
                                 "Easy Apply",
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  // color: Colors.white,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -317,7 +317,7 @@ class SavedPage extends StatelessWidget {
                               Text(
                                 "Apply",
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  //color: Colors.white,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
