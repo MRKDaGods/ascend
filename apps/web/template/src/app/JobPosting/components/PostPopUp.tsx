@@ -1,12 +1,24 @@
 'use client';
-import { Snackbar, Alert, Box, Typography, Avatar, Link, IconButton } from '@mui/material';
+
+import {
+  Snackbar,
+  Alert,
+  Box,
+  Typography,
+  Avatar,
+  Link,
+  IconButton,
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useRouter } from 'next/navigation';
-import { useJobStore } from '@/app/shared/store/useJobStore';
-
-
+import { useJobStore } from '../store/useJobStore';
 const SaveJobPopup = () => {
-  const { savedJobPopupOpen, setSavedJobPopupOpen } = useJobStore();
+  const {
+    savedJobPopupOpen,
+    setSavedJobPopupOpen,
+    postedJobId,
+    companyName,
+  } = useJobStore();
   const router = useRouter();
 
   const handleClose = () => {
@@ -15,15 +27,15 @@ const SaveJobPopup = () => {
 
   const handleViewSavedPosts = () => {
     setSavedJobPopupOpen(false);
-    router.push('/MyJobs');
+   router.push('/ViewPost'); 
   };
 
   return (
     <Snackbar
       open={savedJobPopupOpen}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      onClose={handleClose}
       autoHideDuration={5000}
+      onClose={handleClose}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
       <Alert
         icon={false}
@@ -36,6 +48,7 @@ const SaveJobPopup = () => {
           width: '100%',
           py: 1,
           px: 2,
+          minWidth: 300,
         }}
       >
         <Avatar
@@ -47,17 +60,25 @@ const SaveJobPopup = () => {
             mr: 2,
           }}
         >
-          N
+          {(companyName?.charAt(0) || 'N').toUpperCase()}
         </Avatar>
-        <Typography sx={{ flexGrow: 1, fontSize: 14 }}>
+        <Typography
+          sx={{
+            flexGrow: 1,
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           Post successful.{' '}
           <Link
             component="button"
             onClick={handleViewSavedPosts}
             underline="hover"
-            sx={{ color: '#90caf9', fontWeight: 'bold' }}
+            sx={{ color: '#90caf9', fontWeight: 'bold', ml: 0.5 }}
           >
-            View saved posts
+            View post
           </Link>
         </Typography>
         <IconButton onClick={handleClose} size="small" sx={{ color: 'white' }}>
@@ -65,7 +86,6 @@ const SaveJobPopup = () => {
         </IconButton>
       </Alert>
     </Snackbar>
-    
   );
 };
 

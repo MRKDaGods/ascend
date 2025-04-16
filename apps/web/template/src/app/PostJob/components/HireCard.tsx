@@ -100,10 +100,10 @@ export default function HireCard() {
               Post a job faster by drafting a job description
             </Typography>
             <Typography component="li" mb={2}>
-              Quickly presort applicants according to your criteria*
+              Quickly presort applicants according to your criteria
             </Typography>
             <Typography component="li" mb={2}>
-              Find up to 25 qualified people on LinkedIn per day to invite to apply*
+              Find up to 25 qualified people on LinkedIn per day to invite to apply
             </Typography>
           </Box>
         </Box>
