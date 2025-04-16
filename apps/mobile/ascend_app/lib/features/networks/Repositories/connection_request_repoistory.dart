@@ -36,7 +36,7 @@ class ConnectionRequestRepository {
 
       final response = await _client.post(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.connectionRequest}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.sendConnectionRequest}',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ class ConnectionRequestRepository {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.put(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.connectionResponse}/$requestId',
+          '${ApiBases.Connection_Base}${ApiEndpoints.acceptConnectionRequest}/$requestId',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ class ConnectionRequestRepository {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.put(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.connectionResponse}/$requestId',
+          '${ApiBases.Connection_Base}${ApiEndpoints.rejectConnectionRequest}/$requestId',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ class ConnectionRequestRepository {
       final token = 'your_token_here';
       final response = await _client.get(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.connectionPending}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.fetchPendingRequests}',
         ).replace(
           queryParameters: {
             'direction': 'outgoing',
@@ -160,7 +160,7 @@ class ConnectionRequestRepository {
       final token = 'your_token_here';
       final response = await _client.get(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.connectionPending}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.fetchPendingRequests}',
         ).replace(
           queryParameters: {
             'direction': 'incoming',
@@ -200,7 +200,7 @@ class ConnectionRequestRepository {
       final token = 'your_token_here';
       final response = await _client.get(
         Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.connectionList}',
+          '${ApiBases.Connection_Base}${ApiEndpoints.fetchConnections}',
         ).replace(
           queryParameters: {
             'search': search,
@@ -234,7 +234,7 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here';
       final response = await _client.delete(
-        Uri.parse('${ApiEndpoints.connectionRequest}/$requestId'),
+        Uri.parse('${ApiEndpoints.cancelConnectionRequest}/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -290,7 +290,9 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.get(
-        Uri.parse('${ApiBases.Connection_Base}${ApiEndpoints.connectionList}'),
+        Uri.parse(
+          '${ApiBases.Connection_Base}${ApiEndpoints.fetchConnectionRecommendations}',
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -319,7 +321,9 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.get(
-        Uri.parse('${ApiBases.Connection_Base}${ApiEndpoints.connectionList}'),
+        Uri.parse(
+          '${ApiBases.Connection_Base}${ApiEndpoints.fetchMutualConnections}',
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
