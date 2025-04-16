@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'profile_header_links.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
     super.key,
     required this.name,
     required this.verified,
-    required this.degree,
     required this.bio,
     required this.location,
-    required this.latestEducation,
-    required this.connections,
+    required this.industry,
+    required this.followers,
+    required this.employeesCount,
     required this.isconnect,
     required this.isPending,
     this.mutualConnections = const [],
@@ -20,12 +19,12 @@ class ProfileHeader extends StatelessWidget {
   });
 
   final String name;
-  final String degree;
   final bool verified;
   final String bio;
   final String location;
-  final String latestEducation;
-  final int connections;
+  final String industry;
+  final int followers;
+  final int employeesCount;
   final bool isconnect;
   final bool isPending;
   final List<String> mutualConnections;
@@ -44,11 +43,7 @@ class ProfileHeader extends StatelessWidget {
         _buildBioSection(),
         const SizedBox(height: 5),
 
-        _buildEducationLocationSection(),
-        const SizedBox(height: 5),
-        if (links.isNotEmpty) _buildLinks(context),
-        const SizedBox(height: 5),
-        if (connections > 0) _buildConnectionsSection(),
+        _buildDetailsSection(),
         const SizedBox(height: 5),
 
         if (mutualConnections.isNotEmpty && !isMyProfile)
@@ -67,85 +62,38 @@ class ProfileHeader extends StatelessWidget {
         ),
         if (verified) const Icon(Icons.gpp_good_outlined, size: 20),
         const SizedBox(width: 5),
-        Text(degree, style: const TextStyle(color: Colors.white70)),
       ],
     );
   }
 
-  // 🔹 New: Badges Section
-  Widget _buildBadgesSection() {
-    if (badges.isEmpty) return const SizedBox.shrink();
-
-    return Wrap(
-      spacing: 8,
-      children:
-          badges.map((badge) {
-            Color badgeColor = _getBadgeColor(badge);
-            return Chip(
-              label: Text(
-                badge,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-              backgroundColor: badgeColor,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            );
-          }).toList(),
-    );
-  }
-
-  // 🔹 Function to get badge color
-  Color _getBadgeColor(String badge) {
-    switch (badge) {
-      case "Open to Work":
-        return Colors.green;
-      case "Hiring":
-        return Colors.purple;
-      case "Providing Services":
-        return Colors.orange;
-      case "Premium":
-        return Colors.amber;
-      default:
-        return Colors.grey;
-    }
-  }
-
   // Bio Section
   Widget _buildBioSection() {
-    return Text(bio);
+    return Text(bio, style: const TextStyle(fontSize: 16));
   }
 
   // Education & Location Section
-  Widget _buildEducationLocationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Text(latestEducation), Text(location)],
-    );
-  }
-
-  // Connections Section
-  Widget _buildConnectionsSection() {
-    return Text(
-      connections < 500 ? '$connections connections' : '500+ connections',
-      style: TextStyle(color: !isconnect ? Colors.grey[900] : Colors.blue),
-    );
-  }
-
-  Widget _buildLinks(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  // Details Section
+  Widget _buildDetailsSection() {
+    return Wrap(
+      spacing: 5, // Space between items
+      runSpacing: 5, // Space between lines
       children: [
-        const SizedBox(height: 10),
-        if (links.isNotEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 5),
-              ProfileExtraMaterial(links: links),
-            ],
-          ),
+        Text(
+          industry,
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        Text(
+          "• $location",
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        Text(
+          "• $followers followers",
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        Text(
+          "• $employeesCount employees",
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
+        ),
       ],
     );
   }
@@ -167,8 +115,10 @@ class ProfileHeader extends StatelessWidget {
                 Expanded(
                   child: Text(
                     mutualConnections.length > 2
-                        ? "${mutualConnections.take(2).join(', ')} , and ${mutualConnections.length - 2} other mutual connections"
-                        : "${mutualConnections.join(', and ')} are mutual connections",
+                        ? "${mutualConnections.take(1).join(', ')} & ${mutualConnections.length - 1} other connections follow this page"
+                        : mutualConnections.length == 2
+                        ? "${mutualConnections.take(1).join(', ')} & ${mutualConnections.length - 1} other connection follow this page"
+                        : "${mutualConnections.first} follows this page",
                     style: const TextStyle(
                       decoration: TextDecoration.underline,
                     ),
