@@ -6,12 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/notifications/data/datasources/notification_local_datasource.dart';
 import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
-import '../../features/notifications/data/repositories/notification_repository_impl.dart';
-import '../../features/notifications/domain/usecases/delete_notification.dart';
-import '../../features/notifications/domain/usecases/get_notifications.dart';
-import '../../features/notifications/domain/usecases/listen_for_notifications.dart';
-import '../../features/notifications/domain/usecases/mark_all_as_read.dart';
-import '../../features/notifications/domain/usecases/mark_as_read.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../services/push_notification_service.dart';
 import '../../core/network/network_info.dart';
@@ -41,16 +35,6 @@ class ServiceLocator {
   late final PushNotificationService pushNotificationService;
   late final NetworkInfo networkInfo;
 
-  // Repositories
-  late final NotificationRepositoryImpl notificationRepository;
-
-  // Use cases
-  late final GetNotifications getNotifications;
-  late final MarkAsRead markAsRead;
-  late final MarkAllAsRead markAllAsRead;
-  late final ListenForNotifications listenForNotifications;
-  late final DeleteNotificationUseCase deleteNotification;
-
   // BLOCs
   late final NotificationBloc notificationBloc;
   late final SearchBloc searchBloc;
@@ -71,10 +55,7 @@ class ServiceLocator {
     authRepository = AuthRepository(apiClient: apiClient);
 
     // Initialize AuthBloc
-    authBloc = AuthBloc(
-      authRepository: authRepository,
-      apiClient: apiClient,
-    );
+    authBloc = AuthBloc(authRepository: authRepository, apiClient: apiClient);
 
     // Data sources
     final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
@@ -88,36 +69,12 @@ class ServiceLocator {
           true, // Add a flag to use mock data instead of real API calls
     );
 
-    final notificationLocalDataSource = NotificationLocalDataSourceImpl(
-      sharedPreferences: sharedPreferences,
-    );
-
-    // Repositories
-    notificationRepository = NotificationRepositoryImpl(
-      remoteDataSource: notificationRemoteDataSource,
-      localDataSource: notificationLocalDataSource,
-      networkInfo: networkInfo,
-    );
-
-    // Use cases
-    getNotifications = GetNotifications(notificationRepository);
-    markAsRead = MarkAsRead(notificationRepository);
-    markAllAsRead = MarkAllAsRead(notificationRepository);
-    listenForNotifications = ListenForNotifications(notificationRepository);
-    deleteNotification = DeleteNotificationUseCase(notificationRepository);
-
     // Initialize push notification service
     pushNotificationService = PushNotificationService();
     await pushNotificationService.initialize();
 
     // BLOCs
-    notificationBloc = NotificationBloc(
-      getNotifications: getNotifications,
-      markAsRead: markAsRead,
-      markAllAsRead: markAllAsRead,
-      listenForNotifications: listenForNotifications,
-      deleteNotification: deleteNotification,
-    );
+    notificationBloc = NotificationBloc(apiClient: apiClient);
     searchBloc = SearchBloc();
   }
 

@@ -1,16 +1,17 @@
+import 'package:ascend_app/shared/models/notification.dart';
 import 'package:flutter/material.dart';
 
 /// Widget for filtering notifications by type
 class NotificationFilter extends StatefulWidget {
   /// Available notification types for filtering
-  final List<String> availableTypes;
-  
+  final List<NotificationType> availableTypes;
+
   /// Currently selected notification type
-  final String? selectedType;
-  
+  final NotificationType? selectedType;
+
   /// Called when a filter type is selected
-  final Function(String?) onFilterSelected;
-  
+  final Function(NotificationType?) onFilterSelected;
+
   const NotificationFilter({
     Key? key,
     required this.availableTypes,
@@ -23,14 +24,14 @@ class NotificationFilter extends StatefulWidget {
 }
 
 class _NotificationFilterState extends State<NotificationFilter> {
-  late String? _selectedType;
-  
+  late NotificationType? _selectedType;
+
   @override
   void initState() {
     super.initState();
     _selectedType = widget.selectedType;
   }
-  
+
   @override
   void didUpdateWidget(NotificationFilter oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -38,7 +39,7 @@ class _NotificationFilterState extends State<NotificationFilter> {
       _selectedType = widget.selectedType;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -47,18 +48,17 @@ class _NotificationFilterState extends State<NotificationFilter> {
       child: Row(
         children: [
           _buildFilterChip('All', null),
-          ...widget.availableTypes.map((type) => _buildFilterChip(
-            _formatTypeLabel(type), 
-            type,
-          )),
+          ...widget.availableTypes.map(
+            (type) => _buildFilterChip(_formatTypeLabel(type), type),
+          ),
         ],
       ),
     );
   }
-  
-  Widget _buildFilterChip(String label, String? type) {
+
+  Widget _buildFilterChip(String label, NotificationType? type) {
     final isSelected = _selectedType == type;
-    
+
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: FilterChip(
@@ -74,28 +74,34 @@ class _NotificationFilterState extends State<NotificationFilter> {
         selectedColor: Theme.of(context).colorScheme.primaryContainer,
         checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
         labelStyle: TextStyle(
-          color: isSelected 
-              ? Theme.of(context).colorScheme.onPrimaryContainer
-              : Theme.of(context).colorScheme.onSurfaceVariant,
+          color:
+              isSelected
+                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );
   }
-  
-  String _formatTypeLabel(String type) {
+
+  String _formatTypeLabel(NotificationType type) {
+    final str = type.value;
     // Convert camelCase or snake_case to Title Case
-    if (type.contains('_')) {
-      return type.split('_').map(_capitalizeFirst).join(' ');
+    if (str.contains('_')) {
+      return str.split('_').map(_capitalizeFirst).join(' ');
     } else {
       // Insert space before capital letters and capitalize
-      return _capitalizeFirst(type.replaceAllMapped(
-        RegExp(r'([A-Z])'), 
-        (match) => ' ${match.group(0)}',
-      ).trim());
+      return _capitalizeFirst(
+        str
+            .replaceAllMapped(
+              RegExp(r'([A-Z])'),
+              (match) => ' ${match.group(0)}',
+            )
+            .trim(),
+      );
     }
   }
-  
+
   String _capitalizeFirst(String text) {
     if (text.isEmpty) return text;
     return text[0].toUpperCase() + text.substring(1);
