@@ -19,9 +19,9 @@ class UserProfilePage extends StatefulWidget {
     this.location = 'Cairo, Cairo, Egypt',
     this.latestEducation = 'Cairo University',
     this.sections = const [],
-    this.isconnect = true,
+    this.isconnect = false,
     this.isfollow = false,
-    this.isPending = false,
+    this.isPending = true,
     this.connections = 15,
     this.verified = true,
     this.degree = "1st",
@@ -191,7 +191,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 isMyProfile:
                     widget.profileType == ProfileType.myprofile ? true : false,
               ),
-              SizedBox(height: 50),
+              if (widget.profileType == ProfileType.myprofile)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(Icons.edit_outlined),
+                    ),
+                  ],
+                ),
+              SizedBox(
+                height: widget.profileType == ProfileType.myprofile ? 5 : 50,
+              ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
