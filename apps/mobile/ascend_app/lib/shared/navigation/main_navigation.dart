@@ -27,7 +27,7 @@ class _MainNavigationState extends State<MainNavigation> {
       Home(),
       //Center(child: Text("Video")),
       UserProfilePage(sections: sections),
-      CompanyPage(sections: csections),
+      //CompanyPage(sections: csections),
       Networks(),
       NotificationsPage(), // Replace the placeholder with your actual notifications page
       JobApp(isDarkMode: isDarkMode),
