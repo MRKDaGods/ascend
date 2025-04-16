@@ -48,7 +48,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   style: TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
-                    color: widget.isDarkMode ? Colors.white : Colors.black,
+                    //color: widget.isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
               ],
@@ -74,7 +74,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: Text(
                 "No jobs found for the selected filter.",
                 style: TextStyle(
-                  color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                  //color: widget.isDarkMode ? Colors.white70 : Colors.black87,
                   fontSize: 16,
                 ),
               ),
@@ -109,8 +109,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) =>
-                              JobFilterScreen(chosenCategory: selectedTab),
+                          (context) => JobFilterScreen(
+                            chosenCategory: selectedTab,
+                            jobs: widget.jobs,
+                          ),
                     ),
                   );
                 },
@@ -145,7 +147,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: widget.isDarkMode ? Colors.white : Colors.black,
+              //color: widget.isDarkMode ? Colors.white : Colors.black,
             ),
           ),
           if (isSelected)
@@ -187,7 +189,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => JobFilterScreen(chosenCategory: label),
+              builder:
+                  (context) =>
+                      JobFilterScreen(chosenCategory: label, jobs: widget.jobs),
             ),
           );
         });
