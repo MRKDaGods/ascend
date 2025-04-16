@@ -1,28 +1,28 @@
 import 'package:ascend_app/features/UserPage/blue_button.dart';
 import 'package:flutter/material.dart';
 import 'bottom_options_sheet.dart';
-import 'grey_button.dart';
+import 'package:ascend_app/features/UserPage/grey_button.dart';
 
 class ProfileButtons extends StatelessWidget {
   const ProfileButtons({
-    required this.isConnect,
+    required this.websiteExists,
     required this.isfollowing,
     required this.isPending,
     required this.toggleConnect,
     required this.withdrawRequest,
     required this.toggleFollow,
-    required this.removeConnection,
+    required this.unFollowPage,
     required this.isMyProfile,
     super.key,
   });
 
-  final bool isConnect;
+  final bool websiteExists;
   final bool isfollowing;
   final bool isPending;
   final void Function() toggleConnect;
   final void Function() toggleFollow;
   final void Function(BuildContext) withdrawRequest; // Function to show dialog
-  final void Function(BuildContext) removeConnection; // Function to show dialog
+  final void Function(BuildContext) unFollowPage; // Function to show dialog
   final bool isMyProfile;
 
   @override
@@ -30,30 +30,55 @@ class ProfileButtons extends StatelessWidget {
     return !isMyProfile
         ? Row(
           children: [
-            if (isConnect)
-              Expanded(child: BlueButton(text: "Message", icon: Icons.send))
-            else ...[
+            if (isfollowing) ...[
               Expanded(
                 child:
-                    isPending
-                        ? GreyButton(
-                          text: "Pending",
-                          action: withdrawRequest,
-                          icon: Icons.access_time,
+                    websiteExists
+                        ? BlueButton(
+                          text: "Visit website",
+                          icon: Icons.ios_share_outlined,
+                          isMyProfile: true,
                         )
                         : BlueButton(
-                          text: "Connect",
-                          action: toggleConnect,
-                          icon: Icons.person_add,
+                          text: "Message",
+                          icon: Icons.send,
+                          isMyProfile: true,
                         ),
               ),
               SizedBox(width: 8),
               Expanded(
                 child: GreyButton(
-                  text: "Message",
-                  action: (context) {},
-                  icon: Icons.send,
+                  text: "Following",
+                  icon: Icons.check,
+                  action: unFollowPage,
+                  isMyProfile: true,
                 ),
+              ),
+            ] else ...[
+              Expanded(
+                child: BlueButton(
+                  text: "Follow",
+                  action: toggleFollow,
+                  icon: Icons.add,
+                  isMyProfile: true,
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child:
+                    websiteExists
+                        ? GreyButton(
+                          text: "Visit website",
+                          action: withdrawRequest,
+                          icon: Icons.ios_share_outlined,
+                          isMyProfile: true,
+                        )
+                        : GreyButton(
+                          text: "Message",
+                          action: withdrawRequest,
+                          icon: Icons.send,
+                          isMyProfile: true,
+                        ),
               ),
             ],
             SizedBox(width: 8),
@@ -70,13 +95,13 @@ class ProfileButtons extends StatelessWidget {
                   onPressed:
                       () => _showProfileOptionsSheet(
                         context,
-                        isConnect,
+                        websiteExists,
                         isfollowing,
                         isPending,
                         toggleConnect,
                         toggleFollow,
                         withdrawRequest,
-                        removeConnection,
+                        unFollowPage,
                       ), // Show Bottom Sheet
                 ),
               ),
@@ -113,13 +138,13 @@ class ProfileButtons extends StatelessWidget {
                       onPressed:
                           () => _showProfileOptionsSheet(
                             context,
-                            isConnect,
+                            websiteExists,
                             isfollowing,
                             isPending,
                             toggleConnect,
                             toggleFollow,
                             withdrawRequest,
-                            removeConnection,
+                            unFollowPage,
                           ),
                     ),
                   ),
