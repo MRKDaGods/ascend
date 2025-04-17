@@ -1,0 +1,17 @@
+services:
+   gateway-reverse-proxy:
+    build:
+      context: .
+      dockerfile: services/gateway-reverse-proxy/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=gateway-reverse-proxy
+      - PROXY_TARGET=${REVERSE_PROXY_TARGET}
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=80
+    ports:
+      - "80:80"

@@ -166,6 +166,8 @@ class ProfileButtons extends StatelessWidget {
           toggleFollow: toggleFollow,
           withdrawRequest: withdrawRequest,
           removeConnection: removeConnectionAlert,
+          isMyProfile: isMyProfile,
+          isImageSheet: false, // Not an image sheet
         );
       },
     );
