@@ -40,7 +40,7 @@ startSharedService("Gateway", undefined, {
     app.use("/files", conditionalProxy("http://file:3003"));
 
     // Job service
-    app.use("/jobs", conditionalProxy("http://job:3008"));
+    app.use("/job", conditionalProxy("http://job:3008"));
 
     // Messaging service
     app.use("/messaging", conditionalProxy("http://messaging:3010"));
