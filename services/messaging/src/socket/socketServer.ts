@@ -1,5 +1,10 @@
 import { Server } from "socket.io";
 import { verifyToken } from "@shared/utils/jwt";
+import {
+  validateUserInConversation,
+  getOtherUserId,
+  markMessagesAsRead,
+} from "../services/messageService";
 
 // Maps user IDs to their socket IDs for tracking online status
 const onlineUsersMap = new Map<number, string>();
@@ -122,6 +127,46 @@ socketServer.on("connection", (socket) => {
       if (senderTimeouts.size === 0) {
         typingTimeouts.delete(senderId);
       }
+    }
+  });
+
+  socket.on("message:read", async ({ conversationId }) => {
+    if (!socket.data.userId) {
+      console.error("User not registered");
+      socket.emit("error", { message: "User not registered" });
+      return;
+    }
+
+    const senderId = socket.data.userId;
+
+    try {
+      // Validate if the user is part of the conversation
+      const isValidUser = await validateUserInConversation(
+        conversationId,
+        senderId
+      );
+      if (!isValidUser) {
+        console.error("User not in conversation");
+        socket.emit("error", { message: "User not in conversation" });
+        return;
+      }
+
+      // Get the other user's ID
+      const otherUserId = await getOtherUserId(conversationId, senderId);
+      const otherUserSocketId = onlineUsersMap.get(otherUserId);
+
+      // Notify the other user if they are online
+      if (otherUserSocketId) {
+        socketServer.to(otherUserSocketId).emit("message:read", {
+          conversationId,
+        });
+      }
+
+      // Mark messages as read
+      await markMessagesAsRead(conversationId, senderId);
+    } catch (error) {
+      console.error("Error handling message:read event:", error);
+      socket.emit("error", { message: "Failed to mark messages as read" });
     }
   });
 
