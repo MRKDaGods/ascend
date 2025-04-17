@@ -3,15 +3,23 @@ import 'full_screen_image.dart';
 import 'bottom_options_sheet.dart';
 
 class ProfileMainImages extends StatelessWidget {
-  const ProfileMainImages({
+  ProfileMainImages({
     super.key,
     this.profilePic = 'https://picsum.photos/150/150',
     this.coverPic = 'https://picsum.photos/1500/500',
     this.isMyProfile = false,
+    this.profileImageProvider,
+    this.coverImageProvider,
   });
   final String profilePic;
   final String coverPic;
   final bool isMyProfile;
+  final ImageProvider? profileImageProvider; //= AssetImage(
+  //   'assets/company_placeholder.png',
+  // ); // Add this for testing
+  final ImageProvider? coverImageProvider; // = AssetImage(
+  //   'assets/company_placeholder.png',
+  // ); // Add this for testing
   void _showFullScreenImage(BuildContext context, String imageUrl) {
     Navigator.push(
       context,
@@ -70,7 +78,7 @@ class ProfileMainImages extends StatelessWidget {
             height: 120,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(coverPic),
+                image: coverImageProvider ?? NetworkImage(coverPic),
                 fit: BoxFit.cover,
               ),
             ),
@@ -98,7 +106,8 @@ class ProfileMainImages extends StatelessWidget {
               radius: 60,
               child: CircleAvatar(
                 radius: 58,
-                backgroundImage: NetworkImage(profilePic),
+                backgroundImage:
+                    profileImageProvider ?? NetworkImage(profilePic),
               ),
             ),
           ),

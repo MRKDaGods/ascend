@@ -18,10 +18,10 @@ class BlueButton extends StatelessWidget {
     return icon != null
         ? ElevatedButton.icon(
           label: Text(text),
-          icon: Icon(icon!, color: Colors.black),
+          icon: Icon(icon!, color: Colors.white),
 
           style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.black,
+            foregroundColor: Colors.white,
             backgroundColor: Colors.blue,
             padding: EdgeInsets.symmetric(vertical: !isMyProfile ? 8 : 3),
           ),
@@ -29,7 +29,7 @@ class BlueButton extends StatelessWidget {
         )
         : ElevatedButton(
           style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.black,
+            foregroundColor: Colors.white,
             backgroundColor: Colors.blue,
             padding: EdgeInsets.symmetric(vertical: !isMyProfile ? 8 : 3),
           ),

@@ -54,7 +54,7 @@ class InputValidators {
 
   static String? validatePassword(String password) {
     if (password.length <= 3) {
-      return 'Password should be at least 6 characters';
+      return 'Password should be at least 3 characters';
     }
     return null;
   }
