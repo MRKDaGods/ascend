@@ -204,6 +204,9 @@ class UserService {
     async getLocalUserProfile() {
         return this.client.get_local_user_profile();
     }
+    async getUserProfile(userId) {
+        return this.client.get_user_profile(userId);
+    }
     /**
      * Updates the currently authenticated user's profile
      * @param profile - The user's profile data
