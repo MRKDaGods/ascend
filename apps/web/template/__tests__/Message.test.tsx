@@ -1,6 +1,6 @@
 // __tests__/Message.test.tsx
 import { render, screen } from "@testing-library/react";
-import Message from "@/app/chat/components/Message";
+import Message from "@/app/chat/components/MessageItem";
 import { mockUseChatStore } from "../tests/utils/mockUseChatStore";
 import { useChatStore } from "@/app/chat/store/chatStore";
 

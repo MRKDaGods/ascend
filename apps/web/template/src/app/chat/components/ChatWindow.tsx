@@ -3,18 +3,15 @@ import { Box, Typography, Button, Avatar, IconButton } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/chatStore";
 import axios from "axios";
-import Message from "./Message";
 import InputBox from "./InputBox";
-import { handleIncomingMessage } from "../utils/fireBaseHandlers";
-import { Socket } from "dgram";
+import { socket } from "../utils/socketHandler";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import { conversation } from "./Sidebar";
 //import { socket } from "../utils/socket";
 import React from "react";
-
-
+import { api, extApi } from "@/api";
+import MessageItem from "./MessageItem";
 
 export default function ChatWindow() {
 
@@ -73,10 +70,6 @@ export default function ChatWindow() {
   //   return () => clearInterval(interval);
   // }, []);
 
-
-
-
-
   //PERMANENT check for blocks (NOT FINAL COULD NEED UPDATES)
   //   useEffect(() => {
   //     socket.on("conversation-updated", (updatedConvo) => {
@@ -117,9 +110,11 @@ export default function ChatWindow() {
     setShouldScrollToBottom(true);
 
     //comment this out when testing the triggering a test msg button
-    axios.get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=1`)
+    extApi.get(`messaging/conversations/${selectedConversationId}?limit=20&page=1`)
       .then((response) => {
-        setMessagesForConversation(selectedConversationId!, response.data.data.messages);
+        setMessagesForConversation(selectedConversationId!, response.data.messages.data.reverse());
+
+        console.log("Fetched messages:", response.data.messages.data);
       })
       .catch((e) => {
         console.error("failed to fetch messages:", e);
@@ -139,17 +134,17 @@ export default function ChatWindow() {
   //get older messages
   const loadOlderMessages = () => {
     const nextPage = page + 1;
-    axios
-      .get(`http://localhost:3001/messages/${selectedConversationId}?limit=20&page=${nextPage}`)
+    extApi
+      .get(`messaging/conversations/${selectedConversationId}?limit=20&page=${nextPage}`)
       .then((res) => {
-        const newMessages = res.data?.data?.messages || [];
+        const newMessages = res.data?.messages.data || [];
         const existingMessages = messagesByConversation;
 
         //check for duplicate messages
         if (
           !Array.isArray(newMessages) ||
           newMessages.length === 0 ||
-          newMessages.every((msg: any) => existingMessages.some((m) => m.id === msg.id))
+          newMessages.every((msg: any) => existingMessages.some((m) => m.messageId === msg.id))
         ) {
           console.log("no more messages to load");
           return;
@@ -158,7 +153,7 @@ export default function ChatWindow() {
         //else prepend older msgs to the top
         setShouldScrollToBottom(false);
         setMessagesForConversation(selectedConversationId!, (prev) =>
-          [...newMessages, ...prev]);
+          [...newMessages.reverse(), ...prev]);
         setpage(nextPage);
       })
       .catch((e) => console.error("Failed to load older messages:", e));
@@ -173,37 +168,27 @@ export default function ChatWindow() {
   //useRef so it persists across rerenders of chat window
   const typingTimers = useRef<{ [conversationId: number]: NodeJS.Timeout }>({});
 
-  //temporarily until we implement sockets:
-  const handleTyping = (conversationId: number) => {
-    setTypingStatus(conversationId, true);
-
-    //clear any existing timer
-    if (typingTimers.current[conversationId]) {
-      clearTimeout(typingTimers.current[conversationId]);
-    }
-
-    //set a new timer to mark as not typing after 3 sec of no typing
-    typingTimers.current[conversationId] = setTimeout(() => {
-      setTypingStatus(conversationId, false);
-      delete typingTimers.current[conversationId];
-    }, 3000);
-  }
-
   // after implementing SOCKETS UNCOMMENT
-  // Socket.on("typing",({conversationId})=>{
-  //     setTypingStatus(conversationId,true);
+  useEffect(() => {
+    socket.on("typing", ({ conversationId }: { conversationId: number }) => {
+      setTypingStatus(conversationId, true);
 
-  //     //clear any existing timer
-  //     if (typingTimers[conversationId]){
-  //         clearTimeout(typingTimers[conversationId]);
-  //     }
+      //clear any existing timer
+      if (typingTimers.current[conversationId]) {
+        clearTimeout(typingTimers.current[conversationId]);
+      }
 
-  //     //set a new timer
-  //     typingTimers[conversationId]=setTimeout(()=>{
-  //         setTypingStatus(conversationId,false);
-  //         delete typingTimers[conversationId];
-  //     },3000);
-  // });
+      //set a new timer
+      typingTimers.current[conversationId] = setTimeout(() => {
+        setTypingStatus(conversationId, false);
+        delete typingTimers.current[conversationId];
+      }, 1000);
+    });
+
+    return () => {
+      socket.off("typing");
+    };
+  }, []);
 
 
   if (!selectedConversationId) {
@@ -220,34 +205,31 @@ export default function ChatWindow() {
   }
 
   //finding partner name
-  const conversation = conversations.find((c) => c.id === selectedConversationId);
-  const partnerName = conversation?.name || "Chat";
-  const isBlocked = conversation?.isBlockedByPartner;
+  const conversation = conversations.find((c) => c.conversationId === selectedConversationId);
+  const partnerName = conversation?.otherUserFullName || "Chat";
+  const isBlocked = conversation?.isBlocked;
 
 
   const handleBlock = async () => {
     try {
-      if (!conversation?.userId) {
+      if (!conversation?.otherUserId) {
         console.warn("No userId found to block.");
         return;
       }
 
       const res = await axios.post("http://localhost:3001/messages/block", {
-        userId: conversation.userId,
+        userId: conversation.otherUserId,
       });
       console.log(res.data)
 
 
 
-      setConversations(conversations.filter((c) => c.id !== selectedConversationId));
+      setConversations(conversations.filter((c) => c.conversationId !== selectedConversationId));
       setSelectedConversationId(null);
     } catch (e) {
       console.error("Failed to block user", e);
     }
   };
-
-
-
 
   const open = Boolean(anchorEl);
 
@@ -261,12 +243,9 @@ export default function ChatWindow() {
     setMenuConvId(null);
   };
 
-
-
-
   return (
     <>
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, paddingTop: "62px", width: "100"}}>
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, paddingTop: "62px", width: "100" }}>
         <Box
           sx={{
             display: "flex",
@@ -315,9 +294,10 @@ export default function ChatWindow() {
             paddingY: 1
 
           }}>
+            {/* TODO: shel elreplace fl deployment */}
             <Avatar
-              src={conversation?.avatar}
-              alt={conversation?.name}
+              src={conversation?.otherUserProfilePictureUrl?.replace("http://api.ascendx.tech", api.baseUrl)}
+              alt={conversation?.otherUserFullName}
               sx={{ width: 95, height: 95 }}
             />
             <Typography variant="subtitle1" fontWeight="bold" >
@@ -330,27 +310,9 @@ export default function ChatWindow() {
             Load older messages
           </Button>
 
-          {/* TYPING TESTER BUTTON */}
-          <Button sx={{ mb: 2 }} onClick={() => {
-            handleTyping(selectedConversationId);
-          }}>
-            Trigger Typing Test
-          </Button>
-          {/* END OF TYPING TESTER BUTTON */}
-
-
           {/* render msgs iin chat window */}
           {messagesByConversation.map((msg) => (
-            <Message key={msg.id}
-              id={msg.id}
-              content={msg.content}
-              sender={msg.sender}
-              mediaUrls={msg.mediaUrls}
-              createdAt={msg.createdAt}
-              conversationId={msg.conversationId}
-              recipient={msg.recipient}
-              status={msg.status}
-            />
+            <MessageItem key={msg.messageId} message={msg} />
           ))}
           <Box ref={bottomRef} id="chat-bottom" />
 

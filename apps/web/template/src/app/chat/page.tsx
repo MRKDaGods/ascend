@@ -6,12 +6,123 @@ import ChatWindow from "./components/ChatWindow";
 import CreateIcon from '@mui/icons-material/Create';
 import TempNavbar from "./components/TempNavbar";
 import NewConversationDropdown from './components/NewConversationDropdown';
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import React from "react";
+import { api } from "@/api";
+import { Message, useChatStore } from "./store/chatStore";
+import { socket, handleIncomingMessage, handleIncomingMessageRead } from "./utils/socketHandler";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const setLocalUser = useChatStore((state) => state.setLocalUser);
+
+  const [loggingIn, setLoggingIn] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  const appendMessageToConversation = useChatStore((state) => state.appendMessageToConversation);
+  const updateLastMessage = useChatStore((state) => state.updateLastMessage);
+  const setUnreadMessagesById = useChatStore((state) => state.setUnreadMessagesById);
+  const selectedConversationId = useChatStore((state) => state.selectedConversationId);
+  const setMessagesForConversation = useChatStore((state) => state.setMessagesForConversation);
+  const messagesByConversation = useChatStore((state) => state.messagesByConversation);
+
+  const params = useSearchParams();
+  const em = params.get("em") || '';
+  const pwd = params.get("pwd") || '';
+
+  const handleIncomingMessageCallback = useCallback((data: any) =>
+    handleIncomingMessage(data as Message,
+      selectedConversationId,
+      appendMessageToConversation,
+      updateLastMessage,
+      setUnreadMessagesById),
+    [selectedConversationId, appendMessageToConversation, updateLastMessage, setUnreadMessagesById]);
+
+  const handleIncomingMessageReadCallback = useCallback((conversationId: number) =>
+    handleIncomingMessageRead(conversationId,
+      setMessagesForConversation,
+      messagesByConversation),
+    [setMessagesForConversation, messagesByConversation]);
+
+  useEffect(() => {
+    api.auth.login(em, pwd).then((response) => {
+      console.log("Login response:", response);
+
+      api.user.getLocalUserProfile().then((userResponse) => {
+        console.log("User profile response:", userResponse);
+        setLocalUser(userResponse);
+
+        setAuthToken(api.auth.authToken);
+      }).catch((error) => {
+        console.error("Error fetching user profile:", error);
+        setErr(error);
+      }).finally(() => setLoggingIn(false));
+    })
+      .catch((error) => {
+        console.error("Login error:", error);
+        setErr(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!authToken) {
+      socket.disconnect();
+      return;
+    }
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const handleConnect = () => {
+      console.log("Socket connected:", socket.id);
+
+      // Register
+      socket.emit("register", authToken);
+    };
+
+    const handleRegister = (data: any) => {
+      console.log("Registered:", data);
+    };
+
+    const handleError = (data: any) => {
+      setErr(data?.message || "Unknown socket error");
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("registered", handleRegister);
+    socket.on("error", handleError);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("registered", handleRegister);
+      socket.off("error", handleError);
+      socket.disconnect();
+    };
+  }, [authToken]);
+
+  // Connect to socket lma nlogin
+  useEffect(() => {
+    const handleMessage = (data: any) => {
+      console.log("Received message:", data);
+      handleIncomingMessageCallback(data);
+    };
+
+    const handleMessageRead = (data: any) => {
+      handleIncomingMessageReadCallback(data.conversationId);
+    };
+
+    socket.on("message:receive", handleMessage);
+    socket.on("message:read", handleMessageRead);
+
+    return () => {
+      socket.off("message:receive", handleMessage);
+      socket.off("message:read", handleMessageRead);
+    };
+  }, [handleIncomingMessageCallback, handleIncomingMessageReadCallback]);
 
   const handleOpenDropdown = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
@@ -20,6 +131,24 @@ export default function Page() {
   const handleCloseDropdown = () => {
     setAnchorEl(null);
   };
+
+  if (err) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Typography variant="h6" color="error">
+          {err}
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (loggingIn) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Typography variant="h6">Logging in...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <>
