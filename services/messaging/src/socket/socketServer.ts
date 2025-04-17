@@ -54,7 +54,7 @@ socketServer.on("connection", (socket) => {
    * Notifies recipient that sender has started typing
    * @param {{ toUserId: number }} data - Recipient's user ID
    */
-  socket.on("typing:start", ({ toUserId }) => {
+  socket.on("typing:start", async ({ conversationId }) => {
     if (!socket.data.userId) {
       console.error("User not registered");
       socket.emit("error", { message: "User not registered" });
@@ -62,6 +62,19 @@ socketServer.on("connection", (socket) => {
     }
 
     const senderId = socket.data.userId;
+
+    const isValidUser = await validateUserInConversation(
+      conversationId,
+      senderId
+    );
+
+    if (!isValidUser) {
+      console.error("User not in conversation");
+      socket.emit("error", { message: "User not in conversation" });
+      return;
+    }
+
+    const toUserId = await getOtherUserId(conversationId, senderId);
     const recipientSocketId = onlineUsersMap.get(toUserId);
 
     if (recipientSocketId) {
@@ -101,7 +114,7 @@ socketServer.on("connection", (socket) => {
    * Notifies recipient that sender has stopped typing
    * @param {{ toUserId: number }} data - Recipient's user ID
    */
-  socket.on("typing:stop", ({ toUserId }) => {
+  socket.on("typing:stop", async ({ conversationId }) => {
     if (!socket.data.userId) {
       console.error("User not registered");
       socket.emit("error", { message: "User not registered" });
@@ -109,6 +122,19 @@ socketServer.on("connection", (socket) => {
     }
 
     const senderId = socket.data.userId;
+
+    const isValidUser = await validateUserInConversation(
+      conversationId,
+      senderId
+    );
+
+    if (!isValidUser) {
+      console.error("User not in conversation");
+      socket.emit("error", { message: "User not in conversation" });
+      return;
+    }
+
+    const toUserId = await getOtherUserId(conversationId, senderId);
     const recipientSocketId = onlineUsersMap.get(toUserId);
 
     if (recipientSocketId) {
