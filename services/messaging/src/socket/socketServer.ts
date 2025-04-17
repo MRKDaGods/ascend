@@ -114,7 +114,7 @@ socketServer.on("connection", (socket) => {
       }
 
       // Mark messages as read
-      await markMessagesAsRead(conversationId, senderId);
+      await markMessagesAsRead(conversationId, otherUserId);
     } catch (error) {
       console.error("Error handling message:read event:", error);
       socket.emit("error", { message: "Failed to mark messages as read" });
