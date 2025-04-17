@@ -8,7 +8,7 @@ import '../widgets/notification_list.dart';
 import '../widgets/notification_filter.dart';
 import '../../../../shared/widgets/custom_sliver_appbar.dart';
 import '../../../../shared/widgets/app_scaffold.dart';
-import '../../domain/entities/notification.dart' as entity;
+import 'package:ascend_app/shared/models/notification.dart' as entity;
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -19,7 +19,7 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   final ScrollController _scrollController = ScrollController();
-  String? _selectedFilterType;
+  entity.NotificationType? _selectedFilterType;
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200) {
+        _scrollController.position.maxScrollExtent - 200) {
       // Use FetchNotifications instead
       context.read<NotificationBloc>().add(const FetchNotifications());
     }
@@ -71,7 +71,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     Text('Error: ${state.message}'),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () => context.read<NotificationBloc>().add(const FetchNotifications()),
+                      onPressed:
+                          () => context.read<NotificationBloc>().add(
+                            const FetchNotifications(),
+                          ),
                       icon: const Icon(Icons.refresh),
                       label: const Text('Retry'),
                     ),
@@ -81,16 +84,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
             }
 
             // Extract available notification types for filter
-            final List<String> availableTypes = state is NotificationLoaded
-                ? _extractNotificationTypes(state.notifications)
-                : [];
+            final List<entity.NotificationType> availableTypes =
+                state is NotificationLoaded
+                    ? _extractNotificationTypes(state.notifications)
+                    : [];
 
             // Use CustomScrollView with SliverAppBar like in Home
             return CustomScrollView(
               controller: _scrollController,
               slivers: [
                 const CustomSliverAppBar(
-                  showAppBar: true,
                   pinned: false,
                   floating: true,
                   addpost: false,
@@ -115,7 +118,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   child: FilteredNotificationList(
                     filterType: _selectedFilterType,
                     isMainPage: false, // Since it's inside a CustomScrollView
-                    onLoadMore: () => context.read<NotificationBloc>().add(const FetchNotifications()),
+                    onLoadMore:
+                        () => context.read<NotificationBloc>().add(
+                          const FetchNotifications(),
+                        ),
                   ),
                 ),
               ],
@@ -125,11 +131,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
       ),
     );
   }
-  
+
   // Helper method to extract unique notification types
-  List<String> _extractNotificationTypes(List<entity.Notification> notifications) {
+  List<entity.NotificationType> _extractNotificationTypes(
+    List<entity.Notification> notifications,
+  ) {
     return notifications
-        .map<String>((n) => n.type)
+        .map<entity.NotificationType>((n) => n.type)
         .toSet()
         .toList();
   }
@@ -137,18 +145,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
 /// Widget that applies filtering to the NotificationList
 class FilteredNotificationList extends StatelessWidget {
-  final String? filterType;
+  final entity.NotificationType? filterType;
   final bool isMainPage;
   final VoidCallback? onLoadMore;
   final ScrollController? scrollController;
 
   const FilteredNotificationList({
-    Key? key,
+    super.key,
     this.filterType,
     this.isMainPage = true,
     this.onLoadMore,
     this.scrollController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -161,45 +169,38 @@ class FilteredNotificationList extends StatelessWidget {
         filterType: filterType, // Add this line
       );
     }
-    
+
     // Otherwise, use BlocBuilder to apply filtering
     return BlocBuilder<NotificationBloc, NotificationState>(
       builder: (context, state) {
         List<entity.Notification> filteredNotifications = [];
         bool isLoading = false;
-        
+
         if (state is NotificationLoading) {
           isLoading = true;
         } else if (state is NotificationLoaded) {
           // Filter notifications by selected type
-          filteredNotifications = state.notifications
-              .where((n) => n.type == filterType)
-              .toList();
+          filteredNotifications =
+              state.notifications.where((n) => n.type == filterType).toList();
         }
-        
+
         if (filteredNotifications.isEmpty && !isLoading) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.filter_list,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
+                Icon(Icons.filter_list, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
                   'No $filterType notifications',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
                 TextButton(
                   onPressed: () {
                     // Find the nearest NotificationsPage and reset its filter
-                    final notificationsPageState = 
-                        context.findAncestorStateOfType<_NotificationsPageState>();
+                    final notificationsPageState =
+                        context
+                            .findAncestorStateOfType<_NotificationsPageState>();
                     if (notificationsPageState != null) {
                       // ignore: invalid_use_of_protected_member
                       notificationsPageState.setState(() {
@@ -213,7 +214,7 @@ class FilteredNotificationList extends StatelessWidget {
             ),
           );
         }
-        
+
         // Show a custom NotificationList with the filtered notifications
         return NotificationList(
           isMainPage: isMainPage,

@@ -41,9 +41,6 @@ class ProfileHeader extends StatelessWidget {
         _buildNameSection(),
         const SizedBox(height: 5),
 
-        _buildBadgesSection(), // New badges section
-        const SizedBox(height: 5),
-
         _buildBioSection(),
         const SizedBox(height: 5),
 
@@ -66,12 +63,9 @@ class ProfileHeader extends StatelessWidget {
       children: [
         Text(
           name,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        if (verified) const Icon(Icons.verified, size: 20),
+        if (verified) const Icon(Icons.gpp_good_outlined, size: 20),
         const SizedBox(width: 5),
         Text(degree, style: const TextStyle(color: Colors.white70)),
       ],
@@ -127,10 +121,7 @@ class ProfileHeader extends StatelessWidget {
   Widget _buildEducationLocationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(latestEducation),
-        Text(location),
-      ],
+      children: [Text(latestEducation), Text(location)],
     );
   }
 
@@ -171,11 +162,7 @@ class ProfileHeader extends StatelessWidget {
             },
             child: Row(
               children: [
-                const Icon(
-                  Icons.people,
-                  size: 16,
-                  applyTextScaling: true,
-                ),
+                const Icon(Icons.people, size: 16, applyTextScaling: true),
                 const SizedBox(width: 5),
                 Expanded(
                   child: Text(
@@ -204,9 +191,7 @@ class ProfileHeader extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
-            "Mutual Connections",
-          ),
+          title: const Text("Mutual Connections"),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -214,9 +199,7 @@ class ProfileHeader extends StatelessWidget {
               itemCount: mutualConnections.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(
-                    mutualConnections[index],
-                  ),
+                  title: Text(mutualConnections[index]),
                   onTap: () {
                     // You can navigate to the profile of the selected mutual connection
                     Navigator.pop(context);
