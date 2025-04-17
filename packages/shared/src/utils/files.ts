@@ -3,6 +3,7 @@ import {
   Events,
   FileMetadataRequestPayload,
   FilePresignedUrlPayload,
+  UserProfilePayload,
   getRPCQueueName,
 } from "@shared/rabbitMQ";
 import { Services } from "..";
