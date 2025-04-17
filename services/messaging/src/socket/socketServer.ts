@@ -4,6 +4,9 @@ import { verifyToken } from "@shared/utils/jwt";
 // Maps user IDs to their socket IDs for tracking online status
 const onlineUsersMap = new Map<number, string>();
 
+// Map to track typing timeouts for each sender and recipient
+const typingTimeouts = new Map<number, Map<number, NodeJS.Timeout>>();
+
 const socketServer = new Server({
   cors: {
     origin: "*",
@@ -53,12 +56,40 @@ socketServer.on("connection", (socket) => {
       return;
     }
 
+    const senderId = socket.data.userId;
     const recipientSocketId = onlineUsersMap.get(toUserId);
+
     if (recipientSocketId) {
       socketServer.to(recipientSocketId).emit("typing:start", {
-        fromUserId: socket.data.userId,
+        fromUserId: senderId,
       });
     }
+
+    // Initialize or retrieve the sender's timeout map
+    if (!typingTimeouts.has(senderId)) {
+      typingTimeouts.set(senderId, new Map());
+    }
+    const senderTimeouts = typingTimeouts.get(senderId)!;
+
+    // Clear any existing timeout for this recipient
+    if (senderTimeouts.has(toUserId)) {
+      clearTimeout(senderTimeouts.get(toUserId)!);
+    }
+
+    // Set a timeout to send "typing:stop" after 2 seconds of inactivity
+    const timeout = setTimeout(() => {
+      if (recipientSocketId) {
+        socketServer.to(recipientSocketId).emit("typing:stop", {
+          fromUserId: senderId,
+        });
+      }
+      senderTimeouts.delete(toUserId);
+      if (senderTimeouts.size === 0) {
+        typingTimeouts.delete(senderId);
+      }
+    }, 2000);
+
+    senderTimeouts.set(toUserId, timeout);
   });
 
   /**
@@ -72,11 +103,25 @@ socketServer.on("connection", (socket) => {
       return;
     }
 
+    const senderId = socket.data.userId;
     const recipientSocketId = onlineUsersMap.get(toUserId);
+
     if (recipientSocketId) {
       socketServer.to(recipientSocketId).emit("typing:stop", {
-        fromUserId: socket.data.userId,
+        fromUserId: senderId,
       });
+    }
+
+    // Clear the timeout for this recipient
+    if (typingTimeouts.has(senderId)) {
+      const senderTimeouts = typingTimeouts.get(senderId)!;
+      if (senderTimeouts.has(toUserId)) {
+        clearTimeout(senderTimeouts.get(toUserId)!);
+        senderTimeouts.delete(toUserId);
+      }
+      if (senderTimeouts.size === 0) {
+        typingTimeouts.delete(senderId);
+      }
     }
   });
 
