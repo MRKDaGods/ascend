@@ -254,6 +254,7 @@ services:
       - postgres
     networks:
       - ascend-network
+
   post:
     hostname: post
     build:
@@ -378,7 +379,6 @@ volumes:
   pgadmin_data:
   rabbitmq_data:
   minio_data:
-
 
 networks:
   ascend-network:

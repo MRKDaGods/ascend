@@ -34,6 +34,13 @@ services:
     environment:
       - NODE_ENV=development
 
+  job:
+    volumes:
+      - ./services/job:/app/services/job
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
   post:
     volumes:
       - ./services/post:/app/services/post
