@@ -3,9 +3,9 @@ import axios from "axios";
 
 const API_URL_DEV = "http://127.0.0.1:8080";
 const API_URL_ALI = "https://zany-carnival-xrv6w67px5xf9p4w-8080.app.github.dev";
-const API_URL_PROD = "http://api.ascendx.tech";
+const API_URL_PROD = "https://api.ascendx.tech";
 
-export const api = new ApiClient(API_URL_ALI);
+export const api = new ApiClient(API_URL_PROD);
 
 export const extApi = axios.create({
     baseURL: api.baseUrl

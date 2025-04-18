@@ -2,7 +2,7 @@ import { Message } from "../store/chatStore";
 import { io } from "socket.io-client";
 
 export const socket = io(
-  "https://zany-carnival-xrv6w67px5xf9p4w-3011.app.github.dev/",
+  "https://131.189.102.89/",
   { autoConnect: false }
 );
 
