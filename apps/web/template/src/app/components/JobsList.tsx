@@ -127,6 +127,24 @@ const JobList = () => {
             </React.Fragment>
           ))}
         </List>
+        
+                <Typography
+                  variant="body2"
+                  sx={{
+                    textAlign: "center",
+                    color: "black",
+                    cursor: "pointer",
+                    mt: 2,
+                    fontWeight: "bold",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                  onClick={() => router.push(`/alljobs`)}
+                >
+                  Show all →
+                </Typography>
       </CardContent>
     </Card>
   );

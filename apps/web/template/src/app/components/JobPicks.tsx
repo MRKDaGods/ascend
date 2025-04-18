@@ -156,7 +156,7 @@ const JobPicks = () => {
             alignItems: "center",
             gap: 1,
           }}
-          onClick={() => router.push(`/MyJobs`)}
+          onClick={() => router.push(`/alljobs`)}
         >
           Show all →
         </Typography>
