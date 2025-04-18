@@ -1,6 +1,6 @@
 "use client";
 import { Box, Avatar, Paper, Typography } from "@mui/material";
-import { Message, useChatStore } from "../store/chatStore";
+import { Message, useChatStore } from "../stores/chatStore";
 import React from "react";
 import { api } from "@/api";
 
@@ -71,8 +71,8 @@ export default function MessageItem({ message }: { message: Message }) {
           !isSentByYou && isBlockedByPartner
             ? ""
             : !isSentByYou
-              ? conversation?.otherUserProfilePictureUrl?.replace("http://api.ascendx.tech", api.baseUrl)
-              : localUser.profile_picture_url?.replace("http://api.ascendx.tech", api.baseUrl)
+              ? conversation?.otherUserProfilePictureUrl?.replace("https://api.ascendx.tech", api.baseUrl)
+              : localUser.profile_picture_url?.replace("https://api.ascendx.tech", api.baseUrl)
         }
         alt={displayName}
         sx={{ width: 50, height: 50 }}
@@ -127,7 +127,7 @@ export default function MessageItem({ message }: { message: Message }) {
               const isImage = fileType.startsWith("image/");
               const isVideo = fileType.startsWith("video/");
 
-              const fixedUrl = fileUrl.replace("http://api.ascendx.tech", api.baseUrl);
+              const fixedUrl = fileUrl.replace("https://api.ascendx.tech", api.baseUrl);
               if (isImage) {
                 return (
                   <Box>
