@@ -8,7 +8,7 @@ import {
 import {
   Close, Edit, Delete, Image, OndemandVideo, Article
 } from "@mui/icons-material";
-import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+// import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ClickAwayListener from "@mui/material/ClickAwayListener"; // ✅ Add this import at the top
 
 import { usePostStore } from "../stores/usePostStore";
@@ -20,8 +20,8 @@ import DraftSavedPopup from "./DraftSavedPopup";
 import Document from "./Document";
 import DocumentPreview from "./DocumentPreview";
 
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
+// import Picker from "@emoji-mart/react";
+// import data from "@emoji-mart/data";
 
 const CreatePostDialog: React.FC = () => {
   const {
@@ -49,8 +49,8 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview,
   } = useMediaStore();
 
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
+  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -168,14 +168,14 @@ const CreatePostDialog: React.FC = () => {
             <Tooltip title="Add a photo"><IconButton onClick={openEditor}><Image /></IconButton></Tooltip>
             <Tooltip title="Add a video"><IconButton onClick={openEditor}><OndemandVideo /></IconButton></Tooltip>
             <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
-            <Tooltip title="Add an emoji">
+            {/* <Tooltip title="Add an emoji">
               <IconButton
                 ref={emojiAnchorRef}
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
               >
                 <EmojiEmotionsIcon />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
 
           <Button
@@ -193,7 +193,7 @@ const CreatePostDialog: React.FC = () => {
       </Dialog>
 
       {/* Emoji Picker */}
-      <Popper
+      {/* <Popper
         open={showEmojiPicker}
         anchorEl={emojiAnchorRef.current}
         placement="top-start"
@@ -210,7 +210,7 @@ const CreatePostDialog: React.FC = () => {
             />
           </Box>
         </ClickAwayListener>
-      </Popper>
+      </Popper> */}
 
       <DiscardPostDialog
         open={discardPostDialogOpen}
