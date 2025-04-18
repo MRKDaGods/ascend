@@ -18,6 +18,17 @@ cd "$PACKAGE_ROOT" || {
     exit 1
 }
 
+# Stop containers
+CONTAINERS_STOPPED=false
+if docker-compose -f docker-compose.yml ps | grep -qE 'postgres|minio|pgadmin'; then
+    echo "Stopping containers..."
+    docker-compose -f docker-compose.yml down postgres minio pgadmin
+
+    CONTAINERS_STOPPED=true
+else
+    echo "No containers to stop."
+fi
+
 VOLUMES=("ascend_minio_data" "ascend_pgadmin_data" "ascend_postgres_data")
 
 # Backup directory
@@ -48,3 +59,10 @@ for VOL in "${VOLUMES[@]}"; do
 done
 
 echo "All volumes restored!"
+
+if $CONTAINERS_STOPPED; then
+    echo "Starting containers..."
+    docker-compose -f docker-compose.yml up -d postgres minio pgadmin
+else
+    echo "No containers were stopped."
+fi
