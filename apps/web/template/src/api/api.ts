@@ -6,7 +6,7 @@ const API = axios.create({
 
 // Static token for now
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ0Nzc3OTgzLCJleHAiOjE3NDQ4MjExODN9.J-0Fzn4HqkMbXErF03XQGh7gHw3VrlCdcU2BO57f-7A";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MDA2NTg1LCJleHAiOjE3NDUwNDk3ODV9.6zEhcz4xNKx86hFGYj-1ruFvSJpYtCE-JVz5dLx5LPo";
 
 API.interceptors.request.use((config) => {
   // Ensure headers is an instance of AxiosHeaders
