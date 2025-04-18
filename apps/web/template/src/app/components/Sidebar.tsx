@@ -7,8 +7,8 @@ import {
   Badge, ListItemButton, Menu, MenuItem
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { useChatStore } from "../store/chatStore";
-import { api, extApi } from "@/api";
+import { useChatStore } from "../stores/chatStore";
+import { api, extApi } from "@/api/apiDef";
 
 export default function Sidebar({ onSelectConversation }: { onSelectConversation?: (id: number) => void } = {}) {
   const conversations = useChatStore((state) => state.conversations);

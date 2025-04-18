@@ -43,6 +43,6 @@
     "src", 
     "src/types",
     "next-env.d.ts", "**/*.ts", "**/*.tsx"
-  ],
+, "src/app/components/DocumentPreview.tsx"  ],
   "exclude": ["node_modules", ".next"]
 }

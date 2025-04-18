@@ -1,7 +1,7 @@
 "use client";
 import { Box, Typography, Button, Avatar, IconButton } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore } from "../stores/chatStore";
 import axios from "axios";
 import InputBox from "./InputBox";
 import { socket } from "../utils/socketHandler";
@@ -10,7 +10,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 //import { socket } from "../utils/socket";
 import React from "react";
-import { api, extApi } from "@/api";
+import { api } from "@/api";
 import MessageItem from "./MessageItem";
 
 export default function ChatWindow() {
@@ -48,7 +48,7 @@ export default function ChatWindow() {
     if (selectedConversationId === -1) return;
 
     //comment this out when testing the triggering a test msg button
-    extApi.get(`messaging/conversations/${selectedConversationId}?limit=20&page=1`)
+    axios.get(`http://localhost:3001/messaging/conversations/${selectedConversationId}?limit=20&page=1`)
       .then((response) => {
         setMessagesForConversation(selectedConversationId!, response.data.messages.data.reverse());
 
@@ -72,8 +72,8 @@ export default function ChatWindow() {
   //get older messages
   const loadOlderMessages = () => {
     const nextPage = page + 1;
-    extApi
-      .get(`messaging/conversations/${selectedConversationId}?limit=20&page=${nextPage}`)
+    axios
+      .get(`http://localhost:3001/messaging/conversations/${selectedConversationId}?limit=20&page=${nextPage}`)
       .then((res) => {
         const newMessages = res.data?.messages.data || [];
         const existingMessages = messagesByConversation;
