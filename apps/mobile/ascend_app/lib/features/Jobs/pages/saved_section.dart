@@ -86,11 +86,8 @@ class SavedPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.0),
                   boxShadow: [
                     BoxShadow(
-                      // color:
-                      //     isDarkMode
-                      //         ? Colors.black.withOpacity(0.5)
-                      //         : Colors.grey,
-                      blurRadius: 10,
+                      color: Colors.transparent,
+
                       offset: const Offset(0, 3),
                     ),
                   ],

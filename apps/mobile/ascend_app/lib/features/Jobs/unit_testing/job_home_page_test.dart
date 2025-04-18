@@ -12,15 +12,21 @@ void main() {
           company: 'Microsoft',
           location: 'Remote',
           experienceLevel: 'Mid',
-          salary: 200,
+          salaryMinRange: 200,
+          salaryMaxRange: 300,
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+
           easyapply: true,
         ),
         Jobsattributes(
           title: 'Data Analyst',
           company: 'Google',
           location: 'Cairo',
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+
           experienceLevel: 'Entry',
-          salary: 50,
+          salaryMinRange: 50,
+          salaryMaxRange: 300,
           easyapply: false,
         ),
       ];
@@ -42,7 +48,10 @@ void main() {
           company: 'Microsoft',
           location: 'Remote',
           experienceLevel: 'Mid',
-          salary: 200,
+          salaryMinRange: 200,
+          salaryMaxRange: 300,
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+
           easyapply: true,
         ),
       ];

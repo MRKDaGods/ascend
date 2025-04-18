@@ -188,7 +188,7 @@ class _JobHomePageState extends State<JobHomePage> {
         ),
       ),
 
-      child: Text(title, style: TextStyle(fontSize: 13)),
+      child: Text(title, style: TextStyle(fontSize: 13, color: Colors.grey)),
     );
   }
 

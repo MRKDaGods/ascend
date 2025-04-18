@@ -23,7 +23,7 @@ Widget jobCard({
         borderRadius: BorderRadius.circular(10.0),
         boxShadow: [
           BoxShadow(
-            //color: isDarkMode ? Colors.black : Colors.grey,
+            color: Colors.transparent,
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -127,12 +127,32 @@ Widget jobCard({
                     ),
                   ],
                   const SizedBox(height: 4),
+                  Text(
+                    () {
+                      final now = DateTime.now();
+                      final difference = now.difference(job.createdAt);
+                      if (difference.inMinutes < 60) {
+                        return 'Posted less than an hour ago';
+                      } else if (difference.inHours < 24) {
+                        return 'Posted ${difference.inHours} hours ago';
+                      } else {
+                        return 'Posted ${difference.inDays} day(s) ago';
+                      }
+                    }(),
+                    style: TextStyle(
+                      color:
+                          DateTime.now().difference(job.createdAt).inHours < 24
+                              ? Colors.green
+                              : null,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Wrap(
                     spacing: 8, // Space between elements
                     runSpacing: 4, // Space between lines when wrapping occurs
                     children: [
                       Text(
-                        job.viewed ? "Viewed" : job.timePosted,
+                        job.viewed ? "Viewed" : "Not Viewed",
                         //style: TextStyle(color: Colors.grey[600]),
                       ),
                       if (job.isPromoted)

@@ -58,6 +58,7 @@ class _JobAppState extends State<JobApp> {
                   pinned: true,
                   showTabBar: false,
                   jobs: true,
+                  onJobAction: tosearchbar,
                 ),
 
               SliverFillRemaining(child: activescreen),

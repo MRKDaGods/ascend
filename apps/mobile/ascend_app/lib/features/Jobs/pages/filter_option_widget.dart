@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/Jobs/data/dummy_company_names.dart';
 
 class FilterOptionWidget extends StatefulWidget {
   final String filterName;
   final List<String> options;
   final bool allowMultipleSelection;
-  final List<String> companyNames; // List of company names
   final Function(List<String>)
   onFilterChanged; // Callback to return selected filters
   final bool isReset; // New parameter to reset filters
@@ -14,7 +14,6 @@ class FilterOptionWidget extends StatefulWidget {
     required this.filterName,
     required this.options,
     required this.allowMultipleSelection, // Default to allowing multiple selections
-    required this.companyNames,
     required this.onFilterChanged,
     required this.isReset, // Add isReset as a required parameter
   }) : super(key: key);
@@ -24,6 +23,8 @@ class FilterOptionWidget extends StatefulWidget {
 }
 
 class _FilterOptionWidgetState extends State<FilterOptionWidget> {
+  final List<String> companyNames = companySearchNames; // List of company names
+
   late String selectedFilterName;
   Color? chipColor;
   Set<String> selectedOptions = {};
@@ -51,9 +52,15 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
     } else {
       selectedFilterName = widget.filterName;
     }
+
     widget.onFilterChanged(
       selectedOptions.toList(),
     ); // Notify parent of changes
+
+    // If the filter is for experience level, notify parent to fetch data
+    if (widget.filterName.toLowerCase() == 'experience level') {
+      widget.onFilterChanged(selectedOptions.toList());
+    }
   }
 
   void resetFilters() {
@@ -134,7 +141,7 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                             setModalState(() {
                               // Filter the options based on user input and limit to 3
                               filteredOptions =
-                                  widget.companyNames
+                                  companyNames
                                       .where(
                                         (company) => company
                                             .toLowerCase()
@@ -181,11 +188,11 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                           TextButton(
                             onPressed: () {
                               setModalState(() {
-                                if (!widget.companyNames.contains(
+                                if (!companyNames.contains(
                                   selectedFilterName,
                                 )) {
-                                  widget.companyNames.add(selectedFilterName);
-                                  filteredOptions = widget.companyNames;
+                                  companyNames.add(selectedFilterName);
+                                  filteredOptions = companyNames;
                                 }
                               });
                             },

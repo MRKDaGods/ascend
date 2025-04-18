@@ -10,8 +10,10 @@ void main() {
         title: 'Software Engineer',
         company: 'Microsoft',
         location: 'Remote',
+        createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
         experienceLevel: 'Mid',
-        salary: 200,
+        salaryMinRange: 200,
+        salaryMaxRange: 300,
         easyapply: true,
       );
 
@@ -41,7 +43,9 @@ void main() {
         company: 'Microsoft',
         location: 'Remote',
         experienceLevel: 'Mid',
-        salary: 200,
+        createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+        salaryMinRange: 200,
+        salaryMaxRange: 300,
         easyapply: true,
         applied: true,
       );

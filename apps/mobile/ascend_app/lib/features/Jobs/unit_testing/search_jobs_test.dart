@@ -12,16 +12,20 @@ void main() {
           company: 'Microsoft',
           location: 'Remote',
           experienceLevel: 'Mid',
-          salary: 200,
+          salaryMinRange: 200,
           easyapply: true,
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+          salaryMaxRange: 300,
         ),
         Jobsattributes(
           title: 'Data Analyst',
           company: 'Google',
           location: 'Cairo',
           experienceLevel: 'Entry',
-          salary: 50,
+          salaryMinRange: 50,
           easyapply: false,
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+          salaryMaxRange: 300,
         ),
       ];
 
@@ -30,7 +34,6 @@ void main() {
           home: SearchJobsPage(
             searchtext: 'Engineer',
             locationtext: '',
-            companyNames: ['Microsoft', 'Google'],
             jobs: jobs,
           ),
         ),
@@ -48,16 +51,20 @@ void main() {
           company: 'Microsoft',
           location: 'Remote',
           experienceLevel: 'Mid',
-          salary: 200,
+          salaryMinRange: 200,
           easyapply: true,
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+          salaryMaxRange: 300,
         ),
         Jobsattributes(
           title: 'Data Analyst',
           company: 'Google',
           location: 'Cairo',
           experienceLevel: 'Entry',
-          salary: 50,
+          salaryMinRange: 50,
           easyapply: false,
+          createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
+          salaryMaxRange: 300,
         ),
       ];
 
@@ -66,7 +73,6 @@ void main() {
           home: SearchJobsPage(
             searchtext: '',
             locationtext: 'Cairo',
-            companyNames: ['Microsoft', 'Google'],
             jobs: jobs,
           ),
         ),

@@ -7,10 +7,12 @@ final List<Jobsattributes> jobs = [
     location: 'Remote',
     companyPhoto: "assets/microsoft.png",
     experienceLevel: 'Mid',
-    salary: 200,
+    salaryMinRange: 200,
+    salaryMaxRange: 300,
     easyapply: true,
     alumniCount: 20,
     isBookmarked: true,
+    createdAt: DateTime.parse("2025-04-16T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Data Analyst',
@@ -18,9 +20,11 @@ final List<Jobsattributes> jobs = [
     location: 'Cairo',
     companyPhoto: "assets/google.png",
     experienceLevel: 'Entry',
-    salary: 50,
+    salaryMinRange: 50,
+    salaryMaxRange: 300,
     jobDescription: "Google is looking for a Data Analyst to join our team.",
     easyapply: true,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Product Manager',
@@ -28,9 +32,11 @@ final List<Jobsattributes> jobs = [
     location: 'New York',
     companyPhoto: "assets/apple-logo.png",
     experienceLevel: 'Senior',
-    salary: 100,
+    salaryMinRange: 100,
+    salaryMaxRange: 300,
     easyapply: false,
     applicationForm: "https://www.apple.com/",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Full Stack Developer',
@@ -38,9 +44,11 @@ final List<Jobsattributes> jobs = [
     location: 'Smart Village',
     companyPhoto: "assets/facebook.png",
     experienceLevel: 'Mid',
-    salary: 1000,
+    salaryMinRange: 1000,
+    salaryMaxRange: 300,
     easyapply: false,
     applicationForm: "https://www.facebook.com/",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'UX Designer',
@@ -49,8 +57,10 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
     experienceLevel: 'Entry',
-    salary: 70,
+    salaryMinRange: 70,
+    salaryMaxRange: 300,
     easyapply: true,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Mobile App Developer',
@@ -59,11 +69,13 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png",
     experienceLevel: 'Mid',
-    salary: 150,
+    salaryMinRange: 150,
+    salaryMaxRange: 300,
     easyapply: true,
     alumniCount: 15,
     isBookmarked: false,
     isRemote: true,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Cybersecurity Analyst',
@@ -72,10 +84,12 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg",
     experienceLevel: 'Senior',
-    salary: 180,
+    salaryMinRange: 180,
+    salaryMaxRange: 300,
     easyapply: false,
     isPartTime: true,
     applicationForm: "https://www.ibm.com/careers",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Machine Learning Engineer',
@@ -84,10 +98,12 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg",
     experienceLevel: 'Mid',
-    salary: 220,
+    salaryMinRange: 220,
+    salaryMaxRange: 300,
     easyapply: true,
     jobDescription:
         "Join OpenAI to work on cutting-edge AI models and research.",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Cloud Engineer',
@@ -96,11 +112,12 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
     experienceLevel: 'Entry',
-    salary: 90,
+    salaryMinRange: 90,
+    salaryMaxRange: 300,
     easyapply: true,
     isRemote: true,
-
     alumniCount: 10,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Game Developer',
@@ -109,9 +126,11 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/7/78/Ubisoft_logo.svg",
     experienceLevel: 'Mid',
-    salary: 130,
+    salaryMinRange: 130,
+    salaryMaxRange: 300,
     easyapply: false,
     applicationForm: "https://www.ubisoft.com/careers",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Embedded Systems Engineer',
@@ -120,8 +139,10 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/7/7d/Intel_logo_%282006-2020%29.svg",
     experienceLevel: 'Senior',
-    salary: 250,
+    salaryMinRange: 250,
+    salaryMaxRange: 300,
     easyapply: false,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Blockchain Developer',
@@ -130,9 +151,11 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/e/e8/Binance_logo.svg",
     experienceLevel: 'Mid',
-    salary: 200,
+    salaryMinRange: 200,
+    salaryMaxRange: 300,
     easyapply: true,
     jobDescription: "Develop next-generation blockchain solutions at Binance.",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Network Engineer',
@@ -141,9 +164,11 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/0/08/Cisco_logo_blue_2016.svg",
     experienceLevel: 'Entry',
-    salary: 80,
+    salaryMinRange: 80,
+    salaryMaxRange: 300,
     easyapply: true,
     alumniCount: 5,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'Data Scientist',
@@ -152,11 +177,13 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
     experienceLevel: 'Senior',
-    salary: 300,
+    salaryMinRange: 300,
+    salaryMaxRange: 300,
     easyapply: false,
     isPartTime: true,
     isRemote: true,
     applicationForm: "https://jobs.netflix.com/",
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
   Jobsattributes(
     title: 'DevOps Engineer',
@@ -165,8 +192,10 @@ final List<Jobsattributes> jobs = [
     companyPhoto:
         "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg",
     experienceLevel: 'Mid',
-    salary: 160,
+    salaryMinRange: 160,
+    salaryMaxRange: 300,
     easyapply: true,
     isRemote: true,
+    createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
   ),
 ];
