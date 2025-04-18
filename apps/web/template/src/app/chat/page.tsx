@@ -89,7 +89,7 @@ export default function Page() {
     };
 
     const handleError = (data: any) => {
-      setErr(data?.message || "Unknown socket error");
+      //setErr(data?.message || "Unknown socket error");
     };
 
     socket.on("connect", handleConnect);

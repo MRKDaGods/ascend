@@ -22,6 +22,7 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
   const typingStatus = useChatStore((state) => state.typingStatus);
   const setAllUnreadMessagesById = useChatStore((state) => state.setAllUnreadMessagesById);
   const selectedConversationId = useChatStore((state) => state.selectedConversationId);
+  const refreshConvos = useChatStore((state) => state.refreshConvos);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuConvId, setMenuConvId] = useState<number | null>(null);
@@ -37,8 +38,8 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
     setMenuConvId(null);
   };
 
-  useEffect(() => {
-    extApi.get("/messaging/conversations").then((response) => {
+  const getConversations = async () => {
+    return extApi.get("/messaging/conversations").then((response) => {
       console.log("Conversations response:", response.data);
       setConversations(response.data.conversations.data);
 
@@ -50,7 +51,20 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
 
       setAllUnreadMessagesById(unreadCounts);
     }).catch((e) => console.log("Error fetching conversations:", e));
+  };
+
+  useEffect(() => {
+    getConversations();
   }, []);
+
+  useEffect(() => {
+    if (refreshConvos) {
+      getConversations().then(() => {
+        setSelectedConversationId(useChatStore.getState().newConvoId);
+        useChatStore.setState({ refreshConvos: false });
+      });
+    }
+  }, [refreshConvos]);
 
   const handleSelectedConversation = async (id: number) => {
     if (onSelectConversation) {

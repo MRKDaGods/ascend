@@ -61,6 +61,11 @@ type chatStore = {
   localUser: Profile | null;
   setLocalUser: (user: Profile | null) => void;
 
+  // Flag to refresh conversations
+  refreshConvos: boolean;
+  newConvoId: number | null;
+  forceRefreshConvos: (convoId: number) => void;
+
   //handleIncomingMessage?: (msg: Message) => void;
 };
 
@@ -113,6 +118,19 @@ export const useChatStore = create<chatStore>((set) => ({
         ...state.messagesByConversation,
         [id]: [...(state.messagesByConversation[id] || []), msg],
       },
+
+      // When a new message is added, move this conversation to the top
+      conversations: state.conversations
+        .map((convo) =>
+          convo.conversationId === id
+            ? { ...convo, lastMessageTimestamp: new Date() }
+            : convo
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.lastMessageTimestamp).getTime() -
+            new Date(a.lastMessageTimestamp).getTime()
+        ),
     }));
   },
   page: 1,
@@ -157,4 +175,12 @@ export const useChatStore = create<chatStore>((set) => ({
 
   localUser: null,
   setLocalUser: (user) => set({ localUser: user }),
+
+  refreshConvos: false,
+  newConvoId: null,
+  forceRefreshConvos: (convoId) =>
+    set(() => ({
+      refreshConvos: true,
+      newConvoId: convoId,
+    })),
 }));
