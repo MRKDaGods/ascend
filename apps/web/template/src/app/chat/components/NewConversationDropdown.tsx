@@ -27,7 +27,7 @@ export default function NewConversationDropdown({
     if (open) {
       // TODO: Fetch real connections from server
       // Emulate for now
-      const connectionIds = [6, 7, 11];
+      const connectionIds = [5, 6, 16];
 
       const fetchConnections = async () => {
         try {
