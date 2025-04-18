@@ -5,6 +5,7 @@ import {
   handleGetMessages,
   handleSendMessage,
   handleGetUnseenCount,
+  handleGetSocketServerUrl,
 } from "../controllers/messageController";
 import multer from "multer";
 
@@ -15,6 +16,7 @@ const upload = multer({
 
 const messageRouter = Router();
 
+messageRouter.get("/socket-server-url", handleGetSocketServerUrl);
 messageRouter.post(
   "/",
   authenticateToken,
