@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import ConnectionPost from "../components/ConnectionPost";
 import CreatePost from "../components/CreatePost";
 import { usePostStore } from "../stores/usePostStore";
+import SidebarPreview from "../components/SidebarPreview";
 
 const Feed: React.FC = () => {
   const { posts, fetchNewsFeedFromAPI } = usePostStore();
@@ -27,6 +28,7 @@ const Feed: React.FC = () => {
       {visiblePosts.map((post) => (
         <ConnectionPost key={post.id} post={post} />
       ))}
+      <SidebarPreview />
     </Box>
   );
 };
