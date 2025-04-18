@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Response } from "express";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { getSocketServer, getOnlineUsersMap } from "../socket/socketServer";
@@ -154,6 +155,24 @@ export const handleGetMessages = async (
     return res.status(200).json({ messages: messageData });
   } catch (error) {
     console.error("Error in handleGetMessages:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const handleGetSocketServerUrl = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const ipResponse = await axios.get("https://api.ipify.org?format=json");
+    const IP = ipResponse.data.ip;
+
+    const PORT = 3011;
+    const socketServerUrl = `https://${IP}:${PORT}`;
+
+    return res.status(200).json({ socketServerUrl });
+  } catch (error) {
+    console.error("Error in handleGetSocketServerUrl:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };
