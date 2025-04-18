@@ -20,12 +20,13 @@ const isValidStatus = (status: string): status is JobStatus =>
   validStatuses.includes(status as JobStatus);
 
 const MyJobsPage = () => {
-  const { activeTab, jobs } = useJobStore();
+  const { activeTab, jobs, fetchSavedJobs } = useJobStore(); // added fetchSavedJobs
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
+    // fetchSavedJobs();         // Uncomment when integrating with backend
+  }, [fetchSavedJobs]);
 
   if (!hasMounted) return null;
 

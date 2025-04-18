@@ -5,7 +5,7 @@ import ProfileCard from "./components/ProfileCard";
 import JobPicks from "./components/JobPicks"; 
 import Recommends from "./components/recommends";
 import ListCard from "./components/ListCard";
-
+import JobList from "./components/JobsList";
 function Home() {
   return (
     <>
@@ -32,10 +32,11 @@ function Home() {
     <JobPreferences />
     <JobPicks />
     <Recommends />
+    <JobList />
   </div>
 </div>
 
-      </div>
+      </div>  
     </>
   );
 }

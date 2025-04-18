@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SaveJobPopup from './SaveJobPopup';
 import { useJobStore } from '@/app/shared/store/useJobStore';
+import ApplyJobModal from './ApplyModal';
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Box mb={4}>
@@ -20,7 +21,9 @@ const JobDetails = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { setSavedJobPopupOpen, saveJob } = useJobStore();
+
   const [isReady, setIsReady] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false); // ✅ Moved inside component
 
   useEffect(() => {
     setIsReady(true);
@@ -47,55 +50,75 @@ const JobDetails = () => {
       description,
       about,
       requirements,
-      status: 'Saved' as 'Saved' | 'Applied', // Define JobStatus inline
+      status: 'Saved' as 'Saved' | 'Applied',
     };
-  
+
     saveJob(job);
     setSavedJobPopupOpen(true);
-  
+
     setTimeout(() => {
       router.push('/MyJobs');
     }, 1000);
   };
-  
+
   return (
-    <Paper elevation={3} sx={{ p: 4, maxWidth: '900px', mx: 'auto', mt: 5, mb: 3, borderRadius: 3 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        {title}
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary">
-        {company} • {location} • {type}
-      </Typography>
+    <>
+      <Paper elevation={3} sx={{ p: 4, maxWidth: '900px', mx: 'auto', mt: 5, mb: 3, borderRadius: 3 }}>
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          {title}
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          {company} • {location} • {type}
+        </Typography>
 
-      <Box display="flex" gap={2} my={2}>
-        <Button variant="outlined" color="success" sx={{ borderRadius: '20px' }} onClick={handleSave}>
-          Save
-        </Button>
-        <Button variant="contained" color="primary" sx={{ borderRadius: '20px' }}>
-          Apply
-        </Button>
-      </Box>
+        <Box display="flex" gap={2} my={2}>
+          <Button variant="outlined" color="success" sx={{ borderRadius: '20px' }} onClick={handleSave}>
+            Save
+          </Button>
+          <Button variant="contained" color="primary" sx={{ borderRadius: '20px' }} onClick={() => setApplyOpen(true)}>
+            Apply
+          </Button>
+        </Box>
 
-      <Section title="About Us">
-        <Typography>{about}</Typography>
-      </Section>
+        <Section title="About Us">
+          <Typography>{about}</Typography>
+        </Section>
 
-      <Section title="Job Description">
-        <Typography>{description}</Typography>
-      </Section>
+        <Section title="Job Description">
+          <Typography>{description}</Typography>
+        </Section>
 
-      <Section title="Requirements">
-        <ul>
-          {requirements.map((req, index) => (
-            <li key={index}>
-              <Typography>{req}</Typography>
-            </li>
-          ))}
-        </ul>
-      </Section>
+        <Section title="Requirements">
+          <ul>
+            {requirements.map((req, index) => (
+              <li key={index}>
+                <Typography>{req}</Typography>
+              </li>
+            ))}
+          </ul>
+        </Section>
 
-      <SaveJobPopup />
-    </Paper>
+        <SaveJobPopup />
+      </Paper>
+
+      {/* Render Apply Modal Here */}
+  <ApplyJobModal
+  open={applyOpen}
+  onClose={() => setApplyOpen(false)}
+  job={{
+    id: id.toString(),
+    company,
+    title,
+    location,
+    type,
+    description,
+    about,
+    requirements,
+  }}
+/>
+
+
+    </>
   );
 };
 

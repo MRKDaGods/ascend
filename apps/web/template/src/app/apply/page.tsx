@@ -1,4 +1,4 @@
-// ✅ FIXED ApplyPage.tsx (use this)
+// ApplyPage.tsx (use this)
 'use client';
 
 import React from 'react';
