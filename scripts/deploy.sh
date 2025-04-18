@@ -44,9 +44,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if DB_MODE; then
-    echo "Restoring volumes..."
-
+if $DB_MODE; then
     # Restore volumes
     echo "Restoring volumes..."
     if [ -f "scripts/vres.sh" ]; then
