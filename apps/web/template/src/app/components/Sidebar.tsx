@@ -7,19 +7,8 @@ import {
   Badge, ListItemButton, Menu, MenuItem
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { useChatStore } from "../stores/chatStore";
-import { markAsRead } from "../chat/utils/api";
-import { handleIncomingMessage } from "../chat/utils/fireBaseHandlers";
-
-export type conversation = {
-  id: number;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  unreadCount: number;
-  userId: string;
-  isBlockedByPartner: boolean;
-};
+import { useChatStore } from "../store/chatStore";
+import { api, extApi } from "@/api";
 
 export default function Sidebar({ onSelectConversation }: { onSelectConversation?: (id: number) => void } = {}) {
   const conversations = useChatStore((state) => state.conversations);
@@ -31,8 +20,9 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
   const updateLastMessage = useChatStore((state) => state.updateLastMessage);
   const appendMessageToConversation = useChatStore((state) => state.appendMessageToConversation);
   const typingStatus = useChatStore((state) => state.typingStatus);
-  const setUnreadMessagesById = useChatStore((state) => state.setUnreadMessagesById);
+  const setAllUnreadMessagesById = useChatStore((state) => state.setAllUnreadMessagesById);
   const selectedConversationId = useChatStore((state) => state.selectedConversationId);
+  const refreshConvos = useChatStore((state) => state.refreshConvos);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuConvId, setMenuConvId] = useState<number | null>(null);
@@ -48,16 +38,33 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
     setMenuConvId(null);
   };
 
+  const getConversations = async () => {
+    return extApi.get("/messaging/conversations").then((response) => {
+      console.log("Conversations response:", response.data);
+      setConversations(response.data.conversations.data);
+
+      // manually update unreadMessagesById
+      const unreadCounts = response.data.conversations.data.reduce((acc: { [key: number]: number }, chat: any) => {
+        acc[chat.conversationId] = chat.unseenMessageCount;
+        return acc;
+      }, {});
+
+      setAllUnreadMessagesById(unreadCounts);
+    }).catch((e) => console.log("Error fetching conversations:", e));
+  };
+
   useEffect(() => {
-    axios.get("http://localhost:3001/conversations")
-      .then((response) => {
-        setConversations(response.data);
-        response.data.forEach((chat: conversation) => {
-          setUnreadMessagesById(chat.id, chat.unreadCount);
-        });
-      })
-      .catch((e) => console.log("Error fetching conversations:", e));
+    getConversations();
   }, []);
+
+  useEffect(() => {
+    if (refreshConvos) {
+      getConversations().then(() => {
+        setSelectedConversationId(useChatStore.getState().newConvoId);
+        useChatStore.setState({ refreshConvos: false });
+      });
+    }
+  }, [refreshConvos]);
 
   const handleSelectedConversation = async (id: number) => {
     if (onSelectConversation) {
@@ -65,7 +72,6 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
     } else {
       setSelectedConversationId(id);
       markConversationAsRead(id);
-      await markAsRead(id);
     }
   };
 
@@ -87,30 +93,33 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
           <Typography variant="h6">Chats</Typography>
         </Box>
 
-        {conversations.length !== 0 ? (
+        {conversations.length > 0 ? (
           <List sx={{ overflowY: "auto", maxHeight: "calc(100vh - 64px)" }}>
             {conversations.map((chat) => (
-              <ListItem key={chat.id} disablePadding secondaryAction={
-                <IconButton edge="end" onClick={(e) => handleMenuClick(e, chat.id)}>
+              <ListItem key={chat.conversationId} disablePadding secondaryAction={
+                <IconButton edge="end" onClick={(e) => handleMenuClick(e, chat.conversationId)}>
                   <MoreVertIcon />
                 </IconButton>
               }>
                 <ListItemButton
-                  selected={chat.id === selectedConversationId}
-                  onClick={() => handleSelectedConversation(chat.id)}
+                  selected={chat.conversationId === selectedConversationId}
+                  onClick={() => handleSelectedConversation(chat.conversationId)}
                   sx={{ paddingY: 1.2, paddingX: 2, borderRadius: 2 }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={chat.avatar} />
+                    {/* TODO: Remove elreplace lma negy ndo el actual deployment */}
+                    <Avatar src={chat.otherUserProfilePictureUrl?.replace("http://api.ascendx.tech", api.baseUrl)} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={<Typography sx={{ fontSize: 16, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chat.name}</Typography>}
-                    secondary={<>
-                      <Typography sx={{ color: "gray", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chat.lastMessage}</Typography>
-                      {typingStatus[chat.id] && <Typography sx={{ fontSize: "12px", color: "green" }}>typing...</Typography>}
-                    </>}
+                    primary={<Typography sx={{ fontSize: 16, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chat.otherUserFullName}</Typography>}
+                    secondary={
+                      <Box component="span">
+                        <Typography component="span" sx={{ color: "gray", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chat.lastMessageContent}</Typography>
+                        {typingStatus[chat.conversationId] && <Typography component="span" sx={{ fontSize: "12px", color: "green", display: "block" }}>typing...</Typography>}
+                      </Box>
+                    }
                   />
-                  {unreadMessagesById[chat.id] > 0 && <Badge badgeContent={unreadMessagesById[chat.id]} color="primary" />}
+                  {unreadMessagesById[chat.conversationId] > 0 && <Badge badgeContent={unreadMessagesById[chat.conversationId]} color="primary" />}
                 </ListItemButton>
               </ListItem>
             ))}
@@ -122,29 +131,6 @@ export default function Sidebar({ onSelectConversation }: { onSelectConversation
             </Typography>
           </Box>
         )}
-
-        <Button onClick={() => {
-          const testMessage = {
-            id: Date.now().toString(),
-            content: "🔥 Test message",
-            sender: { id: "999", name: "Hamaki", profilePictureUrl: "" },
-            recipient: { id: "you", name: "Ruaa", profilePictureUrl: "" },
-            mediaUrls: [],
-            createdAt: new Date().toISOString(),
-            conversationId: 1,
-            status: "delivered" as const,
-          };
-          console.log("Store append to convo:", testMessage.content);
-          handleIncomingMessage(
-            testMessage,
-            selectedConversationId,
-            appendMessageToConversation,
-            updateLastMessage,
-            setUnreadMessagesById
-          );
-        }}>
-          Trigger Test Message
-        </Button>
       </Drawer>
 
       <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>

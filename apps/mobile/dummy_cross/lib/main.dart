@@ -68,6 +68,59 @@ class _AuthPageState extends State<_AuthPage> {
                 ),
               ),
             ElevatedButton(onPressed: _login, child: const Text('Login')),
+
+            if (_authToken != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Notifications:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => setState(() {}), // Refresh notifications
+                    tooltip: 'Refresh notifications',
+                  ),
+                ],
+              ),
+              FutureBuilder(
+                future: ApiClient.notification.getNotifications(1),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    final notifs = snapshot.data;
+                    if (notifs == null || notifs.isEmpty) {
+                      return const Text('No notifications available.');
+                    }
+                    return Column(
+                      children: [
+                        const Text('Notifications:'),
+                        for (var notification in notifs)
+                          ListTile(
+                            title: const Text('Notification'),
+                            subtitle: Text(notification.message),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                ApiClient.notification.deleteNotification(
+                                  notification.id,
+                                );
+                                setState(() {}); // Refresh the UI
+                              },
+                            ),
+                          ),
+                      ],
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+              ),
+            ],
           ],
         ),
       ),
