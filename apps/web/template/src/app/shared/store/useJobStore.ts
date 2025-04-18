@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 
-export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived';
-export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted'; 
+export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Posted';
+export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted';
+
 export interface Job {
   id: number;
   title: string;
@@ -14,6 +15,7 @@ export interface Job {
   logo?: string;
   status: JobStatus;
   applicationStatus?: ApplicationStatus;
+  email?: string;
 }
 
 interface JobStore {
@@ -24,6 +26,7 @@ interface JobStore {
   setSavedJobPopupOpen: (isOpen: boolean) => void;
   saveJob: (job: Job) => void;
   applyJob: (job: Job) => void;
+  postJob: (job: Job) => void; // ✅ NEW
   fetchSavedJobs: () => Promise<void>;
 }
 
@@ -38,27 +41,33 @@ export const useJobStore = create<JobStore>((set) => ({
       const exists = state.jobs.find((j) => j.id === job.id);
       return exists ? state : { jobs: [...state.jobs, job] };
     }),
-    applyJob: (job) =>
-      set((state) => {
-        const exists = state.jobs.find((j) => j.id === job.id);
-        if (exists) {
-          return {
-            jobs: state.jobs.map((j) =>
-              j.id === job.id
-                ? { ...j, status: 'Applied', applicationStatus: 'Pending' }
-                : j
-            ),
-          };
-        } else {
-          return {
-            jobs: [...state.jobs, { ...job, status: 'Applied', applicationStatus: 'Pending' }],
-          };
-        }
-      }),
-    
+  applyJob: (job) =>
+    set((state) => {
+      const exists = state.jobs.find((j) => j.id === job.id);
+      if (exists) {
+        return {
+          jobs: state.jobs.map((j) =>
+            j.id === job.id
+              ? { ...j, status: 'Applied', applicationStatus: 'Pending' }
+              : j
+          ),
+        };
+      } else {
+        return {
+          jobs: [...state.jobs, { ...job, status: 'Applied', applicationStatus: 'Pending' }],
+        };
+      }
+    }),
+  postJob: (job) => // ✅ Added this function
+    set((state) => {
+      const exists = state.jobs.find((j) => j.id === job.id);
+      return exists
+        ? state
+        : { jobs: [...state.jobs, { ...job, status: 'Posted' }] };
+    }),
   fetchSavedJobs: async () => {
     try {
-      const response = await fetch('/api/saved-jobs'); //when integrating with backend, we must put the actual endpoint
+      const response = await fetch('/api/saved-jobs');
       const data: Job[] = await response.json();
       set({ jobs: data });
     } catch (error) {

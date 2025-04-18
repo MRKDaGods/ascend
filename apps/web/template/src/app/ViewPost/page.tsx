@@ -1,5 +1,5 @@
 "use client";
-import { useJobStore } from "../JobPosting/store/useJobStore";
+import { usepJobStore } from "../JobPosting/store/usepJobStore";
 import {
   Box,
   Typography,
@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const ViewPost = () => {
-  const { postedJob } = useJobStore();
+  const { postedJob } = usepJobStore();
   const router = useRouter();
 
   useEffect(() => {

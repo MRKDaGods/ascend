@@ -11,14 +11,14 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useRouter } from 'next/navigation';
-import { useJobStore } from '../store/useJobStore';
+import { usepJobStore } from '../store/usepJobStore';
 const SaveJobPopup = () => {
   const {
     savedJobPopupOpen,
     setSavedJobPopupOpen,
     postedJobId,
     companyName,
-  } = useJobStore();
+  } = usepJobStore();
   const router = useRouter();
 
   const handleClose = () => {
@@ -27,7 +27,7 @@ const SaveJobPopup = () => {
 
   const handleViewSavedPosts = () => {
     setSavedJobPopupOpen(false);
-   router.push('/ViewPost'); 
+   router.push('/MyJobs'); 
   };
 
   return (

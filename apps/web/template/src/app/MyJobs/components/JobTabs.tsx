@@ -2,8 +2,10 @@
 import React from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
 import { useJobStore } from '@/app/shared/store/useJobStore';
-type TabValue = 'Saved' | 'In Progress' | 'Applied' | 'Archived';
-const tabLabels: TabValue[] = ['Saved', 'In Progress', 'Applied', 'Archived'];
+
+type TabValue = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Posted';
+
+const tabLabels: TabValue[] = ['Saved', 'In Progress', 'Applied', 'Archived', 'Posted'];
 
 const JobTabs = () => {
   const { activeTab, setActiveTab } = useJobStore();

@@ -9,10 +9,11 @@ import {
   Grid,
 } from "@mui/material";
 import { useState } from "react";
-import { useJobStore } from "../store/useJobStore";
+import { usepJobStore } from "../store/usepJobStore";
 import { useIsClient } from "../hooks/useIsClient";
 import CompanyEmailModal from "./CompanyEmailModal";
-import PostJobPopUp from "../components/PostPopUp"; // ✅ this is the popup
+import PostJobPopUp from "../components/PostPopUp";
+import { useJobStore as useSharedJobStore } from "@/app/shared/store/useJobStore"; // ✅ shared store
 
 const workplaceOptions = ["On-site", "Remote", "Hybrid"];
 const jobTypeOptions = ["Full-time", "Part-time", "Contract", "Internship"];
@@ -21,6 +22,7 @@ const JobForm = () => {
   const [openModal, setOpenModal] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
 
+  // 🧠 Local Zustand store
   const {
     title,
     companyName,
@@ -37,20 +39,24 @@ const JobForm = () => {
     setSavedJobPopupOpen,
     setPostedJobId,
     setPostedJob,
+  } = usepJobStore();
 
-  } = useJobStore();
+  // 🌐 Shared Zustand store (MyJobs tab)
+  const { postJob: addPostedJobToSharedStore } = useSharedJobStore();
 
   const postJob = async () => {
     const jobData = {
       title,
-      companyName,
+      company: companyName,
       location,
+      type: jobType,
       description,
-      workplaceType,
-      jobType,
+      about: "",
+      requirements: [],
       email: verifiedEmail,
+      logo: "",
     };
-  
+
     try {
       const res = await fetch("http://localhost:5000/PostJob", {
         method: "POST",
@@ -59,18 +65,26 @@ const JobForm = () => {
         },
         body: JSON.stringify(jobData),
       });
-  
+
       if (!res.ok) throw new Error("Failed to post job");
-  
+
       const data = await res.json();
       console.log("✅ Job posted:", data);
-  
-      // Save posted job in Zustand
-      setPostedJob({ ...jobData, id: data.id });
- // ← here
-  
+
+      const fullJob = {
+        ...jobData,
+        id: data.id,
+        status: "Posted" as const,
+      };
+
+      // ✅ Save to local posting store
+      setPostedJob(fullJob);
       setPostedJobId(data.id);
       setSavedJobPopupOpen(true);
+
+      // ✅ Add to shared store for MyJobs tab
+      addPostedJobToSharedStore(fullJob);
+
       setOpenModal(false);
     } catch (err) {
       console.error("❌ Error posting job:", err);
@@ -169,12 +183,20 @@ const JobForm = () => {
             variant="contained"
             color="primary"
             onClick={() => {
+              if (!title.trim()) {
+                alert("Job title is required.");
+                return;
+              }
+              if (!companyName.trim()) {
+                alert("Company name is required.");
+                return;
+              }
               if (!description.trim()) {
                 alert("Job description is required.");
                 return;
               }
               if (!verifiedEmail) {
-                setOpenModal(true); // show modal first
+                setOpenModal(true);
               } else {
                 postJob();
               }
@@ -197,7 +219,7 @@ const JobForm = () => {
         />
       )}
 
-      {/* ✅ Popup */}
+      {/* ✅ Job Posted Pop-up */}
       <PostJobPopUp />
     </>
   );

@@ -22,7 +22,7 @@ interface JobState {
   setPostedJob: (job: Record<string, any>) => void; // Added setPostedJob
 }
 
-export const useJobStore = create<JobState>()(
+export const usepJobStore = create<JobState>()(
   persist(
     (set) => ({
       title: "",

@@ -10,7 +10,7 @@ import {
   Box,
   Autocomplete,
 } from "@mui/material";
-import { useJobStore } from "@/app/JobPosting/store/useJobStore";
+import { usepJobStore } from "@/app/JobPosting/store/usepJobStore";
 
 const jobTitles = [
   "Software Engineer",
@@ -34,7 +34,7 @@ export default function HireCard() {
 
   const router = useRouter();
 
-  const { setTitle, setCompanyName } = useJobStore();
+  const { setTitle, setCompanyName } = usepJobStore();
 
   useEffect(() => {
     setHasMounted(true);

@@ -9,7 +9,7 @@ import {
   Stack,
 } from '@mui/material';
 
-export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived';
+export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived'|'Posted';
 export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted';
 
 interface JobCardProps {

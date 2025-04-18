@@ -2,8 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Container, Typography, Divider } from '@mui/material';
 import JobTabs from './components/JobTabs';
-import JobCard, { JobStatus } from './components/JobCard';
+import JobCard from './components/JobCard';
 import { useJobStore } from '@/app/shared/store/useJobStore';
+
+// ✅ Extend JobStatus inline
+type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Posted';
 
 interface Job {
   title: string;
@@ -14,13 +17,8 @@ interface Job {
   logo?: string;
 }
 
-const validStatuses = ['Saved', 'In Progress', 'Applied', 'Archived'] as const;
-
-const isValidStatus = (status: string): status is JobStatus =>
-  validStatuses.includes(status as JobStatus);
-
 const MyJobsPage = () => {
-  const { activeTab, jobs, fetchSavedJobs } = useJobStore(); // added fetchSavedJobs
+  const { activeTab, jobs, fetchSavedJobs } = useJobStore();
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -30,9 +28,7 @@ const MyJobsPage = () => {
 
   if (!hasMounted) return null;
 
-  const filteredJobs = jobs.filter((job: Job) =>
-    isValidStatus(job.status) ? job.status === activeTab : false
-  );
+  const filteredJobs = jobs.filter((job: Job) => job.status === activeTab);
 
   return (
     <Container maxWidth="md" sx={{ mt: 6, mb: 6 }}>

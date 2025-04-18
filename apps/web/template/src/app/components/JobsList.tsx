@@ -5,16 +5,22 @@ import { Card, CardContent, List, ListItem, Avatar, Typography, Divider, IconBut
 import CloseIcon from "@mui/icons-material/Close";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
+
 interface JobType {
-  id: number;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  logo: string;
-  promoted?: boolean;
-  viewed?: boolean;
-}
+    id: number;
+    title: string;
+    company: string;
+    location: string;
+    type: string;
+    logo: string;
+    reviewTime: string;
+    promoted?: boolean;
+    viewed?: boolean;
+    description: string;
+    about: string;
+    requirements: string[];
+    qualifications: string[];
+  }
 
 const JobList = () => {
   const router = useRouter();
@@ -25,10 +31,10 @@ const JobList = () => {
       try {
         const response = await fetch("http://localhost:5000/jobslist");
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
+        const data: JobType[] = await response.json();
         setJobs(data);
       } catch (error) {
-        console.error("Failed to fetch jobs:", error);
+        console.error("Error fetching jobs:", error);
       }
     };
 
@@ -46,6 +52,7 @@ const JobList = () => {
     router.push(`/apply?${params.toString()}`);
   };
 
+  
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(`http://localhost:5000/api/jobs/${id}`, {
