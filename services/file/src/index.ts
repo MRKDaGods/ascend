@@ -7,6 +7,7 @@ import {
 import startSharedService from "@shared/sharedService";
 import {
   handleFileDelete,
+  handleFileMetadataRequestRPC,
   handleFileUploadRPC,
   handleGetPresignedUrlRPC,
 } from "./consumers/fileConsumer";
@@ -30,11 +31,23 @@ startSharedService("File", fileRoutes, {
   },
   postMQInit: async () => {
     // Setup RPC server for pre-signed URLs
-    await setupRPCServer(getQueueName(Events.FILE_URL_RPC), handleGetPresignedUrlRPC);
+    await setupRPCServer(
+      getQueueName(Events.FILE_URL_RPC),
+      handleGetPresignedUrlRPC
+    );
 
     // Setup RPC server for file uploads
     // Transferring files through the broker isnt really recommended
     // but we have a 5mb limit, so we're fine
-    await setupRPCServer(getQueueName(Events.FILE_UPLOAD_RPC), handleFileUploadRPC);
+    await setupRPCServer(
+      getQueueName(Events.FILE_UPLOAD_RPC),
+      handleFileUploadRPC
+    );
+
+    // Setup RPC server for file metadata requests
+    await setupRPCServer(
+      getQueueName(Events.FILE_METADATA_RPC),
+      handleFileMetadataRequestRPC
+    );
   },
 });

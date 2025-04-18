@@ -215,11 +215,11 @@ function __wbg_adapter_46(arg0, arg1) {
 }
 
 function __wbg_adapter_49(arg0, arg1, arg2) {
-    wasm.closure260_externref_shim(arg0, arg1, arg2);
+    wasm.closure264_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_185(arg0, arg1, arg2, arg3) {
-    wasm.closure308_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_186(arg0, arg1, arg2, arg3) {
+    wasm.closure312_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
@@ -397,6 +397,14 @@ export class WasmApiClient {
      */
     get_local_user_profile() {
         const ret = wasm.wasmapiclient_get_local_user_profile(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * @param {number} id
+     * @returns {Promise<any>}
+     */
+    get_user_profile(id) {
+        const ret = wasm.wasmapiclient_get_user_profile(this.__wbg_ptr, id);
         return ret;
     }
     /**
@@ -686,7 +694,7 @@ function __wbg_get_imports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_185(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_186(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -879,12 +887,12 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper758 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 257, __wbg_adapter_46);
+    imports.wbg.__wbindgen_closure_wrapper764 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 261, __wbg_adapter_46);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper777 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 261, __wbg_adapter_49);
+    imports.wbg.__wbindgen_closure_wrapper783 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 265, __wbg_adapter_49);
         return ret;
     };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
