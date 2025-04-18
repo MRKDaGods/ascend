@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { getSocketServer, getOnlineUsersMap } from "../socket/socketServer";
 import { messageValidationRules } from "../validations/messageValidation";
@@ -159,10 +159,7 @@ export const handleGetMessages = async (
   }
 };
 
-export const handleGetSocketServerUrl = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
+export const handleGetSocketServerUrl = async (req: Request, res: Response) => {
   try {
     const ipResponse = await axios.get("https://api.ipify.org?format=json");
     const IP = ipResponse.data.ip;
