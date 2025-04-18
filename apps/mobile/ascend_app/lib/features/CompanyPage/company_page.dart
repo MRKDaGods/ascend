@@ -254,7 +254,7 @@ class _CompanyPageState extends State<CompanyPage> {
               SizedBox(
                 height:
                     MediaQuery.of(context).size.height -
-                    100, // Adjust height as needed
+                    200, // Adjust height as needed
                 child: CompanyTabs(),
               ),
             ],
