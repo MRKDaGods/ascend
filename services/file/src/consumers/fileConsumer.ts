@@ -1,10 +1,12 @@
 import {
   FileDeletePayload,
+  FileMetadataRequestPayload,
   FilePresignedUrlPayload,
   FileUploadPayload,
 } from "@shared/rabbitMQ";
 import {
   deleteFileFromMinIO,
+  getFileMetadata,
   getPresignedUrl,
   uploadFileToMinIO,
 } from "../services/fileUploadService";
@@ -100,4 +102,35 @@ export const handleFileDelete = async (
   // Delete!
   deleteFileFromMinIO(payload.file_id);
   console.log(`Deleted file ${payload.file_id}`);
+};
+
+/**
+ * Handles the file.metadata_rpc event
+ **/
+export const handleFileMetadataRequestRPC = async (
+  payload: FileMetadataRequestPayload.Request
+): Promise<FileMetadataRequestPayload.Response | null> => {
+  console.log("Received file.metadata_rpc event:", payload);
+
+  const file_id = payload.file_id;
+  if (!file_id) {
+    console.error("Invalid file ID");
+    return null;
+  }
+
+  // Get the file metadata
+  const metadata = await getFileMetadata(file_id);
+  if (!metadata) {
+    console.error(`Failed to retrieve metadata for file ${file_id}`);
+    return null;
+  }
+
+  console.log(
+    `Retrieved metadata for file ${file_id}`
+  );
+
+  const response: FileMetadataRequestPayload.Response = {
+    file_metadata: metadata,
+  };
+  return response;
 };
