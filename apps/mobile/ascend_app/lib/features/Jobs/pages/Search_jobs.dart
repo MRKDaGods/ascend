@@ -3,17 +3,18 @@ import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 import 'package:ascend_app/features/Jobs/pages/filter_option_widget.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
+import 'package:ascend_app/features/Jobs/data/dummy_company_names.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SearchJobsPage extends StatefulWidget {
   const SearchJobsPage({
     super.key,
     required this.searchtext,
     required this.locationtext,
-    required this.companyNames,
     required this.jobs,
   });
   final List<Jobsattributes> jobs; // List of all jobs
-  final List<String> companyNames; // List of company names
   final String searchtext;
   final String locationtext;
 
@@ -22,6 +23,8 @@ class SearchJobsPage extends StatefulWidget {
 }
 
 class _SearchJobsPageState extends State<SearchJobsPage> {
+  final List<String> companyNames = companySearchNames; // List of company names
+
   bool showeasyapply = false;
   List<Jobsattributes> jobs = []; // List of all jobs
   List<Jobsattributes> filteredJobs = []; // List of filtered jobs
@@ -36,59 +39,21 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
   @override
   void initState() {
     super.initState();
-    jobs = widget.jobs;
     locationController.text = widget.locationtext;
     searchController.text = widget.searchtext;
+    jobs = [];
+    filteredJobs = []; // Initialize filtered jobs as empty
 
-    // Filter jobs based on initial search, location, and remote options
-    initialFilteredJobs =
-        jobs.where((job) {
-          final matchesSearch =
-              searchController.text.isEmpty ||
-              job.title.toLowerCase().contains(
-                searchController.text.toLowerCase(),
-              ) ||
-              (job.jobDescription?.toLowerCase().contains(
-                    searchController.text.toLowerCase(),
-                  ) ??
-                  false) ||
-              job.company.toLowerCase().contains(
-                searchController.text.toLowerCase(),
-              );
-
-          final matchesLocation =
-              locationController.text.isEmpty ||
-              job.location.toLowerCase().contains(
-                locationController.text.toLowerCase(),
-              );
-
-          if ((job.isRemote == true) &&
-              (locationController.text.toLowerCase() == "remote" ||
-                  searchController.text.toLowerCase() == "remote")) {
-            return true;
-          }
-          return matchesSearch && matchesLocation;
-        }).toList();
-    filteredJobs = initialFilteredJobs; // Initialize filtered jobs
+    fetchData(); // Fetch job data from the API on initialization
+    initialFilteredJobs = filteredJobs; // Store initial filtered jobs
   }
 
   List<Widget> generateFilterWidgets() {
     final filterOptions = [
       {
-        'filterName': 'Date Posted',
-        'options': ["Anytime", "Past 24 hours", "Past Week", "Past Month"],
-        'allowMultipleSelection': false,
-      },
-      {
         'filterName': 'Experience Level',
-        'options': [
-          "Internship",
-          "Entry Level",
-          "Mid Level",
-          "Senior Level",
-          "Director",
-        ],
-        'allowMultipleSelection': false,
+        'options': ["Internship", "Entry", "Mid", "Associate", "Director"],
+        'allowMultipleSelection': true,
       },
       {
         'filterName': 'Company',
@@ -121,7 +86,6 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     return filterOptions
         .map(
           (filter) => FilterOptionWidget(
-            companyNames: widget.companyNames,
             allowMultipleSelection: filter['allowMultipleSelection'] as bool,
             filterName: filter['filterName'] as String,
             options: filter['options'] as List<String>,
@@ -138,7 +102,9 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       filteredJobs =
           jobs.where((job) {
             // Filter by easy apply
-            if (showeasyapply && !job.easyapply) return false;
+            if (showeasyapply && !job.easyapply) {
+              return false;
+            }
 
             // Filter by keyword from the search box
             if (searchController.text.isNotEmpty &&
@@ -154,11 +120,13 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                 )) {
               return false;
             }
+
             if ((job.isRemote == true) &&
                 (locationController.text.toLowerCase() == "remote" ||
                     searchController.text.toLowerCase() == "remote")) {
               return true;
             }
+
             // Filter by location from the location search box
             if (locationController.text.isNotEmpty &&
                 !job.location.toLowerCase().contains(
@@ -167,20 +135,91 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
               return false;
             }
 
-            // Filter by time posted (Date Posted filter)
-            if (selectedTimeFilter != null) {
-              final now = DateTime.now();
-              final timePosted = job.timePostedDate;
-              if (timePosted == null ||
-                  timePosted.isBefore(now.subtract(selectedTimeFilter!))) {
-                return false;
-              }
-            }
-
             // Job must match all criteria
             return true;
           }).toList();
     });
+  }
+
+  void fetchData({int pageNumber = 1, String experienceLevel = ""}) async {
+    String keyword = "";
+    String industry = "";
+    String company = "";
+
+    // Predefined lists of industries and company names
+    List<String> industries = [
+      "Technology",
+      "Finance",
+      "Healthcare",
+      "Education",
+      "Retail",
+    ];
+    List<String> companies = companyNames;
+
+    // Convert searchInput and lists to lowercase for case-insensitive comparison
+    String searchInput = searchController.text.trim().toLowerCase();
+    if (industries.map((e) => e.toLowerCase()).contains(searchInput)) {
+      industry = searchInput;
+    } else if (companies.map((e) => e.toLowerCase()).contains(searchInput)) {
+      company = searchInput;
+    } else {
+      keyword = searchInput;
+    }
+
+    final location =
+        locationController.text.isNotEmpty ? locationController.text : '';
+
+    final url = Uri.parse(
+      'https://fictional-space-orbit-qwwjrw4qg6pcxqx6-8080.app.github.dev/job/search?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevel&company_name=$company&salary_range_min=&salary_range_max=&pageNumber=$pageNumber',
+    );
+
+    print('Fetching data from: $url');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      print('Response body: ${response.body}');
+
+      if (response.body.isNotEmpty) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse.containsKey('data')) {
+          final List<dynamic> jobData = jsonResponse['data'];
+          print('Job data received: $jobData'); // Log the received job data
+
+          if (jobData.isNotEmpty) {
+            setState(() {
+              filteredJobs =
+                  jobData
+                      .map((data) {
+                        try {
+                          return Jobsattributes.fromJson(data);
+                        } catch (e) {
+                          print('Error parsing job data: $e');
+                          return null;
+                        }
+                      })
+                      .where((job) => job != null)
+                      .cast<Jobsattributes>()
+                      .toList();
+            });
+          } else {
+            setState(() {
+              filteredJobs = [];
+            });
+          }
+        } else {
+          setState(() {
+            filteredJobs = [];
+          });
+        }
+      } else {
+        setState(() {
+          filteredJobs = [];
+        });
+      }
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
   }
 
   void updateFilters(List<String> selectedFilters) {
@@ -196,6 +235,11 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
               (filter) => filteredJobs.company.contains(filter),
             );
           }).toList();
+
+      // If the filter is for experience level, call fetchData with the selected experience level
+      if (selectedFilters.isNotEmpty) {
+        fetchData(experienceLevel: selectedFilters.join(","));
+      }
     });
   }
 

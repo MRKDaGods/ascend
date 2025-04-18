@@ -9,7 +9,9 @@ void main() {
         company: 'Microsoft',
         location: 'Remote',
         experienceLevel: 'Mid',
-        salary: 200,
+        salaryMinRange: 200,
+        salaryMaxRange: 300,
+        createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
         easyapply: true,
       ),
       Jobsattributes(
@@ -17,16 +19,20 @@ void main() {
         company: 'Google',
         location: 'Cairo',
         experienceLevel: 'Entry',
-        salary: 50,
+        salaryMinRange: 50,
+        salaryMaxRange: 300,
         easyapply: false,
+        createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
       ),
       Jobsattributes(
         title: 'Product Manager',
         company: 'Apple',
         location: 'New York',
         experienceLevel: 'Senior',
-        salary: 100,
+        salaryMinRange: 100,
+        salaryMaxRange: 300,
         easyapply: false,
+        createdAt: DateTime.parse("2025-04-07T22:10:56.615Z"),
       ),
     ];
 

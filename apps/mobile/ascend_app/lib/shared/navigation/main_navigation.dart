@@ -18,10 +18,10 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<Widget> _pages = [
     UserProfilePage(sections: sections),
-    Home(), 
+    Home(),
     Center(child: Text("Video")),
     Networks(),
-    JobApp(),
+    JobApp(isDarkMode: false),
     Center(child: Text("Notifications")),
   ];
 
