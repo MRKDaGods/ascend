@@ -1,9 +1,9 @@
 "use client";
 import { Box, TextField, IconButton, Button, Typography } from "@mui/material";
 import { useState, useRef, useEffect } from "react";
-import { Message, useChatStore } from "../store/chatStore";
+import { Message, useChatStore } from "../stores/chatStore";
 import React from "react";
-import { extApi } from "@/api";
+import { extApi } from "@/api/apiDef";
 import { socket } from "../utils/socketHandler";
 
 export default function InputBox() {

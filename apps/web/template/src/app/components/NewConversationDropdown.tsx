@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore } from "../stores/chatStore";
 import { Profile } from "@ascend/api-client/models";
 import { api } from "@/api";
 
