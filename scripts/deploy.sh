@@ -1,7 +1,7 @@
-# !/bin/bash
+#!/bin/bash
 
 DB_MODE=false
-if [ "$1" == "--db" ]; then
+if [ "$1" = "--db" ]; then
     DB_MODE=true
 fi
 
