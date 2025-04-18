@@ -77,7 +77,7 @@ export default function MessageItem({ message }: { message: Message }) {
         alt={displayName}
         sx={{ width: 50, height: 50 }}
       >
-        {displayName?.charAt(0) || "?"}
+        {!isSentByYou && isBlockedByPartner ? "" : (displayName?.charAt(0) || "?")}
       </Avatar>
 
 

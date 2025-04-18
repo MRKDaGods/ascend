@@ -21,6 +21,7 @@ export default function InputBox() {
   const selectedConversationId = useChatStore((state) => state.selectedConversationId);
   const convos = useChatStore((state) => state.conversations);
   const localUser = useChatStore((state) => state.localUser);
+  const forceRefreshConversations = useChatStore((state) => state.forceRefreshConvos);
 
 
   //useEffect + setState -> rerender when said state changes 
@@ -59,6 +60,12 @@ export default function InputBox() {
         // Manually scroll to bottom
         const chatWindowBottom = document.getElementById("chat-bottom");
         chatWindowBottom?.scrollIntoView({ behavior: "smooth" });
+
+        // Check if that was a new convo
+        if (selectedConversationId === -1) {
+          // refresh the conversations list
+          forceRefreshConversations(newMessage.conversationId!);
+        }
       }
 
       setMessageText("");

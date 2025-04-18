@@ -36,71 +36,6 @@ export default function ChatWindow() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
 
-  // TEMPORARYY TO CHECK IF SOMEONE BLOCKED ME
-  // useEffect(() => {
-  //           const interval = setInterval(async () => {
-  //             try {
-  //               const res = await axios.get("http://localhost:3001/conversations");
-
-  //               const updatedConversations = res.data; // this has isBlockedByPartner
-
-  //               const blockedUserIds: string[] = [];
-
-  //               //  Update conversations
-  //               const updatedConvos = updatedConversations.map((updated:conversation) => {
-  //                 if (updated.isBlockedByPartner) {
-  //                   blockedUserIds.push(updated.userId); // collect the blocked user's ID
-  //                   return {
-  //                     ...updated,
-  //                     name: "LinkedIn User",
-  //                     avatar: "",
-  //                   };
-  //                 }
-  //                 return updated;
-  //               });
-
-  //       // Set conversations
-  //       useChatStore.getState().setConversations(updatedConvos);
-
-  //     } catch (e) {
-  //       console.error("Polling for block updates failed:", e);
-  //     }
-  //   }, 10000); // every 10s
-
-  //   return () => clearInterval(interval);
-  // }, []);
-
-  //PERMANENT check for blocks (NOT FINAL COULD NEED UPDATES)
-  //   useEffect(() => {
-  //     socket.on("conversation-updated", (updatedConvo) => {
-  //       const { conversations, messagesByConversation, setConversations, setMessagesForConversation } =
-  //         useChatStore.getState();
-
-  //       // Step 1: Update the conversation (sidebar)
-  //       const newConversations = conversations.map((conv) => {
-  //         if (conv.id === updatedConvo.id) {
-  //           if (updatedConvo.isBlockedByPartner) {
-  //             return {
-  //               ...conv,
-  //               name: "LinkedIn User",
-  //               avatar: "",
-  //               isBlockedByPartner: true,
-  //             };
-  //           }
-  //           return { ...conv, ...updatedConvo };
-  //         }
-  //         return conv;
-  //       });
-
-  //       setConversations(newConversations);
-
-  //     return () => {
-  //       socket.off("conversation-updated");
-  //     };
-  //   }, []);
-
-
-
   //To get the conversations most recent medssages
   useEffect(() => {
     if (!selectedConversationId) return;
@@ -108,6 +43,9 @@ export default function ChatWindow() {
     //clear old pagination
     resetPage();
     setShouldScrollToBottom(true);
+
+    // Check if this is a new conversation
+    if (selectedConversationId === -1) return;
 
     //comment this out when testing the triggering a test msg button
     extApi.get(`messaging/conversations/${selectedConversationId}?limit=20&page=1`)
@@ -306,9 +244,10 @@ export default function ChatWindow() {
           </Box>
 
           {/* button to load older msgs */}
-          <Button variant="outlined" onClick={loadOlderMessages} size="small" sx={{ mb: 2 }}>
-            Load older messages
-          </Button>
+          {selectedConversationId !== -1 && (
+            <Button variant="outlined" onClick={loadOlderMessages} size="small" sx={{ mb: 2 }}>
+              Load older messages
+            </Button>)}
 
           {/* render msgs iin chat window */}
           {messagesByConversation.map((msg) => (

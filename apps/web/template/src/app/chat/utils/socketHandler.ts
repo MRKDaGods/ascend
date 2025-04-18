@@ -2,7 +2,7 @@ import { Message } from "../store/chatStore";
 import { io } from "socket.io-client";
 
 export const socket = io(
-  "https://fictional-space-orbit-qwwjrw4qg6pcxqx6-3011.app.github.dev/",
+  "https://zany-carnival-xrv6w67px5xf9p4w-3011.app.github.dev/",
   { autoConnect: false }
 );
 
