@@ -2,42 +2,55 @@ services:
   gateway:
     volumes:
       - ./services/gateway:/app/services/gateway
-    command: [ "npm", "run", "dev" ]
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 
   auth:
     volumes:
       - ./services/auth:/app/services/auth
-    command: [ "npm", "run", "dev" ]
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 
   user:
     volumes:
       - ./services/user:/app/services/user
-    command: [ "npm", "run", "dev" ]
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 
   file:
     volumes:
       - ./services/file:/app/services/file
-    command: [ "npm", "run", "dev" ]
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 
   notification:
     volumes:
       - ./services/notification:/app/services/notification
-    command: [ "npm", "run", "dev" ]
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 
-  job:
+  post:
     volumes:
-      - ./services/job:/app/services/job
-    command: [ "npm", "run", "dev" ]
+      - ./services/post:/app/services/post
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  connection:
+    volumes:
+      - ./services/connection:/app/services/connection
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+  admin:
+    volumes:
+      - ./services/admin:/app/services/admin
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 

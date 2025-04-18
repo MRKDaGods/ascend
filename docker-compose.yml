@@ -80,6 +80,9 @@ services:
       - auth
       - user
       - file
+      - post
+      - connection
+      - admin
       - notification
     networks:
       - ascend-network
@@ -249,6 +252,92 @@ services:
       - "3008:3008"
     depends_on:
       - postgres
+    networks:
+      - ascend-network
+  post:
+    hostname: post
+    build:
+      context: .
+      dockerfile: services/post/Dockerfile
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3005
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3005:3005"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - file
+    networks:
+      - ascend-network
+
+  connection:
+    hostname: connection
+    build:
+      context: .
+      dockerfile: services/connection/Dockerfile
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3006
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3006:3006"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - file
+    networks:
+      - ascend-network
+
+  admin:
+    hostname: admin
+    build:
+      context: .
+      dockerfile: services/admin/Dockerfile
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3007
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3007:3007"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - file
     networks:
       - ascend-network
 
