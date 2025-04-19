@@ -47,6 +47,7 @@ export default function LoginBox() {
     api.auth.login(email, password)
       .then((response) => {
         console.log("Login successful:", response);
+        localStorage.setItem("access_token", response.token); //Habiba
         alert("Logged in successfully! ID: " + response.user_id + "\nToken: " + response.token);
         router.push("/feed");
       }).catch((error) => {
