@@ -248,10 +248,14 @@ services:
 
       # Service port
       - PORT=3008
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
     ports:
       - "3008:3008"
     depends_on:
       - postgres
+      - rabbitmq
     networks:
       - ascend-network
 
