@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
   const handleSearch = () => {
     addSearch({ job: searchParams.title, location: searchParams.location });
     router.push(
-      `/search?job=${encodeURIComponent(searchParams.title)}&location=${encodeURIComponent(searchParams.location)}`
+      `/search?keyword=${searchParams.title}&location=${searchParams.location}&industry&experience_level=&company=&salary_range_min&salary_range_max&page=1`
     );
   };
 
@@ -163,7 +163,7 @@ const Navbar: React.FC = () => {
                         key={index}
                         component="div"
                         onClick={() => {
-                          setSearchParams({ title, location: searchParams.location });
+                          setSearchParams({ title: searchParams.title, location: searchParams.location });
                           setIsTitleFocused(false);
                         }}
                         sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}

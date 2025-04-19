@@ -14,23 +14,26 @@ import {
 } from '@mui/material';
 
 interface Job {
-  id: string;
+  job_id: number;
   title: string;
-  company: string;
-  location: string;
-  logo: string;
   description: string;
-  tags: string[];
-  type?: string;
-  about?: string;
-  requirements?: string[];
-  qualifications?: string[];
+  industry: string;
+  type: string;
+  experience_level: string;
+  location: string;
+  workplace_type: string;
+  salary_min_range: number | null;
+  salary_max_range: number | null;
+  company_id: number;
+  company_name: string;
+  company_logo_url: string | null;
+  created_at: Date;
 }
 
 const SearchResultsPage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const job = searchParams.get('job') || '';
+  const job = searchParams.get('keyword') || '';
   const location = searchParams.get('location') || '';
 
   const [results, setResults] = useState<Job[]>([]);
@@ -39,16 +42,18 @@ const SearchResultsPage = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/jobs?title=${encodeURIComponent(job)}&location=${encodeURIComponent(location)}`
-        );
+        const response = await fetch(`https://api.ascendx.tech/job/search`);
         if (!response.ok) throw new Error('Failed to fetch results');
         const data = await response.json();
-        const safeJobs = (Array.isArray(data) ? data : data.jobs || []).map((job: Job) => ({
-          ...job,
-          tags: Array.isArray(job.tags) ? job.tags : [],
-        }));
-        setResults(safeJobs);
+        const safeJobs = Array.isArray(data.data) ? data.data : [];
+
+        // Optional: Filter on client-side using query params
+        const filtered = safeJobs.filter((jobObj: Job) =>
+          jobObj.title.toLowerCase().includes(job.toLowerCase()) &&
+          jobObj.location.toLowerCase().includes(location.toLowerCase())
+        );
+
+        setResults(filtered);
       } catch (error) {
         console.error('Error fetching results:', error);
         setResults([]);
@@ -63,14 +68,11 @@ const SearchResultsPage = () => {
   const handleApply = (job: Job) => {
     const params = new URLSearchParams({
       title: job.title,
-      company: job.company,
+      company: job.company_name,
       location: job.location,
       description: job.description,
       type: job.type || 'Full-time',
-      id: job.id.toString(),
-      about: job.about || '',
-      requirements: job.requirements?.join(',') || '',
-      qualifications: job.qualifications?.join(',') || ''
+      id: job.job_id.toString(),
     });
     router.push(`/apply?${params.toString()}`);
   };
@@ -89,7 +91,7 @@ const SearchResultsPage = () => {
         <Box display="flex" flexDirection="column" gap={3}>
           {results.map((job) => (
             <Card
-              key={job.id}
+              key={job.job_id}
               sx={{
                 borderRadius: 3,
                 boxShadow: 4,
@@ -103,13 +105,13 @@ const SearchResultsPage = () => {
             >
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Avatar src={job.logo} alt={job.company} sx={{ width: 48, height: 48 }} />
+                  <Avatar src={job.company_logo_url || ''} alt={job.company_name} sx={{ width: 48, height: 48 }} />
                   <Box>
                     <Typography variant="h6" fontWeight="bold" sx={{ color: '#0073b1' }}>
                       {job.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {job.company} — {job.location}
+                      {job.company_name} — {job.location}
                     </Typography>
                   </Box>
                 </Box>
@@ -121,9 +123,10 @@ const SearchResultsPage = () => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                  {(job.tags || []).map((tag, idx) => (
-                    <Chip key={idx} label={tag} size="small" />
-                  ))}
+                  {/* You can display additional job tags here */}
+                  <Chip label={job.experience_level} size="small" />
+                  <Chip label={job.workplace_type} size="small" />
+                  <Chip label={job.type} size="small" />
                 </Box>
 
                 <Button

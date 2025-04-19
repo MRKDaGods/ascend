@@ -4,18 +4,20 @@ export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Post
 export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted';
 
 export interface Job {
-  id: number;
+  job_id: number;
   title: string;
-  company: string;
-  location: string;
-  type: string;
   description: string;
-  about: string;
-  requirements: string[];
-  logo?: string;
-  status: JobStatus;
-  applicationStatus?: ApplicationStatus;
-  email?: string;
+  industry: string;
+  type: string;
+  experience_level: string;
+  location: string;
+  workplace_type: string;
+  salary_min_range: number | null;
+  salary_max_range: number | null;
+  company_id: number;
+  company_name: string;
+  company_logo_url: string | null;
+  saved_at: Date;
 }
 
 interface JobStore {
@@ -26,7 +28,7 @@ interface JobStore {
   setSavedJobPopupOpen: (isOpen: boolean) => void;
   saveJob: (job: Job) => void;
   applyJob: (job: Job) => void;
-  postJob: (job: Job) => void; // ✅ NEW
+  postJob: (job: Job) => void; 
   fetchSavedJobs: () => Promise<void>;
 }
 
@@ -38,16 +40,16 @@ export const useJobStore = create<JobStore>((set) => ({
   setSavedJobPopupOpen: (isOpen) => set({ savedJobPopupOpen: isOpen }),
   saveJob: (job) =>
     set((state) => {
-      const exists = state.jobs.find((j) => j.id === job.id);
+      const exists = state.jobs.find((j) => j.job_id === job.job_id);
       return exists ? state : { jobs: [...state.jobs, job] };
     }),
   applyJob: (job) =>
     set((state) => {
-      const exists = state.jobs.find((j) => j.id === job.id);
+      const exists = state.jobs.find((j) => j.job_id === job.job_id);
       if (exists) {
         return {
           jobs: state.jobs.map((j) =>
-            j.id === job.id
+            j.job_id === job.job_id
               ? { ...j, status: 'Applied', applicationStatus: 'Pending' }
               : j
           ),
@@ -60,16 +62,17 @@ export const useJobStore = create<JobStore>((set) => ({
     }),
   postJob: (job) => // ✅ Added this function
     set((state) => {
-      const exists = state.jobs.find((j) => j.id === job.id);
+      const exists = state.jobs.find((j) => j.job_id === job.job_id);
       return exists
         ? state
         : { jobs: [...state.jobs, { ...job, status: 'Posted' }] };
     }),
   fetchSavedJobs: async () => {
     try {
-      const response = await fetch('/api/saved-jobs');
-      const data: Job[] = await response.json();
-      set({ jobs: data });
+      const response = await fetch('https://api.ascendx.tech/job/save', { method: 'GET' , headers:{ 'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MDk2OTE0LCJleHAiOjE3NDUxNDAxMTR9.IvFSGGw8xI7MdUCCA-yxIo0ztnKiw0Opbz5ItHFkHTg` }});
+      const result = await response.json();
+    const updatedJobs = result.data.map((job: Job) => ({ ...job, status: 'Saved' }));
+    set({ jobs: updatedJobs });
     } catch (error) {
       console.error('Failed to fetch saved jobs:', error);
     }

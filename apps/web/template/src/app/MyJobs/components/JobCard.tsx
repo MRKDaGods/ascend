@@ -13,22 +13,30 @@ export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived'|'Posted
 export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted';
 
 interface JobCardProps {
+  job_id: number;
   title: string;
-  company: string;
-  location: string;
+  description: string;
+  industry: string;
   type: string;
-  status: JobStatus;
-  logo?: string;
+  experience_level: string;
+  location: string;
+  workplace_type: string;
+  salary_min_range: number | null;
+  salary_max_range: number | null;
+  company_id: number;
+  company_name: string;
+  company_logo_url: string | null;
+  saved_at: Date ;
   applicationStatus?: ApplicationStatus;
 }
 
 const JobCard: React.FC<JobCardProps> = ({
   title,
-  company,
+  company_name,
   location,
   type,
-  status,
-  logo,
+  saved_at,
+  company_logo_url,
   applicationStatus,
 }) => {
   const appStatus: ApplicationStatus | null =
@@ -64,8 +72,8 @@ const JobCard: React.FC<JobCardProps> = ({
     >
       <Box display="flex" alignItems="center" gap={2}>
         <Avatar
-          src={logo}
-          alt={company}
+          src={company_logo_url || ''}
+          alt={company_name}
           sx={{ width: 60, height: 60 }}
         />
         <Box flexGrow={1}>
@@ -73,7 +81,7 @@ const JobCard: React.FC<JobCardProps> = ({
             {title}
           </Typography>
           <Typography variant="subtitle2" color="text.secondary">
-            {company}
+            {company_name}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {location} • {type}

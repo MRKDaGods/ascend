@@ -23,7 +23,7 @@ const JobDetails = () => {
   const { setSavedJobPopupOpen, saveJob } = useJobStore();
 
   const [isReady, setIsReady] = useState(false);
-  const [applyOpen, setApplyOpen] = useState(false); // ✅ Moved inside component
+  const [applyOpen, setApplyOpen] = useState(false);
 
   useEffect(() => {
     setIsReady(true);
@@ -40,22 +40,43 @@ const JobDetails = () => {
   const about = searchParams.get('about') || '';
   const requirements = searchParams.get('requirements')?.split(',') || [];
 
-  const handleSave = () => {
-    const job = {
-      id,
-      title,
-      company,
-      location,
-      type,
-      description,
-      about,
-      requirements,
-      status: 'Saved' as 'Saved' | 'Applied',
-    };
+    const handleSave = async () => {
+      const job = {
+        id,
+        job_id: id , 
+        title,
+        company,
+        location,
+        type,
+        description,
+        about,
+        requirements,
+        industry: '', // Add appropriate value
+        experience_level: '', // Add appropriate value
+        workplace_type: '', // Add appropriate value
+        salary: '', // Add appropriate value
+        benefits: [], // Add appropriate value
+        status: 'Saved' as 'Saved' | 'Applied',
+      };
 
-    saveJob(job);
+    // Save to local store
+    //saveJob(job);
+
+    // Save to backend
+    try {
+      const response = await fetch(`https://api.ascendx.tech/job/save/${id}`, {
+        method: 'POST', headers:{'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MDk2OTE0LCJleHAiOjE3NDUxNDAxMTR9.IvFSGGw8xI7MdUCCA-yxIo0ztnKiw0Opbz5ItHFkHTg`},
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save job: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error saving job to API:', error);
+    }
+
+    // Show confirmation + redirect
     setSavedJobPopupOpen(true);
-
     setTimeout(() => {
       router.push('/MyJobs');
     }, 1000);
@@ -101,23 +122,20 @@ const JobDetails = () => {
         <SaveJobPopup />
       </Paper>
 
-      {/* Render Apply Modal Here */}
-  <ApplyJobModal
-  open={applyOpen}
-  onClose={() => setApplyOpen(false)}
-  job={{
-    id: id.toString(),
-    company,
-    title,
-    location,
-    type,
-    description,
-    about,
-    requirements,
-  }}
-/>
-
-
+      <ApplyJobModal
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        job={{
+          id: id.toString(),
+          company,
+          title,
+          location,
+          type,
+          description,
+          about,
+          requirements,
+        }}
+      />
     </>
   );
 };
