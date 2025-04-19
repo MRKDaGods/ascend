@@ -18,11 +18,12 @@ export interface Job {
   industry: string;
   type: string;
   experience_level: string;
-  location?: string;
-  workplace_type?: string;
-  salary_range_min?: number;
-  salary_range_max?: number;
+  location: string;
+  workplace_type: string;
+  salary_min_range: number | null;
+  salary_max_range: number | null;
   company_id: number;
-  user_id: number;
+  company_name: string;
+  company_logo_url: string | null;
   created_at: Date;
 }
