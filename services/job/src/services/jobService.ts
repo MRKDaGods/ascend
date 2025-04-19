@@ -15,10 +15,10 @@ import { Job, Application, SavedJob } from "packages/shared/src/models/job";
  */
 interface JobSearchParams {
   keyword?: string;
-  location?: string;
-  industry?: string;
-  experience_level?: string;
-  company_name?: string;
+  location?: string[];
+  industry?: string[];
+  experience_level?: string[];
+  company?: string[];
   salary_range_min?: number;
   salary_range_max?: number;
   pageNumber: number;
@@ -83,7 +83,7 @@ export const searchJobs = async ({
   location,
   industry,
   experience_level,
-  company_name,
+  company,
   salary_range_min,
   salary_range_max,
   pageNumber,
@@ -94,10 +94,14 @@ export const searchJobs = async ({
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
     let query = `
-      SELECT j.*, c.name AS company_name
+      SELECT j.*
       FROM job_service.jobs AS j
-      JOIN company_service.companies AS c
-      ON j.company_id = c.id
+      WHERE 1=1
+    `;
+
+    let countQuery = `
+      SELECT COUNT(*) AS total
+      FROM job_service.jobs AS j
       WHERE 1=1
     `;
 
@@ -114,24 +118,21 @@ export const searchJobs = async ({
       values.push(`%${keyword}%`);
     }
 
-    if (location) {
-      conditions.push(`j.location ILIKE $${values.length + 1}`);
-      values.push(`%${location}%`);
+    if (location && location.length > 0) {
+      conditions.push(`j.location = ANY($${values.length + 1}::text[])`);
+      values.push(location);
     }
 
-    if (industry) {
-      conditions.push(`j.industry ILIKE $${values.length + 1}`);
-      values.push(`%${industry}%`);
+    if (industry && industry.length > 0) {
+      conditions.push(`j.industry = ANY($${values.length + 1}::text[])`);
+      values.push(industry);
     }
 
-    if (experience_level) {
-      conditions.push(`j.experience_level = $${values.length + 1}`);
+    if (experience_level && experience_level.length > 0) {
+      conditions.push(
+        `j.experience_level = ANY($${values.length + 1}::text[])`
+      );
       values.push(experience_level);
-    }
-
-    if (company_name) {
-      conditions.push(`c.name ILIKE $${values.length + 1}`);
-      values.push(`%${company_name}%`);
     }
 
     if (salary_range_min) {
@@ -146,28 +147,71 @@ export const searchJobs = async ({
 
     if (conditions.length > 0) {
       query += " AND " + conditions.join(" AND ");
+      countQuery += " AND " + conditions.join(" AND ");
     }
 
+    // Execute count query to get total records
+    const countResult = await db.query(countQuery, values);
+    const totalRecords = parseInt(countResult.rows[0].total);
+
+    // Add pagination to main query
     query += ` ORDER BY j.created_at DESC LIMIT $${values.length + 1} OFFSET $${
       values.length + 2
     }`;
     values.push(PAGE_SIZE, OFFSET);
 
+    // Execute main query
     const result = await db.query(query, values);
-    const jobsList = result.rows.map((row) => ({
-      ...row,
-    }));
+
+    const jobsList = await Promise.all(
+      result.rows.map(async (row) => {
+        const job = {
+          job_id: row.job_id,
+          title: row.title,
+          description: row.description,
+          industry: row.industry,
+          type: row.type,
+          experience_level: row.experience_level,
+          location: row.location,
+          workplace_type: row.workplace_type,
+          salary_min_range: row.salary_min_range,
+          salary_max_range: row.salary_max_range,
+          company_id: row.company_id,
+          company_name: "",
+          company_logo_url: null,
+          created_at: row.created_at,
+        };
+
+        // Fetch company details
+        const companyQuery = `
+          SELECT name
+          FROM company_service.companies
+          WHERE id = $1
+        `;
+        const companyValues = [job.company_id];
+        const companyResult = await db.query(companyQuery, companyValues);
+        job.company_name = companyResult.rows[0].name;
+
+        return job;
+      })
+    );
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+    const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
+    const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
+
+    const paginationData = {
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      nextPage,
+      previousPage,
+    };
 
     return {
       data: jobsList,
-      pagination: {
-        totalRecords: result.rows.length,
-        currentPage: pageNumber,
-        totalPages: Math.ceil(result.rows.length / PAGE_SIZE),
-        nextPage:
-          result.rows.length > pageNumber * PAGE_SIZE ? pageNumber + 1 : null,
-        previousPage: pageNumber > 1 ? pageNumber - 1 : null,
-      },
+      pagination: paginationData,
     };
   } catch (error) {
     console.error("Error searching jobs:", error);
