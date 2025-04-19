@@ -206,7 +206,7 @@ export default function LoginBox() {
         }}
       >
         New to LinkedIn?{" "}
-        <Typography component="a" href="#" color="primary" sx={{ fontWeight: "bold" }}>
+        <Typography component="a" href="#" color="primary" sx={{ fontWeight: "bold" }} onClick={() => router.push("/NewToLinkedin")} id="join-now-link">
           Join now
         </Typography>
       </Typography>
