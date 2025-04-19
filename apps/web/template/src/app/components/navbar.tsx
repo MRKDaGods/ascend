@@ -19,8 +19,9 @@ import {
   Paper,
 } from "@mui/material";
 import { Home, Work, Chat, Notifications } from "@mui/icons-material";
-import { useSearchStore } from "../store/useSearchStore"; 
+import { useSearchStore } from "../store/useSearchStore";
 import { useRouter } from "next/navigation";
+
 interface UserData {
   name: string;
   profilePhoto: string;
@@ -31,27 +32,12 @@ interface UserData {
 }
 
 const jobTitles = [
-  "Software Engineer", 
-  "Product Manager", 
-  "Data Scientist", 
-  "UX Designer", 
-  "Full Stack Developer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Project Manager",
-  "QA Engineer",
-  "DevOps Engineer",
-  "sales manager",
-  "marketing manager",
-  "business analyst",
-  "graphic designer",
-  "data analyst",
-  "system administrator",
-  "network engineer",
-  "database administrator",
-  "web developer",
-  "mobile developer"  
-  // Add more job titles as needed
+  "Software Engineer", "Product Manager", "Data Scientist", "UX Designer",
+  "Full Stack Developer", "Frontend Developer", "Backend Developer",
+  "Project Manager", "QA Engineer", "DevOps Engineer", "Sales Manager",
+  "Marketing Manager", "Business Analyst", "Graphic Designer", "Data Analyst",
+  "System Administrator", "Network Engineer", "Database Administrator",
+  "Web Developer", "Mobile Developer"
 ];
 
 const Navbar: React.FC = () => {
@@ -59,11 +45,11 @@ const Navbar: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchParams, setSearchParams] = useState({ title: "", location: "" });
-  const [isTitleFocused, setIsTitleFocused] = useState(false); // Track focus on "title"
-  const [filteredTitles, setFilteredTitles] = useState<string[]>([]); // Filtered job titles
-  const { recentSearches, addSearch } = useSearchStore(); // Access recent searches from the store
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [filteredTitles, setFilteredTitles] = useState<string[]>([]);
+  const { recentSearches, addSearch } = useSearchStore();
   const open = Boolean(anchorEl);
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
@@ -99,7 +85,6 @@ const Navbar: React.FC = () => {
     setSearchParams((prev) => ({ ...prev, [name]: value }));
 
     if (name === "title") {
-      // Filter job titles based on user input
       const filtered = jobTitles.filter((title) =>
         title.toLowerCase().includes(value.toLowerCase())
       );
@@ -108,9 +93,10 @@ const Navbar: React.FC = () => {
   };
 
   const handleSearch = () => {
-    console.log("Search Params:", searchParams);
-    addSearch({ job: searchParams.title, location: searchParams.location }); // Save search to recent searches
-    router.push(`/search?job=${encodeURIComponent(searchParams.title)}&location=${encodeURIComponent(searchParams.location)}`);
+    addSearch({ job: searchParams.title, location: searchParams.location });
+    router.push(
+      `/search?job=${encodeURIComponent(searchParams.title)}&location=${encodeURIComponent(searchParams.location)}`
+    );
   };
 
   if (!isClient) return null;
@@ -118,18 +104,12 @@ const Navbar: React.FC = () => {
   return (
     <AppBar position="fixed" color="default" sx={{ boxShadow: 1 }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Left: Logo */}
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: "bold",
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          }}
-        >
+        {/* Logo */}
+        <Typography variant="h6" sx={{ fontWeight: "bold", fontFamily: "'Segoe UI', sans-serif" }}>
           LinkedIn
         </Typography>
 
-        {/* Center: Chic Search */}
+        {/* Search Bar */}
         <Box
           sx={{
             display: "flex",
@@ -143,7 +123,7 @@ const Navbar: React.FC = () => {
             flexGrow: 1,
             maxWidth: 700,
             mx: 2,
-            position: "relative", // For dropdown positioning
+            position: "relative",
           }}
         >
           <TextField
@@ -152,15 +132,11 @@ const Navbar: React.FC = () => {
             variant="standard"
             value={searchParams.title}
             onChange={handleSearchChange}
-            onFocus={() => setIsTitleFocused(true)} // Show recent searches on focus
-            onBlur={() => setTimeout(() => setIsTitleFocused(false), 200)} // Hide recent searches on blur
+            onFocus={() => setIsTitleFocused(true)}
+            onBlur={() => setTimeout(() => setIsTitleFocused(false), 200)}
             InputProps={{
               disableUnderline: true,
-              sx: {
-                fontSize: "0.9rem",
-                px: 1.5,
-                py: 0.75,
-              },
+              sx: { fontSize: "0.9rem", px: 1.5, py: 0.75 },
             }}
             sx={{ flex: 1 }}
           />
@@ -179,7 +155,6 @@ const Navbar: React.FC = () => {
               }}
             >
               <List>
-                {/* Display Job Title Suggestions */}
                 {filteredTitles.length > 0 && (
                   <div>
                     <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Suggested Titles</Typography>
@@ -188,18 +163,10 @@ const Navbar: React.FC = () => {
                         key={index}
                         component="div"
                         onClick={() => {
-                          setSearchParams({
-                            title: title,
-                            location: searchParams.location,
-                          });
+                          setSearchParams({ title, location: searchParams.location });
                           setIsTitleFocused(false);
                         }}
-                        sx={{
-                          cursor: "pointer", // Add pointer cursor to indicate clickability
-                          "&:hover": {
-                            backgroundColor: "#f0f0f0", // Optional: Add hover effect
-                          },
-                        }}
+                        sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
                       >
                         <ListItemText primary={title} />
                       </ListItem>
@@ -207,32 +174,20 @@ const Navbar: React.FC = () => {
                   </div>
                 )}
 
-                {/* Display Recent Searches */}
                 {recentSearches.length > 0 && (
                   <div>
                     <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Recent Searches</Typography>
                     {recentSearches.map((search, index) => (
                       <ListItem
                         key={index}
-                        component="div" // Explicitly set the component to "div"
+                        component="div"
                         onClick={() => {
-                          setSearchParams({
-                            title: search.job,
-                            location: search.location,
-                          });
+                          setSearchParams({ title: search.job, location: search.location });
                           setIsTitleFocused(false);
                         }}
-                        sx={{
-                          cursor: "pointer", // Add pointer cursor to indicate clickability
-                          "&:hover": {
-                            backgroundColor: "#f0f0f0", // Optional: Add hover effect
-                          },
-                        }}
+                        sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
                       >
-                        <ListItemText
-                          primary={search.job}
-                          secondary={search.location}
-                        />
+                        <ListItemText primary={search.job} secondary={search.location} />
                       </ListItem>
                     ))}
                   </div>
@@ -240,6 +195,7 @@ const Navbar: React.FC = () => {
               </List>
             </Paper>
           )}
+
           <TextField
             name="location"
             placeholder="Location"
@@ -248,14 +204,11 @@ const Navbar: React.FC = () => {
             onChange={handleSearchChange}
             InputProps={{
               disableUnderline: true,
-              sx: {
-                fontSize: "0.9rem",
-                px: 1.5,
-                py: 0.75,
-              },
+              sx: { fontSize: "0.9rem", px: 1.5, py: 0.75 },
             }}
             sx={{ flex: 1 }}
           />
+
           <Button
             variant="contained"
             onClick={handleSearch}
@@ -267,18 +220,14 @@ const Navbar: React.FC = () => {
               fontWeight: 500,
               fontSize: "0.875rem",
               backgroundColor: "#0a66c2",
-              ":hover": {
-                backgroundColor: "#004182",
-              },
-              
+              ":hover": { backgroundColor: "#004182" },
             }}
-            
           >
             Search
           </Button>
         </Box>
 
-        {/* Right: Navigation Icons & Profile */}
+        {/* Right: Icons & Profile */}
         <Box sx={{ display: "flex", gap: 2 }}>
           <IconButton><Home /></IconButton>
           <IconButton><Work /></IconButton>
