@@ -42,17 +42,17 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Create user
-    const user = await createUser(first_name, last_name, email, password);
+    const user = await createUser(first_name, last_name, email, password, true); // is_verified = true for now
 
     // Send confirmation email
-    const confirmation_token = generateToken({ email }, "24h");
-    await updateUserEmail(user.id, null, confirmation_token); // Set confirmation token
+    // const confirmation_token = generateToken({ email }, "24h");
+    // await updateUserEmail(user.id, null, confirmation_token); // Set confirmation token
 
-    await sendEmail(
-      email,
-      "Confirm Your Email",
-      `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
-    );
+    // await sendEmail(
+    //   email,
+    //   "Confirm Your Email",
+    //   `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
+    // );
 
     res.status(201).json({ user_id: user.id, email: user.email });
   } catch (error) {

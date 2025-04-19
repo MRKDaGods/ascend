@@ -1,6 +1,6 @@
 // =======================AUTH-EVENTS=======================
 
-import { Profile } from "@shared/models";
+import { FileMetadata, Profile } from "@shared/models";
 
 /**
  * [RPC] Represents the payload for an admin user request event
@@ -131,5 +131,21 @@ export namespace FileUploadPayload {
    */
   export interface Response {
     file_id: number;
+  }
+}
+
+/**
+ * [RPC] Represents the payload for a file metadata request event
+ */
+export namespace FileMetadataRequestPayload {
+  export interface Request {
+    file_id: number;
+  }
+
+  /**
+   * @property {FileMetadata} file_metadata - The metadata of the file
+   */
+  export interface Response {
+    file_metadata: FileMetadata;
   }
 }
