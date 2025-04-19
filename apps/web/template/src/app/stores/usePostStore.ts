@@ -1,15 +1,12 @@
+// store/usePostStore.ts
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-import { fetchNewsFeed, fetchPostById } from "@/api/posts";
+import { fetchNewsFeed, fetchPostById, createPost } from "@/api/posts";
 import API from "@/api/api";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
-
-// const generateNumericId = () => {
-//   return parseInt(uuidv4().replace(/-/g, "").substring(0, 12), 16);
-// };
 
 export interface Tag {
   id: number;
@@ -80,10 +77,8 @@ interface PostStoreState {
 
   fetchNewsFeed: () => Promise<void>;
   fetchPost: (id: number) => Promise<void>;
-
   createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
 
-  // addPost: (content: string, media?: string, mediaType?: "image" | "video", document?: { url: string; title: string }) => void;
   deletePost: (postId: number) => void;
   editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
 
@@ -107,12 +102,10 @@ export const usePostStore = create<PostStoreState>()(
       posts: [],
       selectedPost: null,
       lastUserPostId: null,
-
       open: false,
       postText: "",
       draftText: "",
       editingPost: null,
-
       userPostPopupOpen: false,
       copyPostPopupOpen: false,
       repostPopupOpen: false,
@@ -121,7 +114,6 @@ export const usePostStore = create<PostStoreState>()(
       draftSavedPopupOpen: false,
       discardPostDialogOpen: false,
       isLastPostDeleted: false,
-
       postReactions: {},
       repostedPosts: [],
       savedPosts: [],
@@ -129,6 +121,7 @@ export const usePostStore = create<PostStoreState>()(
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
       setDraftText: (text) => set({ draftText: text }),
+
       setEditingPost: (post) => {
         const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
         const mediaPreviews: string[] = [];
@@ -171,7 +164,6 @@ export const usePostStore = create<PostStoreState>()(
             commentsList: [],
             isUserPost: false,
           }));
-
           set({ posts: mappedPosts });
         } catch (error) {
           console.error("Failed to fetch news feed:", error);
@@ -197,7 +189,6 @@ export const usePostStore = create<PostStoreState>()(
             commentsList: [],
             isUserPost: true,
           };
-
           set({ selectedPost: mappedPost });
         } catch (err) {
           console.error("fetchPostById error:", err);
@@ -206,64 +197,12 @@ export const usePostStore = create<PostStoreState>()(
 
       createPostViaAPI: async (content, mediaUrl, mediaType) => {
         try {
-          const formData = new FormData();
-          formData.append("content", content);
-      
-          if (mediaUrl) {
-            const response = await fetch(mediaUrl);
-            const blob = await response.blob();
-            const ext = mediaType === "video" ? "mp4" : "jpg";
-            const file = new File([blob], `upload.${ext}`, { type: blob.type });
-      
-            formData.append("media", file);
-            formData.append("title", "create new post yea"); // ✅ required by backend
-            formData.append("description", "double checking"); // ✅ required by backend
-          }
-      
-          const response = await API.post("", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-      
-          console.log("✅ Post created:", response.data);
+          const response = await createPost(content, mediaUrl, mediaType);
           set({ lastUserPostId: response.data.id });
         } catch (err) {
           console.error("❌ Failed to create post:", err);
         }
       },
-      
-      
-
-      // addPost: (content, media, mediaType, document) =>
-      //   set((state) => {
-      //     const newPost: PostType = {
-      //       id: generateNumericId(),
-      //       profilePic: "/profile.jpg",
-      //       username: "User",
-      //       followers: "You",
-      //       timestamp: "Just now",
-      //       content,
-      //       image: mediaType === "image" ? media : undefined,
-      //       video: mediaType === "video" ? media : undefined,
-      //       file: document?.url,
-      //       fileTitle: document?.title,
-      //       likes: 0,
-      //       comments: 0,
-      //       reposts: 0,
-      //       commentsList: [],
-      //       isUserPost: true,
-      //       tags: [],
-      //       commentTags: {},
-      //     };
-
-      //     return {
-      //       posts: [...state.posts, newPost],
-      //       userPostPopupOpen: true,
-      //       lastUserPostId: newPost.id,
-      //       isLastPostDeleted: false,
-      //     };
-      //   }),
 
       deletePost: (postId) =>
         set((state) => ({
