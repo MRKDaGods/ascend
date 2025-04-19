@@ -134,6 +134,7 @@ export default function InputBox() {
         />
 
         <Button
+          id="send-message-button"
           sx={{ borderRadius: 9 }}
           variant="contained"
           onClick={handleSend}
