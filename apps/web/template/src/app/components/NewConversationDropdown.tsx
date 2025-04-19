@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useChatStore } from "../stores/chatStore";
 import { Profile } from "@ascend/api-client/models";
-import { api } from "@/api";
+import { api, extApi } from "@/api";
 
 export default function NewConversationDropdown({
   anchorEl,
@@ -25,25 +25,11 @@ export default function NewConversationDropdown({
 
   useEffect(() => {
     if (open) {
-      // TODO: Fetch real connections from server
-      // Emulate for now
-      const connectionIds = [5, 6, 16];
-
-      const fetchConnections = async () => {
-        try {
-          const profilePromises = connectionIds.map(id =>
-            api.user.getUserProfile(id)
-          );
-
-          const results = await Promise.all(profilePromises);
-          setConnections(results);
-        } catch (error) {
-          console.error("Failed to fetch connections:", error);
-          setConnections([]);
-        }
-      };
-
-      fetchConnections();
+      extApi.get("connection/connections").then((response) => {
+        setConnections(response.data?.data?.data || []);
+      }).catch((error) => {
+        console.error("Error fetching connections:", error);
+      });
     }
   }, [open]);
 
@@ -90,7 +76,7 @@ export default function NewConversationDropdown({
       // const newConvo = res.data.data;
 
       // setConversations((prev) => [newConvo, ...prev]);
-      
+
     } catch (e) {
       console.error("Failed to start conversation", e);
     }
