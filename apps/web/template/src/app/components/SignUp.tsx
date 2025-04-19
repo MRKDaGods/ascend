@@ -1,0 +1,235 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import Footer from "./Footer";
+import {
+  Container,
+  TextField,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Typography,
+  Paper,
+  Box,
+  Link,
+} from "@mui/material";
+import { api } from "@/api";
+import { loginWithGoogle } from "@/ext/auth";
+
+const SignUp = () => {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // ++++++
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    api.auth.register(firstName, lastName, email, password)
+      .then((response) => {
+        console.log("Registration successful:", response);
+        alert("Registered successfully! ID: " + response.user_id + "\nEmail: " + response.email);
+
+        // Redirect to the dashboard or another page
+      })
+      .catch((error) => {
+        console.error("Registration error:", error);
+        setError("An error occurred during registration. Please try again.");
+      });
+  };
+
+  const handleGoogleSignIn = () => {
+    loginWithGoogle().then((response) => {
+      console.log("Google login successful:", response);
+      alert("Logged in successfully! ID: " + 0);
+      router.push("/feed");
+    }).catch((error) => {
+      console.error("Google login error:", error);
+      setError("An error occurred during Google login. Please try again.");
+    });
+  };
+
+  return (
+    <Box display="flex" flexDirection="column" alignItems="center" minHeight="100vh" justifyContent="center" sx={{ mt: -3 }}>
+      <Typography variant="h4" fontWeight={500} gutterBottom>
+        Make the most of your professional life
+      </Typography>
+      <Container maxWidth="xs">
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <form onSubmit={handleSubmit}>
+            {/* Error Message */}
+            {error && (
+              <Typography color="error" data-testid="error-message" sx={{ mb: 2 }}>
+                {error}
+              </Typography>
+            )}
+            {/* Success Message */}
+            {success && (
+              <Typography color="success" data-testid="success-message" sx={{ mb: 2 }}>
+                {success}
+              </Typography>
+            )}
+
+            {/* ++++++ */}
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              First name
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              aria-label="First Name"
+              id="first-name-input"
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+            />
+
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              Last name
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              aria-label="Last Name"
+              id="last-name-input"
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+            />
+
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              Email
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              aria-label="Email"
+              id="email-input"
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+            />
+            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
+              Password
+            </Typography>
+            <TextField
+              fullWidth
+              type={showPassword ? "text" : "password"}
+              variant="outlined"
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              aria-label="Password"
+              id="password-input"
+              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+              InputProps={{
+                endAdornment: (
+                  <Button
+                    onClick={() => setShowPassword(!showPassword)}
+                    size="medium"
+                    id="toggle-password-visibility"
+                    sx={{ fontWeight: "bold", textTransform: "none" }}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </Button>
+                ),
+              }}
+            />
+            <FormControlLabel
+              control={<Checkbox defaultChecked id="keep-logged-in-checkbox" />}
+              label="Keep me logged in"
+              sx={{ mt: 1 }}
+            />
+            <Typography variant="caption" display="block" align="center" sx={{ mt: 1, mb: 2 }}>
+              By clicking Agree & Join or Continue, you agree to the LinkedIn
+              <Link href="#" id="user-agreement-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> User Agreement</Link>,
+              <Link href="#" id="privacy-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Privacy Policy</Link>, and
+              <Link href="#" id="cookie-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Cookie Policy</Link>.
+            </Typography>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              id="agree-and-join-button"
+              sx={{ backgroundColor: "#0a66c2", color: "white", borderRadius: 8, py: 1.5, fontSize: "1rem", fontWeight: 600, textTransform: "none" }}
+            >
+              Agree & Join
+            </Button>
+          </form>
+          <Box display="flex" alignItems="center" width="100%" my={2} sx={{ mb: -1, mt: -1 }}>
+            <Box flex={1} height="1px" bgcolor="gray" />
+            <Typography align="center" sx={{ my: 2 }} mx={2}>or</Typography>
+            <Box flex={1} height="1px" bgcolor="gray" />
+          </Box>
+          <Button
+            fullWidth
+            variant="outlined"
+            id="continue-with-google-button"
+            sx={{
+              mb: 1,
+              borderRadius: 5,
+              borderColor: "black",
+              color: "text.secondary",
+              fontWeight: "bold",
+              textTransform: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            startIcon={<img src="/google.jpg" alt="Google" width={24} height={24} />}
+            onClick={handleGoogleSignIn}
+          >
+            Continue with Google
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            id="continue-with-microsoft-button"
+            sx={{
+              mb: 1,
+              borderRadius: 5,
+              borderColor: "black",
+              color: "text.secondary",
+              fontWeight: "bold",
+              textTransform: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            startIcon={<img src="/microsoft.png" alt="Microsoft" width={24} height={24} />}
+          >
+            Continue with Microsoft
+          </Button>
+          <Typography align="center" sx={{ mt: 1 }}>
+            Already on LinkedIn?
+            <Link href="#" id="sign-in-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Sign in</Link>
+          </Typography>
+        </Paper>
+      </Container>
+      <Typography align="center" sx={{ mt: 2 }}>
+        Looking to create a page for a business?
+        <Link href="#" id="get-help-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Get help</Link>
+      </Typography>
+
+      <Footer />
+    </Box>
+  );
+};
+
+export default SignUp;

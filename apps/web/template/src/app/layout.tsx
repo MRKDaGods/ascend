@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import React from "react";
 import "./globals.css";
-import CustomThemeProvider from "./providers/ThemeProvider";
+import { Geist, Geist_Mono } from "next/font/google";
+import Providers from "./providers/Provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,18 +13,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Ascend",
-  description: "description here",
+  description: "Software Engineering Project",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <CustomThemeProvider>{children}</CustomThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
