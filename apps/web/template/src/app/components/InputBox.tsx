@@ -81,7 +81,7 @@ export default function InputBox() {
     const conversationId = useChatStore.getState().selectedConversationId; //just a snapshot to send with the typing event
     if (!conversationId) return;
 
-    // later will emit to socket here:
+    if (conversationId === -1) return; //ignore typing event for new convo
     socket.emit("typing", { conversationId });
 
     console.log("Typing event for conversation", conversationId);
