@@ -44,24 +44,6 @@ export const handleGetJob = async (req: Request, res: Response) => {
  */
 export const handleJobSearch = async (req: Request, res: Response) => {
   try {
-    const validParams = [
-      "keyword",
-      "location",
-      "industry",
-      "experience_level",
-      "company_name",
-      "salary_range_min",
-      "salary_range_max",
-    ];
-    const hasValidParams = Object.keys(req.query).some((param) =>
-      validParams.includes(param)
-    );
-
-    // Check if at least one valid search parameter is provided
-    if (!hasValidParams) {
-      return res.status(400).json({ error: "No valid search parameter" });
-    }
-
     // Validate salary range min and max values if provided
     if (
       req.query.salary_range_min &&
@@ -75,20 +57,24 @@ export const handleJobSearch = async (req: Request, res: Response) => {
     }
 
     // Validate page number if provided
-    if (req.query.pageNum && Number(req.query.pageNumber) < 1) {
+    if (req.query.page && Number(req.query.page) < 1) {
       return res.status(400).json({ error: "Page number must be at least 1" });
     }
 
     // Extract search parameters from query string and explicitly type them
     const searchParams = {
       keyword: req.query.keyword ? String(req.query.keyword) : undefined,
-      location: req.query.location ? String(req.query.location) : undefined,
-      industry: req.query.industry ? String(req.query.industry) : undefined,
-      experience_level: req.query.experience_level
-        ? String(req.query.experience_level)
+      location: req.query.location
+        ? String(req.query.location).split(",")
         : undefined,
-      company_name: req.query.company_name
-        ? String(req.query.company_name)
+      industry: req.query.industry
+        ? String(req.query.industry).split(",")
+        : undefined,
+      experience_level: req.query.experience_level
+        ? String(req.query.experience_level).split(",")
+        : undefined,
+      company: req.query.company
+        ? String(req.query.company).split(",")
         : undefined,
       salary_range_min: req.query.salary_range_min
         ? Number(req.query.salary_range_min)
@@ -96,7 +82,7 @@ export const handleJobSearch = async (req: Request, res: Response) => {
       salary_range_max: req.query.salary_range_max
         ? Number(req.query.salary_range_max)
         : undefined,
-      pageNumber: Number(req.query.pageNumber || 1),
+      pageNumber: Number(req.query.page || 1),
     };
 
     const jobs = await searchJobs(searchParams);
@@ -145,6 +131,7 @@ export const handleJobPosting = [
         company_id,
         user_id
       );
+
       res.status(201).json(job);
     } catch (error) {
       console.error("Error in handleJobPosting:", error);
@@ -213,7 +200,7 @@ export const handleGetSavedJobs = async (
 ) => {
   try {
     const userId = req.user!.id;
-    const pageNumber = Number(req.query.pageNumber) || 1;
+    const pageNumber = Number(req.query.page) || 1;
     if (pageNumber < 1) {
       return res.status(400).json({ error: "Page number must be at least 1" });
     }
