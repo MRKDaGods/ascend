@@ -18,7 +18,7 @@ const router = Router();
 
 router.post("/register", register);
 router.post("/login", login);
-router.post("/confirm-email", confirmEmail);
+router.get("/confirm-email", confirmEmail);
 router.post("/resend-confirm", resendConfirmEmail);
 router.post("/forget-password", forgetPassword);
 router.post("/reset-password", resetPassword);
