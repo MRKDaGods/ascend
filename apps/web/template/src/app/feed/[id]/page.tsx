@@ -1,44 +1,31 @@
 "use client";
 
-import React from "react";
-import ConnectionPost from "../../components/ConnectionPost";
-import Navbar from "../../components/Navbar";
-import { Typography, Box } from "@mui/material";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { usePostStore } from "../../stores/usePostStore";
+import { usePostStore } from "@/app/stores/usePostStore";
+import ConnectionPost from "@/app/components/ConnectionPost";
 
-const FullPostPage: React.FC = () => {
-  const { id } = useParams();
-  const { posts } = usePostStore();
-  const postId = parseInt(id as string, 10);
-  const post = posts.find((p) => p.id === postId);
+export default function MyPostPage() {
+  const params = useParams();
+  const postId = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "";
 
-  if (!post) {
-    return (
-      <Box sx={{ mt: 4, textAlign: "center" }}>
-        <Typography variant="h6">Post not found.</Typography>
-      </Box>
-    );
-  }
+  const fetchPost = usePostStore((state) => state.fetchPost);
+  const selectedPost = usePostStore((state) => state.selectedPost);
+
+  useEffect(() => {
+    if (postId) {
+      console.log("✅ Fetching post by ID:", postId);
+      fetchPost(Number(postId));
+    } else {
+      console.warn("⚠️ Invalid post ID:", postId);
+    }
+  }, [postId]);
+
+  if (!selectedPost) return <p>Loading...</p>;
 
   return (
-    <>
-    <Navbar notification={{
-        payload: {
-          link: ""
-        }
-      }} />
-    <br></br>
-    <Box sx={{
-      mb: 2,
-      borderRadius: 3,
-      maxWidth: "580px",
-      margin: "0 auto",
-    }}>
-      <ConnectionPost post={post} />
-    </Box>
-    </>
+    <div style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}>
+      <ConnectionPost post={selectedPost} />
+    </div>
   );
-};
-
-export default FullPostPage;
+}

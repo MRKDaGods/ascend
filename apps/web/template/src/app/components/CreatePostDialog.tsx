@@ -39,7 +39,7 @@ const CreatePostDialog: React.FC = () => {
     setDraftSavedPopupOpen,
     setDraftText,
     lastUserPostId,
-    addPost,
+    createPostViaAPI,
   } = usePostStore();
 
   const {
@@ -63,20 +63,21 @@ const CreatePostDialog: React.FC = () => {
     }
   }, [open, draftText]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
-
+  
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
-
-    addPost(postText, media, type, documentPreview ?? undefined);
-
+  
+    await createPostViaAPI(postText, media, type); // ✅ Use backend API
+  
     setUserPostPopupOpen(true);
     setDraftText("");
     resetPost();
     clearAllMedia();
     clearDocumentPreview();
   };
+  
 
   const handleClose = () => {
     if (postText.length > 0 || mediaPreviews.length > 0 || documentPreview) {
