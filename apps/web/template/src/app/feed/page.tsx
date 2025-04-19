@@ -21,7 +21,7 @@ const Feed: React.FC = () => {
 
   return (
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", mt: 2 }}>
-      <Navbar /> 
+      {/* <Navbar />  */}
       <CreatePost />
       <br />
       {visiblePosts.map((post) => (
