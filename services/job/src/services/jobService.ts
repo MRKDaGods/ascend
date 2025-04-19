@@ -163,6 +163,28 @@ export const searchJobs = async ({
     // Execute main query
     const result = await db.query(query, values);
 
+    /////////////////////////////////////////////////////////
+    // WILL BE CHANGED
+    /////////////////////////////////////////////////////////
+    const companies = await db.query(
+      `
+      SELECT *
+      FROM company_service.companies
+      WHERE 1=1
+      ${company ? `AND name ILIKE $1` : ""}
+    `,
+      company ? [`%${company}%`] : []
+    );
+
+    // If company names are provided, filter jobs by company
+    if (company && companies.rows.length > 0) {
+      const companyIds = companies.rows.map((c) => c.id);
+      result.rows = result.rows.filter((job) =>
+        companyIds.includes(job.company_id)
+      );
+    }
+    /////////////////////////////////////////////////////////
+
     const jobsList = await Promise.all(
       result.rows.map(async (row) => {
         const job = {
