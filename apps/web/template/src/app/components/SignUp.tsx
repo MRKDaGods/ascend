@@ -219,7 +219,7 @@ const SignUp = () => {
           </Button>
           <Typography align="center" sx={{ mt: 1 }}>
             Already on LinkedIn?
-            <Link href="#" id="sign-in-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }} onClick={() => router.push("/signup")}>Sign in</Link>
+            <Link href="#" id="sign-in-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }} onClick={() => router.push("/authen/signup")}>Sign in</Link>
           </Typography>
         </Paper>
       </Container>
