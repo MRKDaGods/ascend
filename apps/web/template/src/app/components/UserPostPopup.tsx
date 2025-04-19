@@ -1,14 +1,12 @@
-// Component file: popup appears after creating a new post
-
 "use client";
 
 import { Snackbar, Alert, Link, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
+import { usePostStore } from "../stores/usePostStore";
 
 const UserPostPopup = () => {
-  const { userPostPopupOpen, setUserPostPopupOpen } = usePostStore();
+  const { userPostPopupOpen, setUserPostPopupOpen, lastUserPostId } = usePostStore();
   const router = useRouter();
 
   const handleClose = () => {
@@ -17,7 +15,7 @@ const UserPostPopup = () => {
 
   const handleViewPost = () => {
     setUserPostPopupOpen(false);
-    router.push("/feed/mypost");
+    router.push(`/feed/${lastUserPostId}`);
   };
 
   return (

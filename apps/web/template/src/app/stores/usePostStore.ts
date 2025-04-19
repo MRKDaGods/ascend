@@ -2,14 +2,14 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-import { fetchNewsFeed } from "@/api/posts";
+import { fetchNewsFeed, fetchPostById } from "@/api/posts";
 import API from "@/api/api";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
-const generateNumericId = () => {
-  return parseInt(uuidv4().replace(/-/g, "").substring(0, 12), 16);
-};
+// const generateNumericId = () => {
+//   return parseInt(uuidv4().replace(/-/g, "").substring(0, 12), 16);
+// };
 
 export interface Tag {
   id: number;
@@ -37,62 +37,59 @@ export type PostType = {
   commentTags?: { [commentIndex: number]: Tag[] };
 };
 
-interface RawPost {
-  id: number;
-  user: {
-    first_name: string;
-    last_name: string;
-    profile_picture_url: string;
-  };
-  content: string;
-  created_at: string;
-  likes_count: number;
-  shares_count: number;
-  comments_count: number;
-  media?: { type: string; url: string }[];
-}
-
 interface PostStoreState {
+  posts: PostType[];
+  selectedPost: PostType | null;
+  lastUserPostId: number | null;
+
   open: boolean;
   postText: string;
+  draftText: string;
+  editingPost: PostType | null;
+
   userPostPopupOpen: boolean;
-  repostPopupOpen: boolean;
   copyPostPopupOpen: boolean;
+  repostPopupOpen: boolean;
   savedPopupOpen: boolean;
   unsavedPopupOpen: boolean;
   draftSavedPopupOpen: boolean;
-  lastUserPostId: number | null;
-  isLastPostDeleted: boolean;
   discardPostDialogOpen: boolean;
-  draftText: string;
-  posts: PostType[];
+  isLastPostDeleted: boolean;
+
+  postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
   savedPosts: number[];
-  postReactions: { [postId: number]: ReactionType };
-  editingPost: PostType | null;
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
+  setDraftText: (text: string) => void;
+  setEditingPost: (post: PostType | null) => void;
+
   setUserPostPopupOpen: (open: boolean) => void;
-  setCopyPostPopupOpen: (open: boolean) => void;
+  setCopyPostPopupOpen: (val: boolean) => void;
   setRepostPopupOpen: (open: boolean) => void;
   setSavedPopupOpen: (open: boolean) => void;
   setUnsavedPopupOpen: (open: boolean) => void;
   setDraftSavedPopupOpen: (open: boolean) => void;
+  openDiscardPostDialog: () => void;
+  closeDiscardPostDialog: () => void;
+
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
-  setDraftText: (text: string) => void;
   resetPost: () => void;
 
-  addPost: (content: string, media?: string, mediaType?: "image" | "video", document?: { url: string; title: string }) => void;
+  fetchNewsFeed: () => Promise<void>;
+  fetchPost: (id: number) => Promise<void>;
+
+  createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
+
+  // addPost: (content: string, media?: string, mediaType?: "image" | "video", document?: { url: string; title: string }) => void;
   deletePost: (postId: number) => void;
   editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
-  setEditingPost: (post: PostType | null) => void;
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
-
-  repostPost: (postId: number) => void;
+  repostPost: (id: number) => void;
   toggleSavePost: (id: number) => void;
 
   commentOnPost: (id: number, comment: string) => void;
@@ -102,135 +99,171 @@ interface PostStoreState {
   removeTagFromPost: (postId: number, tagId: number) => void;
   addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
   removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
-
-  openDiscardPostDialog: () => void;
-  closeDiscardPostDialog: () => void;
-
-  createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
-  fetchNewsFeedFromAPI: () => Promise<void>;
 }
 
 export const usePostStore = create<PostStoreState>()(
   persist(
     (set, get) => ({
+      posts: [],
+      selectedPost: null,
+      lastUserPostId: null,
+
       open: false,
       postText: "",
+      draftText: "",
+      editingPost: null,
+
       userPostPopupOpen: false,
       copyPostPopupOpen: false,
       repostPopupOpen: false,
       savedPopupOpen: false,
       unsavedPopupOpen: false,
       draftSavedPopupOpen: false,
-      lastUserPostId: null,
-      isLastPostDeleted: false,
-      editingPost: null,
-      postReactions: {},
       discardPostDialogOpen: false,
-      draftText: "",
+      isLastPostDeleted: false,
 
-      posts: [],
+      postReactions: {},
       repostedPosts: [],
       savedPosts: [],
 
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
+      setDraftText: (text) => set({ draftText: text }),
+      setEditingPost: (post) => {
+        const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
+        const mediaPreviews: string[] = [];
+        if (post?.image) mediaPreviews.push(post.image);
+        if (post?.video) mediaPreviews.push(post.video);
+
+        set({ editingPost: post, postText: post?.content ?? "", open: true });
+        setMediaFiles([]);
+        setMediaPreviews(mediaPreviews);
+      },
+
       setUserPostPopupOpen: (open) => set({ userPostPopupOpen: open }),
       setCopyPostPopupOpen: (val) => set({ copyPostPopupOpen: val }),
       setRepostPopupOpen: (open) => set({ repostPopupOpen: open }),
       setSavedPopupOpen: (open) => set({ savedPopupOpen: open }),
       setUnsavedPopupOpen: (open) => set({ unsavedPopupOpen: open }),
       setDraftSavedPopupOpen: (open) => set({ draftSavedPopupOpen: open }),
-      setLastUserPostId: (id) => set({ lastUserPostId: id }),
-      setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
-      setDraftText: (text) => set({ draftText: text }),
-
       openDiscardPostDialog: () => set({ discardPostDialogOpen: true }),
       closeDiscardPostDialog: () => set({ discardPostDialogOpen: false }),
 
+      setLastUserPostId: (id) => set({ lastUserPostId: id }),
+      setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
 
-      addPost: (content, media, mediaType, document) =>
-        set((state) => {
-          const newPost: PostType = {
-            id: generateNumericId(),
-            profilePic: "/profile.jpg",
-            username: "User",
-            followers: "You",
-            timestamp: "Just now",
-            content,
-            image: mediaType === "image" ? media : undefined,
-            video: mediaType === "video" ? media : undefined,
-            file: document?.url,
-            fileTitle: document?.title,
-            likes: 0,
-            comments: 0,
-            reposts: 0,
+      fetchNewsFeed: async () => {
+        try {
+          const response = await fetchNewsFeed();
+          const mappedPosts = (response.data ?? []).map((post) => ({
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url || "/profile.jpg",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url,
+            video: post.media?.find((m) => m.type === "video")?.url,
+            commentsList: [],
+            isUserPost: false,
+          }));
+
+          set({ posts: mappedPosts });
+        } catch (error) {
+          console.error("Failed to fetch news feed:", error);
+        }
+      },
+
+      fetchPost: async (id) => {
+        try {
+          const response = await fetchPostById(id);
+          const post = response.data;
+          const mappedPost: PostType = {
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url || "/profile.jpg",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url,
+            video: post.media?.find((m) => m.type === "video")?.url,
             commentsList: [],
             isUserPost: true,
-            tags: [],
-            commentTags: {},
           };
 
-          return {
-            posts: [...state.posts, newPost],
-            userPostPopupOpen: true,
-            lastUserPostId: newPost.id,
-            isLastPostDeleted: false,
-          };
-        }),
+          set({ selectedPost: mappedPost });
+        } catch (err) {
+          console.error("fetchPostById error:", err);
+        }
+      },
 
-        createPostViaAPI: async (content, mediaUrl, mediaType) => {
-          try {
-            const formData = new FormData();
-            formData.append("content", content);
-        
-            if (mediaUrl) {
-              const response = await fetch(mediaUrl);
-              const blob = await response.blob();
-              const ext = mediaType === "video" ? "mp4" : "jpg";
-              const file = new File([blob], `upload.${ext}`, { type: blob.type });
-              formData.append("media", file); // ✅ this must be 'media'
-            }
-        
-            const response = await API.post("/", formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
-        
-            console.log("✅ Post created:", response.data);
-          } catch (err) {
-            console.error("❌ Failed to create post:", err);
+      createPostViaAPI: async (content, mediaUrl, mediaType) => {
+        try {
+          const formData = new FormData();
+          formData.append("content", content);
+      
+          if (mediaUrl) {
+            const response = await fetch(mediaUrl);
+            const blob = await response.blob();
+            const ext = mediaType === "video" ? "mp4" : "jpg";
+            const file = new File([blob], `upload.${ext}`, { type: blob.type });
+      
+            formData.append("media", file);
+            formData.append("title", "create new post yea"); // ✅ required by backend
+            formData.append("description", "double checking"); // ✅ required by backend
           }
-        },
-        
+      
+          const response = await API.post("", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+      
+          console.log("✅ Post created:", response.data);
+          set({ lastUserPostId: response.data.id });
+        } catch (err) {
+          console.error("❌ Failed to create post:", err);
+        }
+      },
+      
+      
 
-        fetchNewsFeedFromAPI: async () => {
-          try {
-            const res = await fetchNewsFeed(); // already typed
-            const feedPosts = res.data ?? [];
-        
-            const mappedPosts: PostType[] = feedPosts.map((post) => ({
-              id: post.id,
-              username: `${post.user.first_name} ${post.user.last_name}`,
-              profilePic: post.user.profile_picture_url || "/profile.jpg",
-              content: post.content,
-              followers: "• 1st",
-              timestamp: new Date(post.created_at).toLocaleString(),
-              likes: post.likes_count,
-              reposts: post.shares_count,
-              comments: post.comments_count,
-              image: post.media?.find((m) => m.type === "image")?.url,
-              video: post.media?.find((m) => m.type === "video")?.url,
-              commentsList: [],
-              isUserPost: false,
-            }));
-        
-            console.log("🧩 Mapped Posts:", mappedPosts);
-            set({ posts: mappedPosts });
-          } catch (error) {
-            console.error("❌ Failed to fetch news feed:", error);
-          }
-        },
-        
+      // addPost: (content, media, mediaType, document) =>
+      //   set((state) => {
+      //     const newPost: PostType = {
+      //       id: generateNumericId(),
+      //       profilePic: "/profile.jpg",
+      //       username: "User",
+      //       followers: "You",
+      //       timestamp: "Just now",
+      //       content,
+      //       image: mediaType === "image" ? media : undefined,
+      //       video: mediaType === "video" ? media : undefined,
+      //       file: document?.url,
+      //       fileTitle: document?.title,
+      //       likes: 0,
+      //       comments: 0,
+      //       reposts: 0,
+      //       commentsList: [],
+      //       isUserPost: true,
+      //       tags: [],
+      //       commentTags: {},
+      //     };
+
+      //     return {
+      //       posts: [...state.posts, newPost],
+      //       userPostPopupOpen: true,
+      //       lastUserPostId: newPost.id,
+      //       isLastPostDeleted: false,
+      //     };
+      //   }),
 
       deletePost: (postId) =>
         set((state) => ({
@@ -253,23 +286,6 @@ export const usePostStore = create<PostStoreState>()(
           postText: "",
           open: false,
         })),
-
-      setEditingPost: (post) => {
-        const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
-        const mediaPreviews: string[] = [];
-
-        if (post?.image) mediaPreviews.push(post.image);
-        if (post?.video) mediaPreviews.push(post.video);
-
-        set({
-          editingPost: post,
-          postText: post?.content ?? "",
-          open: true,
-        });
-
-        setMediaFiles([]);
-        setMediaPreviews(mediaPreviews);
-      },
 
       setReaction: (postId, reaction) =>
         set((state) => ({
