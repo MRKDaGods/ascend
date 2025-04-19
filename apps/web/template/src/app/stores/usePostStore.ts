@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
 import { fetchNewsFeed } from "@/api/posts";
+import API from "@/api/api";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -178,68 +179,58 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      createPostViaAPI: async (content, media, mediaType) => {
-        const response = await fetch("http://localhost:5001/createpost", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content, media, mediaType }),
-        });
-
-        if (!response.ok) {
-          console.error("Failed to create post via API");
-          return;
-        }
-
-        const newPost: PostType = await response.json();
-
-        set((state) => ({
-          posts: [...state.posts, newPost],
-          userPostPopupOpen: true,
-          lastUserPostId: newPost.id,
-          isLastPostDeleted: false,
-        }));
-      },
-
-      fetchNewsFeedFromAPI: async () => {
-        try {
-          const res: unknown = await fetchNewsFeed();
-          console.log("📦 Raw API response:", res);
-      
-          let feedPosts: RawPost[] = [];
-      
-          if (Array.isArray(res)) {
-            console.log("✅ Response is an array of posts.");
-            feedPosts = res;
-          } else if (res && typeof res === "object" && "data" in res) {
-            console.log("✅ Response has a 'data' field.");
-            feedPosts = (res as { data: RawPost[] }).data;
-          } else {
-            console.warn("⚠️ Unexpected response format. Feed may be empty or malformed.");
+        createPostViaAPI: async (content, mediaUrl, mediaType) => {
+          try {
+            const formData = new FormData();
+            formData.append("content", content);
+        
+            if (mediaUrl) {
+              const response = await fetch(mediaUrl);
+              const blob = await response.blob();
+              const ext = mediaType === "video" ? "mp4" : "jpg";
+              const file = new File([blob], `upload.${ext}`, { type: blob.type });
+              formData.append("media", file); // ✅ this must be 'media'
+            }
+        
+            const response = await API.post("/", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+        
+            console.log("✅ Post created:", response.data);
+          } catch (err) {
+            console.error("❌ Failed to create post:", err);
           }
-      
-          const mappedPosts: PostType[] = feedPosts.map((post) => ({
-            id: post.id,
-            username: `${post.user.first_name} ${post.user.last_name}`,
-            profilePic: post.user.profile_picture_url || "/profile.jpg",
-            content: post.content,
-            followers: "• 1st",
-            timestamp: new Date(post.created_at).toLocaleString(),
-            likes: post.likes_count,
-            reposts: post.shares_count,
-            comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url,
-            video: post.media?.find((m) => m.type === "video")?.url,
-            commentsList: [],
-            isUserPost: false,
-          }));
-      
-          console.log("🧩 Mapped Posts:", mappedPosts);
-      
-          set({ posts: mappedPosts });
-        } catch (error) {
-          console.error("❌ Failed to fetch news feed:", error);
-        }
-      },      
+        },
+        
+
+        fetchNewsFeedFromAPI: async () => {
+          try {
+            const res = await fetchNewsFeed(); // already typed
+            const feedPosts = res.data ?? [];
+        
+            const mappedPosts: PostType[] = feedPosts.map((post) => ({
+              id: post.id,
+              username: `${post.user.first_name} ${post.user.last_name}`,
+              profilePic: post.user.profile_picture_url || "/profile.jpg",
+              content: post.content,
+              followers: "• 1st",
+              timestamp: new Date(post.created_at).toLocaleString(),
+              likes: post.likes_count,
+              reposts: post.shares_count,
+              comments: post.comments_count,
+              image: post.media?.find((m) => m.type === "image")?.url,
+              video: post.media?.find((m) => m.type === "video")?.url,
+              commentsList: [],
+              isUserPost: false,
+            }));
+        
+            console.log("🧩 Mapped Posts:", mappedPosts);
+            set({ posts: mappedPosts });
+          } catch (error) {
+            console.error("❌ Failed to fetch news feed:", error);
+          }
+        },
+        
 
       deletePost: (postId) =>
         set((state) => ({

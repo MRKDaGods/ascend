@@ -176,7 +176,6 @@ const CreatePostDialog: React.FC = () => {
                 <EmojiEmotionsIcon />
               </IconButton>
             </Tooltip> */}
-            </Tooltip> */}
           </Stack>
 
           <Button
@@ -211,7 +210,6 @@ const CreatePostDialog: React.FC = () => {
             />
           </Box>
         </ClickAwayListener>
-      </Popper> */}
       </Popper> */}
 
       <DiscardPostDialog
