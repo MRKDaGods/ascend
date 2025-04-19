@@ -389,30 +389,74 @@ export const getSavedJobs = async (
     const PAGE_SIZE = 30; // Number of results per page
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
-    const query = `
-      SELECT job_id, saved_at
+    const countQuery = `
+      SELECT COUNT(*) AS total
       FROM job_service.saved_jobs
       WHERE user_id = $1
-      ORDER BY saved_at DESC
+    `;
+    const countValues = [user_id];
+    const countResult = await db.query(countQuery, countValues);
+    const totalRecords = parseInt(countResult.rows[0].total);
+
+    const query = `
+      SELECT s.saved_at, j.*
+      FROM job_service.saved_jobs AS s
+      JOIN job_service.jobs AS j ON s.job_id = j.job_id
+      WHERE s.user_id = $1
+      ORDER BY s.saved_at DESC
       LIMIT $2 OFFSET $3
     `;
     const values = [user_id, PAGE_SIZE, OFFSET];
     const result = await db.query(query, values);
 
-    const savedJobsList = result.rows.map((row) => ({
-      ...row,
-    }));
+    const savedJobsList = await Promise.all(
+      result.rows.map(async (row) => {
+        const job = {
+          job_id: row.job_id,
+          title: row.title,
+          description: row.description,
+          industry: row.industry,
+          type: row.type,
+          experience_level: row.experience_level,
+          location: row.location,
+          workplace_type: row.workplace_type,
+          salary_min_range: row.salary_min_range,
+          salary_max_range: row.salary_max_range,
+          company_id: row.company_id,
+          company_name: "",
+          company_logo_url: null,
+          saved_at: row.saved_at,
+        };
+
+        const companyQuery = `
+          SELECT name, logo_url
+          FROM company_service.companies
+          WHERE id = $1
+        `;
+        const companyValues = [job.company_id];
+        const companyResult = await db.query(companyQuery, companyValues);
+        job.company_name = companyResult.rows[0]?.name || "Unknown Company";
+
+        return job;
+      })
+    );
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+    const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
+    const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
+
+    const paginationData = {
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      nextPage,
+      previousPage,
+    };
 
     return {
       data: savedJobsList,
-      pagination: {
-        totalRecords: result.rows.length,
-        currentPage: pageNumber,
-        totalPages: Math.ceil(result.rows.length / PAGE_SIZE),
-        nextPage:
-          result.rows.length > pageNumber * PAGE_SIZE ? pageNumber + 1 : null,
-        previousPage: pageNumber > 1 ? pageNumber - 1 : null,
-      },
+      pagination: paginationData,
     };
   } catch (error) {
     console.error("Error getting saved jobs:", error);
