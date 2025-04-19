@@ -1,5 +1,3 @@
-// Component file: navigation bar on top, template for most modules (work in progress)
-
 "use client";
 
 import React from "react";
@@ -18,7 +16,7 @@ import {
   Divider,
   ListItemText,
   ListItemIcon,
-  Typography
+  Typography,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import {
@@ -34,11 +32,21 @@ import {
   LightMode,
 } from "@mui/icons-material";
 import { useThemeStore } from "../stores/useThemeStore";
-import { useRouter } from "next/navigation"; // ✅ Add Next.js router
-import { useMenuStore } from "../stores/useMenuStore"; // new zustand store
+import { useRouter } from "next/navigation";
+import { useMenuStore } from "../stores/useMenuStore";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import PersonIcon from "@mui/icons-material/Person";
+import { useNotificationRedirect } from "../utils/handleNotificationRedirect";
+
+// ✅ Define the expected shape of notification
+type NavbarProps = {
+    notification?: {
+      payload: {
+        link: string;
+      };
+    };
+  };
+  
 
 // ✅ Custom Styles for Search Bar
 const SearchBar = styled("div")(({ theme }) => ({
@@ -51,12 +59,13 @@ const SearchBar = styled("div")(({ theme }) => ({
   width: "250px",
 }));
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<NavbarProps> = ({ notification }) => {
   const { theme, toggleTheme } = useThemeStore();
   const muiTheme = useTheme();
-  const router = useRouter(); // ✅ Access router
+  const router = useRouter();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
   const openMenu = Boolean(anchorEl);
+  const redirectToNotification = useNotificationRedirect();
 
   return (
     <AppBar
@@ -66,11 +75,10 @@ const Navbar: React.FC = () => {
         color: muiTheme.palette.text.primary,
         boxShadow: "none",
         borderBottom: `1px solid ${muiTheme.palette.mode === "dark" ? "#444" : "#ddd"}`,
-        transition: "background-color 0.05s ease-in-out",
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Left Section (Logo + Search Bar) */}
+        {/* Left Section (Logo + Search) */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <img src="/initial-logo.jpg" alt="Ascend" style={{ height: 35 }} />
           <SearchBar>
@@ -79,11 +87,11 @@ const Navbar: React.FC = () => {
           </SearchBar>
         </Box>
 
-        {/* Center Section (Navigation Icons) */}
+        {/* Center Navigation Icons */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
           <Tooltip title="Home">
             <IconButton onClick={() => router.push("/feed")}>
-              <Home sx={{ color: muiTheme.palette.text.primary }} />
+              <Home sx={{ color: muiTheme.palette.text.secondary }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="My Network">
@@ -97,15 +105,22 @@ const Navbar: React.FC = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Messaging">
-            <IconButton>
+            <IconButton onClick={() => router.push("/chat")}>
               <Message sx={{ color: muiTheme.palette.text.secondary }} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Notifications">
-            <IconButton>
-              {/* <Badge badgeContent={22} color="error"> // this adds number of notifs
+            {/* <IconButton onClick={() => {
+                if (notification) {
+                    redirectToNotification(notification);
+                }
+                }}>
+              <Badge color="error">
                 <Notifications sx={{ color: muiTheme.palette.text.secondary }} />
-              </Badge> */}
+              </Badge>
+            </IconButton>
+             */}
+             <IconButton onClick={() => router.push("/notif")}>
               <Badge color="error">
                 <Notifications sx={{ color: muiTheme.palette.text.secondary }} />
               </Badge>
@@ -113,7 +128,7 @@ const Navbar: React.FC = () => {
           </Tooltip>
         </Box>
 
-        {/* Right Section (Profile, Theme Toggle, Business, Premium) */}
+        {/* Right Section */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             <IconButton onClick={toggleTheme}>
@@ -121,13 +136,9 @@ const Navbar: React.FC = () => {
             </IconButton>
           </Tooltip>
 
-          {/* Profile Avatar + Dropdown */}
           <Tooltip title="Me">
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-              <Avatar
-                src="/man.jpg"
-                sx={{ border: `2px solid ${theme === "dark" ? "#fff" : "#000"}` }}
-              />
+              <Avatar src="/man.jpg" sx={{ border: `2px solid ${theme === "dark" ? "#fff" : "#000"}` }} />
             </IconButton>
           </Tooltip>
 
@@ -135,35 +146,32 @@ const Navbar: React.FC = () => {
             anchorEl={anchorEl}
             open={openMenu}
             onClose={closeMenu}
-            PaperProps={{
-              elevation: 4,
-              sx: { width: 230, mt: 1 },
-            }}
+            PaperProps={{ elevation: 4, sx: { width: 230, mt: 1 } }}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <Box px={2} py={1.5} display="flex" flexDirection="column" alignItems="center">
               <Avatar src="/man.jpg" sx={{ width: 56, height: 56 }} />
               <Typography fontWeight="bold" mt={1}>Developing Ascend</Typography>
-              <Button variant="outlined" sx={{ mt: 1, textTransform: "none", fontWeight: "bold" }}>
+              <Button onClick={()=>router.push("/profile")} variant="outlined" sx={{ mt: 1, textTransform: "none", fontWeight: "bold" }}>
                 View Profile
               </Button>
             </Box>
 
             <Divider sx={{ my: 1 }} />
-
             <Typography sx={{ px: 2, fontSize: "0.75rem", fontWeight: "bold", color: "gray" }}>Account</Typography>
             <MenuItem><ListItemText>Try 1 month of Premium</ListItemText></MenuItem>
-            <MenuItem><ListItemText>Settings & Privacy</ListItemText><ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon></MenuItem>
+            <MenuItem>
+              <ListItemText>Settings & Privacy</ListItemText>
+              <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+            </MenuItem>
 
             <Divider sx={{ my: 1 }} />
-
             <Typography sx={{ px: 2, fontSize: "0.75rem", fontWeight: "bold", color: "gray" }}>Manage</Typography>
             <MenuItem><ListItemText>Posts & Activity</ListItemText></MenuItem>
             <MenuItem><ListItemText>Job Posting Account</ListItemText></MenuItem>
 
             <Divider sx={{ my: 1 }} />
-
             <MenuItem onClick={closeMenu}>
               <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
               <ListItemText>Sign Out</ListItemText>

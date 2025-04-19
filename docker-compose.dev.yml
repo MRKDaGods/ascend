@@ -1,0 +1,49 @@
+services:
+  gateway:
+    volumes:
+      - ./services/gateway:/app/services/gateway
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  auth:
+    volumes:
+      - ./services/auth:/app/services/auth
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  user:
+    volumes:
+      - ./services/user:/app/services/user
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  file:
+    volumes:
+      - ./services/file:/app/services/file
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  notification:
+    volumes:
+      - ./services/notification:/app/services/notification
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  job:
+    volumes:
+      - ./services/job:/app/services/job
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  messaging:
+    volumes:
+      - ./services/messaging:/app/services/messaging
+    command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
