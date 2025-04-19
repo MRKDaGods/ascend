@@ -8,8 +8,8 @@ import {
 import {
   Close, Edit, Delete, Image, OndemandVideo, Article
 } from "@mui/icons-material";
-import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import ClickAwayListener from "@mui/material/ClickAwayListener";
+// import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import ClickAwayListener from "@mui/material/ClickAwayListener"; // ✅ Add this import at the top
 
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
@@ -20,6 +20,8 @@ import DraftSavedPopup from "./DraftSavedPopup";
 import Document from "./Document";
 import DocumentPreview from "./DocumentPreview";
 
+// import Picker from "@emoji-mart/react";
+// import data from "@emoji-mart/data";
 // import Picker from "@emoji-mart/react";
 // import data from "@emoji-mart/data";
 
@@ -51,6 +53,8 @@ const CreatePostDialog: React.FC = () => {
 
   // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   // const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
+  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -59,20 +63,22 @@ const CreatePostDialog: React.FC = () => {
     }
   }, [open, draftText]);
 
-  const handleSubmit = () => {
-    if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
+ 
+const handleSubmit = async () => {
+  if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
 
-    const media = mediaPreviews[0];
-    const type = media?.includes("video") ? "video" : "image";
+  const media = mediaPreviews[0];
+  const type = media?.includes("video") ? "video" : "image";
 
-    addPost(postText, media, type, documentPreview ?? undefined);
+  // await createPostViaAPI(postText, media, type);
+  addPost(postText, media, type, documentPreview ?? undefined);
 
-    setUserPostPopupOpen(true);
-    setDraftText("");
-    resetPost();
-    clearAllMedia();
-    clearDocumentPreview();
-  };
+  setUserPostPopupOpen(true);
+  setDraftText("");
+  resetPost();
+  clearAllMedia();
+  clearDocumentPreview();
+};  
 
   const handleClose = () => {
     if (postText.length > 0 || mediaPreviews.length > 0 || documentPreview) {
@@ -164,6 +170,7 @@ const CreatePostDialog: React.FC = () => {
             <Tooltip title="Add a video"><IconButton onClick={openEditor}><OndemandVideo /></IconButton></Tooltip>
             <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
             {/* <Tooltip title="Add an emoji">
+            {/* <Tooltip title="Add an emoji">
               <IconButton
                 ref={emojiAnchorRef}
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
@@ -184,6 +191,7 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Emoji Picker */}
       {/* <Popper
         open={showEmojiPicker}
         anchorEl={emojiAnchorRef.current}
