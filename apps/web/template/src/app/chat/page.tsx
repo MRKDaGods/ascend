@@ -4,7 +4,7 @@ import Sidebar from "@/app/components/Sidebar";
 import { Box } from "@mui/material";
 import ChatWindow from "@/app/components/ChatWindow";
 import CreateIcon from '@mui/icons-material/Create';
-import TempNavbar from "@/app/components/TempNavbar";
+import Navbar from "../components/Navbar";
 import NewConversationDropdown from '@/app/components/NewConversationDropdown';
 import { useState } from "react";
 import IconButton from "@mui/material/IconButton";
@@ -25,7 +25,7 @@ export default function Page() {
   return (
     <ChatSocketContainer>
       <Box sx={{ display: "flex", height: "100vh", flexDirection: "column", width: "100vw" }}>
-        <TempNavbar />
+        <Navbar />
 
         {/* spacing for UI polish */}
         <Box
