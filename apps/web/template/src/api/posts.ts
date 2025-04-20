@@ -26,7 +26,7 @@ export const fetchNewsFeed = async (page = 1, limit = 15): Promise<NewsFeedRespo
 };
 
 // Fetch a single post by its ID
-export const fetchPostById = async (postId: number): Promise<GetPostResponse> => {
+export const fetchPost = async (postId: number): Promise<GetPostResponse> => {
   try {
     const response = await API.get<GetPostResponse>(`/post/${postId}`);
     return response.data;

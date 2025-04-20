@@ -9,7 +9,7 @@ import {
   Close, Edit, Delete, Image, OndemandVideo, Article
 } from "@mui/icons-material";
 // import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import ClickAwayListener from "@mui/material/ClickAwayListener"; // ✅ Add this import at the top
+import ClickAwayListener from "@mui/material/ClickAwayListener";
 import RepostPreview from "./RepostPreview";
 
 import { usePostStore } from "../stores/usePostStore";
@@ -46,7 +46,7 @@ const CreatePostDialog: React.FC = () => {
     lastUserPostId,
     repostSourcePost, 
     setRepostSourcePost,
-    createPostViaAPI,
+    createPost,
     setUserPostPopupOpen,
   } = usePostStore();
 
@@ -78,9 +78,8 @@ const CreatePostDialog: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
   
-    // addPost(postText, media, type, documentPreview ?? undefined, repostSourcePost);
-    createPostViaAPI(postText, media, type);
-    setUserPostPopupOpen(true); // ✅ Show the snackbar popup
+    createPost(postText, media, type);
+    setUserPostPopupOpen(true);
 
     // Reset everything after posting
     setDraftText("");
@@ -88,7 +87,7 @@ const CreatePostDialog: React.FC = () => {
     resetPost();
     clearAllMedia();
     clearDocumentPreview();
-    setRepostSourcePost(null); // <-- this is the missing part
+    setRepostSourcePost(null);
   };
   
 
@@ -189,8 +188,6 @@ const CreatePostDialog: React.FC = () => {
           )}
           
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-
-          {/* ✅ Only show this if user clicked "Repost with your thoughts" */}
           {repostSourcePost && <RepostPreview post={repostSourcePost} />}
         </Box>
         </DialogContent>
