@@ -57,9 +57,9 @@ export default function Page() {
             justifyContent: "flex-end",
           }}
         >
-          <IconButton onClick={handleOpenDropdown}>
+            <IconButton id="new-conversation-button" onClick={handleOpenDropdown}>
             <CreateIcon />
-          </IconButton>
+            </IconButton>
         </Box>
 
         {/* Main layout */}
