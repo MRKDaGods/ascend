@@ -15,32 +15,35 @@ const RepostPage = () => {
     isLastPostDeleted,
   } = usePostStore();
 
+  const isRepostFetched = selectedPost?.id === lastRepostId;
+
   useEffect(() => {
-    if (lastRepostId) {
+    if (lastRepostId && !isRepostFetched) {
       console.log("📡 Fetching repost by ID:", lastRepostId);
       fetchPostFromAPI(lastRepostId);
     }
-  }, [lastRepostId]);
+  }, [lastRepostId, isRepostFetched, fetchPostFromAPI]);
 
-  const isLoading = !selectedPost || selectedPost.id !== lastRepostId;
-  const isRepost = !!selectedPost?.repostSourcePost;
-
+  console.log("🧩 selectedPost:", selectedPost);
+  
   return (
     <>
       <Navbar />
       <div style={{ maxWidth: 700, margin: "0 auto", padding: 16 }}>
         {isLastPostDeleted ? (
-          <p style={{ textAlign: "center", fontStyle: "italic", color: "#777" }}>
+          <p
+            style={{
+              textAlign: "center",
+              fontStyle: "italic",
+              color: "#777",
+            }}
+          >
             Your last repost has been deleted.
           </p>
-        ) : isLoading ? (
+        ) : !selectedPost || !isRepostFetched ? (
           <p style={{ textAlign: "center" }}>Loading repost...</p>
-        ) : isRepost ? (
-          <UserPost post={selectedPost} />
         ) : (
-          <p style={{ textAlign: "center", color: "darkblue" }}>
-            No repost detected. Your last post is not a repost.
-          </p>
+          <UserPost post={selectedPost} />
         )}
       </div>
 

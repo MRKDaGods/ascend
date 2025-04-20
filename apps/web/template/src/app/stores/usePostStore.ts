@@ -189,31 +189,30 @@ export const usePostStore = create<PostStoreState>()(
         try {
           const { data: post } = await fetchPost(postId);
       
-          const mapMedia = (mediaArray?: any[]) => ({
-            image: mediaArray?.find((m) => m.type === "image")?.url,
-            video: mediaArray?.find((m) => m.type === "video")?.url,
-            fileTitle: mediaArray?.[0]?.title ?? "",
-            fileDescription: mediaArray?.[0]?.description ?? "",
-          });
+          let repostSourcePost: PostType | null = null;
       
-          // Optional chaining in case it's not a repost
-          const repostSourcePost = post.original_post
-            ? {
-                id: post.original_post.id,
-                username: `${post.original_post.user.first_name} ${post.original_post.user.last_name}`,
-                profilePic: post.original_post.user.profile_picture_url ?? "",
-                content: post.original_post.content,
-                followers: "• 1st",
-                timestamp: new Date(post.original_post.created_at).toLocaleString(),
-                likes: post.original_post.likes_count,
-                reposts: post.original_post.shares_count,
-                comments: post.original_post.comments_count,
-                commentsList: [],
-                isUserPost: false,
-                ...mapMedia(post.original_post.media),
-                isEdited: post.original_post.is_edited,
-              }
-            : null;
+          // 🌟 If this post is a repost, fetch the original
+          if (post.original_post) {
+            const { data: source } = await fetchPost(post.original_post.id);
+            repostSourcePost = {
+              id: source.id,
+              username: `${source.user.first_name} ${source.user.last_name}`,
+              profilePic: source.user.profile_picture_url ?? "",
+              content: source.comment || source.content || "",
+              followers: "• 1st",
+              timestamp: new Date(source.created_at).toLocaleString(),
+              likes: source.likes_count,
+              reposts: source.shares_count,
+              comments: source.comments_count,
+              image: source.media?.find((m) => m.type === "image")?.url,
+              video: source.media?.find((m) => m.type === "video")?.url,
+              commentsList: [],
+              isUserPost: false,
+              fileTitle: source.media?.[0]?.title ?? "",
+              fileDescription: source.media?.[0]?.description ?? "",
+              isEdited: source.is_edited,
+            };
+          }
       
           const mapped: PostType = {
             id: post.id,
@@ -225,11 +224,14 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url,
+            video: post.media?.find((m) => m.type === "video")?.url,
             commentsList: [],
             isUserPost: true,
-            ...mapMedia(post.media),
-            isEdited: post.is_edited,
             repostSourcePost,
+            fileTitle: post.media?.[0]?.title ?? "",
+            fileDescription: post.media?.[0]?.description ?? "",
+            isEdited: post.is_edited,
           };
       
           set({ selectedPost: mapped });
