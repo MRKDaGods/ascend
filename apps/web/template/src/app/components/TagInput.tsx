@@ -38,7 +38,7 @@ const TagInput: React.FC<TagInputProps> = ({
   commentText,
   setCommentText,
 }) => {
-  const { postText, setPostText, addTagToPost, addTagToComment } = usePostStore();
+  const { postText, setPostText, addTagToPost, addTagToComment, repostSourcePost } = usePostStore();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -76,7 +76,13 @@ const TagInput: React.FC<TagInputProps> = ({
         fullWidth
         inputRef={inputRef}
         multiline
-        placeholder={isComment ? "Write a comment..." : "What do you want to talk about?"}
+        placeholder={
+          isComment
+            ? "Write a comment..."
+            : repostSourcePost
+            ? "Start writing or use @ to mention people, companies or schools"
+            : "What do you want to talk about?"
+        }        
         value={text}
         onChange={(e) => setText(e.target.value)}
         variant="standard"

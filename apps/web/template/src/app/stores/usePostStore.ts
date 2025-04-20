@@ -17,6 +17,7 @@ export interface Tag {
 }
 
 export type PostType = {
+  repostSourcePost?: PostType | null;
   id: number;
   username: string;
   profilePic: string;
@@ -54,7 +55,10 @@ interface PostStoreState {
   unsavedPopupOpen: boolean;
   draftSavedPopupOpen: boolean;
   discardPostDialogOpen: boolean;
+  discardRepostDialogOpen: boolean;
   isLastPostDeleted: boolean;
+
+  repostSourcePost: PostType | null;
 
   postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
@@ -72,15 +76,23 @@ interface PostStoreState {
   setUnsavedPopupOpen: (open: boolean) => void;
   setDraftSavedPopupOpen: (open: boolean) => void;
   openDiscardPostDialog: () => void;
+  openDiscardRepostDialog: () => void;
   closeDiscardPostDialog: () => void;
+  closeDiscardRepostDialog: () => void;
 
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
 
   fetchNewsFeed: () => Promise<void>;
-  addPost: (content: string, media?: string, mediaType?: "image" | "video", document?: { url: string; title: string }) => void;
-
+  addPost: (
+    content: string,
+    media?: string,
+    mediaType?: "image" | "video",
+    document?: { url: string; title: string },
+    repostSourcePost?: PostType | null
+  ) => void;
+  
   // fetchPost: (id: number) => Promise<void>;
   // createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
 
@@ -99,6 +111,8 @@ interface PostStoreState {
   removeTagFromPost: (postId: number, tagId: number) => void;
   addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
   removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
+
+  setRepostSourcePost: (post: PostType | null) => void;
 }
 
 export const usePostStore = create<PostStoreState>()(
@@ -118,6 +132,7 @@ export const usePostStore = create<PostStoreState>()(
       unsavedPopupOpen: false,
       draftSavedPopupOpen: false,
       discardPostDialogOpen: false,
+      discardRepostDialogOpen: false,
       isLastPostDeleted: false,
       postReactions: {},
       repostedPosts: [],
@@ -145,7 +160,9 @@ export const usePostStore = create<PostStoreState>()(
       setUnsavedPopupOpen: (open) => set({ unsavedPopupOpen: open }),
       setDraftSavedPopupOpen: (open) => set({ draftSavedPopupOpen: open }),
       openDiscardPostDialog: () => set({ discardPostDialogOpen: true }),
+      openDiscardRepostDialog: () => set({ discardRepostDialogOpen: true }),
       closeDiscardPostDialog: () => set({ discardPostDialogOpen: false }),
+      closeDiscardRepostDialog: () => set({ discardRepostDialogOpen: false }),
 
       setLastUserPostId: (id) => set({ lastUserPostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
@@ -168,16 +185,23 @@ export const usePostStore = create<PostStoreState>()(
             video: post.media?.find((m) => m.type === "video")?.url,
             commentsList: [],
             isUserPost: false,
+            repostSourcePost: null,
           }));
           set({ posts: mappedPosts });
         } catch (error) {
           console.error("Failed to fetch news feed:", error);
         }
       },
-      addPost: (content, media, mediaType, document) =>
+      addPost: (
+        content: string,
+        media?: string,
+        mediaType?: "image" | "video",
+        document?: { url: string; title: string },
+        repostSourcePost?: PostType | null
+      ) =>
         set((state) => {
           const newPost: PostType = {
-            id: generateNumericId(),
+            id: generateNumericId(), // or from backend
             profilePic: "/profile.jpg",
             username: "User",
             followers: "You",
@@ -194,15 +218,18 @@ export const usePostStore = create<PostStoreState>()(
             isUserPost: true,
             tags: [],
             commentTags: {},
+            repostSourcePost: repostSourcePost ?? undefined, // ✅ assign if exists
           };
-
+      
           return {
             posts: [...state.posts, newPost],
-            userPostPopupOpen: true,
             lastUserPostId: newPost.id,
             isLastPostDeleted: false,
+            userPostPopupOpen: !repostSourcePost,         // ✅ show normal popup if it's NOT a repost
+            repostPopupOpen: !!repostSourcePost,          // ✅ show repost popup if it IS
           };
-        }),
+        }),      
+      
 
       // fetchPost: async (id) => {
       //   try {
@@ -297,23 +324,40 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      repostPost: (id) =>
-        set((state) => {
-          const isReposted = state.repostedPosts.includes(id);
-          return {
-            repostedPosts: isReposted
-              ? state.repostedPosts.filter((pid) => pid !== id)
-              : [...state.repostedPosts, id],
-            posts: state.posts.map((post) =>
-              post.id === id
-                ? {
-                    ...post,
-                    reposts: isReposted ? post.reposts - 1 : post.reposts + 1,
-                  }
-                : post
-            ),
-          };
-        }),
+        repostPost: (originalPostId: number) =>
+          set((state) => {
+            const originalPost = state.posts.find((p) => p.id === originalPostId);
+            if (!originalPost) return state;
+        
+            const newPost: PostType = {
+              id: generateNumericId(),
+              profilePic: "/profile.jpg",
+              username: "User",
+              followers: "You",
+              timestamp: "Just now",
+              content: "", // 🚫 No extra text
+              image: undefined,
+              video: undefined,
+              file: undefined,
+              fileTitle: undefined,
+              likes: 0,
+              comments: 0,
+              reposts: 0,
+              commentsList: [],
+              isUserPost: true,
+              tags: [],
+              commentTags: {},
+              repostSourcePost: originalPost, // ✅ full original post attached
+            };
+        
+            return {
+              posts: [...state.posts, newPost],
+              repostPopupOpen: true, // ✅ Show the popup
+              lastUserPostId: newPost.id,
+              isLastPostDeleted: false,
+            };
+          }),
+        
 
       toggleSavePost: (id) =>
         set((state) => {
@@ -400,6 +444,8 @@ export const usePostStore = create<PostStoreState>()(
             return { ...post, commentTags: updatedTags };
           }),
         })),
+        repostSourcePost: null,
+        setRepostSourcePost: (post) => set({ repostSourcePost: post }),
     }),
     {
       name: "post-storage",
