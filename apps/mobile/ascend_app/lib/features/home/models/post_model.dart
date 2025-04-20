@@ -155,7 +155,7 @@ class PostModel extends Equatable {
       'timePosted': timePosted,
       'likesCount': likesCount,
       'commentsCount': commentsCount,
-      'sharedcount': sharedCount,
+      'shares_count': sharedCount,  // Change to match API naming convention
       'followers': followers,
       'isLiked': isLiked,
       'currentReaction': currentReaction,
@@ -287,6 +287,7 @@ class PostModel extends Equatable {
       // Engagement metrics from API
       likesCount: apiPost['likes_count'] as int? ?? 0,
       commentsCount: apiPost['comments_count'] as int? ?? 0,
+      sharedCount: apiPost['shares_count'] as int? ?? 0,  // Make sure to use the correct API field
       followers: 0, // Not provided by API
       
       // Default values for fields not in API
