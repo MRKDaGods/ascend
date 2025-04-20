@@ -46,7 +46,7 @@ const CreatePostDialog: React.FC = () => {
     lastUserPostId,
     repostSourcePost, 
     setRepostSourcePost,
-    createPost,
+    createPostFromAPI,
     setUserPostPopupOpen,
   } = usePostStore();
 
@@ -78,7 +78,7 @@ const CreatePostDialog: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
   
-    createPost(postText, media, type);
+    createPostFromAPI(postText, media, type);
     setUserPostPopupOpen(true);
 
     // Reset everything after posting
