@@ -85,8 +85,6 @@ export const createPost = async (
 
     formData.append("media", file);
     formData.append("type", mediaType || "image");
-    formData.append("title", "default title");
-    formData.append("description", "default description");
   } else {
     formData.append("title", "text only");
     formData.append("description", "no media");
