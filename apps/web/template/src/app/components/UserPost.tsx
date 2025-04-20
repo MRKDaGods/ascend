@@ -20,11 +20,10 @@ import { MoreHoriz, ThumbUp, Comment, Delete, Edit } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import DeletePostDialog from "./DeletePostDialog";
 import DocumentPreview from "./DocumentPreview";
-import RepostPreview from "./RepostPreview"; // ✅ Added
+import RepostPreview from "./RepostPreview";
 
 interface UserPostProps {
   post: PostType;
-  onDeleteClick?: () => void;
 }
 
 const renderTextWithLinks = (text: string) => {
@@ -58,9 +57,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleEditPost = () => {
     setEditingPost(post);
@@ -86,16 +83,22 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
         }}
       >
         <CardHeader
-          avatar={<Avatar src={post.profilePic} />}
+          avatar={
+            <Avatar src={post.profilePic || undefined}>
+              {!post.profilePic && post.username?.charAt(0)}
+            </Avatar>
+          }
           title={
             <Typography fontWeight="bold">
-              Ascend Developer • {" "}
-              <span style={{ color: theme.palette.text.secondary, fontSize: "0.9rem" }}>You</span>
+              {post.username} •{" "}
+              <span style={{ color: theme.palette.text.secondary, fontSize: "0.9rem" }}>
+                You
+              </span>
             </Typography>
           }
           subheader={
             <Typography color={theme.palette.text.secondary} fontSize="0.9rem">
-              {post.timestamp}
+              {post.timestamp} {post.isEdited && "(edited)"}
             </Typography>
           }
           action={
@@ -121,12 +124,24 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           </Typography>
 
           {post.image && (
-            <CardMedia
-              component="img"
-              image={post.image}
-              alt="Uploaded Post Image"
-              sx={{ borderRadius: 2, mt: 2, width: "100%", height: "100%" }}
-            />
+            <>
+              <CardMedia
+                component="img"
+                image={post.image}
+                alt="Uploaded Post Image"
+                sx={{ borderRadius: 2, mt: 2, width: "100%", height: "auto" }}
+              />
+              {post.fileTitle && (
+                <Typography variant="subtitle2" sx={{ mt: 1 }} color="text.secondary">
+                  {post.fileTitle}
+                </Typography>
+              )}
+              {post.fileDescription && (
+                <Typography variant="body2" sx={{ mt: 0.5 }} color="text.secondary">
+                  {post.fileDescription}
+                </Typography>
+              )}
+            </>
           )}
 
           {post.video && (
@@ -145,12 +160,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           )}
 
           {post.repostSourcePost && (
-            <Box
-              sx={{
-                mt: 2,
-                overflow: "hidden",
-              }}
-            >
+            <Box sx={{ mt: 2 }}>
               <RepostPreview post={post.repostSourcePost} />
             </Box>
           )}

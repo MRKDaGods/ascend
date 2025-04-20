@@ -11,7 +11,7 @@ import {
 // import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import RepostPreview from "./RepostPreview";
-
+import { useRouter } from "next/navigation";
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
 
@@ -29,6 +29,7 @@ import RepostPopup from "./RepostPopup";
 // import data from "@emoji-mart/data";
 
 const CreatePostDialog: React.FC = () => {
+  const router = useRouter(); // ✅ router instance
   const {
     open,
     postText,
@@ -48,6 +49,7 @@ const CreatePostDialog: React.FC = () => {
     setRepostSourcePost,
     createPostFromAPI,
     setUserPostPopupOpen,
+    setRepostPopupOpen,
   } = usePostStore();
 
 
@@ -78,9 +80,14 @@ const CreatePostDialog: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
   
-    createPostFromAPI(postText, media, type);
-    setUserPostPopupOpen(true);
-
+    await createPostFromAPI(postText, media, type);
+  
+    if (repostSourcePost) {
+      setRepostPopupOpen(true);
+    } else {
+      setUserPostPopupOpen(true);
+    }
+  
     // Reset everything after posting
     setDraftText("");
     setPostText("");
@@ -89,6 +96,7 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview();
     setRepostSourcePost(null);
   };
+  
   
 
   const handleClose = () => {

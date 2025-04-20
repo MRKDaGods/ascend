@@ -1,16 +1,14 @@
-// Component file: posts in feed page, from connections and followers
-
 "use client";
 
 import React, { useState } from "react";
 import {
-  Avatar, 
-  Box, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardMedia, 
-  Typography, 
+  Avatar,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  CardMedia,
+  Typography,
   useTheme,
 } from "@mui/material";
 import { usePostStore, PostType } from "../stores/usePostStore";
@@ -21,12 +19,16 @@ import Save from "./Save";
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const {
-    repostPost,
+    repostFromAPI, // ✅ NEW FUNCTION
     postReactions,
   } = usePostStore();
 
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
+
+  const handleRepost = async () => {
+    await repostFromAPI(post.id, ""); // ✅ Instant repost without thoughts
+  };
 
   return (
     <Card
@@ -48,7 +50,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
             {post.followers} • {post.timestamp}
           </Typography>
         }
-        action={ <Save post={post} /> }
+        action={<Save post={post} />}
       />
 
       <CardContent sx={{ pt: 0 }}>
@@ -87,9 +89,9 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       <PostActions
         postId={post.id}
         liked={!!postReactions[post.id]}
-        reposted={false} // handled by repostedPosts if needed
+        reposted={false} // You can wire this to state if needed
         onLike={() => {}} // handled in Reactions component
-        onRepost={() => repostPost(post.id)}
+        onRepost={handleRepost} // ✅ UPDATED HERE
         onCommentClick={() => setShowCommentInput(!showCommentInput)}
       />
 
