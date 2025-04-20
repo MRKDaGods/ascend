@@ -16,6 +16,7 @@ class PostModel extends Equatable {
   final String timePosted;
   final int likesCount;
   final int commentsCount;
+  final int sharedCount;
   final int followers;
   final bool isLiked;
   final String? currentReaction;
@@ -35,6 +36,7 @@ class PostModel extends Equatable {
     required this.timePosted,
     this.likesCount = 0,
     this.commentsCount = 0,
+    this.sharedCount = 0,
     this.followers = 0,
     this.isLiked = false,
     this.currentReaction,
@@ -56,6 +58,7 @@ class PostModel extends Equatable {
     timePosted,
     likesCount,
     commentsCount,
+    sharedCount,
     followers,
     isLiked,
     currentReaction,
@@ -77,6 +80,7 @@ class PostModel extends Equatable {
     String? timePosted,
     int? likesCount,
     int? commentsCount,
+    int? sharedCount,
     int? followers,
     bool? isLiked,
     String? currentReaction,
@@ -96,6 +100,7 @@ class PostModel extends Equatable {
       timePosted: timePosted ?? this.timePosted,
       likesCount: likesCount ?? this.likesCount,
       commentsCount: commentsCount ?? this.commentsCount,
+      sharedCount: sharedCount ?? this.sharedCount,
       followers: followers ?? this.followers,
       isLiked: isLiked ?? this.isLiked,
       currentReaction: currentReaction ?? this.currentReaction,
@@ -150,6 +155,7 @@ class PostModel extends Equatable {
       'timePosted': timePosted,
       'likesCount': likesCount,
       'commentsCount': commentsCount,
+      'sharedcount': sharedCount,
       'followers': followers,
       'isLiked': isLiked,
       'currentReaction': currentReaction,
@@ -173,6 +179,7 @@ class PostModel extends Equatable {
       timePosted: json['timePosted'] as String,
       likesCount: json['likesCount'] as int? ?? 0,
       commentsCount: json['commentsCount'] as int? ?? 0,
+      sharedCount: json['sharedCount'] as int? ?? 0,
       followers: json['followers'] as int? ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       currentReaction: json['currentReaction'] as String?,
@@ -202,6 +209,7 @@ class PostModel extends Equatable {
       timePosted: oldModel['timePosted'] ?? 'Just now',
       likesCount: oldModel['initialLikes'] ?? oldModel['likesCount'] ?? 0,
       commentsCount: oldModel['initialComments'] ?? oldModel['commentsCount'] ?? 0,
+      sharedCount: oldModel['sharedCount'] ?? 0,
       followers: oldModel['followers'] ?? 0,
       isLiked: oldModel['isLiked'] ?? false,
       comments: const [],
@@ -221,11 +229,104 @@ class PostModel extends Equatable {
       timePosted: '',
       likesCount: 0,
       commentsCount: 0,
+      sharedCount: 0,
       followers: 0,
       isLiked: false,
       comments: [],
       images: [],
     );
+  }
+
+  // Add this factory constructor to your PostModel class
+  factory PostModel.fromApiResponse(Map<String, dynamic> apiPost) {
+    try {
+        // Debug what we're receiving
+    print('Processing API post: ${apiPost['id']}');
+    
+    // Extract user data
+    final userData = apiPost['user'] as Map<String, dynamic>? ?? {};
+    
+    // Combine first and last name
+    final firstName = userData['first_name'] as String? ?? '';
+    final lastName = userData['last_name'] as String? ?? '';
+    final fullName = '$firstName $lastName'.trim();
+    
+    // Extract media URLs from complex media objects
+    final mediaList = apiPost['media'] as List<dynamic>? ?? [];
+    final imageUrls = mediaList
+        .where((media) => media['type'] == 'image' && media['url'] != null)
+        .map((media) => media['url'] as String)
+        .toList();
+    
+    // Format the timestamp
+    final createdAt = apiPost['created_at'] != null 
+        ? DateTime.parse(apiPost['created_at'] as String)
+        : DateTime.now();
+    final timeAgo = _formatTimeAgo(createdAt);
+    
+    return PostModel(
+      // Convert numeric ID to string
+      id: (apiPost['id'] ?? '').toString(),
+      
+      // Set title empty and use content for description
+      title: '',
+      description: apiPost['content'] as String? ?? '',
+      
+      // Media handling
+      images: imageUrls,
+      useCarousel: imageUrls.length > 1,
+      
+      // User information
+      ownerName: fullName,
+      ownerImageUrl: 'assets/images/profile/default_user.jpg', // Default until profile pic integration
+      ownerOccupation: 'User', // Not provided by API
+      
+      // Time posted
+      timePosted: timeAgo,
+      
+      // Engagement metrics from API
+      likesCount: apiPost['likes_count'] as int? ?? 0,
+      commentsCount: apiPost['comments_count'] as int? ?? 0,
+      followers: 0, // Not provided by API
+      
+      // Default values for fields not in API
+      isLiked: false,
+      currentReaction: null,
+      comments: [],
+      isSponsored: false,
+    );
+    } catch (e) {
+    print('Error creating PostModel from API data: $e');
+    print('API post data: $apiPost');
+    rethrow;
+  }
+  }
+
+  // Helper method to format timestamps
+  static String _formatTimeAgo(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    
+    if (difference.inDays > 365) {
+      return '${(difference.inDays / 365).floor()}y ago';
+    } else if (difference.inDays > 30) {
+      return '${(difference.inDays / 30).floor()}m ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  // Add this method to parse a list of API posts
+  static List<PostModel> fromApiResponseList(List<dynamic> apiPosts) {
+    return apiPosts
+        .map((post) => PostModel.fromApiResponse(post as Map<String, dynamic>))
+        .toList();
   }
 }
 
