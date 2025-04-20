@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-import { fetchNewsFeed, fetchPost, createPost, deletePostById } from "@/api/posts";
+import { fetchNewsFeed, fetchPost, createPost, deletePostById, editPost } from "@/api/posts";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -81,8 +81,7 @@ interface PostStoreState {
   fetchPostFromAPI: (id: number) => Promise<void>;
   createPostFromAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
   deletePostFromAPI: (postId: number) => Promise<void>;
-  deletePost: (postId: number) => void;
-  editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
+  editPostFromAPI: (id: number, newText: string) => void;
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
   repostPost: (id: number) => void;
@@ -225,27 +224,40 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      deletePost: (postId) =>
-        set((state) => ({
-          posts: state.posts.filter((post) => !(post.id === postId && post.isUserPost)),
-        })),
-
-      editPost: (id, newText, newMedia, mediaType) =>
-        set((state) => ({
-          posts: state.posts.map((post) =>
-            post.id === id
-              ? {
-                  ...post,
-                  content: newText,
-                  image: mediaType === "image" ? newMedia : post.image,
-                  video: mediaType === "video" ? newMedia : post.video,
-                }
-              : post
-          ),
-          editingPost: null,
-          postText: "",
-          open: false,
-        })),
+      editPostFromAPI: async (postId, content) => {
+        try {
+          await editPost(postId, content);
+      
+          // ✅ Fetch updated post from backend
+          const response = await fetchPost(postId);
+          const post = response.data;
+      
+          const updatedPost: PostType = {
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url ?? "",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url,
+            video: post.media?.find((m) => m.type === "video")?.url,
+            commentsList: [],
+            isUserPost: true,
+          };
+      
+          // ✅ Update the selected post and lastUserPostId
+          set({
+            selectedPost: updatedPost,
+            lastUserPostId: postId,
+          });
+        } catch (err) {
+          console.error("❌ Failed to edit post via API:", err);
+        }
+      },
+      
 
       setReaction: (postId, reaction) =>
         set((state) => ({

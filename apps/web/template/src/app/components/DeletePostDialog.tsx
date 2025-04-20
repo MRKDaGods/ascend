@@ -24,10 +24,10 @@ interface DeletePostDialogProps {
 
 const DeletePostDialog: React.FC<DeletePostDialogProps> = ({ open, postId, onClose }) => {
   const theme = useTheme();
-  const { deletePostFromAPI, setLastPostDeleted, deletePost } = usePostStore();
+  const { deletePostFromAPI, setLastPostDeleted } = usePostStore();
 
   const handleDelete = () => {
-    deletePost(postId);
+    deletePostFromAPI(postId);
     setLastPostDeleted(true);
     onClose();
   };

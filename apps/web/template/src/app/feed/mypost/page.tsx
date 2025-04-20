@@ -5,6 +5,7 @@ import { usePostStore } from "@/app/stores/usePostStore";
 import UserPost from "@/app/components/UserPost";
 import Navbar from "@/app/components/Navbar";
 import DeletePost from "@/app/components/DeletePost";
+import EditPost from "@/app/components/EditPost";
 
 const MyPostPage = () => {
   const {
@@ -34,6 +35,7 @@ const MyPostPage = () => {
         )}
       </div>
       <DeletePost />
+      <EditPost />
     </>
   );
 };
