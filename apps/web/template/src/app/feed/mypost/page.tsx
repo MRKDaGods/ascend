@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePostStore } from "@/app/stores/usePostStore";
-import UserPost from "@/app/components/UserPost";
 import Navbar from "@/app/components/Navbar";
+import UserPost from "@/app/components/UserPost";
 import DeletePost from "@/app/components/DeletePost";
 import EditPost from "@/app/components/EditPost";
+import { usePostStore } from "@/app/stores/usePostStore";
 
 const MyPostPage = () => {
   const {
@@ -17,7 +17,6 @@ const MyPostPage = () => {
 
   useEffect(() => {
     if (lastUserPostId) {
-      console.log("📡 Fetching post with ID:", lastUserPostId);
       fetchPostFromAPI(lastUserPostId);
     }
   }, [lastUserPostId]);

@@ -61,7 +61,7 @@ export const fetchPost = async (
     const response = await API.get<GetPostResponse>(`/post/${postId}`);
     return response.data;
   } catch (error: any) {
-    console.error("❌ fetchPostById error:", error?.response?.data || error.message);
+    console.error("❌ fetchPost error:", error?.response?.data || error.message);
     throw error;
   }
 };
