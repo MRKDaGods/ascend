@@ -22,6 +22,11 @@ interface DeletePostResponse {
   message: string;
 }
 
+interface EditPostResponse {
+  success: boolean;
+  data: Post;
+}
+
 // Fetch all posts for the news feed
 export const fetchNewsFeed = async (page = 1, limit = 15): Promise<NewsFeedResponse> => {
   const response = await API.get<NewsFeedResponse>("/post/feed", {
@@ -81,4 +86,22 @@ export const createPost = async (
 export const deletePostById = async (postId: number): Promise<DeletePostResponse> => {
   const response = await API.delete<DeletePostResponse>(`/post/${postId}`);
   return response.data;
+};
+
+export const editPost = async (
+  postId: number,
+  content: string,
+  privacy: "public" | "private" = "public"
+): Promise<AxiosResponse<EditPostResponse>> => {
+  const formData = new FormData();
+  formData.append("content", content);
+  formData.append("privacy", privacy);
+
+  const res = await API.patch(`/post/${postId}`, formData, {
+    headers: {
+      "x-no-parse-body": "1",
+    },
+  });
+
+  return res;
 };
