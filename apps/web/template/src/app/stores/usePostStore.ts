@@ -3,13 +3,14 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-import { fetchNewsFeed, fetchPostById, createPost } from "@/api/posts";
+import { fetchNewsFeed, fetchPost, createPost } from "@/api/posts";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
 const generateNumericId = () => {
   return parseInt(uuidv4().replace(/-/g, "").substring(0, 12), 16);
 };
+
 export interface Tag {
   id: number;
   name: string;
@@ -41,12 +42,10 @@ interface PostStoreState {
   posts: PostType[];
   selectedPost: PostType | null;
   lastUserPostId: number | null;
-
   open: boolean;
   postText: string;
   draftText: string;
   editingPost: PostType | null;
-
   userPostPopupOpen: boolean;
   copyPostPopupOpen: boolean;
   repostPopupOpen: boolean;
@@ -56,9 +55,7 @@ interface PostStoreState {
   discardPostDialogOpen: boolean;
   discardRepostDialogOpen: boolean;
   isLastPostDeleted: boolean;
-
   repostSourcePost: PostType | null;
-
   postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
   savedPosts: number[];
@@ -67,7 +64,6 @@ interface PostStoreState {
   setPostText: (text: string) => void;
   setDraftText: (text: string) => void;
   setEditingPost: (post: PostType | null) => void;
-
   setUserPostPopupOpen: (open: boolean) => void;
   setCopyPostPopupOpen: (val: boolean) => void;
   setRepostPopupOpen: (open: boolean) => void;
@@ -78,39 +74,24 @@ interface PostStoreState {
   openDiscardRepostDialog: () => void;
   closeDiscardPostDialog: () => void;
   closeDiscardRepostDialog: () => void;
-
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
-
   fetchNewsFeed: () => Promise<void>;
-  // addPost: (
-  //   content: string,
-  //   media?: string,
-  //   mediaType?: "image" | "video",
-  //   document?: { url: string; title: string },
-  //   repostSourcePost?: PostType | null
-  // ) => void;
-  
   fetchPost: (id: number) => Promise<void>;
-  createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
-
+  createPost: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
   deletePost: (postId: number) => void;
   editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
-
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
   repostPost: (id: number) => void;
   toggleSavePost: (id: number) => void;
-
   commentOnPost: (id: number, comment: string) => void;
   deleteComment: (postId: number, commentIndex: number) => void;
-
   addTagToPost: (postId: number, tag: Tag) => void;
   removeTagFromPost: (postId: number, tagId: number) => void;
   addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
   removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
-
   setRepostSourcePost: (post: PostType | null) => void;
 }
 
@@ -173,7 +154,7 @@ export const usePostStore = create<PostStoreState>()(
           const mappedPosts = (response.data ?? []).map((post) => ({
             id: post.id,
             username: `${post.user.first_name} ${post.user.last_name}`,
-            profilePic: post.user.profile_picture_url || "/profile.jpg",
+            profilePic: post.user.profile_picture_url ?? "",
             content: post.content,
             followers: "• 1st",
             timestamp: new Date(post.created_at).toLocaleString(),
@@ -191,53 +172,15 @@ export const usePostStore = create<PostStoreState>()(
           console.error("Failed to fetch news feed:", error);
         }
       },
-      // addPost: (
-      //   content: string,
-      //   media?: string,
-      //   mediaType?: "image" | "video",
-      //   document?: { url: string; title: string },
-      //   repostSourcePost?: PostType | null
-      // ) =>
-      //   set((state) => {
-      //     const newPost: PostType = {
-      //       id: generateNumericId(), // or from backend
-      //       profilePic: "/profile.jpg",
-      //       username: "User",
-      //       followers: "You",
-      //       timestamp: "Just now",
-      //       content,
-      //       image: mediaType === "image" ? media : undefined,
-      //       video: mediaType === "video" ? media : undefined,
-      //       file: document?.url,
-      //       fileTitle: document?.title,
-      //       likes: 0,
-      //       comments: 0,
-      //       reposts: 0,
-      //       commentsList: [],
-      //       isUserPost: true,
-      //       tags: [],
-      //       commentTags: {},
-      //       repostSourcePost: repostSourcePost ?? undefined, // ✅ assign if exists
-      //     };
-      
-      //     return {
-      //       posts: [...state.posts, newPost],
-      //       lastUserPostId: newPost.id,
-      //       isLastPostDeleted: false,
-      //       userPostPopupOpen: !repostSourcePost,         // ✅ show normal popup if it's NOT a repost
-      //       repostPopupOpen: !!repostSourcePost,          // ✅ show repost popup if it IS
-      //     };
-      //   }),      
-      
 
       fetchPost: async (id) => {
         try {
-          const response = await fetchPostById(id);
+          const response = await fetchPost(id);
           const post = response.data;
           const mappedPost: PostType = {
             id: post.id,
             username: `${post.user.first_name} ${post.user.last_name}`,
-            profilePic: post.user.profile_picture_url || "/profile.jpg",
+            profilePic: post.user.profile_picture_url ?? "",
             content: post.content,
             followers: "• 1st",
             timestamp: new Date(post.created_at).toLocaleString(),
@@ -255,27 +198,19 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      createPostViaAPI: async (content, mediaUrl, mediaType) => {
+      createPost: async (content, mediaUrl, mediaType) => {
         try {
           const response = await createPost(content, mediaUrl, mediaType);
           const postId = response.data?.data?.id;
-
           if (!postId || isNaN(postId)) {
             console.warn("⚠️ No valid post ID returned from backend");
             return;
           }
-      
-          if (postId) {
-            console.log("✅ Post created:", postId);
-            set({ lastUserPostId: postId });
-          } else {
-            console.warn("⚠️ Post created but no ID returned");
-          }
+          set({ lastUserPostId: postId, userPostPopupOpen: true });
         } catch (err) {
           console.error("❌ Failed to create post:", err);
         }
-        
-      },      
+      },
 
       deletePost: (postId) =>
         set((state) => ({
@@ -323,40 +258,39 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-        repostPost: (originalPostId: number) =>
-          set((state) => {
-            const originalPost = state.posts.find((p) => p.id === originalPostId);
-            if (!originalPost) return state;
-        
-            const newPost: PostType = {
-              id: generateNumericId(),
-              profilePic: "/profile.jpg",
-              username: "User",
-              followers: "You",
-              timestamp: "Just now",
-              content: "", // 🚫 No extra text
-              image: undefined,
-              video: undefined,
-              file: undefined,
-              fileTitle: undefined,
-              likes: 0,
-              comments: 0,
-              reposts: 0,
-              commentsList: [],
-              isUserPost: true,
-              tags: [],
-              commentTags: {},
-              repostSourcePost: originalPost, // ✅ full original post attached
-            };
-        
-            return {
-              posts: [...state.posts, newPost],
-              repostPopupOpen: true, // ✅ Show the popup
-              lastUserPostId: newPost.id,
-              isLastPostDeleted: false,
-            };
-          }),
-        
+      repostPost: (originalPostId: number) =>
+        set((state) => {
+          const originalPost = state.posts.find((p) => p.id === originalPostId);
+          if (!originalPost) return state;
+
+          const newPost: PostType = {
+            id: generateNumericId(),
+            profilePic: "/profile.jpg",
+            username: "User",
+            followers: "You",
+            timestamp: "Just now",
+            content: "",
+            image: undefined,
+            video: undefined,
+            file: undefined,
+            fileTitle: undefined,
+            likes: 0,
+            comments: 0,
+            reposts: 0,
+            commentsList: [],
+            isUserPost: true,
+            tags: [],
+            commentTags: {},
+            repostSourcePost: originalPost,
+          };
+
+          return {
+            posts: [...state.posts, newPost],
+            repostPopupOpen: true,
+            lastUserPostId: newPost.id,
+            isLastPostDeleted: false,
+          };
+        }),
 
       toggleSavePost: (id) =>
         set((state) => {
@@ -443,15 +377,14 @@ export const usePostStore = create<PostStoreState>()(
             return { ...post, commentTags: updatedTags };
           }),
         })),
-        repostSourcePost: null,
-        setRepostSourcePost: (post) => set({ repostSourcePost: post }),
+
+      repostSourcePost: null,
+      setRepostSourcePost: (post) => set({ repostSourcePost: post }),
     }),
     {
       name: "post-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        posts: state.posts,
-      }),
+      partialize: (state) => ({ posts: state.posts }),
     }
   )
 );
