@@ -9,7 +9,7 @@ import { usePostStore } from "../stores/usePostStore";
 
 const Feed: React.FC = () => {
   const posts = usePostStore((state) => state.posts);
-  const fetchNewsFeed = usePostStore((state) => state.fetchNewsFeed);
+  const fetchNewsFeed = usePostStore((state) => state.fetchNewsFeedFromAPI);
 
   const visiblePosts = posts.filter((post) => post.isUserPost !== true);
 

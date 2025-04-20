@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-import { fetchNewsFeed, fetchPost, createPost } from "@/api/posts";
+import { fetchNewsFeed, fetchPost, createPost, deletePostById } from "@/api/posts";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -77,9 +77,10 @@ interface PostStoreState {
   setLastUserPostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
-  fetchNewsFeed: () => Promise<void>;
-  fetchPost: (id: number) => Promise<void>;
-  createPost: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
+  fetchNewsFeedFromAPI: () => Promise<void>;
+  fetchPostFromAPI: (id: number) => Promise<void>;
+  createPostFromAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
+  deletePostFromAPI: (postId: number) => Promise<void>;
   deletePost: (postId: number) => void;
   editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
   setReaction: (postId: number, reaction: ReactionType) => void;
@@ -148,7 +149,7 @@ export const usePostStore = create<PostStoreState>()(
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
 
-      fetchNewsFeed: async () => {
+      fetchNewsFeedFromAPI: async () => {
         try {
           const response = await fetchNewsFeed();
           const mappedPosts = (response.data ?? []).map((post) => ({
@@ -173,7 +174,7 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      fetchPost: async (id) => {
+      fetchPostFromAPI: async (id) => {
         try {
           const response = await fetchPost(id);
           const post = response.data;
@@ -198,7 +199,7 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      createPost: async (content, mediaUrl, mediaType) => {
+      createPostFromAPI: async (content, mediaUrl, mediaType) => {
         try {
           const response = await createPost(content, mediaUrl, mediaType);
           const postId = response.data?.data?.id;
@@ -209,6 +210,18 @@ export const usePostStore = create<PostStoreState>()(
           set({ lastUserPostId: postId, userPostPopupOpen: true });
         } catch (err) {
           console.error("❌ Failed to create post:", err);
+        }
+      },
+
+      deletePostFromAPI: async (postId) => {
+        try {
+          await deletePostById(postId);
+          set((state) => ({
+            posts: state.posts.filter((post) => post.id !== postId),
+            isLastPostDeleted: true,
+          }));
+        } catch (err) {
+          console.error("❌ Failed to delete post:", err);
         }
       },
 
