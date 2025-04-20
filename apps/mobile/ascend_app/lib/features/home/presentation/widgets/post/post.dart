@@ -170,6 +170,7 @@ class _PostState extends State<Post> {
                   child: PostEngagementStats(
                     likesCount: post.likesCount,
                     commentsCount: post.commentsCount,
+                    sharesCount: post.sharedCount,
                     reactionIcon: _getReactionIcon(post),
                     reactionColor: _getReactionColor(post),
                     postId: post.id, // Add this line

@@ -132,6 +132,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                               child: PostEngagementStats(
                                 likesCount: post.likesCount,
+                                sharesCount: post.sharedCount,
                                 commentsCount: post.commentsCount,
                                 reactionIcon: _getReactionIcon(post),
                                 reactionColor: _getReactionColor(post),
