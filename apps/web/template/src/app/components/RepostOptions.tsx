@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { Button, Menu, MenuItem, Typography, Box, useTheme } from "@mui/material";
 import { Repeat, Edit } from "@mui/icons-material";
-import { usePostStore } from "../stores/usePostStore";
+import { usePostStore, PostType } from "../stores/usePostStore";
 
-const RepostOptions: React.FC<{ postId: number }> = ({ postId }) => {
+const RepostOptions: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { repostPost } = usePostStore();
+  const { repostPost, setRepostSourcePost, setOpen } = usePostStore();
 
   const open = Boolean(anchorEl);
 
@@ -21,12 +21,15 @@ const RepostOptions: React.FC<{ postId: number }> = ({ postId }) => {
   };
 
   const handleRepost = () => {
-    repostPost(postId);
+    repostPost(post.id);
     handleClose();
   };
 
   const handleRepostWithThoughts = () => {
-    // set repost popup true and store original post (expand later)
+    if (post) {
+      setRepostSourcePost(post);
+      setOpen(true);
+    }
     handleClose();
   };
 

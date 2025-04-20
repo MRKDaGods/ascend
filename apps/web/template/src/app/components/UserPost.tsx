@@ -20,13 +20,13 @@ import { MoreHoriz, ThumbUp, Comment, Delete, Edit } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import DeletePostDialog from "./DeletePostDialog";
 import DocumentPreview from "./DocumentPreview";
+import RepostPreview from "./RepostPreview"; // ✅ Added
 
 interface UserPostProps {
   post: PostType;
   onDeleteClick?: () => void;
 }
 
-// Convert text URLs to clickable links
 const renderTextWithLinks = (text: string) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
@@ -89,7 +89,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           avatar={<Avatar src={post.profilePic} />}
           title={
             <Typography fontWeight="bold">
-              Ascend Developer •{" "}
+              Ascend Developer • {" "}
               <span style={{ color: theme.palette.text.secondary, fontSize: "0.9rem" }}>You</span>
             </Typography>
           }
@@ -138,10 +138,20 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
             />
           )}
 
-          {/* ✅ Show document preview */}
           {post.file && post.fileTitle && (
             <Box sx={{ mt: 2 }}>
               <DocumentPreview fileUrl={post.file} title={post.fileTitle} />
+            </Box>
+          )}
+
+          {post.repostSourcePost && (
+            <Box
+              sx={{
+                mt: 2,
+                overflow: "hidden",
+              }}
+            >
+              <RepostPreview post={post.repostSourcePost} />
             </Box>
           )}
         </CardContent>

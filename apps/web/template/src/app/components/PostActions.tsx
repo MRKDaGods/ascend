@@ -19,7 +19,6 @@ interface Props {
   onCommentClick: () => void;
 }
 
-
 const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
   const theme = useTheme();
   const {
@@ -40,7 +39,11 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
   const liked = postReactions[postId] !== undefined;
   const reposted = repostedPosts.includes(postId);
   const post = posts.find((p) => p.id === postId);
-  const authorName = post?.username ?? "this user";
+
+  // ✅ Exit early if post not found
+  if (!post) return null;
+
+  const authorName = post.username;
 
   const enrichedConnections = connections.map((conn) => ({
     id: conn.id,
@@ -79,7 +82,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           Comment
         </Button>
 
-        <RepostOptions postId={postId} />
+        <RepostOptions post={post} />
 
         <Button
           startIcon={<Send />}
