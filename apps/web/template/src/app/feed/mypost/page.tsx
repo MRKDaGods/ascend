@@ -17,6 +17,7 @@ const MyPostPage = () => {
 
   useEffect(() => {
     if (lastUserPostId) {
+      console.log("📡 Fetching post with ID:", lastUserPostId);
       fetchPostFromAPI(lastUserPostId);
     }
   }, [lastUserPostId]);

@@ -1,42 +1,62 @@
 import API from "./api";
-import { Post } from "./types";
 import { AxiosResponse } from "axios";
+import { Post } from "./types";
 
-interface NewsFeedResponse {
+// ==== RESPONSE INTERFACES ====
+
+export interface NewsFeedResponse {
   success: boolean;
   data: Post[];
 }
 
-interface GetPostResponse {
+export interface GetPostResponse {
   success: boolean;
   data: Post;
 }
 
-interface CreatePostResponse {
+export interface CreatePostResponse {
   success: boolean;
   data: Post;
 }
 
-interface DeletePostResponse {
+export interface DeletePostResponse {
   success: boolean;
   message: string;
 }
 
-interface EditPostResponse {
+export interface EditPostResponse {
   success: boolean;
   data: Post;
 }
 
-// Fetch all posts for the news feed
-export const fetchNewsFeed = async (page = 1, limit = 15): Promise<NewsFeedResponse> => {
+export interface RepostResponse {
+  success: boolean;
+  data: {
+    id: number;
+    user_id: number;
+    post_id: number;
+    comment: string;
+    created_at: string;
+  };
+}
+
+// ==== FETCH FEED ====
+
+export const fetchNewsFeed = async (
+  page = 1,
+  limit = 15
+): Promise<NewsFeedResponse> => {
   const response = await API.get<NewsFeedResponse>("/post/feed", {
     params: { page, limit },
   });
   return response.data;
 };
 
-// Fetch a single post by its ID
-export const fetchPost = async (postId: number): Promise<GetPostResponse> => {
+// ==== FETCH SINGLE POST ====
+
+export const fetchPost = async (
+  postId: number
+): Promise<GetPostResponse> => {
   try {
     const response = await API.get<GetPostResponse>(`/post/${postId}`);
     return response.data;
@@ -46,7 +66,8 @@ export const fetchPost = async (postId: number): Promise<GetPostResponse> => {
   }
 };
 
-// Create a new post with optional media
+// ==== CREATE POST ====
+
 export const createPost = async (
   content: string,
   mediaUrl?: string,
@@ -67,7 +88,6 @@ export const createPost = async (
     formData.append("title", "default title");
     formData.append("description", "default description");
   } else {
-    // ✅ Make sure text-only posts still send type/title/description
     formData.append("title", "text only");
     formData.append("description", "no media");
   }
@@ -78,15 +98,20 @@ export const createPost = async (
       "x-no-parse-body": "1",
     },
   });
-  
-  console.log("🧪 Post creation response:", res);
+
   return res;
 };
 
-export const deletePostById = async (postId: number): Promise<DeletePostResponse> => {
+// ==== DELETE POST ====
+
+export const deletePostById = async (
+  postId: number
+): Promise<DeletePostResponse> => {
   const response = await API.delete<DeletePostResponse>(`/post/${postId}`);
   return response.data;
 };
+
+// ==== EDIT POST ====
 
 export const editPost = async (
   postId: number,
@@ -98,6 +123,26 @@ export const editPost = async (
   formData.append("privacy", privacy);
 
   const res = await API.patch(`/post/${postId}`, formData, {
+    headers: {
+      "x-no-parse-body": "1",
+    },
+  });
+
+  return res;
+};
+
+// ==== REPOST ====
+
+export const repost = async (
+  postId: number,
+  comment: string,
+  privacy: "public" | "private" = "public"
+): Promise<AxiosResponse<RepostResponse>> => {
+  const formData = new FormData();
+  formData.append("comment", comment);
+  formData.append("privacy", privacy);
+
+  const res = await API.post(`/post/${postId}/share`, formData, {
     headers: {
       "x-no-parse-body": "1",
     },
