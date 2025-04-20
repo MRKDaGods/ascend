@@ -118,15 +118,16 @@ export default function InputBox() {
             setselectedFiles((prev) => [...prev, ...newFiles])
           }}
         />
-        <IconButton onClick={() => imageInputRef.current?.click()}>
+        <IconButton id="upload-image-button" onClick={() => imageInputRef.current?.click()}>
           📷
         </IconButton>
 
-        <IconButton onClick={() => fileInputRef.current?.click()}>
+        <IconButton id="upload-file-button-attachment" onClick={() => fileInputRef.current?.click()}>
           📎
         </IconButton>
 
         <TextField
+          id="message-input-field"
           placeholder="Write a message..."
           size="small"
           value={messageText}
