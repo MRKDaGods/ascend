@@ -43,7 +43,10 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       }}
     >
       <CardHeader
-        avatar={<Avatar src={post.profilePic} />}
+        avatar={
+        <Avatar src={post.profilePic || undefined}>
+          {!post.profilePic && post.username?.charAt(0)}
+        </Avatar>}
         title={<Typography fontWeight="bold">{post.username}</Typography>}
         subheader={
           <Typography color={theme.palette.text.secondary} fontSize="0.75rem">
