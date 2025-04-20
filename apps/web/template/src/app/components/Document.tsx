@@ -42,7 +42,7 @@ const Document: React.FC<DocumentProps> = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h6">Share a document</Typography>
+        <Typography>Share a document</Typography>
         <IconButton onClick={onClose}><CloseIcon /></IconButton>
       </DialogTitle>
 
