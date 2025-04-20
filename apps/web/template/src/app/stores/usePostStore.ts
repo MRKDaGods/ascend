@@ -3,8 +3,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { useMediaStore } from "./useMediaStore";
-// import { fetchNewsFeed, fetchPostById, createPost } from "@/api/posts";
-import { fetchNewsFeed } from "@/api/posts";
+import { fetchNewsFeed, fetchPostById, createPost } from "@/api/posts";
 
 export type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
 
@@ -85,16 +84,16 @@ interface PostStoreState {
   resetPost: () => void;
 
   fetchNewsFeed: () => Promise<void>;
-  addPost: (
-    content: string,
-    media?: string,
-    mediaType?: "image" | "video",
-    document?: { url: string; title: string },
-    repostSourcePost?: PostType | null
-  ) => void;
+  // addPost: (
+  //   content: string,
+  //   media?: string,
+  //   mediaType?: "image" | "video",
+  //   document?: { url: string; title: string },
+  //   repostSourcePost?: PostType | null
+  // ) => void;
   
-  // fetchPost: (id: number) => Promise<void>;
-  // createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
+  fetchPost: (id: number) => Promise<void>;
+  createPostViaAPI: (content: string, media?: string, mediaType?: "image" | "video") => Promise<void>;
 
   deletePost: (postId: number) => void;
   editPost: (id: number, newText: string, newMedia?: string, mediaType?: "image" | "video") => void;
@@ -192,91 +191,91 @@ export const usePostStore = create<PostStoreState>()(
           console.error("Failed to fetch news feed:", error);
         }
       },
-      addPost: (
-        content: string,
-        media?: string,
-        mediaType?: "image" | "video",
-        document?: { url: string; title: string },
-        repostSourcePost?: PostType | null
-      ) =>
-        set((state) => {
-          const newPost: PostType = {
-            id: generateNumericId(), // or from backend
-            profilePic: "/profile.jpg",
-            username: "User",
-            followers: "You",
-            timestamp: "Just now",
-            content,
-            image: mediaType === "image" ? media : undefined,
-            video: mediaType === "video" ? media : undefined,
-            file: document?.url,
-            fileTitle: document?.title,
-            likes: 0,
-            comments: 0,
-            reposts: 0,
-            commentsList: [],
-            isUserPost: true,
-            tags: [],
-            commentTags: {},
-            repostSourcePost: repostSourcePost ?? undefined, // ✅ assign if exists
-          };
-      
-          return {
-            posts: [...state.posts, newPost],
-            lastUserPostId: newPost.id,
-            isLastPostDeleted: false,
-            userPostPopupOpen: !repostSourcePost,         // ✅ show normal popup if it's NOT a repost
-            repostPopupOpen: !!repostSourcePost,          // ✅ show repost popup if it IS
-          };
-        }),      
-      
-
-      // fetchPost: async (id) => {
-      //   try {
-      //     const response = await fetchPostById(id);
-      //     const post = response.data;
-      //     const mappedPost: PostType = {
-      //       id: post.id,
-      //       username: `${post.user.first_name} ${post.user.last_name}`,
-      //       profilePic: post.user.profile_picture_url || "/profile.jpg",
-      //       content: post.content,
-      //       followers: "• 1st",
-      //       timestamp: new Date(post.created_at).toLocaleString(),
-      //       likes: post.likes_count,
-      //       reposts: post.shares_count,
-      //       comments: post.comments_count,
-      //       image: post.media?.find((m) => m.type === "image")?.url,
-      //       video: post.media?.find((m) => m.type === "video")?.url,
+      // addPost: (
+      //   content: string,
+      //   media?: string,
+      //   mediaType?: "image" | "video",
+      //   document?: { url: string; title: string },
+      //   repostSourcePost?: PostType | null
+      // ) =>
+      //   set((state) => {
+      //     const newPost: PostType = {
+      //       id: generateNumericId(), // or from backend
+      //       profilePic: "/profile.jpg",
+      //       username: "User",
+      //       followers: "You",
+      //       timestamp: "Just now",
+      //       content,
+      //       image: mediaType === "image" ? media : undefined,
+      //       video: mediaType === "video" ? media : undefined,
+      //       file: document?.url,
+      //       fileTitle: document?.title,
+      //       likes: 0,
+      //       comments: 0,
+      //       reposts: 0,
       //       commentsList: [],
       //       isUserPost: true,
+      //       tags: [],
+      //       commentTags: {},
+      //       repostSourcePost: repostSourcePost ?? undefined, // ✅ assign if exists
       //     };
-      //     set({ selectedPost: mappedPost });
-      //   } catch (err) {
-      //     console.error("fetchPostById error:", err);
-      //   }
-      // },
-
-      // createPostViaAPI: async (content, mediaUrl, mediaType) => {
-      //   try {
-      //     const response = await createPost(content, mediaUrl, mediaType);
-      //     const postId = response.data?.data?.id;
-
-      //     if (!postId || isNaN(postId)) {
-      //       console.warn("⚠️ No valid post ID returned from backend");
-      //       return;
-      //     }
       
-      //     if (postId) {
-      //       console.log("✅ Post created:", postId);
-      //       set({ lastUserPostId: postId });
-      //     } else {
-      //       console.warn("⚠️ Post created but no ID returned");
-      //     }
-      //   } catch (err) {
-      //     console.error("❌ Failed to create post:", err);
-      //   }
+      //     return {
+      //       posts: [...state.posts, newPost],
+      //       lastUserPostId: newPost.id,
+      //       isLastPostDeleted: false,
+      //       userPostPopupOpen: !repostSourcePost,         // ✅ show normal popup if it's NOT a repost
+      //       repostPopupOpen: !!repostSourcePost,          // ✅ show repost popup if it IS
+      //     };
+      //   }),      
+      
+
+      fetchPost: async (id) => {
+        try {
+          const response = await fetchPostById(id);
+          const post = response.data;
+          const mappedPost: PostType = {
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url || "/profile.jpg",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url,
+            video: post.media?.find((m) => m.type === "video")?.url,
+            commentsList: [],
+            isUserPost: true,
+          };
+          set({ selectedPost: mappedPost });
+        } catch (err) {
+          console.error("fetchPostById error:", err);
+        }
+      },
+
+      createPostViaAPI: async (content, mediaUrl, mediaType) => {
+        try {
+          const response = await createPost(content, mediaUrl, mediaType);
+          const postId = response.data?.data?.id;
+
+          if (!postId || isNaN(postId)) {
+            console.warn("⚠️ No valid post ID returned from backend");
+            return;
+          }
+      
+          if (postId) {
+            console.log("✅ Post created:", postId);
+            set({ lastUserPostId: postId });
+          } else {
+            console.warn("⚠️ Post created but no ID returned");
+          }
+        } catch (err) {
+          console.error("❌ Failed to create post:", err);
+        }
         
-      // },      
+      },      
 
       deletePost: (postId) =>
         set((state) => ({

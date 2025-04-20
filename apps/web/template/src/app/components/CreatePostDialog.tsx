@@ -44,9 +44,10 @@ const CreatePostDialog: React.FC = () => {
     setDraftSavedPopupOpen,
     setDraftText,
     lastUserPostId,
-    addPost,
     repostSourcePost, 
     setRepostSourcePost,
+    createPostViaAPI,
+    setUserPostPopupOpen,
   } = usePostStore();
 
 
@@ -77,7 +78,9 @@ const CreatePostDialog: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
   
-    addPost(postText, media, type, documentPreview ?? undefined, repostSourcePost);
+    // addPost(postText, media, type, documentPreview ?? undefined, repostSourcePost);
+    createPostViaAPI(postText, media, type);
+    setUserPostPopupOpen(true); // ✅ Show the snackbar popup
 
     // Reset everything after posting
     setDraftText("");
