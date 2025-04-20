@@ -2,7 +2,7 @@ import { Message } from "../stores/chatStore";
 import io from "socket.io-client";
 
 export const socket = io(
-  "https://131.189.102.89/",
+  "https://ascendx.germanywestcentral.cloudapp.azure.com/",
   { autoConnect: false }
 );
 
