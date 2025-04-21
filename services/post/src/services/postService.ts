@@ -29,7 +29,7 @@ export class PostService {
     privacy: Post["privacy"]
   ): Promise<Post> {
     const result = await db.query(
-      `INSERT INTO post_service.posts (user_id, content, privacy, is_edited, created_at, updated_at) 
+      `INSERT INTO post_service.posts (user_id, content, privacy, is_edited, created_at, updated_at)
        VALUES ($1, $2, $3, false, NOW(), NOW()) RETURNING *`,
       [userId, content, privacy]
     );
@@ -45,7 +45,7 @@ export class PostService {
 
   async getPostById(postId: number): Promise<Post | null> {
     const postResult = await db.query(
-      `SELECT p.*, 
+      `SELECT p.*,
         json_build_object(
           'id', u.user_id,
           'first_name', u.first_name,
@@ -66,26 +66,28 @@ export class PostService {
     post.comments_count = await this.getPostCommentsCount(postId);
     post.shares_count = await this.getPostSharesCount(postId);
 
-     // Process media URLs
-  if (post.media && post.media.length > 0) {
-    for (const media of post.media) {
-      // Replace URL with presigned URL
-      media.original_url = media.url; // Save the original URL/ID
-      media.url = await this.getFileUrl(media.url);
-      
-      // Also handle thumbnail URL if present
-      if (media.thumbnail_url) {
-        media.original_thumbnail_url = media.thumbnail_url;
-        media.thumbnail_url = await this.getFileUrl(media.thumbnail_url);
+    // Process media URLs
+    if (post.media && post.media.length > 0) {
+      for (const media of post.media) {
+        // Replace URL with presigned URL
+        media.original_url = media.url; // Save the original URL/ID
+        media.url = await this.getFileUrl(media.url);
+
+        // Also handle thumbnail URL if present
+        if (media.thumbnail_url) {
+          media.original_thumbnail_url = media.thumbnail_url;
+          media.thumbnail_url = await this.getFileUrl(media.thumbnail_url);
+        }
       }
     }
-  }
-  
-  // Process user profile picture
-  if (post.user && post.user.profile_picture_id) {
-    post.user.profile_picture_url = await this.getFileUrl(post.user.profile_picture_id);
-  }
-  
+
+    // Process user profile picture
+    if (post.user && post.user.profile_picture_id) {
+      post.user.profile_picture_url = await this.getFileUrl(
+        post.user.profile_picture_id
+      );
+    }
+
     return post;
   }
 
@@ -133,7 +135,7 @@ export class PostService {
     console.log("===========================");
 
     const result = await db.query(
-      `UPDATE post_service.posts 
+      `UPDATE post_service.posts
        SET ${updateFields.join(", ")}
        WHERE id = $${valueIndex} RETURNING *`,
       values
@@ -247,7 +249,7 @@ export class PostService {
     const finalParentCommentId = parentCommentId || null;
 
     const result = await db.query(
-      `INSERT INTO post_service.comments 
+      `INSERT INTO post_service.comments
        (user_id, post_id, parent_comment_id, content, is_edited, created_at, updated_at)
        VALUES ($1, $2, $3, $4, false, NOW(), NOW()) RETURNING *`,
       [userId, postId, finalParentCommentId, content]
@@ -261,7 +263,7 @@ export class PostService {
 
   async getCommentById(commentId: number): Promise<Comment | null> {
     const result = await db.query(
-      `SELECT c.*, 
+      `SELECT c.*,
         json_build_object(
           'id', u.user_id,
           'first_name', u.first_name,
@@ -287,7 +289,7 @@ export class PostService {
     offset: number = 0
   ): Promise<Comment[]> {
     const result = await db.query(
-      `SELECT c.*, 
+      `SELECT c.*,
         json_build_object(
           'id', u.user_id,
           'first_name', u.first_name,
@@ -326,7 +328,7 @@ export class PostService {
     }
 
     const result = await db.query(
-      `UPDATE post_service.comments 
+      `UPDATE post_service.comments
        SET content = $1, is_edited = true, updated_at = NOW()
        WHERE id = $2 AND user_id = $3
        RETURNING *`,
@@ -348,8 +350,8 @@ export class PostService {
 
   async getPostCommentsCount(postId: number): Promise<number> {
     const result = await db.query(
-      `SELECT COUNT(*) 
-       FROM post_service.comments 
+      `SELECT COUNT(*)
+       FROM post_service.comments
        WHERE post_id = $1`,
       [postId]
     );
@@ -394,7 +396,7 @@ export class PostService {
     offset: number = 0
   ): Promise<FeedItemType[]> {
     const result = await db.query(
-      `SELECT DISTINCT ON (p.id) p.*, 
+      `SELECT DISTINCT ON (p.id) p.*,
         'post' as type,
         json_build_object(
           'id', u.user_id,
@@ -406,7 +408,7 @@ export class PostService {
        JOIN user_service.profiles u ON p.user_id = u.user_id
        WHERE (
          -- Posts from connections (both public and connections-only)
-         (p.privacy IN ('public', 'connections') 
+         (p.privacy IN ('public', 'connections')
           AND EXISTS (
             SELECT 1 FROM connection_service.connections c
             WHERE ((c.user_id = $1 AND c.connection_id = p.user_id)
@@ -414,7 +416,7 @@ export class PostService {
             AND c.status = 'accepted'
           ))
          -- Posts from users being followed (only public posts)
-         OR (p.privacy = 'public' 
+         OR (p.privacy = 'public'
              AND EXISTS (
                SELECT 1 FROM connection_service.follows f
                WHERE f.follower_id = $1 AND f.following_id = p.user_id
@@ -492,7 +494,7 @@ export class PostService {
 
   private async getCommentReplies(commentId: number): Promise<Comment[]> {
     const result = await db.query(
-      `SELECT c.*, 
+      `SELECT c.*,
         json_build_object(
           'id', u.user_id,
           'first_name', u.first_name,
@@ -698,7 +700,7 @@ export class PostService {
     offset: number = 0
   ): Promise<Post[]> {
     const result = await db.query(
-      `SELECT p.*, 
+      `SELECT p.*,
         json_build_object(
           'id', u.user_id,
           'first_name', u.first_name,
@@ -733,7 +735,7 @@ export class PostService {
        FROM post_service.posts p
        WHERE p.privacy = 'public'
          OR (p.privacy = 'connections' AND EXISTS (
-           SELECT 1 FROM connection_service.connections 
+           SELECT 1 FROM connection_service.connections
            WHERE (user_id = $1 AND connection_id = p.user_id)
               OR (connection_id = $1 AND user_id = p.user_id)
          ))
@@ -767,7 +769,7 @@ export class PostService {
     privacy: Post["privacy"]
   ): Promise<Post | null> {
     const result = await db.query(
-      `UPDATE post_service.posts 
+      `UPDATE post_service.posts
        SET privacy = $1, updated_at = NOW()
        WHERE id = $2 RETURNING *`,
       [privacy, postId]
@@ -778,7 +780,7 @@ export class PostService {
 
   async updateEngagementCounts(postId: number): Promise<void> {
     await db.query(
-      `INSERT INTO post_service.post_engagement 
+      `INSERT INTO post_service.post_engagement
        (post_id, likes_count, comments_count, shares_count, last_updated)
        VALUES ($1, $2, $3, $4, NOW())
        ON CONFLICT (post_id) DO UPDATE
@@ -885,7 +887,7 @@ export class PostService {
   ): Promise<void> {
     // Get existing tags for this content
     const existingTags = await db.query(
-      `SELECT start_index, end_index 
+      `SELECT start_index, end_index
        FROM post_service.user_tags
        WHERE ${contentType}_id = $1`,
       [contentId]
