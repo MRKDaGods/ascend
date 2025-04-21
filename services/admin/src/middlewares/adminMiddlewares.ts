@@ -1,7 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 
-export const checkUserIsAdmin = (
+export const isUserAdmin = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction

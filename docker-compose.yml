@@ -265,6 +265,9 @@ services:
       context: .
       dockerfile: services/post/Dockerfile
     environment:
+    # Service
+      - SERVICE_NAME=post
+
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
