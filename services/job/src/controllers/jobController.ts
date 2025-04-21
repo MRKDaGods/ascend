@@ -11,12 +11,14 @@ import {
   isUserJobCreator,
   getJobIdByApplicationId,
   getJobApplications,
+  reportJob,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
   newJobValidationRules,
   jobApplicationValidationRules,
   jobApplicationStatusUpdateValidationRules,
+  jobReportValidationRules,
 } from "../validations/jobValidation";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 
@@ -279,3 +281,22 @@ export const handleGetJobApplications = async (
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const handleReportJob = [
+  ...jobReportValidationRules,
+  validate,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const jobId = Number(req.params.jobId);
+      const reason = req.body.reason;
+
+      const report = await reportJob(userId, jobId, reason);
+
+      res.sendStatus(201);
+    } catch (error) {
+      console.error("Error in handleReportJob:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+];

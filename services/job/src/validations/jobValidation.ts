@@ -158,3 +158,11 @@ export const jobApplicationStatusUpdateValidationRules: ValidationChain[] = [
       "Invalid status. Allowed values: Pending, Viewed, Rejected, Accepted"
     ),
 ];
+
+/**
+ * Validation rules for job reporting
+ */
+export const jobReportValidationRules: ValidationChain[] = [
+  // Reason
+  body("reason").isString().trim().notEmpty().withMessage("Reason is required"),
+];
