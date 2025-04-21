@@ -440,3 +440,30 @@ export const deletePost = async (postId: number): Promise<boolean> => {
     throw new Error("Database query failed");
   }
 };
+
+export const getPostReportsCount = async (
+  startDate?: Date
+): Promise<number> => {
+  try {
+    let query = `
+      SELECT COUNT(*) AS count
+      FROM post_service.reports
+    `;
+
+    const values: Date[] = [];
+
+    // If startDate is provided, add WHERE clause to filter by date
+    if (startDate) {
+      query += `
+        WHERE created_at >= $1
+      `;
+      values.push(startDate);
+    }
+
+    const result = await db.query(query, values);
+    return parseInt(result.rows[0].count);
+  } catch (error) {
+    console.error("Error in getPostReportsCount:", error);
+    throw new Error("Database query failed");
+  }
+};

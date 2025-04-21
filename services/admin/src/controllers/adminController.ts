@@ -7,6 +7,7 @@ import {
   getFollowsCount,
   getJobReportsCount,
   getJobsCount,
+  getPostReportsCount,
   getPostsCount,
   getReportedJobs,
   getReportedPosts,
@@ -430,6 +431,47 @@ export const handleDeletePost = async (
     res.sendStatus(200);
   } catch (error) {
     console.error("Error in handleDeletePost:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const handleGetPostReportsCount = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const duration = req.query.duration as string;
+    let startDate: Date | undefined = undefined;
+
+    // Handle duration parameter if provided
+    if (duration) {
+      const now = new Date();
+
+      switch (duration) {
+        case "day":
+          startDate = new Date(now.setDate(now.getDate() - 1));
+          break;
+        case "week":
+          startDate = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case "month":
+          startDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case "year":
+          startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        default:
+          return res.status(400).json({
+            error:
+              "Invalid duration parameter. Use 'day', 'week', 'month', or 'year'.",
+          });
+      }
+    }
+
+    const count = await getPostReportsCount(startDate);
+    res.json({ count });
+  } catch (error) {
+    console.error("Error in handleGetPostReportsCount:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
