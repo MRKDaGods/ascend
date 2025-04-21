@@ -593,3 +593,23 @@ export const getJobApplications = async (
     throw new Error("Database query failed");
   }
 };
+
+export const reportJob = async (
+  user_id: number,
+  job_id: number,
+  reason: string
+): Promise<boolean> => {
+  try {
+    const query = `
+      INSERT INTO job_service.job_reports (user_id, job_id, reason)
+      VALUES ($1, $2, $3)
+      returning *
+    `;
+    const values = [user_id, job_id, reason];
+    const result = await db.query(query, values);
+    return result.rows.length > 0;
+  } catch (error) {
+    console.error("Error reporting job:", error);
+    throw new Error("Database query failed");
+  }
+};
