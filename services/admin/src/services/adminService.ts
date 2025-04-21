@@ -1,5 +1,6 @@
 import db from "@shared/config/db";
 import { ReportedJob, ReportedPost } from "packages/shared/src/models/report";
+import { getPostById } from "@shared/utils/post";
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -381,7 +382,7 @@ export const getReportedPosts = async (
         const post = await getPostById(row.post_id);
         return {
           id: row.id,
-          post,
+          post: post!,
           reporter_id: row.reporter_id,
           reason: row.reason,
           description: row.description,

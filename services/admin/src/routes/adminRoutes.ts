@@ -32,7 +32,7 @@ router.get("/jobs/reports", handleGetReportedJobs);
 router.patch("/jobs/reports/:reportId", handleUpdateJobReport);
 router.delete("/jobs/:jobId", handleDeleteJob);
 
-router.get("posts/reports", handleGetReportedPosts);
+router.get("/posts/reports", handleGetReportedPosts);
 router.patch("/posts/reports/:reportId", handleUpdatePostReport);
 router.delete("/posts/:postId", handleDeletePost);
 
