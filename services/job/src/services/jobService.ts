@@ -69,6 +69,22 @@ export const getJobIdByApplicationId = async (
   }
 };
 
+export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM job_service.jobs
+      WHERE job_id = $1
+    `;
+    const values = [jobId];
+    const result = await db.query(query, values);
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking if job exists:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const searchJobs = async ({
   keyword,
   location,
@@ -600,8 +616,19 @@ export const reportJob = async (
   reason: string
 ): Promise<boolean> => {
   try {
+    // check if the user reported the job before
+    const checkQuery = `
+      SELECT * FROM job_service.reports
+      WHERE reporter_id = $1 AND job_id = $2
+    `;
+    const checkValues = [user_id, job_id];
+    const checkResult = await db.query(checkQuery, checkValues);
+    if (checkResult.rows.length > 0) {
+      return false; // User has already reported this job
+    }
+
     const query = `
-      INSERT INTO job_service.job_reports (user_id, job_id, reason)
+      INSERT INTO job_service.reports (reporter_id, job_id, reason)
       VALUES ($1, $2, $3)
       returning *
     `;
