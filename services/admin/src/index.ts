@@ -1,4 +1,4 @@
 import startSharedService from "@shared/sharedService";
+import adminRoutes from "./routes/adminRoutes";
 
-startSharedService("Admin", undefined);
-console.log("yarab Admin");
+startSharedService("Admin", adminRoutes);
