@@ -10,19 +10,26 @@ import SkillsModal from './SkillsModal'; // Import SkillsModal
 import VisibilityDropdown from "./VisibilityDropdown"; // Import VisibilityDropdown
 import InterestsModal from "./interestmodal"; // Import InterestsModal
 import { api } from "@/api";
-import { Profile as UserProfile, Education } from "@ascend/api-client/models";
+import { Profile as UserProfile, Education, Experience } from "@ascend/api-client/models";
 import { Skill } from "@ascend/api-client/models";
 
-type Experience = {
+
+type Interest = {
+  id?: number; // Add an optional id property
+  name: string;
+};
+// Define the Experience type
+type ExperienceFormState = {
   company: string;
   position: string;
   description: string;
+  startMonth: string;
   start_date: Date;
   end_date?: Date;
-};
-
-type Interest = {
-  name: string;
+  endYear?: string;
+  location?: string;
+  employmentType?: string;
+  currentlyWorking?: boolean;
 };
 
 const LinkedInProfile: React.FC = () => {
@@ -40,6 +47,30 @@ const LinkedInProfile: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]); // State for the skills list
   const [experiences, setExperiences] = useState<Experience[]>([]); // State for experiences
   const [interests, setInterests] = useState<Interest[]>([]); // State for interests
+
+  // Load experiences from localStorage on mount
+  useEffect(() => {
+    const savedExperiences = localStorage.getItem('experiences');
+    if (savedExperiences) {
+      setExperiences(JSON.parse(savedExperiences));
+    }
+  }, []);
+
+  // Save experiences to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('experiences', JSON.stringify(experiences));
+  }, [experiences]);
+
+  useEffect(() => {
+    const savedInterests = localStorage.getItem('interests');
+    if (savedInterests) {
+      setInterests(JSON.parse(savedInterests));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('interests', JSON.stringify(interests));
+  }, [interests]);
 
   useEffect(() => {
     // Fake login
@@ -63,6 +94,31 @@ const LinkedInProfile: React.FC = () => {
     });
   }, []);
 
+  const handleSaveExperience = (newExperience: Experience) => {
+    setExperiences((prevExperiences) => [...prevExperiences, newExperience]); // Add the new experience to the state
+  
+    // Update the profile with the new experience
+    if (profile) {
+      const updatedProfile = {
+        ...profile,
+        experience: profile.experience
+  ? [...profile.experience, newExperience]
+  : [newExperience], // Ensure the field is named correctly
+      };
+  
+      // Update via API
+      api.user
+        .updateLocalUserProfile(updatedProfile as any)
+        .then((updatedProfile) => {
+          setProfile(updatedProfile);
+        })
+        .catch((err) => {
+          console.error("Failed to save experience:", err);
+        });
+    }
+  
+    setIsExperienceOpen(false); // Close the modal
+  };
   const handleSaveEducation = (education: Education) => {
     // Update the profile with the new education
     if (profile) {
@@ -198,9 +254,7 @@ const LinkedInProfile: React.FC = () => {
     }
   };
 
-  const handleSaveExperiences = (data: Experience[]) => {
-    setExperiences(data); // Store the saved experiences
-  };
+  // Removed duplicate declaration of handleSaveInterests
 
   const handleDeleteExperience = (index: number) => {
     if (window.confirm("Are you sure you want to delete this experience?")) {
@@ -210,14 +264,20 @@ const LinkedInProfile: React.FC = () => {
   };
 
   const handleSaveInterests = (newInterests: Interest[]) => {
-    setInterests(newInterests); // Update the interests state
+    setInterests((prevInterests) => [
+      ...prevInterests,
+      ...newInterests.map((interest, index) => ({
+        ...interest,
+        id: interest.id ?? prevInterests.length + index + 1, // Ensure each interest has a unique id
+      })),
+    ]);
     setIsInterestsOpen(false); // Close the modal
   };
 
   if (!isLoggedIn) {
     return <div>Logging in...</div>;
   }
-
+  
   if (!profile) {
     return <div>Loading profile...</div>;
   }
@@ -348,16 +408,12 @@ const LinkedInProfile: React.FC = () => {
             fontWeight: 'bold',
             cursor: 'pointer',
           }}
-          
         >
           Add Experience
         </button>
 
-        <ExperienceModal
-          isOpen={isExperienceOpen}
-          onClose={() => setIsExperienceOpen(false)}
-          onSave={handleSaveExperiences}
-        />
+        
+
       </div>
 
       {/* Education Section */}
@@ -436,7 +492,6 @@ const LinkedInProfile: React.FC = () => {
             fontWeight: 'bold',
             cursor: 'pointer',
           }}
-          
         >
           Add skills
         </button>
@@ -497,7 +552,6 @@ const LinkedInProfile: React.FC = () => {
             fontWeight: 'bold',
             cursor: 'pointer',
           }}
-          
         >
           Add Interests
         </button>
@@ -542,15 +596,16 @@ const LinkedInProfile: React.FC = () => {
           onSave={handleSaveEducation}
         />
       )}
+<ExperienceModal
+  isOpen={isExperienceOpen}
+  onClose={() => setIsExperienceOpen(false)}
+  onSave={(newExperiences: Experience[]) => {
+    newExperiences.forEach((experience) => handleSaveExperience(experience));
+  }}
+/>
 
-      {/* Experience Modal */}
-      {isExperienceOpen && (
-        <ExperienceModal
-          isOpen={isExperienceOpen}
-          onClose={() => setIsExperienceOpen(false)}
-          onSave={handleSaveExperiences}
-        />
-      )}
+    
+
 
       {/* Skills Modal */}
       {isSkillsOpen && (
@@ -576,6 +631,7 @@ const LinkedInProfile: React.FC = () => {
           isOpen={isInterestsOpen}
           onClose={() => setIsInterestsOpen(false)}
           onSave={handleSaveInterests}
+          profile={profile}
         />
       )}
 
