@@ -7,6 +7,9 @@ export interface Application {
   application_id: number;
   user_id: number;
   job_id: number;
+  resume_url: string;
+  email: string;
+  phone: string;
   status: string;
   applied_at: Date;
 }
