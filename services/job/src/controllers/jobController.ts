@@ -12,6 +12,7 @@ import {
   getJobIdByApplicationId,
   getJobApplications,
   reportJob,
+  isThereJobWithId,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -291,7 +292,19 @@ export const handleReportJob = [
       const jobId = Number(req.params.jobId);
       const reason = req.body.reason;
 
+      const jobExists = await isThereJobWithId(jobId);
+      if (!jobExists) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
       const report = await reportJob(userId, jobId, reason);
+
+      if (!report) {
+        // user has already reported the job
+        return res.status(409).json({
+          error: "You have already reported this job.",
+        });
+      }
 
       res.sendStatus(201);
     } catch (error) {
