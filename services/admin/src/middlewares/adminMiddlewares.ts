@@ -6,7 +6,7 @@ export const isUserAdmin = (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.user!.id === 5) {
+  if (req.user!.id === 14) {
     next();
   } else {
     return res.status(403).json({
