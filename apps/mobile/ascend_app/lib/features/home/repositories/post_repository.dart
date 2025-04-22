@@ -1,18 +1,23 @@
 import '../models/post_model.dart';
 import '../data/sample_posts.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+// Import for secure storage
+import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class PostRepository {
-  // For now, we'll use in-memory storage
-  final List<PostModel> _posts = [];
+  // Define the baseUrl with HTTPS
+  final String baseUrl = 'https://api.ascendx.tech';
   
-  // Add a map for sponsored posts
+  // For fallback and sponsored content
+  final List<PostModel> _posts = [];
   final Map<String, PostModel> _sponsoredPosts = {};
+  final http.Client _client;
 
-  PostRepository() {
-    // Initialize with sample posts
-    _posts.addAll(SamplePosts.getDefaultPosts());
-    
-    // Initialize sponsored posts
+  PostRepository({http.Client? client}) : _client = client ?? http.Client() {
+    // Keep the sponsored posts initialization
     _sponsoredPosts['sponsored_1'] = PostModel(
       id: 'sponsored_1',
       title: 'Sponsored: Premium Subscription',
@@ -28,6 +33,7 @@ class PostRepository {
       images: ['assets/images/posts/sponsor1.jpg'],
     );
     
+    // Keep other sponsored posts
     _sponsoredPosts['sponsored_2'] = PostModel(
       id: 'sponsored_2',
       title: 'Sponsored: Learn New Skills',
@@ -42,25 +48,33 @@ class PostRepository {
       followers: 3890,
       images: ['assets/images/posts/sponsor2.jpg'],
     );
-    
-    // Add more sponsored posts as needed
   }
   
-  // Get all posts
-  Future<List<PostModel>> getPosts() async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _posts;
+  // Get all posts from feed API
+  Future<List<PostModel>> getPosts({int page = 1, int limit = 15}) async { // Changed default page to 1
+    try {
+      // Try the API
+      final result = await fetchFeed(page: page, limit: limit);
+      final posts = result['posts'] as List<PostModel>;
+      
+      // Return posts from API even if empty
+      print('Returning ${posts.length} posts from API');
+      return posts;
+    } catch (e) {
+      print('Error in getPosts: $e');
+      // Re-throw the exception so the BLoC can handle it
+      rethrow; 
+    }
   }
   
   // Get a single post by ID
   Future<PostModel?> getPostById(String id) async {
-    // Check if it's a sponsored post
+    // Sponsored posts are local
     if (id.startsWith('sponsored_')) {
       return _sponsoredPosts[id];
     }
     
-    // Otherwise look in regular posts
+    // For real posts, try to fetch from backend (implement in future)
     try {
       return _posts.firstWhere((post) => post.id == id);
     } catch (e) {
@@ -70,7 +84,7 @@ class PostRepository {
   
   // Add a new post
   Future<PostModel> addPost(PostModel post) async {
-    // Simulate network delay
+    // Implement API call later
     await Future.delayed(const Duration(milliseconds: 300));
     _posts.add(post);
     return post;
@@ -78,7 +92,7 @@ class PostRepository {
   
   // Update an existing post
   Future<PostModel> updatePost(PostModel post) async {
-    // Simulate network delay
+    // Implement API call later
     await Future.delayed(const Duration(milliseconds: 300));
     final index = _posts.indexWhere((p) => p.id == post.id);
     if (index >= 0) {
@@ -89,53 +103,119 @@ class PostRepository {
   
   // Delete a post
   Future<void> deletePost(String id) async {
-    // Simulate network delay
+    // Implement API call later
     await Future.delayed(const Duration(milliseconds: 300));
     _posts.removeWhere((post) => post.id == id);
   }
 
-  // Add this method
-  Future<List<PostModel>> getMorePosts(int count) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 800));
-    
-    // Generate some more sample posts
-    final newPosts = List.generate(count, (index) {
-      final id = _posts.length + index + 1;
-      return PostModel(
-        id: 'post_$id',
-        title: 'New Post $id',
-        description: 'This is a dynamically loaded post #$id',
-        ownerName: 'User $id',
-        ownerImageUrl: 'assets/images/profile/user$id.jpg',
-        timePosted: 'Just now',
-        likesCount: 0,
-        commentsCount: 0,
-        followers: 100 + index,
-        images: index % 3 == 0 ? ['assets/images/posts/sample_$index.jpg'] : [],
-      );
-    });
-    
-    // Add to our in-memory store
-    _posts.addAll(newPosts);
-    
-    return newPosts;
+  // Get more posts for pagination
+  Future<List<PostModel>> getMorePosts(int count, {int page = 0}) async {
+    try {
+      final result = await fetchFeed(page: page, limit: count);
+      return result['posts'];
+    } catch (e) {
+      print('Error fetching more posts: $e');
+      // Return empty list instead of fallback data
+      return [];
+    }
   }
 
-  // Add this method to your PostRepository class
+  // Hide post method
   Future<void> hidePost(String id, String reason) async {
-    // Simulate network delay
+    // Implement real API call later
     await Future.delayed(const Duration(milliseconds: 300));
-    
-    // Log the hide action (in a real app, this would go to analytics/backend)
     print('Post $id hidden. Reason: $reason');
-    
-    // Remove from posts list
     _posts.removeWhere((post) => post.id == id);
     
-    // Also check sponsored posts
     if (_sponsoredPosts.containsKey(id)) {
       _sponsoredPosts.remove(id);
     }
+  }
+
+  // Update the fetchFeed method with the correct endpoint and add debugging
+  Future<Map<String, dynamic>> fetchFeed({int page = 1, int limit = 15}) async { // Changed default page to 1
+    try {
+      // Get the auth token - make sure it's valid
+      final authToken = await SecureStorageHelper.getAuthToken();
+            // Check if the token exists
+      if (authToken == null) {
+        print('Auth token is null. Cannot make authenticated request.');
+        // Throw an specific exception or handle appropriately
+        throw Exception('Authentication token not found.'); 
+      }
+      print('Auth token: ${authToken?.substring(0, 10)}...');
+      
+      // Try with `/post/feed` endpoint as seen in logs
+      final uri = Uri.parse('$baseUrl/post/feed?page=$page&limit=$limit');
+      print('Making request to: $uri');
+      
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json',
+        'x-no-parse-body': '1', // Add the custom header here
+      };
+      print('Request headers: $headers');
+      
+      final response = await _client.get(uri, headers: headers);
+      print('API response status: ${response.statusCode}');
+      print('API response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        
+        // Parse the posts array into PostModel objects
+        final List<dynamic> apiPosts = jsonData['data'] ?? [];
+        print('Found ${apiPosts.length} posts from API');
+        
+        if (apiPosts.isEmpty) {
+          print('API returned empty posts array');
+          
+          // Return empty posts list without fallback
+          return {
+            'posts': <PostModel>[], 
+            'totalPosts': jsonData['pagination']?['total'] ?? 0,
+            'currentPage': jsonData['pagination']?['page'] ?? page,
+            'hasMorePages': false,
+          };
+        }
+        
+        // If we got posts, try to convert them
+        try {
+          final posts = PostModel.fromApiResponseList(apiPosts);
+          print('Successfully converted ${posts.length} API posts to PostModel objects');
+          
+          // Extract pagination info
+          final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
+          
+          return {
+            'posts': posts,
+            'totalPosts': pagination['total'] ?? 0,
+            'currentPage': pagination['page'] ?? page,
+            'hasMorePages': (pagination['page'] ?? page) * (pagination['limit'] ?? limit) < (pagination['total'] ?? 0),
+          };
+        } catch (e) {
+          print('Error converting API posts to PostModel: $e');
+          return {
+            'posts': <PostModel>[],
+            'totalPosts': 0,
+            'currentPage': page,
+            'hasMorePages': false,
+          };
+        }
+      } else {
+        // Non-200 status code
+        print('API error: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to load posts: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception in fetchFeed: $e');
+      throw Exception('Error fetching posts: $e');
+    }
+  }
+  
+  // Clean up resources
+  void dispose() {
+    _client.close();
   }
 }
