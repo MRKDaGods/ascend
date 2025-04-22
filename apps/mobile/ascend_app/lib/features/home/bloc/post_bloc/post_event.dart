@@ -91,6 +91,16 @@ class HidePost extends PostEvent {
   List<Object?> get props => [postId, reason];
 }
 
+// Event to trigger sharing a post
+class SharePost extends PostEvent {
+  final String postId;
+
+  const SharePost(this.postId);
+
+  @override
+  List<Object?> get props => [postId];
+}
+
 // Add new events
 class ShowPostFeedbackOptions extends PostEvent {
   final String postId;

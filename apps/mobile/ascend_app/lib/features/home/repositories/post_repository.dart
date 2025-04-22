@@ -290,6 +290,57 @@ class PostRepository {
     }
   }
 
+  /// Shares a specific post via the API.
+  Future<bool> sharePost(String postId) async {
+    // Use the correct baseUrl and endpoint for sharing posts
+    final url = Uri.parse('$baseUrl/post/$postId/share'); // Corrected URL using baseUrl
+    debugPrint('📤 [PostRepository] Sharing post $postId at $url');
+
+    try {
+      // Get the auth token
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot share post.');
+        throw Exception('Authentication token not found.');
+      }
+      debugPrint('🔑 [PostRepository] Using auth token for sharing post.');
+
+      // Define the request body with the privacy setting
+      final body = jsonEncode(<String, dynamic>{
+        'privacy': 'public', // Default privacy setting. Adjust if needed.
+      });
+      debugPrint('📤 [PostRepository] Share request body: $body');
+
+      final response = await _client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8', // Keep Content-Type for JSON body
+          'Authorization': 'Bearer $authToken', // Keep the authentication token
+        },
+        body: body, // Send the body with the privacy setting
+      );
+
+      // Expecting a 200 OK or similar success status
+      if (response.statusCode == 200) {
+         final responseBody = jsonDecode(response.body);
+         // Check if the API response structure includes a 'success' flag
+         if (responseBody['success'] == true) {
+            debugPrint('✅ [PostRepository] Post shared successfully (Status: ${response.statusCode}): ${responseBody}');
+            return true; // Indicate success
+         } else {
+            debugPrint('❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}');
+            throw Exception('API returned success status but indicated failure in body.');
+         }
+      } else {
+        debugPrint('❌ [PostRepository] Failed to share post. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to share post. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error sharing post: $e');
+      throw Exception('Failed to share post: $e');
+    }
+  }
+
   // Clean up resources
   void dispose() {
     _client.close();

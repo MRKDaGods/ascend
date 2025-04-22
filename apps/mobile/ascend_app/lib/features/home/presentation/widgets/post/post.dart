@@ -231,7 +231,11 @@ class _PostState extends State<Post> {
                       PostActionButton(
                         icon: Icons.share_outlined,
                         label: 'Share',
-                        onTap: () {},
+                        onTap: () {
+                          // Dispatch the SharePost event
+                          context.read<PostBloc>().add(SharePost(post.id));
+                          debugPrint('Share button tapped for post ${post.id}');
+                        },
                       ),
                     ],
                   ),
