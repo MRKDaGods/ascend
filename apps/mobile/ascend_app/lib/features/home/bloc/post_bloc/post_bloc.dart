@@ -22,6 +22,8 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<HidePostFeedbackOptions>(_onHidePostFeedbackOptions);
     on<AddCommentReply>(_onAddCommentReply);
     // Register other events here
+    on<SavePost>(_onSavePost); // Add handler
+    on<UnsavePost>(_onUnsavePost); // Add handler
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -409,5 +411,67 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     }
     // If not found in this branch, return the comment unchanged
     return currentComment;
+  }
+
+  // Handler for SavePost event
+  Future<void> _onSavePost(SavePost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      try {
+        debugPrint('🔄 [PostBloc] Attempting to save post ${event.postId} via API');
+        final success = await _postRepository.savePost(event.postId);
+
+        if (success) {
+          debugPrint('✅ [PostBloc] Post ${event.postId} saved successfully via API.');
+          // Update the post's state locally
+          final updatedPosts = currentState.posts.map((post) {
+            if (post.id == event.postId) {
+              return post.copyWith(isSaved: true);
+            }
+            return post;
+          }).toList();
+          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+        } else {
+          debugPrint('⚠️ [PostBloc] Save API call returned false for post ${event.postId}.');
+          // Optionally emit an error or just log
+        }
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Failed to save post ${event.postId} via API: $e');
+        emit(PostsError("Failed to save post: ${e.toString()}"));
+        await Future.delayed(const Duration(milliseconds: 50));
+        emit(currentState); // Revert state on error
+      }
+    }
+  }
+
+  // Handler for UnsavePost event
+  Future<void> _onUnsavePost(UnsavePost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      try {
+        debugPrint('🔄 [PostBloc] Attempting to unsave post ${event.postId} via API');
+        final success = await _postRepository.unsavePost(event.postId);
+
+        if (success) {
+          debugPrint('✅ [PostBloc] Post ${event.postId} unsaved successfully via API.');
+          // Update the post's state locally
+          final updatedPosts = currentState.posts.map((post) {
+            if (post.id == event.postId) {
+              return post.copyWith(isSaved: false);
+            }
+            return post;
+          }).toList();
+          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+        } else {
+          debugPrint('⚠️ [PostBloc] Unsave API call returned false for post ${event.postId}.');
+          // Optionally emit an error or just log
+        }
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Failed to unsave post ${event.postId} via API: $e');
+        emit(PostsError("Failed to unsave post: ${e.toString()}"));
+        await Future.delayed(const Duration(milliseconds: 50));
+        emit(currentState); // Revert state on error
+      }
+    }
   }
 }

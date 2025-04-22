@@ -290,6 +290,71 @@ class PostRepository {
     }
   }
 
+  /// Saves a post via the API.
+  Future<bool> savePost(String postId) async {
+    final url = Uri.parse('$baseUrl/post/$postId/save'); // Endpoint for saving
+    debugPrint('💾 [PostRepository] Saving post $postId at $url');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot save post.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final response = await _client.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('✅ [PostRepository] Post $postId saved successfully.');
+        return true;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to save post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to save post: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception while saving post $postId: $e');
+      throw Exception('Error saving post: $e');
+    }
+  }
+
+  /// Unsaves a post via the API.
+  Future<bool> unsavePost(String postId) async {
+    final url = Uri.parse('$baseUrl/post/$postId/save'); // Endpoint for unsaving (DELETE)
+    debugPrint('🗑️ [PostRepository] Unsaving post $postId at $url');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot unsave post.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final response = await _client.delete( // Use DELETE method
+        url,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) { // 204 No Content is also common for DELETE success
+        debugPrint('✅ [PostRepository] Post $postId unsaved successfully.');
+        return true;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to unsave post: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception while unsaving post $postId: $e');
+      throw Exception('Error unsaving post: $e');
+    }
+  }
+
   /// Shares a specific post via the API.
   Future<bool> sharePost(String postId) async {
     // Use the correct baseUrl and endpoint for sharing posts
