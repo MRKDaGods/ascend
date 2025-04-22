@@ -13,13 +13,14 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<LoadPosts>(_onLoadPosts);
     on<LoadMorePosts>(_onLoadMorePosts);
     on<TogglePostReaction>(_onTogglePostReaction);
-    on<AddComment>(_onAddComment); // Use the new handler
+    on<AddComment>(_onAddComment);
+    on<SharePost>(_onSharePost); // Register the new handler
     on<ToggleCommentReaction>(_onToggleCommentReaction);
     on<UpdatePostComments>(_onUpdatePostComments);
     on<HidePost>(_onHidePost);
     on<ShowPostFeedbackOptions>(_onShowPostFeedbackOptions);
     on<HidePostFeedbackOptions>(_onHidePostFeedbackOptions);
-    on<AddCommentReply>(_onAddCommentReply); // Keep existing reply handler
+    on<AddCommentReply>(_onAddCommentReply);
     // Register other events here
   }
 
@@ -179,6 +180,60 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       }
     } else {
        debugPrint('⚠️ [PostBloc] AddComment event received but state is not PostsLoaded. Current state: $state');
+    }
+  }
+
+  Future<void> _onSharePost(SharePost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      try {
+        debugPrint('🔄 [PostBloc] Attempting to share post ${event.postId} via API');
+        final success = await _postRepository.sharePost(event.postId);
+
+        if (success) {
+          debugPrint('✅ [PostBloc] Post ${event.postId} shared successfully via API.');
+
+          // Find the index of the post to update
+          final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
+          if (postIndex == -1) {
+            debugPrint('⚠️ [PostBloc] Post ${event.postId} not found in current state after sharing.');
+            return; // Post not found
+          }
+
+          final originalPost = currentState.posts[postIndex];
+          debugPrint('📝 [PostBloc] Original post share count: ${originalPost.sharedCount}');
+
+          // Create the updated post with incremented share count
+          final updatedPost = originalPost.copyWith(
+            sharedCount: (originalPost.sharedCount ?? 0) + 1,
+          );
+          debugPrint('📝 [PostBloc] Updated post share count: ${updatedPost.sharedCount}');
+
+          // Create a new list of posts with the updated post
+          final updatedPosts = List<PostModel>.from(currentState.posts);
+          updatedPosts[postIndex] = updatedPost;
+
+          debugPrint('➡️ [PostBloc] Emitting updated state for share count.');
+          // Use copyWith to maintain pagination state
+          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+          debugPrint('✅ [PostBloc] State emitted with updated share count for post ${event.postId}.');
+
+        } else {
+           // This case might not be reachable if repository throws on failure, but included for completeness
+           debugPrint('⚠️ [PostBloc] Share API call returned false for post ${event.postId}.');
+           // Optionally emit an error or just log
+        }
+
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Failed to share post ${event.postId} via API: $e');
+        // Optionally emit an error state
+        emit(PostsError("Failed to share post: ${e.toString()}"));
+        // Revert to previous state after showing error briefly
+        await Future.delayed(const Duration(milliseconds: 50));
+        emit(currentState);
+      }
+    } else {
+       debugPrint('⚠️ [PostBloc] SharePost event received but state is not PostsLoaded. Current state: $state');
     }
   }
 
