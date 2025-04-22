@@ -17,7 +17,7 @@ const RepostPopup = () => {
 
   const handleViewPost = () => {
     setRepostPopupOpen(false);
-    router.push("/feed/mypost");
+    router.push("/feed/repost");
   };
 
   return (

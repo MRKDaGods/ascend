@@ -26,7 +26,7 @@ const EditPost: React.FC = () => {
     postText,
     setPostText,
     resetPost,
-    editPost,
+    editPostFromAPI,
     editingPost,
     posts,
     lastUserPostId,
@@ -53,7 +53,7 @@ const EditPost: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
 
-    editPost(currentPostId, postText, media, type);
+    editPostFromAPI(currentPostId, postText);
     resetPost();
     clearAllMedia();
   };
