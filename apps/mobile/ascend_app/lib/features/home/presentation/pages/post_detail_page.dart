@@ -194,7 +194,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   PostActionButton(
                                     icon: Icons.share_outlined,
                                     label: 'Share',
-                                    onTap: () {},
+                                    onTap: () {
+                                      // Dispatch the SharePost event
+                                      context.read<PostBloc>().add(SharePost(post.id));
+                                      debugPrint('Share button tapped for post ${post.id} from detail page');
+                                      // Optionally, trigger native share sheet as well:
+                                      // Share.share('Check out this post!'); // Requires share_plus package
+                                    },
                                   ),
                                 ],
                               ),
