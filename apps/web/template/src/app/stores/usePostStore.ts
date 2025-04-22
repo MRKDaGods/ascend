@@ -9,7 +9,8 @@ import {
   deletePostById,
   editPost,
   repost,
-  toggleSavePostAPI
+  toggleSavePostAPI,
+  createCommentAPI
 } from "@/api/posts";
 
 export type ReactionType =
@@ -107,8 +108,12 @@ interface PostStoreState {
   // toggleSavePost: (id: number) => void;
   // toggleSavePostFromAPI: (id: number) => void;
   toggleSavePostFromAPI: (id: number) => Promise<void>;
-  commentOnPost: (id: number, comment: string) => void;
-  deleteComment: (postId: number, commentIndex: number) => void;
+
+  // commentOnPost: (id: number, comment: string) => void;
+  // deleteComment: (postId: number, commentIndex: number) => void;
+
+  commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<void>;
+
   addTagToPost: (postId: number, tag: Tag) => void;
   removeTagFromPost: (postId: number, tagId: number) => void;
   addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
@@ -359,22 +364,31 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
       
+      commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
+        try {
+          const response = await createCommentAPI(postId, content, parentCommentId);
+          console.log("✅ Comment created:", response.data);
+          // Optional: Append comment to selectedPost.commentsList or refetch post/comments
+        } catch (error: any) {
+          console.error("❌ Failed to create comment:", error?.response?.data || error.message);
+        }
+      },      
 
-      commentOnPost: (id, comment) =>
-        set((s) => ({
-          posts: s.posts.map((p) =>
-            p.id === id ? { ...p, comments: p.comments + 1, commentsList: [...p.commentsList, comment] } : p
-          ),
-        })),
+      // commentOnPost: (id, comment) =>
+      //   set((s) => ({
+      //     posts: s.posts.map((p) =>
+      //       p.id === id ? { ...p, comments: p.comments + 1, commentsList: [...p.commentsList, comment] } : p
+      //     ),
+      //   })),
 
-      deleteComment: (postId, i) =>
-        set((s) => ({
-          posts: s.posts.map((p) =>
-            p.id === postId
-              ? { ...p, comments: p.comments - 1, commentsList: p.commentsList.filter((_, idx) => idx !== i) }
-              : p
-          ),
-        })),
+      // deleteComment: (postId, i) =>
+      //   set((s) => ({
+      //     posts: s.posts.map((p) =>
+      //       p.id === postId
+      //         ? { ...p, comments: p.comments - 1, commentsList: p.commentsList.filter((_, idx) => idx !== i) }
+      //         : p
+      //     ),
+      //   })),
 
       addTagToPost: (postId, tag) =>
         set((s) => ({
