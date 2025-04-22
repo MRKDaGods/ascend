@@ -151,8 +151,7 @@ class PostRepository {
       
       final headers = {
         'Authorization': 'Bearer $authToken',
-        'Content-Type': 'application/json',
-        'x-no-parse-body': '1', // Add the custom header here
+         // Add the custom header here
       };
       print('Request headers: $headers');
       
