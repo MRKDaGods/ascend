@@ -39,31 +39,38 @@ class _HomeState extends State<Home> {
   }
   
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 200 &&
+    // Check if we are near the bottom and not already loading
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
-      _loadMoreItems();
+      // Check the state via BlocProvider.of before calling _loadMoreItems
+      final currentState = context.read<PostBloc>().state;
+      if (currentState is PostsLoaded && currentState.hasMorePages) {
+        _loadMoreItems();
+      } else if (currentState is PostsLoaded && !currentState.hasMorePages) {
+        // Optional: Log that we reached the end
+        // print("Reached end of feed, no more pages.");
+      }
     }
   }
   
   void _loadMoreItems() async {
+    // Double check isLoading flag
     if (_isLoading) return;
-    
+
+    // Check state again before dispatching, in case it changed rapidly
+    final currentState = context.read<PostBloc>().state;
+    if (currentState is! PostsLoaded || !currentState.hasMorePages) {
+       print("LoadMoreItems called but no more pages or not loaded state.");
+       return; // Don't dispatch if no more pages
+    }
+
     setState(() {
       _isLoading = true;
     });
-    
+
     // Load more posts through BLoC
-    context.read<PostBloc>().add(const LoadMorePosts(count: 5));
-    
-    // Set _isLoading to false after a delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    });
+    context.read<PostBloc>().add(const LoadMorePosts(count: 5)); // Keep count for limit
   }
   
   void _resetSponsoredCounter() {
