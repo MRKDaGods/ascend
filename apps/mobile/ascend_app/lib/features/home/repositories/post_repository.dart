@@ -290,6 +290,71 @@ class PostRepository {
     }
   }
 
+  /// Saves a post via the API.
+  Future<bool> savePost(String postId) async {
+    final url = Uri.parse('$baseUrl/post/$postId/save'); // Endpoint for saving
+    debugPrint('💾 [PostRepository] Saving post $postId at $url');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot save post.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final response = await _client.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('✅ [PostRepository] Post $postId saved successfully.');
+        return true;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to save post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to save post: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception while saving post $postId: $e');
+      throw Exception('Error saving post: $e');
+    }
+  }
+
+  /// Unsaves a post via the API.
+  Future<bool> unsavePost(String postId) async {
+    final url = Uri.parse('$baseUrl/post/$postId/save'); // Endpoint for unsaving (DELETE)
+    debugPrint('🗑️ [PostRepository] Unsaving post $postId at $url');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot unsave post.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final response = await _client.delete( // Use DELETE method
+        url,
+        headers: {
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) { // 204 No Content is also common for DELETE success
+        debugPrint('✅ [PostRepository] Post $postId unsaved successfully.');
+        return true;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to unsave post: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception while unsaving post $postId: $e');
+      throw Exception('Error unsaving post: $e');
+    }
+  }
+
   /// Shares a specific post via the API.
   Future<bool> sharePost(String postId) async {
     // Use the correct baseUrl and endpoint for sharing posts
@@ -338,6 +403,60 @@ class PostRepository {
     } catch (e) {
       debugPrint('❌ [PostRepository] Error sharing post: $e');
       throw Exception('Failed to share post: $e');
+    }
+  }
+
+  /// Reports a specific post via the API.
+  Future<bool> reportPost(String postId, String reason) async {
+    final url = Uri.parse('$baseUrl/post/$postId/report'); // Endpoint for reporting
+    debugPrint('🚩 [PostRepository] Starting reportPost for postId: $postId, reason: $reason');
+    debugPrint('🚩 [PostRepository] Reporting post at URL: $url');
+
+    try {
+      debugPrint('🔑 [PostRepository] Attempting to get auth token for reporting...');
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot report post.');
+        throw Exception('Authentication token not found.');
+      }
+      debugPrint('🔑 [PostRepository] Auth token retrieved successfully.');
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json; charset=UTF-8',
+      };
+      final body = jsonEncode(<String, String>{
+        'reason': reason, // Send the reason in the body
+      });
+
+      debugPrint('🚩 [PostRepository] Making POST request to $url');
+      debugPrint('🚩 [PostRepository] Headers: $headers');
+      debugPrint('🚩 [PostRepository] Body: $body');
+
+      final response = await _client.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      debugPrint('🚩 [PostRepository] Report API response status: ${response.statusCode}');
+      debugPrint('🚩 [PostRepository] Report API response body: ${response.body}');
+
+      // Accept 200, 201 (Created), or 202 (Accepted) as success
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+        debugPrint('✅ [PostRepository] Post $postId reported successfully via API.');
+        // Optionally parse response body if it contains useful info
+        // final responseBody = jsonDecode(response.body);
+        return true;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to report post $postId. API returned status: ${response.statusCode}');
+        // Throw an exception to indicate failure based on status code
+        throw Exception('Failed to report post: ${response.statusCode}, Body: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception caught while reporting post $postId: $e');
+      // Rethrow the exception so the BLoC can handle it
+      throw Exception('Error reporting post: $e');
     }
   }
 
