@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // Import image_picker
 
 class PostTypeSelectionGrid extends StatelessWidget {
   const PostTypeSelectionGrid({super.key});
@@ -24,6 +25,8 @@ class PostTypeSelectionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ImagePicker picker = ImagePicker(); // Instantiate the picker
+
     // Using Wrap for flexibility, adjust spacing as needed
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -32,36 +35,50 @@ class PostTypeSelectionGrid extends StatelessWidget {
         runSpacing: 24.0, // Vertical space between rows
         alignment: WrapAlignment.spaceAround, // Adjust alignment
         children: <Widget>[
-          _buildIconButton(context, Icons.photo_library_outlined, 'Media', () {
-            // TODO: Implement Media action - Cannot directly open local Windows paths.
-            // This should typically open an image picker.
-            print('Media tapped - Intended action: Open image picker');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Media button tapped - Implement image picker here.')),
-            );
+          _buildIconButton(context, Icons.photo_library_outlined, 'Media', () async { // Make the callback async
+            try {
+              // Pick an image from the gallery.
+              final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+              if (image != null) {
+                // TODO: Implement actual logic to handle the selected image
+                // For example, pass the image path back or update state
+                print('Image picked: ${image.path}');
+                if (context.mounted) { // Check if the widget is still mounted
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Selected image: ${image.path}')),
+                  );
+                  // Optionally pop the bottom sheet after selection
+                  // Navigator.pop(context, image); 
+                }
+              } else {
+                print('Image picking cancelled.');
+              }
+            } catch (e) {
+              print('Error picking image: $e');
+              if (context.mounted) { // Check if the widget is still mounted
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   SnackBar(content: Text('Error picking image: $e')),
+                 );
+              }
+            }
           }),
           _buildIconButton(context, Icons.calendar_today_outlined, 'Event', () {
-            // TODO: Implement Event action
             print('Event tapped');
           }),
           _buildIconButton(context, Icons.celebration_outlined, 'Celebrate', () {
-            // TODO: Implement Celebrate action
             print('Celebrate tapped');
           }),
           _buildIconButton(context, Icons.work_outline, 'Job', () {
-            // TODO: Implement Job action
             print('Job tapped');
           }),
           _buildIconButton(context, Icons.poll_outlined, 'Poll', () {
-            // TODO: Implement Poll action
             print('Poll tapped');
           }),
           _buildIconButton(context, Icons.description_outlined, 'Document', () {
-            // TODO: Implement Document action
             print('Document tapped');
           }),
           _buildIconButton(context, Icons.business_center_outlined, 'Services', () {
-            // TODO: Implement Services action
             print('Services tapped');
           }),
           // Add more buttons if needed

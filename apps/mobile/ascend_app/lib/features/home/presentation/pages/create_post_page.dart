@@ -7,6 +7,7 @@ import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class CreatePostPage extends StatefulWidget {
@@ -18,6 +19,7 @@ class CreatePostPage extends StatefulWidget {
 
 class _CreatePostPageState extends State<CreatePostPage> {
   final TextEditingController _textController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
   bool _canPost = false;
   String _selectedVisibility = 'Anyone';
   String _commentControl = 'Anyone';
@@ -126,6 +128,31 @@ class _CreatePostPageState extends State<CreatePostPage> {
         return const PostTypeSelectionGrid();
       },
     );
+  }
+
+  // Method to handle picking an image directly
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        print('Image picked directly: ${image.path}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Selected image: ${image.path}')),
+          );
+          // TODO: Add logic to handle the selected image (e.g., display preview)
+        }
+      } else {
+        print('Image picking cancelled.');
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -263,12 +290,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.image_outlined),
-                  onPressed: () {
-                    // TODO: Implement add image functionality
-                  },
+                  tooltip: 'Add photo',
+                  onPressed: _pickImage,
                 ),
                 IconButton(
                   icon: const Icon(Icons.calendar_today_outlined),
+                  tooltip: 'Create event',
                   onPressed: () {
                     // TODO: Implement add event functionality
                   },
