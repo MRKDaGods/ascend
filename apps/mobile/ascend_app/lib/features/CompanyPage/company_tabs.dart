@@ -30,7 +30,9 @@ class _CompanyTabsState extends State<CompanyTabs>
       children: [
         // TabBar Section
         Container(
-          alignment: Alignment.centerLeft, // Align TabBar to the left
+          alignment: Alignment.centerLeft, // Align TabBar to the
+          padding: EdgeInsets.all(0),
+          margin: EdgeInsets.all(0),
           width: double.infinity,
           child: TabBar(
             padding: EdgeInsets.zero,
