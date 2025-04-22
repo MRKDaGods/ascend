@@ -154,3 +154,14 @@ class UnsavePost extends PostEvent {
   @override
   List<Object?> get props => [postId];
 }
+
+// Event to report a post
+class ReportPost extends PostEvent {
+  final String postId;
+  final String reason;
+
+  const ReportPost(this.postId, this.reason);
+
+  @override
+  List<Object?> get props => [postId, reason];
+}
