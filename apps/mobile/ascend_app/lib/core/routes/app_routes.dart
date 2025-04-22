@@ -2,6 +2,7 @@ import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/home/presentation/pages/create_post_page.dart'; // Import the new page
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -15,6 +16,7 @@ class RouteNames {
   static const String home = '/home';
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String createPost = '/create-post'; // Add new route name
   // Add more routes as needed
 }
 
@@ -31,6 +33,7 @@ class AppRoutes {
     return {
       RouteNames.notifications: (context) => const NotificationsPage(),
       RouteNames.welcome: (context) => const Welcome(),
+      RouteNames.createPost: (context) => const CreatePostPage(), // Add the new route
       // Add more routes as needed
     };
   }

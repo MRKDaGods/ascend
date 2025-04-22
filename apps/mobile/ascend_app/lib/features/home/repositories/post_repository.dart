@@ -48,48 +48,22 @@ class PostRepository {
       followers: 3890,
       images: ['assets/images/posts/sponsor2.jpg'],
     );
-    
-    // Initialize with sample posts (for fallback)
-    _posts.addAll(SamplePosts.getDefaultPosts());
   }
   
   // Get all posts from feed API
-  Future<List<PostModel>> getPosts({int page = 0, int limit = 15}) async {
+  Future<List<PostModel>> getPosts({int page = 1, int limit = 15}) async { // Changed default page to 1
     try {
-      // Try the API first
+      // Try the API
       final result = await fetchFeed(page: page, limit: limit);
       final posts = result['posts'] as List<PostModel>;
       
-      // If we got posts from the API, return them
-      if (posts.isNotEmpty) {
-        print('Returning ${posts.length} posts from API');
-        return posts;
-      }
-      
-      // Try old API format if needed
-      print('API returned no posts, trying legacy endpoint...');
-      try {
-        final authToken = await SecureStorageHelper.getAuthToken();
-        final legacyUri = Uri.parse('$baseUrl/feed?page=$page&limit=$limit');
-        final response = await _client.get(
-          legacyUri, 
-          headers: {
-            'Authorization': 'Bearer $authToken',
-            'Content-Type': 'application/json',
-          }
-        );
-        print('Legacy API response: ${response.statusCode}');
-        // Process legacy response if needed
-      } catch (e) {
-        print('Legacy API error: $e');
-      }
-      
-      // If all else fails, fall back to sample posts
-      print('Falling back to sample posts');
-      return SamplePosts.getDefaultPosts();
+      // Return posts from API even if empty
+      print('Returning ${posts.length} posts from API');
+      return posts;
     } catch (e) {
       print('Error in getPosts: $e');
-      return SamplePosts.getDefaultPosts();
+      // Re-throw the exception so the BLoC can handle it
+      rethrow; 
     }
   }
   
@@ -135,32 +109,14 @@ class PostRepository {
   }
 
   // Get more posts for pagination
-  Future<List<PostModel>> getMorePosts(int count, {int page = 1}) async {
+  Future<List<PostModel>> getMorePosts(int count, {int page = 0}) async {
     try {
       final result = await fetchFeed(page: page, limit: count);
       return result['posts'];
     } catch (e) {
       print('Error fetching more posts: $e');
-      
-      // Fallback to sample data
-      final newPosts = List.generate(count, (index) {
-        final id = _posts.length + index + 1;
-        return PostModel(
-          id: 'post_$id',
-          title: 'New Post $id',
-          description: 'This is a dynamically loaded post #$id',
-          ownerName: 'User $id',
-          ownerImageUrl: 'assets/images/profile/user$id.jpg',
-          timePosted: 'Just now',
-          likesCount: 0,
-          commentsCount: 0,
-          followers: 100 + index,
-          images: index % 3 == 0 ? ['assets/images/posts/sample_$index.jpg'] : [],
-        );
-      });
-      
-      _posts.addAll(newPosts);
-      return newPosts;
+      // Return empty list instead of fallback data
+      return [];
     }
   }
 
@@ -177,10 +133,16 @@ class PostRepository {
   }
 
   // Update the fetchFeed method with the correct endpoint and add debugging
-  Future<Map<String, dynamic>> fetchFeed({int page = 0, int limit = 15}) async {
+  Future<Map<String, dynamic>> fetchFeed({int page = 1, int limit = 15}) async { // Changed default page to 1
     try {
       // Get the auth token - make sure it's valid
       final authToken = await SecureStorageHelper.getAuthToken();
+            // Check if the token exists
+      if (authToken == null) {
+        print('Auth token is null. Cannot make authenticated request.');
+        // Throw an specific exception or handle appropriately
+        throw Exception('Authentication token not found.'); 
+      }
       print('Auth token: ${authToken?.substring(0, 10)}...');
       
       // Try with `/post/feed` endpoint as seen in logs
@@ -190,6 +152,7 @@ class PostRepository {
       final headers = {
         'Authorization': 'Bearer $authToken',
         'Content-Type': 'application/json',
+        'x-no-parse-body': '1', // Add the custom header here
       };
       print('Request headers: $headers');
       
@@ -205,17 +168,9 @@ class PostRepository {
         print('Found ${apiPosts.length} posts from API');
         
         if (apiPosts.isEmpty) {
-          // This is happening - API returns empty array
-          print('Warning: API returned empty posts array despite pagination showing total:${jsonData['pagination']?['total']}');
+          print('API returned empty posts array');
           
-          // Try direct API call without parameters to see if that works
-          print('Trying alternative endpoint...');
-          final altUri = Uri.parse('$baseUrl/post/feed');
-          final altResponse = await _client.get(altUri, headers: headers);
-          print('Alt API status: ${altResponse.statusCode}');
-          print('Alt API body: ${altResponse.body}');
-          
-          // For now, return empty post list
+          // Return empty posts list without fallback
           return {
             'posts': <PostModel>[], 
             'totalPosts': jsonData['pagination']?['total'] ?? 0,
