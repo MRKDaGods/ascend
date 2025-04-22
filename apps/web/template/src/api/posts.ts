@@ -173,3 +173,25 @@ export const fetchSavedPosts = async (
   });
   return response.data;
 };
+
+// ==== CREATE COMMENT ON POST ====
+
+export const createCommentAPI = async (
+  postId: number,
+  content: string,
+  parentCommentId?: number | null
+): Promise<any> => {
+  const formData = new FormData();
+  formData.append("content", content);
+  if (parentCommentId !== undefined && parentCommentId !== null) {
+    formData.append("parentCommentId", parentCommentId.toString());
+  }
+
+  const res = await API.post(`/post/${postId}/comments`, formData, {
+    headers: {
+      "x-no-parse-body": "1",
+    },
+  });
+
+  return res.data;
+};
