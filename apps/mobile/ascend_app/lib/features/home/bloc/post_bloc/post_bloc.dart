@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart'; // Import for debugPrint
 import '../../models/comment_model.dart';
 import '../../repositories/post_repository.dart';
 import 'post_event.dart';
@@ -80,13 +81,16 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
   
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
+    emit(PostsLoading());
     try {
-      emit(PostsLoading());
+      debugPrint('🔄 [PostBloc] Attempting to load posts via repository...');
       final posts = await _postRepository.getPosts();
-      
+      debugPrint('✅ [PostBloc] Posts loaded successfully: ${posts.length} posts.');
       // Add freshLoad: true when emitting a fresh load
       emit(PostsLoaded(posts, freshLoad: true));
-    } catch (e) {
+    } catch (e, stackTrace) { // Catch stack trace
+      debugPrint('❌ [PostBloc] Error caught in _onLoadPosts: $e\n$stackTrace');
+      // Emit the error state
       emit(PostsError('Failed to load posts: $e'));
     }
   }
