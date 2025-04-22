@@ -74,9 +74,9 @@ class _PostState extends State<Post> {
           if (post.showFeedbackOptions) {
             return PostFeedbackOptions(
               ownerName: post.ownerName,
-              onFeedbackSubmitted: (reason) {
-                // Handle feedback submission
-                context.read<PostBloc>().add(HidePost(post.id, reason));
+              onReportSubmitted: (reason) {
+                // Dispatch ReportPost event instead of HidePost
+                context.read<PostBloc>().add(ReportPost(post.id, reason));
               },
               onUndo: () {
                 // Use BLoC to hide feedback options

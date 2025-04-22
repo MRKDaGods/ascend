@@ -406,6 +406,60 @@ class PostRepository {
     }
   }
 
+  /// Reports a specific post via the API.
+  Future<bool> reportPost(String postId, String reason) async {
+    final url = Uri.parse('$baseUrl/post/$postId/report'); // Endpoint for reporting
+    debugPrint('🚩 [PostRepository] Starting reportPost for postId: $postId, reason: $reason');
+    debugPrint('🚩 [PostRepository] Reporting post at URL: $url');
+
+    try {
+      debugPrint('🔑 [PostRepository] Attempting to get auth token for reporting...');
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot report post.');
+        throw Exception('Authentication token not found.');
+      }
+      debugPrint('🔑 [PostRepository] Auth token retrieved successfully.');
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Content-Type': 'application/json; charset=UTF-8',
+      };
+      final body = jsonEncode(<String, String>{
+        'reason': reason, // Send the reason in the body
+      });
+
+      debugPrint('🚩 [PostRepository] Making POST request to $url');
+      debugPrint('🚩 [PostRepository] Headers: $headers');
+      debugPrint('🚩 [PostRepository] Body: $body');
+
+      final response = await _client.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      debugPrint('🚩 [PostRepository] Report API response status: ${response.statusCode}');
+      debugPrint('🚩 [PostRepository] Report API response body: ${response.body}');
+
+      // Accept 200, 201 (Created), or 202 (Accepted) as success
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
+        debugPrint('✅ [PostRepository] Post $postId reported successfully via API.');
+        // Optionally parse response body if it contains useful info
+        // final responseBody = jsonDecode(response.body);
+        return true;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to report post $postId. API returned status: ${response.statusCode}');
+        // Throw an exception to indicate failure based on status code
+        throw Exception('Failed to report post: ${response.statusCode}, Body: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception caught while reporting post $postId: $e');
+      // Rethrow the exception so the BLoC can handle it
+      throw Exception('Error reporting post: $e');
+    }
+  }
+
   // Clean up resources
   void dispose() {
     _client.close();

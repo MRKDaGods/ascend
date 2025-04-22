@@ -45,66 +45,142 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   void _showPostOptionsBottomSheet(BuildContext context, PostModel post) {
-    final String postId = post.id;
+    final postBloc = BlocProvider.of<PostBloc>(context);
+    final state = postBloc.state;
+    PostModel? currentPost;
 
-    showModalBottomSheet(
+    if (state is PostsLoaded) {
+      currentPost = state.posts.firstWhere(
+        (p) => p.id == post.id,
+        orElse: () => post,
+      );
+    } else {
+      currentPost = post;
+    }
+
+    final bool isCurrentlySaved = currentPost?.isSaved ?? post.isSaved;
+
+    SheetHelpers.showPostOptionsSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-      ),
-      builder: (BuildContext bc) {
-        final state = bc.watch<PostBloc>().state;
-        PostModel? currentPost;
-
-        if (state is PostsLoaded) {
-          currentPost = state.posts.firstWhere(
-            (p) => p.id == postId,
-            orElse: () => post,
-          );
+      ownerName: post.ownerName,
+      showSave: true,
+      showShare: true,
+      showNotInterested: true,
+      showUnfollow: true,
+      showReport: true,
+      showMessage: false,
+      reportText: 'Report Post',
+      onSave: () {
+        if (isCurrentlySaved) {
+          postBloc.add(UnsavePost(post.id));
+          debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
         } else {
-          currentPost = post;
+          postBloc.add(SavePost(post.id));
+          debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
         }
+      },
+      onShare: () {
+        postBloc.add(SharePost(post.id));
+        debugPrint("[PostDetailPage] Dispatching SharePost for ${post.id}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sharing post...')),
+        );
+      },
+      onNotInterested: () {
+        _showHideConfirmationDialog(context, post.id);
+      },
+      onUnfollow: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unfollow ${post.ownerName} (not implemented)')),
+        );
+      },
+      onReport: () {
+        Navigator.of(context).pop();
+        _showReportReasonDialog(context, post.id);
+      },
+    );
+  }
 
-        final bool isCurrentlySaved = currentPost?.isSaved ?? post.isSaved;
+  void _showReportReasonDialog(BuildContext context, String postId) {
+    String selectedReason = 'General report'; // Initial value
 
-        return SafeArea(
-          child: Wrap(
-            children: <Widget>[
-              ListTile(
-                leading: Icon(isCurrentlySaved ? Icons.bookmark : Icons.bookmark_border),
-                title: Text(isCurrentlySaved ? 'Unsave Post' : 'Save Post'),
-                onTap: () {
-                  final postBloc = BlocProvider.of<PostBloc>(context);
-                  if (isCurrentlySaved) {
-                    postBloc.add(UnsavePost(postId));
-                    debugPrint("[PostDetailPage] Dispatching UnsavePost for $postId");
-                  } else {
-                    postBloc.add(SavePost(postId));
-                    debugPrint("[PostDetailPage] Dispatching SavePost for $postId");
-                  }
-                  Navigator.of(context).pop();
-                },
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        // Use StatefulBuilder to manage the state within the dialog
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Report Post'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Text('Please select a reason for reporting:'),
+                  ListTile(
+                    title: const Text('Spam'),
+                    leading: Radio<String>(
+                      value: 'Spam',
+                      groupValue: selectedReason,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          // Use setState from StatefulBuilder to update the selection
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        }
+                      },
+                    ),
+                    onTap: () { // Allow tapping the whole row
+                       setState(() {
+                         selectedReason = 'Spam';
+                       });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Inappropriate Content'),
+                    leading: Radio<String>(
+                      value: 'Inappropriate Content',
+                      groupValue: selectedReason,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          // Use setState from StatefulBuilder to update the selection
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        }
+                      },
+                    ),
+                     onTap: () { // Allow tapping the whole row
+                       setState(() {
+                         selectedReason = 'Inappropriate Content';
+                       });
+                    },
+                  ),
+                  // Add more reasons as needed following the same pattern
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.visibility_off_outlined),
-                title: const Text('Hide Post'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _showHideConfirmationDialog(context, postId);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.flag_outlined),
-                title: const Text('Report Post'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Report functionality not implemented yet.')),
-                  );
-                },
-              ),
-            ],
-          ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Submit Report'),
+                  onPressed: () {
+                    // Now selectedReason will hold the user's choice
+                    BlocProvider.of<PostBloc>(context).add(ReportPost(postId, selectedReason));
+                    debugPrint("[PostDetailPage] Dispatching ReportPost for $postId with reason: $selectedReason");
+                    Navigator.of(dialogContext).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Post reported. Thank you.')),
+                    );
+                  },
+                ),
+              ],
+            );
+          }
         );
       },
     );

@@ -24,6 +24,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     // Register other events here
     on<SavePost>(_onSavePost); // Add handler
     on<UnsavePost>(_onUnsavePost); // Add handler
+    on<ReportPost>(_onReportPost); // Add handler for ReportPost
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -430,6 +431,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
             }
             return post;
           }).toList();
+          // Use copyWith to preserve pagination info
           emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
         } else {
           debugPrint('⚠️ [PostBloc] Save API call returned false for post ${event.postId}.');
@@ -461,6 +463,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
             }
             return post;
           }).toList();
+          // Use copyWith to preserve pagination info
           emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
         } else {
           debugPrint('⚠️ [PostBloc] Unsave API call returned false for post ${event.postId}.');
@@ -471,6 +474,42 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         emit(PostsError("Failed to unsave post: ${e.toString()}"));
         await Future.delayed(const Duration(milliseconds: 50));
         emit(currentState); // Revert state on error
+      }
+    }
+  }
+
+  // Handler for ReportPost event
+  Future<void> _onReportPost(ReportPost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    // No need to check for PostsLoaded specifically, as reporting doesn't modify the list directly here
+    try {
+      debugPrint('🔄 [PostBloc] Attempting to report post ${event.postId} via API with reason: ${event.reason}');
+      final success = await _postRepository.reportPost(event.postId, event.reason);
+
+      if (success) {
+        debugPrint('✅ [PostBloc] Post ${event.postId} reported successfully via API.');
+        // Optionally emit a success state if needed for UI feedback beyond the SnackBar
+        // emit(PostActionSuccess(currentState.posts, 'Post reported successfully.', currentState.currentPage, currentState.hasMorePages));
+      } else {
+        // This case might not be reachable if repository throws on failure
+        debugPrint('⚠️ [PostBloc] Report API call returned false for post ${event.postId}.');
+        // Optionally emit an error state
+        if (currentState is PostsLoaded) {
+           emit(PostsError("Failed to report post (API returned false)"));
+           await Future.delayed(const Duration(milliseconds: 50));
+           emit(currentState); // Revert
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [PostBloc] Failed to report post ${event.postId} via API: $e');
+      // Emit an error state
+      if (currentState is PostsLoaded) {
+         emit(PostsError("Failed to report post: ${e.toString()}"));
+         await Future.delayed(const Duration(milliseconds: 50));
+         emit(currentState); // Revert state on error
+      } else {
+         // If not PostsLoaded, emit a general error
+         emit(PostsError("Failed to report post: ${e.toString()}"));
       }
     }
   }
