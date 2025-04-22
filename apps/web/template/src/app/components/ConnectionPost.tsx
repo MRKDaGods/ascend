@@ -19,7 +19,7 @@ import Save from "./Save";
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const {
-    repostFromAPI, // ✅ NEW FUNCTION
+    repostFromAPI,
     postReactions,
   } = usePostStore();
 
@@ -31,9 +31,12 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   };
 
   return (
+    <>
     <Card
       sx={{
         mb: 2,
+        p: 2,
+        border: `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
         backgroundColor: theme.palette.background.paper,
         color: theme.palette.text.primary,
@@ -105,6 +108,8 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         setShowComments={setShowComments}
       />
     </Card>
+    <br></br>
+    </>
   );
 };
 
