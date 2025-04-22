@@ -134,3 +134,34 @@ class AddCommentReply extends PostEvent {
   @override
   List<Object?> get props => [postId, parentId, text, authorId, authorName, authorImageUrl];
 }
+
+// Event to save a post
+class SavePost extends PostEvent {
+  final String postId;
+
+  const SavePost(this.postId);
+
+  @override
+  List<Object?> get props => [postId];
+}
+
+// Event to unsave a post
+class UnsavePost extends PostEvent {
+  final String postId;
+
+  const UnsavePost(this.postId);
+
+  @override
+  List<Object?> get props => [postId];
+}
+
+// Event to report a post
+class ReportPost extends PostEvent {
+  final String postId;
+  final String reason;
+
+  const ReportPost(this.postId, this.reason);
+
+  @override
+  List<Object?> get props => [postId, reason];
+}

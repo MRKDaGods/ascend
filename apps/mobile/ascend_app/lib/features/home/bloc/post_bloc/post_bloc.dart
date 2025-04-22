@@ -22,6 +22,9 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<HidePostFeedbackOptions>(_onHidePostFeedbackOptions);
     on<AddCommentReply>(_onAddCommentReply);
     // Register other events here
+    on<SavePost>(_onSavePost); // Add handler
+    on<UnsavePost>(_onUnsavePost); // Add handler
+    on<ReportPost>(_onReportPost); // Add handler for ReportPost
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -409,5 +412,105 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     }
     // If not found in this branch, return the comment unchanged
     return currentComment;
+  }
+
+  // Handler for SavePost event
+  Future<void> _onSavePost(SavePost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      try {
+        debugPrint('🔄 [PostBloc] Attempting to save post ${event.postId} via API');
+        final success = await _postRepository.savePost(event.postId);
+
+        if (success) {
+          debugPrint('✅ [PostBloc] Post ${event.postId} saved successfully via API.');
+          // Update the post's state locally
+          final updatedPosts = currentState.posts.map((post) {
+            if (post.id == event.postId) {
+              return post.copyWith(isSaved: true);
+            }
+            return post;
+          }).toList();
+          // Use copyWith to preserve pagination info
+          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+        } else {
+          debugPrint('⚠️ [PostBloc] Save API call returned false for post ${event.postId}.');
+          // Optionally emit an error or just log
+        }
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Failed to save post ${event.postId} via API: $e');
+        emit(PostsError("Failed to save post: ${e.toString()}"));
+        await Future.delayed(const Duration(milliseconds: 50));
+        emit(currentState); // Revert state on error
+      }
+    }
+  }
+
+  // Handler for UnsavePost event
+  Future<void> _onUnsavePost(UnsavePost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      try {
+        debugPrint('🔄 [PostBloc] Attempting to unsave post ${event.postId} via API');
+        final success = await _postRepository.unsavePost(event.postId);
+
+        if (success) {
+          debugPrint('✅ [PostBloc] Post ${event.postId} unsaved successfully via API.');
+          // Update the post's state locally
+          final updatedPosts = currentState.posts.map((post) {
+            if (post.id == event.postId) {
+              return post.copyWith(isSaved: false);
+            }
+            return post;
+          }).toList();
+          // Use copyWith to preserve pagination info
+          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+        } else {
+          debugPrint('⚠️ [PostBloc] Unsave API call returned false for post ${event.postId}.');
+          // Optionally emit an error or just log
+        }
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Failed to unsave post ${event.postId} via API: $e');
+        emit(PostsError("Failed to unsave post: ${e.toString()}"));
+        await Future.delayed(const Duration(milliseconds: 50));
+        emit(currentState); // Revert state on error
+      }
+    }
+  }
+
+  // Handler for ReportPost event
+  Future<void> _onReportPost(ReportPost event, Emitter<PostState> emit) async {
+    final currentState = state;
+    // No need to check for PostsLoaded specifically, as reporting doesn't modify the list directly here
+    try {
+      debugPrint('🔄 [PostBloc] Attempting to report post ${event.postId} via API with reason: ${event.reason}');
+      final success = await _postRepository.reportPost(event.postId, event.reason);
+
+      if (success) {
+        debugPrint('✅ [PostBloc] Post ${event.postId} reported successfully via API.');
+        // Optionally emit a success state if needed for UI feedback beyond the SnackBar
+        // emit(PostActionSuccess(currentState.posts, 'Post reported successfully.', currentState.currentPage, currentState.hasMorePages));
+      } else {
+        // This case might not be reachable if repository throws on failure
+        debugPrint('⚠️ [PostBloc] Report API call returned false for post ${event.postId}.');
+        // Optionally emit an error state
+        if (currentState is PostsLoaded) {
+           emit(PostsError("Failed to report post (API returned false)"));
+           await Future.delayed(const Duration(milliseconds: 50));
+           emit(currentState); // Revert
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [PostBloc] Failed to report post ${event.postId} via API: $e');
+      // Emit an error state
+      if (currentState is PostsLoaded) {
+         emit(PostsError("Failed to report post: ${e.toString()}"));
+         await Future.delayed(const Duration(milliseconds: 50));
+         emit(currentState); // Revert state on error
+      } else {
+         // If not PostsLoaded, emit a general error
+         emit(PostsError("Failed to report post: ${e.toString()}"));
+      }
+    }
   }
 }
