@@ -21,12 +21,12 @@ import 'package:ascend_app/features/home/presentation/pages/comment_detail_page.
 
 class PostDetailPage extends StatefulWidget {
   final String postId;
-  
+
   const PostDetailPage({
     Key? key,
     required this.postId,
   }) : super(key: key);
-  
+
   @override
   State<PostDetailPage> createState() => _PostDetailPageState();
 }
@@ -35,37 +35,44 @@ class _PostDetailPageState extends State<PostDetailPage> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   final GlobalKey _reactionButtonKey = GlobalKey();
-  
+
   @override
   void dispose() {
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PostBloc, PostState>(
       builder: (context, state) {
+        debugPrint('🔄 [PostDetailPage] BlocBuilder running. State type: ${state.runtimeType}'); // Log builder execution
+
         if (state is PostsLoaded) {
           final post = state.posts.firstWhere(
             (p) => p.id == widget.postId,
             orElse: () => PostModel.empty(),
           );
-          
+
+          debugPrint('📄 [PostDetailPage] Displaying post ${post.id}. Comments count: ${post.commentsCount}, Comments list size: ${post.comments.length}');
+          if (post.comments.isNotEmpty) {
+            debugPrint('📄 [PostDetailPage] Last comment ID: ${post.comments.last.id}, Text: ${post.comments.last.text}');
+          }
+
           return BlocBuilder<UserProfileBloc, UserProfileState>(
             builder: (context, profileState) {
-              final userProfile = profileState is UserProfileLoaded 
-                  ? profileState.profile 
+              final userProfile = profileState is UserProfileLoaded
+                  ? profileState.profile
                   : UserProfileModel.empty();
-              
+
               if (post.id.isEmpty) {
                 return Scaffold(
                   appBar: AppBar(title: const Text('Post not found')),
                   body: const Center(child: Text('Post not found')),
                 );
               }
-              
+
               return Scaffold(
                 appBar: AppBar(
                   title: const Text('Post'),
@@ -97,7 +104,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 },
                               ),
                             ),
-                            
+
                             // Post content
                             if (post.description.isNotEmpty)
                               Padding(
@@ -107,7 +114,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   description: post.description,
                                 ),
                               ),
-                            
+
                             // Post images
                             if (post.images.isNotEmpty)
                               PostImageSection(
@@ -126,7 +133,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   );
                                 },
                               ),
-                            
+
                             // Engagement stats
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -139,9 +146,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 postId: post.id,
                               ),
                             ),
-                            
+
                             const Divider(height: 1),
-                            
+
                             // Action buttons
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -161,19 +168,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       final RenderBox box = _reactionButtonKey.currentContext!
                                           .findRenderObject() as RenderBox;
                                       final position = box.localToGlobal(Offset.zero);
-                                      
+
                                       ReactionUtils.showReactionsPopup(
                                         context: context,
                                         position: position,
                                         itemId: post.id,
                                         isComment: false,
-                                        onReactionSelected: (id, reaction) => 
-                                          context.read<PostBloc>().add(TogglePostReaction(id, reaction)),
+                                        onReactionSelected: (id, reaction) =>
+                                            context.read<PostBloc>().add(TogglePostReaction(id, reaction)),
                                       );
                                     },
                                     onLongPressEnd: () {},
                                   ),
-                                  
+
                                   // Comment button
                                   PostActionButton(
                                     icon: Icons.comment_outlined,
@@ -182,7 +189,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       _commentFocusNode.requestFocus();
                                     },
                                   ),
-                                  
+
                                   // Share button
                                   PostActionButton(
                                     icon: Icons.share_outlined,
@@ -192,19 +199,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 ],
                               ),
                             ),
-                            
+
                             const Divider(),
-                            
+
                             // Comments section - Using PostCommentsSection widget
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: PostCommentsSection(
-                                currentUserName: userProfile.name,
-                                currentUserAvatarUrl: userProfile.avatarUrl,
+                                currentUserName: userProfile.name.isNotEmpty ? userProfile.name : "You", // Provide fallback name
+                                currentUserAvatarUrl: userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png', // Provide fallback avatar
                                 comments: post.comments,
                                 commentController: _commentController,
                                 commentFocusNode: _commentFocusNode,
-                                currentUserId: userProfile.id,
+                                currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id', // Provide fallback ID
                                 onCommentsChanged: (updatedComments) {
                                   context.read<PostBloc>().add(
                                     UpdatePostComments(post.id, updatedComments)
@@ -226,16 +233,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       builder: (context) => CommentDetailPage(
                                         parentComment: parentComment,
                                         replyingTo: replyingTo,
-                                        currentUserId: userProfile.id,
+                                        currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id', // Fallback ID
                                         onAddReply: (text, parentId) {
                                           context.read<PostBloc>().add(
                                             AddCommentReply(
                                               post.id,
                                               parentId,
                                               text,
-                                              userProfile.id,
-                                              userProfile.name,
-                                              userProfile.avatarUrl,
+                                              userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id', // Fallback ID
+                                              userProfile.name.isNotEmpty ? userProfile.name : "You", // Fallback Name
+                                              userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png', // Fallback Avatar
                                             )
                                           );
                                         },
@@ -243,22 +250,26 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                           context.read<PostBloc>().add(
                                             ToggleCommentReaction(post.id, commentId, reactionType)
                                           );
-                                        }, postId: '',
+                                        }, postId: post.id, // Pass the actual post ID
                                       ),
                                     ),
                                   );
                                 },
                                 postId: post.id,
                                 onAddComment: (text, parentId) {
+                                  final userId = userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id';
+                                  final userName = userProfile.name.isNotEmpty ? userProfile.name : "You";
+                                  final userAvatar = userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png';
+
                                   if (parentId == null) {
                                     // Adding a top-level comment
                                     context.read<PostBloc>().add(
                                       AddComment(
                                         post.id,
                                         text,
-                                        userProfile.id,
-                                        userProfile.name,
-                                        userProfile.avatarUrl,
+                                        userId,
+                                        userName,
+                                        userAvatar,
                                       )
                                     );
                                   } else {
@@ -268,9 +279,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         post.id,
                                         parentId,
                                         text,
-                                        userProfile.id,
-                                        userProfile.name,
-                                        userProfile.avatarUrl,
+                                        userId,
+                                        userName,
+                                        userAvatar,
                                       )
                                     );
                                   }
@@ -287,7 +298,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             }
           );
         }
-        
+
         return Scaffold(
           appBar: AppBar(title: const Text('Loading...')),
           body: const Center(child: CircularProgressIndicator()),
@@ -295,12 +306,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
       },
     );
   }
-  
+
   IconData _getReactionIcon(PostModel post) {
     if (!post.isLiked) return Icons.thumb_up_outlined;
     return ReactionManager.reactionIcons[post.currentReaction] ?? Icons.thumb_up;
   }
-  
+
   Color _getReactionColor(PostModel post) {
     if (!post.isLiked) return Colors.grey;
     return ReactionManager.reactionColors[post.currentReaction] ?? Colors.blue;

@@ -1,11 +1,16 @@
 import '../models/post_model.dart';
+import '../models/comment_model.dart';
 import '../data/sample_posts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart'; // For debugPrint
 
 // Import for secure storage
 import 'package:ascend_app/core/constants/api_endpoints.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+
+// Base URL for the API - replace with your actual API base URL
+const String _apiBaseUrl = '{{POST_BASE}}'; // Use your Postman variable or actual URL
 
 class PostRepository {
   // Define the baseUrl with HTTPS
@@ -226,6 +231,65 @@ class PostRepository {
     }
   }
   
+  /// Adds a comment to a specific post via the API.
+  Future<Comment> addComment(String postId, String text, String authorId, String authorName, String authorImageUrl) async {
+    // Use the correct baseUrl and endpoint for adding comments
+    final url = Uri.parse('$baseUrl/post/$postId/comments'); // Corrected URL using baseUrl
+    debugPrint('📬 [PostRepository] Adding comment to post $postId at $url');
+
+    try {
+      // Get the auth token
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot add comment.');
+        throw Exception('Authentication token not found.');
+      }
+      debugPrint('🔑 [PostRepository] Using auth token for adding comment.');
+
+      final response = await _client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $authToken', // Add the authentication token
+        },
+        body: jsonEncode(<String, dynamic>{
+          'content': text,
+          // The backend should associate the comment with the authenticated user via the token.
+          // Sending authorId might be redundant if the backend handles it.
+          // Adjust based on API requirements.
+        }),
+      );
+
+      // Accept both 201 (Created) and 200 (OK) as success codes
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        // Check if the API response structure includes a 'success' flag
+        if (responseBody['success'] == true && responseBody['data'] != null) {
+           debugPrint('✅ [PostRepository] Comment added successfully (Status: ${response.statusCode}): ${responseBody}');
+           final commentData = responseBody['data'];
+           if (commentData is Map<String, dynamic>) {
+              final createdComment = Comment.fromJson(commentData);
+              return createdComment;
+           } else {
+              debugPrint('❌ [PostRepository] Invalid comment data format in response: ${responseBody}');
+              throw Exception('Failed to parse created comment from API response.');
+           }
+        } else {
+           // Handle cases where status is 200/201 but body indicates failure
+           debugPrint('❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}');
+           throw Exception('API returned success status but indicated failure in body.');
+        }
+      } else {
+        debugPrint('❌ [PostRepository] Failed to add comment. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to add comment. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error adding comment: $e');
+      // Rethrow a more specific exception if needed, or just the original
+      throw Exception('Failed to add comment: $e');
+    }
+  }
+
   // Clean up resources
   void dispose() {
     _client.close();
