@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/home/models/post_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart'; // Import for debugPrint
 import '../../models/comment_model.dart';
@@ -83,14 +84,22 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
     emit(PostsLoading());
     try {
-      debugPrint('🔄 [PostBloc] Attempting to load posts via repository...');
-      final posts = await _postRepository.getPosts();
-      debugPrint('✅ [PostBloc] Posts loaded successfully: ${posts.length} posts.');
-      // Add freshLoad: true when emitting a fresh load
-      emit(PostsLoaded(posts, freshLoad: true));
+      debugPrint('🔄 [PostBloc] Attempting to load initial posts (page 1)...');
+      // Fetch page 1 explicitly
+      final result = await _postRepository.fetchFeed(page: 1, limit: 15);
+      final posts = result['posts'] as List<PostModel>;
+      final currentPage = result['currentPage'] as int;
+      final hasMorePages = result['hasMorePages'] as bool;
+
+      debugPrint('✅ [PostBloc] Initial posts loaded: ${posts.length} posts. Page: $currentPage, HasMore: $hasMorePages');
+      emit(PostsLoaded(
+        posts,
+        freshLoad: true,
+        currentPage: currentPage,
+        hasMorePages: hasMorePages,
+      ));
     } catch (e, stackTrace) { // Catch stack trace
       debugPrint('❌ [PostBloc] Error caught in _onLoadPosts: $e\n$stackTrace');
-      // Emit the error state
       emit(PostsError('Failed to load posts: $e'));
     }
   }
@@ -98,18 +107,51 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   Future<void> _onLoadMorePosts(LoadMorePosts event, Emitter<PostState> emit) async {
     if (state is PostsLoaded) {
       final currentState = state as PostsLoaded;
+
+      // Only load more if hasMorePages is true
+      if (!currentState.hasMorePages) {
+        debugPrint(' [PostBloc] No more pages to load.');
+        return;
+      }
+
       try {
-        // Load more posts
-        final newPosts = await _postRepository.getMorePosts(event.count);
-        
-        // Combine with existing posts
-        final updatedPosts = [...currentState.posts, ...newPosts];
-        
-        // Emit with freshLoad: false since we're appending
-        emit(PostsLoaded(updatedPosts, freshLoad: false));
+        final nextPage = currentState.currentPage + 1;
+        debugPrint('🔄 [PostBloc] Attempting to load more posts (page $nextPage)...');
+
+        // Load more posts using the next page number
+        final result = await _postRepository.getMorePosts(page: nextPage, limit: event.count);
+        final newPosts = result['posts'] as List<PostModel>;
+        final currentPage = result['currentPage'] as int;
+        final hasMorePages = result['hasMorePages'] as bool;
+
+        debugPrint('✅ [PostBloc] More posts loaded: ${newPosts.length} posts. Page: $currentPage, HasMore: $hasMorePages');
+
+        // Combine with existing posts, ensuring no duplicates if API behaves unexpectedly
+        final combinedPosts = List<PostModel>.from(currentState.posts);
+        final existingPostIds = currentState.posts.map((p) => p.id).toSet();
+        for (var newPost in newPosts) {
+          if (!existingPostIds.contains(newPost.id)) {
+            combinedPosts.add(newPost);
+            existingPostIds.add(newPost.id); // Add new ID to set
+          } else {
+             debugPrint(' [PostBloc] Duplicate post ID found and skipped: ${newPost.id}');
+          }
+        }
+
+
+        // Emit updated state
+        emit(currentState.copyWith(
+          posts: combinedPosts,
+          freshLoad: false, // Not a fresh load
+          currentPage: currentPage,
+          hasMorePages: hasMorePages,
+        ));
       } catch (e) {
+        debugPrint('❌ [PostBloc] Error caught in _onLoadMorePosts: $e');
+        // Optionally emit an error state or just keep the current one
         emit(PostsError('Failed to load more posts: $e'));
-        emit(currentState); // Restore previous state on error
+        // Re-emit current state without changes on error? Or maybe just update hasMorePages?
+        // emit(currentState.copyWith(hasMorePages: false)); // Assume no more pages on error
       }
     }
   }

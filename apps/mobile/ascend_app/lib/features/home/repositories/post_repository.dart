@@ -108,15 +108,21 @@ class PostRepository {
     _posts.removeWhere((post) => post.id == id);
   }
 
-  // Get more posts for pagination
-  Future<List<PostModel>> getMorePosts(int count, {int page = 0}) async {
+  // Get more posts for pagination - Updated signature
+  Future<Map<String, dynamic>> getMorePosts({int page = 1, int limit = 5}) async {
     try {
-      final result = await fetchFeed(page: page, limit: count);
-      return result['posts'];
+      // Directly call fetchFeed with provided page and limit
+      final result = await fetchFeed(page: page, limit: limit);
+      return result; // Return the whole map including pagination info
     } catch (e) {
       print('Error fetching more posts: $e');
-      // Return empty list instead of fallback data
-      return [];
+      // Return empty list and pagination info indicating no more pages
+      return {
+        'posts': <PostModel>[],
+        'totalPosts': 0,
+        'currentPage': page,
+        'hasMorePages': false,
+      };
     }
   }
 
@@ -157,24 +163,32 @@ class PostRepository {
       
       final response = await _client.get(uri, headers: headers);
       print('API response status: ${response.statusCode}');
-      print('API response body: ${response.body}');
+      // Limit printing large bodies
+      print('API response body: ${response.body.length > 500 ? response.body.substring(0, 500) + '...' : response.body}');
       
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         
         // Parse the posts array into PostModel objects
         final List<dynamic> apiPosts = jsonData['data'] ?? [];
-        print('Found ${apiPosts.length} posts from API');
+        print('Found ${apiPosts.length} posts from API for page $page');
+        
+        // Extract pagination info
+        final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
+        final int totalPosts = pagination['total'] ?? 0;
+        final int currentPage = pagination['page'] ?? page;
+        final int currentLimit = pagination['limit'] ?? limit;
+        final bool hasMorePages = (currentPage * currentLimit) < totalPosts;
+        
+        print('Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages');
         
         if (apiPosts.isEmpty) {
-          print('API returned empty posts array');
-          
-          // Return empty posts list without fallback
+          print('API returned empty posts array for page $page');
           return {
-            'posts': <PostModel>[], 
-            'totalPosts': jsonData['pagination']?['total'] ?? 0,
-            'currentPage': jsonData['pagination']?['page'] ?? page,
-            'hasMorePages': false,
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // No more pages if the current page is empty
           };
         }
         
@@ -183,22 +197,20 @@ class PostRepository {
           final posts = PostModel.fromApiResponseList(apiPosts);
           print('Successfully converted ${posts.length} API posts to PostModel objects');
           
-          // Extract pagination info
-          final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
-          
           return {
             'posts': posts,
-            'totalPosts': pagination['total'] ?? 0,
-            'currentPage': pagination['page'] ?? page,
-            'hasMorePages': (pagination['page'] ?? page) * (pagination['limit'] ?? limit) < (pagination['total'] ?? 0),
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': hasMorePages,
           };
         } catch (e) {
           print('Error converting API posts to PostModel: $e');
+          // Return empty but with pagination info based on what we know
           return {
             'posts': <PostModel>[],
-            'totalPosts': 0,
-            'currentPage': page,
-            'hasMorePages': false,
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // Assume false on conversion error
           };
         }
       } else {
@@ -209,6 +221,7 @@ class PostRepository {
       }
     } catch (e) {
       print('Exception in fetchFeed: $e');
+      // Rethrow specific exception
       throw Exception('Error fetching posts: $e');
     }
   }
