@@ -18,6 +18,7 @@ import 'package:ascend_app/features/home/presentation/widgets/post/post_action_b
 import 'package:ascend_app/features/home/presentation/widgets/reaction/reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/widgets/comment/post_comments_section.dart';
 import 'package:ascend_app/features/home/presentation/pages/comment_detail_page.dart';
+import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
 
 class PostDetailPage extends StatefulWidget {
   final String postId;
@@ -43,11 +44,107 @@ class _PostDetailPageState extends State<PostDetailPage> {
     super.dispose();
   }
 
+  void _showPostOptionsBottomSheet(BuildContext context, PostModel post) {
+    final String postId = post.id;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      builder: (BuildContext bc) {
+        final state = bc.watch<PostBloc>().state;
+        PostModel? currentPost;
+
+        if (state is PostsLoaded) {
+          currentPost = state.posts.firstWhere(
+            (p) => p.id == postId,
+            orElse: () => post,
+          );
+        } else {
+          currentPost = post;
+        }
+
+        final bool isCurrentlySaved = currentPost?.isSaved ?? post.isSaved;
+
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(isCurrentlySaved ? Icons.bookmark : Icons.bookmark_border),
+                title: Text(isCurrentlySaved ? 'Unsave Post' : 'Save Post'),
+                onTap: () {
+                  final postBloc = BlocProvider.of<PostBloc>(context);
+                  if (isCurrentlySaved) {
+                    postBloc.add(UnsavePost(postId));
+                    debugPrint("[PostDetailPage] Dispatching UnsavePost for $postId");
+                  } else {
+                    postBloc.add(SavePost(postId));
+                    debugPrint("[PostDetailPage] Dispatching SavePost for $postId");
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.visibility_off_outlined),
+                title: const Text('Hide Post'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showHideConfirmationDialog(context, postId);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.flag_outlined),
+                title: const Text('Report Post'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Report functionality not implemented yet.')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showHideConfirmationDialog(BuildContext context, String postId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Hide Post?'),
+          content: const Text('Are you sure you want to hide this post? You will not see it again.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Hide'),
+              onPressed: () {
+                BlocProvider.of<PostBloc>(context).add(HidePost(postId, 'User chose to hide'));
+                Navigator.of(dialogContext).pop();
+                if (Navigator.canPop(context)) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PostBloc, PostState>(
       builder: (context, state) {
-        debugPrint('🔄 [PostDetailPage] BlocBuilder running. State type: ${state.runtimeType}'); // Log builder execution
+        debugPrint('🔄 [PostDetailPage] BlocBuilder running. State type: ${state.runtimeType}');
 
         if (state is PostsLoaded) {
           final post = state.posts.firstWhere(
@@ -82,13 +179,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ),
                 body: Column(
                   children: [
-                    // Scrollable content
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Post header
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: PostHeader(
@@ -98,14 +193,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 ownerOccupation: post.ownerOccupation,
                                 isSponsored: post.isSponsored,
                                 followers: post.followers,
-                                onOptionsPressed: () {},
+                                onOptionsPressed: () => _showPostOptionsBottomSheet(context, post),
                                 onHidePost: (reason) {
                                   context.read<PostBloc>().add(HidePost(post.id, reason));
                                 },
                               ),
                             ),
-
-                            // Post content
                             if (post.description.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -114,8 +207,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   description: post.description,
                                 ),
                               ),
-
-                            // Post images
                             if (post.images.isNotEmpty)
                               PostImageSection(
                                 images: post.images,
@@ -133,8 +224,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   );
                                 },
                               ),
-
-                            // Engagement stats
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                               child: PostEngagementStats(
@@ -146,16 +235,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 postId: post.id,
                               ),
                             ),
-
                             const Divider(height: 1),
-
-                            // Action buttons
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  // Like/React button
                                   ReactionButton(
                                     key: _reactionButtonKey,
                                     manager: ReactionManager(
@@ -180,8 +265,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     },
                                     onLongPressEnd: () {},
                                   ),
-
-                                  // Comment button
                                   PostActionButton(
                                     icon: Icons.comment_outlined,
                                     label: 'Comment',
@@ -189,35 +272,27 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       _commentFocusNode.requestFocus();
                                     },
                                   ),
-
-                                  // Share button
                                   PostActionButton(
                                     icon: Icons.share_outlined,
                                     label: 'Share',
                                     onTap: () {
-                                      // Dispatch the SharePost event
                                       context.read<PostBloc>().add(SharePost(post.id));
                                       debugPrint('Share button tapped for post ${post.id} from detail page');
-                                      // Optionally, trigger native share sheet as well:
-                                      // Share.share('Check out this post!'); // Requires share_plus package
                                     },
                                   ),
                                 ],
                               ),
                             ),
-
                             const Divider(),
-
-                            // Comments section - Using PostCommentsSection widget
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: PostCommentsSection(
-                                currentUserName: userProfile.name.isNotEmpty ? userProfile.name : "You", // Provide fallback name
-                                currentUserAvatarUrl: userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png', // Provide fallback avatar
+                                currentUserName: userProfile.name.isNotEmpty ? userProfile.name : "You",
+                                currentUserAvatarUrl: userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png',
                                 comments: post.comments,
                                 commentController: _commentController,
                                 commentFocusNode: _commentFocusNode,
-                                currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id', // Provide fallback ID
+                                currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id',
                                 onCommentsChanged: (updatedComments) {
                                   context.read<PostBloc>().add(
                                     UpdatePostComments(post.id, updatedComments)
@@ -232,23 +307,22 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   );
                                 },
                                 onNavigateToReply: (parentComment, replyingTo) {
-                                  // Navigate to CommentDetailPage
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => CommentDetailPage(
                                         parentComment: parentComment,
                                         replyingTo: replyingTo,
-                                        currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id', // Fallback ID
+                                        currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id',
                                         onAddReply: (text, parentId) {
                                           context.read<PostBloc>().add(
                                             AddCommentReply(
                                               post.id,
                                               parentId,
                                               text,
-                                              userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id', // Fallback ID
-                                              userProfile.name.isNotEmpty ? userProfile.name : "You", // Fallback Name
-                                              userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png', // Fallback Avatar
+                                              userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id',
+                                              userProfile.name.isNotEmpty ? userProfile.name : "You",
+                                              userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png',
                                             )
                                           );
                                         },
@@ -256,7 +330,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                           context.read<PostBloc>().add(
                                             ToggleCommentReaction(post.id, commentId, reactionType)
                                           );
-                                        }, postId: post.id, // Pass the actual post ID
+                                        }, postId: post.id,
                                       ),
                                     ),
                                   );
@@ -268,7 +342,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   final userAvatar = userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png';
 
                                   if (parentId == null) {
-                                    // Adding a top-level comment
                                     context.read<PostBloc>().add(
                                       AddComment(
                                         post.id,
@@ -279,7 +352,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       )
                                     );
                                   } else {
-                                    // Adding a reply
                                     context.read<PostBloc>().add(
                                       AddCommentReply(
                                         post.id,
