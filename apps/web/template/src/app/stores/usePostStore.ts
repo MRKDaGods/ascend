@@ -9,6 +9,7 @@ import {
   deletePostById,
   editPost,
   repost,
+  toggleSavePostAPI
 } from "@/api/posts";
 
 export type ReactionType =
@@ -103,7 +104,9 @@ interface PostStoreState {
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
-  toggleSavePost: (id: number) => void;
+  // toggleSavePost: (id: number) => void;
+  // toggleSavePostFromAPI: (id: number) => void;
+  toggleSavePostFromAPI: (id: number) => Promise<void>;
   commentOnPost: (id: number, comment: string) => void;
   deleteComment: (postId: number, commentIndex: number) => void;
   addTagToPost: (postId: number, tag: Tag) => void;
@@ -286,7 +289,7 @@ export const usePostStore = create<PostStoreState>()(
         const original = get().posts.find((p) => p.id === postId);
       
         const mapped: PostType = {
-          id: backendGeneratedPostId, // ✅ real backend post ID
+          id: backendGeneratedPostId,
           username: "You",
           profilePic: "/man.jpg",
           content: shared.comment,
@@ -299,9 +302,7 @@ export const usePostStore = create<PostStoreState>()(
           isUserPost: true,
           repostSourcePost: original || null,
         };
-      
-        console.log("✅ Correct Post ID from backend:", backendGeneratedPostId);
-      
+            
         set({
           posts: [...get().posts, mapped],
           lastRepostId: backendGeneratedPostId,
@@ -329,15 +330,35 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
 
-      toggleSavePost: (id) =>
-        set((s) => {
-          const isSaved = s.savedPosts.includes(id);
-          return {
-            savedPosts: isSaved ? s.savedPosts.filter((pid) => pid !== id) : [...s.savedPosts, id],
-            savedPopupOpen: !isSaved,
-            unsavedPopupOpen: isSaved,
-          };
-        }),
+      // toggleSavePost: (id) =>
+      //   set((s) => {
+      //     const isSaved = s.savedPosts.includes(id);
+      //     return {
+      //       savedPosts: isSaved ? s.savedPosts.filter((pid) => pid !== id) : [...s.savedPosts, id],
+      //       savedPopupOpen: !isSaved,
+      //       unsavedPopupOpen: isSaved,
+      //     };
+      //   }),
+
+      toggleSavePostFromAPI: async (postId) => {
+        try {
+          const response = await toggleSavePostAPI(postId);
+          const saved = response.data.saved;
+      
+          set((s) => ({
+            savedPosts: saved
+              ? [...s.savedPosts, postId]
+              : s.savedPosts.filter((id) => id !== postId),
+            savedPopupOpen: saved,
+            unsavedPopupOpen: !saved,
+          }));
+      
+          console.log(`✅ Post ${postId} is now ${saved ? "saved" : "unsaved"}`);
+        } catch (error: any) {
+          console.error("❌ Failed to toggle save/unsave:", error?.response?.data || error.message);
+        }
+      },
+      
 
       commentOnPost: (id, comment) =>
         set((s) => ({

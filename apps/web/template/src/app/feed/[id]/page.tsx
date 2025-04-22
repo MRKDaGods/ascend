@@ -1,29 +1,30 @@
-// // src/app/post/[id]/page.tsx
-// "use client";
+"use client";
 
-// import { useEffect } from "react";
-// import { useParams } from "next/navigation";
-// import { usePostStore } from "@/app/stores/usePostStore";
-// import UserPost from "@/app/components/UserPost";
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
+import { usePostStore } from "@/app/stores/usePostStore";
+import ConnectionPost from "@/app/components/ConnectionPost";
+import Navbar from "@/app/components/Navbar";
 
-// const ViewPostPage = () => {
-//   const { id } = useParams();
-//   const selectedPost = usePostStore((state) => state.selectedPost);
-//   const fetchPost = usePostStore((state) => state.fetchPost);
+const ViewPostPage = () => {
+  const { id } = useParams();
+  const selectedPost = usePostStore((state) => state.selectedPost);
+  const fetchPost = usePostStore((state) => state.fetchPostFromAPI);
 
-//   useEffect(() => {
-//     if (id) {
-//       fetchPost(Number(id));
-//     }
-//   }, [id, fetchPost]);
+  useEffect(() => {
+    if (id) {
+      fetchPost(Number(id));
+    }
+  }, [id, fetchPost]);
 
-//   if (!selectedPost) return <div style={{ padding: 20 }}>Loading post...</div>;
+  if (!selectedPost) return <div style={{ padding: 20 }}>Loading post...</div>;
 
-//   return (
-//     <div style={{ padding: 20 }}>
-//       <UserPost post={selectedPost} />
-//     </div>
-//   );
-// };
+  return (
+    <>
+      <Navbar />
+      <ConnectionPost post={selectedPost} />
+    </>
+  );
+};
 
-// export default ViewPostPage;
+export default ViewPostPage;

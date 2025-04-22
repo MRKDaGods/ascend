@@ -148,3 +148,28 @@ export const repost = async (
 
   return res;
 };
+
+// ==== TOGGLE SAVE/UNSAVE POST ====
+
+export const toggleSavePostAPI = async (postId: number): Promise<{
+  success: boolean;
+  data: {
+    saved: boolean;
+    message: string;
+  };
+}> => {
+  const res = await API.post(`/post/${postId}/save`);
+  return res.data;
+};
+
+// ==== FETCH ALL SAVED POSTS ====
+
+export const fetchSavedPosts = async (
+  page = 1,
+  limit = 20
+): Promise<NewsFeedResponse> => {
+  const response = await API.get<NewsFeedResponse>("/post/saved", {
+    params: { page, limit },
+  });
+  return response.data;
+};
