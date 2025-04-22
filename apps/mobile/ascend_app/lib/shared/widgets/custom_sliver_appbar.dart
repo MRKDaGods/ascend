@@ -4,6 +4,7 @@ import '../extensions/scaffold_extensions.dart';
 import '../../features/profile/bloc/user_profile_bloc.dart';
 import '../../features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
+import 'package:ascend_app/core/routes/app_routes.dart'; // Import app routes
 
 import 'bloc/search_bloc.dart';
 import 'bloc/search_event.dart';
@@ -131,7 +132,10 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
             if (widget.addpost)
               IconButton(
                 icon: const Icon(Icons.post_add_outlined),
-                onPressed: () {},
+                onPressed: () {
+                  // Navigate to CreatePostPage
+                  Navigator.pushNamed(context, RouteNames.createPost);
+                },
               ),
             if (widget.settings)
               IconButton(
