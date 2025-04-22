@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:ascend_app/features/profile/models/user_profile_model.dart'; // Import UserProfileModel
+import 'package:ascend_app/features/home/presentation/widgets/comment/user_tagging_overlay.dart'; // Import UserTaggingOverlay
+import 'package:ascend_app/shared/data/mock_users.dart'; // Import MockUserData
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -20,6 +23,7 @@ class CreatePostPage extends StatefulWidget {
 
 class _CreatePostPageState extends State<CreatePostPage> {
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode(); // Add FocusNode
   final ImagePicker _picker = ImagePicker();
   bool _canPost = false;
   String _selectedVisibility = 'Anyone';
@@ -28,17 +32,84 @@ class _CreatePostPageState extends State<CreatePostPage> {
   DateTime? _scheduledDateTime;
   List<XFile> _selectedImages = []; // List to hold selected images
 
+  // Tagging related state variables
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  List<UserProfileModel> _suggestedUsers = [];
+  String _currentTagQuery = '';
+  bool _showTaggingOverlay = false;
+  int _tagStartIndex = -1;
+
   @override
   void initState() {
     super.initState();
-    _textController.addListener(_updateCanPost);
+    _textController.addListener(_handleTextChanged); // Use combined listener
+    _focusNode.addListener(_handleFocusChange); // Add focus listener
   }
 
   @override
   void dispose() {
-    _textController.removeListener(_updateCanPost);
+    _textController.removeListener(_handleTextChanged);
+    _focusNode.removeListener(_handleFocusChange);
+    _removeOverlay(); // Ensure overlay is removed on dispose
     _textController.dispose();
+    _focusNode.dispose(); // Dispose focus node
     super.dispose();
+  }
+
+  // Combined listener for text changes and tagging
+  void _handleTextChanged() {
+    _updateCanPost(); // Update post button state
+
+    // Tagging logic
+    final text = _textController.text;
+    final selection = _textController.selection;
+
+    if (selection.isCollapsed) {
+      final cursorPosition = selection.baseOffset;
+      int potentialTagStart = -1;
+
+      // Find the start of the potential tag (@)
+      for (int i = cursorPosition - 1; i >= 0; i--) {
+        if (text[i] == '@') {
+          // Ensure it's the start of a word or the beginning of the text
+          if (i == 0 || RegExp(r'\s').hasMatch(text[i - 1])) {
+            potentialTagStart = i;
+            break;
+          } else {
+            break; // '@' is in the middle of a word
+          }
+        }
+        // Stop searching if we hit whitespace going backwards
+        if (RegExp(r'\s').hasMatch(text[i])) {
+          break;
+        }
+      }
+
+      if (potentialTagStart != -1) {
+        final query = text.substring(potentialTagStart + 1, cursorPosition);
+        // Basic check to prevent tags with spaces
+        if (!query.contains(RegExp(r'\s'))) {
+          _tagStartIndex = potentialTagStart;
+          _currentTagQuery = query;
+          _fetchUserSuggestions(query); // Fetch suggestions
+        } else {
+          _hideUserSuggestions(); // Hide if query contains space
+        }
+      } else {
+        _tagStartIndex = -1; // Explicitly reset tag start index
+        _hideUserSuggestions(); // Hide if no '@' trigger found
+      }
+    } else {
+      _hideUserSuggestions(); // Hide if text is selected
+    }
+  }
+
+  // Handle focus changes to hide overlay
+  void _handleFocusChange() {
+    if (!_focusNode.hasFocus) {
+      _hideUserSuggestions();
+    }
   }
 
   void _updateCanPost() {
@@ -177,6 +248,169 @@ class _CreatePostPageState extends State<CreatePostPage> {
     });
   }
 
+  // --- Tagging Methods ---
+
+  Future<void> _fetchUserSuggestions(String query) async {
+    // Store the tag start index at the time of fetch request
+    final int fetchTagStartIndex = _tagStartIndex;
+
+    try {
+      final users = await MockUserData.searchUsers(query);
+
+      if (mounted) { // Check if the widget is still mounted
+        // Check if the tag context is still valid (cursor hasn't moved away)
+        if (_tagStartIndex == fetchTagStartIndex) {
+          setState(() {
+            _suggestedUsers = users;
+          });
+          // Now explicitly call show/hide based on results
+          if (_suggestedUsers.isNotEmpty) {
+            _showUserSuggestions();
+          } else {
+            _hideUserSuggestions();
+          }
+        } else {
+          // If _tagStartIndex changed while fetching, the context is stale, do nothing or hide.
+          _hideUserSuggestions();
+        }
+      }
+    } catch (e) {
+      print("Error fetching user suggestions: $e");
+      if (mounted) {
+        setState(() {
+          _suggestedUsers = [];
+        });
+        _hideUserSuggestions();
+      }
+    }
+  }
+
+  void _showUserSuggestions() {
+    print('[Tagging] Attempting to show suggestions. Overlay exists: ${_overlayEntry != null}, Users: ${_suggestedUsers.length}'); // Debugging
+    if (!mounted) {
+      print('[Tagging] Widget not mounted, aborting show suggestions.');
+      return;
+    }
+
+    if (_overlayEntry == null && _suggestedUsers.isNotEmpty) {
+      print('[Tagging] Creating and inserting overlay.'); // Debugging
+      _overlayEntry = _createOverlayEntry();
+      // Ensure Overlay.of(context) is not null before inserting
+      final overlay = Overlay.of(context);
+      if (overlay != null) {
+        overlay.insert(_overlayEntry!);
+        print('[Tagging] Overlay inserted.'); // Debugging
+        setState(() {
+          _showTaggingOverlay = true;
+        });
+      } else {
+        print('[Tagging] Error: Overlay.of(context) is null.'); // Debugging
+      }
+    } else if (_overlayEntry != null && _suggestedUsers.isEmpty) {
+      print('[Tagging] Hiding overlay because no users.'); // Debugging
+      _hideUserSuggestions(); // Hide if no users match
+    } else if (_overlayEntry != null) {
+      print('[Tagging] Overlay exists, marking for rebuild.'); // Debugging
+      // If overlay exists, just rebuild it with new suggestions
+      _overlayEntry?.markNeedsBuild();
+      if (!_showTaggingOverlay) {
+        setState(() {
+          _showTaggingOverlay = true;
+        });
+      }
+    }
+  }
+
+  void _hideUserSuggestions() {
+    print('[Tagging] Attempting to hide suggestions. Overlay exists: ${_overlayEntry != null}, Show flag: $_showTaggingOverlay'); // Debugging
+    if (_overlayEntry != null) {
+      print('[Tagging] Removing overlay.'); // Debugging
+      _removeOverlay();
+    }
+    // Use mounted check before setState
+    if (mounted && _showTaggingOverlay) {
+      print('[Tagging] Resetting tagging state.'); // Debugging
+      setState(() {
+        _showTaggingOverlay = false;
+        _suggestedUsers = [];
+        _currentTagQuery = '';
+        _tagStartIndex = -1;
+      });
+    } else if (_tagStartIndex != -1) {
+       // Ensure tagStartIndex is reset even if overlay wasn't shown yet
+       print('[Tagging] Resetting tagStartIndex as overlay was not shown.'); // Debugging
+       _tagStartIndex = -1;
+    }
+  }
+
+  void _removeOverlay() {
+    // Add safety check
+    try {
+       _overlayEntry?.remove();
+    } catch (e) {
+       print("[Tagging] Error removing overlay: $e");
+    }
+    _overlayEntry = null;
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    // Simplified positioning: Directly below the TextField using the LayerLink offset.
+    // The CompositedTransformFollower handles the positioning relative to the Target.
+    print('[Tagging] Creating OverlayEntry definition.'); // Debugging
+    return OverlayEntry(
+      builder: (overlayContext) { // Use a different name to avoid confusion with state's context
+        print('[Tagging] Building OverlayEntry content.'); // Debugging
+        // Get RenderBox using the State's context, which is associated with the CompositedTransformTarget
+        final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+        final size = renderBox?.size ?? Size(MediaQuery.of(overlayContext).size.width * 0.9, 150); // Fallback size
+
+        return Positioned(
+          // Positioned relative to the screen, but CompositedTransformFollower adjusts it
+          width: size.width, // Match width of the TextField
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            // Offset below the TextField. Adjust the dy value for spacing.
+            offset: const Offset(0, 5), // 5 pixels below the TextField
+            child: UserTaggingOverlay(
+              users: _suggestedUsers,
+              onUserSelected: _insertTag,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _insertTag(UserProfileModel user) {
+    if (_tagStartIndex == -1) return;
+
+    final currentText = _textController.text;
+    final selection = _textController.selection;
+    final cursorPosition = selection.baseOffset;
+
+    if (_tagStartIndex < 0 || cursorPosition < _tagStartIndex) {
+      _hideUserSuggestions();
+      return;
+    }
+
+    final textBeforeTag = currentText.substring(0, _tagStartIndex);
+    final textAfterTag = cursorPosition <= currentText.length ? currentText.substring(cursorPosition) : '';
+
+    final tag = '@${user.name} '; // Add space after tag
+    final newText = textBeforeTag + tag + textAfterTag;
+    final newCursorPosition = _tagStartIndex + tag.length;
+
+    _textController.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursorPosition),
+    );
+
+    _hideUserSuggestions();
+  }
+
+  // --- End Tagging Methods ---
+
   @override
   Widget build(BuildContext context) {
     final String postButtonText = _scheduledDateTime != null ? 'Schedule' : 'Post';
@@ -302,16 +536,21 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: _textController,
-                      maxLines: null,
-                      minLines: 5,
-                      keyboardType: TextInputType.multiline,
-                      decoration: const InputDecoration(
-                        hintText: 'What do you want to talk about?',
-                        border: InputBorder.none,
+                    // Wrap TextField with CompositedTransformTarget
+                    CompositedTransformTarget(
+                      link: _layerLink,
+                      child: TextField(
+                        controller: _textController,
+                        focusNode: _focusNode, // Assign focus node
+                        maxLines: null,
+                        minLines: 5,
+                        keyboardType: TextInputType.multiline,
+                        decoration: const InputDecoration(
+                          hintText: 'What do you want to talk about?',
+                          border: InputBorder.none,
+                        ),
+                        style: const TextStyle(fontSize: 18),
                       ),
-                      style: const TextStyle(fontSize: 18),
                     ),
                     const SizedBox(height: 16),
                     if (_selectedImages.isNotEmpty) _buildImagePreviews(),
