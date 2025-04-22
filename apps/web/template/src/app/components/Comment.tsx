@@ -30,14 +30,7 @@ const Comment: React.FC<CommentProps> = ({
   const [commentText, setCommentText] = useState("");
   const [commentMenuAnchor, setCommentMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedCommentIndex, setSelectedCommentIndex] = useState<number | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const handleCommentDelete = () => {
-    if (selectedCommentIndex !== null) {
-      deleteComment(post.id, selectedCommentIndex);
-      setDeleteDialogOpen(false);
-    }
-  };
+  const [setDeleteDialogOpen] = useState(false);
 
   return (
     <>
@@ -134,23 +127,9 @@ const Comment: React.FC<CommentProps> = ({
         open={Boolean(commentMenuAnchor)}
         onClose={() => setCommentMenuAnchor(null)}
       >
-        <MenuItem><Link fontSize="small" sx={{ mr: 1 }} /> Copy link to comment</MenuItem>
         <MenuItem><Edit fontSize="small" sx={{ mr: 1 }} /> Edit</MenuItem>
-        <MenuItem onClick={() => setDeleteDialogOpen(true)}>
-          <Delete fontSize="small" sx={{ mr: 1 }} /> Delete
-        </MenuItem>
+        <MenuItem><Delete fontSize="small" sx={{ mr: 1 }} /> Delete</MenuItem>
       </Menu>
-
-      {/* Delete confirmation */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Are you sure you want to delete your comment?</DialogTitle>
-        <DialogActions>
-          <button onClick={() => setDeleteDialogOpen(false)}>Cancel</button>
-          <button style={{ color: "red" }} onClick={handleCommentDelete}>
-            Delete
-          </button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

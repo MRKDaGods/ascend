@@ -125,13 +125,13 @@ const SavedPosts: React.FC = () => {
             </Card>
 
             {/* 3-dot menu (if needed for future options) */}
-            <Menu
+            {/* <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl) && menuPostId === post.id}
               onClose={handleMenuClose}
             >
               <MenuItem onClick={handleMenuClose}>Remove from saved</MenuItem>
-            </Menu>
+            </Menu> */}
           </Box>
         );
       })}
