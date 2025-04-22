@@ -37,29 +37,30 @@ class PostTypeSelectionGrid extends StatelessWidget {
         children: <Widget>[
           _buildIconButton(context, Icons.photo_library_outlined, 'Media', () async { // Make the callback async
             try {
-              // Pick an image from the gallery.
-              final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+              // Pick multiple images from the gallery.
+              final List<XFile> images = await picker.pickMultiImage();
 
-              if (image != null) {
-                // TODO: Implement actual logic to handle the selected image
-                // For example, pass the image path back or update state
-                print('Image picked: ${image.path}');
+              if (images.isNotEmpty) {
+                print('${images.length} images picked from grid.');
                 if (context.mounted) { // Check if the widget is still mounted
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Selected image: ${image.path}')),
-                  );
-                  // Optionally pop the bottom sheet after selection
-                  // Navigator.pop(context, image); 
+                  // Pop the bottom sheet and return the selected images
+                  Navigator.pop(context, images);
                 }
               } else {
-                print('Image picking cancelled.');
+                print('Image picking cancelled or no images selected.');
+                if (context.mounted) { // Check if the widget is still mounted
+                  // Optionally pop without returning anything if cancelled
+                  // Navigator.pop(context);
+                }
               }
             } catch (e) {
-              print('Error picking image: $e');
+              print('Error picking images: $e');
               if (context.mounted) { // Check if the widget is still mounted
                  ScaffoldMessenger.of(context).showSnackBar(
-                   SnackBar(content: Text('Error picking image: $e')),
+                   SnackBar(content: Text('Error picking images: $e')),
                  );
+                 // Optionally pop on error
+                 // Navigator.pop(context);
               }
             }
           }),

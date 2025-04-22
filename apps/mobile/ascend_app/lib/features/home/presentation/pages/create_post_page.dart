@@ -1,3 +1,4 @@
+import 'dart:io'; // Import for File
 import 'package:ascend_app/features/home/presentation/widgets/create_post/comment_control_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/visibility_options_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/schedule_post_bottom_sheet.dart';
@@ -25,21 +26,25 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String _commentControl = 'Anyone';
   bool _brandPartnership = false;
   DateTime? _scheduledDateTime;
+  List<XFile> _selectedImages = []; // List to hold selected images
 
   @override
   void initState() {
     super.initState();
-    _textController.addListener(() {
-      setState(() {
-        _canPost = _textController.text.trim().isNotEmpty;
-      });
-    });
+    _textController.addListener(_updateCanPost);
   }
 
   @override
   void dispose() {
+    _textController.removeListener(_updateCanPost);
     _textController.dispose();
     super.dispose();
+  }
+
+  void _updateCanPost() {
+    setState(() {
+      _canPost = _textController.text.trim().isNotEmpty || _selectedImages.isNotEmpty;
+    });
   }
 
   // Method to show the visibility options bottom sheet
@@ -61,7 +66,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
             });
           },
           onCommentControlTap: () {
-            // This is called after the first sheet is popped
             _showCommentControlOptions(context);
           },
           onBrandPartnershipChanged: (value) {
@@ -78,7 +82,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   void _showCommentControlOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Added for consistency if content grows
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
@@ -116,43 +120,61 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   // Method to show the post type selection grid bottom sheet
-  void _showPostTypeSelectionGrid(BuildContext context) {
-    showModalBottomSheet(
+  void _showPostTypeSelectionGrid(BuildContext context) async {
+    final List<XFile>? imagesFromGrid = await showModalBottomSheet<List<XFile>?>(
       context: context,
-      isScrollControlled: true, // Allows the sheet to take up more height if needed
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       builder: (BuildContext bc) {
-        // Wrap the grid in a container or SizedBox if you need to control its height
         return const PostTypeSelectionGrid();
       },
     );
+
+    if (imagesFromGrid != null && imagesFromGrid.isNotEmpty) {
+      setState(() {
+        _selectedImages.addAll(imagesFromGrid);
+        _updateCanPost();
+      });
+      print('${imagesFromGrid.length} images selected from grid.');
+    }
   }
 
-  // Method to handle picking an image directly
+  // Method to handle picking multiple images directly
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        print('Image picked directly: ${image.path}');
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        setState(() {
+          _selectedImages.addAll(images);
+          _updateCanPost();
+        });
+        print('${images.length} images picked directly.');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Selected image: ${image.path}')),
+            SnackBar(content: Text('${images.length} image(s) selected.')),
           );
-          // TODO: Add logic to handle the selected image (e.g., display preview)
         }
       } else {
-        print('Image picking cancelled.');
+        print('Image picking cancelled or no images selected.');
       }
     } catch (e) {
-      print('Error picking image: $e');
+      print('Error picking images: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
+          SnackBar(content: Text('Error picking images: $e')),
         );
       }
     }
+  }
+
+  // Method to remove an image
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+      _updateCanPost();
+    });
   }
 
   @override
@@ -220,10 +242,16 @@ class _CreatePostPageState extends State<CreatePostPage> {
             child: ElevatedButton(
               onPressed: _canPost
                   ? () {
+                      final postText = _textController.text;
+                      final imagePaths = _selectedImages.map((f) => f.path).toList();
                       if (_scheduledDateTime != null) {
                         print('Scheduling post for: $_scheduledDateTime');
+                        print('Text: $postText');
+                        print('Images: $imagePaths');
                       } else {
                         print('Posting immediately');
+                        print('Text: $postText');
+                        print('Images: $imagePaths');
                       }
                       Navigator.of(context).pop();
                     }
@@ -268,18 +296,27 @@ class _CreatePostPageState extends State<CreatePostPage> {
               ),
             ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _textController,
-                maxLines: null,
-                expands: true,
-                keyboardType: TextInputType.multiline,
-                decoration: const InputDecoration(
-                  hintText: 'What do you want to talk about?',
-                  border: InputBorder.none,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _textController,
+                      maxLines: null,
+                      minLines: 5,
+                      keyboardType: TextInputType.multiline,
+                      decoration: const InputDecoration(
+                        hintText: 'What do you want to talk about?',
+                        border: InputBorder.none,
+                      ),
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    const SizedBox(height: 16),
+                    if (_selectedImages.isNotEmpty) _buildImagePreviews(),
+                  ],
                 ),
-                style: const TextStyle(fontSize: 18),
               ),
             ),
           ),
@@ -290,7 +327,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.image_outlined),
-                  tooltip: 'Add photo',
+                  tooltip: 'Add photo(s)',
                   onPressed: _pickImage,
                 ),
                 IconButton(
@@ -312,6 +349,45 @@ class _CreatePostPageState extends State<CreatePostPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImagePreviews() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 4.0,
+        mainAxisSpacing: 4.0,
+      ),
+      itemCount: _selectedImages.length,
+      itemBuilder: (context, index) {
+        return Stack(
+          children: [
+            Image.file(
+              File(_selectedImages[index].path),
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () => _removeImage(index),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 18),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
