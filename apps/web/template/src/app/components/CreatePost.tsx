@@ -15,6 +15,7 @@ import AddMedia from "./AddMedia";
 import UserPostPopup from "./UserPostPopup";
 import CreatePostDialog from "./CreatePostDialog";
 import DraftSavedPopup from "./DraftSavedPopup";
+import RepostPopup from "./RepostPopup";
 
 const CreatePost: React.FC = () => {
   const theme = useTheme();
@@ -68,6 +69,7 @@ const CreatePost: React.FC = () => {
 
     <DraftSavedPopup />
     <UserPostPopup />
+    <RepostPopup />
 
     </div>
   );

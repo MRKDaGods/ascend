@@ -23,7 +23,7 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
 
   const {
     savedPosts,
-    toggleSavePost,
+    toggleSavePostFromAPI,
     setSavedPopupOpen,
     setUnsavedPopupOpen,
     setCopyPostPopupOpen,
@@ -50,7 +50,7 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
         {savedPosts.includes(post.id) ? (
           <MenuItem
             onClick={() => {
-              toggleSavePost(post.id);
+              toggleSavePostFromAPI(post.id);
               setUnsavedPopupOpen(true);
               setMenuAnchorEl(null);
             }}
@@ -66,7 +66,7 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
         ) : (
           <MenuItem
             onClick={() => {
-              toggleSavePost(post.id);
+              toggleSavePostFromAPI(post.id);
               setSavedPopupOpen(true);
               setMenuAnchorEl(null);
             }}

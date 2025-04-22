@@ -1,14 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Menu, MenuItem, Typography, Box, useTheme } from "@mui/material";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  Typography,
+  Box,
+  useTheme,
+} from "@mui/material";
 import { Repeat, Edit } from "@mui/icons-material";
-import { usePostStore } from "../stores/usePostStore";
+import { usePostStore, PostType } from "../stores/usePostStore";
 
-const RepostOptions: React.FC<{ postId: number }> = ({ postId }) => {
+const RepostOptions: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { repostPost } = usePostStore();
+  const {
+    repostFromAPI, // ✅ new name
+    setRepostSourcePost,
+    setOpen,
+  } = usePostStore();
 
   const open = Boolean(anchorEl);
 
@@ -20,13 +31,14 @@ const RepostOptions: React.FC<{ postId: number }> = ({ postId }) => {
     setAnchorEl(null);
   };
 
-  const handleRepost = () => {
-    repostPost(postId);
+  const handleRepost = async () => {
+    await repostFromAPI(post.id, ""); // no comment = instant repost
     handleClose();
   };
 
   const handleRepostWithThoughts = () => {
-    // set repost popup true and store original post (expand later)
+    setRepostSourcePost(post); // opens CreatePostDialog with preview
+    setOpen(true);
     handleClose();
   };
 
