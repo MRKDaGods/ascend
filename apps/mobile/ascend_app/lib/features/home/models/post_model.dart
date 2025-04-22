@@ -262,7 +262,13 @@ class PostModel extends Equatable {
     final createdAt = apiPost['created_at'] != null 
         ? DateTime.parse(apiPost['created_at'] as String)
         : DateTime.now();
-    final timeAgo = _formatTimeAgo(createdAt);
+    final timeAgo = formatTimeAgo(createdAt);
+    
+    // Extract profile picture URL, provide a valid default if missing
+    final profilePicUrl = userData['profile_picture_url'] as String?;
+    final ownerImageUrl = (profilePicUrl != null && profilePicUrl.isNotEmpty)
+        ? profilePicUrl
+        : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
     
     return PostModel(
       // Convert numeric ID to string
@@ -277,8 +283,8 @@ class PostModel extends Equatable {
       useCarousel: imageUrls.length > 1,
       
       // User information
-      ownerName: fullName,
-      ownerImageUrl: 'assets/images/profile/default_user.jpg', // Default until profile pic integration
+      ownerName: fullName.isNotEmpty ? fullName : 'Ascend User', // Fallback name
+      ownerImageUrl: ownerImageUrl, // Use the determined image URL
       ownerOccupation: 'User', // Not provided by API
       
       // Time posted
@@ -303,8 +309,8 @@ class PostModel extends Equatable {
   }
   }
 
-  // Helper method to format timestamps
-  static String _formatTimeAgo(DateTime timestamp) {
+  // Helper method to format timestamps - Made public static
+  static String formatTimeAgo(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
     

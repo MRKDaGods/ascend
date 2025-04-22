@@ -37,9 +37,10 @@ class PostEngagementStats extends StatelessWidget {
 
           if (prevPost == null || currPost == null) return false;
 
-          // Rebuild if likes count or shares count changed
-          return prevPost.likesCount != currPost.likesCount || 
-                 prevPost.sharedCount != currPost.sharedCount;
+          // Rebuild if likes count, shares count, or comments count changed
+          return prevPost.likesCount != currPost.likesCount ||
+                 prevPost.sharedCount != currPost.sharedCount ||
+                 prevPost.commentsCount != currPost.commentsCount;
         }
         return false;
       },
@@ -48,8 +49,9 @@ class PostEngagementStats extends StatelessWidget {
           final post = state.getPostById(postId!);
           final currentLikesCount = post?.likesCount ?? likesCount;
           final currentSharesCount = post?.sharedCount ?? sharesCount;
+          final currentCommentsCount = post?.commentsCount ?? commentsCount;
 
-          return _buildStatsRow(currentLikesCount, commentsCount, currentSharesCount);
+          return _buildStatsRow(currentLikesCount, currentCommentsCount, currentSharesCount);
         }
         return _buildStatsRow(likesCount, commentsCount, sharesCount);
       },
