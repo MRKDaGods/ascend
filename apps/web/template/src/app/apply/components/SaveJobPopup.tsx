@@ -23,7 +23,7 @@ const SaveJobPopup = () => {
       open={savedJobPopupOpen}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       onClose={handleClose}
-      autoHideDuration={5000}
+      autoHideDuration={2000}
     >
       <Alert
         icon={false}

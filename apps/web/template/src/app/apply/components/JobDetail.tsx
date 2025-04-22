@@ -65,7 +65,7 @@ const JobDetails = () => {
     // Save to backend
     try {
       const response = await fetch(`https://api.ascendx.tech/job/save/${id}`, {
-        method: 'POST', headers:{'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MDk2OTE0LCJleHAiOjE3NDUxNDAxMTR9.IvFSGGw8xI7MdUCCA-yxIo0ztnKiw0Opbz5ItHFkHTg`},
+        method: 'POST', headers:{'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MzE4Nzc1LCJleHAiOjE3NDUzNjE5NzV9.TWUfu3C5qZ37kNqjuOecUFKPGpHYkuJUV8SDRM9hPvI`},
       });
 
       if (!response.ok) {
@@ -101,22 +101,9 @@ const JobDetails = () => {
           </Button>
         </Box>
 
-        <Section title="About Us">
-          <Typography>{about}</Typography>
-        </Section>
 
         <Section title="Job Description">
           <Typography>{description}</Typography>
-        </Section>
-
-        <Section title="Requirements">
-          <ul>
-            {requirements.map((req, index) => (
-              <li key={index}>
-                <Typography>{req}</Typography>
-              </li>
-            ))}
-          </ul>
         </Section>
 
         <SaveJobPopup />

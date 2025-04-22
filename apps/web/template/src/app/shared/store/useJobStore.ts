@@ -18,6 +18,8 @@ export interface Job {
   company_name: string;
   company_logo_url: string | null;
   saved_at: Date;
+  status?: JobStatus;
+  applicationStatus?: ApplicationStatus;
 }
 
 interface JobStore {
@@ -28,51 +30,112 @@ interface JobStore {
   setSavedJobPopupOpen: (isOpen: boolean) => void;
   saveJob: (job: Job) => void;
   applyJob: (job: Job) => void;
-  postJob: (job: Job) => void; 
+  deleteJob: (jobId: number) => void;
+  postJob: (job: Job) => void;
   fetchSavedJobs: () => Promise<void>;
 }
 
+const getPersistedJobs = (): Job[] => {
+  if (typeof window === 'undefined') return [];
+  const stored = localStorage.getItem('saved_jobs');
+  return stored ? JSON.parse(stored) : [];
+};
+
+const persistJobs = (jobs: Job[]) => {
+  localStorage.setItem('saved_jobs', JSON.stringify(jobs));
+};
+
 export const useJobStore = create<JobStore>((set) => ({
-  jobs: [],
+  jobs: getPersistedJobs(),
   activeTab: 'Saved',
   savedJobPopupOpen: false,
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSavedJobPopupOpen: (isOpen) => set({ savedJobPopupOpen: isOpen }),
+
   saveJob: (job) =>
     set((state) => {
       const exists = state.jobs.find((j) => j.job_id === job.job_id);
-      return exists ? state : { jobs: [...state.jobs, job] };
+      const updatedJobs = exists ? state.jobs : [...state.jobs, job];
+      persistJobs(updatedJobs);
+      return { jobs: updatedJobs };
     }),
+
   applyJob: (job) =>
     set((state) => {
       const exists = state.jobs.find((j) => j.job_id === job.job_id);
+      let updatedJobs;
       if (exists) {
-        return {
-          jobs: state.jobs.map((j) =>
-            j.job_id === job.job_id
-              ? { ...j, status: 'Applied', applicationStatus: 'Pending' }
-              : j
-          ),
-        };
+        updatedJobs = state.jobs.map((j) =>
+          j.job_id === job.job_id
+            ? {
+                ...j,
+                status: 'Applied' as JobStatus,
+                applicationStatus: 'Pending' as ApplicationStatus,
+              }
+            : j
+        );
       } else {
-        return {
-          jobs: [...state.jobs, { ...job, status: 'Applied', applicationStatus: 'Pending' }],
-        };
+        updatedJobs = [
+          ...state.jobs,
+          {
+            ...job,
+            status: 'Applied' as JobStatus,
+            applicationStatus: 'Pending' as ApplicationStatus,
+          },
+        ];
       }
+      persistJobs(updatedJobs);
+      return { jobs: updatedJobs };
     }),
-  postJob: (job) => // ✅ Added this function
+
+  deleteJob: async (jobId) => {
+    try {
+      await fetch(`https://api.ascendx.tech/job/save/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization:
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MzE4Nzc1LCJleHAiOjE3NDUzNjE5NzV9.TWUfu3C5qZ37kNqjuOecUFKPGpHYkuJUV8SDRM9hPvI',
+        },
+      });
+
+      set((state) => {
+        const updatedJobs = state.jobs.filter((job) => job.job_id !== jobId);
+        persistJobs(updatedJobs);
+        return { jobs: updatedJobs };
+      });
+    } catch (error) {
+      console.error('Failed to delete saved job:', error);
+    }
+  },
+
+  postJob: (job) =>
     set((state) => {
       const exists = state.jobs.find((j) => j.job_id === job.job_id);
-      return exists
-        ? state
-        : { jobs: [...state.jobs, { ...job, status: 'Posted' }] };
+      const updatedJobs = exists
+        ? state.jobs
+        : [...state.jobs, { ...job, status: 'Posted' as JobStatus }];
+      persistJobs(updatedJobs);
+      return { jobs: updatedJobs };
     }),
+
   fetchSavedJobs: async () => {
     try {
-      const response = await fetch('https://api.ascendx.tech/job/save', { method: 'GET' , headers:{ 'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MDk2OTE0LCJleHAiOjE3NDUxNDAxMTR9.IvFSGGw8xI7MdUCCA-yxIo0ztnKiw0Opbz5ItHFkHTg` }});
+      const response = await fetch('https://api.ascendx.tech/job/save', {
+        method: 'GET',
+        headers: {
+          Authorization:
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MzE4Nzc1LCJleHAiOjE3NDUzNjE5NzV9.TWUfu3C5qZ37kNqjuOecUFKPGpHYkuJUV8SDRM9hPvI',
+        },
+      });
       const result = await response.json();
-    const updatedJobs = result.data.map((job: Job) => ({ ...job, status: 'Saved' }));
-    set({ jobs: updatedJobs });
+      const updatedJobs: Job[] = result.data.map((job: any) => ({
+        ...job,
+        status: 'Saved' as JobStatus,
+        applicationStatus: job.applicationStatus as ApplicationStatus,
+        saved_at: new Date(job.saved_at),
+      }));
+      persistJobs(updatedJobs);
+      set({ jobs: updatedJobs });
     } catch (error) {
       console.error('Failed to fetch saved jobs:', error);
     }

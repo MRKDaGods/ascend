@@ -15,7 +15,16 @@ const JobTabs = () => {
   };
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <Box
+      sx={{
+        borderBottom: 1,
+        borderColor: 'divider',
+        backgroundColor: '#fff',
+        boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+        borderRadius: 2,
+        px: 2,
+      }}
+    >
       <Tabs
         value={activeTab}
         onChange={handleChange}
@@ -24,8 +33,17 @@ const JobTabs = () => {
         aria-label="job status tabs"
         variant="scrollable"
         scrollButtons="auto"
+        sx={{
+          '.MuiTab-root': {
+            textTransform: 'none',
+            fontWeight: 500,
+            fontSize: '0.95rem',
+            px: 2,
+            py: 1,
+          },
+        }}
       >
-        {tabLabels.map(label => (
+        {tabLabels.map((label) => (
           <Tab key={label} label={label} value={label} />
         ))}
       </Tabs>

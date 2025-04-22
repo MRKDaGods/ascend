@@ -11,7 +11,11 @@ import {
   Avatar,
   Chip,
   Button,
+  Container,
+  Fade,
+  Paper,
 } from '@mui/material';
+import Navbar from '../components/navbar';
 
 interface Job {
   job_id: number;
@@ -47,7 +51,6 @@ const SearchResultsPage = () => {
         const data = await response.json();
         const safeJobs = Array.isArray(data.data) ? data.data : [];
 
-        // Optional: Filter on client-side using query params
         const filtered = safeJobs.filter((jobObj: Job) =>
           jobObj.title.toLowerCase().includes(job.toLowerCase()) &&
           jobObj.location.toLowerCase().includes(location.toLowerCase())
@@ -78,79 +81,117 @@ const SearchResultsPage = () => {
   };
 
   return (
-    <Box sx={{ p: 4, mt: 8, backgroundColor: '#f9fafb', minHeight: '100vh' }}>
-      <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }} color="black">
-        Search Results for "{job}" in "{location}"
-      </Typography>
+    <>
+      <Navbar />
+      <Box
+        sx={{
+          pt: { xs: 10, sm: 12 },
+          pb: 6,
+          minHeight: '100vh',
+          backgroundColor: '#f9fafb',
+        }}
+      >
+        <Container maxWidth="md">
+          <Paper elevation={2} sx={{ p: 4, borderRadius: 4, mb: 4 }}>
+            <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
+              Search Results
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Showing results for "<strong>{job}</strong>" in "<strong>{location}</strong>"
+            </Typography>
+          </Paper>
 
-      {loading ? (
-        <CircularProgress />
-      ) : results.length === 0 ? (
-        <Typography variant="body1">No results found.</Typography>
-      ) : (
-        <Box display="flex" flexDirection="column" gap={3}>
-          {results.map((job) => (
-            <Card
-              key={job.job_id}
+          {loading ? (
+            <Box display="flex" justifyContent="center" mt={10}>
+              <CircularProgress />
+            </Box>
+          ) : results.length === 0 ? (
+            <Paper
+              elevation={1}
               sx={{
-                borderRadius: 3,
-                boxShadow: 4,
-                backgroundColor: 'white',
-                p: 2,
-                transition: 'transform 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.01)',
-                },
+                p: 4,
+                borderRadius: 4,
+                textAlign: 'center',
+                backgroundColor: '#ffffff',
               }}
             >
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Avatar src={job.company_logo_url || ''} alt={job.company_name} sx={{ width: 48, height: 48 }} />
-                  <Box>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#0073b1' }}>
-                      {job.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {job.company_name} — {job.location}
-                    </Typography>
-                  </Box>
-                </Box>
+              <Typography variant="h6" gutterBottom>
+                No results found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Try different keywords or locations to see more opportunities.
+              </Typography>
+            </Paper>
+          ) : (
+            <Box display="flex" flexDirection="column" gap={3}>
+              {results.map((job, index) => (
+                <Fade in timeout={300 + index * 100} key={job.job_id}>
+                  <Card
+                    sx={{
+                      borderRadius: 3,
+                      boxShadow: 2,
+                      backgroundColor: 'white',
+                      p: 2,
+                      transition: 'transform 0.2s ease',
+                      '&:hover': {
+                        transform: 'scale(1.01)',
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Avatar
+                          src={job.company_logo_url || ''}
+                          alt={job.company_name}
+                          sx={{ width: 56, height: 56 }}
+                        />
+                        <Box>
+                          <Typography variant="h6" fontWeight="bold" color="primary.main">
+                            {job.title}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {job.company_name} — {job.location}
+                          </Typography>
+                        </Box>
+                      </Box>
 
-                <Typography variant="body2" sx={{ mb: 2, color: '#444' }}>
-                  {job.description.length > 100
-                    ? job.description.slice(0, 100) + '...'
-                    : job.description}
-                </Typography>
+                      <Typography variant="body2" sx={{ mb: 2, color: '#444' }}>
+                        {job.description.length > 100
+                          ? job.description.slice(0, 100) + '...'
+                          : job.description}
+                      </Typography>
 
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                  {/* You can display additional job tags here */}
-                  <Chip label={job.experience_level} size="small" />
-                  <Chip label={job.workplace_type} size="small" />
-                  <Chip label={job.type} size="small" />
-                </Box>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                        <Chip label={job.experience_level} size="small" />
+                        <Chip label={job.workplace_type} size="small" />
+                        <Chip label={job.type} size="small" />
+                      </Box>
 
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => handleApply(job)}
-                  sx={{
-                    borderRadius: '999px',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    backgroundColor: '#0073b1',
-                    '&:hover': {
-                      backgroundColor: '#005f94',
-                    },
-                  }}
-                >
-                  Apply Now
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      )}
-    </Box>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleApply(job)}
+                        sx={{
+                          borderRadius: '999px',
+                          textTransform: 'none',
+                          fontWeight: 500,
+                          backgroundColor: '#0073b1',
+                          '&:hover': {
+                            backgroundColor: '#005f94',
+                          },
+                        }}
+                      >
+                        Apply Now
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Fade>
+              ))}
+            </Box>
+          )}
+        </Container>
+      </Box>
+    </>
   );
 };
 

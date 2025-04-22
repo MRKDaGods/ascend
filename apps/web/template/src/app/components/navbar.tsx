@@ -106,7 +106,7 @@ const Navbar: React.FC = () => {
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {/* Logo */}
         <Typography variant="h6" sx={{ fontWeight: "bold", fontFamily: "'Segoe UI', sans-serif" }}>
-          LinkedIn
+          ASCEND
         </Typography>
 
         {/* Search Bar */}
@@ -163,7 +163,7 @@ const Navbar: React.FC = () => {
                         key={index}
                         component="div"
                         onClick={() => {
-                          setSearchParams({ title: searchParams.title, location: searchParams.location });
+                          setSearchParams((prev) => ({ ...prev, title })); // Update the title field
                           setIsTitleFocused(false);
                         }}
                         sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
@@ -182,7 +182,7 @@ const Navbar: React.FC = () => {
                         key={index}
                         component="div"
                         onClick={() => {
-                          setSearchParams({ title: search.job, location: search.location });
+                          setSearchParams((prev) => ({ ...prev, title: search.job, location: search.location })); // Update both title and location
                           setIsTitleFocused(false);
                         }}
                         sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}

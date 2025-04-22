@@ -7,9 +7,13 @@ import {
   Avatar,
   Chip,
   Stack,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useRouter } from 'next/navigation';
 
-export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived'|'Posted';
+export type JobStatus = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Posted';
 export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted';
 
 interface JobCardProps {
@@ -26,11 +30,14 @@ interface JobCardProps {
   company_id: number;
   company_name: string;
   company_logo_url: string | null;
-  saved_at: Date ;
+  saved_at: Date;
   applicationStatus?: ApplicationStatus;
+  status?: JobStatus;
+  onDelete: (job_id: number) => void;
 }
 
 const JobCard: React.FC<JobCardProps> = ({
+  job_id,
   title,
   company_name,
   location,
@@ -38,9 +45,28 @@ const JobCard: React.FC<JobCardProps> = ({
   saved_at,
   company_logo_url,
   applicationStatus,
+  status,
+  onDelete,
 }) => {
+  const router = useRouter();
+
   const appStatus: ApplicationStatus | null =
     status === 'Applied' ? applicationStatus ?? 'Pending' : null;
+
+  const handleClick = () => {
+    const queryParams = new URLSearchParams({
+      id: job_id.toString(),
+      title,
+      company: company_name,
+      location,
+      type,
+      description: '',
+      about: '',
+      requirements: '',
+    });
+
+    router.push(`/apply?${queryParams.toString()}`);
+  };
 
   const getApplicationStatusColor = (status: ApplicationStatus) => {
     switch (status) {
@@ -57,72 +83,108 @@ const JobCard: React.FC<JobCardProps> = ({
     }
   };
 
+  const formattedDate = saved_at
+    ? new Date(saved_at).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : null;
+
   return (
     <Card
       sx={{
-        mb: 2,
-        borderRadius: 3,
-        boxShadow: 2,
-        p: 2,
-        transition: '0.3s ease',
+        mb: 3,
+        borderRadius: 4,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+        p: 3,
+        transition: '0.25s ease-in-out',
         '&:hover': {
-          boxShadow: 4,
+          boxShadow: '0 6px 24px rgba(0,0,0,0.1)',
+          transform: 'translateY(-2px)',
         },
+        cursor: 'pointer',
       }}
+      onClick={handleClick}
     >
-      <Box display="flex" alignItems="center" gap={2}>
+      <Box display="flex" alignItems="center" gap={3}>
         <Avatar
           src={company_logo_url || ''}
           alt={company_name}
-          sx={{ width: 60, height: 60 }}
+          variant="rounded"
+          sx={{ width: 64, height: 64 }}
         />
+
         <Box flexGrow={1}>
           <Typography variant="h6" fontWeight={600} color="#0a66c2">
             {title}
           </Typography>
-          <Typography variant="subtitle2" color="text.secondary">
-            {company_name}
+          <Typography variant="body2" color="text.secondary">
+            {company_name} • {location}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {location} • {type}
+            {type}
           </Typography>
         </Box>
 
-        <Stack spacing={0.5} alignItems="flex-end">
-          <Chip
-            label={status}
-            color={
-              status === 'Saved'
-                ? 'default'
-                : status === 'In Progress'
-                ? 'info'
-                : status === 'Applied'
-                ? 'warning'
-                : 'success'
-            }
-            variant="outlined"
-            sx={{
-              fontWeight: 600,
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              px: 1.5,
-            }}
-          />
-
-          {appStatus !== null && (
+        <Stack spacing={1} alignItems="flex-end">
+          {status && (
+            <Tooltip title={`Status: ${status}`}>
+              <Chip
+                label={status}
+                color={
+                  status === 'Saved'
+                    ? 'default'
+                    : status === 'In Progress'
+                    ? 'info'
+                    : status === 'Applied'
+                    ? 'warning'
+                    : 'success'
+                }
+                variant="outlined"
+                sx={{
+                  fontWeight: 600,
+                  borderRadius: '999px',
+                  fontSize: '0.75rem',
+                  px: 2,
+                }}
+              />
+            </Tooltip>
+          )}
+          {appStatus && (
             <Chip
               label={appStatus}
               color={getApplicationStatusColor(appStatus)}
               variant="outlined"
               sx={{
                 fontWeight: 600,
-                borderRadius: '8px',
+                borderRadius: '999px',
                 fontSize: '0.75rem',
-                px: 1.5,
+                px: 2,
               }}
             />
           )}
         </Stack>
+      </Box>
+
+      {formattedDate && (
+        <Box display="flex" justifyContent="flex-end" mt={2}>
+          <Typography variant="caption" color="text.secondary">
+            Saved on {formattedDate}
+          </Typography>
+        </Box>
+      )}
+
+      <Box display="flex" justifyContent="flex-end" mt={1}>
+        <IconButton
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(job_id);
+          }}
+          color="error"
+        >
+          <DeleteIcon />
+        </IconButton>
       </Box>
     </Card>
   );
