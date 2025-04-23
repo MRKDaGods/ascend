@@ -15,7 +15,7 @@ import {
 import { usePostStore, PostType } from "../stores/usePostStore";
 import PostActions from "./PostActions";
 import Comment from "./Comment";
-import Save from "./Save";
+import SaveandLink from "./SaveandLink";
 
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
@@ -60,7 +60,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
               {post.followers} • {post.timestamp}
             </Typography>
           }
-          action={<Save post={post} />}
+          action={<SaveandLink post={post} />}
         />
 
         <CardContent sx={{ pt: 0 }}>
