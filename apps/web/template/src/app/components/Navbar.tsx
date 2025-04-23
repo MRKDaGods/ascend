@@ -194,7 +194,7 @@ const Navbar: React.FC = () => {
             </Typography>
             <MenuItem><ListItemText>Try Premium</ListItemText></MenuItem>
             <MenuItem>
-              <ListItemText>Settings & Privacy</ListItemText>
+              <ListItemText onClick={() => router.push("/authen/Settings")}>Settings & Privacy</ListItemText>
               <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
             </MenuItem>
 
