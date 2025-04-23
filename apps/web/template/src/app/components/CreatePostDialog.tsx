@@ -50,6 +50,7 @@ const CreatePostDialog: React.FC = () => {
     createPostFromAPI,
     setUserPostPopupOpen,
     setRepostPopupOpen,
+    repostFromAPI
   } = usePostStore();
 
 
@@ -80,15 +81,17 @@ const CreatePostDialog: React.FC = () => {
     const media = mediaPreviews[0];
     const type = media?.includes("video") ? "video" : "image";
   
-    await createPostFromAPI(postText, media, type);
-  
     if (repostSourcePost) {
+      // 👉 It's a repost with thoughts
+      await repostFromAPI(repostSourcePost.id, postText.trim());
       setRepostPopupOpen(true);
     } else {
+      // 👉 It's a regular post
+      await createPostFromAPI(postText, media, type);
       setUserPostPopupOpen(true);
     }
   
-    // Reset everything after posting
+    // ✅ Reset all post state
     setDraftText("");
     setPostText("");
     resetPost();
@@ -96,8 +99,6 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview();
     setRepostSourcePost(null);
   };
-  
-  
 
   const handleClose = () => {
     const hasUnsavedContent =

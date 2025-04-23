@@ -1,5 +1,3 @@
-// Component file: popup appears after reposting a post
-
 "use client";
 
 import { Snackbar, Alert, Link, IconButton } from "@mui/material";
@@ -8,7 +6,12 @@ import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
 
 const RepostPopup = () => {
-  const { repostPopupOpen, setRepostPopupOpen } = usePostStore();
+  const {
+    repostPopupOpen,
+    setRepostPopupOpen,
+    lastRepostType, // <- NEW: coming from Zustand
+  } = usePostStore();
+
   const router = useRouter();
 
   const handleClose = () => {
@@ -17,7 +20,14 @@ const RepostPopup = () => {
 
   const handleViewPost = () => {
     setRepostPopupOpen(false);
-    router.push("/feed/repost");
+
+    // Navigate based on repost type
+    if (lastRepostType === "with-thoughts") {
+      router.push("/feed/repostThoughts");
+    } else {
+      router.push("/feed/repost");
+    }
+    console.log("🔍 Routing to:", lastRepostType);
   };
 
   return (

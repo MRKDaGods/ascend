@@ -1,157 +1,289 @@
 "use client";
-import { Box, Typography, Button, Avatar, IconButton } from "@mui/material";
-import { useState, useEffect } from "react";
-import axios from "axios";
+
 import {
-  Drawer, List, ListItem, ListItemAvatar, ListItemText,
-  Badge, ListItemButton, Menu, MenuItem
+  Avatar,
+  Badge,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemButton,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Typography,
+  useTheme,
+  CircularProgress,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import CreateIcon from "@mui/icons-material/Create";
+import { useEffect, useState } from "react";
 import { useChatStore } from "../stores/chatStore";
 import { api, extApi } from "@/api/apiDef";
+import { Profile } from "@ascend/api-client/models";
+import type { Conversation } from "../stores/chatStore";
 
-export default function Sidebar({ onSelectConversation }: { onSelectConversation?: (id: number) => void } = {}) {
-  const conversations = useChatStore((state) => state.conversations);
-  const setSelectedConversationId = useChatStore((state) => state.setSelectedConversationId);
-  const setConversations = useChatStore((state) => state.setConversations);
-  const unreadMessagesById = useChatStore((state) => state.unreadMessagesById);
-  const markConversationAsRead = useChatStore((state) => state.markConversationAsRead);
-  const markConversationAsUnread = useChatStore((state) => state.markConversationAsUnread);
-  const updateLastMessage = useChatStore((state) => state.updateLastMessage);
-  const appendMessageToConversation = useChatStore((state) => state.appendMessageToConversation);
-  const typingStatus = useChatStore((state) => state.typingStatus);
-  const setAllUnreadMessagesById = useChatStore((state) => state.setAllUnreadMessagesById);
-  const selectedConversationId = useChatStore((state) => state.selectedConversationId);
-  const refreshConvos = useChatStore((state) => state.refreshConvos);
+export default function Sidebar() {
+  const theme = useTheme();
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const conversations = useChatStore((s) => s.conversations);
+  const setConversations = useChatStore((s) => s.setConversations);
+  const selectedConversationId = useChatStore((s) => s.selectedConversationId);
+  const setSelectedConversationId = useChatStore((s) => s.setSelectedConversationId);
+  const unreadMessagesById = useChatStore((s) => s.unreadMessagesById);
+  const typingStatus = useChatStore((s) => s.typingStatus);
+  const setAllUnreadMessagesById = useChatStore((s) => s.setAllUnreadMessagesById);
+  const refreshConvos = useChatStore((s) => s.refreshConvos);
+  const markConversationAsRead = useChatStore((s) => s.markConversationAsRead);
+  const markConversationAsUnread = useChatStore((s) => s.markConversationAsUnread);
+
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [menuConvId, setMenuConvId] = useState<number | null>(null);
-  const open = Boolean(anchorEl);
+  const [connections, setConnections] = useState<Profile[]>([]);
+  const [dropdownAnchor, setDropdownAnchor] = useState<null | HTMLElement>(null);
+  const [loadingConnections, setLoadingConnections] = useState(false);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>, id: number) => {
-    setAnchorEl(event.currentTarget);
+    setMenuAnchor(event.currentTarget);
     setMenuConvId(id);
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
+    setMenuAnchor(null);
     setMenuConvId(null);
   };
 
-  const getConversations = async () => {
-    return extApi.get("/messaging/conversations").then((response) => {
-      console.log("Conversations response:", response.data);
-      setConversations(response.data.conversations.data);
+  const handleSelect = (id: number) => {
+    setSelectedConversationId(id);
+    markConversationAsRead(id);
+  };
 
-      // manually update unreadMessagesById
-      const unreadCounts = response.data.conversations.data.reduce((acc: { [key: number]: number }, chat: any) => {
-        acc[chat.conversationId] = chat.unseenMessageCount;
-        return acc;
-      }, {});
+  const fetchConversations = async () => {
+    const response = await extApi.get("/messaging/conversations");
+    const data = response.data.conversations.data;
+    setConversations(data);
 
-      setAllUnreadMessagesById(unreadCounts);
-    }).catch((e) => console.log("Error fetching conversations:", e));
+    const unreadMap = data.reduce((acc: Record<number, number>, chat: Conversation) => {
+      acc[chat.conversationId] = chat.unseenMessageCount;
+      return acc;
+    }, {});
+    setAllUnreadMessagesById(unreadMap);
   };
 
   useEffect(() => {
-    getConversations();
+    fetchConversations();
   }, []);
 
   useEffect(() => {
     if (refreshConvos) {
-      getConversations().then(() => {
+      fetchConversations().then(() => {
         setSelectedConversationId(useChatStore.getState().newConvoId);
         useChatStore.setState({ refreshConvos: false });
       });
     }
   }, [refreshConvos]);
 
-  const handleSelectedConversation = async (id: number) => {
-    if (onSelectConversation) {
-      onSelectConversation(id);
+  const handleDropdownClick = (e: React.MouseEvent<HTMLElement>) => {
+    setDropdownAnchor(e.currentTarget);
+    setLoadingConnections(true);
+
+    extApi
+      .get("connection/connections")
+      .then((res) => {
+        setConnections(res.data?.data?.data || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching connections:", err);
+      })
+      .finally(() => setLoadingConnections(false));
+  };
+
+  const handleStartConversation = (user: Profile) => {
+    const existing = conversations.find((c) => c.otherUserId === user.user_id);
+    if (existing) {
+      setSelectedConversationId(existing.conversationId);
     } else {
-      setSelectedConversationId(id);
-      markConversationAsRead(id);
+      setConversations((prev) => [
+        ...prev,
+        {
+          conversationId: -1,
+          otherUserId: user.user_id,
+          otherUserFullName: `${user.first_name} ${user.last_name}`,
+          otherUserProfilePictureUrl: user.profile_picture_url,
+          lastMessageContent: "",
+          lastMessageTimestamp: new Date(),
+          unseenMessageCount: 0,
+          isBlocked: false,
+        },
+      ]);
+      setSelectedConversationId(-1);
     }
+
+    setDropdownAnchor(null);
   };
 
   return (
     <>
-      <Drawer variant="permanent"
+      <Drawer
+        variant="permanent"
         sx={{
           width: { xs: 250, md: "30%" },
           maxWidth: 350,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
             width: { xs: 250, md: "30%" },
-            boxSizing: 'border-box',
             maxWidth: 350,
-            paddingTop: "139px"
+            bgcolor: theme.palette.background.default,
+            boxSizing: "border-box",
+            borderRight: `1px solid ${theme.palette.divider}`,
           },
-        }}>
-        <Box sx={{ p: 2, bgcolor: "#f5f5f5" }}>
-          <Typography variant="h6">Chats</Typography>
+        }}
+      >
+        <Box
+          px={2}
+          py={1.5}
+          borderBottom={`1px solid ${theme.palette.divider}`}
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Typography variant="h6" fontWeight="bold">
+            Chats
+          </Typography>
+          <IconButton onClick={handleDropdownClick}>
+            <CreateIcon fontSize="small" />
+          </IconButton>
         </Box>
 
         {conversations.length > 0 ? (
-          <List sx={{ overflowY: "auto", maxHeight: "calc(100vh - 64px)" }}>
+          <List disablePadding sx={{ overflowY: "auto", maxHeight: "calc(100vh - 110px)" }}>
             {conversations.map((chat) => (
-              <ListItem key={chat.conversationId} disablePadding secondaryAction={
-                <IconButton edge="end" onClick={(e) => handleMenuClick(e, chat.conversationId)}>
-                  <MoreVertIcon />
-                </IconButton>
-              }>
+              <ListItem
+                key={chat.conversationId}
+                disablePadding
+                secondaryAction={
+                  <IconButton edge="end" onClick={(e) => handleMenuClick(e, chat.conversationId)}>
+                    <MoreVertIcon />
+                  </IconButton>
+                }
+              >
                 <ListItemButton
                   selected={chat.conversationId === selectedConversationId}
-                  onClick={() => handleSelectedConversation(chat.conversationId)}
-                  sx={{ paddingY: 1.2, paddingX: 2, borderRadius: 2 }}
+                  onClick={() => handleSelect(chat.conversationId)}
+                  sx={{
+                    py: 1.2,
+                    px: 2,
+                    borderRadius: 2,
+                    transition: "background-color 0.2s",
+                  }}
                 >
                   <ListItemAvatar>
-                    {/* TODO: Remove elreplace lma negy ndo el actual deployment */}
-                    <Avatar src={chat.otherUserProfilePictureUrl?.replace("http://api.ascendx.tech", api.baseUrl)} />
+                    <Avatar
+                      src={chat.otherUserProfilePictureUrl?.replace("http://api.ascendx.tech", api.baseUrl)}
+                      sx={{ width: 42, height: 42 }}
+                    />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={<Typography sx={{ fontSize: 16, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chat.otherUserFullName}</Typography>}
+                    primary={
+                      <Typography noWrap fontWeight={600} fontSize={15}>
+                        {chat.otherUserFullName}
+                      </Typography>
+                    }
                     secondary={
-                      <Box component="span">
-                        <Typography component="span" sx={{ color: "gray", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{chat.lastMessageContent}</Typography>
-                        {typingStatus[chat.conversationId] && <Typography component="span" sx={{ fontSize: "12px", color: "green", display: "block" }}>typing...</Typography>}
+                      <Box component="span" display="block">
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          noWrap
+                          color="text.secondary"
+                          sx={{ fontSize: 13 }}
+                        >
+                          {chat.lastMessageContent}
+                        </Typography>
+                        {typingStatus[chat.conversationId] && (
+                          <Typography
+                            component="span"
+                            variant="caption"
+                            color="success.main"
+                            sx={{ fontSize: 11 }}
+                          >
+                            typing...
+                          </Typography>
+                        )}
                       </Box>
                     }
                   />
-                  {unreadMessagesById[chat.conversationId] > 0 && <Badge badgeContent={unreadMessagesById[chat.conversationId]} color="primary" />}
+                  {unreadMessagesById[chat.conversationId] > 0 && (
+                    <Badge badgeContent={unreadMessagesById[chat.conversationId]} color="primary" />
+                  )}
                 </ListItemButton>
               </ListItem>
             ))}
           </List>
         ) : (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <Typography variant="body1" color="textSecondary">
+          <Box py={4} textAlign="center">
+            <Typography variant="body2" color="text.secondary">
               No chats yet
             </Typography>
           </Box>
         )}
       </Drawer>
 
-      <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-        {menuConvId !== null && unreadMessagesById[menuConvId] === 0 ? (
-          <MenuItem
-            onClick={() => {
-              markConversationAsUnread(menuConvId);
-              handleMenuClose();
-            }}
-          >
-            Mark as Unread
-          </MenuItem>
+      {/* Context Menu for existing chats */}
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
+        {menuConvId !== null &&
+          (unreadMessagesById[menuConvId] === 0 ? (
+            <MenuItem
+              onClick={() => {
+                markConversationAsUnread(menuConvId);
+                handleMenuClose();
+              }}
+            >
+              Mark as Unread
+            </MenuItem>
+          ) : (
+            <MenuItem
+              onClick={() => {
+                markConversationAsRead(menuConvId);
+                handleMenuClose();
+              }}
+            >
+              Mark as Read
+            </MenuItem>
+          ))}
+      </Menu>
+
+      {/* Dropdown for creating new conversation */}
+      <Menu
+        anchorEl={dropdownAnchor}
+        open={Boolean(dropdownAnchor)}
+        onClose={() => setDropdownAnchor(null)}
+        PaperProps={{ sx: { minWidth: 260, borderRadius: 2 } }}
+      >
+        {loadingConnections ? (
+          <Box px={3} py={2} display="flex" justifyContent="center">
+            <CircularProgress size={20} />
+          </Box>
+        ) : connections.length === 0 ? (
+          <Box px={3} py={2}>
+            <Typography variant="body2" color="text.secondary">
+              No connections found.
+            </Typography>
+          </Box>
         ) : (
-          <MenuItem
-            onClick={() => {
-              if (menuConvId !== null) markConversationAsRead(menuConvId);
-              handleMenuClose();
-            }}
-          >
-            Mark as Read
-          </MenuItem>
+          connections.map((user) => (
+            <MenuItem key={user.user_id} onClick={() => handleStartConversation(user)}>
+              <Avatar
+                src={user.profile_picture_url?.replace("http://api.ascendx.tech", api.baseUrl)}
+                sx={{ width: 32, height: 32, mr: 1 }}
+              />
+              <Typography variant="body2">
+                {user.first_name} {user.last_name}
+              </Typography>
+            </MenuItem>
+          ))
         )}
       </Menu>
     </>

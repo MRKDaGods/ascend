@@ -8,7 +8,7 @@ import DeletePost from "@/app/components/DeletePost";
 import EditPost from "@/app/components/EditPost";
 import { usePostStore } from "@/app/stores/usePostStore";
 
-const RepostPage = () => {
+const RepostWithThoughtsPage = () => {
   const theme = useTheme();
   const {
     lastRepostId,
@@ -21,7 +21,7 @@ const RepostPage = () => {
 
   useEffect(() => {
     if (lastRepostId && !isRepostFetched) {
-      console.log("📡 Fetching repost by ID:", lastRepostId);
+      console.log("🧠 Fetching repost-with-thoughts:", lastRepostId);
       fetchPostFromAPI(lastRepostId);
     }
   }, [lastRepostId, isRepostFetched, fetchPostFromAPI]);
@@ -32,10 +32,10 @@ const RepostPage = () => {
       <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
         {isLastPostDeleted ? (
           <Typography textAlign="center" fontStyle="italic" color="text.secondary">
-            Your last repost has been deleted.
+            Your repost with thoughts has been deleted.
           </Typography>
         ) : !selectedPost || !isRepostFetched ? (
-          <Typography textAlign="center">Loading repost...</Typography>
+          <Typography textAlign="center">Loading repost with thoughts...</Typography>
         ) : (
           <UserPost post={selectedPost} />
         )}
@@ -47,4 +47,4 @@ const RepostPage = () => {
   );
 };
 
-export default RepostPage;
+export default RepostWithThoughtsPage;

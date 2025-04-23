@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button, Stack, useTheme } from "@mui/material";
+import { Button, Box, Stack, useTheme } from "@mui/material";
 import { Comment, Send } from "@mui/icons-material";
 import Reactions from "./Reactions";
 import { usePostStore } from "../stores/usePostStore";
@@ -39,12 +39,9 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
   const liked = postReactions[postId] !== undefined;
   const reposted = repostedPosts.includes(postId);
   const post = posts.find((p) => p.id === postId);
-
-  // ✅ Exit early if post not found
   if (!post) return null;
 
   const authorName = post.username;
-
   const enrichedConnections = connections.map((conn) => ({
     id: conn.id,
     name: conn.name,
@@ -63,49 +60,72 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
 
   return (
     <>
-      <Stack direction="row" justifyContent="space-around" sx={{ px: 2, py: 1, position: "relative" }}>
-        <Reactions
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: 1,
+          mt: 1,
+          px: { xs: 1, sm: 2 },
+        }}
+      >
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          justifyContent="space-evenly"
+          spacing={1.5}
+          sx={{
+            width: "100%",
+            py: 1,
+            px: { xs: 0, sm: 2 },
+          }}
+        >
+          <Reactions
+            postId={postId}
+            liked={liked}
+            onLike={() => (liked ? clearReaction(postId) : setReaction(postId, "Like"))}
+          />
+
+          <Button
+            startIcon={<Comment />}
+            onClick={onCommentClick}
+            sx={{
+              minWidth: 100,
+              textTransform: "none",
+              fontWeight: "bold",
+              color: theme.palette.text.secondary,
+            }}
+          >
+            Comment
+          </Button>
+
+          <RepostOptions post={post} />
+
+          <Button
+            startIcon={<Send />}
+            onClick={() => setSendDialogOpen(true)}
+            sx={{
+              minWidth: 80,
+              textTransform: "none",
+              fontWeight: "bold",
+              color: theme.palette.text.secondary,
+            }}
+          >
+            Send
+          </Button>
+        </Stack>
+
+        <SendPostDialog
+          open={sendDialogOpen}
+          onClose={() => setSendDialogOpen(false)}
+          authorName={authorName}
+          connections={enrichedConnections}
           postId={postId}
-          liked={liked}
-          onLike={() => (liked ? clearReaction(postId) : setReaction(postId, "Like"))}
         />
 
-        <Button
-          startIcon={<Comment />}
-          onClick={onCommentClick}
-          sx={{
-            textTransform: "none",
-            fontWeight: "bold",
-            color: theme.palette.text.secondary,
-          }}
-        >
-          Comment
-        </Button>
-
-        <RepostOptions post={post} />
-
-        <Button
-          startIcon={<Send />}
-          onClick={() => setSendDialogOpen(true)}
-          sx={{
-            textTransform: "none",
-            fontWeight: "bold",
-            color: theme.palette.text.secondary,
-          }}
-        >
-          Send
-        </Button>
-      </Stack>
-
-      <SendPostDialog
-        open={sendDialogOpen}
-        onClose={() => setSendDialogOpen(false)}
-        authorName={authorName}
-        connections={enrichedConnections}
-        postId={postId}
-      />
-
-      <CopyPostPopup />
+        <CopyPostPopup />
+      </Box>
     </>
   );
 };

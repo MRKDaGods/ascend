@@ -12,6 +12,7 @@ import InterestsModal from "./interestmodal"; // Import InterestsModal
 import { api } from "@/api";
 import { Profile as UserProfile, Education } from "@ascend/api-client/models";
 import { Skill } from "@ascend/api-client/models";
+import { useTheme } from "@mui/material/styles";
 
 type Experience = {
   company: string;
@@ -38,6 +39,8 @@ const LinkedInProfile: React.FC = () => {
   const [skills, setSkills] = useState<Skill[]>([]); // State for the skills list
   const [experiences, setExperiences] = useState<Experience[]>([]); // State for experiences
   const [interests, setInterests] = useState<Interest[]>([]); // State for interests
+
+  const theme = useTheme();
 
   useEffect(() => {
     // fetch user data
@@ -312,7 +315,7 @@ const LinkedInProfile: React.FC = () => {
                   right: 0,
                   background: 'none',
                   border: 'none',
-                  color: 'red',
+                  color: theme.palette.error.main,
                   cursor: 'pointer',
                 }}
               >
@@ -327,8 +330,8 @@ const LinkedInProfile: React.FC = () => {
           style={{
             marginTop: '20px',
             background: '#fff',
-            color: '#0073b1',
-            border: '2px solid #0073b1',
+            color: 'theme.palette.primary.main',
+            border: `2px solid ${theme.palette.primary.main}`,
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',
@@ -396,7 +399,7 @@ const LinkedInProfile: React.FC = () => {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "red",
+                    color: theme.palette.error.main,
                     cursor: "pointer",
                   }}
                 >
@@ -415,8 +418,8 @@ const LinkedInProfile: React.FC = () => {
           style={{
             marginTop: '20px',
             background: '#fff',
-            color: '#0073b1',
-            border: '2px solid #0073b1',
+            color: theme.palette.primary.main,
+            border: `2px solid ${theme.palette.primary.main}`,
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',
@@ -457,7 +460,7 @@ const LinkedInProfile: React.FC = () => {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "red",
+                    color: theme.palette.error.main,
                     cursor: "pointer",
                   }}
                 >
@@ -475,9 +478,9 @@ const LinkedInProfile: React.FC = () => {
           onClick={() => setIsInterestsOpen(true)}
           style={{
             marginTop: '20px',
-            background: '#fff',
-            color: '#0073b1',
-            border: '2px solid #0073b1',
+            background: theme.palette.background.default,
+            color: theme.palette.primary.main,
+            border: `2px solid ${theme.palette.primary.main}`,
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',

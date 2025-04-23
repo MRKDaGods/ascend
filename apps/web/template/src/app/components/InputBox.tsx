@@ -5,6 +5,7 @@ import { Message, useChatStore } from "../stores/chatStore";
 import React from "react";
 import { extApi } from "@/api/apiDef";
 import { socket } from "../utils/socketHandler";
+import { useTheme } from "@mui/material/styles";
 
 export default function InputBox() {
   const [messageText, setMessageText] = useState("");
@@ -12,6 +13,8 @@ export default function InputBox() {
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const theme = useTheme();
 
   const {
     appendMessageToConversation,
@@ -90,7 +93,7 @@ export default function InputBox() {
 
   return (
     <>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, padding: 1, borderTop: "1px solid #ccc", backgroundColor: "#fff" }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, padding: 1, borderTop: "1px solid #ccc", backgroundColor: theme.palette.background.default }}>
         <input
           data-testid="upload"
           type="file"
@@ -170,7 +173,7 @@ export default function InputBox() {
                       position: "absolute",
                       top: 0,
                       right: 0,
-                      color: "black",
+                      color: theme.palette.text.primary,
                       minWidth: "unset", //shrink naturally
                       padding: "2px 6px",
                       fontSize: 15,

@@ -13,15 +13,15 @@ interface ThemeStoreState {
 export const useThemeStore = create<ThemeStoreState>()(
   persist(
     (set) => ({
-      theme: "dark", // ✅ Default to dark mode
+      theme: "light",
       toggleTheme: () =>
         set((state: ThemeStoreState) => ({
           theme: state.theme === "dark" ? "light" : "dark",
         })),
     }),
     {
-      name: "theme-storage", // ✅ Key for `localStorage`
-      storage: createJSONStorage(() => localStorage), // ✅ Ensures Zustand uses localStorage
+      name: "theme-storage",
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
