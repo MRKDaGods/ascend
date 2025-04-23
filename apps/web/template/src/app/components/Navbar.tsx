@@ -208,7 +208,8 @@ const Navbar: React.FC = () => {
             <Divider />
             <MenuItem onClick={closeMenu}>
               <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-              <ListItemText>Sign Out</ListItemText>
+              <ListItemText onClick={() => router.push("/authen")}
+              >Sign Out</ListItemText>
             </MenuItem>
           </Menu>
 
