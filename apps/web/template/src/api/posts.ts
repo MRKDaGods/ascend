@@ -163,14 +163,14 @@ export const toggleSavePostAPI = async (postId: number): Promise<{
 };
 
 // ==== FETCH ALL SAVED POSTS ====
-
-export const fetchSavedPosts = async (
+export const fetchSavedPostsAPI = async (
   page = 1,
-  limit = 20
+  limit = 10
 ): Promise<NewsFeedResponse> => {
   const response = await API.get<NewsFeedResponse>("/post/saved", {
     params: { page, limit },
   });
+
   return response.data;
 };
 

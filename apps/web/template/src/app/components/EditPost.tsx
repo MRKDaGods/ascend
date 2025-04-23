@@ -1,5 +1,3 @@
-// Component file: AFTER user creates post, they can edit the text
-
 "use client";
 
 import React, { useEffect } from "react";
@@ -13,7 +11,8 @@ import {
   DialogTitle,
   IconButton,
   Stack,
-  Typography
+  Typography,
+  useTheme,
 } from "@mui/material";
 import { Close, Edit, Delete } from "@mui/icons-material";
 import { usePostStore } from "../stores/usePostStore";
@@ -21,6 +20,7 @@ import { useMediaStore } from "../stores/useMediaStore";
 import TagInput from "./TagInput";
 
 const EditPost: React.FC = () => {
+  const theme = useTheme();
   const {
     open,
     postText,
@@ -28,7 +28,6 @@ const EditPost: React.FC = () => {
     resetPost,
     editPostFromAPI,
     editingPost,
-    posts,
     lastUserPostId,
   } = usePostStore();
 
@@ -62,34 +61,72 @@ const EditPost: React.FC = () => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>
+      <DialogTitle
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+        }}
+      >
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar src="/man.jpg" />
             <Box>
               <Typography fontWeight="bold">Ascend Developer</Typography>
-              <Typography fontSize="0.8rem">To Connections only</Typography>
+              <Typography fontSize="0.8rem" color={theme.palette.text.secondary}>
+                To Connections only
+              </Typography>
             </Box>
           </Stack>
-          <IconButton onClick={handleClose}><Close /></IconButton>
+          <IconButton onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
+            <Close />
+          </IconButton>
         </Stack>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+        }}
+      >
         <TagInput postId={currentPostId} />
         {mediaPreviews.length > 0 && (
           <Box sx={{ position: "relative", mt: 2 }}>
-            <img src={mediaPreviews[0]} alt="preview" style={{ width: "100%", borderRadius: 10 }} />
+            <img
+              src={mediaPreviews[0]}
+              alt="preview"
+              style={{
+                width: "100%",
+                borderRadius: 10,
+                objectFit: "cover",
+                maxHeight: 400,
+              }}
+            />
             <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-              <IconButton sx={{ bgcolor: "white" }} onClick={() => openEditor()}><Edit /></IconButton>
-              <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
+              <IconButton sx={{ bgcolor: "#fff" }} onClick={openEditor}>
+                <Edit />
+              </IconButton>
+              <IconButton sx={{ bgcolor: "#fff" }} onClick={() => removeMediaFile(0)}>
+                <Delete />
+              </IconButton>
             </Box>
           </Box>
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button variant="contained" onClick={handleSave} disabled={!postText.trim()}>
+      <DialogActions
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          px: 3,
+          pb: 2,
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          disabled={!postText.trim()}
+          sx={{ textTransform: "none" }}
+        >
           Save
         </Button>
       </DialogActions>

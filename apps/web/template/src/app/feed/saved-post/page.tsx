@@ -1,13 +1,32 @@
 "use client";
-import React from "react";
+
+import React, { useEffect } from "react";
+import { Box, useTheme } from "@mui/material";
 import Navbar from "@/app/components/Navbar";
 import SavedPosts from "@/app/components/SavedPosts";
+import { usePostStore } from "@/app/stores/usePostStore";
 
 const SavePage = () => {
+  const theme = useTheme();
+  const { fetchSavedPostsFromAPI } = usePostStore();
+
+  useEffect(() => {
+    fetchSavedPostsFromAPI(); // fetches page 1, limit 10 by default
+  }, [fetchSavedPostsFromAPI]);
+
   return (
     <>
       <Navbar />
-      <SavedPosts />
+      <Box
+        sx={{
+          bgcolor: theme.palette.background.default,
+          color: theme.palette.text.primary,
+          minHeight: "100vh",
+          pt: 2,
+        }}
+      >
+        <SavedPosts />
+      </Box>
     </>
   );
 };
