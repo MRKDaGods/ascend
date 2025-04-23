@@ -1,23 +1,28 @@
+"use client";
+
 import React from "react";
 import { Box } from "@mui/material";
-import SigninHeader from "@/app/components/SigninHeader"; 
-import SigninBox from "@/app/components/SigninBox"; 
-import Footer from "@/app/components/Footer"; 
+import SigninHeader from "@/app/components/SigninHeader";
+import SigninBox from "@/app/components/SigninBox";
+import Footer from "@/app/components/Footer";
+import LightThemeProvider from "@/app/providers/LightThemeProvider";
 
 const SigninPage = () => {
   return (
-    <Box 
-      display="flex" 
-      flexDirection="column" 
-      justifyContent="center" 
-      alignItems="center" 
-      minHeight="100vh" 
-      bgcolor="white"
-    >
-      <SigninHeader />
-      <SigninBox />
-      <Footer />
-    </Box>
+    <LightThemeProvider>
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+        bgcolor="background.default"
+      >
+        <SigninHeader />
+        <SigninBox />
+        <Footer />
+      </Box>
+    </LightThemeProvider>
   );
 };
 

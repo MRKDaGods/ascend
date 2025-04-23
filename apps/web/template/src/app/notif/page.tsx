@@ -1,44 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "@mui/material/styles"; // ✅ useTheme for dynamic colors
+import {
+  Box,
+  Container,
+  CircularProgress,
+} from "@mui/material";
+
 import Navbar from "@/app/components/Navbar";
 import ProfileCard from "@/app/components/ProfileCard";
 import NotificationCard from "@/app/components/NotificationCard";
 import SettingsCard from "@/app/components/SettingsCard";
 import Footer from "@/app/components/Footer";
-import { Box, Container, CircularProgress } from "@mui/material";
+
 import { useNotificationStore } from "../stores/useNotificationStore";
 import { useProfileStore } from "../stores/useProfileStore";
 import { api } from "@/api";
 
 export default function Home() {
+  const theme = useTheme(); // ✅ Hook to use theme palette
   const { userData, setUserData } = useProfileStore();
   const { setNotifications } = useNotificationStore();
 
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Fake login 3shn nhave any notifs
-
-    // const fetchUserData = async () => {
-    //   try {
-    //     const response = await fetch("http://localhost:5000/api/user");
-    //     if (!response.ok) throw new Error("Failed to fetch user data");
-    //     const data = await response.json();
-    //     setUserData(data);
-    //   } catch (error) {
-    //     console.error("Error fetching user data:", error);
-    //   }
-    // };
-
     const fetchNotifications = async () => {
-      // Set the user data in the store
       api.user.getLocalUserProfile().then((user) => {
         console.log("Fetched user data:", user);
         setUserData(user);
       });
 
-      api.notification.getNotifications(1) // Page number 1 for the latest 10 notifications
+      api.notification
+        .getNotifications(1)
         .then((response) => {
           console.log("Fetched notifications:", response);
           setNotifications(response);
@@ -49,8 +44,6 @@ export default function Home() {
     };
 
     setIsClient(true);
-
-    //fetchUserData();
     fetchNotifications();
   }, []);
 
@@ -60,14 +53,14 @@ export default function Home() {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "grey.100",
+        backgroundColor: theme.palette.background.default, // ✅ Theme-aware background
         display: "flex",
         flexDirection: "column",
+        color: theme.palette.text.primary, // optional if needed globally
       }}
     >
       <Navbar />
 
-      {/* Main Layout */}
       <Container
         sx={{
           flexGrow: 1,
@@ -79,7 +72,7 @@ export default function Home() {
           pb: 3,
         }}
       >
-        {/* Profile & Settings Cards - Sticky on Large Screens, Stacked on Mobile */}
+        {/* Left Panel */}
         <Box
           sx={{
             width: { xs: "100%", md: "250px" },
@@ -97,7 +90,7 @@ export default function Home() {
           </Box>
         </Box>
 
-        {/* Notification Card - Fully Visible on Small Screens */}
+        {/* Main Panel */}
         <Box
           sx={{
             flexGrow: 1,
@@ -105,7 +98,6 @@ export default function Home() {
             minHeight: "100vh",
             display: "flex",
             flexDirection: "column",
-            overflow: "visible",
           }}
         >
           <NotificationCard />

@@ -109,9 +109,6 @@ interface PostStoreState {
   // toggleSavePostFromAPI: (id: number) => void;
   toggleSavePostFromAPI: (id: number) => Promise<void>;
 
-  // commentOnPost: (id: number, comment: string) => void;
-  // deleteComment: (postId: number, commentIndex: number) => void;
-
   commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<void>;
 
   addTagToPost: (postId: number, tag: Tag) => void;
@@ -119,6 +116,9 @@ interface PostStoreState {
   addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
   removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
   setRepostSourcePost: (post: PostType | null) => void;
+
+  lastRepostType: "quick" | "with-thoughts" | null;
+  setLastRepostType: (type: "quick" | "with-thoughts") => void;
 }
 
 export const usePostStore = create<PostStoreState>()(
@@ -144,6 +144,9 @@ export const usePostStore = create<PostStoreState>()(
       postReactions: {},
       repostedPosts: [],
       savedPosts: [],
+
+      lastRepostType: null, 
+      setLastRepostType: (type) => set({ lastRepostType: type }),
 
       setOpen: (open) => set({ open }),
       setPostText: (text) => set({ postText: text }),
@@ -286,36 +289,46 @@ export const usePostStore = create<PostStoreState>()(
       },
 
       repostFromAPI: async (postId, comment) => {
-        const res = await repost(postId, comment);
-        const shared = res.data.data;
+        try {
+          const res = await repost(postId, comment);
+          const shared = res.data.data;
       
-        const backendGeneratedPostId = shared.post_id; // ✅ this is what we care about
+          const backendGeneratedPostId = shared.post_id;
       
-        const original = get().posts.find((p) => p.id === postId);
+          // Find the original post (to attach in preview)
+          const original = get().posts.find((p) => p.id === postId);
       
-        const mapped: PostType = {
-          id: backendGeneratedPostId,
-          username: "You",
-          profilePic: "/man.jpg",
-          content: shared.comment,
-          followers: "• 1st",
-          timestamp: new Date(shared.created_at).toLocaleString(),
-          likes: 0,
-          reposts: 0,
-          comments: 0,
-          commentsList: [],
-          isUserPost: true,
-          repostSourcePost: original || null,
-        };
-            
-        set({
-          posts: [...get().posts, mapped],
-          lastRepostId: backendGeneratedPostId,
-          repostPopupOpen: true,
-          selectedPost: mapped,
-        });
-      },
+          // Build the new repost structure
+          const mapped: PostType = {
+            id: backendGeneratedPostId,
+            username: "You",
+            profilePic: "/man.jpg",
+            content: shared.comment, // this may be empty string
+            followers: "• 1st",
+            timestamp: new Date(shared.created_at).toLocaleString(),
+            likes: 0,
+            reposts: 0,
+            comments: 0,
+            commentsList: [],
+            isUserPost: true,
+            repostSourcePost: original || null,
+          };
       
+          // Determine type of repost
+          const repostType = shared.comment?.trim() ? "with-thoughts" : "quick";
+      
+          // Update Zustand store
+          set({
+            posts: [...get().posts, mapped],
+            lastRepostId: backendGeneratedPostId,
+            lastRepostType: repostType, // <-- 👈 track repost type
+            repostPopupOpen: true,
+            selectedPost: mapped,
+          });
+        } catch (err: any) {
+          console.error("❌ Error during repostFromAPI:", err?.response?.data || err.message);
+        }
+      },      
 
       setReaction: (postId, reaction) =>
         set((s) => ({
@@ -324,6 +337,7 @@ export const usePostStore = create<PostStoreState>()(
             p.id === postId && !s.postReactions[postId] ? { ...p, likes: p.likes + 1 } : p
           ),
         })),
+
       clearReaction: (postId) =>
         set((s) => {
           const { [postId]: _, ...rest } = s.postReactions;
@@ -373,22 +387,6 @@ export const usePostStore = create<PostStoreState>()(
           console.error("❌ Failed to create comment:", error?.response?.data || error.message);
         }
       },      
-
-      // commentOnPost: (id, comment) =>
-      //   set((s) => ({
-      //     posts: s.posts.map((p) =>
-      //       p.id === id ? { ...p, comments: p.comments + 1, commentsList: [...p.commentsList, comment] } : p
-      //     ),
-      //   })),
-
-      // deleteComment: (postId, i) =>
-      //   set((s) => ({
-      //     posts: s.posts.map((p) =>
-      //       p.id === postId
-      //         ? { ...p, comments: p.comments - 1, commentsList: p.commentsList.filter((_, idx) => idx !== i) }
-      //         : p
-      //     ),
-      //   })),
 
       addTagToPost: (postId, tag) =>
         set((s) => ({
