@@ -1,5 +1,3 @@
-// Component file: list of all user's saved posts
-
 "use client";
 
 import React from "react";
@@ -10,8 +8,6 @@ import {
   Avatar,
   IconButton,
   CardMedia,
-  Menu,
-  MenuItem,
   Button,
   useTheme,
   Stack,
@@ -41,17 +37,47 @@ const SavedPosts: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, maxWidth: 700, mx: "auto", px: 2 }}>
+    <Box
+      sx={{
+        mt: 4,
+        maxWidth: 700,
+        mx: "auto",
+        px: 2,
+        color: theme.palette.text.primary,
+      }}
+    >
       <Typography variant="h5" fontWeight="bold" mb={2}>
         Saved Posts
       </Typography>
 
       {/* Filter Buttons */}
       <Stack direction="row" spacing={1} mb={2}>
-        <Button variant="contained" size="small" sx={{ borderRadius: 20 }}>
+        <Button
+          variant="contained"
+          size="small"
+          sx={{
+            borderRadius: 20,
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+            },
+          }}
+        >
           All
         </Button>
-        <Button variant="outlined" size="small" sx={{ borderRadius: 20 }}>
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{
+            borderRadius: 20,
+            color: theme.palette.text.primary,
+            borderColor: theme.palette.divider,
+            "&:hover": {
+              backgroundColor: theme.palette.action.hover,
+            },
+          }}
+        >
           Articles
         </Button>
       </Stack>
@@ -73,6 +99,7 @@ const SavedPosts: React.FC = () => {
                 p: 2,
                 borderRadius: 3,
                 backgroundColor: theme.palette.background.paper,
+                boxShadow: 2,
               }}
             >
               {/* Header */}
@@ -87,7 +114,7 @@ const SavedPosts: React.FC = () => {
                   </Box>
                 </Box>
                 <IconButton onClick={(e) => handleMenuOpen(e, post.id)}>
-                  <MoreHoriz />
+                  <MoreHoriz sx={{ color: theme.palette.text.secondary }} />
                 </IconButton>
               </Box>
 
@@ -114,7 +141,12 @@ const SavedPosts: React.FC = () => {
                       component="img"
                       image={post.image}
                       alt="Post image"
-                      sx={{ width: 90, height: 90, borderRadius: 2 }}
+                      sx={{
+                        width: 90,
+                        height: 90,
+                        borderRadius: 2,
+                        objectFit: "cover",
+                      }}
                     />
                     <Typography>{previewText}</Typography>
                   </Box>
@@ -123,15 +155,6 @@ const SavedPosts: React.FC = () => {
                 )}
               </Box>
             </Card>
-
-            {/* 3-dot menu (if needed for future options) */}
-            {/* <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl) && menuPostId === post.id}
-              onClose={handleMenuClose}
-            >
-              <MenuItem onClick={handleMenuClose}>Remove from saved</MenuItem>
-            </Menu> */}
           </Box>
         );
       })}

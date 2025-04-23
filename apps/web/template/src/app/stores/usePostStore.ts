@@ -10,7 +10,8 @@ import {
   editPost,
   repost,
   toggleSavePostAPI,
-  createCommentAPI
+  createCommentAPI,
+  fetchSavedPostsAPI
 } from "@/api/posts";
 
 export type ReactionType =
@@ -102,6 +103,7 @@ interface PostStoreState {
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
+  fetchSavedPostsFromAPI: (page?: number, limit?: number) => Promise<void>;
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
@@ -328,7 +330,39 @@ export const usePostStore = create<PostStoreState>()(
         } catch (err: any) {
           console.error("❌ Error during repostFromAPI:", err?.response?.data || err.message);
         }
-      },      
+      },
+
+      fetchSavedPostsFromAPI: async () => {
+        try {
+          const response = await fetchSavedPostsAPI();
+          const savedPosts = response.data;
+      
+          const mapped: PostType[] = savedPosts.map((post: any) => ({
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url ?? "",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m: any) => m.type === "image")?.url,
+            video: post.media?.find((m: any) => m.type === "video")?.url,
+            commentsList: [],
+            isUserPost: false,
+          }));
+      
+          // ✅ Fix for duplicate keys
+          set((s) => {
+            const existingIds = new Set(s.posts.map((p) => p.id));
+            const newPosts = mapped.filter((p) => !existingIds.has(p.id));
+            return { posts: [...s.posts, ...newPosts] };
+          });
+        } catch (err: any) {
+          console.error("❌ Failed to fetch saved posts:", err?.response?.data || err.message);
+        }
+      },         
 
       setReaction: (postId, reaction) =>
         set((s) => ({

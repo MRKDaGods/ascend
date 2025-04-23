@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Box, Typography, useTheme } from "@mui/material";
 import Navbar from "@/app/components/Navbar";
 import UserPost from "@/app/components/UserPost";
 import DeletePost from "@/app/components/DeletePost";
@@ -15,6 +16,8 @@ const MyPostPage = () => {
     isLastPostDeleted,
   } = usePostStore();
 
+  const theme = useTheme();
+
   useEffect(() => {
     if (lastUserPostId) {
       fetchPostFromAPI(lastUserPostId);
@@ -24,17 +27,30 @@ const MyPostPage = () => {
   return (
     <>
       <Navbar />
-      <div style={{ maxWidth: 700, margin: "0 auto", padding: 16 }}>
+      <Box
+        sx={{
+          margin: "0 auto",
+          width: "100%",
+          padding: 2,
+          bgcolor: theme.palette.background.default,
+          color: theme.palette.text.primary,
+          minHeight: "calc(100vh - 64px)",
+        }}
+      >
         {isLastPostDeleted ? (
-          <p style={{ textAlign: "center", fontStyle: "italic", color: "#777" }}>
-          </p>
+          <DeletePost />
         ) : selectedPost ? (
           <UserPost post={selectedPost} />
         ) : (
-          <p style={{ textAlign: "center" }}>Loading...</p>
+          <Typography
+            textAlign="center"
+            fontStyle="italic"
+            color={theme.palette.text.secondary}
+          >
+            Loading...
+          </Typography>
         )}
-      </div>
-      <DeletePost />
+      </Box>
       <EditPost />
     </>
   );

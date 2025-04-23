@@ -110,7 +110,7 @@ const Feed: React.FC = () => {
         <Box
           sx={{
             width: "100%",
-            maxWidth: { xs: "100%", md: "280px" },
+            maxWidth: { xs: "100%", md: "300px" },
             display: "flex",
             flexDirection: "column",
             gap: 2,
