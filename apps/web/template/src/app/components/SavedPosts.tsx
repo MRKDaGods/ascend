@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useEffect} from "react";
 import {
   Box,
   Card,
@@ -19,12 +19,16 @@ import { usePostStore } from "../stores/usePostStore";
 const SavedPosts: React.FC = () => {
   const theme = useTheme();
   const router = useRouter();
-  const { posts, savedPosts } = usePostStore();
+  const { posts, savedPosts, fetchSavedPostsFromAPI } = usePostStore();
 
   const saved = posts.filter((post) => savedPosts.includes(post.id));
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [menuPostId, setMenuPostId] = React.useState<number | null>(null);
+
+    useEffect(() => {
+    fetchSavedPostsFromAPI();
+    }, []);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, postId: number) => {
     setAnchorEl(event.currentTarget);
@@ -163,7 +167,7 @@ const SavedPosts: React.FC = () => {
         <Typography color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
           No saved posts yet.
         </Typography>
-      )}
+      )} 
     </Box>
   );
 };
