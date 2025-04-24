@@ -13,7 +13,8 @@ import {
   updateEmail,
   updatePassword,
   adminBanUser,
-  adminUnbanUser
+  adminUnbanUser,
+  adminGetBannedUsers
 } from "../controllers/authController";
 
 const router = Router();
@@ -32,5 +33,6 @@ router.post("/fcm-token", authenticateToken, updateFCMToken);
 
 router.post("/ban-user", authenticateToken, adminBanUser);
 router.post("/unban-user", authenticateToken, adminUnbanUser);
+router.get("/banned", authenticateToken, adminGetBannedUsers);
 
 export default router;
