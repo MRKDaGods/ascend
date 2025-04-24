@@ -1,6 +1,4 @@
-import '';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FollowButton extends StatefulWidget {
   @override
@@ -9,11 +7,12 @@ class FollowButton extends StatefulWidget {
   Function(String) onUnFollow;
 
   FollowButton({
-    Key? key,
+    super.key,
     required this.userId,
     required this.onFollow,
     required this.onUnFollow,
-  }) : super(key: key);
+  });
+  @override
   _FollowButtonState createState() => _FollowButtonState();
 }
 
