@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Box, Container } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../components/Navbar";
-import CreatePost from "../components/CreatePost";
 import JobsCard from "../components/JobsCard";
 import Footer from "../components/Footer";
-import ManageNetworkCard from "../components/ManageNetworkCard"; // NEW
+import ManageNetworkCard from "../components/ManageNetworkCard";
+import InvitationsCard from "../components/InvitationsCard";
 
 const NetworkPage: React.FC = () => {
   const theme = useTheme();
@@ -64,7 +64,7 @@ const NetworkPage: React.FC = () => {
           }}
         >
           <Box sx={{ width: "100%", maxWidth: "600px" }}>
-            <CreatePost />
+          <InvitationsCard />
           </Box>
         </Box>
       </Container>
