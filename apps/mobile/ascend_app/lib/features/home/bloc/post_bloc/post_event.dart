@@ -165,3 +165,13 @@ class ReportPost extends PostEvent {
   @override
   List<Object?> get props => [postId, reason];
 }
+
+// Event to add a newly created post to the top of the feed
+class AddNewPost extends PostEvent {
+  final PostModel newPost;
+
+  const AddNewPost(this.newPost);
+
+  @override
+  List<Object?> get props => [newPost];
+}
