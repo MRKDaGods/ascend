@@ -13,6 +13,11 @@ import 'package:intl/intl.dart';
 import 'package:ascend_app/features/profile/models/user_profile_model.dart'; // Import UserProfileModel
 import 'package:ascend_app/features/home/presentation/widgets/comment/user_tagging_overlay.dart'; // Import UserTaggingOverlay
 import 'package:ascend_app/shared/data/mock_users.dart'; // Import MockUserData
+import 'package:http/http.dart' as http; // Import http package
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import secure storage
+import 'package:path/path.dart' as path; // Import path package
+import 'package:mime/mime.dart'; // Import mime package
+import 'package:http_parser/http_parser.dart'; // Import for MediaType
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -31,6 +36,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   bool _brandPartnership = false;
   DateTime? _scheduledDateTime;
   List<XFile> _selectedImages = []; // List to hold selected images
+  bool _isLoading = false; // Add loading state
 
   // Tagging related state variables
   final LayerLink _layerLink = LayerLink();
@@ -116,6 +122,115 @@ class _CreatePostPageState extends State<CreatePostPage> {
     setState(() {
       _canPost = _textController.text.trim().isNotEmpty || _selectedImages.isNotEmpty;
     });
+  }
+
+  // --- API Submission Logic ---
+  Future<void> _submitPost() async {
+    if (!_canPost || _isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final token = await SecureStorageHelper.getAuthToken();
+      if (token == null) {
+        throw Exception('Authentication token not found.');
+      }
+
+      final url = Uri.parse('https://api.ascendx.tech/post');
+      final request = http.MultipartRequest('POST', url);
+
+      // Add headers
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
+      if (_selectedImages.isEmpty) {
+        request.headers['x-no-parse-body'] = '1';
+      }
+
+      // Map visibility to privacy
+      String privacy = 'public'; // Default
+      if (_selectedVisibility == 'Connections only') {
+        privacy = 'private';
+      }
+
+      // Add text fields
+      request.fields['content'] = _textController.text;
+      request.fields['privacy'] = privacy;
+      request.fields['title'] = _textController.text; // Using content as title for now
+      request.fields['description'] = ''; // Empty description as requested
+
+      // Conditionally add type and media files
+      if (_selectedImages.isNotEmpty) {
+        request.fields['type'] = 'image'; // Only add type if images exist
+        print('[SubmitPost] Adding ${_selectedImages.length} image(s).');
+        for (var i = 0; i < _selectedImages.length; i++) {
+          var file = _selectedImages[i];
+          final filename = path.basename(file.path);
+          print('[SubmitPost] Processing file ${i + 1}: ${file.path}');
+
+          // Read file bytes first
+          final fileBytes = await file.readAsBytes();
+
+          // Determine content type using header bytes
+          final headerBytes = fileBytes.length > 1024 ? fileBytes.sublist(0, 1024) : fileBytes;
+          String? mimeType = lookupMimeType(filename, headerBytes: headerBytes);
+          MediaType? contentType;
+          if (mimeType != null) {
+            contentType = MediaType.parse(mimeType);
+          } else {
+            contentType = MediaType('application', 'octet-stream'); // Fallback
+            print('[SubmitPost] Warning: Could not determine MIME type for $filename. Using fallback.');
+          }
+
+          // Try using MultipartFile.fromPath
+          print('[SubmitPost] Attaching file ${i + 1}: $filename with Content-Type: ${contentType.toString()} using fromPath to field media');
+          final multipartFile = await http.MultipartFile.fromPath(
+            'media', // Correct field name
+            file.path, // Pass the file path
+            filename: filename, // Optional: Explicitly set filename if different from path basename
+            contentType: contentType, // Explicitly set Content-Type
+          );
+          request.files.add(multipartFile);
+        }
+      } else {
+        print('[SubmitPost] No images selected. Sending text-only post.');
+      }
+
+      print('Sending POST request to $url with fields: ${request.fields}, files: ${request.files.length}, headers: ${request.headers}');
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('Create Post Response status: ${response.statusCode}');
+      print('Create Post Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post created successfully!')),
+          );
+          Navigator.of(context).pop(); // Go back after successful post
+        }
+      } else {
+        // Handle error
+        throw Exception('Failed to create post: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      print('Error creating post: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create post: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   // Method to show the visibility options bottom sheet
@@ -474,29 +589,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: ElevatedButton(
-              onPressed: _canPost
-                  ? () {
-                      final postText = _textController.text;
-                      final imagePaths = _selectedImages.map((f) => f.path).toList();
-                      if (_scheduledDateTime != null) {
-                        print('Scheduling post for: $_scheduledDateTime');
-                        print('Text: $postText');
-                        print('Images: $imagePaths');
-                      } else {
-                        print('Posting immediately');
-                        print('Text: $postText');
-                        print('Images: $imagePaths');
-                      }
-                      Navigator.of(context).pop();
-                    }
-                  : null,
+              onPressed: (_canPost && !_isLoading) ? _submitPost : null, // Call _submitPost
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              child: Text(postButtonText),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(postButtonText),
             ),
           ),
         ],
