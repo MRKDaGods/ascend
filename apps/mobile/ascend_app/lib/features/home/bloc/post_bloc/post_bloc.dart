@@ -25,6 +25,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<SavePost>(_onSavePost); // Add handler
     on<UnsavePost>(_onUnsavePost); // Add handler
     on<ReportPost>(_onReportPost); // Add handler for ReportPost
+    on<AddNewPost>(_onAddNewPost); // Add handler for AddNewPost
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -83,6 +84,9 @@ class PostBloc extends Bloc<PostEvent, PostState> {
              debugPrint(' [PostBloc] Duplicate post ID found and skipped: ${newPost.id}');
           }
         }
+
+        // Add a 1-second delay before emitting the new state
+        await Future.delayed(const Duration(seconds: 1));
 
         // Emit updated state
         emit(currentState.copyWith(
@@ -511,6 +515,25 @@ class PostBloc extends Bloc<PostEvent, PostState> {
          // If not PostsLoaded, emit a general error
          emit(PostsError("Failed to report post: ${e.toString()}"));
       }
+    }
+  }
+
+  // Handler for AddNewPost event
+  void _onAddNewPost(AddNewPost event, Emitter<PostState> emit) {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      debugPrint('🔄 [PostBloc] Adding newly created post ${event.newPost.id} to the state.');
+      // Prepend the new post to the list
+      final updatedPosts = [event.newPost, ...currentState.posts];
+      // Emit the updated state, preserving pagination info
+      emit(currentState.copyWith(
+        posts: updatedPosts,
+        freshLoad: false, // Indicate it's not a full refresh
+      ));
+      debugPrint('✅ [PostBloc] State updated with new post prepended.');
+    } else {
+      // If posts are not loaded yet, maybe trigger a load? Or ignore?
+      debugPrint('⚠️ [PostBloc] AddNewPost received but state is not PostsLoaded. Ignoring.');
     }
   }
 }

@@ -1,4 +1,8 @@
+import 'dart:convert'; // Import for jsonDecode
 import 'dart:io'; // Import for File
+import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart'; // Import PostBloc
+import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart'; // Import PostEvent
+import 'package:ascend_app/features/home/models/post_model.dart'; // Import PostModel
 import 'package:ascend_app/features/home/presentation/widgets/create_post/comment_control_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/visibility_options_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/schedule_post_bottom_sheet.dart';
@@ -208,10 +212,29 @@ class _CreatePostPageState extends State<CreatePostPage> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Success
         if (mounted) {
+          // Decode the response and create a PostModel
+          try {
+            final responseData = jsonDecode(response.body);
+            // Assuming the API returns the created post object directly or within a key like 'post'
+            final postJson = responseData is Map<String, dynamic> && responseData.containsKey('post')
+                             ? responseData['post'] as Map<String, dynamic>
+                             : responseData as Map<String, dynamic>; // Adjust based on actual API response structure
+
+            final newPost = PostModel.fromJson(postJson);
+
+            // Dispatch the AddNewPost event to the PostBloc
+            context.read<PostBloc>().add(AddNewPost(newPost));
+            debugPrint('[CreatePostPage] Dispatched AddNewPost event for post ${newPost.id}');
+
+          } catch (e) {
+             debugPrint('[CreatePostPage] Error decoding response or creating PostModel: $e');
+             // Optionally show a specific error, but still proceed
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Post created successfully!')),
           );
-          Navigator.of(context).pop(); // Go back after successful post
+          Navigator.of(context).pop(); // Go back after successful post and dispatching event
         }
       } else {
         // Handle error
