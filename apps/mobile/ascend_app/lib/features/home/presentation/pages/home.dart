@@ -19,25 +19,25 @@ class _HomeState extends State<Home> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   int _sponsoredPostCounter = 0;
-  
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    
+
     // Load initial posts through BLoC
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PostBloc>().add(const LoadPosts());
     });
   }
-  
+
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   void _onScroll() {
     // Check if we are near the bottom and not already loading
     if (_scrollController.position.pixels >=
@@ -45,40 +45,43 @@ class _HomeState extends State<Home> {
         !_isLoading) {
       // Check the state via BlocProvider.of before calling _loadMoreItems
       final currentState = context.read<PostBloc>().state;
+      // Only load more if the state is PostsLoaded AND hasMorePages is true
       if (currentState is PostsLoaded && currentState.hasMorePages) {
         _loadMoreItems();
       } else if (currentState is PostsLoaded && !currentState.hasMorePages) {
         // Optional: Log that we reached the end
-        // print("Reached end of feed, no more pages.");
+        print("Reached end of feed, no more pages.");
       }
     }
   }
-  
+
   void _loadMoreItems() async {
     // Double check isLoading flag
     if (_isLoading) return;
 
     // Check state again before dispatching, in case it changed rapidly
     final currentState = context.read<PostBloc>().state;
+    // Only dispatch if state is PostsLoaded AND hasMorePages is true
     if (currentState is! PostsLoaded || !currentState.hasMorePages) {
-       print("LoadMoreItems called but no more pages or not loaded state.");
-       return; // Don't dispatch if no more pages
+      print("LoadMoreItems called but no more pages or not in loaded state.");
+      return; // Don't dispatch if no more pages or not loaded
     }
 
     setState(() {
       _isLoading = true;
     });
+    print("Dispatching LoadMorePosts event..."); // Debug print
 
     // Load more posts through BLoC
-    context.read<PostBloc>().add(const LoadMorePosts(count: 5)); // Keep count for limit
+    context.read<PostBloc>().add(const LoadMorePosts(count: 15)); // Use consistent limit
   }
-  
+
   void _resetSponsoredCounter() {
     setState(() {
       _sponsoredPostCounter = 0;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -100,11 +103,11 @@ class _HomeState extends State<Home> {
             if (state is PostsInitial) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (state is PostsError) {
               return Center(child: Text('Error: ${state.message}'));
             }
-            
+
             if (state is PostsLoaded) {
               final posts = state.posts;
 
@@ -124,14 +127,15 @@ class _HomeState extends State<Home> {
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          // Show loading indicator at the end
+                          // Show loading indicator at the end only if loading AND there might be more pages
                           if (index == _getDisplayItemCount(posts.length)) {
-                            return _isLoading
+                            // Check hasMorePages from state as well
+                            return _isLoading && state.hasMorePages
                                 ? const Padding(
                                     padding: EdgeInsets.all(16.0),
                                     child: Center(child: CircularProgressIndicator()),
                                   )
-                                : const SizedBox.shrink();
+                                : const SizedBox.shrink(); // Show nothing if not loading or no more pages
                           }
 
                           String postId;
@@ -144,18 +148,18 @@ class _HomeState extends State<Home> {
                             if (sponsoredIndex > 5) {
                               sponsoredIndex = ((sponsoredIndex - 1) % 5) + 1;
                             }
-                            
+
                             postId = 'sponsored_$sponsoredIndex';
                           } else {
                             // Calculate the actual post index, accounting for sponsored posts
                             int actualPostIndex = _calculateActualPostIndex(index);
-                            
+
                             if (actualPostIndex >= posts.length) {
                               return const SizedBox.shrink();
                             }
-                            
+
                             postId = posts[actualPostIndex].id;
-                            
+
                             // Add preview comment to every 7th regular post
                             if (actualPostIndex % 7 == 6) {
                               final currentPost = posts[actualPostIndex];
@@ -164,23 +168,24 @@ class _HomeState extends State<Home> {
                               }
                             }
                           }
-                          
+
                           // Return the post widget
                           return post_widget.Post(
                             postId: postId,
                             previewComment: previewComment,
                           );
                         },
-                        childCount: _getDisplayItemCount(posts.length) + (_isLoading ? 1 : 0),
+                        // Adjust childCount based on whether loading indicator might be shown
+                        childCount: _getDisplayItemCount(posts.length) + (state.hasMorePages ? 1 : 0),
                       ),
                     ),
                   ],
                 ),
               );
             }
-            
+
             return const Center(child: CircularProgressIndicator());
-          }
+          },
         ),
       ),
     );
@@ -188,17 +193,17 @@ class _HomeState extends State<Home> {
 
   int _calculateActualPostIndex(int displayIndex) {
     int actualPostIndex = displayIndex;
-    
+
     if (displayIndex > 2) actualPostIndex--;
     if (displayIndex > 8) actualPostIndex--;
     if (displayIndex > 10) {
       int sponsoredCount = ((displayIndex - 10) / 7).floor();
       actualPostIndex -= sponsoredCount;
     }
-    
+
     return actualPostIndex;
   }
-  
+
   int _getDisplayItemCount(int regularPostsCount) {
     int sponsoredCount = 0;
     if (regularPostsCount > 2) sponsoredCount++;
@@ -206,7 +211,7 @@ class _HomeState extends State<Home> {
     if (regularPostsCount > 10) {
       sponsoredCount += ((regularPostsCount - 10) / 7).ceil();
     }
-    
+
     return regularPostsCount + sponsoredCount;
   }
 }
