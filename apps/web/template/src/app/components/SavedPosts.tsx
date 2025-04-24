@@ -19,7 +19,7 @@ import { usePostStore } from "../stores/usePostStore";
 const SavedPosts: React.FC = () => {
   const theme = useTheme();
   const router = useRouter();
-  const { posts, savedPosts, fetchSavedPostsFromAPI } = usePostStore();
+  const { posts, savedPosts, fetchSavedPostsAPI } = usePostStore();
 
   const saved = posts.filter((post) => savedPosts.includes(post.id));
 
@@ -27,7 +27,7 @@ const SavedPosts: React.FC = () => {
   const [menuPostId, setMenuPostId] = React.useState<number | null>(null);
 
     useEffect(() => {
-    fetchSavedPostsFromAPI();
+      fetchSavedPostsAPI();
     }, []);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, postId: number) => {

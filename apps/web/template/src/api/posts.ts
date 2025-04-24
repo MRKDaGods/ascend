@@ -40,6 +40,11 @@ export interface RepostResponse {
   };
 }
 
+export interface GetSavedPostsResponse {
+  success: boolean;
+  data: Post[];
+}
+
 // ==== FETCH FEED ====
 
 export const fetchNewsFeed = async (
@@ -150,28 +155,17 @@ export const repost = async (
 };
 
 // ==== TOGGLE SAVE/UNSAVE POST ====
-
-export const toggleSavePostAPI = async (postId: number): Promise<{
-  success: boolean;
-  data: {
-    saved: boolean;
-    message: string;
-  };
-}> => {
-  const res = await API.post(`/post/${postId}/save`);
-  return res.data;
+export const toggleSavePostAPI = async (postId: number): Promise<boolean> => {
+  const response = await API.post(`/post/${postId}/save`);
+  return response.data?.data?.saved ?? false;
 };
 
-// ==== FETCH ALL SAVED POSTS ====
-export const fetchSavedPostsAPI = async (
-  page = 1,
-  limit = 10
-): Promise<NewsFeedResponse> => {
-  const response = await API.get<NewsFeedResponse>("/post/saved", {
-    params: { page, limit },
-  });
 
-  return response.data;
+// ==== FETCH ALL SAVED POSTS ====
+
+export const fetchSavedPostsAPI = async (): Promise<Post[]> => {
+  const response = await API.get("/post/saved");
+  return response.data.data; // already returns an array of posts
 };
 
 // ==== CREATE COMMENT ON POST ====
