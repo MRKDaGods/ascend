@@ -39,36 +39,19 @@ class _HomeState extends State<Home> {
   }
   
   void _onScroll() {
-    // Check if we are near the bottom and not already loading
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
-      // Check the state via BlocProvider.of before calling _loadMoreItems
-      final currentState = context.read<PostBloc>().state;
-      if (currentState is PostsLoaded && currentState.hasMorePages) {
-        _loadMoreItems();
-      } else if (currentState is PostsLoaded && !currentState.hasMorePages) {
-        // Optional: Log that we reached the end
-        // print("Reached end of feed, no more pages.");
-      }
+      _loadMoreItems();
     }
   }
   
   void _loadMoreItems() async {
-    // Double check isLoading flag
     if (_isLoading) return;
-
-    // Check state again before dispatching, in case it changed rapidly
-    final currentState = context.read<PostBloc>().state;
-    if (currentState is! PostsLoaded || !currentState.hasMorePages) {
-       print("LoadMoreItems called but no more pages or not loaded state.");
-       return; // Don't dispatch if no more pages
-    }
-
+    
     setState(() {
       _isLoading = true;
     });
-<<<<<<< HEAD
     
     // Load more posts through BLoC
     context.read<PostBloc>().add(const LoadMorePosts(count: 5));
@@ -81,11 +64,6 @@ class _HomeState extends State<Home> {
         });
       }
     });
-=======
-
-    // Load more posts through BLoC
-    context.read<PostBloc>().add(const LoadMorePosts(count: 5)); // Keep count for limit
->>>>>>> Cross
   }
   
   void _resetSponsoredCounter() {
@@ -103,16 +81,6 @@ class _HomeState extends State<Home> {
             if (state is PostsLoaded && state.freshLoad) {
               _resetSponsoredCounter();
             }
-<<<<<<< HEAD
-=======
-            if (state is PostsLoaded || state is PostsError) {
-              if (_isLoading) {
-                setState(() {
-                  _isLoading = false;
-                });
-              }
-            }
->>>>>>> Cross
           },
           builder: (context, state) {
             if (state is PostsInitial) {
@@ -125,7 +93,6 @@ class _HomeState extends State<Home> {
             
             if (state is PostsLoaded) {
               final posts = state.posts;
-<<<<<<< HEAD
               
               return CustomScrollView(
                 controller: _scrollController,
@@ -189,77 +156,6 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ],
-=======
-
-              return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<PostBloc>().add(const LoadPosts());
-                  return Future<void>.value();
-                },
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    const CustomSliverAppBar(
-                      pinned: false,
-                      floating: true,
-                      addpost: true,
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          // Show loading indicator at the end
-                          if (index == _getDisplayItemCount(posts.length)) {
-                            return _isLoading
-                                ? const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Center(child: CircularProgressIndicator()),
-                                  )
-                                : const SizedBox.shrink();
-                          }
-
-                          String postId;
-                          Comment? previewComment;
-
-                          // Check if this position should show a sponsored post
-                          if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
-                            // Get sponsored post ID
-                            int sponsoredIndex = ++_sponsoredPostCounter;
-                            if (sponsoredIndex > 5) {
-                              sponsoredIndex = ((sponsoredIndex - 1) % 5) + 1;
-                            }
-                            
-                            postId = 'sponsored_$sponsoredIndex';
-                          } else {
-                            // Calculate the actual post index, accounting for sponsored posts
-                            int actualPostIndex = _calculateActualPostIndex(index);
-                            
-                            if (actualPostIndex >= posts.length) {
-                              return const SizedBox.shrink();
-                            }
-                            
-                            postId = posts[actualPostIndex].id;
-                            
-                            // Add preview comment to every 7th regular post
-                            if (actualPostIndex % 7 == 6) {
-                              final currentPost = posts[actualPostIndex];
-                              if (currentPost.comments.isNotEmpty) {
-                                previewComment = currentPost.comments.first;
-                              }
-                            }
-                          }
-                          
-                          // Return the post widget
-                          return post_widget.Post(
-                            postId: postId,
-                            previewComment: previewComment,
-                          );
-                        },
-                        childCount: _getDisplayItemCount(posts.length) + (_isLoading ? 1 : 0),
-                      ),
-                    ),
-                  ],
-                ),
->>>>>>> Cross
               );
             }
             

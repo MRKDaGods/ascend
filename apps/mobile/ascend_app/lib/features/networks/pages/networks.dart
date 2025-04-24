@@ -67,8 +67,7 @@ class Networks extends StatelessWidget {
           length: 2,
           child: CustomScrollView(
             slivers: [
-              const CustomSliverAppBar(floating: false, showTabBar: true,
-              addpost: true,),
+              const CustomSliverAppBar(floating: false, showTabBar: true),
               SliverFillRemaining(
                 hasScrollBody: true,
                 child: SizedBox(

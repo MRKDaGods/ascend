@@ -63,7 +63,6 @@ final List<Jobsattributes> jobs = [
     easyapply: true,
     alumniCount: 15,
     isBookmarked: false,
-    isRemote: true,
   ),
   Jobsattributes(
     title: 'Cybersecurity Analyst',
@@ -74,7 +73,6 @@ final List<Jobsattributes> jobs = [
     experienceLevel: 'Senior',
     salary: 180,
     easyapply: false,
-    isPartTime: true,
     applicationForm: "https://www.ibm.com/careers",
   ),
   Jobsattributes(
@@ -98,8 +96,6 @@ final List<Jobsattributes> jobs = [
     experienceLevel: 'Entry',
     salary: 90,
     easyapply: true,
-    isRemote: true,
-
     alumniCount: 10,
   ),
   Jobsattributes(
@@ -154,8 +150,6 @@ final List<Jobsattributes> jobs = [
     experienceLevel: 'Senior',
     salary: 300,
     easyapply: false,
-    isPartTime: true,
-    isRemote: true,
     applicationForm: "https://jobs.netflix.com/",
   ),
   Jobsattributes(
@@ -167,6 +161,5 @@ final List<Jobsattributes> jobs = [
     experienceLevel: 'Mid',
     salary: 160,
     easyapply: true,
-    isRemote: true,
   ),
 ];

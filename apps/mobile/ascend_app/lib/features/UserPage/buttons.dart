@@ -12,7 +12,6 @@ class ProfileButtons extends StatelessWidget {
     required this.withdrawRequest,
     required this.toggleFollow,
     required this.removeConnection,
-    required this.isMyProfile,
     super.key,
   });
 
@@ -23,122 +22,65 @@ class ProfileButtons extends StatelessWidget {
   final void Function() toggleFollow;
   final void Function(BuildContext) withdrawRequest; // Function to show dialog
   final void Function(BuildContext) removeConnection; // Function to show dialog
-  final bool isMyProfile;
 
   @override
   Widget build(BuildContext context) {
-    return !isMyProfile
-        ? Row(
-          children: [
-            if (isConnect)
-              Expanded(child: BlueButton(text: "Message", icon: Icons.send))
-            else ...[
-              Expanded(
-                child:
-                    isPending
-                        ? GreyButton(
-                          text: "Pending",
-                          action: withdrawRequest,
-                          icon: Icons.access_time,
-                        )
-                        : BlueButton(
-                          text: "Connect",
-                          action: toggleConnect,
-                          icon: Icons.person_add,
-                        ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: GreyButton(
-                  text: "Message",
-                  action: (context) {},
-                  icon: Icons.send,
-                ),
-              ),
-            ],
-            SizedBox(width: 8),
-            SizedBox(
-              height: 40,
-              width: 40,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(),
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.more_horiz),
-                  onPressed:
-                      () => _showProfileOptionsSheet(
-                        context,
-                        isConnect,
-                        isfollowing,
-                        isPending,
-                        toggleConnect,
-                        toggleFollow,
-                        withdrawRequest,
-                        removeConnection,
-                      ), // Show Bottom Sheet
-                ),
-              ),
-            ),
-          ],
-        )
-        : Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: BlueButton(text: "Open to", isMyProfile: isMyProfile),
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: GreyButton(
-                    text: "Add Section",
-                    action: (context) {},
-                    isMyProfile: isMyProfile,
-                  ),
-                ),
-                SizedBox(width: 8),
-                SizedBox(
-                  height: 38,
-                  width: 38,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(),
-                      shape: BoxShape.circle,
+    return Row(
+      children: [
+        if (isConnect)
+          Expanded(child: BlueButton(text: "Message", icon: Icons.send))
+        else ...[
+          Expanded(
+            child:
+                isPending
+                    ? GreyButton(
+                      text: "Pending",
+                      action: withdrawRequest,
+                      icon: Icons.access_time,
+                    )
+                    : BlueButton(
+                      text: "Connect",
+                      action: toggleConnect,
+                      icon: Icons.person_add,
                     ),
-                    child: IconButton(
-                      icon: const Icon(Icons.more_horiz), // Smaller icon
-                      padding: EdgeInsets.zero, // Removes internal padding
-                      onPressed:
-                          () => _showProfileOptionsSheet(
-                            context,
-                            isConnect,
-                            isfollowing,
-                            isPending,
-                            toggleConnect,
-                            toggleFollow,
-                            withdrawRequest,
-                            removeConnection,
-                          ),
-                    ),
-                  ),
-                ),
-              ],
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: GreyButton(
+              text: "Message",
+              action: (context) {},
+              icon: Icons.send,
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: GreyButton(
-                    text: "Enhance Profile",
-                    action: (context) {},
-                    isMyProfile: isMyProfile,
-                  ),
-                ),
-              ],
+          ),
+        ],
+        SizedBox(width: 8),
+        SizedBox(
+          height: 40,
+          width: 40,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              border: Border.all(color: Colors.white70),
+              shape: BoxShape.circle,
             ),
-          ],
-        );
+            child: IconButton(
+              icon: Icon(Icons.more_horiz, color: Colors.white),
+              onPressed:
+                  () => _showProfileOptionsSheet(
+                    context,
+                    isConnect,
+                    isfollowing,
+                    isPending,
+                    toggleConnect,
+                    toggleFollow,
+                    withdrawRequest,
+                    removeConnection,
+                  ), // Show Bottom Sheet
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   void _showProfileOptionsSheet(
@@ -153,6 +95,7 @@ class ProfileButtons extends StatelessWidget {
   ) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.grey[900],
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
@@ -166,8 +109,6 @@ class ProfileButtons extends StatelessWidget {
           toggleFollow: toggleFollow,
           withdrawRequest: withdrawRequest,
           removeConnection: removeConnectionAlert,
-          isMyProfile: isMyProfile,
-          isImageSheet: false, // Not an image sheet
         );
       },
     );

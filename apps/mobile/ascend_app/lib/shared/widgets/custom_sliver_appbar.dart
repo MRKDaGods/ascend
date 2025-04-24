@@ -4,11 +4,7 @@ import '../extensions/scaffold_extensions.dart';
 import '../../features/profile/bloc/user_profile_bloc.dart';
 import '../../features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
-<<<<<<< HEAD
 import '../../features/Messaging/presentation/pages/main_message_page.dart';
-=======
-import 'package:ascend_app/core/routes/app_routes.dart'; // Import app routes
->>>>>>> Cross
 
 import 'bloc/search_bloc.dart';
 import 'bloc/search_event.dart';
@@ -49,7 +45,6 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
       pinned: widget.pinned,
       floating: widget.floating,
       leading: Builder(
-<<<<<<< HEAD
         builder:
             (context) => GestureDetector(
               onTap: () {
@@ -132,87 +127,6 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
             ),
           );
         },
-=======
-        builder: (context) => GestureDetector(
-          onTap: () {
-            Scaffold.of(context).openDrawerWithAnimation(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-            );
-          },
-          child: BlocBuilder<UserProfileBloc, UserProfileState>(
-            builder: (context, state) {
-              final avatarUrl = state is UserProfileLoaded && state.profile.avatarUrl.isNotEmpty
-                  ? state.profile.avatarUrl
-                  : null;
-                  
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: UserAvatar(
-                  imageUrl: avatarUrl,
-                  radius: 18, // Adjust radius as needed
-                ),
-              );
-            },
-          ),
-        ),
->>>>>>> Cross
-      ),
-      title: BlocBuilder<SearchBloc, SearchState>(
-        builder: (context, state) {
-          return Card.outlined(
-            child: TextField(
-              onTap: () {
-                // Handle the tap event
-                if (widget.onJobAction != null) {
-                  widget.onJobAction!();
-                }
-              },
-              onChanged: (value) {
-                context.read<SearchBloc>().add(SearchTextChanged(value));
-              },
-              decoration: InputDecoration(
-                prefixIcon:
-                    widget.jobs
-                        ? const Icon(Icons.work_rounded)
-                        : const Icon(Icons.search),
-                hintText: widget.jobs ? 'Search Jobs' : 'Search',
-                border: InputBorder.none,
-                suffixIcon:
-                    state.showDeleteButton
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            context.read<SearchBloc>().add(
-                              SearchTextChanged(''),
-                            );
-                          },
-                        )
-                        : IconButton(
-                          icon: const Icon(Icons.qr_code),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: const Text('QR Code'),
-                                    content: const Text('This is a QR Code'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                            );
-                          },
-                        ),
-              ),
-            ),
-          );
-        },
       ),
       actions: [
         Row(
@@ -221,10 +135,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
             if (widget.addpost)
               IconButton(
                 icon: const Icon(Icons.post_add_outlined),
-                onPressed: () {
-                  // Navigate to CreatePostPage
-                  Navigator.pushNamed(context, RouteNames.createPost);
-                },
+                onPressed: () {},
               ),
             if (widget.settings)
               IconButton(

@@ -1,35 +1,16 @@
 import 'package:flutter/material.dart';
 
-class PostFeedbackOptions extends StatefulWidget {
+class PostFeedbackOptions extends StatelessWidget {
   final String ownerName;
-  final Function(String)? onReportSubmitted; // Renamed from onFeedbackSubmitted
+  final Function(String)? onFeedbackSubmitted;
   final VoidCallback? onUndo;
 
   const PostFeedbackOptions({
     super.key,
     required this.ownerName,
-    this.onReportSubmitted, // Renamed
+    this.onFeedbackSubmitted,
     this.onUndo,
   });
-
-  @override
-  State<PostFeedbackOptions> createState() => _PostFeedbackOptionsState();
-}
-
-class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
-  String? _feedbackSubmittedReason; // Keep internal state name for clarity
-
-  // Renamed internal handler
-  void _handleReportSubmit(String reason) {
-    widget.onReportSubmitted?.call(reason); // Call the renamed callback
-    setState(() {
-      _feedbackSubmittedReason = reason;
-    });
-  }
-
-  void _handleUndo() {
-    widget.onUndo?.call();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,34 +27,20 @@ class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-<<<<<<< HEAD
                   const Text(
                     'Help us improve your feed',
                     style: TextStyle(
                       fontSize: 16, 
-=======
-                  Text(
-                    _feedbackSubmittedReason == null
-                        ? 'Help us improve your feed' // Or change to "Report this post"
-                        : 'Thank you for your feedback', // Or "Report submitted"
-                    style: const TextStyle(
-                      fontSize: 16,
->>>>>>> Cross
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextButton(
-<<<<<<< HEAD
                     onPressed: onUndo,
-=======
-                    onPressed: _handleUndo,
->>>>>>> Cross
                     child: const Text('UNDO'),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-<<<<<<< HEAD
               const Text('Why don\'t you want to see this?'),
               const SizedBox(height: 16),
               _buildFeedbackOption(
@@ -93,35 +60,6 @@ class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
                 'Not appropriate for LinkedIn',
                 'inappropriate',
               ),
-=======
-              if (_feedbackSubmittedReason == null) ...[
-                const Text('Why are you reporting this post?'), // Updated text
-                const SizedBox(height: 16),
-                _buildFeedbackOption(
-                  context,
-                  'Not interested in this topic',
-                  'topic', // Keep UI value if needed
-                  // Use a backend-valid reason, e.g., 'spam' or 'irrelevant'
-                  () => _handleReportSubmit('irrelevant'), // CHANGE REASON HERE
-                ),
-                const SizedBox(height: 8),
-                _buildFeedbackOption(
-                  context,
-                  'Not interested in posts from ${widget.ownerName}',
-                  'author', // Keep UI value if needed
-                  // Use a backend-valid reason, e.g., 'block_author' or specific code
-                  () => _handleReportSubmit('block_author'), // CHANGE REASON HERE
-                ),
-                const SizedBox(height: 8),
-                _buildFeedbackOption(
-                  context,
-                  'Not appropriate for LinkedIn',
-                  'inappropriate', // Keep UI value if needed
-                  // Use a backend-valid reason, e.g., 'inappropriate_content'
-                  () => _handleReportSubmit('inappropriate_content'), // CHANGE REASON HERE
-                ),
-              ],
->>>>>>> Cross
             ],
           ),
         ),
@@ -129,23 +67,27 @@ class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
     );
   }
 
-  Widget _buildFeedbackOption(
-    BuildContext context,
-    String text,
-    String value,
-    VoidCallback? onPressed,
-  ) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.grey[700],
-        side: BorderSide(color: Colors.grey[300]!),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
+  Widget _buildFeedbackOption(BuildContext context, String text, String reason) {
+    return InkWell(
+      onTap: () {
+        if (onFeedbackSubmitted != null) {
+          onFeedbackSubmitted!(reason);
+        }
+        
+        // Show a snackbar to confirm
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post removed from your feed')),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Text(text),
       ),
-      child: Text(text),
     );
   }
 }

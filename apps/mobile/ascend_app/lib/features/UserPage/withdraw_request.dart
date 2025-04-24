@@ -8,14 +8,16 @@ class WithdrawRequest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Colors.black,
       title: Center(
         child: Text(
           "Withdraw invitation",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       content: Text(
         "If you withdraw now, you won’t be able to resend to this person for up to 3 weeks.",
+        style: TextStyle(color: Colors.white70),
         textAlign: TextAlign.center,
       ),
       actions: [

@@ -5,11 +5,6 @@ import 'package:ascend_app/features/networks/pages/networks.dart';
 import 'package:ascend_app/features/UserPage/user_page.dart';
 import 'package:ascend_app/features/UserPage/Data/dummy_profile_sections.dart';
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart'; // Add this import
-<<<<<<< HEAD
-=======
-import 'package:ascend_app/features/CompanyPage/company_page.dart';
-import 'package:ascend_app/features/CompanyPage/Data/dummy_page_sections.dart';
->>>>>>> Cross
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -30,7 +25,6 @@ class _MainNavigationState extends State<MainNavigation> {
       Home(),
       //Center(child: Text("Video")),
       UserProfilePage(sections: sections),
-      //CompanyPage(sections: csections),
       Networks(),
       NotificationsPage(), // Replace the placeholder with your actual notifications page
       JobApp(isDarkMode: isDarkMode),

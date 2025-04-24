@@ -1,10 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-<<<<<<< HEAD
-=======
-import 'post_model.dart';
-
->>>>>>> Cross
 class Comment extends Equatable {
   final String id;
   final String text;
@@ -19,10 +14,7 @@ class Comment extends Equatable {
   final List<Comment> replies;
   final String? parentId;
 
-<<<<<<< HEAD
 
-=======
->>>>>>> Cross
   const Comment({
     required this.id,
     required this.text,
@@ -43,32 +35,16 @@ class Comment extends Equatable {
     required String text,
     required String authorId,
     required String authorName,
-<<<<<<< HEAD
     required String authorImageUrl,
     String authorOccupation = '',
     String? parentId,
   }) {
-=======
-    required String authorImageUrl, // Keep this required
-    String authorOccupation = '',
-    String? parentId,
-  }) {
-    // Ensure a valid image URL is used, falling back to a default asset
-    final validAuthorImageUrl = (authorImageUrl.isNotEmpty)
-        ? authorImageUrl
-        : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
-
->>>>>>> Cross
     return Comment(
       id: 'comment_${DateTime.now().millisecondsSinceEpoch}',
       text: text,
       authorId: authorId,
       authorName: authorName,
-<<<<<<< HEAD
       authorImageUrl: authorImageUrl,
-=======
-      authorImageUrl: validAuthorImageUrl, // Use the validated URL
->>>>>>> Cross
       authorOccupation: authorOccupation,
       timePosted: 'Just now',
       likesCount: 0,
@@ -172,7 +148,6 @@ class Comment extends Equatable {
 
   // Create from JSON
   factory Comment.fromJson(Map<String, dynamic> json) {
-<<<<<<< HEAD
     return Comment(
       id: json['id'] as String,
       text: json['text'] as String,
@@ -185,29 +160,6 @@ class Comment extends Equatable {
       isLiked: json['isLiked'] as bool? ?? false,
       currentReaction: json['currentReaction'] as String?,
       parentId: json['parentId'] as String?,
-=======
-    // Handle potential user data structure within the comment JSON if needed
-    final userData = json['user'] as Map<String, dynamic>?; // Example if user data is nested
-    final authorName = userData != null
-        ? '${userData['first_name'] ?? ''} ${userData['last_name'] ?? ''}'.trim()
-        : json['authorName'] as String? ?? 'Unknown User'; // Fallback to existing field or default
-    final authorImageUrl = userData != null
-        ? userData['profile_picture_url'] as String? ?? 'assets/images/profile/EmptyUser.png' // Default from user data
-        : json['authorImageUrl'] as String? ?? 'assets/images/profile/EmptyUser.png'; // Default from comment data
-
-    return Comment(
-      id: (json['id'] ?? 'temp_${DateTime.now().millisecondsSinceEpoch}').toString(), // Ensure ID is string
-      text: json['content'] as String? ?? json['text'] as String? ?? '', // Check for 'content' field from API
-      authorId: (json['user_id'] ?? json['authorId'] ?? 'unknown').toString(), // Check for 'user_id'
-      authorName: authorName,
-      authorImageUrl: authorImageUrl.isNotEmpty ? authorImageUrl : 'assets/images/profile/EmptyUser.png', // Final fallback
-      authorOccupation: json['authorOccupation'] as String? ?? '',
-      timePosted: json['created_at'] != null ? PostModel.formatTimeAgo(DateTime.parse(json['created_at'])) : json['timePosted'] as String? ?? 'Just now', // Use public static method
-      likesCount: json['likes_count'] as int? ?? json['likesCount'] as int? ?? 0, // Check for 'likes_count'
-      isLiked: json['isLiked'] as bool? ?? false,
-      currentReaction: json['currentReaction'] as String?,
-      parentId: json['parent_id']?.toString() ?? json['parentId'] as String?, // Check for 'parent_id'
->>>>>>> Cross
       replies: json['replies'] != null
           ? List<Comment>.from(
               (json['replies'] as List).map(

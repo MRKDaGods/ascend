@@ -7,12 +7,6 @@ class Jobsattributes {
     required this.salary,
     required this.easyapply,
 
-    this.isPartTime, // Indicates if job is part-time
-    this.isRemote, // Indicates if job is remote
-    this.isHybrid, // Indicates if job is hybrid
-    this.isConstruction, // Indicates if job is in construction
-    this.isEducation, // Indicates if job is in education
-    this.isSmallBusiness, // Indicates if job is in small business
     this.companyPhoto,
     this.isBookmarked = false,
     this.jobDescription,
@@ -25,12 +19,6 @@ class Jobsattributes {
     this.applicationForm,
   });
 
-  final bool? isHybrid; // Indicates if job is hybrid
-  final bool? isConstruction; // Indicates if job is in construction
-  final bool? isEducation; // Indicates if job is in education
-  final bool? isSmallBusiness; // Indicates if job is in small business
-  final bool? isPartTime; // Indicates if job is part-time
-  final bool? isRemote; // Indicates if job is remote
   final String title; // Job title
   final String company; // Company name
   final String? companyPhoto; // URL for company logo
@@ -47,37 +35,4 @@ class Jobsattributes {
   final bool easyapply; // Indicates if job supports easy apply
   bool viewed; // Track if job has been viewed
   final String? applicationForm; // URL for application form
-
-  DateTime? get timePostedDate {
-    try {
-      final parts = timePosted.split(' ');
-      if (parts.length == 3) {
-        final value = int.parse(parts[0]);
-        final unit = parts[1].toLowerCase();
-
-        switch (unit) {
-          case 'minute':
-          case 'minutes':
-            return DateTime.now().subtract(Duration(minutes: value));
-          case 'hour':
-          case 'hours':
-            return DateTime.now().subtract(Duration(hours: value));
-          case 'day':
-          case 'days':
-            return DateTime.now().subtract(Duration(days: value));
-          case 'week':
-          case 'weeks':
-            return DateTime.now().subtract(Duration(days: value * 7));
-          case 'month':
-          case 'months':
-            return DateTime.now().subtract(Duration(days: value * 30));
-          default:
-            return null;
-        }
-      }
-    } catch (e) {
-      return null;
-    }
-    return null;
-  }
 }

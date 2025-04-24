@@ -8,11 +8,11 @@ class MockUserProfile {
       position: 'Senior Software Engineer',
       location: 'Cairo, Egypt',
       companyName: 'Tech Innovations Ltd',
-      companyLogoUrl: '',
+      companyLogoUrl: 'https://via.placeholder.com/150/0000FF/FFFFFF?text=TI',
       profileViewers: 347,
       postImpressions: 2840,
       isPremium: true,
-      avatarUrl: '',
+      avatarUrl: 'https://via.placeholder.com/300/FF0000/FFFFFF?text=AJ',
     );
   }
 }

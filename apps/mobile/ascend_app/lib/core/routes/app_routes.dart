@@ -1,51 +1,20 @@
-<<<<<<< HEAD
 import 'package:flutter/material.dart';
 
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/StartPages/welcome.dart';
-=======
-import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
-import 'package:flutter/material.dart';
-import '../../features/home/presentation/pages/create_post_page.dart'; // Import the new page
-import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/help_center_page.dart';
-import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
->>>>>>> Cross
 // Import other page files as needed
 
 /// Class containing all the route names as constants
 class RouteNames {
   // Private constructor to prevent instantiation
   RouteNames._();
-<<<<<<< HEAD
   
-=======
-
->>>>>>> Cross
   // Route name constants
   static const String welcome = '/welcome';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
   static const String settings = '/settings';
-<<<<<<< HEAD
-=======
-  static const String createPost = '/create-post'; // Add new route name
-  static const String accountPreferences = '/accountPreferences';
-  static const String signInSecurity = '/signInSecurity';
-  static const String visibility = '/visibility';
-  static const String dataPrivacy = '/dataPrivacy';
-  static const String advertisingData = '/advertisingData';
-  static const String helpCenter = '/helpCenter';
-  static const String privacyPolicy = '/privacyPolicy';
-  static const String signOut = '/signOut';
->>>>>>> Cross
   // Add more routes as needed
 }
 
@@ -53,70 +22,33 @@ class RouteNames {
 class AppRoutes {
   // Private constructor to prevent instantiation
   AppRoutes._();
-<<<<<<< HEAD
   
   /// The initial route when the app starts
   static const String initialRoute = '/';
   
-=======
-
-  /// The initial route when the app starts
-  static const String initialRoute = '/';
-
->>>>>>> Cross
   /// Route definitions for MaterialApp
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       RouteNames.notifications: (context) => const NotificationsPage(),
       RouteNames.welcome: (context) => const Welcome(),
-<<<<<<< HEAD
       // Add more routes as needed
     };
   }
   
-=======
-      RouteNames.createPost:
-          (context) => const CreatePostPage(), // Add the new route
-      RouteNames.settings: (context) => const SettingsMainPage(),
-      RouteNames.accountPreferences:
-          (context) => const AccountPreferencesPage(),
-      RouteNames.signInSecurity: (context) => const SignInSecurityPage(),
-      RouteNames.visibility: (context) => const VisibilityPage(),
-      RouteNames.dataPrivacy: (context) => const DataPrivacyPage(),
-      RouteNames.advertisingData: (context) => const AdvertisingDataPage(),
-      RouteNames.helpCenter: (context) => const HelpCenterPage(),
-      RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
-      RouteNames.signOut: (context) => const SignOutPage(),
-
-      // Add more routes as needed
-    };
-  }
-
->>>>>>> Cross
   /// Get the initial page widget for the app
   static Widget getInitialPage() {
     // You can add logic here to determine the initial page
     // based on authentication state or first-time user, etc.
     return const SplashScreen();
   }
-<<<<<<< HEAD
   
-=======
-
->>>>>>> Cross
   /// Handle dynamic routes or complex navigation logic
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     // Handle routes that aren't defined in the routes map
     // or routes with dynamic parameters
-<<<<<<< HEAD
     
     final args = settings.arguments;
     
-=======
-
-    final args = settings.arguments;
-
->>>>>>> Cross
     switch (settings.name) {
       case '/post-details':
         // Example of a dynamic route with parameters
@@ -127,16 +59,11 @@ class AppRoutes {
           );
         }
         return _errorRoute();
-<<<<<<< HEAD
         
-=======
-
->>>>>>> Cross
       default:
         return _errorRoute();
     }
   }
-<<<<<<< HEAD
   
   /// Fallback for undefined routes
   static Route<dynamic> _errorRoute() {
@@ -149,17 +76,6 @@ class AppRoutes {
           child: Text('Route not found'),
         ),
       ),
-=======
-
-  /// Fallback for undefined routes
-  static Route<dynamic> _errorRoute() {
-    return MaterialPageRoute(
-      builder:
-          (_) => Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: const Center(child: Text('Route not found')),
-          ),
->>>>>>> Cross
     );
   }
 }
@@ -167,7 +83,6 @@ class AppRoutes {
 /// Example of a dynamic route page class
 class PostDetailsPage extends StatelessWidget {
   final String postId;
-<<<<<<< HEAD
   
   const PostDetailsPage({
     Key? key,
@@ -183,16 +98,6 @@ class PostDetailsPage extends StatelessWidget {
       body: Center(
         child: Text('Post ID: $postId'),
       ),
-=======
-
-  const PostDetailsPage({Key? key, required this.postId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Post Details')),
-      body: Center(child: Text('Post ID: $postId')),
->>>>>>> Cross
     );
   }
 }
@@ -239,8 +144,4 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> Cross

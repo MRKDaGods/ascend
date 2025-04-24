@@ -16,19 +16,11 @@ class PostModel extends Equatable {
   final String timePosted;
   final int likesCount;
   final int commentsCount;
-<<<<<<< HEAD
-=======
-  final int sharedCount;
->>>>>>> Cross
   final int followers;
   final bool isLiked;
   final String? currentReaction;
   final List<Comment> comments;
   final bool showFeedbackOptions;
-<<<<<<< HEAD
-=======
-  final bool isSaved; // Add this field
->>>>>>> Cross
 
   const PostModel({
     required this.id,
@@ -43,19 +35,11 @@ class PostModel extends Equatable {
     required this.timePosted,
     this.likesCount = 0,
     this.commentsCount = 0,
-<<<<<<< HEAD
-=======
-    this.sharedCount = 0,
->>>>>>> Cross
     this.followers = 0,
     this.isLiked = false,
     this.currentReaction,
     this.comments = const [],
     this.showFeedbackOptions = false,
-<<<<<<< HEAD
-=======
-    this.isSaved = false, // Initialize with default value
->>>>>>> Cross
   });
 
   @override
@@ -72,19 +56,11 @@ class PostModel extends Equatable {
     timePosted,
     likesCount,
     commentsCount,
-<<<<<<< HEAD
-=======
-    sharedCount,
->>>>>>> Cross
     followers,
     isLiked,
     currentReaction,
     comments,
     showFeedbackOptions,
-<<<<<<< HEAD
-=======
-    isSaved, // Add to props
->>>>>>> Cross
   ];
 
   // Updated to return PostModel
@@ -101,19 +77,11 @@ class PostModel extends Equatable {
     String? timePosted,
     int? likesCount,
     int? commentsCount,
-<<<<<<< HEAD
-=======
-    int? sharedCount,
->>>>>>> Cross
     int? followers,
     bool? isLiked,
     String? currentReaction,
     List<Comment>? comments,
     bool? showFeedbackOptions,
-<<<<<<< HEAD
-=======
-    bool? isSaved, // Add to copyWith parameters
->>>>>>> Cross
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -128,19 +96,11 @@ class PostModel extends Equatable {
       timePosted: timePosted ?? this.timePosted,
       likesCount: likesCount ?? this.likesCount,
       commentsCount: commentsCount ?? this.commentsCount,
-<<<<<<< HEAD
-=======
-      sharedCount: sharedCount ?? this.sharedCount,
->>>>>>> Cross
       followers: followers ?? this.followers,
       isLiked: isLiked ?? this.isLiked,
       currentReaction: currentReaction ?? this.currentReaction,
       comments: comments ?? this.comments,
       showFeedbackOptions: showFeedbackOptions ?? this.showFeedbackOptions,
-<<<<<<< HEAD
-=======
-      isSaved: isSaved ?? this.isSaved, // Add to copyWith logic
->>>>>>> Cross
     );
   }
   
@@ -190,19 +150,11 @@ class PostModel extends Equatable {
       'timePosted': timePosted,
       'likesCount': likesCount,
       'commentsCount': commentsCount,
-<<<<<<< HEAD
-=======
-      'shares_count': sharedCount,  // Change to match API naming convention
->>>>>>> Cross
       'followers': followers,
       'isLiked': isLiked,
       'currentReaction': currentReaction,
       'comments': comments.map((comment) => comment.toJson()).toList(),
       'showFeedbackOptions': showFeedbackOptions,
-<<<<<<< HEAD
-=======
-      'isSaved': isSaved, // Add to toJson
->>>>>>> Cross
     };
   }
 
@@ -221,10 +173,6 @@ class PostModel extends Equatable {
       timePosted: json['timePosted'] as String,
       likesCount: json['likesCount'] as int? ?? 0,
       commentsCount: json['commentsCount'] as int? ?? 0,
-<<<<<<< HEAD
-=======
-      sharedCount: json['sharedCount'] as int? ?? 0,
->>>>>>> Cross
       followers: json['followers'] as int? ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       currentReaction: json['currentReaction'] as String?,
@@ -236,10 +184,6 @@ class PostModel extends Equatable {
             )
           : const [],
       showFeedbackOptions: json['showFeedbackOptions'] as bool? ?? false,
-<<<<<<< HEAD
-=======
-      isSaved: json['isSaved'] as bool? ?? false, // Add fromJson logic
->>>>>>> Cross
     );
   }
   
@@ -258,18 +202,10 @@ class PostModel extends Equatable {
       timePosted: oldModel['timePosted'] ?? 'Just now',
       likesCount: oldModel['initialLikes'] ?? oldModel['likesCount'] ?? 0,
       commentsCount: oldModel['initialComments'] ?? oldModel['commentsCount'] ?? 0,
-<<<<<<< HEAD
-=======
-      sharedCount: oldModel['sharedCount'] ?? 0,
->>>>>>> Cross
       followers: oldModel['followers'] ?? 0,
       isLiked: oldModel['isLiked'] ?? false,
       comments: const [],
       showFeedbackOptions: oldModel['showFeedbackOptions'] ?? false,
-<<<<<<< HEAD
-=======
-      isSaved: false, // Add default value
->>>>>>> Cross
     );
   }
 
@@ -285,122 +221,12 @@ class PostModel extends Equatable {
       timePosted: '',
       likesCount: 0,
       commentsCount: 0,
-<<<<<<< HEAD
-=======
-      sharedCount: 0,
->>>>>>> Cross
       followers: 0,
       isLiked: false,
       comments: [],
       images: [],
-<<<<<<< HEAD
     );
   }
-=======
-      isSaved: false, // Add default value
-    );
-  }
-
-  // Add this factory constructor to your PostModel class
-  factory PostModel.fromApiResponse(Map<String, dynamic> apiPost) {
-    try {
-        // Debug what we're receiving
-    print('Processing API post: ${apiPost['id']}');
-    
-    // Extract user data
-    final userData = apiPost['user'] as Map<String, dynamic>? ?? {};
-    
-    // Combine first and last name
-    final firstName = userData['first_name'] as String? ?? '';
-    final lastName = userData['last_name'] as String? ?? '';
-    final fullName = '$firstName $lastName'.trim();
-    
-    // Extract media URLs from complex media objects
-    final mediaList = apiPost['media'] as List<dynamic>? ?? [];
-    final imageUrls = mediaList
-        .where((media) => media['type'] == 'image' && media['url'] != null)
-        .map((media) => media['url'] as String)
-        .toList();
-    
-    // Format the timestamp
-    final createdAt = apiPost['created_at'] != null 
-        ? DateTime.parse(apiPost['created_at'] as String)
-        : DateTime.now();
-    final timeAgo = formatTimeAgo(createdAt);
-    
-    // Extract profile picture URL, provide a valid default if missing
-    final profilePicUrl = userData['profile_picture_url'] as String?;
-    final ownerImageUrl = (profilePicUrl != null && profilePicUrl.isNotEmpty)
-        ? profilePicUrl
-        : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
-    
-    return PostModel(
-      // Convert numeric ID to string
-      id: (apiPost['id'] ?? '').toString(),
-      
-      // Set title empty and use content for description
-      title: '',
-      description: apiPost['content'] as String? ?? '',
-      
-      // Media handling
-      images: imageUrls,
-      useCarousel: imageUrls.length > 1,
-      
-      // User information
-      ownerName: fullName.isNotEmpty ? fullName : 'Ascend User', // Fallback name
-      ownerImageUrl: ownerImageUrl, // Use the determined image URL
-      ownerOccupation: 'User', // Not provided by API
-      
-      // Time posted
-      timePosted: timeAgo,
-      
-      // Engagement metrics from API
-      likesCount: apiPost['likes_count'] as int? ?? 0,
-      commentsCount: apiPost['comments_count'] as int? ?? 0,
-      sharedCount: apiPost['shares_count'] as int? ?? 0,  // Make sure to use the correct API field
-      followers: 0, // Not provided by API
-      
-      // Default values for fields not in API
-      isLiked: false,
-      currentReaction: null,
-      comments: [],
-      isSponsored: false,
-      isSaved: apiPost['is_saved'] as bool? ?? false, // Assuming API provides 'is_saved'
-    );
-    } catch (e) {
-    print('Error creating PostModel from API data: $e');
-    print('API post data: $apiPost');
-    rethrow;
-  }
-  }
-
-  // Helper method to format timestamps - Made public static
-  static String formatTimeAgo(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-    
-    if (difference.inDays > 365) {
-      return '${(difference.inDays / 365).floor()}y ago';
-    } else if (difference.inDays > 30) {
-      return '${(difference.inDays / 30).floor()}m ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
-  // Add this method to parse a list of API posts
-  static List<PostModel> fromApiResponseList(List<dynamic> apiPosts) {
-    return apiPosts
-        .map((post) => PostModel.fromApiResponse(post as Map<String, dynamic>))
-        .toList();
-  }
->>>>>>> Cross
 }
 
 // Remove the type alias since the class is now directly named PostModel
