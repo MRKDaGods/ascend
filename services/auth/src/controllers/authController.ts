@@ -19,7 +19,7 @@ import {
   updateUserResetToken,
 } from "../services/userService";
 import { UserRole } from "@shared/models";
-import { banUser, isUserBanned, unbanUser } from "../services/banService";
+import { banUser, getBannedUsers, isUserBanned, unbanUser } from "../services/banService";
 
 /**
  * Handles user registration process
@@ -470,7 +470,7 @@ export const adminBanUser = async (
     res.json({ message: "User banned successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server error: " + error });
+    res.status(500).json({ error });
   }
 };
 
@@ -498,6 +498,27 @@ export const adminUnbanUser = async (
     res.json({ message: "User unbanned successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server error: " + error });
+    res.status(500).json({ error });
+  }
+}
+
+export const adminGetBannedUsers = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const bannedById = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(bannedById);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const bannedUsers = await getBannedUsers();
+    res.json(bannedUsers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
   }
 }
