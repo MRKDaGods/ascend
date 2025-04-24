@@ -23,10 +23,7 @@ import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
 class PostDetailPage extends StatefulWidget {
   final String postId;
 
-  const PostDetailPage({
-    Key? key,
-    required this.postId,
-  }) : super(key: key);
+  const PostDetailPage({super.key, required this.postId});
 
   @override
   State<PostDetailPage> createState() => _PostDetailPageState();
@@ -58,7 +55,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       currentPost = post;
     }
 
-    final bool isCurrentlySaved = currentPost?.isSaved ?? post.isSaved;
+    final bool isCurrentlySaved = currentPost.isSaved ?? post.isSaved;
 
     SheetHelpers.showPostOptionsSheet(
       context: context,
@@ -82,16 +79,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
       onShare: () {
         postBloc.add(SharePost(post.id));
         debugPrint("[PostDetailPage] Dispatching SharePost for ${post.id}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sharing post...')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Sharing post...')));
       },
       onNotInterested: () {
         _showHideConfirmationDialog(context, post.id);
       },
       onUnfollow: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unfollow ${post.ownerName} (not implemented)')),
+          SnackBar(
+            content: Text('Unfollow ${post.ownerName} (not implemented)'),
+          ),
         );
       },
       onReport: () {
@@ -130,10 +129,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         }
                       },
                     ),
-                    onTap: () { // Allow tapping the whole row
-                       setState(() {
-                         selectedReason = 'Spam';
-                       });
+                    onTap: () {
+                      // Allow tapping the whole row
+                      setState(() {
+                        selectedReason = 'Spam';
+                      });
                     },
                   ),
                   ListTile(
@@ -150,10 +150,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         }
                       },
                     ),
-                     onTap: () { // Allow tapping the whole row
-                       setState(() {
-                         selectedReason = 'Inappropriate Content';
-                       });
+                    onTap: () {
+                      // Allow tapping the whole row
+                      setState(() {
+                        selectedReason = 'Inappropriate Content';
+                      });
                     },
                   ),
                   // Add more reasons as needed following the same pattern
@@ -170,17 +171,23 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   child: const Text('Submit Report'),
                   onPressed: () {
                     // Now selectedReason will hold the user's choice
-                    BlocProvider.of<PostBloc>(context).add(ReportPost(postId, selectedReason));
-                    debugPrint("[PostDetailPage] Dispatching ReportPost for $postId with reason: $selectedReason");
+                    BlocProvider.of<PostBloc>(
+                      context,
+                    ).add(ReportPost(postId, selectedReason));
+                    debugPrint(
+                      "[PostDetailPage] Dispatching ReportPost for $postId with reason: $selectedReason",
+                    );
                     Navigator.of(dialogContext).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Post reported. Thank you.')),
+                      const SnackBar(
+                        content: Text('Post reported. Thank you.'),
+                      ),
                     );
                   },
                 ),
               ],
             );
-          }
+          },
         );
       },
     );
@@ -192,7 +199,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Hide Post?'),
-          content: const Text('Are you sure you want to hide this post? You will not see it again.'),
+          content: const Text(
+            'Are you sure you want to hide this post? You will not see it again.',
+          ),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -203,7 +212,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
             TextButton(
               child: const Text('Hide'),
               onPressed: () {
-                BlocProvider.of<PostBloc>(context).add(HidePost(postId, 'User chose to hide'));
+                BlocProvider.of<PostBloc>(
+                  context,
+                ).add(HidePost(postId, 'User chose to hide'));
                 Navigator.of(dialogContext).pop();
                 if (Navigator.canPop(context)) {
                   Navigator.of(context).pop();
@@ -220,7 +231,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<PostBloc, PostState>(
       builder: (context, state) {
-        debugPrint('🔄 [PostDetailPage] BlocBuilder running. State type: ${state.runtimeType}');
+        debugPrint(
+          '🔄 [PostDetailPage] BlocBuilder running. State type: ${state.runtimeType}',
+        );
 
         if (state is PostsLoaded) {
           final post = state.posts.firstWhere(
@@ -228,16 +241,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
             orElse: () => PostModel.empty(),
           );
 
-          debugPrint('📄 [PostDetailPage] Displaying post ${post.id}. Comments count: ${post.commentsCount}, Comments list size: ${post.comments.length}');
+          debugPrint(
+            '📄 [PostDetailPage] Displaying post ${post.id}. Comments count: ${post.commentsCount}, Comments list size: ${post.comments.length}',
+          );
           if (post.comments.isNotEmpty) {
-            debugPrint('📄 [PostDetailPage] Last comment ID: ${post.comments.last.id}, Text: ${post.comments.last.text}');
+            debugPrint(
+              '📄 [PostDetailPage] Last comment ID: ${post.comments.last.id}, Text: ${post.comments.last.text}',
+            );
           }
 
           return BlocBuilder<UserProfileBloc, UserProfileState>(
             builder: (context, profileState) {
-              final userProfile = profileState is UserProfileLoaded
-                  ? profileState.profile
-                  : UserProfileModel.empty();
+              final userProfile =
+                  profileState is UserProfileLoaded
+                      ? profileState.profile
+                      : UserProfileModel.empty();
 
               if (post.id.isEmpty) {
                 return Scaffold(
@@ -269,15 +287,23 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 ownerOccupation: post.ownerOccupation,
                                 isSponsored: post.isSponsored,
                                 followers: post.followers,
-                                onOptionsPressed: () => _showPostOptionsBottomSheet(context, post),
+                                onOptionsPressed:
+                                    () => _showPostOptionsBottomSheet(
+                                      context,
+                                      post,
+                                    ),
                                 onHidePost: (reason) {
-                                  context.read<PostBloc>().add(HidePost(post.id, reason));
+                                  context.read<PostBloc>().add(
+                                    HidePost(post.id, reason),
+                                  );
                                 },
                               ),
                             ),
                             if (post.description.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
                                 child: PostContent(
                                   title: post.title,
                                   description: post.description,
@@ -291,17 +317,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => FullScreenImageViewer(
-                                        images: post.images,
-                                        initialIndex: index,
-                                        postId: post.id,
-                                      ),
+                                      builder:
+                                          (_) => FullScreenImageViewer(
+                                            images: post.images,
+                                            initialIndex: index,
+                                            postId: post.id,
+                                          ),
                                     ),
                                   );
                                 },
                               ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                                vertical: 8.0,
+                              ),
                               child: PostEngagementStats(
                                 likesCount: post.likesCount,
                                 sharesCount: post.sharedCount,
@@ -313,9 +343,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             ),
                             const Divider(height: 1),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   ReactionButton(
                                     key: _reactionButtonKey,
@@ -326,17 +359,27 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       context: context,
                                     ),
                                     onLongPressStart: () {
-                                      final RenderBox box = _reactionButtonKey.currentContext!
-                                          .findRenderObject() as RenderBox;
-                                      final position = box.localToGlobal(Offset.zero);
+                                      final RenderBox box =
+                                          _reactionButtonKey.currentContext!
+                                                  .findRenderObject()
+                                              as RenderBox;
+                                      final position = box.localToGlobal(
+                                        Offset.zero,
+                                      );
 
                                       ReactionUtils.showReactionsPopup(
                                         context: context,
                                         position: position,
                                         itemId: post.id,
                                         isComment: false,
-                                        onReactionSelected: (id, reaction) =>
-                                            context.read<PostBloc>().add(TogglePostReaction(id, reaction)),
+                                        onReactionSelected:
+                                            (id, reaction) =>
+                                                context.read<PostBloc>().add(
+                                                  TogglePostReaction(
+                                                    id,
+                                                    reaction,
+                                                  ),
+                                                ),
                                       );
                                     },
                                     onLongPressEnd: () {},
@@ -352,8 +395,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     icon: Icons.share_outlined,
                                     label: 'Share',
                                     onTap: () {
-                                      context.read<PostBloc>().add(SharePost(post.id));
-                                      debugPrint('Share button tapped for post ${post.id} from detail page');
+                                      context.read<PostBloc>().add(
+                                        SharePost(post.id),
+                                      );
+                                      debugPrint(
+                                        'Share button tapped for post ${post.id} from detail page',
+                                      );
                                     },
                                   ),
                                 ],
@@ -363,15 +410,27 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: PostCommentsSection(
-                                currentUserName: userProfile.name.isNotEmpty ? userProfile.name : "You",
-                                currentUserAvatarUrl: userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png',
+                                currentUserName:
+                                    userProfile.name.isNotEmpty
+                                        ? userProfile.name
+                                        : "You",
+                                currentUserAvatarUrl:
+                                    userProfile.avatarUrl.isNotEmpty
+                                        ? userProfile.avatarUrl
+                                        : 'assets/images/profile/EmptyUser.png',
                                 comments: post.comments,
                                 commentController: _commentController,
                                 commentFocusNode: _commentFocusNode,
-                                currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id',
+                                currentUserId:
+                                    userProfile.id.isNotEmpty
+                                        ? userProfile.id
+                                        : 'default_user_id',
                                 onCommentsChanged: (updatedComments) {
                                   context.read<PostBloc>().add(
-                                    UpdatePostComments(post.id, updatedComments)
+                                    UpdatePostComments(
+                                      post.id,
+                                      updatedComments,
+                                    ),
                                   );
                                 },
                                 onTapCommentArea: () {
@@ -379,43 +438,76 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 },
                                 onReaction: (commentId, reactionType) {
                                   context.read<PostBloc>().add(
-                                    ToggleCommentReaction(post.id, commentId, reactionType)
+                                    ToggleCommentReaction(
+                                      post.id,
+                                      commentId,
+                                      reactionType,
+                                    ),
                                   );
                                 },
                                 onNavigateToReply: (parentComment, replyingTo) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => CommentDetailPage(
-                                        parentComment: parentComment,
-                                        replyingTo: replyingTo,
-                                        currentUserId: userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id',
-                                        onAddReply: (text, parentId) {
-                                          context.read<PostBloc>().add(
-                                            AddCommentReply(
-                                              post.id,
-                                              parentId,
-                                              text,
-                                              userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id',
-                                              userProfile.name.isNotEmpty ? userProfile.name : "You",
-                                              userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png',
-                                            )
-                                          );
-                                        },
-                                        onReaction: (commentId, reactionType) {
-                                          context.read<PostBloc>().add(
-                                            ToggleCommentReaction(post.id, commentId, reactionType)
-                                          );
-                                        }, postId: post.id,
-                                      ),
+                                      builder:
+                                          (context) => CommentDetailPage(
+                                            parentComment: parentComment,
+                                            replyingTo: replyingTo,
+                                            currentUserId:
+                                                userProfile.id.isNotEmpty
+                                                    ? userProfile.id
+                                                    : 'default_user_id',
+                                            onAddReply: (text, parentId) {
+                                              context.read<PostBloc>().add(
+                                                AddCommentReply(
+                                                  post.id,
+                                                  parentId,
+                                                  text,
+                                                  userProfile.id.isNotEmpty
+                                                      ? userProfile.id
+                                                      : 'default_user_id',
+                                                  userProfile.name.isNotEmpty
+                                                      ? userProfile.name
+                                                      : "You",
+                                                  userProfile
+                                                          .avatarUrl
+                                                          .isNotEmpty
+                                                      ? userProfile.avatarUrl
+                                                      : 'assets/images/profile/EmptyUser.png',
+                                                ),
+                                              );
+                                            },
+                                            onReaction: (
+                                              commentId,
+                                              reactionType,
+                                            ) {
+                                              context.read<PostBloc>().add(
+                                                ToggleCommentReaction(
+                                                  post.id,
+                                                  commentId,
+                                                  reactionType,
+                                                ),
+                                              );
+                                            },
+                                            postId: post.id,
+                                          ),
                                     ),
                                   );
                                 },
                                 postId: post.id,
                                 onAddComment: (text, parentId) {
-                                  final userId = userProfile.id.isNotEmpty ? userProfile.id : 'default_user_id';
-                                  final userName = userProfile.name.isNotEmpty ? userProfile.name : "You";
-                                  final userAvatar = userProfile.avatarUrl.isNotEmpty ? userProfile.avatarUrl : 'assets/images/profile/EmptyUser.png';
+                                  final userId =
+                                      userProfile.id.isNotEmpty
+                                          ? userProfile.id
+                                          : 'default_user_id';
+                                  final userName =
+                                      userProfile.name.isNotEmpty
+                                          ? userProfile.name
+                                          : "You";
+                                  final userAvatar =
+                                      userProfile.avatarUrl.isNotEmpty
+                                          ? userProfile.avatarUrl
+                                          : 'assets/images/profile/EmptyUser.png';
 
                                   if (parentId == null) {
                                     context.read<PostBloc>().add(
@@ -425,7 +517,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         userId,
                                         userName,
                                         userAvatar,
-                                      )
+                                      ),
                                     );
                                   } else {
                                     context.read<PostBloc>().add(
@@ -436,7 +528,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         userId,
                                         userName,
                                         userAvatar,
-                                      )
+                                      ),
                                     );
                                   }
                                 },
@@ -449,7 +541,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ],
                 ),
               );
-            }
+            },
           );
         }
 
@@ -463,7 +555,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   IconData _getReactionIcon(PostModel post) {
     if (!post.isLiked) return Icons.thumb_up_outlined;
-    return ReactionManager.reactionIcons[post.currentReaction] ?? Icons.thumb_up;
+    return ReactionManager.reactionIcons[post.currentReaction] ??
+        Icons.thumb_up;
   }
 
   Color _getReactionColor(PostModel post) {

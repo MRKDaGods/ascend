@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AccountPreferencesPage extends StatefulWidget {
-  const AccountPreferencesPage({Key? key}) : super(key: key);
+  const AccountPreferencesPage({super.key});
 
   @override
   State<AccountPreferencesPage> createState() => _AccountPreferencesPageState();

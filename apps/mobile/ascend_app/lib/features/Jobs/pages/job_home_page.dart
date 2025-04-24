@@ -18,6 +18,7 @@ class JobHomePage extends StatefulWidget {
 class _JobHomePageState extends State<JobHomePage> {
   final TextEditingController searchController = TextEditingController();
   late List<Jobsattributes> jobsList; // Create a mutable copy of jobs
+  @override
   void initState() {
     super.initState();
     jobsList = List.from(widget.jobs); // Initialize jobsList in initState

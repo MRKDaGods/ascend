@@ -22,7 +22,7 @@ import 'package:uuid/uuid.dart';
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
 
 class Grow extends StatefulWidget {
-  const Grow({Key? key}) : super(key: key);
+  const Grow({super.key});
 
   @override
   _GrowState createState() => _GrowState();
