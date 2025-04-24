@@ -8,39 +8,27 @@ import {
   Button,
   TextField,
   Typography,
-  Avatar,
-  MenuItem,
   Box,
   Paper,
   IconButton,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadCloud } from 'lucide-react';
 import { useJobStore } from '@/app/shared/store/useJobStore';
 
-const countryCodes = [
-  { label: 'Egypt (+20)', value: '+20' },
-  { label: 'United States (+1)', value: '+1' },
-  { label: 'India (+91)', value: '+91' },
-];
-
 export default function ApplyModal({ job, open, onClose }: any) {
   const [userData, setUserData] = useState({
-    name: '',
     email: '',
-    phone: '',
-    countryCode: '+20',
-    location: 'Giza, Al Jizah, Egypt',
-    title: 'Student at Cairo University',
-    avatarUrl: 'https://wallpapers.com/images/hd/best-profile-pictures-itr43vvimjrze9v3.jpg',
+    fullPhone: '',
   });
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [isResumeUploaded, setIsResumeUploaded] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(true);
-  const [isphoneValid, setIsphoneValid] = useState(true);
+  const [isPhoneValid, setIsPhoneValid] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const router = useRouter();
   const applyJob = useJobStore((state) => state.applyJob);
@@ -52,13 +40,8 @@ export default function ApplyModal({ job, open, onClose }: any) {
         .then((data) => {
           setUserData((prev) => ({
             ...prev,
-            name: data.name || '',
             email: data.email || '',
-            phone: '',
-            countryCode: '+20',
-            location: `${data.location}, ${data.country}` || prev.location,
-            title: `Student at ${data.entity}` || prev.title,
-            avatarUrl: data.profilePhoto || prev.avatarUrl,
+            fullPhone: '',
           }));
         });
     }
@@ -66,9 +49,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
 
   useEffect(() => {
     return () => {
-      if (resumeUrl) {
-        URL.revokeObjectURL(resumeUrl);
-      }
+      if (resumeUrl) URL.revokeObjectURL(resumeUrl);
     };
   }, [resumeUrl]);
 
@@ -82,86 +63,62 @@ export default function ApplyModal({ job, open, onClose }: any) {
   };
 
   const handleSubmit = async () => {
+    if (!resumeFile) {
+      alert('Please upload your resume.');
+      return;
+    }
+
+    if (!userData.email || !userData.fullPhone) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    if (!job?.id) {
+      alert('Job ID is missing.');
+      return;
+    }
+
     try {
-      const payload = {
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        countryCode: userData.countryCode,
-        location: userData.location,
-        title: userData.title,
-        avatarUrl: userData.avatarUrl,
-        resume: resumeFile?.name || '',
-        jobId: job.id,
-      };
-  
-      const response = await fetch('http://localhost:5000/api/submit-application', {
+      const formData = new FormData();
+      formData.append('resume', resumeFile, resumeFile.name);
+      formData.append('email', userData.email.trim());
+      formData.append('phone', userData.fullPhone.trim());
+      console.log('************');
+      console.log('FormData:', userData.fullPhone.trim()); // Debugging line
+      const response = await fetch(`https://api.ascendx.tech/job/apply/${job.id}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formData,
+        headers: {
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NDkwMjA3LCJleHAiOjE3NDU1MzM0MDd9.b3TOGriu8t9-KGaWRVBfXTLmTGL76YsSFff8_CirRx8',
+        'x-no-parse-body': '1'
+        },
       });
-  
-      const contentType = response.headers.get('Content-Type') || '';
-  
+
       if (!response.ok) {
-        // If response is JSON
-        if (contentType.includes('application/json')) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to submit application');
-        } else {
-          // Probably HTML error response
-          const errorText = await response.text();
-          console.error('Non-JSON error response:', errorText);
-          throw new Error('Server returned non-JSON error. See console.');
-        }
+        const errorText = await response.text();
+        throw new Error(`(${response.status}) ${errorText}`);
       }
-  
-      let resultMessage = 'Application submitted successfully';
-      if (contentType.includes('application/json')) {
-        const result = await response.json();
-        resultMessage = result.message || resultMessage;
-      }
-  
+
+      const result = await response.json();
       applyJob({ ...job, status: 'Applied' });
-  
-      console.log(resultMessage);
+      alert(result.message);
       router.push('/MyJobs');
     } catch (error) {
-      console.error('Error submitting application:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to submit application: ${errorMessage}`);
+      console.error('Application error:', error);
+      alert(`Application failed: ${(error as Error).message}`);
     }
   };
-  
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }} component="div">
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h6">Apply to {job.company}</Typography>
         </Box>
-        <IconButton onClick={onClose}>
-          <span>×</span>
-        </IconButton>
+        <IconButton onClick={onClose}><span>×</span></IconButton>
       </DialogTitle>
 
       <DialogContent dividers>
-        <Box mb={3}>
-          <Typography variant="subtitle1">Contact info</Typography>
-          <Box display="flex" alignItems="center" gap={2} mt={1}>
-            <Avatar src={userData.avatarUrl} sx={{ width: 40, height: 40 }} />
-            <Box>
-              <Typography fontWeight={600}>{userData.name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {userData.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {userData.location}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-
         <TextField
           fullWidth
           label="Email address*"
@@ -169,58 +126,35 @@ export default function ApplyModal({ job, open, onClose }: any) {
           onChange={(e) => {
             const email = e.target.value;
             setUserData({ ...userData, email });
-            setIsEmailValid(email === '' || (email.includes('@') && email.includes('.com')));
+            setIsEmailValid(email === '' || (email.includes('@') && email.includes('.')));
           }}
           margin="normal"
           error={!isEmailValid}
-          helperText={!isEmailValid ? 'Please enter a valid email address.' : ''}
+          helperText={!isEmailValid ? 'Invalid email format.' : ''}
         />
 
         <TextField
           fullWidth
-          label="Phone country code*"
-          value={userData.countryCode}
-          onChange={(e) => setUserData({ ...userData, countryCode: e.target.value })}
-          margin="normal"
-          select
-        >
-          {countryCodes.map((code) => (
-            <MenuItem key={code.value} value={code.value}>
-              {code.label}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <TextField
-          fullWidth
           label="Mobile phone number*"
-          value={userData.phone}
+          placeholder="+201234567890"
+          value={userData.fullPhone}
           onChange={(e) => {
             const phone = e.target.value;
-            setUserData({ ...userData, phone });
-            setIsphoneValid(/^\d{11}$/.test(phone));
+            setUserData({ ...userData, fullPhone: phone });
+            setIsPhoneValid(/^\+\d{10,15}$/.test(phone));
           }}
           margin="normal"
-          error={!isphoneValid}
-          helperText={!isphoneValid ? 'Phone number must be exactly 11 digits.' : ''}
+          error={!isPhoneValid}
+          helperText={!isPhoneValid ? 'Use format +201234567890 (10–15 digits).' : ''}
         />
 
         <Box mt={4}>
           <Typography variant="subtitle1">Resume</Typography>
           <Typography variant="body2" color="text.secondary">
-            Be sure to include an updated resume*
+            Please upload your updated resume.
           </Typography>
           {isResumeUploaded ? (
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-                borderColor: '#ccc',
-              }}
-            >
+            <Paper variant="outlined" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ bgcolor: 'red', color: 'white', p: 1, borderRadius: '4px' }}>PDF</Box>
               <Box>
                 <Typography fontWeight="bold">{resumeFile?.name}</Typography>
@@ -229,15 +163,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
                 </Typography>
               </Box>
               <Box>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => {
-                    if (resumeUrl) {
-                      window.open(resumeUrl, '_blank');
-                    }
-                  }}
-                >
+                <Button variant="outlined" size="small" onClick={() => resumeUrl && window.open(resumeUrl, '_blank')}>
                   View
                 </Button>
               </Box>
@@ -248,11 +174,12 @@ export default function ApplyModal({ job, open, onClose }: any) {
                 variant="outlined"
                 startIcon={<UploadCloud size={18} />}
                 sx={{ mt: 1 }}
-                onClick={() => document.getElementById('resumeInput')?.click()}
+                onClick={() => fileInputRef.current?.click()}
               >
                 Upload resume
               </Button>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".pdf,.doc,.docx"
                 id="resumeInput"
@@ -262,32 +189,18 @@ export default function ApplyModal({ job, open, onClose }: any) {
             </Box>
           )}
         </Box>
-
-        <Box mt={2}>
-          <Typography variant="body2" color="text.secondary">
-            Submitting this application won’t change your LinkedIn profile.
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Application powered by LinkedIn.{' '}
-            <a href="#" style={{ color: '#1a73e8' }}>
-              Help Center
-            </a>
-          </Typography>
-        </Box>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} variant="outlined">
-          Back
-        </Button>
+        <Button onClick={onClose} variant="outlined">Back</Button>
         <Button
           variant="contained"
           disabled={
             !userData.email ||
-            !userData.phone ||
+            !userData.fullPhone ||
             !resumeFile ||
             !isEmailValid ||
-            !isphoneValid
+            !isPhoneValid
           }
           onClick={handleSubmit}
         >

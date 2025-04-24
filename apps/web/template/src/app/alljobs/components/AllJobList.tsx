@@ -1,6 +1,12 @@
 'use client';
 import React from 'react';
-import { Card, CardContent, Typography, Grid, Chip } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Chip,
+} from '@mui/material';
 import { useJobFilterStore } from '../store/useJobFilterStore';
 
 const AllJobList = () => {
@@ -43,8 +49,14 @@ const AllJobList = () => {
 
   return (
     <Grid container spacing={2}>
-      {filteredJobs.map((job) => (
-        <Grid item xs={12} md={6} lg={4} key={job.id}>
+      {filteredJobs.map((job, index) => (
+        <Grid
+          item
+          xs={12}
+          md={6}
+          lg={4}
+          key={job.id ? `job-${job.id}` : `${job.title}-${job.company || 'unknown'}-${index}`}
+        >
           <Card sx={{ p: 2, height: '100%' }}>
             <CardContent>
               <Typography variant="h6">{job.title}</Typography>
@@ -55,7 +67,6 @@ const AllJobList = () => {
               <Typography variant="body2" sx={{ mt: 1 }}>
                 {job.description}
               </Typography>
-
               {job.salaryRange && (
                 <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'green' }}>
                   Salary: {job.salaryRange}

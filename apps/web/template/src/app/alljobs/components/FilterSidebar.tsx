@@ -32,12 +32,38 @@ const FilterSidebar = () => {
     fetchCompanies();
   }, []);
 
+  const fetchJobsFromAPI = async (updatedFilters: typeof filters) => {
+    const params = new URLSearchParams({
+      keyword: updatedFilters.keyword || '',
+      location: updatedFilters.location || '',
+      industry: updatedFilters.industry || '',
+      experience_level: updatedFilters.experienceLevel || '',
+      company: updatedFilters.company || '',
+      salary_range_min: updatedFilters.salaryRangeMin || '',
+      salary_range_max: updatedFilters.salaryRangeMax || '',
+      page: '1',
+    });
+
+    try {
+      const response = await fetch(`https://api.ascendx.tech/search?${params}`);
+      const data = await response.json();
+      console.log('Filtered jobs:', data); // Replace this with state update if needed
+    } catch (error) {
+      console.error('Error fetching filtered jobs:', error);
+    }
+  };
+
   const toggleCheckbox = (key: keyof typeof filters, value: string) => {
     const current = filters[key].split(',').filter(Boolean);
     const updated = current.includes(value)
       ? current.filter((v) => v !== value)
       : [...current, value];
-    setFilter(key, updated.join(','));
+    const newFilters = {
+      ...filters,
+      [key]: updated.join(','),
+    };
+    setFilter(key, newFilters[key]);
+    fetchJobsFromAPI(newFilters); // Fetch with updated filters
   };
 
   return (

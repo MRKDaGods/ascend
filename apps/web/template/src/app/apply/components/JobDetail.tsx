@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SaveJobPopup from './SaveJobPopup';
 import { useJobStore } from '@/app/shared/store/useJobStore';
-import ApplyJobModal from './ApplyModal';
+import ApplyModal from './ApplyModal'; // ✅ Correctly import ApplyModal
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Box mb={4}>
@@ -40,32 +40,32 @@ const JobDetails = () => {
   const about = searchParams.get('about') || '';
   const requirements = searchParams.get('requirements')?.split(',') || [];
 
-    const handleSave = async () => {
-      const job = {
-        id,
-        job_id: id , 
-        title,
-        company,
-        location,
-        type,
-        description,
-        about,
-        requirements,
-        industry: '', // Add appropriate value
-        experience_level: '', // Add appropriate value
-        workplace_type: '', // Add appropriate value
-        salary: '', // Add appropriate value
-        benefits: [], // Add appropriate value
-        status: 'Saved' as 'Saved' | 'Applied',
-      };
+  const handleSave = async () => {
+    const job = {
+      id,
+      job_id: id,
+      title,
+      company,
+      location,
+      type,
+      description,
+      about,
+      requirements,
+      industry: '',
+      experience_level: '',
+      workplace_type: '',
+      salary: '',
+      benefits: [],
+      status: 'Saved' as 'Saved' | 'Applied',
+    };
 
-    // Save to local store
-    //saveJob(job);
-
-    // Save to backend
     try {
       const response = await fetch(`https://api.ascendx.tech/job/save/${id}`, {
-        method: 'POST', headers:{'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1MzE4Nzc1LCJleHAiOjE3NDUzNjE5NzV9.TWUfu3C5qZ37kNqjuOecUFKPGpHYkuJUV8SDRM9hPvI`},
+        method: 'POST',
+        headers: {
+          Authorization:
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NDkwMjA3LCJleHAiOjE3NDU1MzM0MDd9.b3TOGriu8t9-KGaWRVBfXTLmTGL76YsSFff8_CirRx8',
+        },
       });
 
       if (!response.ok) {
@@ -75,7 +75,6 @@ const JobDetails = () => {
       console.error('Error saving job to API:', error);
     }
 
-    // Show confirmation + redirect
     setSavedJobPopupOpen(true);
     setTimeout(() => {
       router.push('/MyJobs');
@@ -84,7 +83,10 @@ const JobDetails = () => {
 
   return (
     <>
-      <Paper elevation={3} sx={{ p: 4, maxWidth: '900px', mx: 'auto', mt: 5, mb: 3, borderRadius: 3 }}>
+      <Paper
+        elevation={3}
+        sx={{ p: 4, maxWidth: '900px', mx: 'auto', mt: 5, mb: 3, borderRadius: 3 }}
+      >
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           {title}
         </Typography>
@@ -93,14 +95,26 @@ const JobDetails = () => {
         </Typography>
 
         <Box display="flex" gap={2} my={2}>
-          <Button variant="outlined" color="success" sx={{ borderRadius: '20px' }} onClick={handleSave}>
+          <Button
+            variant="outlined"
+            color="success"
+            sx={{ borderRadius: '20px' }}
+            onClick={handleSave}
+          >
             Save
           </Button>
-          <Button variant="contained" color="primary" sx={{ borderRadius: '20px' }} onClick={() => setApplyOpen(true)}>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ borderRadius: '20px' }}
+            onClick={() => {
+              console.log('Opening apply modal');
+              setApplyOpen(true);
+            }}
+          >
             Apply
           </Button>
         </Box>
-
 
         <Section title="Job Description">
           <Typography>{description}</Typography>
@@ -109,7 +123,8 @@ const JobDetails = () => {
         <SaveJobPopup />
       </Paper>
 
-      <ApplyJobModal
+      {/* ✅ Render the real ApplyModal */}
+      <ApplyModal
         open={applyOpen}
         onClose={() => setApplyOpen(false)}
         job={{

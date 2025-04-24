@@ -1,4 +1,3 @@
-// ✅ UPDATED: useJobFilterStore.ts
 import { create } from 'zustand';
 
 export type JobType = 'Remote' | 'On-site' | 'Hybrid' | '';
@@ -19,6 +18,10 @@ interface Job {
 }
 
 interface JobFilters {
+  keyword: string;
+  industry: string;
+  salaryRangeMin: string;
+  salaryRangeMax: string;
   type: JobType;
   location: string;
   company: string;
@@ -30,12 +33,24 @@ interface JobFilterStore {
   filters: JobFilters;
   setFilter: <K extends keyof JobFilters>(key: K, value: JobFilters[K]) => void;
   resetFilters: () => void;
+
   jobs: Job[];
   setJobs: (jobs: Job[]) => void;
+  appendJobs: (jobs: Job[]) => void;
+
+  page: number;
+  setPage: (page: number) => void;
+
+  hasMore: boolean;
+  setHasMore: (hasMore: boolean) => void;
 }
 
 export const useJobFilterStore = create<JobFilterStore>((set) => ({
   filters: {
+    keyword: '',
+    industry: '',
+    salaryRangeMin: '',
+    salaryRangeMax: '',
     type: '',
     location: '',
     company: '',
@@ -52,6 +67,10 @@ export const useJobFilterStore = create<JobFilterStore>((set) => ({
   resetFilters: () =>
     set({
       filters: {
+        keyword: '',
+        industry: '',
+        salaryRangeMin: '',
+        salaryRangeMax: '',
         type: '',
         location: '',
         company: '',
@@ -59,6 +78,14 @@ export const useJobFilterStore = create<JobFilterStore>((set) => ({
         salary: '',
       },
     }),
+
   jobs: [],
   setJobs: (jobs) => set({ jobs }),
+  appendJobs: (newJobs) => set((state) => ({ jobs: [...state.jobs, ...newJobs] })),
+
+  page: 1,
+  setPage: (page) => set({ page }),
+
+  hasMore: true,
+  setHasMore: (hasMore) => set({ hasMore }),
 }));

@@ -4,31 +4,28 @@ import { Box, Grid, Typography } from '@mui/material';
 import FilterSidebar from './components/FilterSidebar';
 import AllJobList from './components/AllJobList';
 import { useJobFilterStore } from './store/useJobFilterStore';
+import { fetchJobs } from '../lib/api';
 
 const AllJobsPage = () => {
   const { setJobs } = useJobFilterStore();
-
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // Prevent SSR mismatch
     setIsMounted(true);
-
-    const fetchJobs = async () => {
+  
+    const load = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/jobs');
-        if (!response.ok) throw new Error('Failed to fetch jobs');
-        const data = await response.json();
-        setJobs(data);
+        const res = await fetchJobs(1, 100);
+        setJobs(res.data);
       } catch (error) {
         console.error('Error fetching jobs:', error);
       }
     };
-
-    fetchJobs();
+  
+    load();
   }, [setJobs]);
-
-  if (!isMounted) return null; // or a loader if you'd like
+  
+  if (!isMounted) return null;
 
   return (
     <Box sx={{ px: { xs: 2, md: 4 }, py: 4 }}>
