@@ -12,6 +12,8 @@ import {
   socialLogin,
   updateEmail,
   updatePassword,
+  adminBanUser,
+  adminUnbanUser
 } from "../controllers/authController";
 
 const router = Router();
@@ -27,5 +29,8 @@ router.put("/update-email", authenticateToken, updateEmail);
 router.post("/social-login", socialLogin);
 router.delete("/delete-account", authenticateToken, deleteAccount);
 router.post("/fcm-token", authenticateToken, updateFCMToken);
+
+router.post("/ban-user", authenticateToken, adminBanUser);
+router.post("/unban-user", authenticateToken, adminUnbanUser);
 
 export default router;
