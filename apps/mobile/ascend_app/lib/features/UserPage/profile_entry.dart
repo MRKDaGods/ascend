@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 
 class ProfileEntryWidget extends StatefulWidget {
+<<<<<<< HEAD
   final String? title;
   final String? subtitle;
   final String? description;
   final String? imageUrl;
   final Icon? icon;
   final List<Widget>? extraContent;
+=======
+  String? title;
+  String? subtitle;
+  String? description;
+  String? imageUrl;
+  Icon? icon;
+  List<Widget>? extraContent;
+>>>>>>> Cross
 
-  const ProfileEntryWidget({
+  ProfileEntryWidget({
     super.key,
     this.title,
     this.subtitle,
@@ -48,7 +57,11 @@ class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {
             else if (widget.icon != null) // Display icon if icon is provided
               Padding(
                 padding: const EdgeInsets.only(right: 8.0, top: 3),
+<<<<<<< HEAD
                 child: Icon(widget.icon!.icon, size: 28, color: Colors.white70),
+=======
+                child: Icon(widget.icon!.icon, size: 28),
+>>>>>>> Cross
               ),
             Expanded(
               child: Column(
@@ -58,31 +71,18 @@ class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {
                     Text(
                       widget.title!,
                       style: TextStyle(
-                        color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
 
                   if (widget.subtitle != null)
-                    Text(
-                      widget.subtitle!,
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
+                    Text(widget.subtitle!, style: TextStyle(fontSize: 14)),
                   if (widget.description != null)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          displayedText,
-                          style: TextStyle(
-                            color:
-                                (widget.title != null)
-                                    ? Colors.white54
-                                    : Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
+                        Text(displayedText, style: TextStyle(fontSize: 14)),
                         if (shouldShowMore)
                           GestureDetector(
                             onTap: () {
@@ -95,8 +95,8 @@ class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {
                               style: TextStyle(
                                 color:
                                     (widget.title == null)
-                                        ? Colors.white54
-                                        : Colors.white,
+                                        ? const Color.fromARGB(135, 90, 90, 90)
+                                        : const Color.fromARGB(255, 0, 0, 0),
                               ),
                             ),
                           ),

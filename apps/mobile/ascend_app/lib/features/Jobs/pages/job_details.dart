@@ -52,12 +52,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
               child: Container(
-                color:
-                    widget.job.companyPhoto != null
-                        ? (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.white) // Contrasting background color
-                        : Colors.transparent, // Transparent if no photo
+                color: Colors.white,
                 padding: const EdgeInsets.all(4.0), // Padding around the image
                 child:
                     widget.job.companyPhoto != null
@@ -141,8 +136,8 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
               widget.job.location,
               style: TextStyle(
                 fontSize: 16,
-                color:
-                    Colors.grey[400], // Subtle text color for dark background
+                // color:
+                //     Colors.grey[400], // Subtle text color for dark background
               ),
             ),
             SizedBox(height: 16),

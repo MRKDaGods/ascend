@@ -74,9 +74,15 @@ class _PostState extends State<Post> {
           if (post.showFeedbackOptions) {
             return PostFeedbackOptions(
               ownerName: post.ownerName,
+<<<<<<< HEAD
               onFeedbackSubmitted: (reason) {
                 // Handle feedback submission
                 context.read<PostBloc>().add(HidePost(post.id, reason));
+=======
+              onReportSubmitted: (reason) {
+                // Dispatch ReportPost event instead of HidePost
+                context.read<PostBloc>().add(ReportPost(post.id, reason));
+>>>>>>> Cross
               },
               onUndo: () {
                 // Use BLoC to hide feedback options
@@ -170,6 +176,10 @@ class _PostState extends State<Post> {
                   child: PostEngagementStats(
                     likesCount: post.likesCount,
                     commentsCount: post.commentsCount,
+<<<<<<< HEAD
+=======
+                    sharesCount: post.sharedCount,
+>>>>>>> Cross
                     reactionIcon: _getReactionIcon(post),
                     reactionColor: _getReactionColor(post),
                     postId: post.id, // Add this line
@@ -230,7 +240,15 @@ class _PostState extends State<Post> {
                       PostActionButton(
                         icon: Icons.share_outlined,
                         label: 'Share',
+<<<<<<< HEAD
                         onTap: () {},
+=======
+                        onTap: () {
+                          // Dispatch the SharePost event
+                          context.read<PostBloc>().add(SharePost(post.id));
+                          debugPrint('Share button tapped for post ${post.id}');
+                        },
+>>>>>>> Cross
                       ),
                     ],
                   ),

@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+>>>>>>> Cross
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -94,6 +98,12 @@ class _MainAppState extends State<MainApp> {
     
     return MultiBlocProvider(
       providers: [
+<<<<<<< HEAD
+=======
+        // Updated BlocProvider
+        BlocProvider<AuthBloc>.value(value: sl.authBloc),
+        
+>>>>>>> Cross
         // Your existing providers
         BlocProvider<UserProfileBloc>(
           create: (context) => UserProfileBloc()..add(LoadUserProfile()),

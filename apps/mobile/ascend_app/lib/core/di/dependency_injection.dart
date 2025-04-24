@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+<<<<<<< HEAD
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../features/notifications/data/datasources/notification_local_datasource.dart';
@@ -16,11 +17,23 @@ import '../../features/notifications/domain/usecases/mark_as_read.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../services/push_notification_service.dart';
 import '../../core/network/network_info.dart';
+=======
+
+import '../../features/notifications/data/datasources/notification_local_datasource.dart';
+import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
+import '../../features/notifications/presentation/bloc/notification_bloc.dart';
+import '../../services/push_notification_service.dart';
+import '../../core/network/network_info.dart';
+import '../../features/StartPages/Bloc/bloc/auth_bloc.dart';
+import '../../features/StartPages/Repository/auth_repository.dart';
+import '../../features/StartPages/repository/ApiClient.dart';
+>>>>>>> Cross
 
 /// Service locator for dependency injection
 class ServiceLocator {
   // Singleton instance
   static final ServiceLocator _instance = ServiceLocator._internal();
+<<<<<<< HEAD
   
   // Factory constructor
   factory ServiceLocator() => _instance;
@@ -116,8 +129,79 @@ class ServiceLocator {
   /// Dispose of resources when app is closed
   void dispose() {
     notificationBloc.close();
+=======
+
+  // Factory constructor
+  factory ServiceLocator() => _instance;
+
+  // Internal constructor
+  ServiceLocator._internal();
+
+  // Navigator key for navigation from background
+  final navigatorKey = GlobalKey<NavigatorState>();
+  // Add Auth related properties
+  late final AuthRepository authRepository;
+  late final ApiClient apiClient;
+  late final AuthBloc authBloc;
+
+  // Services
+  late final PushNotificationService pushNotificationService;
+  late final NetworkInfo networkInfo;
+
+  // BLOCs
+  late final NotificationBloc notificationBloc;
+  late final SearchBloc searchBloc;
+
+  /// Initialize all dependencies
+  Future<void> init() async {
+    // Core
+    networkInfo = NetworkInfoImpl(InternetConnectionChecker.createInstance());
+
+    // External
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final client = http.Client();
+
+    // Initialize ApiClient without parameters
+    apiClient = ApiClient();
+
+    // Initialize AuthRepository
+    authRepository = AuthRepository(apiClient: apiClient);
+
+    // Initialize AuthBloc
+    authBloc = AuthBloc(authRepository: authRepository, apiClient: apiClient);
+
+    // Data sources
+    final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
+      client: client,
+      baseUrl: 'https://mock-api.example.com', // This can be any placeholder
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      useMockData:
+          true, // Add a flag to use mock data instead of real API calls
+    );
+
+    // Initialize push notification service
+    pushNotificationService = PushNotificationService();
+    await pushNotificationService.initialize();
+
+    // BLOCs
+    notificationBloc = NotificationBloc(apiClient: apiClient);
+    searchBloc = SearchBloc();
+  }
+
+  /// Dispose of resources when app is closed
+  void dispose() {
+    notificationBloc.close();
+    authBloc.close();
+>>>>>>> Cross
   }
 }
 
 // Create a global instance for easy access
+<<<<<<< HEAD
 final sl = ServiceLocator();
+=======
+final sl = ServiceLocator();
+>>>>>>> Cross

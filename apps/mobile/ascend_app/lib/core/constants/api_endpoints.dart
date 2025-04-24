@@ -7,13 +7,18 @@ class ApiEndpoints {
   static const String comments = '/comments';
   static const String notifications = '/notifications';
   static const String deviceTokens = '/device-tokens';
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> Cross
   // Auth endpoints
   static const String login = '$auth/login';
   static const String register = '$auth/register';
   static const String refreshToken = '$auth/refresh-token';
   static const String forgotPassword = '$auth/forgot-password';
   static const String resetPassword = '$auth/reset-password';
+<<<<<<< HEAD
 
   // User endpoints
   static const String currentUser = '$users/me';
@@ -60,3 +65,17 @@ class ApiEndpoints {
   // Constructor is private to prevent instantiation
   ApiEndpoints._();
 }
+=======
+  
+  // User endpoints
+  static const String currentUser = '$users/me';
+  static const String userProfile = '$users/profile';
+  
+  // Notification specific endpoints
+  static const String unreadNotifications = '$notifications/unread';
+  static const String readAll = '$notifications/read-all';
+  
+  // Constructor is private to prevent instantiation
+  ApiEndpoints._();
+}
+>>>>>>> Cross

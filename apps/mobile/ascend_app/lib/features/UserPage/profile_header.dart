@@ -16,6 +16,7 @@ class ProfileHeader extends StatelessWidget {
     this.mutualConnections = const [],
     this.links = const [],
     this.badges = const [],
+    this.isMyProfile = false,
   });
 
   final String name;
@@ -30,6 +31,7 @@ class ProfileHeader extends StatelessWidget {
   final List<String> mutualConnections;
   final List<Map<String, String>> links;
   final List<String> badges; // New - Stores profile badges
+  final bool isMyProfile; // New - Indicates if the profile is the user's own
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +39,6 @@ class ProfileHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildNameSection(),
-        const SizedBox(height: 5),
-
-        _buildBadgesSection(), // New badges section
         const SizedBox(height: 5),
 
         _buildBioSection(),
@@ -52,7 +51,8 @@ class ProfileHeader extends StatelessWidget {
         if (connections > 0) _buildConnectionsSection(),
         const SizedBox(height: 5),
 
-        if (mutualConnections.isNotEmpty) _buildMutualConnections(context),
+        if (mutualConnections.isNotEmpty && !isMyProfile)
+          _buildMutualConnections(context),
       ],
     );
   }
@@ -63,13 +63,9 @@ class ProfileHeader extends StatelessWidget {
       children: [
         Text(
           name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        if (verified) const Icon(Icons.verified, color: Colors.blue, size: 20),
+        if (verified) const Icon(Icons.gpp_good_outlined, size: 20),
         const SizedBox(width: 5),
         Text(degree, style: const TextStyle(color: Colors.white70)),
       ],
@@ -118,17 +114,14 @@ class ProfileHeader extends StatelessWidget {
 
   // Bio Section
   Widget _buildBioSection() {
-    return Text(bio, style: const TextStyle(color: Colors.white70));
+    return Text(bio);
   }
 
   // Education & Location Section
   Widget _buildEducationLocationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(latestEducation, style: const TextStyle(color: Colors.white70)),
-        Text(location, style: const TextStyle(color: Colors.white70)),
-      ],
+      children: [Text(latestEducation), Text(location)],
     );
   }
 
@@ -136,7 +129,7 @@ class ProfileHeader extends StatelessWidget {
   Widget _buildConnectionsSection() {
     return Text(
       connections < 500 ? '$connections connections' : '500+ connections',
-      style: TextStyle(color: !isconnect ? Colors.white70 : Colors.blue),
+      style: TextStyle(color: !isconnect ? Colors.grey[900] : Colors.blue),
     );
   }
 
@@ -169,12 +162,7 @@ class ProfileHeader extends StatelessWidget {
             },
             child: Row(
               children: [
-                const Icon(
-                  Icons.people,
-                  color: Colors.white70,
-                  size: 16,
-                  applyTextScaling: true,
-                ),
+                const Icon(Icons.people, size: 16, applyTextScaling: true),
                 const SizedBox(width: 5),
                 Expanded(
                   child: Text(
@@ -182,7 +170,6 @@ class ProfileHeader extends StatelessWidget {
                         ? "${mutualConnections.take(2).join(', ')} , and ${mutualConnections.length - 2} other mutual connections"
                         : "${mutualConnections.join(', and ')} are mutual connections",
                     style: const TextStyle(
-                      color: Colors.white70,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -204,11 +191,7 @@ class ProfileHeader extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.black,
-          title: const Text(
-            "Mutual Connections",
-            style: TextStyle(color: Colors.white),
-          ),
+          title: const Text("Mutual Connections"),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -216,10 +199,7 @@ class ProfileHeader extends StatelessWidget {
               itemCount: mutualConnections.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(
-                    mutualConnections[index],
-                    style: const TextStyle(color: Colors.white70),
-                  ),
+                  title: Text(mutualConnections[index]),
                   onTap: () {
                     // You can navigate to the profile of the selected mutual connection
                     Navigator.pop(context);

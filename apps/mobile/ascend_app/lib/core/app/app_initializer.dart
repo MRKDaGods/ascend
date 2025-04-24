@@ -5,6 +5,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+<<<<<<< HEAD
+=======
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+>>>>>>> Cross
 
 import '../di/dependency_injection.dart';
 
@@ -24,6 +29,18 @@ class AppInitializer {
       DeviceOrientation.portraitDown,
     ]);
     
+<<<<<<< HEAD
+=======
+    // Initialize Hive for local storage
+    try {
+      await Hive.initFlutter();
+      debugPrint('Hive initialized successfully');
+    } catch (e) {
+      debugPrint('Hive initialization error: $e');
+      // Continue with app initialization even if Hive fails
+    }
+    
+>>>>>>> Cross
     // Initialize Firebase
     try {
       await Firebase.initializeApp(
