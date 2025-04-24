@@ -148,9 +148,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
       // Add headers
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
-      if (_selectedImages.isEmpty) {
-        request.headers['x-no-parse-body'] = '1';
-      }
+      // Always add x-no-parse-body as requested
+      request.headers['x-no-parse-body'] = '1';
+      print('[SubmitPost] Header added: x-no-parse-body: 1'); // Log header addition
 
       // Map visibility to privacy
       String privacy = 'public'; // Default
@@ -167,28 +167,27 @@ class _CreatePostPageState extends State<CreatePostPage> {
       // Conditionally add type and media files
       if (_selectedImages.isNotEmpty) {
         request.fields['type'] = 'image'; // Only add type if images exist
-        print('[SubmitPost] Adding ${_selectedImages.length} image(s).');
+        print('[SubmitPost] Adding ${_selectedImages.length} image(s) to field "media".');
         for (var i = 0; i < _selectedImages.length; i++) {
           var file = _selectedImages[i];
           final filename = path.basename(file.path);
-          print('[SubmitPost] Processing file ${i + 1}: ${file.path}');
+          print('[SubmitPost] Processing file ${i + 1}: Path=${file.path}, Filename=$filename');
 
           // Read file bytes first
           final fileBytes = await file.readAsBytes();
+          final fileLength = fileBytes.length; // Get file length
 
           // Determine content type using header bytes
           final headerBytes = fileBytes.length > 1024 ? fileBytes.sublist(0, 1024) : fileBytes;
           String? mimeType = lookupMimeType(filename, headerBytes: headerBytes);
-          MediaType? contentType;
-          if (mimeType != null) {
-            contentType = MediaType.parse(mimeType);
-          } else {
-            contentType = MediaType('application', 'octet-stream'); // Fallback
-            print('[SubmitPost] Warning: Could not determine MIME type for $filename. Using fallback.');
-          }
+          MediaType contentType = mimeType != null
+              ? MediaType.parse(mimeType)
+              : MediaType('application', 'octet-stream'); // Fallback
+
+          print('[SubmitPost] File ${i + 1} details: Length=$fileLength bytes, ContentType=${contentType.toString()}');
 
           // Try using MultipartFile.fromPath
-          print('[SubmitPost] Attaching file ${i + 1}: $filename with Content-Type: ${contentType.toString()} using fromPath to field media');
+          print('[SubmitPost] Attaching file ${i + 1} using fromPath...');
           final multipartFile = await http.MultipartFile.fromPath(
             'media', // Correct field name
             file.path, // Pass the file path
@@ -196,12 +195,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
             contentType: contentType, // Explicitly set Content-Type
           );
           request.files.add(multipartFile);
+          print('[SubmitPost] File ${i + 1} attached to request.files.');
         }
       } else {
         print('[SubmitPost] No images selected. Sending text-only post.');
       }
 
-      print('Sending POST request to $url with fields: ${request.fields}, files: ${request.files.length}, headers: ${request.headers}');
+      print('--- Sending Request ---');
+      print('URL: ${request.url}');
+      print('Method: ${request.method}');
+      print('Headers: ${request.headers}');
+      print('Fields: ${request.fields}');
+      print('Files attached: ${request.files.length}');
+      for (var file in request.files) {
+          print('  - File field: ${file.field}, Filename: ${file.filename}, Length: ${file.length}, ContentType: ${file.contentType}');
+      }
+      print('-----------------------');
+
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
