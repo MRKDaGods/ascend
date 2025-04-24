@@ -3,7 +3,6 @@ import 'package:ascend_app/features/settings/Presentation/pages/account_preferen
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
 import 'package:flutter/material.dart';
-import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/home/presentation/pages/create_post_page.dart'; // Import the new page
 import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
@@ -49,7 +48,8 @@ class AppRoutes {
     return {
       RouteNames.notifications: (context) => const NotificationsPage(),
       RouteNames.welcome: (context) => const Welcome(),
-      RouteNames.createPost: (context) => const CreatePostPage(), // Add the new route
+      RouteNames.createPost:
+          (context) => const CreatePostPage(), // Add the new route
       RouteNames.settings: (context) => const SettingsMainPage(),
       RouteNames.accountPreferences:
           (context) => const AccountPreferencesPage(),
