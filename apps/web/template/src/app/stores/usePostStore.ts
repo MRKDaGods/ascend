@@ -9,9 +9,9 @@ import {
   deletePostById,
   editPost,
   repost,
-  toggleSavePostAPI,
   createCommentAPI,
-  fetchSavedPostsAPI
+  fetchSavedPostsAPI,
+  toggleSavePostAPI
 } from "@/api/posts";
 
 export type ReactionType =
@@ -103,14 +103,11 @@ interface PostStoreState {
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
-  fetchSavedPostsFromAPI: (page?: number, limit?: number) => Promise<void>;
+  fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
+  toggleSavePostFromAPI: (postId: number) => Promise<void>;
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
-  // toggleSavePost: (id: number) => void;
-  // toggleSavePostFromAPI: (id: number) => void;
-  toggleSavePostFromAPI: (id: number) => Promise<void>;
-
   commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<void>;
 
   addTagToPost: (postId: number, tag: Tag) => void;
@@ -332,12 +329,10 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      fetchSavedPostsFromAPI: async () => {
+      fetchSavedPostsAPI: async () => {
         try {
-          const response = await fetchSavedPostsAPI();
-          const savedPosts = response.data;
-      
-          const mapped: PostType[] = savedPosts.map((post: any) => ({
+          const savedData = await fetchSavedPostsAPI();
+          const mapped = savedData.map((post) => ({
             id: post.id,
             username: `${post.user.first_name} ${post.user.last_name}`,
             profilePic: post.user.profile_picture_url ?? "",
@@ -353,17 +348,41 @@ export const usePostStore = create<PostStoreState>()(
             isUserPost: false,
           }));
       
-          // ✅ Fix for duplicate keys
-          set((s) => {
-            const existingIds = new Set(s.posts.map((p) => p.id));
-            const newPosts = mapped.filter((p) => !existingIds.has(p.id));
-            return { posts: [...s.posts, ...newPosts] };
-          });
-        } catch (err: any) {
-          console.error("❌ Failed to fetch saved posts:", err?.response?.data || err.message);
+          const ids = mapped.map((p) => p.id);
+          set((s) => ({
+            posts: [...s.posts, ...mapped.filter((p) => !s.posts.some((x) => x.id === p.id))],
+            savedPosts: [...new Set([...s.savedPosts, ...ids])],
+          }));
+        } catch (error) {
+          console.error("❌ Failed to fetch saved posts from API", error);
         }
-      },         
-
+      },      
+      
+      toggleSavePostFromAPI: async (postId: number) => {
+        try {
+          // Send the request anyway (we assume the backend did the toggle)
+          await toggleSavePostAPI(postId);
+      
+          // Use local state to determine toggle behavior
+          set((state) => {
+            const isAlreadySaved = state.savedPosts.includes(postId);
+            const updatedSavedPosts = isAlreadySaved
+              ? state.savedPosts.filter((id) => id !== postId)
+              : [...state.savedPosts, postId];
+      
+            return {
+              savedPosts: updatedSavedPosts,
+              savedPopupOpen: !isAlreadySaved,
+              unsavedPopupOpen: isAlreadySaved,
+            };
+          });
+      
+          console.log(`✅ Post ${postId} toggled (using frontend state)`);
+        } catch (err: any) {
+          console.error("❌ Failed to toggle save:", err?.response?.data || err.message);
+        }
+      },      
+      
       setReaction: (postId, reaction) =>
         set((s) => ({
           postReactions: { ...s.postReactions, [postId]: reaction },
@@ -382,35 +401,6 @@ export const usePostStore = create<PostStoreState>()(
             ),
           };
         }),
-
-      // toggleSavePost: (id) =>
-      //   set((s) => {
-      //     const isSaved = s.savedPosts.includes(id);
-      //     return {
-      //       savedPosts: isSaved ? s.savedPosts.filter((pid) => pid !== id) : [...s.savedPosts, id],
-      //       savedPopupOpen: !isSaved,
-      //       unsavedPopupOpen: isSaved,
-      //     };
-      //   }),
-
-      toggleSavePostFromAPI: async (postId) => {
-        try {
-          const response = await toggleSavePostAPI(postId);
-          const saved = response.data.saved;
-      
-          set((s) => ({
-            savedPosts: saved
-              ? [...s.savedPosts, postId]
-              : s.savedPosts.filter((id) => id !== postId),
-            savedPopupOpen: saved,
-            unsavedPopupOpen: !saved,
-          }));
-      
-          console.log(`✅ Post ${postId} is now ${saved ? "saved" : "unsaved"}`);
-        } catch (error: any) {
-          console.error("❌ Failed to toggle save/unsave:", error?.response?.data || error.message);
-        }
-      },
       
       commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
         try {
@@ -457,7 +447,10 @@ export const usePostStore = create<PostStoreState>()(
     {
       name: "post-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ posts: s.posts }),
+      partialize: (s) => ({ 
+        posts: s.posts,
+        savedPosts: s.savedPosts,
+      }),
     }
   )
 );

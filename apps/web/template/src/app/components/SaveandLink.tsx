@@ -1,5 +1,3 @@
-// Component file: Menu: save and copy link, saving others' post for later reading and copy link to post
-
 "use client";
 
 import React, { useState } from "react";
@@ -20,20 +18,26 @@ import CopyPostPopup from "./CopyPostPopup";
 const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchorEl);
 
   const {
     savedPosts,
     toggleSavePostFromAPI,
-    setSavedPopupOpen,
-    setUnsavedPopupOpen,
     setCopyPostPopupOpen,
   } = usePostStore();
+
+  const isSaved = savedPosts.includes(post.id);
 
   const handleCopyLink = () => {
     const link = `${window.location.origin}/copypost?id=${post.id}`;
     navigator.clipboard.writeText(link);
     setCopyPostPopupOpen(true);
     setMenuAnchorEl(null);
+  };
+
+  const handleToggleSave = async () => {
+    await toggleSavePostFromAPI(post.id);
+    setMenuAnchorEl(null); // Close menu after action
   };
 
   return (
@@ -44,37 +48,22 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
 
       <Menu
         anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
+        open={menuOpen}
         onClose={() => setMenuAnchorEl(null)}
       >
-        {savedPosts.includes(post.id) ? (
-          <MenuItem
-            onClick={() => {
-              toggleSavePostFromAPI(post.id);
-              setUnsavedPopupOpen(true);
-              setMenuAnchorEl(null);
-            }}
-          >
-            <Bookmark sx={{ fontSize: 18, mr: 1 }} />
+        <MenuItem onClick={handleToggleSave}>
+          <Bookmark sx={{ fontSize: 18, mr: 1 }} />
+          {isSaved ? (
             <Box>
               <Typography fontWeight="bold">Unsave</Typography>
               <Typography fontSize="0.75rem" color="gray">
                 Unsave from your saved list
               </Typography>
             </Box>
-          </MenuItem>
-        ) : (
-          <MenuItem
-            onClick={() => {
-              toggleSavePostFromAPI(post.id);
-              setSavedPopupOpen(true);
-              setMenuAnchorEl(null);
-            }}
-          >
-            <Bookmark sx={{ fontSize: 18, mr: 1 }} />
-            Save
-          </MenuItem>
-        )}
+          ) : (
+            <Typography fontWeight="bold">Save</Typography>
+          )}
+        </MenuItem>
 
         <MenuItem onClick={handleCopyLink}>
           <LinkIcon sx={{ fontSize: 18, mr: 1 }} />
