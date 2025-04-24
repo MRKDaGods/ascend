@@ -10,12 +10,13 @@ import 'package:ascend_app/core/constants/api_endpoints.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 // Base URL for the API - replace with your actual API base URL
-const String _apiBaseUrl = '{{POST_BASE}}'; // Use your Postman variable or actual URL
+const String _apiBaseUrl =
+    '{{POST_BASE}}'; // Use your Postman variable or actual URL
 
 class PostRepository {
   // Define the baseUrl with HTTPS
   final String baseUrl = 'https://api.ascendx.tech';
-  
+
   // For fallback and sponsored content
   final List<PostModel> _posts = [];
   final Map<String, PostModel> _sponsoredPosts = {};
@@ -37,7 +38,7 @@ class PostRepository {
       followers: 5250,
       images: ['assets/images/posts/sponsor1.jpg'],
     );
-    
+
     // Keep other sponsored posts
     _sponsoredPosts['sponsored_2'] = PostModel(
       id: 'sponsored_2',
@@ -54,31 +55,32 @@ class PostRepository {
       images: ['assets/images/posts/sponsor2.jpg'],
     );
   }
-  
+
   // Get all posts from feed API
-  Future<List<PostModel>> getPosts({int page = 1, int limit = 15}) async { // Changed default page to 1
+  Future<List<PostModel>> getPosts({int page = 1, int limit = 15}) async {
+    // Changed default page to 1
     try {
       // Try the API
       final result = await fetchFeed(page: page, limit: limit);
       final posts = result['posts'] as List<PostModel>;
-      
+
       // Return posts from API even if empty
       print('Returning ${posts.length} posts from API');
       return posts;
     } catch (e) {
       print('Error in getPosts: $e');
       // Re-throw the exception so the BLoC can handle it
-      rethrow; 
+      rethrow;
     }
   }
-  
+
   // Get a single post by ID
   Future<PostModel?> getPostById(String id) async {
     // Sponsored posts are local
     if (id.startsWith('sponsored_')) {
       return _sponsoredPosts[id];
     }
-    
+
     // For real posts, try to fetch from backend (implement in future)
     try {
       return _posts.firstWhere((post) => post.id == id);
@@ -86,7 +88,7 @@ class PostRepository {
       return null;
     }
   }
-  
+
   // Add a new post
   Future<PostModel> addPost(PostModel post) async {
     // Implement API call later
@@ -94,7 +96,7 @@ class PostRepository {
     _posts.add(post);
     return post;
   }
-  
+
   // Update an existing post
   Future<PostModel> updatePost(PostModel post) async {
     // Implement API call later
@@ -105,7 +107,7 @@ class PostRepository {
     }
     return post;
   }
-  
+
   // Delete a post
   Future<void> deletePost(String id) async {
     // Implement API call later
@@ -114,7 +116,10 @@ class PostRepository {
   }
 
   // Get more posts for pagination - Updated signature
-  Future<Map<String, dynamic>> getMorePosts({int page = 1, int limit = 5}) async {
+  Future<Map<String, dynamic>> getMorePosts({
+    int page = 1,
+    int limit = 5,
+  }) async {
     try {
       // Directly call fetchFeed with provided page and limit
       final result = await fetchFeed(page: page, limit: limit);
@@ -137,56 +142,61 @@ class PostRepository {
     await Future.delayed(const Duration(milliseconds: 300));
     print('Post $id hidden. Reason: $reason');
     _posts.removeWhere((post) => post.id == id);
-    
+
     if (_sponsoredPosts.containsKey(id)) {
       _sponsoredPosts.remove(id);
     }
   }
 
   // Update the fetchFeed method with the correct endpoint and add debugging
-  Future<Map<String, dynamic>> fetchFeed({int page = 1, int limit = 15}) async { // Changed default page to 1
+  Future<Map<String, dynamic>> fetchFeed({int page = 1, int limit = 15}) async {
+    // Changed default page to 1
     try {
       // Get the auth token - make sure it's valid
       final authToken = await SecureStorageHelper.getAuthToken();
-            // Check if the token exists
+      // Check if the token exists
       if (authToken == null) {
         print('Auth token is null. Cannot make authenticated request.');
         // Throw an specific exception or handle appropriately
-        throw Exception('Authentication token not found.'); 
+        throw Exception('Authentication token not found.');
       }
-      print('Auth token: ${authToken?.substring(0, 10)}...');
-      
+      print('Auth token: ${authToken.substring(0, 10)}...');
+
       // Try with `/post/feed` endpoint as seen in logs
       final uri = Uri.parse('$baseUrl/post/feed?page=$page&limit=$limit');
       print('Making request to: $uri');
-      
+
       final headers = {
         'Authorization': 'Bearer $authToken',
-         // Add the custom header here
+        // Add the custom header here
       };
       print('Request headers: $headers');
-      
+
       final response = await _client.get(uri, headers: headers);
       print('API response status: ${response.statusCode}');
       // Limit printing large bodies
-      print('API response body: ${response.body.length > 500 ? response.body.substring(0, 500) + '...' : response.body}');
-      
+      print(
+        'API response body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body}',
+      );
+
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        
+
         // Parse the posts array into PostModel objects
         final List<dynamic> apiPosts = jsonData['data'] ?? [];
         print('Found ${apiPosts.length} posts from API for page $page');
-        
+
         // Extract pagination info
         final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
         final int totalPosts = pagination['total'] ?? 0;
         final int currentPage = pagination['page'] ?? page;
         final int currentLimit = pagination['limit'] ?? limit;
         final bool hasMorePages = (currentPage * currentLimit) < totalPosts;
-        
-        print('Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages');
-        
+
+        print(
+          'Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages',
+        );
+
         if (apiPosts.isEmpty) {
           print('API returned empty posts array for page $page');
           return {
@@ -196,12 +206,14 @@ class PostRepository {
             'hasMorePages': false, // No more pages if the current page is empty
           };
         }
-        
+
         // If we got posts, try to convert them
         try {
           final posts = PostModel.fromApiResponseList(apiPosts);
-          print('Successfully converted ${posts.length} API posts to PostModel objects');
-          
+          print(
+            'Successfully converted ${posts.length} API posts to PostModel objects',
+          );
+
           return {
             'posts': posts,
             'totalPosts': totalPosts,
@@ -230,18 +242,28 @@ class PostRepository {
       throw Exception('Error fetching posts: $e');
     }
   }
-  
+
   /// Adds a comment to a specific post via the API.
-  Future<Comment> addComment(String postId, String text, String authorId, String authorName, String authorImageUrl) async {
+  Future<Comment> addComment(
+    String postId,
+    String text,
+    String authorId,
+    String authorName,
+    String authorImageUrl,
+  ) async {
     // Use the correct baseUrl and endpoint for adding comments
-    final url = Uri.parse('$baseUrl/post/$postId/comments'); // Corrected URL using baseUrl
+    final url = Uri.parse(
+      '$baseUrl/post/$postId/comments',
+    ); // Corrected URL using baseUrl
     debugPrint('📬 [PostRepository] Adding comment to post $postId at $url');
 
     try {
       // Get the auth token
       final authToken = await SecureStorageHelper.getAuthToken();
       if (authToken == null) {
-        debugPrint('❌ [PostRepository] Auth token is null. Cannot add comment.');
+        debugPrint(
+          '❌ [PostRepository] Auth token is null. Cannot add comment.',
+        );
         throw Exception('Authentication token not found.');
       }
       debugPrint('🔑 [PostRepository] Using auth token for adding comment.');
@@ -265,23 +287,37 @@ class PostRepository {
         final responseBody = jsonDecode(response.body);
         // Check if the API response structure includes a 'success' flag
         if (responseBody['success'] == true && responseBody['data'] != null) {
-           debugPrint('✅ [PostRepository] Comment added successfully (Status: ${response.statusCode}): ${responseBody}');
-           final commentData = responseBody['data'];
-           if (commentData is Map<String, dynamic>) {
-              final createdComment = Comment.fromJson(commentData);
-              return createdComment;
-           } else {
-              debugPrint('❌ [PostRepository] Invalid comment data format in response: ${responseBody}');
-              throw Exception('Failed to parse created comment from API response.');
-           }
+          debugPrint(
+            '✅ [PostRepository] Comment added successfully (Status: ${response.statusCode}): $responseBody',
+          );
+          final commentData = responseBody['data'];
+          if (commentData is Map<String, dynamic>) {
+            final createdComment = Comment.fromJson(commentData);
+            return createdComment;
+          } else {
+            debugPrint(
+              '❌ [PostRepository] Invalid comment data format in response: $responseBody',
+            );
+            throw Exception(
+              'Failed to parse created comment from API response.',
+            );
+          }
         } else {
-           // Handle cases where status is 200/201 but body indicates failure
-           debugPrint('❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}');
-           throw Exception('API returned success status but indicated failure in body.');
+          // Handle cases where status is 200/201 but body indicates failure
+          debugPrint(
+            '❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}',
+          );
+          throw Exception(
+            'API returned success status but indicated failure in body.',
+          );
         }
       } else {
-        debugPrint('❌ [PostRepository] Failed to add comment. Status: ${response.statusCode}, Body: ${response.body}');
-        throw Exception('Failed to add comment. Status code: ${response.statusCode}');
+        debugPrint(
+          '❌ [PostRepository] Failed to add comment. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception(
+          'Failed to add comment. Status code: ${response.statusCode}',
+        );
       }
     } catch (e) {
       debugPrint('❌ [PostRepository] Error adding comment: $e');
@@ -314,7 +350,9 @@ class PostRepository {
         debugPrint('✅ [PostRepository] Post $postId saved successfully.');
         return true;
       } else {
-        debugPrint('❌ [PostRepository] Failed to save post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        debugPrint(
+          '❌ [PostRepository] Failed to save post $postId. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to save post: ${response.statusCode}');
       }
     } catch (e) {
@@ -325,32 +363,40 @@ class PostRepository {
 
   /// Unsaves a post via the API.
   Future<bool> unsavePost(String postId) async {
-    final url = Uri.parse('$baseUrl/post/$postId/save'); // Endpoint for unsaving (DELETE)
+    final url = Uri.parse(
+      '$baseUrl/post/$postId/save',
+    ); // Endpoint for unsaving (DELETE)
     debugPrint('🗑️ [PostRepository] Unsaving post $postId at $url');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
       if (authToken == null) {
-        debugPrint('❌ [PostRepository] Auth token is null. Cannot unsave post.');
+        debugPrint(
+          '❌ [PostRepository] Auth token is null. Cannot unsave post.',
+        );
         throw Exception('Authentication token not found.');
       }
 
-      final response = await _client.delete( // Use DELETE method
+      final response = await _client.delete(
+        // Use DELETE method
         url,
-        headers: {
-          'Authorization': 'Bearer $authToken',
-        },
+        headers: {'Authorization': 'Bearer $authToken'},
       );
 
-      if (response.statusCode == 200 || response.statusCode == 204) { // 204 No Content is also common for DELETE success
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // 204 No Content is also common for DELETE success
         debugPrint('✅ [PostRepository] Post $postId unsaved successfully.');
         return true;
       } else {
-        debugPrint('❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        debugPrint(
+          '❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to unsave post: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('❌ [PostRepository] Exception while unsaving post $postId: $e');
+      debugPrint(
+        '❌ [PostRepository] Exception while unsaving post $postId: $e',
+      );
       throw Exception('Error unsaving post: $e');
     }
   }
@@ -358,7 +404,9 @@ class PostRepository {
   /// Shares a specific post via the API.
   Future<bool> sharePost(String postId) async {
     // Use the correct baseUrl and endpoint for sharing posts
-    final url = Uri.parse('$baseUrl/post/$postId/share'); // Corrected URL using baseUrl
+    final url = Uri.parse(
+      '$baseUrl/post/$postId/share',
+    ); // Corrected URL using baseUrl
     debugPrint('📤 [PostRepository] Sharing post $postId at $url');
 
     try {
@@ -379,7 +427,8 @@ class PostRepository {
       final response = await _client.post(
         url,
         headers: {
-          'Content-Type': 'application/json; charset=UTF-8', // Keep Content-Type for JSON body
+          'Content-Type':
+              'application/json; charset=UTF-8', // Keep Content-Type for JSON body
           'Authorization': 'Bearer $authToken', // Keep the authentication token
         },
         body: body, // Send the body with the privacy setting
@@ -387,18 +436,28 @@ class PostRepository {
 
       // Expecting a 200 OK or similar success status
       if (response.statusCode == 200) {
-         final responseBody = jsonDecode(response.body);
-         // Check if the API response structure includes a 'success' flag
-         if (responseBody['success'] == true) {
-            debugPrint('✅ [PostRepository] Post shared successfully (Status: ${response.statusCode}): ${responseBody}');
-            return true; // Indicate success
-         } else {
-            debugPrint('❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}');
-            throw Exception('API returned success status but indicated failure in body.');
-         }
+        final responseBody = jsonDecode(response.body);
+        // Check if the API response structure includes a 'success' flag
+        if (responseBody['success'] == true) {
+          debugPrint(
+            '✅ [PostRepository] Post shared successfully (Status: ${response.statusCode}): $responseBody',
+          );
+          return true; // Indicate success
+        } else {
+          debugPrint(
+            '❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}',
+          );
+          throw Exception(
+            'API returned success status but indicated failure in body.',
+          );
+        }
       } else {
-        debugPrint('❌ [PostRepository] Failed to share post. Status: ${response.statusCode}, Body: ${response.body}');
-        throw Exception('Failed to share post. Status code: ${response.statusCode}');
+        debugPrint(
+          '❌ [PostRepository] Failed to share post. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception(
+          'Failed to share post. Status code: ${response.statusCode}',
+        );
       }
     } catch (e) {
       debugPrint('❌ [PostRepository] Error sharing post: $e');
@@ -408,15 +467,23 @@ class PostRepository {
 
   /// Reports a specific post via the API.
   Future<bool> reportPost(String postId, String reason) async {
-    final url = Uri.parse('$baseUrl/post/$postId/report'); // Endpoint for reporting
-    debugPrint('🚩 [PostRepository] Starting reportPost for postId: $postId, reason: $reason');
+    final url = Uri.parse(
+      '$baseUrl/post/$postId/report',
+    ); // Endpoint for reporting
+    debugPrint(
+      '🚩 [PostRepository] Starting reportPost for postId: $postId, reason: $reason',
+    );
     debugPrint('🚩 [PostRepository] Reporting post at URL: $url');
 
     try {
-      debugPrint('🔑 [PostRepository] Attempting to get auth token for reporting...');
+      debugPrint(
+        '🔑 [PostRepository] Attempting to get auth token for reporting...',
+      );
       final authToken = await SecureStorageHelper.getAuthToken();
       if (authToken == null) {
-        debugPrint('❌ [PostRepository] Auth token is null. Cannot report post.');
+        debugPrint(
+          '❌ [PostRepository] Auth token is null. Cannot report post.',
+        );
         throw Exception('Authentication token not found.');
       }
       debugPrint('🔑 [PostRepository] Auth token retrieved successfully.');
@@ -433,28 +500,38 @@ class PostRepository {
       debugPrint('🚩 [PostRepository] Headers: $headers');
       debugPrint('🚩 [PostRepository] Body: $body');
 
-      final response = await _client.post(
-        url,
-        headers: headers,
-        body: body,
+      final response = await _client.post(url, headers: headers, body: body);
+
+      debugPrint(
+        '🚩 [PostRepository] Report API response status: ${response.statusCode}',
+      );
+      debugPrint(
+        '🚩 [PostRepository] Report API response body: ${response.body}',
       );
 
-      debugPrint('🚩 [PostRepository] Report API response status: ${response.statusCode}');
-      debugPrint('🚩 [PostRepository] Report API response body: ${response.body}');
-
       // Accept 200, 201 (Created), or 202 (Accepted) as success
-      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 202) {
-        debugPrint('✅ [PostRepository] Post $postId reported successfully via API.');
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202) {
+        debugPrint(
+          '✅ [PostRepository] Post $postId reported successfully via API.',
+        );
         // Optionally parse response body if it contains useful info
         // final responseBody = jsonDecode(response.body);
         return true;
       } else {
-        debugPrint('❌ [PostRepository] Failed to report post $postId. API returned status: ${response.statusCode}');
+        debugPrint(
+          '❌ [PostRepository] Failed to report post $postId. API returned status: ${response.statusCode}',
+        );
         // Throw an exception to indicate failure based on status code
-        throw Exception('Failed to report post: ${response.statusCode}, Body: ${response.body}');
+        throw Exception(
+          'Failed to report post: ${response.statusCode}, Body: ${response.body}',
+        );
       }
     } catch (e) {
-      debugPrint('❌ [PostRepository] Exception caught while reporting post $postId: $e');
+      debugPrint(
+        '❌ [PostRepository] Exception caught while reporting post $postId: $e',
+      );
       // Rethrow the exception so the BLoC can handle it
       throw Exception('Error reporting post: $e');
     }

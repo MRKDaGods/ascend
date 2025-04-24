@@ -7,12 +7,12 @@ class SettingsListItem extends StatelessWidget {
   final TextStyle? titleStyle; // Add an optional TextStyle for the title
 
   const SettingsListItem({
-    Key? key,
+    super.key,
     required this.title,
     this.onTap,
     this.leading,
     this.titleStyle, // Accept the custom TextStyle
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

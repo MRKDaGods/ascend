@@ -440,7 +440,7 @@ class _JoinAscendState extends State<JoinAscend>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
+        SizedBox(
           width: screenWidth * 0.4,
           child: Divider(color: Colors.grey[500], thickness: 1),
         ),
@@ -451,7 +451,7 @@ class _JoinAscendState extends State<JoinAscend>
             style: TextStyle(color: Colors.grey[800], fontSize: 16),
           ),
         ),
-        Container(
+        SizedBox(
           width: screenWidth * 0.4,
           child: Divider(color: Colors.grey[500], thickness: 1),
         ),

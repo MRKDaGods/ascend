@@ -39,7 +39,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   String _commentControl = 'Anyone';
   bool _brandPartnership = false;
   DateTime? _scheduledDateTime;
-  List<XFile> _selectedImages = []; // List to hold selected images
+  final List<XFile> _selectedImages = []; // List to hold selected images
   bool _isLoading = false; // Add loading state
 
   // Tagging related state variables
@@ -124,7 +124,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   void _updateCanPost() {
     setState(() {
-      _canPost = _textController.text.trim().isNotEmpty || _selectedImages.isNotEmpty;
+      _canPost =
+          _textController.text.trim().isNotEmpty || _selectedImages.isNotEmpty;
     });
   }
 
@@ -150,7 +151,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
       request.headers['Accept'] = 'application/json';
       // Always add x-no-parse-body as requested
       request.headers['x-no-parse-body'] = '1';
-      print('[SubmitPost] Header added: x-no-parse-body: 1'); // Log header addition
+      print(
+        '[SubmitPost] Header added: x-no-parse-body: 1',
+      ); // Log header addition
 
       // Map visibility to privacy
       String privacy = 'public'; // Default
@@ -161,37 +164,47 @@ class _CreatePostPageState extends State<CreatePostPage> {
       // Add text fields
       request.fields['content'] = _textController.text;
       request.fields['privacy'] = privacy;
-      request.fields['title'] = _textController.text; // Using content as title for now
+      request.fields['title'] =
+          _textController.text; // Using content as title for now
       request.fields['description'] = ''; // Empty description as requested
 
       // Conditionally add type and media files
       if (_selectedImages.isNotEmpty) {
         request.fields['type'] = 'image'; // Only add type if images exist
-        print('[SubmitPost] Adding ${_selectedImages.length} image(s) to field "media".');
+        print(
+          '[SubmitPost] Adding ${_selectedImages.length} image(s) to field "media".',
+        );
         for (var i = 0; i < _selectedImages.length; i++) {
           var file = _selectedImages[i];
           final filename = path.basename(file.path);
-          print('[SubmitPost] Processing file ${i + 1}: Path=${file.path}, Filename=$filename');
+          print(
+            '[SubmitPost] Processing file ${i + 1}: Path=${file.path}, Filename=$filename',
+          );
 
           // Read file bytes first
           final fileBytes = await file.readAsBytes();
           final fileLength = fileBytes.length; // Get file length
 
           // Determine content type using header bytes
-          final headerBytes = fileBytes.length > 1024 ? fileBytes.sublist(0, 1024) : fileBytes;
+          final headerBytes =
+              fileBytes.length > 1024 ? fileBytes.sublist(0, 1024) : fileBytes;
           String? mimeType = lookupMimeType(filename, headerBytes: headerBytes);
-          MediaType contentType = mimeType != null
-              ? MediaType.parse(mimeType)
-              : MediaType('application', 'octet-stream'); // Fallback
+          MediaType contentType =
+              mimeType != null
+                  ? MediaType.parse(mimeType)
+                  : MediaType('application', 'octet-stream'); // Fallback
 
-          print('[SubmitPost] File ${i + 1} details: Length=$fileLength bytes, ContentType=${contentType.toString()}');
+          print(
+            '[SubmitPost] File ${i + 1} details: Length=$fileLength bytes, ContentType=${contentType.toString()}',
+          );
 
           // Try using MultipartFile.fromPath
           print('[SubmitPost] Attaching file ${i + 1} using fromPath...');
           final multipartFile = await http.MultipartFile.fromPath(
             'media', // Correct field name
             file.path, // Pass the file path
-            filename: filename, // Optional: Explicitly set filename if different from path basename
+            filename:
+                filename, // Optional: Explicitly set filename if different from path basename
             contentType: contentType, // Explicitly set Content-Type
           );
           request.files.add(multipartFile);
@@ -208,10 +221,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
       print('Fields: ${request.fields}');
       print('Files attached: ${request.files.length}');
       for (var file in request.files) {
-          print('  - File field: ${file.field}, Filename: ${file.filename}, Length: ${file.length}, ContentType: ${file.contentType}');
+        print(
+          '  - File field: ${file.field}, Filename: ${file.filename}, Length: ${file.length}, ContentType: ${file.contentType}',
+        );
       }
       print('-----------------------');
-
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
@@ -226,36 +240,49 @@ class _CreatePostPageState extends State<CreatePostPage> {
           try {
             final responseData = jsonDecode(response.body);
             // Assuming the API returns the created post object directly or within a key like 'post'
-            final postJson = responseData is Map<String, dynamic> && responseData.containsKey('post')
-                             ? responseData['post'] as Map<String, dynamic>
-                             : responseData as Map<String, dynamic>; // Adjust based on actual API response structure
+            final postJson =
+                responseData is Map<String, dynamic> &&
+                        responseData.containsKey('post')
+                    ? responseData['post'] as Map<String, dynamic>
+                    : responseData
+                        as Map<
+                          String,
+                          dynamic
+                        >; // Adjust based on actual API response structure
 
             final newPost = PostModel.fromJson(postJson);
 
             // Dispatch the AddNewPost event to the PostBloc
             context.read<PostBloc>().add(AddNewPost(newPost));
-            debugPrint('[CreatePostPage] Dispatched AddNewPost event for post ${newPost.id}');
-
+            debugPrint(
+              '[CreatePostPage] Dispatched AddNewPost event for post ${newPost.id}',
+            );
           } catch (e) {
-             debugPrint('[CreatePostPage] Error decoding response or creating PostModel: $e');
-             // Optionally show a specific error, but still proceed
+            debugPrint(
+              '[CreatePostPage] Error decoding response or creating PostModel: $e',
+            );
+            // Optionally show a specific error, but still proceed
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Post created successfully!')),
           );
-          Navigator.of(context).pop(); // Go back after successful post and dispatching event
+          Navigator.of(
+            context,
+          ).pop(); // Go back after successful post and dispatching event
         }
       } else {
         // Handle error
-        throw Exception('Failed to create post: ${response.statusCode} ${response.body}');
+        throw Exception(
+          'Failed to create post: ${response.statusCode} ${response.body}',
+        );
       }
     } catch (e) {
       print('Error creating post: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create post: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to create post: $e')));
       }
     } finally {
       if (mounted) {
@@ -340,16 +367,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   // Method to show the post type selection grid bottom sheet
   void _showPostTypeSelectionGrid(BuildContext context) async {
-    final List<XFile>? imagesFromGrid = await showModalBottomSheet<List<XFile>?>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-      ),
-      builder: (BuildContext bc) {
-        return const PostTypeSelectionGrid();
-      },
-    );
+    final List<XFile>? imagesFromGrid =
+        await showModalBottomSheet<List<XFile>?>(
+          context: context,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+          ),
+          builder: (BuildContext bc) {
+            return const PostTypeSelectionGrid();
+          },
+        );
 
     if (imagesFromGrid != null && imagesFromGrid.isNotEmpty) {
       setState(() {
@@ -381,9 +409,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
     } catch (e) {
       print('Error picking images: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking images: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking images: $e')));
       }
     }
   }
@@ -405,7 +433,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
     try {
       final users = await MockUserData.searchUsers(query);
 
-      if (mounted) { // Check if the widget is still mounted
+      if (mounted) {
+        // Check if the widget is still mounted
         // Check if the tag context is still valid (cursor hasn't moved away)
         if (_tagStartIndex == fetchTagStartIndex) {
           setState(() {
@@ -434,7 +463,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   void _showUserSuggestions() {
-    print('[Tagging] Attempting to show suggestions. Overlay exists: ${_overlayEntry != null}, Users: ${_suggestedUsers.length}'); // Debugging
+    print(
+      '[Tagging] Attempting to show suggestions. Overlay exists: ${_overlayEntry != null}, Users: ${_suggestedUsers.length}',
+    ); // Debugging
     if (!mounted) {
       print('[Tagging] Widget not mounted, aborting show suggestions.');
       return;
@@ -445,15 +476,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
       _overlayEntry = _createOverlayEntry();
       // Ensure Overlay.of(context) is not null before inserting
       final overlay = Overlay.of(context);
-      if (overlay != null) {
-        overlay.insert(_overlayEntry!);
-        print('[Tagging] Overlay inserted.'); // Debugging
-        setState(() {
-          _showTaggingOverlay = true;
-        });
-      } else {
-        print('[Tagging] Error: Overlay.of(context) is null.'); // Debugging
-      }
+      overlay.insert(_overlayEntry!);
+      print('[Tagging] Overlay inserted.'); // Debugging
+      setState(() {
+        _showTaggingOverlay = true;
+      });
     } else if (_overlayEntry != null && _suggestedUsers.isEmpty) {
       print('[Tagging] Hiding overlay because no users.'); // Debugging
       _hideUserSuggestions(); // Hide if no users match
@@ -470,7 +497,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   void _hideUserSuggestions() {
-    print('[Tagging] Attempting to hide suggestions. Overlay exists: ${_overlayEntry != null}, Show flag: $_showTaggingOverlay'); // Debugging
+    print(
+      '[Tagging] Attempting to hide suggestions. Overlay exists: ${_overlayEntry != null}, Show flag: $_showTaggingOverlay',
+    ); // Debugging
     if (_overlayEntry != null) {
       print('[Tagging] Removing overlay.'); // Debugging
       _removeOverlay();
@@ -485,18 +514,20 @@ class _CreatePostPageState extends State<CreatePostPage> {
         _tagStartIndex = -1;
       });
     } else if (_tagStartIndex != -1) {
-       // Ensure tagStartIndex is reset even if overlay wasn't shown yet
-       print('[Tagging] Resetting tagStartIndex as overlay was not shown.'); // Debugging
-       _tagStartIndex = -1;
+      // Ensure tagStartIndex is reset even if overlay wasn't shown yet
+      print(
+        '[Tagging] Resetting tagStartIndex as overlay was not shown.',
+      ); // Debugging
+      _tagStartIndex = -1;
     }
   }
 
   void _removeOverlay() {
     // Add safety check
     try {
-       _overlayEntry?.remove();
+      _overlayEntry?.remove();
     } catch (e) {
-       print("[Tagging] Error removing overlay: $e");
+      print("[Tagging] Error removing overlay: $e");
     }
     _overlayEntry = null;
   }
@@ -506,11 +537,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
     // The CompositedTransformFollower handles the positioning relative to the Target.
     print('[Tagging] Creating OverlayEntry definition.'); // Debugging
     return OverlayEntry(
-      builder: (overlayContext) { // Use a different name to avoid confusion with state's context
+      builder: (overlayContext) {
+        // Use a different name to avoid confusion with state's context
         print('[Tagging] Building OverlayEntry content.'); // Debugging
         // Get RenderBox using the State's context, which is associated with the CompositedTransformTarget
         final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
-        final size = renderBox?.size ?? Size(MediaQuery.of(overlayContext).size.width * 0.9, 150); // Fallback size
+        final size =
+            renderBox?.size ??
+            Size(
+              MediaQuery.of(overlayContext).size.width * 0.9,
+              150,
+            ); // Fallback size
 
         return Positioned(
           // Positioned relative to the screen, but CompositedTransformFollower adjusts it
@@ -543,7 +580,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
 
     final textBeforeTag = currentText.substring(0, _tagStartIndex);
-    final textAfterTag = cursorPosition <= currentText.length ? currentText.substring(cursorPosition) : '';
+    final textAfterTag =
+        cursorPosition <= currentText.length
+            ? currentText.substring(cursorPosition)
+            : '';
 
     final tag = '@${user.name} '; // Add space after tag
     final newText = textBeforeTag + tag + textAfterTag;
@@ -561,7 +601,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String postButtonText = _scheduledDateTime != null ? 'Schedule' : 'Post';
+    final String postButtonText =
+        _scheduledDateTime != null ? 'Schedule' : 'Post';
 
     return Scaffold(
       appBar: AppBar(
@@ -575,10 +616,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                UserAvatar(
-                  imageUrl: profile?.avatarUrl,
-                  radius: 18,
-                ),
+                UserAvatar(imageUrl: profile?.avatarUrl, radius: 18),
                 const SizedBox(width: 8),
                 Flexible(
                   child: TextButton(
@@ -596,7 +634,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
                             _selectedVisibility,
                             style: TextStyle(
                               fontSize: 16,
-                              color: Theme.of(context).textTheme.titleLarge?.color,
+                              color:
+                                  Theme.of(context).textTheme.titleLarge?.color,
                               fontWeight: FontWeight.normal,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -622,23 +661,29 @@ class _CreatePostPageState extends State<CreatePostPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: ElevatedButton(
-              onPressed: (_canPost && !_isLoading) ? _submitPost : null, // Call _submitPost
+              onPressed:
+                  (_canPost && !_isLoading)
+                      ? _submitPost
+                      : null, // Call _submitPost
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(postButtonText),
+              child:
+                  _isLoading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                      : Text(postButtonText),
             ),
           ),
         ],
@@ -648,10 +693,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
         children: [
           if (_scheduledDateTime != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Row(
                 children: [
-                  Icon(Icons.public, size: 16, color: Theme.of(context).hintColor),
+                  Icon(
+                    Icons.public,
+                    size: 16,
+                    color: Theme.of(context).hintColor,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Posting ${DateFormat("E, MMM d 'at' h:mm a").format(_scheduledDateTime!)}.',
@@ -703,7 +755,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
           ),
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 IconButton(

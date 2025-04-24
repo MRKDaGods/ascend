@@ -51,7 +51,9 @@ class NotificationList extends StatelessWidget {
             notifications =
                 state.notifications
                     .where(
-                      (notification) => notification.type.value == filterType,
+                      (notification) =>
+                          filterType == null ||
+                          notification.type.value == filterType!.value,
                     )
                     .toList();
           } else {
@@ -154,10 +156,7 @@ class NotificationList extends StatelessWidget {
                             ? () => _markAsRead(context, notification.id)
                             : null,
                     onDelete:
-                        isMainPage
-                            ? () =>
-                                _deleteNotification(context, notification.id)
-                            : null,
+                        () => _deleteNotification(context, notification.id),
                   );
                 },
               ),
@@ -233,6 +232,7 @@ class NotificationList extends StatelessWidget {
   }
 
   void _deleteNotification(BuildContext context, int id) {
+    debugPrint("[VIEW] Deleting notification with ID: $id");
     context.read<NotificationBloc>().add(DeleteNotification(id));
   }
 
