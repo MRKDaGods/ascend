@@ -56,3 +56,11 @@ export const unbanUser = async (userId: number) => {
   // Delete the ban
   await db.query("DELETE FROM auth_service.bans WHERE user_id = $1", [userId]);
 };
+
+export const isUserBanned = async (userId: number) => {
+  const result = await db.query(
+    "SELECT * FROM auth_service.bans WHERE user_id = $1",
+    [userId]
+  );
+  return result.rows.length > 0;
+};

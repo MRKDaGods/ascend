@@ -19,7 +19,7 @@ import {
   updateUserResetToken,
 } from "../services/userService";
 import { UserRole } from "@shared/models";
-import { banUser, unbanUser } from "../services/banService";
+import { banUser, isUserBanned, unbanUser } from "../services/banService";
 
 /**
  * Handles user registration process
@@ -95,6 +95,11 @@ export const login = async (req: Request, res: Response) => {
       !(await bcrypt.compare(password, user.password_hash))
     ) {
       return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Check if the user is banned
+    if (await isUserBanned(user.id)) {
+      return res.status(403).json({ error: "User is banned" });
     }
 
     const token = generateToken({ id: user.id }, "12h"); // 12h expiration
