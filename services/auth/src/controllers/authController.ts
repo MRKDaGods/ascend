@@ -18,6 +18,8 @@ import {
   updateUserPassword,
   updateUserResetToken,
 } from "../services/userService";
+import { UserRole } from "@shared/models";
+import { banUser, isUserBanned, unbanUser } from "../services/banService";
 
 /**
  * Handles user registration process
@@ -93,6 +95,11 @@ export const login = async (req: Request, res: Response) => {
       !(await bcrypt.compare(password, user.password_hash))
     ) {
       return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Check if the user is banned
+    if (await isUserBanned(user.id)) {
+      return res.status(403).json({ error: "User is banned" });
     }
 
     const token = generateToken({ id: user.id }, "12h"); // 12h expiration
@@ -438,3 +445,59 @@ export const updateFCMToken = async (
     res.status(500).json({ error: "Server error" });
   }
 };
+
+export const adminBanUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const bannedById = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(bannedById);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { user_id, expires_at, reason } = req.body;
+
+    if (!(await findUserById(user_id))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await banUser(user_id, bannedById, expires_at, reason);
+
+    res.json({ message: "User banned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error: " + error });
+  }
+};
+
+export const adminUnbanUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const bannedById = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(bannedById);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { user_id } = req.body;
+
+    if (!(await findUserById(user_id))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await unbanUser(user_id);
+
+    res.json({ message: "User unbanned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error: " + error });
+  }
+}
