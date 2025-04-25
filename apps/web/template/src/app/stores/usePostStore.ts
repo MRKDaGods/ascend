@@ -104,7 +104,7 @@ interface PostStoreState {
   editPostFromAPI: (id: number, newText: string) => void;
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
   fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
-  toggleSavePostFromAPI: (postId: number) => Promise<void>;
+  toggleSavePostAPI: (postId: number) => Promise<void>;
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
@@ -358,28 +358,21 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
       
-      toggleSavePostFromAPI: async (postId: number) => {
+      toggleSavePostAPI: async (postId) => {
         try {
-          // Send the request anyway (we assume the backend did the toggle)
-          await toggleSavePostAPI(postId);
+          const saved = await toggleSavePostAPI(postId); // ⬅️ This now gives us true = saved, false = unsaved
       
-          // Use local state to determine toggle behavior
-          set((state) => {
-            const isAlreadySaved = state.savedPosts.includes(postId);
-            const updatedSavedPosts = isAlreadySaved
-              ? state.savedPosts.filter((id) => id !== postId)
-              : [...state.savedPosts, postId];
+          set((s) => ({
+            savedPosts: saved
+              ? [...new Set([...s.savedPosts, postId])]
+              : s.savedPosts.filter((id) => id !== postId),
+            savedPopupOpen: saved,
+            unsavedPopupOpen: !saved,
+          }));
       
-            return {
-              savedPosts: updatedSavedPosts,
-              savedPopupOpen: !isAlreadySaved,
-              unsavedPopupOpen: isAlreadySaved,
-            };
-          });
-      
-          console.log(`✅ Post ${postId} toggled (using frontend state)`);
+          console.log(`✅ Post ${postId} is now ${saved ? "saved" : "unsaved"}`);
         } catch (err: any) {
-          console.error("❌ Failed to toggle save:", err?.response?.data || err.message);
+          console.error("❌ Failed to save/unsave post:", err?.response?.data || err.message);
         }
       },      
       

@@ -10,7 +10,7 @@ import ConnectionPost from "../components/ConnectionPost";
 import ProfileCard from "../components/ProfileCard";
 import JobsCard from "../components/JobsCard";
 import Footer from "../components/Footer";
-import ConnectionsCard from "../components/ConnectionsCard";
+import ConnectionsCard from "../components/ConnectionsRoute";
 import SalesNavCard from "../components/SalesNavCard";
 import QuickLinksCard from "../components/QuickLinksCard";
 

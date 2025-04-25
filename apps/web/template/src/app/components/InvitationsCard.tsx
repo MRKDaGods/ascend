@@ -10,7 +10,7 @@ import {
   Divider,
 } from "@mui/material";
 import Diversity3Icon from "@mui/icons-material/Diversity3";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 // Dummy data (replace with backend fetch later)
 const dummyInvitations = [
@@ -35,27 +35,11 @@ const dummyInvitations = [
     mutual: "Rowyna El-Meghalawy and 19 other mutual connections",
     avatar: "https://randomuser.me/api/portraits/women/44.jpg",
   },
-  {
-    id: 4,
-    name: "Tarek Mohamed",
-    location: "Software Engineer at Valeo",
-    mutual: "Mohamed Salah and 11 other mutual connections",
-    avatar: "https://randomuser.me/api/portraits/men/23.jpg",
-  },
-  {
-    id: 5,
-    name: "Sara Youssef",
-    location: "Digital Marketing | Freelancer",
-    mutual: "Rana Khaled and 6 other mutual connections",
-    avatar: "https://randomuser.me/api/portraits/women/35.jpg",
-  },
 ];
 
 const InvitationsCard = () => {
   const theme = useTheme();
-  const [showAll, setShowAll] = useState(false);
-
-  const visibleInvites = showAll ? dummyInvitations : dummyInvitations.slice(0, 3);
+  const router = useRouter();
 
   return (
     <Box
@@ -81,7 +65,7 @@ const InvitationsCard = () => {
 
         <Typography
           variant="body2"
-          onClick={() => setShowAll(!showAll)}
+          onClick={() => router.push("/network/invite")}
           sx={{
             px: 1.5,
             py: 0.5,
@@ -94,11 +78,11 @@ const InvitationsCard = () => {
             },
           }}
         >
-          {showAll ? "Show less" : "Show all"}
+          Show all
         </Typography>
       </Box>
 
-      {visibleInvites.map((invite, index) => (
+      {dummyInvitations.map((invite, index) => (
         <Box key={invite.id}>
           <Box
             sx={{
@@ -138,7 +122,7 @@ const InvitationsCard = () => {
               </Button>
             </Stack>
           </Box>
-          {index < visibleInvites.length - 1 && <Divider sx={{ mb: 2 }} />}
+          {index < dummyInvitations.length - 1 && <Divider sx={{ mb: 2 }} />}
         </Box>
       ))}
     </Box>
