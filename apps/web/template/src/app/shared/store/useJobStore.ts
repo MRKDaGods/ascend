@@ -94,7 +94,7 @@ export const useJobStore = create<JobStore>((set) => ({
         method: 'DELETE',
         headers: {
           Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NDkwMjA3LCJleHAiOjE3NDU1MzM0MDd9.b3TOGriu8t9-KGaWRVBfXTLmTGL76YsSFff8_CirRx8',
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
         },
       });
 
@@ -124,7 +124,7 @@ export const useJobStore = create<JobStore>((set) => ({
         method: 'GET',
         headers: {
           Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NDkwMjA3LCJleHAiOjE3NDU1MzM0MDd9.b3TOGriu8t9-KGaWRVBfXTLmTGL76YsSFff8_CirRx8',
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
         },
       });
       const result = await response.json();
@@ -141,3 +141,4 @@ export const useJobStore = create<JobStore>((set) => ({
     }
   },
 }));
+

@@ -8,18 +8,26 @@ interface JobState {
   description: string;
   workplaceType: string;
   jobType: string;
+  industry: string;
+  experienceLevel: string;
+  salaryMin: string;
+  salaryMax: string;
   savedJobPopupOpen: boolean;
   postedJobId: string | null;
-  postedJob: Record<string, any> | null; // Added postedJob
+  postedJob: Record<string, any> | null;
   setTitle: (title: string) => void;
   setCompanyName: (companyName: string) => void;
   setLocation: (location: string) => void;
   setDescription: (description: string) => void;
   setWorkplaceType: (type: string) => void;
   setJobType: (type: string) => void;
+  setIndustry: (industry: string) => void;
+  setExperienceLevel: (level: string) => void;
+  setSalaryMin: (min: string) => void;
+  setSalaryMax: (max: string) => void;
   setSavedJobPopupOpen: (open: boolean) => void;
   setPostedJobId: (id: string) => void;
-  setPostedJob: (job: Record<string, any>) => void; // Added setPostedJob
+  setPostedJob: (job: Record<string, any>) => void;
 }
 
 export const usepJobStore = create<JobState>()(
@@ -31,18 +39,26 @@ export const usepJobStore = create<JobState>()(
       description: "",
       workplaceType: "On-site",
       jobType: "Full-time",
+      industry: "",
+      experienceLevel: "",
+      salaryMin: "",
+      salaryMax: "",
       savedJobPopupOpen: false,
       postedJobId: null,
-      postedJob: null, // Added postedJob initialization
+      postedJob: null,
       setTitle: (title) => set({ title }),
       setCompanyName: (companyName) => set({ companyName }),
       setLocation: (location) => set({ location }),
       setDescription: (description) => set({ description }),
       setWorkplaceType: (type) => set({ workplaceType: type }),
       setJobType: (type) => set({ jobType: type }),
+      setIndustry: (industry) => set({ industry }),
+      setExperienceLevel: (level) => set({ experienceLevel: level }),
+      setSalaryMin: (min) => set({ salaryMin: min }),
+      setSalaryMax: (max) => set({ salaryMax: max }),
       setSavedJobPopupOpen: (open) => set({ savedJobPopupOpen: open }),
       setPostedJobId: (id) => set({ postedJobId: id }),
-      setPostedJob: (job) => set({ postedJob: job }), // Fixed type for job
+      setPostedJob: (job) => set({ postedJob: job }),
     }),
     {
       name: "job-store",

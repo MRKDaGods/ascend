@@ -13,16 +13,24 @@ import { usepJobStore } from "../store/usepJobStore";
 import { useIsClient } from "../hooks/useIsClient";
 import CompanyEmailModal from "./CompanyEmailModal";
 import PostJobPopUp from "../components/PostPopUp";
-import { useJobStore as useSharedJobStore } from "@/app/shared/store/useJobStore"; // ✅ shared store
+import { useJobStore as useSharedJobStore } from "@/app/shared/store/useJobStore";
 
 const workplaceOptions = ["On-site", "Remote", "Hybrid"];
-const jobTypeOptions = ["Full-time", "Part-time", "Contract", "Internship"];
+const jobTypeOptions = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Temporary",
+  "Volunteer",
+  "Internship",
+  "Other",
+];
+const experienceOptions = ["Internship", "Entry", "Associate", "MID", "Director"];
 
 const JobForm = () => {
   const [openModal, setOpenModal] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
 
-  // 🧠 Local Zustand store
   const {
     title,
     companyName,
@@ -30,61 +38,69 @@ const JobForm = () => {
     description,
     workplaceType,
     jobType,
+    industry,
+    experienceLevel,
+    salaryMin,
+    salaryMax,
     setTitle,
     setCompanyName,
     setLocation,
     setDescription,
     setWorkplaceType,
     setJobType,
+    setIndustry,
+    setExperienceLevel,
+    setSalaryMin,
+    setSalaryMax,
     setSavedJobPopupOpen,
     setPostedJobId,
     setPostedJob,
   } = usepJobStore();
 
-  // 🌐 Shared Zustand store (MyJobs tab)
   const { postJob: addPostedJobToSharedStore } = useSharedJobStore();
 
   const postJob = async () => {
     const jobData = {
       title,
-      company: companyName,
-      location,
-      type: jobType,
       description,
+      industry,
+      type: jobType,
+      experience_level: experienceLevel,
+      location,
+      workplace_type: workplaceType,
+      salary_min_range: salaryMin ? Number(salaryMin) : null,
+      salary_max_range: salaryMax ? Number(salaryMax) : null,
+      company_id: 1,
+      email: verifiedEmail,
+      company: companyName,
+      logo: "",
       about: "",
       requirements: [],
-      email: verifiedEmail,
-      logo: "",
     };
 
     try {
-      const res = await fetch("http://localhost:5000/PostJob", {
+      const res = await fetch("https://api.ascendx.tech/job", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" , 
+        Authorization:
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
+
+    },
         body: JSON.stringify(jobData),
       });
 
       if (!res.ok) throw new Error("Failed to post job");
 
       const data = await res.json();
-      console.log("✅ Job posted:", data);
-
       const fullJob = {
         ...jobData,
         id: data.id,
         status: "Posted" as const,
       };
 
-      // ✅ Save to local posting store
       setPostedJob(fullJob);
       setPostedJobId(data.id);
       setSavedJobPopupOpen(true);
-
-      // ✅ Add to shared store for MyJobs tab
-      addPostedJobToSharedStore(fullJob);
-
       setOpenModal(false);
     } catch (err) {
       console.error("❌ Error posting job:", err);
@@ -104,66 +120,48 @@ const JobForm = () => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Job title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+            <TextField fullWidth label="Job title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Company"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-            />
+            <TextField fullWidth label="Company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
           </Grid>
-
           <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              fullWidth
-              label="Workplace type"
-              value={workplaceType}
-              onChange={(e) => setWorkplaceType(e.target.value)}
-            >
+            <TextField fullWidth label="Industry" value={industry} onChange={(e) => setIndustry(e.target.value)} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField select fullWidth label="Experience Level" value={experienceLevel} onChange={(e) => setExperienceLevel(e.target.value)}>
+              {experienceOptions.map((level) => (
+                <MenuItem key={level} value={level}>{level}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField select fullWidth label="Workplace type" value={workplaceType} onChange={(e) => setWorkplaceType(e.target.value)}>
               {workplaceOptions.map((option) => (
                 <MenuItem key={option} value={option}>{option}</MenuItem>
               ))}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Job location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
+            <TextField fullWidth label="Job location" value={location} onChange={(e) => setLocation(e.target.value)} />
           </Grid>
-
           <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              fullWidth
-              label="Job type"
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value)}
-            >
+            <TextField select fullWidth label="Job type" value={jobType} onChange={(e) => setJobType(e.target.value)}>
               {jobTypeOptions.map((option) => (
                 <MenuItem key={option} value={option}>{option}</MenuItem>
               ))}
             </TextField>
           </Grid>
+          <Grid item xs={6} sm={3}>
+            <TextField fullWidth type="number" label="Min Salary" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} />
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <TextField fullWidth type="number" label="Max Salary" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} />
+          </Grid>
         </Grid>
 
         <Box mt={5}>
-          <Typography variant="h6" gutterBottom>
-            Job description
-          </Typography>
-          <Typography variant="body2" gutterBottom color="text.secondary">
-            This will be visible to anyone who views your job post.
-          </Typography>
+          <Typography variant="h6" gutterBottom>Job description</Typography>
           <TextField
             fullWidth
             multiline
@@ -173,9 +171,7 @@ const JobForm = () => {
             placeholder="Add your responsibilities, requirements, and details..."
             sx={{ mt: 2 }}
           />
-          <Typography variant="caption" color="text.secondary">
-            {description.length}/10,000
-          </Typography>
+          <Typography variant="caption" color="text.secondary">{description.length}/10,000</Typography>
         </Box>
 
         <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
@@ -183,19 +179,9 @@ const JobForm = () => {
             variant="contained"
             color="primary"
             onClick={() => {
-              if (!title.trim()) {
-                alert("Job title is required.");
-                return;
-              }
-              if (!companyName.trim()) {
-                alert("Company name is required.");
-                return;
-              }
-              if (!description.trim()) {
-                alert("Job description is required.");
-                return;
-              }
-              if (!verifiedEmail) {
+              if (!title || !companyName || !description) {
+                alert("Title, company name, and description are required.");
+              } else if (!verifiedEmail) {
                 setOpenModal(true);
               } else {
                 postJob();
@@ -207,19 +193,17 @@ const JobForm = () => {
         </Box>
       </Paper>
 
-      {/* Email Verification Modal */}
       {openModal && (
         <CompanyEmailModal
           companyName={companyName}
           onClose={() => setOpenModal(false)}
-          onVerify={(email: string) => {
+          onVerify={(email) => {
             setVerifiedEmail(email);
             postJob();
           }}
         />
       )}
 
-      {/* ✅ Job Posted Pop-up */}
       <PostJobPopUp />
     </>
   );
