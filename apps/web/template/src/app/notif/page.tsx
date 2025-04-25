@@ -19,7 +19,7 @@ import { useProfileStore } from "../stores/useProfileStore";
 import { api } from "@/api";
 
 export default function Home() {
-  const theme = useTheme(); // ✅ Hook to use theme palette
+  const theme = useTheme();
   const { userData, setUserData } = useProfileStore();
   const { setNotifications } = useNotificationStore();
 
