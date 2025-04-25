@@ -271,7 +271,7 @@ class UserService {
   async uploadProfilePicture(file: File): Promise<Profile> {
     const name = file.name;
     const mime = file.type;
-    const buffer = await file.bytes();
+    const buffer = new Uint8Array(await file.arrayBuffer());
     return this.client.upload_profile_picture(name, mime, buffer);
   }
 
@@ -293,7 +293,7 @@ class UserService {
   async uploadCoverPhoto(file: File): Promise<Profile> {
     const name = file.name;
     const mime = file.type;
-    const buffer = await file.bytes();
+    const buffer = new Uint8Array(await file.arrayBuffer());
     return this.client.upload_cover_photo(name, mime, buffer);
   }
 
@@ -315,7 +315,7 @@ class UserService {
   async uploadResume(file: File): Promise<Profile> {
     const name = file.name;
     const mime = file.type;
-    const buffer = await file.bytes();
+    const buffer = new Uint8Array(await file.arrayBuffer());
     return this.client.upload_resume(name, mime, buffer);
   }
 
