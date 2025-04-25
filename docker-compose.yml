@@ -167,7 +167,7 @@ services:
     hostname: payment
     build:
       context: .
-      dockerfile: services/company/Dockerfile
+      dockerfile: services/payment/Dockerfile
     environment:
       # Postgres
       - DB_USER=${DB_USER}
