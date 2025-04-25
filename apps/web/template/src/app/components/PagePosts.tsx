@@ -1,0 +1,279 @@
+import {
+  Avatar, Box, Button, Divider, Grid, Paper, Tab, Tabs, TextField, Typography,
+  Modal, IconButton, Menu, MenuItem
+} from '@mui/material';
+import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
+import ImageIcon from '@mui/icons-material/Image';
+import ArticleIcon from '@mui/icons-material/Article';
+import CloseIcon from '@mui/icons-material/Close';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useState } from 'react';
+import { usePostStore, MediaFile, Post } from '@/app/stores/usePostStore';
+import { useCompanyStore } from '@/app/stores/useCompanyStore';
+
+export default function PagePosts() {
+  const [tabIndex, setTabIndex] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+
+  const {
+    addPost, addDraftMedia, removeDraftMedia, draftPost,
+    posts, deletePost, setDraftPostContent, clearDraftPost
+  } = usePostStore();
+
+  const companyName = useCompanyStore((state) => state.name);
+  const companyProfileImage = useCompanyStore((state) => state.profileImage);
+  const [selectedReactions, setSelectedReactions] = useState<{ [postId: string]: string | null }>({});
+
+  const handleFileUpload = (type: 'image' | 'video' | 'document') => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const media = Array.from(files).map((file) => ({
+        type, file, preview: URL.createObjectURL(file),
+      }));
+      addDraftMedia(media);
+      setOpen(true);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (isEditing && editingPostId) {
+      const updatedPosts = posts.map((post) =>
+        post.id === editingPostId ? {
+          ...post,
+          content: draftPost.content.trim(),
+          media: draftPost.media,
+        } : post
+      );
+      usePostStore.setState({ posts: updatedPosts });
+      setIsEditing(false);
+      setEditingPostId(null);
+    } else {
+      if (!addPost()) return;
+    }
+
+    setText('');
+    clearDraftPost();
+    setOpen(false);
+  };
+
+  const handleEditPost = (post: Post) => {
+    setDraftPostContent(post.content);
+    clearDraftPost(); // in case there's leftover media
+    usePostStore.setState({ draftPost: { content: post.content, media: [...post.media] } });
+    setIsEditing(true);
+    setEditingPostId(post.id);
+    setOpen(true);
+    setAnchorEl(null);
+    setSelectedPostId(null);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    deletePost(postId);
+    setAnchorEl(null);
+    setSelectedPostId(null);
+  };
+
+  return (
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={8}>
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Typography variant="h5" fontWeight={600} mb={0.5}>Page posts</Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>Manage your Page’s organic and paid content</Typography>
+
+          <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tab label="Published" />
+          </Tabs>
+        </Paper>
+
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar src={companyProfileImage || undefined} />
+            <TextField
+              placeholder="Start a post"
+              fullWidth
+              size="small"
+              onClick={() => {
+                setOpen(true);
+                setIsEditing(false);
+                clearDraftPost();
+              }}
+              sx={{
+                backgroundColor: '#f3f2ef',
+                borderRadius: 5,
+                '& .MuiInputBase-root': { borderRadius: 5 }
+              }}
+            />
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Box display="flex" justifyContent="space-around">
+            <Button component="label" startIcon={<ImageIcon color="success" />} sx={{ textTransform: 'none' }}>
+              Photo
+              <input type="file" accept="image/*" hidden multiple onChange={handleFileUpload('image')} />
+            </Button>
+            <Button component="label" startIcon={<OndemandVideoIcon color="primary" />} sx={{ textTransform: 'none' }}>
+              Video
+              <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
+            </Button>
+            <Button component="label" startIcon={<ArticleIcon color="error" />} sx={{ textTransform: 'none' }}>
+              Document
+              <input type="file" accept="application/pdf,.doc,.docx" hidden multiple onChange={handleFileUpload('document')} />
+            </Button>
+          </Box>
+        </Paper>
+
+        {posts.map((post) => (
+          <Paper key={post.id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box display="flex" alignItems="center" gap={1}>
+                {companyProfileImage && <Avatar src={companyProfileImage} sx={{ width: 28, height: 28 }} />}
+                <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 'bold' }}>{companyName}</Typography>
+              </Box>
+              <IconButton
+                onClick={(e) => {
+                  setSelectedPostId((prev) => (prev === post.id ? null : post.id));
+                  setAnchorEl(e.currentTarget);
+                }}
+              >
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={selectedPostId === post.id}
+                onClose={() => setSelectedPostId(null)}
+              >
+                <MenuItem onClick={() => handleEditPost(post)}>Edit</MenuItem>
+                <MenuItem onClick={() => handleDeletePost(post.id)} sx={{ color: 'error.main' }}>Delete</MenuItem>
+              </Menu>
+            </Box>
+
+            <Typography variant="body1" mt={2} mb={2}>{post.content}</Typography>
+
+            <Grid container spacing={1}>
+              {post.media.map((media, index) => (
+                <Grid item xs={12} sm={6} key={index}>
+                  {media.type === 'image' && (
+                    <img src={media.preview} alt={media.file.name} style={{ width: '100%', borderRadius: 8 }} />
+                  )}
+                  {media.type === 'video' && (
+                    <video src={media.preview} controls style={{ width: '100%', borderRadius: 8 }} />
+                  )}
+                  {media.type === 'document' && (
+                    <Typography variant="body2">{media.file.name}</Typography>
+                  )}
+                </Grid>
+              ))}
+            </Grid>
+
+            <Box display="flex" alignItems="center" gap={1} mt={1}>
+              {['🧠', '🌿', '❤️'].map((emoji) => {
+                const selected = selectedReactions[post.id] === emoji;
+                return (
+                  <Button
+                    key={emoji}
+                    size="small"
+                    variant={selected ? 'contained' : 'text'}
+                    onClick={() => setSelectedReactions((prev) => ({
+                      ...prev,
+                      [post.id]: prev[post.id] === emoji ? null : emoji
+                    }))}
+                    sx={{
+                      minWidth: '32px',
+                      px: 1,
+                      backgroundColor: selected ? '#e0f7fa' : 'transparent',
+                      color: selected ? 'primary.main' : 'text.primary',
+                    }}
+                  >
+                    {emoji}
+                  </Button>
+                );
+              })}
+              <Typography variant="caption" color="text.secondary" ml={2}>comments · reposts</Typography>
+            </Box>
+          </Paper>
+        ))}
+
+        {posts.length === 0 && (
+          <Paper elevation={0} sx={{ textAlign: 'center', py: 5, px: 2, mt: 4 }}>
+            <img src="/NoPostsyet.png" alt="No posts" width={200} style={{ marginBottom: 16 }} />
+            <Typography variant="h6" fontWeight={600}>Your Page doesn’t have any posts yet</Typography>
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              Pages that post 2x a week grow 5x faster
+            </Typography>
+            <Button variant="outlined" sx={{ mt: 2 }} onClick={() => setOpen(true)}>Start a post</Button>
+          </Paper>
+        )}
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Typography variant="subtitle1" fontWeight={600}>Post highlights</Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>In the last 30 days</Typography>
+
+          <Box textAlign="center">
+            <img src="/highlights.png" alt="No highlights" width={200} style={{ marginBottom: 16 }} />
+            <Typography fontWeight={600}>No highlights</Typography>
+            <Typography variant="body2" color="text.secondary">No recent post to highlight.</Typography>
+          </Box>
+        </Paper>
+      </Grid>
+
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <Paper sx={{ width: 500, mx: 'auto', mt: 10, p: 3, borderRadius: 2, outline: 'none' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6" fontWeight={600}>{isEditing ? 'Edit post' : 'Create a post'}</Typography>
+            <IconButton onClick={() => setOpen(false)}><CloseIcon /></IconButton>
+          </Box>
+
+          <TextField
+            multiline
+            rows={4}
+            fullWidth
+            placeholder="What do you want to talk about?"
+            value={draftPost.content}
+            onChange={(e) => {
+              const value = e.target.value;
+              setText(value);
+              setDraftPostContent(value);
+            }}
+            sx={{ mb: 2 }}
+          />
+
+          <Box display="flex" justifyContent="space-around" mb={2}>
+            <Button component="label" startIcon={<ImageIcon color="success" />} sx={{ textTransform: 'none' }}>
+              Photo
+              <input type="file" accept="image/*" hidden multiple onChange={handleFileUpload('image')} />
+            </Button>
+            <Button component="label" startIcon={<OndemandVideoIcon color="primary" />} sx={{ textTransform: 'none' }}>
+              Video
+              <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
+            </Button>
+            <Button component="label" startIcon={<ArticleIcon color="error" />} sx={{ textTransform: 'none' }}>
+              Document
+              <input type="file" accept="application/pdf,.doc,.docx" hidden multiple onChange={handleFileUpload('document')} />
+            </Button>
+          </Box>
+
+          <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
+            {draftPost.media.map((media: MediaFile, i: number) => (
+              <Box key={i} display="flex" alignItems="center" gap={1}>
+                <Typography variant="body2">{media.file.name}</Typography>
+                <Button onClick={() => removeDraftMedia(i)}>Remove</Button>
+              </Box>
+            ))}
+          </Box>
+
+          <Button fullWidth variant="contained" onClick={handleSubmit}>
+            {isEditing ? 'Save Changes' : 'Post'}
+          </Button>
+        </Paper>
+      </Modal>
+    </Grid>
+  );
+}

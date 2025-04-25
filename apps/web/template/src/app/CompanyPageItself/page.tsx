@@ -1,0 +1,69 @@
+// pages/page.tsx
+'use client';
+
+import { Box, Grid } from '@mui/material';
+import Sidebar from '@/app/components/Sidebar';
+import DashboardActions from '@/app/components/DashboardActions';
+import ManagePosts from '@/app/components/ManagePosts';
+import AnalyticsPage from '@/app/components/AnalyticsPage';
+import { useNavigationStore } from '@/app/stores/useNavigationStore';
+import PagePosts from '@/app/components/PagePosts';
+
+export default function Page() {
+  const { activePage } = useNavigationStore();
+
+  const renderContent = () => {
+    switch (activePage) {
+      case 'Dashboard':
+        return (
+          <>
+            <Grid item xs={12}>
+              <DashboardActions />
+            </Grid>
+            <Grid item xs={12}>
+              <ManagePosts />
+            </Grid>
+          </>
+        );
+      case 'Analytics':
+        return (
+          <Grid item xs={12}>
+            <AnalyticsPage />
+          </Grid>
+        );
+      case 'Edit page':
+        return (
+          <>
+            <Grid item xs={12}>
+              <DashboardActions />
+            </Grid>
+            <Grid item xs={12}>
+              <ManagePosts />
+            </Grid>
+          </>
+        );
+        case 'Page posts':
+          return (
+            <Grid item xs={12}>
+              <PagePosts />
+            </Grid>
+          );
+          
+      default:
+        return (
+          <Grid item xs={12}>
+            <Box sx={{ p: 2 }}>No content available for "{activePage}" yet.</Box>
+          </Grid>
+        );
+    }
+  };
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
+      <Sidebar />
+      <Grid container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
+        {renderContent()}
+      </Grid>
+    </Box>
+  );
+}
