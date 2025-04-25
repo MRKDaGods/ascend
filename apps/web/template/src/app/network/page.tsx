@@ -9,6 +9,7 @@ import JobsCard from "../components/JobsCard";
 import Footer from "../components/Footer";
 import ManageNetworkCard from "../components/ManageNetworkCard";
 import InvitationsCard from "../components/InvitationsCard";
+import PremiumAdCard from "../components/PremiumAdCard";
 
 const NetworkPage: React.FC = () => {
   const theme = useTheme();
@@ -65,6 +66,8 @@ const NetworkPage: React.FC = () => {
         >
           <Box sx={{ width: "100%", maxWidth: "600px" }}>
           <InvitationsCard />
+          <br></br>
+          <PremiumAdCard />
           </Box>
         </Box>
       </Container>

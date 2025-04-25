@@ -22,7 +22,7 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
 
   const {
     savedPosts,
-    toggleSavePostFromAPI,
+    toggleSavePostAPI,
     setCopyPostPopupOpen,
   } = usePostStore();
 
@@ -36,7 +36,7 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
   };
 
   const handleToggleSave = async () => {
-    await toggleSavePostFromAPI(post.id);
+    await toggleSavePostAPI(post.id);
     setMenuAnchorEl(null); // Close menu after action
   };
 
@@ -51,9 +51,14 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
         open={menuOpen}
         onClose={() => setMenuAnchorEl(null)}
       >
-        <MenuItem onClick={handleToggleSave}>
+        <MenuItem
+          onClick={async () => {
+            await toggleSavePostAPI(post.id);
+            setMenuAnchorEl(null);
+          }}
+        >
           <Bookmark sx={{ fontSize: 18, mr: 1 }} />
-          {isSaved ? (
+          {savedPosts.includes(post.id) ? (
             <Box>
               <Typography fontWeight="bold">Unsave</Typography>
               <Typography fontSize="0.75rem" color="gray">

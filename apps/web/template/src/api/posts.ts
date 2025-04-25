@@ -160,12 +160,11 @@ export const toggleSavePostAPI = async (postId: number): Promise<boolean> => {
   return response.data?.data?.saved ?? false;
 };
 
-
 // ==== FETCH ALL SAVED POSTS ====
 
 export const fetchSavedPostsAPI = async (): Promise<Post[]> => {
   const response = await API.get("/post/saved");
-  return response.data.data; // already returns an array of posts
+  return response.data.data;
 };
 
 // ==== CREATE COMMENT ON POST ====
