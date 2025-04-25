@@ -1,4 +1,49 @@
-import {body, query, param, ValidationChain } from "express-validator";
+import {body, query, param, ValidationChain, Meta } from "express-validator";
+
+const imageFileValidation = (value : any, {req , location , path} : Meta) => {
+    const { buffer, file_name, file_size, mime_type, context } = req.body.profilePhoto;
+    if(!buffer){
+        throw new Error(`'${path}.buffer' is required`);
+    }else if(!file_name){
+        throw new Error(`'${path}.file_name' is required`);
+    }else if(!file_size){
+        throw new Error(`'${path}.file_size' is required`);
+    }else if(!mime_type){
+        throw new Error(`'${path}.mime_type' is required`);
+    }
+
+    
+
+    const size = parseInt(file_size);
+    if(Number.isNaN(size) || size <= 0){
+        throw new Error(`'${path}.file_size' must be a positive integer`);
+    }
+
+    if(size > 5*1024*1024){
+        throw new Error(`'${path}.file_size' maximum allowed size is 5 MB`);
+    }
+
+    if(file_name === ""){
+        throw new Error(`'${path}.file_name' cannot be an empty string`);
+    }
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      throw new Error(`'${path}.mime_type' can only be JPG or PNG`);
+    }
+
+    try{
+        Buffer.from(buffer, 'base64').toString('base64') === buffer.replace(/\s/g, '');
+    }catch(e){
+        throw new Error(`'${path}.buffer' must be a base64 string`);
+    }
+
+    if (context && context !== "profile_photo") {
+      throw new Error("invalid context");
+    }
+
+    return true;
+}
 
 export const createCompanyValidation : ValidationChain[] = [
     body("name").exists().withMessage("'name' is required").isString()
@@ -12,9 +57,9 @@ export const createCompanyValidation : ValidationChain[] = [
     body("description").exists().withMessage("'description' is required").isString()
     .trim().notEmpty().withMessage("'description' cannot be empty"),
 
-    body("logoUrl").exists().withMessage("'logoUrl' is required").isString().trim()
-    .notEmpty().withMessage("'logoUrl' cannot be empty").isURL()
-    .withMessage("'logoUrl' must be a valid URL"),
+    body("profile_photo").exists().withMessage("'profile_photo' is required").custom(imageFileValidation),
+
+    body("cover_photo").exists().withMessage("'cover_photo' is required").custom(imageFileValidation),
 
     body("location").exists().withMessage("'location' is required").isString().trim()
     .notEmpty().withMessage("'location' cannot be empty")
@@ -26,6 +71,10 @@ export const companyIdValidation : ValidationChain[] = [
 ];
 
 export const updateCompanyValidation : ValidationChain[] = [
+    body("name").optional().isString()
+    .trim().notEmpty().withMessage("'name' cannot be empty")
+    .isLength({min : 3, max : 50}).withMessage("'name' length must be between 3 and 50"),
+
     body("industry").optional().isString()
     .trim().notEmpty().withMessage("'industry' cannot be empty")
     .isLength({max : 50}).withMessage("'industry' length cannot exceede 50"),
@@ -33,50 +82,27 @@ export const updateCompanyValidation : ValidationChain[] = [
     body("description").optional().isString()
     .trim().notEmpty().withMessage("'description' cannot be empty"),
 
-    body("logoUrl").optional().isString().trim()
-    .notEmpty().withMessage("'logoUrl' cannot be empty").isURL()
-    .withMessage("'logoUrl' must be a valid URL"),
+    body("profile_photo").optional().custom(imageFileValidation),
+
+    body("cover_photo").optional().custom(imageFileValidation),
 
     body("location").optional().isString().trim()
     .notEmpty().withMessage("'location' cannot be empty")
     .isLength({max : 50}).withMessage("'location' length cannot exceede 50")
 ];
 
-export const createJobValidation : ValidationChain[] = [
-    body("title").exists().withMessage("'title' is required").isString()
-    .trim().notEmpty().withMessage("'title' cannot be empty")
-    .isLength({max : 50}).withMessage("'title' length must be between 3 and 50"),
-
-    body("industry").exists().withMessage("'industry' is required").isString()
-    .trim().notEmpty().withMessage("'industry' cannot be empty")
-    .isLength({max : 50}).withMessage("'industry' length cannot exceede 50"),
-
-    body("description").exists().withMessage("'description' is required").isString()
-    .trim().notEmpty().withMessage("'description' cannot be empty"),
-
-    body("location").optional().isString().trim()
-    .notEmpty().withMessage("'location' cannot be empty")
-    .isLength({max : 50}).withMessage("'location' length cannot exceede 50"),
-
-    body("salary_range_max").optional().isInt({min : 1})
-    .withMessage("'salary_range_max' can only be a positive integer"),
-
-    body("salary_range_min").optional().isInt({min : 1})
-    .withMessage("'salary_range_min' can only be a positive integer"),
-
-    body("experience_level").exists().withMessage("'experience_level' is required").isString().trim()
-    .notEmpty().withMessage("'experience_level' cannot be empty")
-    .isIn(["student", "entry level", "associate", "mid-senior level", "director", "executive"])
-    .withMessage("'experience_level' can have on of the following values : 'student', 'entry level', 'associate', 'mid-senior level', 'director', 'executive'")
-];
-
-export const jobIdValidation : ValidationChain[] = [
-    param("jobId").isInt({ min : 1}).withMessage("'jobId' can only be a positive integer")
-];
-
 export const createAnnouncementValidation : ValidationChain[] = [
     body("content").exists().withMessage("'content' is required").isString().trim()
-    .notEmpty().withMessage("'content' cannot be empty")
+    .notEmpty().withMessage("'content' cannot be empty"),
+
+    body("announcement_photo").optional().custom(imageFileValidation)
+];
+
+export const updateAnnouncementValidation : ValidationChain[] = [
+    body("content").optional().isString().trim()
+    .notEmpty().withMessage("'content' cannot be empty"),
+
+    body("announcement_photo").optional().custom(imageFileValidation)
 ];
 
 export const announcementIdValidation : ValidationChain[] = [
@@ -88,16 +114,6 @@ export const limitAndPageValidation : ValidationChain[] = [
 
     query("page").if(query("limit").exists().withMessage("missing 'limit' query parameter"))
     .isInt({min : 1}).withMessage("'page' can only be a positive integer")
-];
-
-export const updateJobApplicationValidation : ValidationChain[] = [
-    query("status").exists().withMessage("'status' is required").isString().trim()
-    .notEmpty().withMessage("'status' cannot be empty").isIn(["pending", "viewed", "rejected", "accepted"])
-    .withMessage("'status' can only have one of the following values : 'pending', 'viewed', 'rejected', 'accepted'")
-];
-
-export const applicationIdValidation : ValidationChain[] = [
-    param("applicationId").isInt({ min : 1}).withMessage("'applicationId' can only be a positive integer")
 ];
 
 export const followValidation : ValidationChain[] = [

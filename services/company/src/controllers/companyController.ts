@@ -2,10 +2,10 @@ import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { Response } from "express";
 import { createCompany, deleteCompany, findCompaniesCreatedByUser, findCompanyById, updateCompanyProfile } from "../services/companyService";
 import { createFollowRelationShip, deleteFollowRelationShip, findFollowersOfCompany, findNumberOfFollowersOfCompany } from "../services/followsService";
-import { createAnnouncement, deleteAnnouncement, findAnnouncementById, findAnnouncementsByCompanyId, findNumberOfAnnouncements } from "../services/announcementService";
+import { createAnnouncement, deleteAnnouncement, findAnnouncementById, findAnnouncementsByCompanyId, findNumberOfAnnouncements, updateAnnouncement } from "../services/announcementService";
 import { Company } from "@shared/models/company";
 import { validationResult } from "express-validator";
-import { error } from "console";
+import { error, profile } from "console";
 
 /**
  * @route POST /api/companies
@@ -18,10 +18,12 @@ import { error } from "console";
  */
 export const createCompanyProfile = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
-    const {name, description, industry, location, logoUrl} = req.body;
+    const {name, description, industry, location, profile_photo, cover_photo, company_domain_name} = req.body;
+    // const user = get from user service
+    // check if domain of the email == company_domain_name
     try {
         const date = new Date();
-        const company = await createCompany(name, description, logoUrl, location, industry, date, user_id);
+        const company = await createCompany({company_name : name, description : description, profile_photo : profile_photo, cover_photo : cover_photo , location : location, industry : industry,  created_at : date , created_by : user_id});
         if(company){
             return res.status(200).json({
                 data : {
@@ -63,7 +65,15 @@ export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Res
         if(company?.created_by !== user_id){
             return res.status(401).json({error : "unauthorized"});
         }
-        const company_deleted = await deleteCompany(company_id);
+        let delete_options : any = {};
+        if(company?.profile_photo_id){
+            delete_options["profile_photo_id"] = company.profile_photo_id;
+        }
+
+        if(company?.cover_photo_id){
+            delete_options["cover_photo_id"] = company.cover_photo_id;
+        }
+        const company_deleted = await deleteCompany(company_id, delete_options);
         if(company_deleted){
             return res.status(200).json({
                 data : {
@@ -128,7 +138,7 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
         return res.status(401).json({error : "unauthorized"});
     }
     const company_id = parseInt(req.params.companyId, 10);
-    const {description, industry, location, logoUrl} = req.body;
+    const {company_name, description, industry, location, profile_photo, cover_photo, profile_photo_id, cover_photo_id} = req.body;
     try {
         const company = await findCompanyById(company_id);
         if(!company){
@@ -137,8 +147,10 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
         if(company?.created_by !== user_id){
             return res.status(401).json({error : "unauthorized"});
         }
-        const updated_company = await updateCompanyProfile(company_id, {location : location, description : description, industry : industry, logo_url : logoUrl});
-               
+        const updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : profile_photo_id, cover_photo : cover_photo, cover_photo_id : cover_photo_id});
+        if(!updated_company){
+            return res.status(500).json({error : "Internal error"});    
+        }
         return res.status(200).json({
             data : {
                 company : updated_company
@@ -216,7 +228,7 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
     }
 
     const company_id = parseInt(req.params.companyId, 10);
-    const { content } = req.body;
+    let { content, announcement_photos, announcement_video } = req.body;
     try {
         const company = await findCompanyById(company_id);
         if(!company){
@@ -225,7 +237,10 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
         if(company?.created_by !== user_id){
             return res.status(403).json({error : "forbidden"});
         }
-        const new_announcement_post = await createAnnouncement(company_id, user_id, new Date(), content);
+        if(!announcement_photos){
+            announcement_photos = [];
+        }
+        const new_announcement_post = await createAnnouncement(company_id, user_id, new Date(), content, announcement_photos, announcement_video);
         return res.status(200).json({
             data : {
                 announcement : new_announcement_post
@@ -238,6 +253,68 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
     }
 };
 
+
+/**
+ * @route PATCH /api/companies/:companyId/announcements/:announcementId
+ * @description update the content or the image of the announcement post for the company with the given ID
+ * @param {AuthenticatedRequest} req - AuthenticatedRequest object (comming from authorization middleware)
+ * @param comanyId - path parameter
+ * @param announcementId - path parameter
+ * @returns {Response} - HTTP Response
+ * - 401 if the user who sent the request is not authorized 
+ * - 403 if the user is not the creator of the company
+ * - 404 if no company with the given ID was found 
+ * - 400 if the request parameters and/or body are not in the required format
+ * - 200 with the new announecment post
+ * - 500 if internal errors occur
+ */
+export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Response) => {
+    const user_id = req.user?.id;
+    if(!user_id){
+        return res.status(401).json({error : "unauthorized"});
+    }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
+    const company_id = parseInt(req.params.companyId, 10);
+    const announcement_id = parseInt(req.params.announcementId, 10);
+    let { content, announcement_photos, announcement_video } = req.body;
+    try {
+        const company = await findCompanyById(company_id);
+        const old_announcemnt = await findAnnouncementById(announcement_id);
+        if(!company){
+            return res.status(404).json({error : "company not found"});
+        }
+        if(!old_announcemnt){
+            return res.status(404).json({error : "announcement not found"});
+        }
+        if(company?.created_by !== user_id){
+            return res.status(403).json({error : "forbidden"});
+        }
+        if(!announcement_photos){
+            announcement_photos = [];
+        }
+        
+        let updated_announcement_post = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
+        
+        if(updated_announcement_post){
+            return res.status(200).json({
+                data : {
+                    announcement : updated_announcement_post
+                },
+                error : null
+            });
+        }else{
+            return res.status(500).json({error : "Internal error"});
+        }
+    }catch(e){
+        console.log(`Internal error : ${e}`);
+        return res.status(500).json({error : "Internal error"});
+    }
+};
 
 
 /**
@@ -279,7 +356,13 @@ export const deleteAnnouncementPost = async (req : AuthenticatedRequest, res : R
         if(company?.created_by !== user_id || company?.company_id !== announcement?.company_id){
             return res.status(403).json({error : "forbidden"});
         }
-        const announcement_deleted = await deleteAnnouncement(announcement_id); 
+        let announcement_deleted;
+        if(announcement.video_id){
+            announcement_deleted = await deleteAnnouncement(announcement_id, announcement.image_ids, announcement.video_id);
+        }else{
+            announcement_deleted = await deleteAnnouncement(announcement_id, announcement.image_ids);
+        }
+         
         if(announcement_deleted){
             return res.status(200).json({
                 data : {
