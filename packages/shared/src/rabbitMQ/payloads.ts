@@ -1,27 +1,10 @@
 import { Company } from "@shared/models/company";
 import { Follows } from "@shared/models/follows";
-
-/**
- * Represents the payload for a user creation event.
- *
- * @interface UserCreatedPayload
- * @property {number} user_id - The unique identifier for the user.
- * @property {string} first_name - The user's first name.
- * @property {string} last_name - The user's last name.
- * @property {string} email - The user's email address.
- */
-export interface UserCreatedPayload {
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-};
+import { FileMetadata, Profile, Post } from "@shared/models";
+import { Usage } from "@shared/models/usage";
 
 
 // =======================AUTH-EVENTS=======================
-
-import { FileMetadata, Profile } from "@shared/models";
-import { Usage } from "@shared/models/usage";
 
 /**
  * [RPC] Represents the payload for an admin user request event
@@ -219,5 +202,23 @@ export namespace GetUserUsage {
 
   export interface Response{
     usage : Usage
+  }
+}
+/**
+ * [RPC] Represents the payload for a get post event
+ */
+export namespace GetPostByIdPayload {
+  /**
+   * @property {number} post_id - The unique identifier for the post
+   */
+  export interface Request {
+    post_id: number;
+  }
+
+  /**
+   * @property {Post} post - The post object
+   */
+  export interface Response {
+    post: Post;
   }
 }

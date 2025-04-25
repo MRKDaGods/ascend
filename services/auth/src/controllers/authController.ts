@@ -11,12 +11,15 @@ import {
   findUserByEmail,
   findUserById,
   resetUserPassword,
+  updateUserFCMToken,
   updateUserEmail,
   updateUserEmailConfirmation,
   updateUserNewEmailConfirmation,
   updateUserPassword,
   updateUserResetToken,
 } from "../services/userService";
+import { UserRole } from "@shared/models";
+import { banUser, getBannedUsers, isUserBanned, unbanUser } from "../services/banService";
 
 /**
  * Handles user registration process
@@ -41,17 +44,19 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Create user
-    const user = await createUser(first_name, last_name, email, password);
+    const user = await createUser(first_name, last_name, email, password, true); // is_verified = true for now
 
     // Send confirmation email
-    const confirmation_token = generateToken({ email }, "24h");
-    await sendEmail(
-      email,
-      "Confirm Your Email",
-      `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
-    );
+    // const confirmation_token = generateToken({ email }, "24h");
+    // await updateUserEmail(user.id, null, confirmation_token); // Set confirmation token
 
-    res.status(201).json({ id: user.id, email: user.email });
+    // await sendEmail(
+    //   email,
+    //   "Confirm Your Email",
+    //   `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
+    // );
+
+    res.status(201).json({ user_id: user.id, email: user.email });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -70,7 +75,7 @@ export const register = async (req: Request, res: Response) => {
  * @returns 500 status with error message on server error
  *
  * @remarks
- * Tokens are valid for 1 hour
+ * Tokens are valid for 12 hours
  */
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -92,8 +97,13 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = generateToken({ id: user.id }); // 1h expiration
-    res.json({ token, userId: user.id });
+    // Check if the user is banned
+    if (await isUserBanned(user.id)) {
+      return res.status(403).json({ error: "User is banned" });
+    }
+
+    const token = generateToken({ id: user.id }, "12h"); // 12h expiration
+    res.json({ token, user_id: user.id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -112,7 +122,6 @@ export const login = async (req: Request, res: Response) => {
  */
 export const confirmEmail = async (req: Request, res: Response) => {
   const { token } = req.query as { token: string };
-  console.log(token);
 
   try {
     const { email, isNewEmail } = verifyToken(token);
@@ -344,8 +353,11 @@ export const updateEmail = async (req: AuthenticatedRequest, res: Response) => {
 export const socialLogin = async (req: Request, res: Response) => {
   const { token } = req.body;
 
+  console.log(`[SOCIAL] Received token: ${token}`);
+
   try {
     const payload = await verifyGoogleToken(token);
+    console.log(`[SOCIAL] Decoded payload: ${JSON.stringify(payload)}`);
     if (!payload) {
       return res.status(401).json({ error: "Invalid Google token" });
     }
@@ -360,8 +372,11 @@ export const socialLogin = async (req: Request, res: Response) => {
     // Create an already verified user if they don't exist
     let user = await findUserByEmail(email);
     if (!user) {
+      console.log(`[SOCIAL] Creating new user: ${email}`);
       user = await createUser(firstName, lastName, email, undefined, true);
     }
+
+    console.log(`[SOCIAL] User found: ${JSON.stringify(user)}`);
 
     const jwtToken = generateToken({ id: user.id });
     res.json({ token: jwtToken, userId: user.id });
@@ -399,3 +414,111 @@ export const deleteAccount = async (
     res.status(500).json({ error: "Server error" });
   }
 };
+
+/**
+ * Sets the user FCM token
+ *
+ * Authentication required
+ *
+ * @returns HTTP response
+ * - 200 with success message if account deleted
+ * - 404 if user not found
+ * - 500 if server error occurs
+ */
+export const updateFCMToken = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const { fcm_token } = req.body;
+  const userId = req.user!.id;
+
+  try {
+    if (!(await findUserById(userId))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // TODO: Validate token by dry running
+
+    await updateUserFCMToken(userId, fcm_token);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const adminBanUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const bannedById = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(bannedById);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { user_id, expires_at, reason } = req.body;
+
+    if (!(await findUserById(user_id))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await banUser(user_id, bannedById, expires_at, reason);
+
+    res.json({ message: "User banned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+};
+
+export const adminUnbanUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const bannedById = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(bannedById);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { user_id } = req.body;
+
+    if (!(await findUserById(user_id))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await unbanUser(user_id);
+
+    res.json({ message: "User unbanned successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+}
+
+export const adminGetBannedUsers = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const bannedById = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(bannedById);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const bannedUsers = await getBannedUsers();
+    res.json(bannedUsers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+}

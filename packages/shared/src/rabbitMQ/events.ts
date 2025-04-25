@@ -13,6 +13,8 @@ export enum Events {
   FILE_UPLOAD_RPC = "file_upload_rpc",
   FILE_DELETE = "file_delete",
   FILE_METADATA_RPC = "file_metadata_rpc",
+  // =======================POST-EVENTS=======================
+  POST_GET_RPC = "get_post_rpc", // Post get RPC request
 
   // ======================COMPANY-EVENTS=====================
   COMPANY_ANNOUNCEMENT_CREATED = "company.announcement_created",
@@ -21,10 +23,8 @@ export enum Events {
   GET_COMPANY_FOLLOWERS = "company.followers",
 
   // ======================PAYMENT-EVENTS=====================
-  GET_USER_USAGE = "payment.user_usage"
-
-
-};
+  GET_USER_USAGE = "payment.user_usage",
+}
 
 /**
  * Gets the queue name for the given event locally
