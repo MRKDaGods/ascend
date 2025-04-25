@@ -179,7 +179,11 @@ const Navbar: React.FC = () => {
               <Avatar src="/man.jpg" sx={{ width: 58, height: 58, mx: "auto" }} />
               <Typography fontWeight={600} mt={1}>Developing Ascend</Typography>
               <Button
-                onClick={() => router.push("/profile")}
+                
+                onClick={() => {
+                  closeMenu();
+                  router.push("/profile")}
+                }
                 variant="outlined"
                 fullWidth
                 sx={{ mt: 1.5, borderRadius: "999px", textTransform: "none" }}
