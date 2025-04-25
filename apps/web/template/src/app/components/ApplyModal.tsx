@@ -15,7 +15,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadCloud } from 'lucide-react';
-import { useJobStore } from '@/app/shared/store/useJobStore';
+import { useJobStore } from '@/app/stores/useJobStore';
 
 export default function ApplyModal({ job, open, onClose }: any) {
   const [userData, setUserData] = useState({
