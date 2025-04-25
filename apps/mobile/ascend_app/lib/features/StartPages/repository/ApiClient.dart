@@ -32,15 +32,19 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? data,
   }) async {
-    final headers = await _getHeaders();
+    final headers = {'Content-Type': 'application/json'};
     final url = Uri.parse('$_baseUrl$endpoint');
-    final response = await http.post(
-      url,
-      headers: headers,
-      body: jsonEncode(data),
-    );
-    _handleResponse(response);
-    return response;
+    final body = jsonEncode(data);
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response;
+    } else {
+      throw Exception(
+        'Failed to post: ${response.statusCode}, ${response.body}',
+      );
+    }
   }
 
   // POST request for login
@@ -68,6 +72,32 @@ class ApiClient {
     }
 
     return response;
+  }
+
+  Future<http.Response> signUp({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) async {
+    final headers = {'Content-Type': 'application/json'};
+    final url = Uri.parse('$_baseUrl/auth/register');
+    final body = jsonEncode({
+      'email': email,
+      'password': password,
+      'first_name': firstName,
+      'last_name': lastName,
+    });
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response;
+    } else {
+      throw Exception(
+        'Failed to register: ${response.statusCode}, ${response.body}',
+      );
+    }
   }
 
   // PUT request

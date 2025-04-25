@@ -10,12 +10,13 @@ class AuthInitial extends AuthState {}
 class AuthLoading extends AuthState {}
 
 class AuthSuccess extends AuthState {
-  final String token;
+  final String? token;
+  final bool signUpMode; // Default to false for sign-in
 
-  AuthSuccess({required this.token});
+  AuthSuccess({this.token, required this.signUpMode});
 
   @override
-  List<Object?> get props => [token];
+  List<Object?> get props => [token, signUpMode];
 }
 
 class AuthFailure extends AuthState {

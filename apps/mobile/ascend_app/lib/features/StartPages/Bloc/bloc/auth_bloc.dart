@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:ascend_app/features/StartPages/Model/auth_response.dart';
 import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
 import 'package:logger/logger.dart';
 import 'package:bloc/bloc.dart';
@@ -11,13 +13,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final ApiClient apiClient;
   final _logger = Logger();
 
+  // Flag to track whether the current operation is a sign-up
+  bool signUpMode = false;
+
   AuthBloc({required this.authRepository, required this.apiClient})
     : super(AuthInitial()) {
+    _logger.i('AuthBloc initializeddddddddddddd');
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
     on<SignOutRequested>(_onSignOutRequested);
   }
-
   // Handle Sign-In
   Future<void> _onSignInRequested(
     SignInRequested event,
@@ -25,11 +30,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
+      signUpMode = false; // Set sign-up mode to false for sign-in
       final response = await authRepository.login(event.email, event.password);
 
-      emit(AuthSuccess(token: response['token']));
+      // Always update the auth token in secure storage
+      await SecureStorageHelper.setAuthToken(response['token']);
+      await SecureStorageHelper.saveEmail(event.email);
+      await SecureStorageHelper.setPassword(event.password);
+
+      // Validate the token
+      if (response['token'] == null || response['token'].isEmpty) {
+        throw Exception("Authentication token not found.");
+      }
+
+      final savedToken = await SecureStorageHelper.getAuthToken();
+      _logger.i('Token after saving: $savedToken');
+      _logger.i('SignIn successful: ${response['token']}'); // Log success
+
+      emit(AuthSuccess(token: response['token'], signUpMode: false));
     } catch (error) {
-      _logger.e('SignIn failed: $error');
+      _logger.e('SignIn failed: $error'); // Log the error
       emit(AuthFailure(error: error.toString()));
     }
   }
@@ -39,24 +59,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SignUpRequested event,
     Emitter<AuthState> emit,
   ) async {
+    _logger.i('Handling SignUpRequested event');
     emit(AuthLoading());
     try {
-      final response = await authRepository.signUp(
-        email: event.email,
-        password: event.password,
+      final signUpMode = true; // Set sign-up mode to true for sign-up
+      // Call the signUp method and get the AuthResponse object
+      final responseData = await authRepository.signUp(
         firstName: event.firstName,
         lastName: event.lastName,
+        email: event.email,
+        password: event.password,
       );
 
-      _logger.i('SignUp successful: ${response.token}'); // Logging the success
+      // Access properties of the AuthResponse object
+      final userId = responseData.userId; // Access userId directly
+      final email = responseData.email; // Access email directly
 
-      // Save token and user data in SecureStorageHelper
-      await SecureStorageHelper.setAuthToken(response.token);
-      await SecureStorageHelper.setUserId(response.userId);
+      _logger.i('SignUp successful for $email (User ID: $userId)');
+      _logger.i('signUpMode ISSSSSSS: $signUpMode'); // Log success
 
-      emit(AuthSuccess(token: response.token));
+      // Emit AuthSuccess to indicate successful sign-up
+      emit(AuthSuccess(token: "", signUpMode: true));
     } catch (error) {
-      _logger.e('SignUp failed: $error'); // Log the error
+      _logger.e('SignUp failed: $error');
       emit(AuthFailure(error: error.toString()));
     }
   }
