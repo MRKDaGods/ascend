@@ -1,6 +1,7 @@
 import 'package:ascend_app/features/StartPages/Model/auth_response.dart';
 import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AuthRepository {
   final ApiClient apiClient;
@@ -20,16 +21,22 @@ class AuthRepository {
     required String firstName,
     required String lastName,
   }) async {
-    final response = await apiClient.post(
-      '/auth/signup',
-      data: {
-        'email': email,
-        'password': password,
-        'firstName': firstName,
-        'lastName': lastName,
-      },
+    final response = await apiClient.signUp(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
     );
+
+    // Parse the JSON response into an AuthResponse object
     final responseData = jsonDecode(response.body);
     return AuthResponse.fromJson(responseData);
   }
+
+  register({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+  }) {}
 }
