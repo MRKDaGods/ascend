@@ -428,6 +428,7 @@ export const getUserUsageLimits = async (req : AuthenticatedRequest, res : Respo
     }
 }
 
+
 export const stripeWebhookHandler = async (req : Request , res : Response) => {
     let event = req.body;
     if (STRIPE_WEBHOOK_SECRET_KEY) {
@@ -452,8 +453,7 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
         if(subcription){
             const subscription_plan_limits = (await getFeatureLimits()).get(subcription.subscription_plan);
             await disableFeaturesCoveredBySubscription(subscription_plan_limits, subcription.user_id);
-            await deleteSubscription(subcription.subscription_id);
-            // notifiction ?? 
+            await deleteSubscription(subcription.subscription_id); 
         }
       case 'invoice.payment_succeeded':
         const invoice = event.data.object as st.Invoice;
@@ -463,7 +463,7 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
         const subscription = await getSubscriptionById(subscription_id);
         if(subscription && user_id){
             const subscription_plan_limits = (await getFeatureLimits()).get(subscription.subscription_plan);
-            await updateUsage(user_id, {stripe_customer_id : customer_id, ...subscription_plan_limits})
+            await updateUsage(user_id, {stripe_customer_id : customer_id, last_date : new Date(), ...subscription_plan_limits});
         }
       default:
         // Unexpected event type

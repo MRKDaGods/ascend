@@ -21,8 +21,9 @@ export const createCompany = async ({
     location,
     industry,
     created_at,
-    created_by
-} : {company_name : string, description : string, profile_photo : any, cover_photo : any, location : string, industry : string, created_at : Date, created_by : number}
+    created_by,
+    company_domain_name
+} : {company_name : string, description : string, profile_photo : any, cover_photo : any, location : string, industry : string, created_at : Date, created_by : number, company_domain_name : string}
 ) : Promise<Company | null> => {
     let file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
     let profile_photo_payload : FileUploadPayload.Request = {
@@ -54,8 +55,8 @@ export const createCompany = async ({
     const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : profilePhotoResponse.file_id }, 10000);
     const coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : coverPhotoResponse.file_id }, 10000);
 
-    const result = await db.query("INSERT INTO company_service.company (company_name, description, profile_photo_url, cover_photo_url, location, industry, created_at, created_by, profile_photo_id, cover_photo_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
-        [company_name, description, profilePhotoURLResponse.presigned_url, coverPhotoURLResponse.presigned_url , location, industry, created_at, created_by, profilePhotoResponse.file_id, coverPhotoResponse.file_id]
+    const result = await db.query("INSERT INTO company_service.company (company_name, description, profile_photo_url, cover_photo_url, location, industry, created_at, created_by, profile_photo_id, cover_photo_id, company_domain_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
+        [company_name, description, profilePhotoURLResponse.presigned_url, coverPhotoURLResponse.presigned_url , location, industry, created_at, created_by, profilePhotoResponse.file_id, coverPhotoResponse.file_id, company_domain_name]
     );
     return result.rows.length > 0 ? result.rows[0] : null;
 };
@@ -72,7 +73,7 @@ export const findCompaniesCreatedByUser = async (user_id: number,  limit: number
 
 
 export const findCompaniesByKeyword = async (keywords : {[key : string] : any}, limit : number = -1, offset : number = 0) : Promise<Array<Company>> => {
-    const {description, location, industry} = keywords;
+    const {description, location, industry, company_domain_name} = keywords;
     let counter : number = 0;
     let db_query : string = "SELECT * FROM company_service.company WHERE ";
     let parametrs : Array<any> = [];
@@ -88,10 +89,17 @@ export const findCompaniesByKeyword = async (keywords : {[key : string] : any}, 
         db_query += `location = ${location} AND `;
         parametrs.push(location);
     }
+
     if(industry){
         counter += 1;
         db_query += `industry = ${industry} AND `;
         parametrs.push(industry);
+    }
+
+    if(company_domain_name){
+        counter += 1;
+        db_query += `company_domain_name = ${company_domain_name} AND `;
+        parametrs.push(company_domain_name);
     }
 
     db_query = limit === -1 
@@ -106,7 +114,7 @@ export const findCompaniesByKeyword = async (keywords : {[key : string] : any}, 
 
 
 export const updateCompanyProfile = async (company_id : number, user_id : number, keywords : {[key : string] : any}) : Promise<Company | null> => {
-    const {description, location, industry, profile_photo, cover_photo, profile_photo_id, cover_photo_id} = keywords;
+    const {description, location, industry, profile_photo, cover_photo, profile_photo_id, cover_photo_id, company_domain_name} = keywords;
     let counter : number = 0;
     let db_query : string = "UPDATE company_service.company SET ";
     let parameters : Array<any> = [];
@@ -127,6 +135,12 @@ export const updateCompanyProfile = async (company_id : number, user_id : number
         counter += 1;
         db_query += `industry = $${counter} , `;
         parameters.push(industry);
+    }
+
+    if(company_domain_name){
+        counter += 1;
+        db_query += `company_domain_name = $${counter} , `;
+        parameters.push(company_domain_name);
     }
 
     let file_service_queue ;

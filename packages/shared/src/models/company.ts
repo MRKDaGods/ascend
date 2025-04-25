@@ -27,4 +27,5 @@ export interface Company {
     industry : string;
     created_at : Date;
     created_by : number;
+    company_domain_name : string;
 };

@@ -23,7 +23,7 @@ export const createCompanyProfile = async (req : AuthenticatedRequest, res : Res
     // check if domain of the email == company_domain_name
     try {
         const date = new Date();
-        const company = await createCompany({company_name : name, description : description, profile_photo : profile_photo, cover_photo : cover_photo , location : location, industry : industry,  created_at : date , created_by : user_id});
+        const company = await createCompany({company_name : name, description : description, profile_photo : profile_photo, cover_photo : cover_photo , location : location, industry : industry,  created_at : date , created_by : user_id, company_domain_name : company_domain_name});
         if(company){
             return res.status(200).json({
                 data : {
@@ -138,7 +138,7 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
         return res.status(401).json({error : "unauthorized"});
     }
     const company_id = parseInt(req.params.companyId, 10);
-    const {company_name, description, industry, location, profile_photo, cover_photo, profile_photo_id, cover_photo_id} = req.body;
+    const {company_name, description, industry, location, profile_photo, cover_photo, profile_photo_id, cover_photo_id, company_domain_name} = req.body;
     try {
         const company = await findCompanyById(company_id);
         if(!company){
@@ -147,7 +147,7 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
         if(company?.created_by !== user_id){
             return res.status(401).json({error : "unauthorized"});
         }
-        const updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : profile_photo_id, cover_photo : cover_photo, cover_photo_id : cover_photo_id});
+        const updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : profile_photo_id, cover_photo : cover_photo, cover_photo_id : cover_photo_id, company_domain_name : company_domain_name});
         if(!updated_company){
             return res.status(500).json({error : "Internal error"});    
         }
