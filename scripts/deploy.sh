@@ -1,4 +1,9 @@
-# !/bin/bash
+#!/bin/bash
+
+DB_MODE=false
+if [ "$1" = "--db" ]; then
+    DB_MODE=true
+fi
 
 # Stop all running containers
 docker rm -f $(docker ps -aq)
@@ -39,18 +44,20 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Restore volumes
-echo "Restoring volumes..."
-if [ -f "scripts/vres.sh" ]; then
-    chmod +x scripts/vres.sh
-    bash scripts/vres.sh --skip
-    if [ $? -ne 0 ]; then
-        echo "Failed to restore volumes. Exiting..."
+if $DB_MODE; then
+    # Restore volumes
+    echo "Restoring volumes..."
+    if [ -f "scripts/vres.sh" ]; then
+        chmod +x scripts/vres.sh
+        bash scripts/vres.sh --skip
+        if [ $? -ne 0 ]; then
+            echo "Failed to restore volumes. Exiting..."
+            exit 1
+        fi
+    else
+        echo "scripts/vres.sh not found. Exiting..."
         exit 1
     fi
-else
-    echo "scripts/vres.sh not found. Exiting..."
-    exit 1
 fi
 
 # Build and start containers
