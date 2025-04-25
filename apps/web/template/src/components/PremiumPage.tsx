@@ -10,6 +10,11 @@ import {
   Typography,
   CircularProgress,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 
 type Subscription = {
@@ -33,6 +38,12 @@ export default function PremiumPage() {
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [features, setFeatures] = useState<Feature[]>([]);
+
+  // Dialog states
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
 
   useEffect(() => {
     setTimeout(() => {
@@ -69,16 +80,18 @@ export default function PremiumPage() {
     }, 1000);
   }, []);
 
-  const handleBuyFeature = (featureId: string) => {
-    alert(`Buying feature: ${featureId}`);
+  const handleCancelSubscription = (subscriptionId: string) => {
+    setSelectedSubId(subscriptionId);
+    setCancelDialogOpen(true);
+  };
+
+  const handleBuyFeature = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setFeatureDialogOpen(true);
   };
 
   const handleSubscribe = () => {
     alert("Redirecting to subscribe...");
-  };
-
-  const handleCancelSubscription = (subscriptionId: string) => {
-    alert(`Cancel subscription: ${subscriptionId}`);
   };
 
   if (loading) {
@@ -156,7 +169,7 @@ export default function PremiumPage() {
                   variant="contained"
                   sx={{ mt: 2 }}
                   fullWidth
-                  onClick={() => handleBuyFeature(feat.id)}
+                  onClick={() => handleBuyFeature(feat)}
                 >
                   Buy Feature
                 </Button>
@@ -183,6 +196,52 @@ export default function PremiumPage() {
       >
         Subscribe Now
       </Button>
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
+        <DialogTitle>Cancel Subscription</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to cancel your subscription? You'll lose access to Premium features immediately.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelDialogOpen(false)}>Go Back</Button>
+          <Button
+            color="error"
+            onClick={() => {
+              alert(`Cancelled: ${selectedSubId}`);
+              setCancelDialogOpen(false);
+            }}
+          >
+            Confirm Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Buy Feature Dialog */}
+      <Dialog open={featureDialogOpen} onClose={() => setFeatureDialogOpen(false)}>
+        <DialogTitle>Buy Feature</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {selectedFeature?.name} - {selectedFeature?.description}
+            <br />
+            Price: {selectedFeature?.price} {selectedFeature?.currency}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFeatureDialogOpen(false)}>Go Back</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              alert(`Purchased: ${selectedFeature?.id}`);
+              setFeatureDialogOpen(false);
+            }}
+          >
+            Confirm Purchase
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
