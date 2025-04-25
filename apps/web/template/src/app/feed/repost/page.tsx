@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from "react";
+
+import { useEffect } from "react";
+import { Box, Typography, useTheme } from "@mui/material";
 import Navbar from "@/app/components/Navbar";
 import UserPost from "@/app/components/UserPost";
 import DeletePost from "@/app/components/DeletePost";
@@ -7,18 +9,41 @@ import EditPost from "@/app/components/EditPost";
 import { usePostStore } from "@/app/stores/usePostStore";
 
 const RepostPage = () => {
-    const { posts, isLastPostDeleted } = usePostStore();
-    const userPosts = posts.filter((post) => post.isUserPost);
-    const lastUserPost = userPosts[userPosts.length - 1];
+  const theme = useTheme();
+  const {
+    lastRepostId,
+    fetchPostFromAPI,
+    selectedPost,
+    isLastPostDeleted,
+  } = usePostStore();
+
+  const isRepostFetched = selectedPost?.id === lastRepostId;
+
+  useEffect(() => {
+    if (lastRepostId && !isRepostFetched) {
+      console.log("📡 Fetching repost by ID:", lastRepostId);
+      fetchPostFromAPI(lastRepostId);
+    }
+  }, [lastRepostId, isRepostFetched, fetchPostFromAPI]);
+
   return (
-    <>
+    <Box sx={{ bgcolor: theme.palette.background.default, color: theme.palette.text.primary, minHeight: "100vh" }}>
       <Navbar />
-      {!isLastPostDeleted && lastUserPost && (
-        <UserPost post={lastUserPost} />
-      )}
+      <Box sx={{ maxWidth: 700, mx: "auto", p: 2 }}>
+        {isLastPostDeleted ? (
+          <Typography textAlign="center" fontStyle="italic" color="text.secondary">
+            Your last repost has been deleted.
+          </Typography>
+        ) : !selectedPost || !isRepostFetched ? (
+          <Typography textAlign="center">Loading repost...</Typography>
+        ) : (
+          <UserPost post={selectedPost} />
+        )}
+      </Box>
+
       <DeletePost />
       <EditPost />
-    </>
+    </Box>
   );
 };
 

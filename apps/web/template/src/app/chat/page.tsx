@@ -1,84 +1,44 @@
 "use client";
 
-import Sidebar from "@/app/components/Sidebar";
-import { Box } from "@mui/material";
-import ChatWindow from "@/app/components/ChatWindow";
-import CreateIcon from '@mui/icons-material/Create';
+import React, { useState } from "react";
+import { Box, useTheme, Divider } from "@mui/material";
+
 import Navbar from "../components/Navbar";
-import NewConversationDropdown from '@/app/components/NewConversationDropdown';
-import { useState } from "react";
-import IconButton from "@mui/material/IconButton";
-import React from "react";
+import Sidebar from "@/app/components/Sidebar";
+import ChatWindow from "@/app/components/ChatWindow";
 import ChatSocketContainer from "../components/ChatSocketContainer";
 
-export default function Page() {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleOpenDropdown = (e: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(e.currentTarget);
-  };
-
-  const handleCloseDropdown = () => {
-    setAnchorEl(null);
-  };
+export default function ChatPage() {
+  const theme = useTheme();
 
   return (
     <ChatSocketContainer>
-      <Box sx={{ display: "flex", height: "100vh", flexDirection: "column", width: "100vw" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", bgcolor: theme.palette.background.default }}>
         <Navbar />
 
-        {/* spacing for UI polish */}
-        <Box
-          sx={{
-            height: "16px",
-            backgroundColor: "#f3f3f3",
-            zIndex: 1302,
-            position: "absolute",
-            top: "64px",
-            left: 0,
-            width: "100%",
-          }}
-        />
-
-        {/* Icon bar */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: "80px",
-            left: 0,
-            width: "100%",
-            height: "50px",
-            backgroundColor: "#fff",
-            border: "1px solid #ddd",
-            display: "flex",
-            alignItems: "center",
-            zIndex: 1301,
-            px: 2,
-            justifyContent: "flex-end",
-          }}
-        >
-          <IconButton onClick={handleOpenDropdown}>
-            <CreateIcon />
-          </IconButton>
-        </Box>
-
-        {/* Main layout */}
-        <Box sx={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
+        <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden" }}>
+          {/* Sidebar */}
           <Sidebar />
 
+          {/* Chat Window Section */}
           <Box
             sx={{
               flexGrow: 1,
               display: "flex",
-              backgroundColor: "#f5f5f5", // gray background when there's space
+              justifyContent: "center",
+              bgcolor: theme.palette.background.default,
+              overflow: "hidden",
             }}
           >
             <Box
               sx={{
                 width: "100%",
-                maxWidth: "900px", // adjust as needed
+                maxWidth: "900px",
                 height: "100%",
-                backgroundColor: "#fff", // white background for ChatWindow
+                display: "flex",
+                flexDirection: "column",
+                bgcolor: theme.palette.background.default,
+                borderLeft: `1px solid ${theme.palette.divider}`,
               }}
             >
               <ChatWindow />
@@ -86,8 +46,6 @@ export default function Page() {
           </Box>
         </Box>
       </Box>
-
-      <NewConversationDropdown anchorEl={anchorEl} onClose={handleCloseDropdown} />
     </ChatSocketContainer>
   );
 }

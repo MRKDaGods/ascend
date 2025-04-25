@@ -15,6 +15,8 @@ export interface User {
   }
   
   export interface Post {
+    original_post?: Post | null;
+    comment?: string;
     id: number;
     user_id: number;
     content: string;
@@ -27,4 +29,5 @@ export interface User {
     likes_count: number;
     comments_count: number;
     shares_count: number;
+    
   }

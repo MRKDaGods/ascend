@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./apiDef";
+import LoadingPage from "@/app/components/LoadingPage";
 
 type InitState = {
   initializing: boolean;
@@ -52,12 +53,7 @@ export const ApiInitializer: React.FC<ApiInitializerProps> = ({ content }) => {
   }, [retry]);
 
   if (initState.initializing) {
-    return (
-      <div className="api-loading">
-        <p>Initializing API...</p>
-        <div className="loader"></div>
-      </div>
-    );
+    return ( <LoadingPage /> );
   }
 
   if (initState.error) {

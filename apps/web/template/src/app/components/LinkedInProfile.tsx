@@ -33,8 +33,6 @@ type ExperienceFormState = {
 };
 
 const LinkedInProfile: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [isBannerOpen, setIsBannerOpen] = useState<boolean>(false);
   const [isExperienceOpen, setIsExperienceOpen] = useState<boolean>(false);
@@ -73,24 +71,16 @@ const LinkedInProfile: React.FC = () => {
   }, [interests]);
 
   useEffect(() => {
-    // Fake login
-    setIsLoggedIn(false);
-    api.auth.login("ammar@ascendx.tech", "123").then(() => {
-      setIsLoggedIn(true);
-
-      // fetch user data
-      api.user.getLocalUserProfile().then((user) => {
-        console.log("User data:", user);
-        setProfile(user); // Set the profile data
-        // Initialize skills from profile if available
-        if (user.skills) {
-          setSkills(user.skills);
-        }
-      }).catch((err) => {
-        console.log("Cannot fetch user data:", err);
-      });
+    // fetch user data
+    api.user.getLocalUserProfile().then((user) => {
+      console.log("User data:", user);
+      setProfile(user); // Set the profile data
+      // Initialize skills from profile if available
+      if (user.skills) {
+        setSkills(user.skills);
+      }
     }).catch((err) => {
-      console.log("Cannot login:", err);
+      console.log("Cannot fetch user data:", err);
     });
   }, []);
 
@@ -122,11 +112,11 @@ const LinkedInProfile: React.FC = () => {
   const handleSaveEducation = (education: Education) => {
     // Update the profile with the new education
     if (profile) {
-      const updatedProfile = { 
-        ...profile, 
-        education: profile.education ? [...profile.education, education] : [education] 
+      const updatedProfile = {
+        ...profile,
+        education: profile.education ? [...profile.education, education] : [education]
       };
-      
+
       // Update via API
       api.user.updateLocalUserProfile(updatedProfile as any)
         .then(updatedProfile => {
@@ -144,7 +134,7 @@ const LinkedInProfile: React.FC = () => {
       if (profile && profile.education) {
         const updatedEducation = profile.education.filter(edu => edu.id !== education.id);
         const updatedProfile = { ...profile, education: updatedEducation };
-        
+
         // Update via API
         api.user.updateLocalUserProfile(updatedProfile as any)
           .then(updatedProfile => {
@@ -206,7 +196,7 @@ const LinkedInProfile: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       setResume(file);
-      
+
       // Upload resume via API
       api.user.uploadResume(file)
         .then(updatedProfile => {
@@ -222,7 +212,7 @@ const LinkedInProfile: React.FC = () => {
   const handleDeleteResume = () => {
     if (window.confirm("Are you sure you want to delete this resume?")) {
       setResume(null);
-      
+
       // Delete resume via API
       api.user.deleteResume()
         .then(updatedProfile => {
@@ -237,12 +227,12 @@ const LinkedInProfile: React.FC = () => {
   const handleSaveSkill = (newSkill: Skill) => {
     // Update the local skills state
     setSkills(prevSkills => [...prevSkills, newSkill]);
-    
+
     // Update the profile with the new skill
     if (profile) {
       const updatedSkills = profile.skills ? [...profile.skills, newSkill] : [newSkill];
       const updatedProfile = { ...profile, skills: updatedSkills };
-      
+
       // Update via API
       api.user.updateLocalUserProfile(updatedProfile)
         .then(updatedProfile => {
@@ -386,7 +376,7 @@ const LinkedInProfile: React.FC = () => {
                   right: 0,
                   background: 'none',
                   border: 'none',
-                  color: 'red',
+                  color: theme.palette.error.main,
                   cursor: 'pointer',
                 }}
               >
@@ -401,8 +391,8 @@ const LinkedInProfile: React.FC = () => {
           style={{
             marginTop: '20px',
             background: '#fff',
-            color: '#0073b1',
-            border: '2px solid #0073b1',
+            color: 'theme.palette.primary.main',
+            border: `2px solid ${theme.palette.primary.main}`,
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',
@@ -466,7 +456,7 @@ const LinkedInProfile: React.FC = () => {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "red",
+                    color: theme.palette.error.main,
                     cursor: "pointer",
                   }}
                 >
@@ -485,8 +475,8 @@ const LinkedInProfile: React.FC = () => {
           style={{
             marginTop: '20px',
             background: '#fff',
-            color: '#0073b1',
-            border: '2px solid #0073b1',
+            color: theme.palette.primary.main,
+            border: `2px solid ${theme.palette.primary.main}`,
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',
@@ -526,7 +516,7 @@ const LinkedInProfile: React.FC = () => {
                   style={{
                     background: "none",
                     border: "none",
-                    color: "red",
+                    color: theme.palette.error.main,
                     cursor: "pointer",
                   }}
                 >
@@ -544,9 +534,9 @@ const LinkedInProfile: React.FC = () => {
           onClick={() => setIsInterestsOpen(true)}
           style={{
             marginTop: '20px',
-            background: '#fff',
-            color: '#0073b1',
-            border: '2px solid #0073b1',
+            background: theme.palette.background.default,
+            color: theme.palette.primary.main,
+            border: `2px solid ${theme.palette.primary.main}`,
             padding: '10px 20px',
             borderRadius: '20px',
             fontWeight: 'bold',

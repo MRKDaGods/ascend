@@ -1,7 +1,9 @@
-import React, { useRef, useState, useEffect } from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVert, Notifications, Delete, VisibilityOff } from "@mui/icons-material";
 import {
+  Box,
   Card,
   Typography,
   List,
@@ -13,16 +15,22 @@ import {
   Menu,
   MenuItem,
   Badge,
-  Box,
   Divider,
   Button,
   ButtonGroup,
+  useTheme,
 } from "@mui/material";
-import { useNotificationStore } from "../stores/useNotificationStore";
-import { Notification, NotificationType } from "@ascend/api-client/models";
-import { Profile } from "@ascend/api-client/models";
+import {
+  MoreVert,
+  Notifications,
+  Delete,
+  VisibilityOff,
+} from "@mui/icons-material";
 
-// Type for notification payload that might contain profile information
+import { useNotificationStore } from "../stores/useNotificationStore";
+import { Notification, NotificationType, Profile } from "@ascend/api-client/models";
+
+// Type override for notification payload
 interface NotificationPayload {
   link?: string;
   profile?: Profile;
@@ -33,172 +41,160 @@ interface NotificationPayload {
 }
 
 const NotificationCard: React.FC = () => {
-  const { notifications, markAsRead, markAsUnread, deleteNotification, hydrated } =
-    useNotificationStore();
-  const [anchorEl, setAnchorEl] = useState<{ [key: string]: null | HTMLElement }>({});
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const theme = useTheme();
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [anchorEl, setAnchorEl] = useState<{ [key: string]: HTMLElement | null }>({});
   const [filterType, setFilterType] = useState("all");
+
+  const {
+    notifications,
+    hydrated,
+    markAsRead,
+    markAsUnread,
+    deleteNotification,
+    setNotifications,
+  } = useNotificationStore();
 
   useEffect(() => {
     if (!hydrated) return;
 
-    // Ensure notifications are loaded correctly from localStorage
     const storedNotifications = localStorage.getItem("notifications");
     if (storedNotifications) {
-      useNotificationStore.getState().setNotifications(JSON.parse(storedNotifications));
+      setNotifications(JSON.parse(storedNotifications));
     }
-  }, [hydrated]);
+  }, [hydrated, setNotifications]);
 
-  if (!hydrated) return null; // Prevent rendering before hydration
+  if (!hydrated) return null;
 
-  const unseenCount = notifications.filter((notif) => !notif.is_read).length;
+  const unseenCount = notifications.filter((n) => !n.is_read).length;
 
-  // Filtering Notifications Based on Type
-  const filteredNotifications = notifications.filter((notification) => {
+  const filteredNotifications = notifications.filter((n) => {
     switch (filterType) {
       case "myposts":
-        return [NotificationType.LIKE, NotificationType.COMMENT, NotificationType.WELCOME].includes(notification.type);
+        return [NotificationType.LIKE, NotificationType.COMMENT, NotificationType.WELCOME].includes(n.type);
       case "mentions":
-        return notification.type === NotificationType.MENTION;
+        return n.type === NotificationType.MENTION;
       case "connections":
-        return notification.type === NotificationType.CONNECTION ||
-          notification.type === NotificationType.FOLLOW;
+        return [NotificationType.CONNECTION, NotificationType.FOLLOW].includes(n.type);
       default:
-        return true; // "all" filter
+        return true;
     }
   });
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, id: number) => {
-    event.preventDefault();
     event.stopPropagation();
     setAnchorEl({ [id.toString()]: event.currentTarget });
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl({});
-  };
+  const handleMenuClose = () => setAnchorEl({});
 
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
-
-    // TODO:  Assuming link is stored in the payload
-    if (notification.payload?.link) {
-      router.push(`/notif${notification.payload.link}`);
-        }
+    const link = (notification.payload as NotificationPayload)?.link;
+    if (link) router.push(`/notif${link}`);
   };
 
-  // Helper function to get profile picture
-  const getProfilePicture = (notification: Notification) => {
-    const payload = notification.payload as NotificationPayload;
-    // Check if profile is in payload
-    if (payload?.profile?.profile_picture_url) {
-      return payload.profile.profile_picture_url;
-    }
-
-    // Fallback to direct profile_picture_url in payload
-    if (payload?.profile_picture_url) {
-      return payload.profile_picture_url;
-    }
-    return "/default-avatar.png";
+  const getProfilePicture = (n: Notification) => {
+    const p = n.payload as NotificationPayload;
+    return p?.profile?.profile_picture_url || p?.profile_picture_url || "/default-avatar.png";
   };
 
-  // Helper function to get sender name
-  const getSenderName = (notification: Notification) => {
-    const payload = notification.payload as NotificationPayload;
-
-    // Check if profile with name info is in payload
-    if (payload?.profile?.first_name) {
-      return `${payload.profile.first_name} ${payload.profile.last_name || ''}`;
-    }
-
-    // Check if name is directly in payload
-    if (payload?.first_name) {
-      return `${payload.first_name} ${payload.last_name || ''}`;
-    }
-
-    return null;
+  const getSenderName = (n: Notification) => {
+    const p = n.payload as NotificationPayload;
+    return p?.profile?.first_name
+      ? `${p.profile.first_name} ${p.profile.last_name || ""}`
+      : p?.first_name
+      ? `${p.first_name} ${p.last_name || ""}`
+      : null;
   };
 
-  const formatNotification = (notification: Notification) => {
-    const senderName = getSenderName(notification);
-
-    if (senderName) {
-      return (
-        <Box component="span">
+  const renderNotificationText = (n: Notification) => {
+    const sender = getSenderName(n);
+    return (
+      <Box component="span">
+        {sender && (
           <Typography
             component="span"
-            sx={{
-              fontWeight: 'bold',
-              display: 'inline',
-              mr: 0.5
-            }}
+            fontWeight="bold"
+            sx={{ display: "inline", mr: 0.5 }}
           >
-            {senderName}
+            {sender}
           </Typography>
-          <Typography component="span" sx={{ display: 'inline' }}>
-            {notification.message}
-          </Typography>
-        </Box>
-      );
-    }
-
-    // Return just the message if no sender info available
-    return notification.message;
+        )}
+        <Typography component="span" sx={{ display: "inline" }}>
+          {n.message}
+        </Typography>
+      </Box>
+    );
   };
 
   return (
     <Card
       sx={{
         width: "100%",
-        maxWidth: "750px",
+        maxWidth: 750,
         p: 2,
         mt: 2,
         borderRadius: 3,
         boxShadow: 3,
+        bgcolor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
       }}
     >
-      {/* Header with Title & Badge */}
+      {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6" fontWeight={600} display="flex" alignItems="center">
-          <Notifications sx={{ mr: 1, color: "gray" }} />
+          <Notifications sx={{ mr: 1, color: theme.palette.text.secondary }} />
           Notifications
         </Typography>
-        {unseenCount > 0 && <Badge badgeContent={unseenCount} color="error" data-testid="unseen-count-badge"/>}
+        {unseenCount > 0 && (
+          <Badge badgeContent={unseenCount} color="error" />
+        )}
       </Box>
 
-      {/*  Filter Buttons */}
-      <ButtonGroup sx={{ mb: 2 }}>
+      {/* Filter Buttons */}
+      <ButtonGroup fullWidth sx={{ mb: 2 }}>
         {["all", "myposts", "mentions", "connections"].map((type) => (
           <Button
             key={type}
-            data-testid={`filter-button-${type}`}
             variant={filterType === type ? "contained" : "outlined"}
-            sx={{
-              borderRadius: "20px",
-              textTransform: "none",
-              fontWeight: "bold",
-              backgroundColor: filterType === type ? "green" : "white",
-              color: filterType === type ? "white" : "black",
-              "&:hover": { backgroundColor: filterType === type ? "darkgreen" : "grey.200" },
-            }}
             onClick={() => setFilterType(type)}
+            sx={{
+              borderRadius: "999px",
+              textTransform: "none",
+              fontWeight: 600,
+              backgroundColor:
+                filterType === type ? theme.palette.primary.main : theme.palette.background.paper,
+              color:
+                filterType === type
+                  ? theme.palette.primary.contrastText
+                  : theme.palette.text.primary,
+              "&:hover": {
+                backgroundColor:
+                  filterType === type
+                    ? theme.palette.primary.dark
+                    : theme.palette.action.hover,
+              },
+            }}
           >
-            {type === "all" ? "All" : type === "myposts" ? "My posts" : type.charAt(0).toUpperCase() + type.slice(1)}
+            {type === "all"
+              ? "All"
+              : type === "myposts"
+              ? "My posts"
+              : type.charAt(0).toUpperCase() + type.slice(1)}
           </Button>
         ))}
       </ButtonGroup>
 
-      {/*  Notifications List */}
+      {/* Notification List */}
       <Box
         ref={containerRef}
         sx={{
           width: "100%",
           overflow: "visible",
-          whiteSpace: "normal",
           wordBreak: "break-word",
-          minHeight: "100%",
-          p: 2,
+          p: 1,
         }}
       >
         <List>
@@ -207,78 +203,80 @@ const NotificationCard: React.FC = () => {
               No notifications found
             </Typography>
           ) : (
-            filteredNotifications.map((notification) => (
-              <Box key={notification.id}>
+            filteredNotifications.map((n) => (
+              <Box key={n.id}>
                 <ListItem
                   alignItems="flex-start"
+                  onClick={() => handleNotificationClick(n)}
                   sx={{
                     cursor: "pointer",
-                    bgcolor: notification.is_read ? "grey.100" : "inherit",
-                    "&:hover": { bgcolor: "grey.200" },
-                    borderRadius: 1,
-                    mb: 0.5,
-                    position: 'relative',
-                    pl: notification.is_read ? 2 : 2,
+                    bgcolor: n.is_read
+                      ? theme.palette.mode === "dark"
+                        ? theme.palette.background.default
+                        : theme.palette.grey[100]
+                      : theme.palette.action.selected,
+                    "&:hover": {
+                      bgcolor: theme.palette.action.hover,
+                    },
+                    borderRadius: 2,
+                    mb: 1,
+                    position: "relative",
+                    pl: 2,
+                    transition: "background-color 0.3s",
                   }}
-                  onClick={() => handleNotificationClick(notification)}
                 >
-                  {!notification.is_read && (
+                  {!n.is_read && (
                     <Box
                       sx={{
-                        position: 'absolute',
-                        left: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
+                        position: "absolute",
+                        left: 8,
+                        top: "50%",
+                        transform: "translateY(-50%)",
                         width: 8,
                         height: 8,
-                        borderRadius: '50%',
-                        bgcolor: 'primary.main',
-                        ml: 0.5
+                        borderRadius: "50%",
+                        bgcolor: theme.palette.primary.main,
                       }}
                     />
                   )}
                   <ListItemAvatar>
-                    <Avatar src={getProfilePicture(notification)} />
+                    <Avatar src={getProfilePicture(n)} />
                   </ListItemAvatar>
                   <ListItemText
-                    primary={formatNotification(notification)}
-                    secondary={notification.created_at ? new Date(notification.created_at).toLocaleString() : ''}
+                    primary={renderNotificationText(n)}
+                    secondary={
+                      n.created_at
+                        ? new Date(n.created_at).toLocaleString()
+                        : ""
+                    }
                     primaryTypographyProps={{
-                      component: 'div',
-                      fontWeight: notification.is_read ? "normal" : "medium"
+                      component: "div",
+                      fontWeight: n.is_read ? "normal" : "medium",
                     }}
                   />
-                  <IconButton
-                    data-testid="more-options-button"
-                    onClick={(event) => handleMenuOpen(event, notification.id)}
-                  >
+                  <IconButton onClick={(e) => handleMenuOpen(e, n.id)}>
                     <MoreVert />
                   </IconButton>
                 </ListItem>
-                <Divider variant="inset" component="li" />
+                <Divider component="li" />
 
                 <Menu
-                  anchorEl={anchorEl[notification.id?.toString() || '']}
-                  open={Boolean(anchorEl[notification.id?.toString() || ''])}
+                  anchorEl={anchorEl[n.id.toString()]}
+                  open={Boolean(anchorEl[n.id.toString()])}
                   onClose={handleMenuClose}
                 >
                   <MenuItem
                     onClick={() => {
-                      if (notification.is_read) {
-                        markAsUnread(notification.id);
-                      } else {
-                        markAsRead(notification.id);
-                      }
+                      n.is_read ? markAsUnread(n.id) : markAsRead(n.id);
                       handleMenuClose();
                     }}
                   >
                     <VisibilityOff sx={{ mr: 1 }} />
-                    Mark as {notification.is_read ? "Unread" : "Read"}
+                    Mark as {n.is_read ? "Unread" : "Read"}
                   </MenuItem>
-
                   <MenuItem
                     onClick={() => {
-                      deleteNotification(notification.id);
+                      deleteNotification(n.id);
                       handleMenuClose();
                     }}
                   >

@@ -1,44 +1,30 @@
 "use client";
 
-import React from "react";
-import ConnectionPost from "../../components/ConnectionPost";
-import Navbar from "../../components/Navbar";
-import { Typography, Box } from "@mui/material";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { usePostStore } from "../../stores/usePostStore";
+import { usePostStore } from "@/app/stores/usePostStore";
+import ConnectionPost from "@/app/components/ConnectionPost";
+import Navbar from "@/app/components/Navbar";
 
-const FullPostPage: React.FC = () => {
+const ViewPostPage = () => {
   const { id } = useParams();
-  const { posts } = usePostStore();
-  const postId = parseInt(id as string, 10);
-  const post = posts.find((p) => p.id === postId);
+  const selectedPost = usePostStore((state) => state.selectedPost);
+  const fetchPost = usePostStore((state) => state.fetchPostFromAPI);
 
-  if (!post) {
-    return (
-      <Box sx={{ mt: 4, textAlign: "center" }}>
-        <Typography variant="h6">Post not found.</Typography>
-      </Box>
-    );
-  }
+  useEffect(() => {
+    if (id) {
+      fetchPost(Number(id));
+    }
+  }, [id, fetchPost]);
+
+  if (!selectedPost) return <div style={{ padding: 20 }}>Loading post...</div>;
 
   return (
     <>
-    <Navbar notification={{
-        payload: {
-          link: ""
-        }
-      }} />
-    <br></br>
-    <Box sx={{
-      mb: 2,
-      borderRadius: 3,
-      maxWidth: "580px",
-      margin: "0 auto",
-    }}>
-      <ConnectionPost post={post} />
-    </Box>
+      <Navbar />
+      <ConnectionPost post={selectedPost} />
     </>
   );
 };
 
-export default FullPostPage;
+export default ViewPostPage;

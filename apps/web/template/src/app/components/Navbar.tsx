@@ -25,120 +25,137 @@ import {
   Work,
   Message,
   Notifications,
-  Apps,
   Search,
   ExpandMore,
   DarkMode,
   LightMode,
 } from "@mui/icons-material";
 import { useThemeStore } from "../stores/useThemeStore";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useMenuStore } from "../stores/useMenuStore";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { useNotificationRedirect } from "../utils/handleNotificationRedirect";
+import { useNotificationStore } from "../stores/useNotificationStore";
 
-// ✅ Define the expected shape of notification
-type NavbarProps = {
-    notification?: {
-      payload: {
-        link: string;
-      };
-    };
-  };
-  
-
-// ✅ Custom Styles for Search Bar
+// 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  backgroundColor: theme.palette.mode === "dark" ? "#333" : "#eef3f8",
-  padding: "5px 10px",
-  borderRadius: "5px",
-  marginLeft: 10,
-  width: "250px",
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: "30px",
+  padding: "6px 14px",
+  marginLeft: 20,
+  width: "270px",
 }));
 
-const Navbar: React.FC<NavbarProps> = ({ notification }) => {
+// 🎯 Active nav highlight
+const NavIconButton = styled(IconButton, {
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active: boolean }>(({ theme, active }) => ({
+  padding: 10,
+  borderRadius: "12px",
+  backgroundColor: active
+    ? theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.1)"
+      : "#f0f0f0"
+    : "transparent",
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    transform: "scale(1.1)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.05)"
+        : "#eaeaea",
+  },
+}));
+
+const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useThemeStore();
   const muiTheme = useTheme();
   const router = useRouter();
+  const pathname = usePathname();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
   const openMenu = Boolean(anchorEl);
-  const redirectToNotification = useNotificationRedirect();
+  const { notifications } = useNotificationStore();
+  const unseenCount = notifications.filter((n) => !n.is_read).length;
 
   return (
     <AppBar
-      position="static"
+      elevation={0}
       sx={{
-        backgroundColor: muiTheme.palette.background.default,
+        backgroundColor: muiTheme.palette.background.paper,
         color: muiTheme.palette.text.primary,
-        boxShadow: "none",
-        borderBottom: `1px solid ${muiTheme.palette.mode === "dark" ? "#444" : "#ddd"}`,
+        borderBottom: `1px solid ${muiTheme.palette.divider}`,
+        position: "sticky",
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Left Section (Logo + Search) */}
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
+        {/* 🔹 LEFT */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <img src="/initial-logo.jpg" alt="Ascend" style={{ height: 35 }} />
+          <img src="/logoIcon.png" alt="Ascend" style={{ height: 36, borderRadius: 6 }} />
           <SearchBar>
-            <Search sx={{ color: muiTheme.palette.text.primary, marginRight: 1 }} />
-            <InputBase placeholder="Search" sx={{ color: muiTheme.palette.text.primary, width: "100%" }} />
+            <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
+            <InputBase
+              placeholder="Search for jobs, people..."
+              sx={{
+                color: muiTheme.palette.text.primary,
+                fontSize: "0.85rem",
+                width: "100%",
+              }}
+            />
           </SearchBar>
         </Box>
 
-        {/* Center Navigation Icons */}
+        {/* 🔹 CENTER */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Tooltip title="Home">
-            <IconButton onClick={() => router.push("/feed")}>
-              <Home sx={{ color: muiTheme.palette.text.secondary }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="My Network">
-            <IconButton>
-              <People sx={{ color: muiTheme.palette.text.secondary }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Jobs">
-            <IconButton>
-              <Work sx={{ color: muiTheme.palette.text.secondary }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Messaging">
-            <IconButton onClick={() => router.push("/chat")}>
-              <Message sx={{ color: muiTheme.palette.text.secondary }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Notifications">
-            {/* <IconButton onClick={() => {
-                if (notification) {
-                    redirectToNotification(notification);
-                }
-                }}>
-              <Badge color="error">
-                <Notifications sx={{ color: muiTheme.palette.text.secondary }} />
-              </Badge>
-            </IconButton>
-             */}
-             <IconButton onClick={() => router.push("/notif")}>
-              <Badge color="error">
-                <Notifications sx={{ color: muiTheme.palette.text.secondary }} />
-              </Badge>
-            </IconButton>
-          </Tooltip>
+          {[
+            { icon: <Home />, route: "/feed", label: "Home" },
+            { icon: <People />, route: "/network", label: "My Network" },
+            { icon: <Work />, route: "/jobs", label: "Jobs" },
+            { icon: <Message />, route: "/chat", label: "Messaging" },
+            { icon: <Notifications />, route: "/notif", label: "Notifications" },
+          ].map(({ icon, route, label }, i) => (
+            <Tooltip key={i} title={label}>
+              <NavIconButton onClick={() => router.push(route)} active={pathname === route}>
+                {label === "Notifications" && unseenCount > 0 ? (
+                  <Badge badgeContent={unseenCount} color="error">
+                    {React.cloneElement(icon, {
+                      sx: { color: muiTheme.palette.text.secondary },
+                    })}
+                  </Badge>
+                ) : (
+                  React.cloneElement(icon, {
+                    sx: { color: muiTheme.palette.text.secondary },
+                  })
+                )}
+              </NavIconButton>
+            </Tooltip>
+          ))}
         </Box>
 
-        {/* Right Section */}
+        {/* 🔹 RIGHT */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             <IconButton onClick={toggleTheme}>
-              {theme === "dark" ? <LightMode sx={{ color: "#ffea00" }} /> : <DarkMode sx={{ color: "#555" }} />}
+              {theme === "dark" ? (
+                <LightMode sx={{ color: "#ffeb3b" }} />
+              ) : (
+                <DarkMode sx={{ color: "#333" }} />
+              )}
             </IconButton>
           </Tooltip>
 
           <Tooltip title="Me">
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-              <Avatar src="/man.jpg" sx={{ border: `2px solid ${theme === "dark" ? "#fff" : "#000"}` }} />
+              <Avatar
+                src="/man.jpg"
+                sx={{
+                  border: `2px solid ${theme === "dark" ? "#fff" : "#000"}`,
+                  transition: "0.3s",
+                  "&:hover": { transform: "scale(1.1)" },
+                }}
+              />
             </IconButton>
           </Tooltip>
 
@@ -146,44 +163,78 @@ const Navbar: React.FC<NavbarProps> = ({ notification }) => {
             anchorEl={anchorEl}
             open={openMenu}
             onClose={closeMenu}
-            PaperProps={{ elevation: 4, sx: { width: 230, mt: 1 } }}
+            PaperProps={{
+              elevation: 6,
+              sx: {
+                mt: 1.5,
+                borderRadius: 3,
+                background: muiTheme.palette.background.paper,
+                color: muiTheme.palette.text.primary,
+              },
+            }}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            <Box px={2} py={1.5} display="flex" flexDirection="column" alignItems="center">
-              <Avatar src="/man.jpg" sx={{ width: 56, height: 56 }} />
-              <Typography fontWeight="bold" mt={1}>Developing Ascend</Typography>
-              <Button onClick={()=>router.push("/profile")} variant="outlined" sx={{ mt: 1, textTransform: "none", fontWeight: "bold" }}>
+            <Box px={2} py={2} textAlign="center">
+              <Avatar src="/man.jpg" sx={{ width: 58, height: 58, mx: "auto" }} />
+              <Typography fontWeight={600} mt={1}>Developing Ascend</Typography>
+              <Button
+                onClick={() => router.push("/profile")}
+                variant="outlined"
+                fullWidth
+                sx={{ mt: 1.5, borderRadius: "999px", textTransform: "none" }}
+              >
                 View Profile
               </Button>
             </Box>
 
-            <Divider sx={{ my: 1 }} />
-            <Typography sx={{ px: 2, fontSize: "0.75rem", fontWeight: "bold", color: "gray" }}>Account</Typography>
-            <MenuItem><ListItemText>Try 1 month of Premium</ListItemText></MenuItem>
+            <Divider />
+            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+              Account
+            </Typography>
+            <MenuItem><ListItemText>Try Premium</ListItemText></MenuItem>
             <MenuItem>
-              <ListItemText>Settings & Privacy</ListItemText>
+              <ListItemText onClick={() => router.push("/authen/Settings")}>Settings & Privacy</ListItemText>
               <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
             </MenuItem>
 
-            <Divider sx={{ my: 1 }} />
-            <Typography sx={{ px: 2, fontSize: "0.75rem", fontWeight: "bold", color: "gray" }}>Manage</Typography>
+            <Divider />
+            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+              Manage
+            </Typography>
             <MenuItem><ListItemText>Posts & Activity</ListItemText></MenuItem>
             <MenuItem><ListItemText>Job Posting Account</ListItemText></MenuItem>
 
-            <Divider sx={{ my: 1 }} />
+            <Divider />
             <MenuItem onClick={closeMenu}>
               <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-              <ListItemText>Sign Out</ListItemText>
+              <ListItemText onClick={() => router.push("/authen")}
+              >Sign Out</ListItemText>
             </MenuItem>
           </Menu>
 
-          <Button sx={{ color: muiTheme.palette.text.primary, textTransform: "none" }} endIcon={<ExpandMore />}>
+          <Button
+            sx={{ color: muiTheme.palette.text.primary, textTransform: "none", fontWeight: 500 }}
+            endIcon={<ExpandMore />}
+          >
             For Business
           </Button>
 
-          <Button variant="text" sx={{ color: theme === "dark" ? "#ffcc80" : "#915907", textTransform: "none" }}>
-            Try Premium for EGP0
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "#FFC107",
+              color: "#000",
+              textTransform: "none",
+              borderRadius: "999px",
+              fontWeight: 600,
+              px: 2.5,
+              "&:hover": {
+                backgroundColor: "#D4AF37 ",
+              },
+            }}
+          >
+            Try Premium Free
           </Button>
         </Box>
       </Toolbar>

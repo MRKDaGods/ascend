@@ -25,19 +25,12 @@ const Comment: React.FC<CommentProps> = ({
   setShowComments,
 }) => {
   const theme = useTheme();
-  const { commentOnPost, deleteComment, addTagToComment } = usePostStore();
+  const { commentOnPostFromAPI, addTagToComment } = usePostStore();
 
   const [commentText, setCommentText] = useState("");
   const [commentMenuAnchor, setCommentMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedCommentIndex, setSelectedCommentIndex] = useState<number | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  const handleCommentDelete = () => {
-    if (selectedCommentIndex !== null) {
-      deleteComment(post.id, selectedCommentIndex);
-      setDeleteDialogOpen(false);
-    }
-  };
+  const [setDeleteDialogOpen] = useState(false);
 
   return (
     <>
@@ -51,7 +44,9 @@ const Comment: React.FC<CommentProps> = ({
             borderTop: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Avatar src="/profile.jpg" sx={{ width: 36, height: 36 }} />
+          <Avatar src={post.profilePic || undefined} sx={{ width: 32, height: 32 }}>
+            {!post.profilePic && post.username?.charAt(0)}
+          </Avatar>
           <Box sx={{ flexGrow: 1 }}>
             <TagInput
               postId={post.id}
@@ -66,12 +61,16 @@ const Comment: React.FC<CommentProps> = ({
             />
           </Box>
           <Stack>
-            <button
-              onClick={() => {
+          <button
+              onClick={async () => {
                 if (commentText.trim()) {
-                  commentOnPost(post.id, commentText);
-                  setCommentText("");
-                  setShowComments(true);
+                  try {
+                    await commentOnPostFromAPI(post.id, commentText);
+                    setCommentText("");
+                    setShowComments(true);
+                  } catch (err) {
+                    console.error("❌ Failed to comment:", err);
+                  }
                 }
               }}
               style={{
@@ -95,7 +94,9 @@ const Comment: React.FC<CommentProps> = ({
             post.commentsList.map((comment, index) => (
               <Box key={index} sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Avatar src="/profile.jpg" sx={{ width: 32, height: 32 }} />
+                  <Avatar src={post.profilePic || undefined} sx={{ width: 32, height: 32 }}>
+                    {!post.profilePic && post.username?.charAt(0)}
+                  </Avatar>
                   <Typography
                     variant="body2"
                     sx={{
@@ -134,23 +135,9 @@ const Comment: React.FC<CommentProps> = ({
         open={Boolean(commentMenuAnchor)}
         onClose={() => setCommentMenuAnchor(null)}
       >
-        <MenuItem><Link fontSize="small" sx={{ mr: 1 }} /> Copy link to comment</MenuItem>
         <MenuItem><Edit fontSize="small" sx={{ mr: 1 }} /> Edit</MenuItem>
-        <MenuItem onClick={() => setDeleteDialogOpen(true)}>
-          <Delete fontSize="small" sx={{ mr: 1 }} /> Delete
-        </MenuItem>
+        <MenuItem><Delete fontSize="small" sx={{ mr: 1 }} /> Delete</MenuItem>
       </Menu>
-
-      {/* Delete confirmation */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Are you sure you want to delete your comment?</DialogTitle>
-        <DialogActions>
-          <button onClick={() => setDeleteDialogOpen(false)}>Cancel</button>
-          <button style={{ color: "red" }} onClick={handleCommentDelete}>
-            Delete
-          </button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

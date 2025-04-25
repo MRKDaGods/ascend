@@ -1,23 +1,24 @@
-// Component file: user can create a new post "Start a Post"
-
 "use client";
 
-import React, {useEffect} from "react";
+import React from "react";
 import {
   Avatar,
   Box,
   Stack,
   Typography,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { usePostStore } from "../stores/usePostStore";
 import AddMedia from "./AddMedia";
 import UserPostPopup from "./UserPostPopup";
 import CreatePostDialog from "./CreatePostDialog";
 import DraftSavedPopup from "./DraftSavedPopup";
+import RepostPopup from "./RepostPopup";
 
 const CreatePost: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { open, setOpen, draftText } = usePostStore();
 
   return (
@@ -26,10 +27,12 @@ const CreatePost: React.FC = () => {
         component="section"
         sx={{
           p: 2,
+          mb: 2,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
-          width: "600px",
-          backgroundColor: theme.palette.background.default,
+          width: "100%",
+          maxWidth: "600px",
+          backgroundColor: theme.palette.background.paper,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -37,38 +40,52 @@ const CreatePost: React.FC = () => {
           mx: "auto",
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ width: "100%", px: 2 }}>
-          <Avatar alt="User Profile" src="/man.jpg" sx={{ width: 48, height: 48 }} />
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          sx={{ width: "100%", px: 1 }}
+        >
+          <Avatar
+            alt="User Profile"
+            src="/man.jpg"
+            sx={{ width: isMobile ? 40 : 48, height: isMobile ? 40 : 48 }}
+          />
           <Box
             sx={{
               flexGrow: 1,
               border: `1px solid ${theme.palette.divider}`,
               borderRadius: 50,
-              backgroundColor: theme.palette.background.default,
+              backgroundColor: theme.palette.background.paper,
               px: 2,
               py: 1.5,
               cursor: "pointer",
               "&:hover": { backgroundColor: theme.palette.action.hover },
             }}
-            onClick={() => setOpen(true) }
+            onClick={() => setOpen(true)}
           >
-              <Typography
-              sx={{ color: theme.palette.text.secondary, fontSize: "14px", fontWeight: "bold" }}
-              >
+            <Typography
+              sx={{
+                color: theme.palette.text.secondary,
+                fontSize: isMobile ? "13px" : "14px",
+                fontWeight: "bold",
+              }}
+            >
               {draftText ? `Draft: ${draftText}` : "Start a post"}
-              </Typography>
-
+            </Typography>
           </Box>
         </Stack>
 
-        <AddMedia />
+        <Box sx={{ mt: 2, width: "100%" }}>
+          <AddMedia />
+        </Box>
       </Box>
 
-     {typeof window !== 'undefined' && open && <CreatePostDialog />}
+      {typeof window !== "undefined" && open && <CreatePostDialog />}
 
-    <DraftSavedPopup />
-    <UserPostPopup />
-
+      <DraftSavedPopup />
+      <UserPostPopup />
+      <RepostPopup />
     </div>
   );
 };
