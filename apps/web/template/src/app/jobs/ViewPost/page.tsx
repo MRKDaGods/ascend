@@ -1,5 +1,5 @@
 "use client";
-import { usepJobStore } from "../JobPosting/store/usepJobStore";
+import { usepJobStore } from "../../stores/usepJobStore";
 import {
   Box,
   Typography,

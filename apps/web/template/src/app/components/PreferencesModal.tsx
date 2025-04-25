@@ -7,9 +7,9 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { usePreferencesModal } from "../store/usePreferencesModal";
-import MainPreferencesPage from "./PreferencesViews/MainPreferencesPage";
-import OpenToWorkModal from "./PreferencesViews/OpenToWorkPage";
+import { usePreferencesModal } from "../stores/usePreferencesModal";
+import MainPreferencesPage from "../jobs/PreferencesViews/MainPreferencesPage";
+import OpenToWorkModal from "../jobs/PreferencesViews/OpenToWorkPage";
 //add more views here 
 
 export default function PreferencesModal() {

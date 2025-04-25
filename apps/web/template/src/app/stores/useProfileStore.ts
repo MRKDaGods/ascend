@@ -1,9 +1,20 @@
-import { Profile } from "@ascend/api-client/models";
-import { create } from "zustand";
+import { create } from "zustand"; //Hana's store
+
+interface UserData {
+  id: string;
+  name: string;
+  role: string;
+  location: string;
+  profilePhoto: string;
+  coverPhoto: string;
+  entity: string;
+  entityLink: string;
+  opentowork: boolean;
+}
 
 interface ProfileState {
-  userData: Profile | null;
-  setUserData: (data: Profile) => void;
+  userData: UserData | null;
+  setUserData: (data: UserData) => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({

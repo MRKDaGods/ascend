@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 
 import Navbar from "@/app/components/Navbar";
-import ProfileCard from "@/app/components/ProfileCard";
+import ProfileCard from "@/app/components/ProfileCardJobs";
 import NotificationCard from "@/app/components/NotificationCard";
 import SettingsCard from "@/app/components/SettingsCard";
 import Footer from "@/app/components/Footer";

@@ -9,7 +9,7 @@ import {
   Grid,
 } from "@mui/material";
 import { useState } from "react";
-import { usepJobStore } from "../store/usepJobStore";
+import { usepJobStore } from "../stores/usepJobStore";
 import { useIsClient } from "../hooks/useIsClient";
 import CompanyEmailModal from "./CompanyEmailModal";
 import PostJobPopUp from "../components/PostPopUp";

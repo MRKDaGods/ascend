@@ -1,56 +1,55 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Avatar,
-  Skeleton,
-  Alert,
-  useTheme,
-} from "@mui/material";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Card, CardContent, Typography, Box, Avatar, Skeleton, Alert } from "@mui/material";
 import { useProfileStore } from "../stores/useProfileStore";
-import { Profile } from "@ascend/api-client/models";
 
 const ProfileCard: React.FC = () => {
-  const theme = useTheme();
-  const userData = useProfileStore((state) => state.userData) as Profile | null;
-  const isLoading = !userData;
-  const error = null;
+  const { userData, setUserData } = useProfileStore();
+  const [isLoading, setIsLoading] = useState(!userData); // Only load if no data
+  const [error, setError] = useState<string | null>(null);
 
-  const profileImg = userData?.profile_picture_url || "/default-avatar.jpg";
-  const coverImg = userData?.cover_photo_url || "/default-cover.jpg";
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "";
-  const isOpenToWork = true;
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/user");
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
+        setError("Failed to fetch user data. Please try again.");
+        console.error("Error fetching user data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const currentExperience = userData?.experience?.sort((a, b) => {
-    const dateA = a.end_date ? new Date(a.end_date) : new Date();
-    const dateB = b.end_date ? new Date(b.end_date) : new Date();
-    return dateB.getTime() - dateA.getTime();
-  })[0];
+    if (!userData) {
+      fetchUserData();
+    }
+  }, [userData, setUserData]);
 
-  const currentRole = currentExperience?.position;
-  const currentCompany = currentExperience?.company;
+  const profileImg = userData?.profilePhoto || "/default-avatar.jpg";
+  const coverImg = userData?.coverPhoto || "/default-cover.jpg";
+  const isOpenToWork = userData?.opentowork;
 
   return (
-    <Link href="/profile" style={{ textDecoration: "none", color: "inherit", width: "100%" }}>
+    <Link href="/profile" style={{ textDecoration: "none", color: "inherit" }}>
       <Card
         sx={{
+          maxWidth: 300,
           width: "100%",
-          maxWidth: "280px",
           minHeight: 180,
           borderRadius: 3,
           overflow: "hidden",
           boxShadow: 3,
-          backgroundColor: theme.palette.background.paper,
-          color: theme.palette.text.primary,
+          backgroundColor: "white",
+          mt: 2,
         }}
       >
         {error && <Alert severity="error">{error}</Alert>}
 
-        {/* Cover */}
         <Box sx={{ width: "100%", height: 120, position: "relative" }}>
           {isLoading ? (
             <Skeleton variant="rectangular" width="100%" height={120} />
@@ -58,12 +57,12 @@ const ProfileCard: React.FC = () => {
             <img
               src={coverImg}
               alt="Cover Image"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{ width: "100%", height: "50%", objectFit: "cover" }}
+              onError={(e) => ((e.target as HTMLImageElement).src = "/default-cover.jpg")}
             />
           )}
         </Box>
 
-        {/* Profile Section */}
         <CardContent sx={{ textAlign: "left", position: "relative", mt: -6, px: 2 }}>
           {isLoading ? (
             <Skeleton variant="circular" width={80} height={80} sx={{ mt: -5 }} />
@@ -71,13 +70,9 @@ const ProfileCard: React.FC = () => {
             <Box sx={{ position: "relative", display: "inline-block" }}>
               <Avatar
                 src={profileImg}
-                alt={fullName || "User"}
-                sx={{
-                  width: 80,
-                  height: 80,
-                  border: `3px solid ${theme.palette.background.paper}`,
-                  mt: -5,
-                }}
+                alt={userData?.name || "User"}
+                sx={{ width: 80, height: 80, border: "3px solid white", mt: -5 }}
+                onError={(e) => ((e.target as HTMLImageElement).src = "/default-avatar.jpg")}
               />
               {isOpenToWork && (
                 <Box
@@ -103,7 +98,6 @@ const ProfileCard: React.FC = () => {
             </Box>
           )}
 
-          {/* Info */}
           {isLoading ? (
             <>
               <Skeleton width="60%" sx={{ mt: 2 }} />
@@ -113,16 +107,14 @@ const ProfileCard: React.FC = () => {
           ) : (
             userData && (
               <>
-                <Typography variant="h6" fontWeight={600} sx={{ mt: 1 }}>
-                  {fullName}
+                <Typography variant="h6" fontWeight={600} sx={{ mt: 1, color: "black" }}>
+                  {userData.name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {currentRole && currentCompany
-                    ? `${currentRole} at ${currentCompany}`
-                    : "No current position"}
+                  {userData.role} at {userData.entity}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {userData.location || "No location specified"}
+                  {userData.location}
                 </Typography>
               </>
             )

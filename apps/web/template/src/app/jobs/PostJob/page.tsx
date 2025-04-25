@@ -1,6 +1,6 @@
 // pages/hire.tsx
 
-import HireCard from "../PostJob/components/HireCard";
+import HireCard from "../../components/HireCard";
 
 export default function HirePage() {
   return <HireCard />;

@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useRouter } from 'next/navigation';
-import { usepJobStore } from '../store/usepJobStore';
+import { usepJobStore } from '../stores/usepJobStore';
 const SaveJobPopup = () => {
   const {
     savedJobPopupOpen,

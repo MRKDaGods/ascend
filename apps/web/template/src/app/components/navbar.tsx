@@ -1,262 +1,246 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   AppBar,
   Toolbar,
   IconButton,
+  InputBase,
+  Box,
   Avatar,
+  Badge,
+  Button,
+  Tooltip,
   Menu,
   MenuItem,
-  Typography,
-  Box,
-  CircularProgress,
-  TextField,
-  Button,
-  List,
-  ListItem,
+  Divider,
   ListItemText,
-  Paper,
+  ListItemIcon,
+  Typography,
 } from "@mui/material";
-import { Home, Work, Chat, Notifications } from "@mui/icons-material";
-import { useSearchStore } from "../store/useSearchStore";
-import { useRouter } from "next/navigation";
+import { styled, useTheme } from "@mui/material/styles";
+import {
+  Home,
+  People,
+  Work,
+  Message,
+  Notifications,
+  Search,
+  ExpandMore,
+  DarkMode,
+  LightMode,
+} from "@mui/icons-material";
+import { useThemeStore } from "../stores/useThemeStore";
+import { useRouter, usePathname } from "next/navigation";
+import { useMenuStore } from "../stores/useMenuStore";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { useNotificationStore } from "../stores/useNotificationStore";
 
-interface UserData {
-  name: string;
-  profilePhoto: string;
-  coverPhoto: string;
-  role: string;
-  entity: string;
-  location: string;
-}
+// 🔍 Glassy search bar
+const SearchBar = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: "30px",
+  padding: "6px 14px",
+  marginLeft: 20,
+  width: "270px",
+}));
 
-const jobTitles = [
-  "Software Engineer", "Product Manager", "Data Scientist", "UX Designer",
-  "Full Stack Developer", "Frontend Developer", "Backend Developer",
-  "Project Manager", "QA Engineer", "DevOps Engineer", "Sales Manager",
-  "Marketing Manager", "Business Analyst", "Graphic Designer", "Data Analyst",
-  "System Administrator", "Network Engineer", "Database Administrator",
-  "Web Developer", "Mobile Developer"
-];
+// 🎯 Active nav highlight
+const NavIconButton = styled(IconButton, {
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active: boolean }>(({ theme, active }) => ({
+  padding: 10,
+  borderRadius: "12px",
+  backgroundColor: active
+    ? theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.1)"
+      : "#f0f0f0"
+    : "transparent",
+  transition: "all 0.2s ease-in-out",
+  "&:hover": {
+    transform: "scale(1.1)",
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.05)"
+        : "#eaeaea",
+  },
+}));
 
 const Navbar: React.FC = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isClient, setIsClient] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [searchParams, setSearchParams] = useState({ title: "", location: "" });
-  const [isTitleFocused, setIsTitleFocused] = useState(false);
-  const [filteredTitles, setFilteredTitles] = useState<string[]>([]);
-  const { recentSearches, addSearch } = useSearchStore();
-  const open = Boolean(anchorEl);
+  const { theme, toggleTheme } = useThemeStore();
+  const muiTheme = useTheme();
   const router = useRouter();
-
-  useEffect(() => {
-    setIsClient(true);
-
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/user");
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const data: UserData = await response.json();
-        setUserData(data);
-        setSearchParams((prev) => ({
-          ...prev,
-          location: data.location || "",
-        }));
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSearchParams((prev) => ({ ...prev, [name]: value }));
-
-    if (name === "title") {
-      const filtered = jobTitles.filter((title) =>
-        title.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredTitles(filtered);
-    }
-  };
-
-  const handleSearch = () => {
-    addSearch({ job: searchParams.title, location: searchParams.location });
-    router.push(
-      `/search?keyword=${searchParams.title}&location=${searchParams.location}&industry&experience_level=&company=&salary_range_min&salary_range_max&page=1`
-    );
-  };
-
-  if (!isClient) return null;
+  const pathname = usePathname();
+  const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
+  const openMenu = Boolean(anchorEl);
+  const { notifications } = useNotificationStore();
+  const unseenCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <AppBar position="fixed" color="default" sx={{ boxShadow: 1 }}>
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Logo */}
-        <Typography variant="h6" sx={{ fontWeight: "bold", fontFamily: "'Segoe UI', sans-serif" }}>
-          ASCEND
-        </Typography>
-
-        {/* Search Bar */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "#f3f4f6",
-            borderRadius: "24px",
-            px: 2,
-            py: 0.5,
-            gap: 1.5,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            flexGrow: 1,
-            maxWidth: 700,
-            mx: 2,
-            position: "relative",
-          }}
-        >
-          <TextField
-            name="title"
-            placeholder="Job title or skill"
-            variant="standard"
-            value={searchParams.title}
-            onChange={handleSearchChange}
-            onFocus={() => setIsTitleFocused(true)}
-            onBlur={() => setTimeout(() => setIsTitleFocused(false), 200)}
-            InputProps={{
-              disableUnderline: true,
-              sx: { fontSize: "0.9rem", px: 1.5, py: 0.75 },
-            }}
-            sx={{ flex: 1 }}
-          />
-          {isTitleFocused && (recentSearches.length > 0 || filteredTitles.length > 0) && (
-            <Paper
+    <AppBar
+      elevation={0}
+      sx={{
+        backgroundColor: muiTheme.palette.background.paper,
+        color: muiTheme.palette.text.primary,
+        borderBottom: `1px solid ${muiTheme.palette.divider}`,
+        position: "sticky",
+      }}
+    >
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
+        {/* 🔹 LEFT */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <img src="/logoIcon.png" alt="Ascend" style={{ height: 36, borderRadius: 6 }} />
+          <SearchBar>
+            <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
+            <InputBase
+              placeholder="Search for jobs, people..."
               sx={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
-                zIndex: 10,
-                maxHeight: 200,
-                overflowY: "auto",
-                mt: 1,
-                boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                color: muiTheme.palette.text.primary,
+                fontSize: "0.85rem",
+                width: "100%",
               }}
-            >
-              <List>
-                {filteredTitles.length > 0 && (
-                  <div>
-                    <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Suggested Titles</Typography>
-                    {filteredTitles.map((title, index) => (
-                      <ListItem
-                        key={index}
-                        component="div"
-                        onClick={() => {
-                          setSearchParams((prev) => ({ ...prev, title })); // Update the title field
-                          setIsTitleFocused(false);
-                        }}
-                        sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
-                      >
-                        <ListItemText primary={title} />
-                      </ListItem>
-                    ))}
-                  </div>
-                )}
+            />
+          </SearchBar>
+        </Box>
 
-                {recentSearches.length > 0 && (
-                  <div>
-                    <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Recent Searches</Typography>
-                    {recentSearches.map((search, index) => (
-                      <ListItem
-                        key={index}
-                        component="div"
-                        onClick={() => {
-                          setSearchParams((prev) => ({ ...prev, title: search.job, location: search.location })); // Update both title and location
-                          setIsTitleFocused(false);
-                        }}
-                        sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
-                      >
-                        <ListItemText primary={search.job} secondary={search.location} />
-                      </ListItem>
-                    ))}
-                  </div>
+        {/* 🔹 CENTER */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          {[
+            { icon: <Home />, route: "/feed", label: "Home" },
+            { icon: <People />, route: "/network", label: "My Network" },
+            { icon: <Work />, route: "/jobs", label: "Jobs" },
+            { icon: <Message />, route: "/chat", label: "Messaging" },
+            { icon: <Notifications />, route: "/notif", label: "Notifications" },
+          ].map(({ icon, route, label }, i) => (
+            <Tooltip key={i} title={label}>
+              <NavIconButton onClick={() => router.push(route)} active={pathname === route}>
+                {label === "Notifications" && unseenCount > 0 ? (
+                  <Badge badgeContent={unseenCount} color="error">
+                    {React.cloneElement(icon, {
+                      sx: { color: muiTheme.palette.text.secondary },
+                    })}
+                  </Badge>
+                ) : (
+                  React.cloneElement(icon, {
+                    sx: { color: muiTheme.palette.text.secondary },
+                  })
                 )}
-              </List>
-            </Paper>
-          )}
+              </NavIconButton>
+            </Tooltip>
+          ))}
+        </Box>
 
-          <TextField
-            name="location"
-            placeholder="Location"
-            variant="standard"
-            value={searchParams.location}
-            onChange={handleSearchChange}
-            InputProps={{
-              disableUnderline: true,
-              sx: { fontSize: "0.9rem", px: 1.5, py: 0.75 },
+        {/* 🔹 RIGHT */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+            <IconButton onClick={toggleTheme}>
+              {theme === "dark" ? (
+                <LightMode sx={{ color: "#ffeb3b" }} />
+              ) : (
+                <DarkMode sx={{ color: "#333" }} />
+              )}
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Me">
+            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <Avatar
+                src="/man.jpg"
+                sx={{
+                  border: `2px solid ${theme === "dark" ? "#fff" : "#000"}`,
+                  transition: "0.3s",
+                  "&:hover": { transform: "scale(1.1)" },
+                }}
+              />
+            </IconButton>
+          </Tooltip>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={closeMenu}
+            PaperProps={{
+              elevation: 6,
+              sx: {
+                mt: 1.5,
+                borderRadius: 3,
+                background: muiTheme.palette.background.paper,
+                color: muiTheme.palette.text.primary,
+              },
             }}
-            sx={{ flex: 1 }}
-          />
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <Box px={2} py={2} textAlign="center">
+              <Avatar src="/man.jpg" sx={{ width: 58, height: 58, mx: "auto" }} />
+              <Typography fontWeight={600} mt={1}>Developing Ascend</Typography>
+              <Button
+                
+                onClick={() => {
+                  closeMenu();
+                  router.push("/profile")}
+                }
+                variant="outlined"
+                fullWidth
+                sx={{ mt: 1.5, borderRadius: "999px", textTransform: "none" }}
+              >
+                View Profile
+              </Button>
+            </Box>
+
+            <Divider />
+            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+              Account
+            </Typography>
+            <MenuItem><ListItemText>Try Premium</ListItemText></MenuItem>
+            <MenuItem>
+              <ListItemText onClick={() => router.push("/authen/Settings")}>Settings & Privacy</ListItemText>
+              <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+            </MenuItem>
+
+            <Divider />
+            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+              Manage
+            </Typography>
+            <MenuItem><ListItemText>Posts & Activity</ListItemText></MenuItem>
+            <MenuItem><ListItemText>Job Posting Account</ListItemText></MenuItem>
+
+            <Divider />
+            <MenuItem onClick={closeMenu}>
+              <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+              <ListItemText onClick={() => router.push("/authen")}
+              >Sign Out</ListItemText>
+            </MenuItem>
+          </Menu>
+
+          <Button
+            sx={{ color: muiTheme.palette.text.primary, textTransform: "none", fontWeight: 500 }}
+            endIcon={<ExpandMore />}
+          >
+            For Business
+          </Button>
 
           <Button
             variant="contained"
-            onClick={handleSearch}
             sx={{
-              borderRadius: "999px",
+              backgroundColor: "#FFC107",
+              color: "#000",
               textTransform: "none",
-              px: 3,
-              py: 1,
-              fontWeight: 500,
-              fontSize: "0.875rem",
-              backgroundColor: "#0a66c2",
-              ":hover": { backgroundColor: "#004182" },
+              borderRadius: "999px",
+              fontWeight: 600,
+              px: 2.5,
+              "&:hover": {
+                backgroundColor: "#D4AF37 ",
+              },
             }}
           >
-            Search
+            Try Premium Free
           </Button>
         </Box>
-
-        {/* Right: Icons & Profile */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <IconButton><Home /></IconButton>
-          <IconButton><Work /></IconButton>
-          <IconButton><Chat /></IconButton>
-          <IconButton><Notifications /></IconButton>
-        </Box>
-
-        {userData ? (
-          <>
-            <IconButton onClick={handleMenuOpen}>
-              <Avatar src={userData.profilePhoto} alt={userData.name} sx={{ width: 36, height: 36 }} />
-            </IconButton>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-              <MenuItem disabled>
-                <Typography variant="body1" fontWeight="bold">{userData.name}</Typography>
-              </MenuItem>
-              <MenuItem disabled>
-                <Typography variant="body2" color="textSecondary">
-                  {userData.role} at {userData.entity}
-                </Typography>
-              </MenuItem>
-              <MenuItem onClick={handleMenuClose}>View Profile</MenuItem>
-              <MenuItem onClick={handleMenuClose}>Settings & Privacy</MenuItem>
-              <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
-            </Menu>
-          </>
-        ) : (
-          <CircularProgress size={24} />
-        )}
       </Toolbar>
     </AppBar>
   );

@@ -10,7 +10,7 @@ import {
   Box,
   Autocomplete,
 } from "@mui/material";
-import { usepJobStore } from "@/app/JobPosting/store/usepJobStore";
+import { usepJobStore } from "@/app/stores/usepJobStore";
 
 const jobTitles = [
   "Software Engineer",

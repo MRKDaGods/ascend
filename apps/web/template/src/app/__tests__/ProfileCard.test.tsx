@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import ProfileCard from "../components/ProfileCard"; // Import only
+import ProfileCard from "../components/ProfileCardJobs"; // Import only
 
 interface ProfileCardProps {
   userData: {

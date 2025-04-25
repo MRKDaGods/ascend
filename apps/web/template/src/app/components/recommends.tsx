@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import { useSearchStore } from "../store/useSearchStore";
+import { useSearchStore } from "../stores/useSearchStore";
 import{useEffect} from "react";
 
 

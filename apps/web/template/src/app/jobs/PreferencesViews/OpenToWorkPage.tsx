@@ -15,7 +15,7 @@ import {
   ToggleButtonGroup
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { usePreferencesModal } from '../../store/usePreferencesModal';
+import { usePreferencesModal } from '../../stores/usePreferencesModal';
 
 const MAX_JOB_TITLES = 5;
 
