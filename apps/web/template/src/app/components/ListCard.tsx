@@ -18,8 +18,8 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import InsightsIcon from "@mui/icons-material/InsertChart";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 
-import { useProfileStore } from "../store/useProfileStore";
-import { usePreferencesModal } from "../store/usePreferencesModal";
+import { useProfileStore } from "../stores/useProfileStore";
+import { usePreferencesModal } from "../stores/usePreferencesModal";
 import PreferencesModal from "./PreferencesModal";
 
 const ListCard = () => {

@@ -7,7 +7,7 @@ import {
   Grid,
   Chip,
 } from '@mui/material';
-import { useJobFilterStore } from '../store/useJobFilterStore';
+import { useJobFilterStore } from '../stores/useJobFilterStore';
 
 const AllJobList = () => {
   const { jobs, filters } = useJobFilterStore();

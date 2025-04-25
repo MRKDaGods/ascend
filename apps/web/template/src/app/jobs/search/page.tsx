@@ -15,7 +15,7 @@ import {
   Fade,
   Paper,
 } from '@mui/material';
-import Navbar from '../components/navbar';
+import Navbar from '../../components/Navbar';
 
 interface Job {
   job_id: number;

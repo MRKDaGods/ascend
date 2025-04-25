@@ -7,7 +7,7 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
-import { useJobFilterStore } from '../store/useJobFilterStore';
+import { useJobFilterStore } from '../stores/useJobFilterStore';
 
 const experienceLevels = ['Entry', 'Mid', 'Senior'];
 const salaryRanges = ['0-5000', '5000-10000', '10000-20000', '20000+'];

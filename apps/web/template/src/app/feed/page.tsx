@@ -7,7 +7,7 @@ import { useTheme } from "@mui/material/styles";
 import Navbar from "../components/Navbar";
 import CreatePost from "../components/CreatePost";
 import ConnectionPost from "../components/ConnectionPost";
-import ProfileCard from "../components/ProfileCard";
+import ProfileCard from "../components/ProfileCardJobs";
 import JobsCard from "../components/JobsCard";
 import Footer from "../components/Footer";
 import ConnectionsCard from "../components/ConnectionsRoute";

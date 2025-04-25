@@ -1,10 +1,10 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
-import FilterSidebar from './components/FilterSidebar';
-import AllJobList from './components/AllJobList';
-import { useJobFilterStore } from './store/useJobFilterStore';
-import { fetchJobs } from '../lib/api';
+import FilterSidebar from '../../components/FilterSidebar';
+import AllJobList from '../../components/AllJobList';
+import { useJobFilterStore } from '../../stores/useJobFilterStore';
+import { fetchJobs } from '../../lib/api';
 
 const AllJobsPage = () => {
   const { setJobs } = useJobFilterStore();

@@ -9,8 +9,8 @@ import {
   Box,
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import { usePreferencesModal } from "../../store/usePreferencesModal";
-import { useProfileStore } from "../../store/useProfileStore";
+import { usePreferencesModal } from "../../stores/usePreferencesModal";
+import { useProfileStore } from "../../stores/useProfileStore";
 
 const MainPreferencesPage = () => {
   const { setView } = usePreferencesModal();

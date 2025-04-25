@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import { fetchJobs } from "../lib/api";
+import { fetchJobs } from "@/api/jobs";
 
 interface JobType {
   job_id: number;
