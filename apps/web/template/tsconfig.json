@@ -1,26 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "types": [
-      "jest",
-      "@testing-library/jest-dom"
-    ],
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "allowSyntheticDefaultImports": true,
     "incremental": true,
     "plugins": [
       {
@@ -28,21 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*",
-      ]
-    }
+      "@/*": ["src/*"]
+    },
+    "baseUrl": "."
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/app/babel.config.cjs",
-    "src/app/jest.config.js",
-    "src", 
-    "src/types",
-    "next-env.d.ts", "**/*.ts", "**/*.tsx"
-, "src/app/components/DocumentPreview.tsx"  ],
-  "exclude": ["node_modules", ".next"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
