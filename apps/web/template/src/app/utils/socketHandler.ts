@@ -6,7 +6,7 @@ export const socket = io(
   { autoConnect: false }
 );
 
-// ✅ SAFE VERSION: No zustand calls inside
+
 export function handleIncomingMessage(
   newMessage: Message,
   selectedConversationId: number | null,
