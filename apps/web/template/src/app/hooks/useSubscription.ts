@@ -1,6 +1,6 @@
 // hooks/useSubscription.ts
 import { useEffect, useState } from "react";
-import { fetchPlans } from "@/lib/api";
+import { fetchPlans } from "@/api/prem";
 
 export function useSubscription<T>() {
   const [plans, setPlans] = useState<T[]>([]);
