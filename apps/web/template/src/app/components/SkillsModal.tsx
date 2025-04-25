@@ -7,52 +7,29 @@ interface SkillsModalProps {
 }
 
 interface Skill {
-  id?: number; // Optional id for each skill
+  id?: number;
   name: string;
 }
 
+const suggestedSkills = [
+  "Training", "Presentations", "Customer Service", "Business Operations",
+  "Business Management", "Education", "English", "Business"
+];
+
 const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [skillsForm, setSkillsForm] = useState<Skill[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      fetch("http://localhost:3002/skills")
-        .then((response) => {
-          if (!response.ok) throw new Error("Failed to fetch skills");
-          return response.json();
-        })
-        .then((data: Skill[]) => setSkillsForm(data))
-        .catch((error) => setError(error.message));
-    }
-  }, [isOpen]);
-
-  const handleAddSkill = () => {
-    const newSkill: Skill = { name: "" };
-    setSkillsForm([...skillsForm, newSkill]);
-  };
-
-  const handleUpdateSkill = (index: number, value: string) => {
-    const updatedSkills = [...skillsForm];
-    updatedSkills[index].name = value;
-    setSkillsForm(updatedSkills);
-  };
-
-  const handleRemoveSkill = (index: number) => {
-    const updatedSkills = [...skillsForm];
-    updatedSkills.splice(index, 1);
-    setSkillsForm(updatedSkills);
-  };
+  const [skillsForm, setSkillsForm] = useState<Skill>({ name: "" });
+  const [allSkills, setAllSkills] = useState<Skill[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   const handleSave = () => {
-    if (skillsForm.some((skill) => !skill.name.trim())) {
-      alert("All skills must have a name.");
-      return;
-    }
-
-    onSave(skillsForm.map((skill, index) => ({ ...skill, id: skill.id || index + 1 }))); // Ensure each skill has an id
-    setSkillsForm([]);
+    if (!skillsForm.name.trim()) return;
+    onSave([{ ...skillsForm, id: Date.now() }]);
+    setSkillsForm({ name: "" });
     onClose();
+  };
+
+  const handleSuggestionClick = (skillName: string) => {
+    setSkillsForm({ name: skillName });
   };
 
   if (!isOpen) return null;
@@ -65,150 +42,129 @@ const SkillsModal: React.FC<SkillsModalProps> = ({ isOpen, onClose, onSave }) =>
         left: 0,
         width: "100%",
         height: "100%",
-        background: "rgba(0, 0, 0, 0.3)",
+        background: "rgba(0,0,0,0.3)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         zIndex: 1000,
       }}
-      id="skills-modal-overlay"
     >
       <div
         style={{
+          width: "550px",
           background: "white",
-          padding: "20px",
-          width: "500px",
-          borderRadius: "10px",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+          borderRadius: "8px",
+          padding: "24px",
+          boxShadow: "0px 4px 12px rgba(0,0,0,0.15)",
           fontFamily: "Arial, sans-serif",
         }}
-        id="skills-modal"
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: "20px" }} id="skills-modal-title">
-            Manage Skills
-          </h2>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>Add skill</h2>
           <button
             onClick={onClose}
             style={{
+              fontSize: "22px",
               background: "none",
               border: "none",
-              fontSize: "24px",
               cursor: "pointer",
+              lineHeight: 1,
             }}
-            id="skills-modal-close-button"
           >
             ×
           </button>
         </div>
 
-        {error && (
-          <p
-            style={{ color: "red", fontSize: "13px", marginTop: "5px" }}
-            id="skills-modal-error"
+        {/* Input */}
+        <label style={{ fontSize: "12px", marginTop: "20px", display: "block", color: "#666" }}>
+          Skill*
+        </label>
+        <input
+          type="text"
+          value={skillsForm.name}
+          onChange={(e) => setSkillsForm({ name: e.target.value })}
+          placeholder="Skill (ex: Project Management)"
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginTop: "5px",
+            fontSize: "14px",
+            border: "1px solid #ccc",
+            borderRadius: "6px",
+            outline: "none",
+          }}
+        />
+
+        {/* Suggestions */}
+        {showSuggestions && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "16px",
+              backgroundColor: "#f3f6f8",
+              borderRadius: "8px",
+              border: "1px solid #e0e0e0",
+              position: "relative",
+            }}
           >
-            {error}
-          </p>
+            <div style={{ fontSize: "14px", fontWeight: 500, marginBottom: "10px" }}>
+              Suggested based on your profile
+            </div>
+            <button
+              onClick={() => setShowSuggestions(false)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                background: "none",
+                border: "none",
+                fontSize: "16px",
+                cursor: "pointer",
+              }}
+            >
+              ×
+            </button>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {suggestedSkills.map((skill) => (
+                <button
+                  key={skill}
+                  onClick={() => handleSuggestionClick(skill)}
+                  style={{
+                    padding: "6px 14px",
+                    fontSize: "13px",
+                    border: "1px solid #666",
+                    borderRadius: "20px",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  {skill}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
-        <div id="skills-list">
-          {skillsForm.map((skill, index) => (
-            <div
-              key={index}
-              style={{
-                marginBottom: "10px",
-                padding: "10px",
-                border: "1px solid #eee",
-                display: "flex",
-                alignItems: "center",
-              }}
-              id={`skill-item-${index}`}
-            >
-              <input
-                type="text"
-                id={`skill-input-${index}`}
-                value={skill.name}
-                onChange={(e) => handleUpdateSkill(index, e.target.value)}
-                placeholder="Skill name"
-                style={{ flex: 1, padding: "8px", marginRight: "10px" }}
-              />
-              <button
-                onClick={() => handleRemoveSkill(index)}
-                style={{
-                  color: "red",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-                id={`remove-skill-button-${index}`}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-
+        {/* Save Button */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
           <button
-            onClick={handleAddSkill}
+            onClick={handleSave}
             style={{
-              padding: "8px 15px",
-              background: "#4CAF50",
+              backgroundColor: "#0a66c2",
               color: "white",
               border: "none",
-              borderRadius: "4px",
+              padding: "10px 20px",
+              fontSize: "14px",
+              borderRadius: "20px",
               cursor: "pointer",
-              marginTop: "10px",
+              fontWeight: "bold",
             }}
-            id="add-skill-button"
           >
-            Add Skill
+            Save
           </button>
         </div>
-
-        <button
-          onClick={handleSave}
-          style={{
-            background: "#0073b1",
-            color: "white",
-            padding: "10px 16px",
-            border: "none",
-            borderRadius: "20px",
-            fontSize: "14px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            marginTop: "15px",
-          }}
-          id="save-skills-button"
-        >
-          Save All
-        </button>
       </div>
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  const [isSkillsOpen, setIsSkillsOpen] = useState(false);
-
-  return (
-    <div>
-      <button
-        className="add-skills-button"
-        onClick={() => setIsSkillsOpen(true)}
-        id="open-skills-modal-button"
-      >
-        Add skills
-      </button>
-      <SkillsModal
-        isOpen={isSkillsOpen}
-        onClose={() => setIsSkillsOpen(false)}
-        onSave={(skills) => console.log("Saved skills:", skills)}
-      />
     </div>
   );
 };
