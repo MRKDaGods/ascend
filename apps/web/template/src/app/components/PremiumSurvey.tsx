@@ -15,7 +15,7 @@ import {
   Divider,
 } from "@mui/material";
 import { deepOrange, green } from "@mui/material/colors";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const question1 = {
   question: "Which of these best describes your primary goal for using Premium?",
@@ -48,7 +48,7 @@ const PremiumSurvey = () => {
   const [step, setStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [subOptions, setSubOptions] = useState<string[]>([]);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const router = useRouter(); // Initialize useRouter
   const totalSteps = 2;
 
   const progress = ((step + 1) / (totalSteps + 1)) * 100; // Adjust progress calculation
@@ -68,11 +68,11 @@ const PremiumSurvey = () => {
         setStep(1);
         setSelectedOption("");
       } else if (selectedOption === "Other") {
-        navigate("/premium"); // Navigate directly to the premium page
+        router.push("/premium"); // Navigate directly to the premium page
       }
     } else if (step === 1) {
       // Navigate to the premium page after completing the survey
-      navigate("/premium");
+      router.push("/premium");
     }
   };
 

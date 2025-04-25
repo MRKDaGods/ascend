@@ -225,6 +225,7 @@ const Navbar: React.FC = () => {
           </Button>
 
           <Button
+          onClick={() => router.push("/premium")}
             variant="contained"
             sx={{
               backgroundColor: "#FFC107",
