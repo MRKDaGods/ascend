@@ -1,37 +1,34 @@
+// company/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 import CompanyForm from '@/app/components/CompanyForm';
 import CompanyPreview from '@/app/components/CompanyPreview';
 import BackButton from '@/app/components/BackButton';
+import { useCompanyStore } from '@/app/stores/useCompanyStore';
 
 const CreateCompanyPage = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    url: '',
-    website: '',
-    industry: '',
-    size: '',
-    type: '',
-    tagline: '',
-  });
-
   const [logo, setLogo] = useState<File | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (logo) {
-      const url = URL.createObjectURL(logo);
-      setLogoUrl(url);
+  const {
+    name, url, website, industry, size, location, description, type, tagline,
+  } = useCompanyStore();
 
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [logo]);
+  const formData = {
+    name,
+    url,
+    website,
+    industry,
+    size,
+    location,
+    description,
+    type,
+    tagline,
+  };
 
   return (
-    <Box p={4} sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}> {/* Ensure full page height */}
-      {/* White bar at the very top */}
+    <Box p={4} sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>
       <Box
         display="flex"
         alignItems="center"
@@ -42,7 +39,7 @@ const CreateCompanyPage = () => {
           position: 'absolute',
           top: 0,
           left: 0,
-          zIndex: 1000,  // Keep it on top of other content
+          zIndex: 1000,
         }}
       >
         <BackButton />
@@ -51,19 +48,16 @@ const CreateCompanyPage = () => {
         </Typography>
       </Box>
 
-      <Grid container spacing={4} sx={{ pt: 8 }}> {/* Add padding top to push content below the bar */}
-        <Grid item xs={12} md={6}> {/* 50% width on medium screens and above */}
-          <CompanyForm
-            formData={formData}
-            setFormData={setFormData}
-            setLogo={setLogo}
-          />
+      <Grid container spacing={4} sx={{ pt: 8 }}>
+        <Grid item xs={12} md={6}>
+          {/* No props needed here */}
+          <CompanyForm />
         </Grid>
-        <Grid item xs={12} md={6}> {/* 50% width on medium screens and above */}
+        <Grid item xs={12} md={6}>
           <Typography variant="subtitle1" mb={1}>
             Page preview
           </Typography>
-          <CompanyPreview formData={formData} logoUrl={logoUrl} />
+          <CompanyPreview formData={formData} />
         </Grid>
       </Grid>
     </Box>
