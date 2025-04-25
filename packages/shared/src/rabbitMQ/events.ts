@@ -1,28 +1,47 @@
-export const events = {
-  // ------User events------
+export enum Events {
+  // =======================AUTH-EVENTS=======================
+  AUTH_GET_ADMIN_RPC = "get_admin_rpc", // Admin get user RPC request
+  AUTH_FCM_TOKEN_RPC = "fcm_token_rpc", // Auth FCM token RPC request
 
-  // Called when a new user is created
-  // Auth -> User
-  USER_CREATED: "user.created",
+  // =======================USER-EVENTS=======================
+  USER_CREATED = "user_created", // A new user has been created
+  USER_PROFILE_PIC_RPC = "profile_pic_rpc", // User profile picture RPC request
+  USER_PROFILE_RPC = "profile_rpc", // User profile RPC request
 
-  // ------File events------
-  FILE_URL_RPC: "file.url_rpc",
-  FILE_UPLOAD_RPC: "file.upload_rpc",
-  FILE_DELETE: "file.delete",
+  // =======================FILE-EVENTS=======================
+  FILE_URL_RPC = "file_url_rpc",
+  FILE_UPLOAD_RPC = "file_upload_rpc",
+  FILE_DELETE = "file_delete",
+  FILE_METADATA_RPC = "file_metadata_rpc",
 
-  
-  // -------Job events---------------
-  JOB_CREATED : "job.created",
+  // ======================COMPANY-EVENTS=====================
+  COMPANY_ANNOUNCEMENT_CREATED = "company.announcement_created",
+  COMPANY_ANNOUNCEMENT_UPDATED = "company.announcement_updated",
+  GET_COMPANY_PROFILE = "company.company_profile",
+  GET_COMPANY_FOLLOWERS = "company.followers",
 
-  // -------Job application event----
-  JOB_APPLICATION_STATUS_UPDATED : "job_application.updated",
+  // ======================PAYMENT-EVENTS=====================
+  GET_USER_USAGE = "payment.user_usage"
 
-  // ---Company made announcement----
-  COMPANY_ANNOUNCEMENT : "company.announcement",
-  IS_COMPANY_CREATOR : "company.is_creator",
-  GET_COMPANY_FOLLOWERS : "company.followers"
+
 };
 
+/**
+ * Gets the queue name for the given event locally
+ */
 export const getQueueName = (event: string) => {
-  return `${event}.queue`;
+  // Each service has its own queue
+  const service = process.env.SERVICE_NAME;
+  if (!service) {
+    throw new Error("Missing required SERVICE_NAME environment variable");
+  }
+
+  return `${service}.${event}.queue`;
+};
+
+/**
+ * Gets the RPC queue name for the given service and event
+ */
+export const getRPCQueueName = (rpcHostService: string, event: string) => {
+  return `${rpcHostService}.${event}.queue`;
 };

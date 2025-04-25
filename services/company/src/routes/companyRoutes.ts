@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createAnnounementPost, createCompanyProfile, deleteAnnouncementPost, deleteCompanyProfile, followCompany, getAnnouncement, getCompaniesCreatedByUser, getCompanyAnalytics, getCompanyAnnouncements, getCompanyFollowers, getCompanyProfile, unfollowCompany, updateCompany} from "../controllers/companyController";
 import authenticateToken from "@shared/middleware/authMiddleware";
-import { announcementIdValidation, applicationIdValidation, companyIdValidation, createAnnouncementValidation, createCompanyValidation, createJobValidation, followValidation, jobIdValidation, limitAndPageValidation, updateCompanyValidation, updateJobApplicationValidation } from "../validations/companyValidation";
+import { announcementIdValidation, companyIdValidation, createAnnouncementValidation, createCompanyValidation, followValidation, limitAndPageValidation, updateAnnouncementValidation, updateCompanyValidation } from "../validations/companyValidation";
 const companyRoutes = Router();
 
 
@@ -14,6 +14,7 @@ companyRoutes.delete("/companies/:companyId", authenticateToken, companyIdValida
 companyRoutes.post("/companies/:companyId/announcements", authenticateToken, companyIdValidation, createAnnouncementValidation, createAnnounementPost);
 companyRoutes.get("/companies/:companyId/announcements", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyAnnouncements);
 companyRoutes.delete("/companies/:companyId/announcements/:announcementId", authenticateToken, companyIdValidation, announcementIdValidation, deleteAnnouncementPost);
+companyRoutes.patch("/companies/:companyId/announcements/:announcementId", authenticateToken, companyIdValidation, announcementIdValidation, updateAnnouncementValidation, updateCompany);
 companyRoutes.get("/companies/announcements/:announcementId", authenticateToken, announcementIdValidation, getAnnouncement);
 
 companyRoutes.get("/companies/:companyId/followers", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyFollowers);
