@@ -11,6 +11,13 @@
     "start": "npm run start --workspaces"
   },
   "devDependencies": {
-    "typescript": "^5.8.2"
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jsdom": "^26.1.0",
+    "semver": "^7.7.1",
+    "typescript": "^5.8.2",
+    "whatwg-fetch": "^3.6.20"
   }
 }
