@@ -15,15 +15,17 @@
     "@mui/material": "^6.4.8",
     "@mui/x-date-pickers": "^8.1.0",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.494.0",
-    "next": "15.2.2",
+    "next": "^15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/date-fns": "^2.5.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

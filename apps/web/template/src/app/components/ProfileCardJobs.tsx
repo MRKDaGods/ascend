@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, Typography, Box, Avatar, Skeleton, Alert } from "@mui/material";
 import { useProfileStore } from "../stores/useProfileStore";
 
-const ProfileCard: React.FC = () => {
+const ProfileCardJobs: React.FC = () => {
   const { userData, setUserData } = useProfileStore();
   const [isLoading, setIsLoading] = useState(!userData); // Only load if no data
   const [error, setError] = useState<string | null>(null);
@@ -125,4 +125,4 @@ const ProfileCard: React.FC = () => {
   );
 };
 
-export default ProfileCard;
+export default ProfileCardJobs;
