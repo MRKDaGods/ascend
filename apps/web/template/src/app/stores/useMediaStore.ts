@@ -5,6 +5,7 @@ interface MediaStoreState {
   mediaPreviews: string[];         // Preview URLs (string)
   editorOpen: boolean;             // Media editor popup state
   discardMediaDialogOpen: boolean; // Discard confirmation popup
+  mediaType: "image" | "video" | null;
 
   // Document-specific preview
   documentPreview: { url: string; title: string } | null;
@@ -17,7 +18,7 @@ interface MediaStoreState {
   clearAllMedia: () => void;
 
   // Editor control
-  openEditor: () => void;
+  openEditor: (type: "image" | "video") => void;
   closeEditor: () => void;
 
   // Discard popup control
@@ -35,6 +36,7 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
   editorOpen: false,
   discardMediaDialogOpen: false,
   documentPreview: null,
+  mediaType: null,
 
   // Set multiple media files
   setMediaFiles: (files: File[]) => {
@@ -71,7 +73,9 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
   clearAllMedia: () => set({ mediaFiles: [], mediaPreviews: [] }),
 
   // Editor dialog state
-  openEditor: () => set({ editorOpen: true }),
+  openEditor: (type) => {
+    set({ mediaType: type, editorOpen: true });
+  },
   closeEditor: () => set({ editorOpen: false }),
 
   // Discard media popup state

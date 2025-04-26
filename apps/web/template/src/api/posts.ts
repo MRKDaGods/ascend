@@ -72,24 +72,39 @@ export const fetchPost = async (
 };
 
 // ==== CREATE POST ====
-
 export const createPost = async (
   content: string,
   mediaUrl?: string,
-  mediaType?: "image" | "video"
+  mediaType?: "image" | "video" | "file",
+  fileTitle?: string,
+  fileDescription?: string
 ): Promise<AxiosResponse<CreatePostResponse>> => {
   const formData = new FormData();
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  if (mediaUrl) {
+  // PDF Document Upload
+  if (mediaUrl && mediaType === "file") {
     const response = await fetch(mediaUrl);
     const blob = await response.blob();
-    const ext = mediaType === "video" ? "mp4" : "jpg";
-    const file = new File([blob], `upload.${ext}`, { type: blob.type });
+    const file = new File([blob], "document.pdf", { type: "application/pdf" });
 
     formData.append("media", file);
-    formData.append("type", mediaType || "image");
+    formData.append("type", "file");
+    formData.append("title", fileTitle ?? "Untitled Document");
+    formData.append("description", fileDescription ?? "PDF file");
+
+  // Image or Video Upload
+  } else if (mediaUrl && (mediaType === "image" || mediaType === "video")) {
+    const response = await fetch(mediaUrl);
+    const blob = await response.blob();
+    const extension = mediaType === "video" ? "mp4" : "jpg";
+    const file = new File([blob], `upload.${extension}`, { type: blob.type });
+
+    formData.append("media", file);
+    formData.append("type", mediaType);
+
+  // Text-only post
   } else {
     formData.append("title", "text only");
     formData.append("description", "no media");
@@ -104,6 +119,7 @@ export const createPost = async (
 
   return res;
 };
+
 
 // ==== DELETE POST ====
 
