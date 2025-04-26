@@ -7,8 +7,9 @@ import ImageIcon from '@mui/icons-material/Image';
 import ArticleIcon from '@mui/icons-material/Article';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CreateCompanyPost from "../components/CreateCompanyPost";
 import { useState } from 'react';
-import { usePostStore, MediaFile, Post } from '@/app/stores/useCompanyPostStore';
+import { useCompanyPostStore, MediaFile, CompanyPost } from '@/app/stores/useCompanyPostStore';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 export default function PagePosts() {
@@ -23,7 +24,7 @@ export default function PagePosts() {
   const {
     addPost, addDraftMedia, removeDraftMedia, draftPost,
     posts, deletePost, setDraftPostContent, clearDraftPost
-  } = usePostStore();
+  } = useCompanyPostStore();
 
   const companyName = useCompanyStore((state) => state.name);
   const companyProfileImage = useCompanyStore((state) => state.profileImage);
@@ -49,7 +50,7 @@ export default function PagePosts() {
           media: draftPost.media,
         } : post
       );
-      usePostStore.setState({ posts: updatedPosts });
+      useCompanyPostStore.setState({ posts: updatedPosts });
       setIsEditing(false);
       setEditingPostId(null);
     } else {
@@ -61,10 +62,10 @@ export default function PagePosts() {
     setOpen(false);
   };
 
-  const handleEditPost = (post: Post) => {
+  const handleEditPost = (post: CompanyPost) => {
     setDraftPostContent(post.content);
     clearDraftPost(); // in case there's leftover media
-    usePostStore.setState({ draftPost: { content: post.content, media: [...post.media] } });
+    useCompanyPostStore.setState({ draftPost: { content: post.content, media: [...post.media] } });
     setIsEditing(true);
     setEditingPostId(post.id);
     setOpen(true);
@@ -89,8 +90,9 @@ export default function PagePosts() {
             <Tab label="Published" />
           </Tabs>
         </Paper>
+        <CreateCompanyPost />
 
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+        {/* <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
           <Box display="flex" alignItems="center" gap={2}>
             <Avatar src={companyProfileImage || undefined} />
             <TextField
@@ -126,7 +128,7 @@ export default function PagePosts() {
               <input type="file" accept="application/pdf,.doc,.docx" hidden multiple onChange={handleFileUpload('document')} />
             </Button>
           </Box>
-        </Paper>
+        </Paper> */}
 
         {posts.map((post) => (
           <Paper key={post.id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
