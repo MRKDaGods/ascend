@@ -16,16 +16,12 @@ import { usePostStore, PostType } from "../stores/usePostStore";
 import PostActions from "./PostActions";
 import Comment from "./Comment";
 import SaveandLink from "./SaveandLink";
-import DocumentPreview from "./DocumentPreview";
 
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const {
-    repostFromAPI,
-    postReactions,
-  } = usePostStore();
+  const { repostFromAPI, postReactions } = usePostStore();
 
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -71,7 +67,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Typography>
       </CardContent>
 
-      {/* Media Preview Logic */}
+      {/* Media Preview */}
       {post.image && !post.video && (
         <CardMedia
           component="img"
@@ -102,10 +98,24 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Box>
       )}
 
-      {/* PDF Document Preview */}
+      {/* PDF Preview */}
       {post.file && post.fileTitle && (
-        <Box sx={{ mt: 2 }}>
-          <DocumentPreview fileUrl={post.file} title={post.fileTitle} />
+        <Box sx={{ mt: 2, width: "100%" }}>
+          <iframe
+            src={post.file}
+            title={post.fileTitle}
+            style={{
+              width: "100%",
+              height: "500px",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+            }}
+          />
+          <Typography fontSize="0.8rem" color="text.secondary" textAlign="center" mt={1}>
+            <a href={post.file} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+              View or download {post.fileTitle}
+            </a>
+          </Typography>
         </Box>
       )}
 
@@ -130,7 +140,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Typography>
       </Box>
 
-      {/* Post Actions (Like, Comment, Repost) */}
+      {/* Actions */}
       <PostActions
         postId={post.id}
         liked={!!postReactions[post.id]}
@@ -140,7 +150,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         onCommentClick={() => setShowCommentInput(!showCommentInput)}
       />
 
-      {/* Comments Section */}
+      {/* Comments */}
       <Comment
         post={post}
         showCommentInput={showCommentInput}

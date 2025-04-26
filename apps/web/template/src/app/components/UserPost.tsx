@@ -82,6 +82,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           mx: "auto",
         }}
       >
+        {/* Post Header */}
         <CardHeader
           avatar={
             <Avatar src={post.profilePic || undefined}>
@@ -118,30 +119,20 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           }
         />
 
+        {/* Post Content */}
         <CardContent>
           <Typography variant="body1" sx={{ fontSize: "1.2rem" }}>
             {renderTextWithLinks(post.content)}
           </Typography>
 
+          {/* Media Preview Logic */}
           {post.image && (
-            <>
-              <CardMedia
-                component="img"
-                image={post.image}
-                alt="Uploaded Post Image"
-                sx={{ borderRadius: 2, mt: 2, width: "100%", height: "auto" }}
-              />
-              {post.fileTitle && (
-                <Typography variant="subtitle2" sx={{ mt: 1 }} color="text.secondary">
-                  {post.fileTitle}
-                </Typography>
-              )}
-              {post.fileDescription && (
-                <Typography variant="body2" sx={{ mt: 0.5 }} color="text.secondary">
-                  {post.fileDescription}
-                </Typography>
-              )}
-            </>
+            <CardMedia
+              component="img"
+              image={post.image}
+              alt="Uploaded Post Image"
+              sx={{ borderRadius: 2, mt: 2, width: "100%", height: "auto" }}
+            />
           )}
 
           {post.video && (
@@ -166,6 +157,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           )}
         </CardContent>
 
+        {/* Post Actions */}
         <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
           <Button
             startIcon={<ThumbUp />}
@@ -181,6 +173,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           </Button>
         </Stack>
 
+        {/* Delete Dialog */}
         <DeletePostDialog
           open={deleteDialogOpen}
           postId={post.id}
