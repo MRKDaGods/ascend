@@ -7,7 +7,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
 
-const UserPostPopup = () => {
+const CompanyPostPopup = () => {
   const { userPostPopupOpen, setUserPostPopupOpen } = usePostStore();
   const router = useRouter();
 
@@ -50,4 +50,4 @@ const UserPostPopup = () => {
   );
 };
 
-export default UserPostPopup;
+export default CompanyPostPopup;
