@@ -91,27 +91,40 @@ const EditPost: React.FC = () => {
       >
         <TagInput postId={currentPostId} />
         {mediaPreviews.length > 0 && (
-          <Box sx={{ position: "relative", mt: 2 }}>
-            <img
-              src={mediaPreviews[0]}
-              alt="preview"
-              style={{
-                width: "100%",
-                borderRadius: 10,
-                objectFit: "cover",
-                maxHeight: 400,
-              }}
-            />
-            <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-              <IconButton sx={{ bgcolor: "#fff" }} onClick={openEditor}>
-                <Edit />
-              </IconButton>
-              <IconButton sx={{ bgcolor: "#fff" }} onClick={() => removeMediaFile(0)}>
-                <Delete />
-              </IconButton>
-            </Box>
-          </Box>
-        )}
+  <Box sx={{ position: "relative", mt: 2 }}>
+    {mediaPreviews[0].includes("video") ? (
+      <video
+        src={mediaPreviews[0]}
+        controls
+        style={{
+          width: "100%",
+          borderRadius: 10,
+          objectFit: "cover",
+          maxHeight: 400,
+        }}
+      />
+    ) : (
+      <img
+        src={mediaPreviews[0]}
+        alt="preview"
+        style={{
+          width: "100%",
+          borderRadius: 10,
+          objectFit: "cover",
+          maxHeight: 400,
+        }}
+      />
+    )}
+    <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
+      <IconButton sx={{ bgcolor: "#fff" }} onClick={() => openEditor("image")}>
+        <Edit />
+      </IconButton>
+      <IconButton sx={{ bgcolor: "#fff" }} onClick={() => removeMediaFile(0)}>
+        <Delete />
+      </IconButton>
+    </Box>
+  </Box>
+)}
       </DialogContent>
 
       <DialogActions

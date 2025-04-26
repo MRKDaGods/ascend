@@ -252,7 +252,7 @@ export const usePostStore = create<PostStoreState>()(
             isEdited: post.is_edited,
           };
       
-          set({ selectedPost: mapped });
+          set({ selectedPost: mapped, isLastPostDeleted: false });
         } catch (err: any) {
           console.error("❌ fetchPostById error:", err?.response?.data || err.message);
         }
@@ -270,7 +270,7 @@ export const usePostStore = create<PostStoreState>()(
           const id = response.data?.data?.id;
       
           if (id) {
-            set({ lastUserPostId: id, userPostPopupOpen: true });
+            set({ lastUserPostId: id, userPostPopupOpen: true, isLastPostDeleted: false });
           }
         } catch (error) {
           console.error("❌ Error in createPostFromAPI:", error);
