@@ -16,8 +16,8 @@ interface JobSearchParams {
   industry?: string[];
   experience_level?: string[];
   company?: string[];
-  salary_range_min?: number;
-  salary_range_max?: number;
+  salary_min_range?: number;
+  salary_max_range?: number;
   pageNumber: number;
 }
 
@@ -91,8 +91,8 @@ export const searchJobs = async ({
   industry,
   experience_level,
   company,
-  salary_range_min,
-  salary_range_max,
+  salary_min_range,
+  salary_max_range,
   pageNumber,
 }: JobSearchParams): Promise<PaginatedResponse<Job>> => {
   try {
@@ -142,14 +142,14 @@ export const searchJobs = async ({
       values.push(experience_level);
     }
 
-    if (salary_range_min) {
-      conditions.push(`j.salary_range_min >= $${values.length + 1}`);
-      values.push(salary_range_min);
+    if (salary_min_range) {
+      conditions.push(`j.salary_min_range >= $${values.length + 1}`);
+      values.push(salary_min_range);
     }
 
-    if (salary_range_max) {
-      conditions.push(`j.salary_range_max <= $${values.length + 1}`);
-      values.push(salary_range_max);
+    if (salary_max_range) {
+      conditions.push(`j.salary_max_range <= $${values.length + 1}`);
+      values.push(salary_max_range);
     }
 
     if (conditions.length > 0) {
