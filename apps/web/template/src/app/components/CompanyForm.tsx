@@ -6,7 +6,7 @@ import {
   Box, TextField, Typography, MenuItem, Button,
   Checkbox, FormControlLabel, Card, CardContent,
 } from '@mui/material';
-import { useCompanyStore } from '@/app/stores/useCompanyStore';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 const sizes = ['1-10', '11-50', '51-200', '201-500', '500+'];
 const types = ['Public', 'Private', 'Non-profit'];

@@ -8,8 +8,8 @@ import ArticleIcon from '@mui/icons-material/Article';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from 'react';
-import { usePostStore, MediaFile, Post } from '@/app/stores/usePostStore';
-import { useCompanyStore } from '@/app/stores/useCompanyStore';
+import { usePostStore, MediaFile, Post } from '@/app/stores/useCompanyPostStore';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 export default function PagePosts() {
   const [tabIndex, setTabIndex] = useState(0);

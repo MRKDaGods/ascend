@@ -17,7 +17,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import { useEffect, useState, useRef } from 'react';
-import { useCompanyStore } from '@/app/stores/useCompanyStore';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 interface EditPageModalProps {
   open: boolean;

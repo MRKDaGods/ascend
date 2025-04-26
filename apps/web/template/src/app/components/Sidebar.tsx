@@ -8,7 +8,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import CreateDialog from './CreateDialog';
 import EditPageModal from './EditPageModal';
-import { useCompanyStore } from '@/app/stores/useCompanyStore';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 import { useNavigationStore } from '@/app/stores/useNavigationStore'; // ✅ Import navigation store
 
 export default function Sidebar() {
