@@ -70,5 +70,5 @@ doc/api/
 .flutter-plugins-dependencies
 
 android/.gradle
-android/app/.cxx
+#android/app/.cxx
 firebase.exe
