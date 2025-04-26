@@ -46,6 +46,11 @@ const MediaEditor: React.FC = () => {
   return (
     <>
       <input type="file" accept="image/*,video/*" hidden ref={fileInputRef} onChange={handleFileUpload} />
+      {/* <input 
+      type="file" 
+      accept={mediaType === "image" ? "image/*" : "video/*"}
+      hidden ref={fileInputRef} 
+      onChange={handleFileUpload} /> */}
 
       <Dialog open={editorOpen} onClose={handleClose} fullWidth maxWidth="lg">
         <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>

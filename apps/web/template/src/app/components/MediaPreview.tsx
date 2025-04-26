@@ -76,15 +76,29 @@ const MediaPreview: React.FC = () => {
           alignItems: "center",
         }}
       >
-        <img
-          src={mediaPreviews[selectedIndex]}
-          alt={`Main preview ${selectedIndex}`}
-          style={{
-            maxHeight: "500px",
-            maxWidth: "500px",
-            borderRadius: 12,
-          }}
-        />
+        {mediaFiles[selectedIndex]?.type.startsWith("video") ? (
+          <video
+            src={mediaPreviews[selectedIndex]}
+            controls
+            style={{
+              maxHeight: "500px",
+              maxWidth: "500px",
+              borderRadius: 12,
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <img
+            src={mediaPreviews[selectedIndex]}
+            alt={`Main preview ${selectedIndex}`}
+            style={{
+              maxHeight: "500px",
+              maxWidth: "500px",
+              borderRadius: 12,
+              objectFit: "cover",
+            }}
+          />
+        )}
       </Box>
 
       {/* ✅ Right: Thumbnails + Fixed Controls */}
@@ -125,6 +139,18 @@ const MediaPreview: React.FC = () => {
                   width: "100%",
                 }}
               >
+               {mediaFiles[index]?.type.startsWith("video") ? (
+                <video
+                  src={preview}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                  }}
+                  muted
+                />
+              ) : (
                 <img
                   src={preview}
                   alt={`Thumb ${index}`}
@@ -135,6 +161,7 @@ const MediaPreview: React.FC = () => {
                     borderRadius: "8px",
                   }}
                 />
+              )}
               </Box>
               <Typography fontSize="0.75rem" sx={{ mt: 0.5 }}>
                 {String(index + 1).padStart(2, "0")}
