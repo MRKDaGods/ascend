@@ -2,7 +2,7 @@
 'use client';
 
 import { Box, Grid } from '@mui/material';
-import Sidebar from '@/app/components/Sidebar';
+import Sidebar from '@/app/components/CompanySidebar';
 import DashboardActions from '@/app/components/DashboardActions';
 import ManagePosts from '@/app/components/ManagePosts';
 import AnalyticsPage from '@/app/components/AnalyticsPage';
