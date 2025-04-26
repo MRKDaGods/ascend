@@ -16,6 +16,7 @@ export class WasmApiClient {
   delete_account(): Promise<any>;
   logout(): Promise<any>;
   get_local_user_profile(): Promise<any>;
+  get_user_profile(id: number): Promise<any>;
   update_local_user_profile(profile: any): Promise<any>;
   upload_profile_picture(name: string, mime: string, buffer: Uint8Array): Promise<any>;
   delete_profile_picture(): Promise<any>;
@@ -48,6 +49,7 @@ export interface InitOutput {
   readonly wasmapiclient_delete_account: (a: number) => any;
   readonly wasmapiclient_logout: (a: number) => any;
   readonly wasmapiclient_get_local_user_profile: (a: number) => any;
+  readonly wasmapiclient_get_user_profile: (a: number, b: number) => any;
   readonly wasmapiclient_update_local_user_profile: (a: number, b: any) => any;
   readonly wasmapiclient_upload_profile_picture: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => any;
   readonly wasmapiclient_delete_profile_picture: (a: number) => any;
@@ -68,8 +70,8 @@ export interface InitOutput {
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h3360e2c19bacbc8b: (a: number, b: number) => void;
-  readonly closure260_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure308_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure264_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure312_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 
