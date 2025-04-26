@@ -20,18 +20,6 @@ const pageTypes: PageType[] = [
     image: '/Company.png',
     href: 'Company',
   },
-  {
-    title: 'Showcase page',
-    subtitle: 'Sub-pages associated with an existing page',
-    image: '/Showcase_Page.png',
-    href: '/create/showcase',
-  },
-  {
-    title: 'Educational institution',
-    subtitle: 'Schools and universities',
-    image: '/Education_institution.png',
-    href: '/create/education',
-  },
 ];
 
 export default function CreateLinkedInPage() {
