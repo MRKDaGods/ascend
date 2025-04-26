@@ -98,8 +98,11 @@ interface PostStoreState {
   createPostFromAPI: (
     content: string,
     media?: string,
-    mediaType?: "image" | "video"
-  ) => Promise<void>;
+    mediaType?: "image" | "video" | "file",
+    fileTitle?: string,
+    fileDescription?: string
+  ) => Promise<void>;  
+  
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
@@ -250,11 +253,25 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
 
-      createPostFromAPI: async (content, media, type) => {
-        const response = await createPost(content, media, type);
-        const id = response.data?.data?.id;
-        if (id) set({ lastUserPostId: id, userPostPopupOpen: true });
-      },
+      createPostFromAPI: async (
+        content,
+        media,
+        mediaType,
+        fileTitle,
+        fileDescription
+      ) => {
+        try {
+          const response = await createPost(content, media, mediaType, fileTitle, fileDescription);
+          const id = response.data?.data?.id;
+      
+          if (id) {
+            set({ lastUserPostId: id, userPostPopupOpen: true });
+          }
+        } catch (error) {
+          console.error("❌ Error in createPostFromAPI:", error);
+          throw error;
+        }
+      },      
 
       deletePostFromAPI: async (postId) => {
         await deletePostById(postId);
