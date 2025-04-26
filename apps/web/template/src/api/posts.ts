@@ -88,24 +88,26 @@ export const createPost = async (
     formData.append("type", "document");
     formData.append("title", fileTitle ?? "Untitled Document");
     formData.append("description", fileDescription ?? "PDF file");
+    console.log("📄 Document being uploaded:", mediaFile.name);
   } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
     formData.append("media", mediaFile);
     formData.append("type", mediaType);
+    formData.append("title", "Uploaded Media");
+    formData.append("description", `${mediaType} file`);
+    console.log("🖼️ Media being uploaded:", mediaFile.name);
   } else {
     formData.append("title", "text only");
     formData.append("description", "no media");
+    console.log("📝 Text-only post");
   }
 
-  const res = await API.post("/post", formData, {
+  return await API.post("/post", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       "x-no-parse-body": "1",
     },
   });
-
-  return res;
 };
-
 
 // ==== DELETE POST ====
 

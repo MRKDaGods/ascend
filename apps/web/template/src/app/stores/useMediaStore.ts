@@ -84,8 +84,7 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
   // === Document (PDF) Operations ===
   setDocumentPreview: (file: File, title: string) => {
     const url = URL.createObjectURL(file);
-    set({ documentPreview: { url, title }, documentFile: file }); // ✅ Save BOTH url and file
+    set({ documentPreview: { url, title }, documentFile: file }); // ✅ set file too
   },
-
-  clearDocumentPreview: () => set({ documentPreview: null, documentFile: undefined }), // ✅ Clear BOTH
-}));
+  clearDocumentPreview: () => set({ documentPreview: null, documentFile: undefined }), // ✅ clear both
+  }));

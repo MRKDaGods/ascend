@@ -30,6 +30,7 @@ import RepostPopup from "./RepostPopup";
 
 const CreatePostDialog: React.FC = () => {
   const router = useRouter();
+  const [docDialogOpen, setDocDialogOpen] = useState(false);
 
   const {
     open,
@@ -49,7 +50,6 @@ const CreatePostDialog: React.FC = () => {
     repostSourcePost,
     setRepostSourcePost,
     createPostFromAPI,
-    setUserPostPopupOpen,
     setRepostPopupOpen,
     repostFromAPI,
   } = usePostStore();
@@ -62,10 +62,9 @@ const CreatePostDialog: React.FC = () => {
     clearAllMedia,
     openEditor,
     documentPreview,
+    documentFile,
     clearDocumentPreview,
   } = useMediaStore();
-
-  const [docDialogOpen, setDocDialogOpen] = useState(false);
 
   useEffect(() => {
     if (open && draftText) {
@@ -74,55 +73,50 @@ const CreatePostDialog: React.FC = () => {
   }, [open, draftText]);
 
   const handleSubmit = async () => {
-    if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
-  
-    const mediaFile = mediaFiles[0]; // ✅ Use actual file, not preview URL
-  
+    if (!postText.trim() && mediaFiles.length === 0 && !documentPreview) return;
+
+    const fileToSend = documentPreview ? documentFile : mediaFiles[0];
+    const typeToSend = documentPreview ? "file" : mediaType ?? undefined;
+
     if (repostSourcePost) {
       await repostFromAPI(repostSourcePost.id, postText.trim());
       setRepostPopupOpen(true);
     } else {
       await createPostFromAPI(
         postText,
-        documentPreview ? undefined : mediaFile, // if documentPreview exists, no need to send media
-        documentPreview ? "file" : mediaType ?? "image",
+        fileToSend,
+        typeToSend,
         documentPreview?.title,
-        undefined // you can pass description here if needed
+        "Uploaded from CreatePostDialog"
       );
     }
-  
+
+    // Cleanup
     setDraftText("");
     setPostText("");
     resetPost();
     clearAllMedia();
     clearDocumentPreview();
     setRepostSourcePost(null);
-  };  
+  };
 
   const handleClose = () => {
-    const hasUnsavedContent =
-      postText.length > 0 ||
-      mediaPreviews.length > 0 ||
-      documentPreview ||
-      repostSourcePost;
+    const hasUnsaved =
+      !!postText.trim() || mediaFiles.length > 0 || !!documentPreview || !!repostSourcePost;
 
-    if (hasUnsavedContent) {
-      if (repostSourcePost) {
-        openDiscardRepostDialog();
-      } else {
-        openDiscardPostDialog();
-      }
+    if (hasUnsaved) {
+      repostSourcePost ? openDiscardRepostDialog() : openDiscardPostDialog();
     } else {
       resetPost();
-      setRepostSourcePost(null);
       clearAllMedia();
       clearDocumentPreview();
+      setRepostSourcePost(null);
     }
   };
 
   return (
     <>
-      <Dialog open fullWidth maxWidth="sm" onClose={handleClose}>
+      <Dialog open={open} fullWidth maxWidth="sm" onClose={handleClose}>
         <DialogTitle sx={{ pb: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2} alignItems="center">
@@ -132,76 +126,28 @@ const CreatePostDialog: React.FC = () => {
                 <Typography fontSize="0.8rem">Post to Connections only</Typography>
               </Box>
             </Stack>
-            <IconButton onClick={handleClose}>
-              <Close />
-            </IconButton>
+            <IconButton onClick={handleClose}><Close /></IconButton>
           </Stack>
         </DialogTitle>
 
         <DialogContent sx={{ pt: 1 }}>
-          <Box
-            sx={{
-              mt: 2,
-              minHeight: "100px",
-              fontSize: "1rem",
-              width: "100%",
-              backgroundColor: "transparent",
-              '& textarea': {
-                fontSize: '1rem',
-                lineHeight: 1.5,
-                padding: 0,
-                border: "none",
-                resize: "none",
-                width: "100%",
-                fontFamily: "inherit",
-                background: "transparent",
-                outline: "none",
-              }
-            }}
-          >
+          <Box sx={{ mt: 2, minHeight: 100 }}>
             <TagInput postId={lastUserPostId ?? -1} />
           </Box>
 
           {mediaPreviews[0] && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
               {mediaType === "video" ? (
-                <video
-                  src={mediaPreviews[0]}
-                  controls
-                  style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: "400px" }}
-                />
+                <video src={mediaPreviews[0]} controls style={{ width: "100%", borderRadius: 10, maxHeight: 400 }} />
               ) : (
-                <img
-                  src={mediaPreviews[0]}
-                  alt="preview"
-                  style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: "400px" }}
-                />
+                <img src={mediaPreviews[0]} alt="preview" style={{ width: "100%", borderRadius: 10, maxHeight: 400 }} />
               )}
               <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-                <IconButton
-                  sx={{ bgcolor: "white" }}
-                  onClick={() => {
-                    if (mediaType === "video") {
-                      openEditor("video");
-                    } else {
-                      openEditor("image");
-                    }
-                  }}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton
-                  sx={{ bgcolor: "white" }}
-                  onClick={() => {
-                    removeMediaFile(0);
-                  }}
-                >
-                  <Delete />
-                </IconButton>
+                <IconButton sx={{ bgcolor: "white" }} onClick={() => openEditor(mediaType ?? "image")}><Edit /></IconButton>
+                <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
               </Box>
             </Box>
           )}
-
 
           {documentPreview && (
             <DocumentPreview
@@ -211,24 +157,19 @@ const CreatePostDialog: React.FC = () => {
             />
           )}
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {repostSourcePost && <RepostPreview post={repostSourcePost} />}
-          </Box>
+          {repostSourcePost && (
+            <Box sx={{ mt: 2 }}>
+              <RepostPreview post={repostSourcePost} />
+            </Box>
+          )}
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Add a photo">
-              <IconButton onClick={() => openEditor("image")}> <Image /> </IconButton>
-            </Tooltip>
-            <Tooltip title="Add a video">
-              <IconButton onClick={() => openEditor("video")}> <OndemandVideo /> </IconButton>
-            </Tooltip>
-            <Tooltip title="Add a document">
-              <IconButton onClick={() => setDocDialogOpen(true)}> <Article /> </IconButton>
-            </Tooltip>
+            <Tooltip title="Add a photo"><IconButton onClick={() => openEditor("image")}><Image /></IconButton></Tooltip>
+            <Tooltip title="Add a video"><IconButton onClick={() => openEditor("video")}><OndemandVideo /></IconButton></Tooltip>
+            <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
           </Stack>
-
           <Button
             variant="contained"
             onClick={handleSubmit}
@@ -240,7 +181,6 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Discard / Save Dialogs */}
       <DiscardPostDialog
         open={discardPostDialogOpen}
         onClose={closeDiscardPostDialog}
@@ -283,7 +223,6 @@ const CreatePostDialog: React.FC = () => {
 
       <DraftSavedPopup />
       <RepostPopup />
-
       <Document open={docDialogOpen} onClose={() => setDocDialogOpen(false)} />
     </>
   );

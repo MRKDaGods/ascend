@@ -266,6 +266,14 @@ export const usePostStore = create<PostStoreState>()(
         fileDescription
       ) => {
         try {
+          console.log("📦 Creating post with:", {
+            content,
+            media,
+            mediaType,
+            fileTitle,
+            fileDescription,
+          });
+      
           const response = await createPost(content, media, mediaType, fileTitle, fileDescription);
           const id = response.data?.data?.id;
       
