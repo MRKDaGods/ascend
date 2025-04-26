@@ -6,7 +6,7 @@ import { Box, Grid, Typography } from '@mui/material';
 import CompanyForm from '@/app/components/CompanyForm';
 import CompanyPreview from '@/app/components/CompanyPreview';
 import BackButton from '@/app/components/BackButton';
-import { useCompanyStore } from '@/app/stores/useCompanyStore';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 const CreateCompanyPage = () => {
   const [logo, setLogo] = useState<File | null>(null);

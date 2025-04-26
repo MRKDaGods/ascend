@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Box, Typography, Button, Paper, Avatar } from '@mui/material';
-import { useCompanyStore } from '@/app/stores/useCompanyStore';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 type Props = {
   formData: any;
