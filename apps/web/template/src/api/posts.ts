@@ -109,6 +109,7 @@ export const createPost = async (
   });
 };
 
+
 // ==== DELETE POST ====
 
 export const deletePostById = async (
@@ -133,7 +134,7 @@ export const editPost = async (
     headers: {
       "x-no-parse-body": "1",
     },
-  });
+  });  
 
   return res;
 };

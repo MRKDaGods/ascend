@@ -18,6 +18,7 @@ import { Close, Edit, Delete, Image, OndemandVideo, Article } from "@mui/icons-m
 import { useRouter } from "next/navigation";
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
+import { useTheme } from "@mui/material/styles";
 
 import TagInput from "./TagInput";
 import DiscardPostDialog from "./DiscardPostDialog";
@@ -31,7 +32,8 @@ import RepostPopup from "./RepostPopup";
 const CreatePostDialog: React.FC = () => {
   const router = useRouter();
   const [docDialogOpen, setDocDialogOpen] = useState(false);
-
+  const theme = useTheme();
+  
   const {
     open,
     postText,
@@ -138,13 +140,13 @@ const CreatePostDialog: React.FC = () => {
           {mediaPreviews[0] && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
               {mediaType === "video" ? (
-                <video src={mediaPreviews[0]} controls style={{ width: "100%", borderRadius: 10, maxHeight: 400 }} />
+                <video src={mediaPreviews[0]} controls style={{ width: "100%", borderRadius: 10, maxHeight: 800 }} />
               ) : (
-                <img src={mediaPreviews[0]} alt="preview" style={{ width: "100%", borderRadius: 10, maxHeight: 400 }} />
+                <img src={mediaPreviews[0]} alt="preview" style={{ width: "100%", borderRadius: 10, maxHeight: 800 }} />
               )}
               <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-                <IconButton sx={{ bgcolor: "white" }} onClick={() => openEditor(mediaType ?? "image")}><Edit /></IconButton>
-                <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
+                <IconButton sx={{ bgcolor: theme.palette.background.paper }} onClick={() => openEditor(mediaType ?? "image")}><Edit /></IconButton>
+                <IconButton sx={{ bgcolor: theme.palette.background.paper }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
               </Box>
             </Box>
           )}
