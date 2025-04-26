@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./dist",
+        "rootDir": "./",
+        "baseUrl": ".",
+        "paths": {
+            "@shared/*": [
+                "packages/shared/src/*"
+            ]
+        }
+    },
+    "include": [
+        "packages/**/*",
+        "services/**/*"
+    ],
+    "ts-node": {
+        "require": [
+            "tsconfig-paths/register"
+        ]
+    }
+}
