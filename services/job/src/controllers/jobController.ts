@@ -27,9 +27,9 @@ export const handleJobSearch = async (req: Request, res: Response) => {
   try {
     // Validate salary range min and max values if provided
     if (
-      req.query.salary_range_min &&
-      req.query.salary_range_max &&
-      Number(req.query.salary_range_min) > Number(req.query.salary_range_max)
+      req.query.salary_min_range &&
+      req.query.salary_max_range &&
+      Number(req.query.salary_min_range) > Number(req.query.salary_max_range)
     ) {
       return res.status(400).json({
         error:
@@ -57,11 +57,11 @@ export const handleJobSearch = async (req: Request, res: Response) => {
       company: req.query.company
         ? String(req.query.company).split(",")
         : undefined,
-      salary_range_min: req.query.salary_range_min
-        ? Number(req.query.salary_range_min)
+      salary_min_range: req.query.salary_min_range
+        ? Number(req.query.salary_min_range)
         : undefined,
-      salary_range_max: req.query.salary_range_max
-        ? Number(req.query.salary_range_max)
+      salary_max_range: req.query.salary_max_range
+        ? Number(req.query.salary_max_range)
         : undefined,
       pageNumber: Number(req.query.page || 1),
     };
@@ -87,8 +87,8 @@ export const handleJobPosting = [
       const experience_level = req.body.experience_level;
       const location = req.body.location;
       const workplace_type = req.body.workplace_type;
-      const salary_min_range = req.body.salary_range_min || null;
-      const salary_max_range = req.body.salary_range_max || null;
+      const salary_min_range = req.body.salary_min_range || null;
+      const salary_max_range = req.body.salary_max_range || null;
       const company_id = req.body.company_id;
       const user_id = req.user!.id;
 
