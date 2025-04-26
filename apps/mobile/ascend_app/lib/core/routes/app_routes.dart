@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
@@ -10,6 +11,7 @@ import 'package:ascend_app/features/settings/Presentation/pages/help_center_page
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
+import 'package:ascend_app/features/startPages/Presentation/Pages/SignIn.dart';
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -19,6 +21,8 @@ class RouteNames {
 
   // Route name constants
   static const String welcome = '/welcome';
+  static const String signIn = '/signIn';
+  static const String forgetPassword = '/forgotPasswordPage';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
@@ -48,6 +52,8 @@ class AppRoutes {
     return {
       RouteNames.notifications: (context) => const NotificationsPage(),
       RouteNames.welcome: (context) => const Welcome(),
+      RouteNames.signIn: (context) => const SignInPage(),
+      RouteNames.forgetPassword: (context) => forgotPasswordPage(),
       RouteNames.createPost:
           (context) => const CreatePostPage(), // Add the new route
       RouteNames.settings: (context) => const SettingsMainPage(),
@@ -60,7 +66,6 @@ class AppRoutes {
       RouteNames.helpCenter: (context) => const HelpCenterPage(),
       RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
       RouteNames.signOut: (context) => const SignOutPage(),
-
       // Add more routes as needed
     };
   }
