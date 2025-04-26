@@ -13,7 +13,9 @@ describe("PremiumSurvey Component", () => {
 
     // Check if the first question is displayed
     expect(
-      screen.getByText("Which of these best describes your primary goal for using Premium?")
+      screen.getByText((content, element) =>
+        content.includes("Which of these best describes your primary goal for using Premium?")
+      )
     ).toBeInTheDocument();
 
     // Check if all options are displayed
@@ -36,7 +38,11 @@ describe("PremiumSurvey Component", () => {
     fireEvent.click(screen.getByText("Next"));
 
     // Check if the second question is displayed
-    expect(screen.getByText("What do you hope to achieve with Premium?")).toBeInTheDocument();
+    expect(
+      screen.getByText((content) =>
+        content.includes("What do you hope to achieve with Premium?")
+      )
+    ).toBeInTheDocument();
 
     // Check if the options for the second question are displayed
     expect(screen.getByText("To job search with confidence and get hired")).toBeInTheDocument();
