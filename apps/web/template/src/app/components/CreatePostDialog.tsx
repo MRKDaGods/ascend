@@ -162,7 +162,7 @@ const CreatePostDialog: React.FC = () => {
             <TagInput postId={lastUserPostId ?? -1} />
           </Box>
 
-          {mediaPreviews.length > 0 && !documentPreview && (
+          {mediaPreviews[0] && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
               {mediaType === "video" ? (
                 <video
@@ -178,15 +178,30 @@ const CreatePostDialog: React.FC = () => {
                 />
               )}
               <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-                <IconButton sx={{ bgcolor: "white" }} onClick={() => openEditor("image")}>
+                <IconButton
+                  sx={{ bgcolor: "white" }}
+                  onClick={() => {
+                    if (mediaType === "video") {
+                      openEditor("video");
+                    } else {
+                      openEditor("image");
+                    }
+                  }}
+                >
                   <Edit />
                 </IconButton>
-                <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}>
+                <IconButton
+                  sx={{ bgcolor: "white" }}
+                  onClick={() => {
+                    removeMediaFile(0);
+                  }}
+                >
                   <Delete />
                 </IconButton>
               </Box>
             </Box>
           )}
+
 
           {documentPreview && (
             <DocumentPreview
