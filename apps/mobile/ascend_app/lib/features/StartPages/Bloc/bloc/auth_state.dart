@@ -29,3 +29,21 @@ class AuthFailure extends AuthState {
 }
 
 class AuthSignedOut extends AuthState {}
+
+class AuthForgetPasswordSuccess extends AuthState {
+  final String message;
+
+  AuthForgetPasswordSuccess({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AuthForgetPasswordFaliure extends AuthState {
+  final String error;
+
+  AuthForgetPasswordFaliure({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}

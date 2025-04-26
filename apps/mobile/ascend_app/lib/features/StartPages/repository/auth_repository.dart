@@ -33,10 +33,19 @@ class AuthRepository {
     return AuthResponse.fromJson(responseData);
   }
 
-  register({
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String password,
-  }) {}
+  // register({
+  //   required String firstName,
+  //   required String lastName,
+  //   required String email,
+  //   required String password,
+  // }) {}
+
+  // Forget password method
+  Future<Map<String, dynamic>> forgotPassword(String emailOrPhone) async {
+  final response = await apiClient.forgotPassword(emailOrPhone);
+
+  // Parse the response body and return it as a Map
+  return jsonDecode(response.body);
+  }
+
 }

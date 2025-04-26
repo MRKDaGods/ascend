@@ -5,7 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:bloc/bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Repository/auth_repository.dart';
+import 'package:ascend_app/features/StartPages/repository/auth_repository.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
@@ -22,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
     on<SignOutRequested>(_onSignOutRequested);
+    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
   }
   // Handle Sign-In
   Future<void> _onSignInRequested(
@@ -100,6 +101,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (error) {
       _logger.e('SignOut failed: $error'); // Log the error
       emit(AuthFailure(error: error.toString()));
+    }
+  }
+
+  // Handle Forgot Password
+  Future<void> _onForgotPasswordRequested(
+    ForgotPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final response = await authRepository.forgotPassword(event.emailOrPhone);
+      if (response['success'] == true) {
+        emit (
+          AuthForgetPasswordSuccess(message: response['message']),
+        );
+      } else {
+        emit (
+          AuthForgetPasswordFaliure(error: response['message']),
+        );
+      }
+      } catch (error) {
+        _logger.e('ForgotPassword failed: $error'); // Log the error
+        emit (
+          AuthForgetPasswordFaliure(error: error.toString()),
+        );
     }
   }
 }

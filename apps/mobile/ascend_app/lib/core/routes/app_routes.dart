@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
@@ -21,6 +22,7 @@ class RouteNames {
   // Route name constants
   static const String welcome = '/welcome';
   static const String signIn = '/signIn';
+  static const String forgetPassword = '/forgotPasswordPage';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
@@ -51,6 +53,7 @@ class AppRoutes {
       RouteNames.notifications: (context) => const NotificationsPage(),
       RouteNames.welcome: (context) => const Welcome(),
       RouteNames.signIn: (context) => const SignInPage(),
+      RouteNames.forgetPassword: (context) => forgotPasswordPage(),
       RouteNames.createPost:
           (context) => const CreatePostPage(), // Add the new route
       RouteNames.settings: (context) => const SettingsMainPage(),
