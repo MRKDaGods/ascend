@@ -100,6 +100,23 @@ class ApiClient {
     }
   }
 
+  // POST request for Forgot Password
+  Future<http.Response> forgotPassword(String emailOrPhone) async {
+    final headers = {'Content-Type': 'application/json'};
+    final url = Uri.parse('$_baseUrl/auth/forgot-password'); // API endpoint
+    final body = jsonEncode({'emailOrPhone': emailOrPhone});
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response;
+    } else {
+      throw Exception(
+        'Failed to send forgot password request: ${response.statusCode}, ${response.body}',
+      );
+    }
+  }
+  
   // PUT request
   Future<http.Response> put(
     String endpoint, {
