@@ -15,10 +15,12 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Close, Edit, Delete, Image, OndemandVideo, Article } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
+
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
-import { useTheme } from "@mui/material/styles";
+import { useProfileStore } from "../stores/useProfileStore"; // ✅ import profile store
 
 import TagInput from "./TagInput";
 import DiscardPostDialog from "./DiscardPostDialog";
@@ -31,9 +33,9 @@ import RepostPopup from "./RepostPopup";
 
 const CreatePostDialog: React.FC = () => {
   const router = useRouter();
-  const [docDialogOpen, setDocDialogOpen] = useState(false);
   const theme = useTheme();
-  
+  const [docDialogOpen, setDocDialogOpen] = useState(false);
+
   const {
     open,
     postText,
@@ -68,6 +70,10 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview,
   } = useMediaStore();
 
+  const userData = useProfileStore((state) => state.userData); // ✅
+  const userProfilePic = userData?.profile_picture_url || "/default-avatar.png"; // ✅
+  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "You"; // ✅
+
   useEffect(() => {
     if (open && draftText) {
       setPostText(draftText);
@@ -93,7 +99,6 @@ const CreatePostDialog: React.FC = () => {
       );
     }
 
-    // Cleanup
     setDraftText("");
     setPostText("");
     resetPost();
@@ -122,13 +127,19 @@ const CreatePostDialog: React.FC = () => {
         <DialogTitle sx={{ pb: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src="/man.jpg" />
+              <Avatar src={userProfilePic}>
+                {fullName.charAt(0)}
+              </Avatar>
               <Box>
-                <Typography fontWeight={600}>Developing Ascend</Typography>
-                <Typography fontSize="0.8rem">Post to Connections only</Typography>
+                <Typography fontWeight={600}>{fullName}</Typography>
+                <Typography fontSize="0.8rem" color="text.secondary">
+                  Post to Connections only
+                </Typography>
               </Box>
             </Stack>
-            <IconButton onClick={handleClose}><Close /></IconButton>
+            <IconButton onClick={handleClose}>
+              <Close />
+            </IconButton>
           </Stack>
         </DialogTitle>
 
@@ -140,13 +151,31 @@ const CreatePostDialog: React.FC = () => {
           {mediaPreviews[0] && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
               {mediaType === "video" ? (
-                <video src={mediaPreviews[0]} controls style={{ width: "100%", borderRadius: 10, maxHeight: 800 }} />
+                <video
+                  src={mediaPreviews[0]}
+                  controls
+                  style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+                />
               ) : (
-                <img src={mediaPreviews[0]} alt="preview" style={{ width: "100%", borderRadius: 10, maxHeight: 800 }} />
+                <img
+                  src={mediaPreviews[0]}
+                  alt="preview"
+                  style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+                />
               )}
               <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-                <IconButton sx={{ bgcolor: theme.palette.background.paper }} onClick={() => openEditor(mediaType ?? "image")}><Edit /></IconButton>
-                <IconButton sx={{ bgcolor: theme.palette.background.paper }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
+                <IconButton
+                  sx={{ bgcolor: theme.palette.background.paper }}
+                  onClick={() => openEditor(mediaType ?? "image")}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton
+                  sx={{ bgcolor: theme.palette.background.paper }}
+                  onClick={() => removeMediaFile(0)}
+                >
+                  <Delete />
+                </IconButton>
               </Box>
             </Box>
           )}
@@ -168,10 +197,23 @@ const CreatePostDialog: React.FC = () => {
 
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Add a photo"><IconButton onClick={() => openEditor("image")}><Image /></IconButton></Tooltip>
-            <Tooltip title="Add a video"><IconButton onClick={() => openEditor("video")}><OndemandVideo /></IconButton></Tooltip>
-            <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
+            <Tooltip title="Add a photo">
+              <IconButton onClick={() => openEditor("image")}>
+                <Image />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add a video">
+              <IconButton onClick={() => openEditor("video")}>
+                <OndemandVideo />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add a document">
+              <IconButton onClick={() => setDocDialogOpen(true)}>
+                <Article />
+              </IconButton>
+            </Tooltip>
           </Stack>
+
           <Button
             variant="contained"
             onClick={handleSubmit}
@@ -183,6 +225,7 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Popups */}
       <DiscardPostDialog
         open={discardPostDialogOpen}
         onClose={closeDiscardPostDialog}
