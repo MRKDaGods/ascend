@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-class AddEntry extends StatelessWidget{
+
+class AddEntry extends StatelessWidget {
   const AddEntry({super.key, required this.onAdd});
   final void Function() onAdd;
   @override
@@ -13,7 +14,7 @@ class AddEntry extends StatelessWidget{
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black,
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
