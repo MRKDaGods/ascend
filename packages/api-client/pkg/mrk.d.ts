@@ -99,6 +99,7 @@ declare class UserService {
      * @throws Error if the user is not authenticated
      */
     getLocalUserProfile(): Promise<Profile>;
+    getUserProfile(userId: number): Promise<Profile>;
     /**
      * Updates the currently authenticated user's profile
      * @param profile - The user's profile data
