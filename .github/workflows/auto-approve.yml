@@ -1,0 +1,19 @@
+name: Auto Approve PR (seif)
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+    workflow_dispatch:
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: contains(fromJson('["seifheakal", "MRKDaGods", "HabibaHammouda"]'), github.actor)
+    steps:
+      - name: Auto Approve PR
+        uses: hmarr/auto-approve-action@v4
+        with:
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            review-message: "Auto approved automated PR"

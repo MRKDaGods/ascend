@@ -1,18 +1,21 @@
-import 'package:ascend_app/features/home/presentation/data/sample_posts.dart';
-import 'package:ascend_app/features/home/presentation/models/post_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post.dart';
-import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart'; // Add this import
+import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart';
+import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart';
+import 'package:ascend_app/features/home/bloc/post_bloc/post_state.dart';
+import 'package:ascend_app/features/home/models/comment_model.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post.dart' as post_widget;
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
+import 'package:ascend_app/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
 
   @override
-  _HomeState createState() => _HomeState();
+  State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  List<PostModel> _posts = [];
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   int _sponsoredPostCounter = 0;
@@ -21,7 +24,11 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadInitialItems();
+
+    // Load initial posts through BLoC
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PostBloc>().add(const LoadPosts());
+    });
   }
 
   @override
@@ -31,137 +38,173 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  void _loadInitialItems() {
-    // Load initial batch of regular posts
-    setState(() {
-      _posts = SamplePosts.generateMixedPosts(10);
-    });
-  }
-
   void _onScroll() {
+    // Check if we are near the bottom and not already loading
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading) {
-      _loadMoreItems();
+      // Check the state via BlocProvider.of before calling _loadMoreItems
+      final currentState = context.read<PostBloc>().state;
+      // Only load more if the state is PostsLoaded AND hasMorePages is true
+      if (currentState is PostsLoaded && currentState.hasMorePages) {
+        _loadMoreItems();
+      } else if (currentState is PostsLoaded && !currentState.hasMorePages) {
+        // Optional: Log that we reached the end
+        print("Reached end of feed, no more pages.");
+      }
     }
   }
 
   void _loadMoreItems() async {
+    // Double check isLoading flag
     if (_isLoading) return;
+
+    // Check state again before dispatching, in case it changed rapidly
+    final currentState = context.read<PostBloc>().state;
+    // Only dispatch if state is PostsLoaded AND hasMorePages is true
+    if (currentState is! PostsLoaded || !currentState.hasMorePages) {
+      print("LoadMoreItems called but no more pages or not in loaded state.");
+      return; // Don't dispatch if no more pages or not loaded
+    }
 
     setState(() {
       _isLoading = true;
     });
+    print("Dispatching LoadMorePosts event..."); // Debug print
 
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    // Load more posts through BLoC
+    context.read<PostBloc>().add(const LoadMorePosts(count: 15)); // Use consistent limit
+  }
 
-    if (mounted) {
-      setState(() {
-        // Add 5 more posts
-        _posts.addAll(SamplePosts.generateMixedPosts(5));
-        _isLoading = false;
-      });
-    }
+  void _resetSponsoredCounter() {
+    setState(() {
+      _sponsoredPostCounter = 0;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // Replace SliverAppBar with your CustomSliverAppBar
-          const CustomSliverAppBar(
-            pinned: false,
-            floating: true,
-            addpost: true, // Show the post button
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                // Show loading indicator at the end
-                if (index == _getDisplayItemCount()) {
-                  return _isLoading
-                      ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                      : const SizedBox.shrink();
-                }
+    return AppScaffold(
+      body: SafeArea(
+        child: BlocConsumer<PostBloc, PostState>(
+          listener: (context, state) {
+            if (state is PostsLoaded && state.freshLoad) {
+              _resetSponsoredCounter();
+            }
+            if (state is PostsLoaded || state is PostsError) {
+              if (_isLoading) {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            }
+          },
+          builder: (context, state) {
+            if (state is PostsInitial) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                // Check if this position should show a sponsored post
-                // Show sponsored posts at positions 2, 8, 15, etc.
-                if (index == 2 ||
-                    index == 8 ||
-                    (index > 10 && (index - 10) % 7 == 0)) {
-                  _sponsoredPostCounter++;
-                  final sponsoredPost = SamplePosts.getNextSponsoredPost(
-                    _sponsoredPostCounter - 1,
-                  );
+            if (state is PostsError) {
+              return Center(child: Text('Error: ${state.message}'));
+            }
 
-                  return Post(
-                    title: sponsoredPost.title,
-                    description: sponsoredPost.description,
-                    images: sponsoredPost.images,
-                    useCarousel: sponsoredPost.useCarousel,
-                    isSponsored: sponsoredPost.isSponsored,
-                    ownerName: sponsoredPost.ownerName,
-                    ownerImageUrl: sponsoredPost.ownerImageUrl,
-                    ownerOccupation: sponsoredPost.ownerOccupation,
-                    timePosted: sponsoredPost.timePosted,
-                    initialLikes: sponsoredPost.initialLikes,
-                    initialComments: sponsoredPost.initialComments,
-                    followers: sponsoredPost.followers,
-                  );
-                }
+            if (state is PostsLoaded) {
+              final posts = state.posts;
 
-                // Calculate the actual post index, accounting for sponsored posts
-                int actualPostIndex = index;
-                if (index > 2) actualPostIndex--;
-                if (index > 8) actualPostIndex--;
-                if (index > 10) {
-                  actualPostIndex -= ((index - 10) / 7).floor();
-                }
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<PostBloc>().add(const LoadPosts());
+                  return Future<void>.value();
+                },
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    const CustomSliverAppBar(
+                      pinned: false,
+                      floating: true,
+                      addpost: true,
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          // Show loading indicator at the end only if loading AND there might be more pages
+                          if (index == _getDisplayItemCount(posts.length)) {
+                            // Check hasMorePages from state as well
+                            return _isLoading && state.hasMorePages
+                                ? const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(child: CircularProgressIndicator()),
+                                  )
+                                : const SizedBox.shrink(); // Show nothing if not loading or no more pages
+                          }
 
-                if (actualPostIndex >= _posts.length) {
-                  return const SizedBox.shrink();
-                }
+                          String postId;
+                          Comment? previewComment;
 
-                final post = _posts[actualPostIndex];
+                          // Check if this position should show a sponsored post
+                          if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
+                            // Get sponsored post ID
+                            int sponsoredIndex = ++_sponsoredPostCounter;
+                            if (sponsoredIndex > 5) {
+                              sponsoredIndex = ((sponsoredIndex - 1) % 5) + 1;
+                            }
 
-                return Post(
-                  title: post.title,
-                  description: post.description,
-                  images: post.images,
-                  useCarousel: post.useCarousel,
-                  isSponsored: post.isSponsored,
-                  ownerName: post.ownerName,
-                  ownerImageUrl: post.ownerImageUrl,
-                  ownerOccupation: post.ownerOccupation,
-                  timePosted: post.timePosted,
-                  initialLikes: post.initialLikes,
-                  initialComments: post.initialComments,
-                  followers: post.followers,
-                );
-              },
-              childCount:
-                  _getDisplayItemCount() + 1, // +1 for loading indicator
-            ),
-          ),
-        ],
+                            postId = 'sponsored_$sponsoredIndex';
+                          } else {
+                            // Calculate the actual post index, accounting for sponsored posts
+                            int actualPostIndex = _calculateActualPostIndex(index);
+
+                            if (actualPostIndex >= posts.length) {
+                              return const SizedBox.shrink();
+                            }
+
+                            postId = posts[actualPostIndex].id;
+
+                            // Add preview comment to every 7th regular post
+                            if (actualPostIndex % 7 == 6) {
+                              final currentPost = posts[actualPostIndex];
+                              if (currentPost.comments.isNotEmpty) {
+                                previewComment = currentPost.comments.first;
+                              }
+                            }
+                          }
+
+                          // Return the post widget
+                          return post_widget.Post(
+                            postId: postId,
+                            previewComment: previewComment,
+                          );
+                        },
+                        // Adjust childCount based on whether loading indicator might be shown
+                        childCount: _getDisplayItemCount(posts.length) + (state.hasMorePages ? 1 : 0),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }
 
-  int _getDisplayItemCount() {
-    // Calculate total items including sponsored posts
-    final regularPostsCount = _posts.length;
+  int _calculateActualPostIndex(int displayIndex) {
+    int actualPostIndex = displayIndex;
 
-    // Add sponsored posts: one after first 2 posts, another after 8 posts,
-    // then every 7 posts after the first 10
+    if (displayIndex > 2) actualPostIndex--;
+    if (displayIndex > 8) actualPostIndex--;
+    if (displayIndex > 10) {
+      int sponsoredCount = ((displayIndex - 10) / 7).floor();
+      actualPostIndex -= sponsoredCount;
+    }
+
+    return actualPostIndex;
+  }
+
+  int _getDisplayItemCount(int regularPostsCount) {
     int sponsoredCount = 0;
     if (regularPostsCount > 2) sponsoredCount++;
     if (regularPostsCount > 8) sponsoredCount++;

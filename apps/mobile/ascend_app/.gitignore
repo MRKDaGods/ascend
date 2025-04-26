@@ -41,6 +41,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Ascend app specific ignores
+/android/app/.cxx/
+
+# VS Code settings
+.vscode/
 # See https://www.dartlang.org/guides/libraries/private-files
 
 # Files and directories created by pub
