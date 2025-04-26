@@ -59,22 +59,31 @@ export default function JobsPage() {
       page: 1,
     });
 
+    console.log('Filters:', filters); // Log the filters object to check the values
+
     if (Object.keys(filters).length === 0) {
+      console.warn('No filters provided. Skipping API call.');
       setJobs([]);
       setLoading(false);
       return;
     }
 
     const url = `https://api.ascendx.tech/job/search?${buildQuery(filters)}`;
+    console.log('Fetching URL:', url); // Log the full query URL being sent to the API
 
     try {
       const res = await fetch(url);
+
       if (!res.ok) {
+        const errorText = await res.text();
+        console.error('API Error Response:', errorText);
         setJobs([]);
         setLoading(false);
         return;
       }
+
       const data = await res.json();
+      console.log('API Response:', data); // Log the API response for debugging
       setJobs(data.data);
     } catch (err) {
       console.error('Failed to fetch jobs', err);
