@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,7 @@ import {
   ListItemText,
   ListItemIcon,
   Typography,
+  Popover,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import {
@@ -35,11 +36,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { useMenuStore } from "../stores/useMenuStore";
 import { useNotificationStore } from "../stores/useNotificationStore";
 import { useProfileStore } from "../stores/useProfileStore";
+import BusinessMenu from "./BusinessMenu"; // ✅ Import BusinessMenu
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 
-// 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -51,7 +52,6 @@ const SearchBar = styled("div")(({ theme }) => ({
   width: "270px",
 }));
 
-// 🎯 Active nav highlight
 const NavIconButton = styled(IconButton, {
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active: boolean }>(({ theme, active }) => ({
@@ -84,6 +84,18 @@ const Navbar: React.FC = () => {
   const userData = useProfileStore((state) => state.userData);
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
   const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
+
+  // ✅ Business Menu Popover logic
+  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(null);
+  const businessMenuOpen = Boolean(businessAnchorEl);
+  
+  const handleBusinessClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setBusinessAnchorEl(event.currentTarget);
+  };
+
+  const handleBusinessClose = () => {
+    setBusinessAnchorEl(null);
+  };
 
   return (
     <AppBar
@@ -216,7 +228,7 @@ const Navbar: React.FC = () => {
             </MenuItem>
           </Menu>
 
-          {/* Business / Premium */}
+          {/* Business Button */}
           <Button
             sx={{
               color: muiTheme.palette.text.primary,
@@ -224,9 +236,22 @@ const Navbar: React.FC = () => {
               fontWeight: 500,
             }}
             endIcon={<ExpandMore />}
+            onClick={handleBusinessClick}
           >
             For Business
           </Button>
+
+          {/* Business Popover */}
+          <Popover
+            open={businessMenuOpen}
+            anchorEl={businessAnchorEl}
+            onClose={handleBusinessClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            PaperProps={{ sx: { width: 700, mt: 1 } }}
+          >
+            <BusinessMenu />
+          </Popover>
 
           <Button
             variant="contained"

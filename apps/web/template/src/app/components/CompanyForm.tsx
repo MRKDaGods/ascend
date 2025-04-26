@@ -87,7 +87,7 @@ const CompanyForm = () => {
 
       console.log('Mock Payload Sent:', payload);
       await new Promise((res) => setTimeout(res, 1000));
-      router.push('/CompanyPageItself');
+      router.push("/CreateCompanyPage/Company/CompanyPageItself");
     } catch (err) {
       console.error('Submission Error:', err);
       alert('Failed to submit.');
