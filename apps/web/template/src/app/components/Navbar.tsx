@@ -33,9 +33,11 @@ import {
 import { useThemeStore } from "../stores/useThemeStore";
 import { useRouter, usePathname } from "next/navigation";
 import { useMenuStore } from "../stores/useMenuStore";
+import { useNotificationStore } from "../stores/useNotificationStore";
+import { useProfileStore } from "../stores/useProfileStore";
+
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { useNotificationStore } from "../stores/useNotificationStore";
 
 // 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
@@ -76,9 +78,12 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
-  const openMenu = Boolean(anchorEl);
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
+
+  const userData = useProfileStore((state) => state.userData);
+  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
 
   return (
     <AppBar
@@ -91,7 +96,7 @@ const Navbar: React.FC = () => {
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
-        {/* 🔹 LEFT */}
+        {/* LEFT */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <img src="/logoIcon.png" alt="Ascend" style={{ height: 36, borderRadius: 6 }} />
           <SearchBar>
@@ -107,34 +112,24 @@ const Navbar: React.FC = () => {
           </SearchBar>
         </Box>
 
-        {/* 🔹 CENTER */}
+        {/* CENTER */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          {[
-            { icon: <Home />, route: "/feed", label: "Home" },
-            { icon: <People />, route: "/network", label: "My Network" },
-            { icon: <Work />, route: "/jobs", label: "Jobs" },
-            { icon: <Message />, route: "/chat", label: "Messaging" },
-            { icon: <Notifications />, route: "/notif", label: "Notifications" },
-          ].map(({ icon, route, label }, i) => (
+          {[{ icon: <Home />, route: "/feed", label: "Home" }, { icon: <People />, route: "/network", label: "My Network" }, { icon: <Work />, route: "/jobs", label: "Jobs" }, { icon: <Message />, route: "/chat", label: "Messaging" }, { icon: <Notifications />, route: "/notif", label: "Notifications" }].map(({ icon, route, label }, i) => (
             <Tooltip key={i} title={label}>
               <NavIconButton onClick={() => router.push(route)} active={pathname === route}>
                 {label === "Notifications" && unseenCount > 0 ? (
                   <Badge badgeContent={unseenCount} color="error">
-                    {React.cloneElement(icon, {
-                      sx: { color: muiTheme.palette.text.secondary },
-                    })}
+                    {React.cloneElement(icon, { sx: { color: muiTheme.palette.text.secondary } })}
                   </Badge>
                 ) : (
-                  React.cloneElement(icon, {
-                    sx: { color: muiTheme.palette.text.secondary },
-                  })
+                  React.cloneElement(icon, { sx: { color: muiTheme.palette.text.secondary } })
                 )}
               </NavIconButton>
             </Tooltip>
           ))}
         </Box>
 
-        {/* 🔹 RIGHT */}
+        {/* RIGHT */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             <IconButton onClick={toggleTheme}>
@@ -146,12 +141,13 @@ const Navbar: React.FC = () => {
             </IconButton>
           </Tooltip>
 
+          {/* User Avatar */}
           <Tooltip title="Me">
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
               <Avatar
-                src="/man.jpg"
+                src={profilePicture}
+                alt={fullName}
                 sx={{
-                  border: `2px solid ${theme === "dark" ? "#fff" : "#000"}`,
                   transition: "0.3s",
                   "&:hover": { transform: "scale(1.1)" },
                 }}
@@ -159,9 +155,10 @@ const Navbar: React.FC = () => {
             </IconButton>
           </Tooltip>
 
+          {/* Dropdown Menu */}
           <Menu
             anchorEl={anchorEl}
-            open={openMenu}
+            open={Boolean(anchorEl)}
             onClose={closeMenu}
             PaperProps={{
               elevation: 6,
@@ -176,10 +173,15 @@ const Navbar: React.FC = () => {
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <Box px={2} py={2} textAlign="center">
-              <Avatar src="/man.jpg" sx={{ width: 58, height: 58, mx: "auto" }} />
-              <Typography fontWeight={600} mt={1}>Developing Ascend</Typography>
+              <Avatar src={profilePicture} sx={{ width: 58, height: 58, mx: "auto" }} />
+              <Typography fontWeight={600} mt={1}>
+                {fullName}
+              </Typography>
               <Button
-                onClick={() => router.push("/profile")}
+                onClick={() => {
+                  closeMenu();
+                  router.push("/profile");
+                }}
                 variant="outlined"
                 fullWidth
                 sx={{ mt: 1.5, borderRadius: "999px", textTransform: "none" }}
@@ -194,7 +196,9 @@ const Navbar: React.FC = () => {
             </Typography>
             <MenuItem><ListItemText>Try Premium</ListItemText></MenuItem>
             <MenuItem>
-              <ListItemText onClick={() => router.push("/authen/Settings")}>Settings & Privacy</ListItemText>
+              <ListItemText onClick={() => router.push("/authen/Settings")}>
+                Settings & Privacy
+              </ListItemText>
               <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
             </MenuItem>
 
@@ -208,13 +212,17 @@ const Navbar: React.FC = () => {
             <Divider />
             <MenuItem onClick={closeMenu}>
               <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-              <ListItemText onClick={() => router.push("/authen")}
-              >Sign Out</ListItemText>
+              <ListItemText onClick={() => router.push("/authen")}>Sign Out</ListItemText>
             </MenuItem>
           </Menu>
 
+          {/* Business / Premium */}
           <Button
-            sx={{ color: muiTheme.palette.text.primary, textTransform: "none", fontWeight: 500 }}
+            sx={{
+              color: muiTheme.palette.text.primary,
+              textTransform: "none",
+              fontWeight: 500,
+            }}
             endIcon={<ExpandMore />}
           >
             For Business
@@ -230,7 +238,7 @@ const Navbar: React.FC = () => {
               fontWeight: 600,
               px: 2.5,
               "&:hover": {
-                backgroundColor: "#D4AF37 ",
+                backgroundColor: "#D4AF37",
               },
             }}
           >

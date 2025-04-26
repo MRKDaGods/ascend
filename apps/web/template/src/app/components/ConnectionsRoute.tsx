@@ -3,7 +3,7 @@ import { Box, Typography, useTheme } from "@mui/material";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import { useRouter } from "next/navigation";
 
-const ConnectionsCard = () => {
+const ConnectionsRoute = () => {
   const theme = useTheme();
   const router = useRouter();
 
@@ -33,4 +33,4 @@ const ConnectionsCard = () => {
   );
 };
 
-export default ConnectionsCard;
+export default ConnectionsRoute;

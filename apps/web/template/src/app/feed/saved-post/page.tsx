@@ -8,11 +8,11 @@ import { usePostStore } from "@/app/stores/usePostStore";
 
 const SavePage = () => {
   const theme = useTheme();
-  const { fetchSavedPostsFromAPI } = usePostStore();
+  const { fetchSavedPostsAPI } = usePostStore();
 
   useEffect(() => {
-    fetchSavedPostsFromAPI(); // fetches page 1, limit 10 by default
-  }, [fetchSavedPostsFromAPI]);
+    fetchSavedPostsAPI();
+  }, [fetchSavedPostsAPI]);
 
   return (
     <>

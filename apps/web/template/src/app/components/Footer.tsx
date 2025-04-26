@@ -30,7 +30,6 @@ const Footer = () => {
     >
       {/* Logo Text */}
       <Typography variant="caption" sx={{ color: theme.palette.text.primary }}>
-        <strong>Ascend</strong>
         <span
           style={{
             backgroundColor: theme.palette.grey[700],
@@ -40,7 +39,7 @@ const Footer = () => {
             marginLeft: "0.15em",
           }}
         >
-          in
+          Ascend
         </span>{" "}
         © 2025
       </Typography>

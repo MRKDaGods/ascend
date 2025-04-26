@@ -40,6 +40,11 @@ export interface RepostResponse {
   };
 }
 
+export interface GetSavedPostsResponse {
+  success: boolean;
+  data: Post[];
+}
+
 // ==== FETCH FEED ====
 
 export const fetchNewsFeed = async (
@@ -67,38 +72,43 @@ export const fetchPost = async (
 };
 
 // ==== CREATE POST ====
-
 export const createPost = async (
   content: string,
-  mediaUrl?: string,
-  mediaType?: "image" | "video"
+  mediaFile?: File,
+  mediaType?: "image" | "video" | "file",
+  fileTitle?: string,
+  fileDescription?: string
 ): Promise<AxiosResponse<CreatePostResponse>> => {
   const formData = new FormData();
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  if (mediaUrl) {
-    const response = await fetch(mediaUrl);
-    const blob = await response.blob();
-    const ext = mediaType === "video" ? "mp4" : "jpg";
-    const file = new File([blob], `upload.${ext}`, { type: blob.type });
-
-    formData.append("media", file);
-    formData.append("type", mediaType || "image");
+  if (mediaFile && mediaType === "file") {
+    formData.append("media", mediaFile);
+    formData.append("type", "document");
+    formData.append("title", fileTitle ?? "Untitled Document");
+    formData.append("description", fileDescription ?? "PDF file");
+    console.log("📄 Document being uploaded:", mediaFile.name);
+  } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
+    formData.append("media", mediaFile);
+    formData.append("type", mediaType);
+    formData.append("title", "Uploaded Media");
+    formData.append("description", `${mediaType} file`);
+    console.log("🖼️ Media being uploaded:", mediaFile.name);
   } else {
     formData.append("title", "text only");
     formData.append("description", "no media");
+    console.log("📝 Text-only post");
   }
 
-  const res = await API.post("/post", formData, {
+  return await API.post("/post", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
       "x-no-parse-body": "1",
     },
   });
-
-  return res;
 };
+
 
 // ==== DELETE POST ====
 
@@ -124,7 +134,7 @@ export const editPost = async (
     headers: {
       "x-no-parse-body": "1",
     },
-  });
+  });  
 
   return res;
 };
@@ -150,28 +160,16 @@ export const repost = async (
 };
 
 // ==== TOGGLE SAVE/UNSAVE POST ====
-
-export const toggleSavePostAPI = async (postId: number): Promise<{
-  success: boolean;
-  data: {
-    saved: boolean;
-    message: string;
-  };
-}> => {
-  const res = await API.post(`/post/${postId}/save`);
-  return res.data;
+export const toggleSavePostAPI = async (postId: number): Promise<boolean> => {
+  const response = await API.post(`/post/${postId}/save`);
+  return response.data?.data?.saved ?? false;
 };
 
 // ==== FETCH ALL SAVED POSTS ====
-export const fetchSavedPostsAPI = async (
-  page = 1,
-  limit = 10
-): Promise<NewsFeedResponse> => {
-  const response = await API.get<NewsFeedResponse>("/post/saved", {
-    params: { page, limit },
-  });
 
-  return response.data;
+export const fetchSavedPostsAPI = async (): Promise<Post[]> => {
+  const response = await API.get("/post/saved");
+  return response.data.data;
 };
 
 // ==== CREATE COMMENT ON POST ====

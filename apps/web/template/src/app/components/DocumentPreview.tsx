@@ -23,45 +23,67 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ fileUrl, title, onRem
         borderRadius: 2,
         overflow: "hidden",
         position: "relative",
-        p: 2,
         backgroundColor: isDarkMode ? "#1e1e1e" : "#f9f9f9",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <ArticleIcon sx={{ color: "#0a66c2" }} />
-        <Box>
-          <Typography
-            fontWeight={600}
-            fontSize="0.95rem"
-            sx={{ color: theme.palette.text.primary }}
-          >
-            <a
-              href={fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "#0a66c2",
-                textDecoration: "none",
-                wordBreak: "break-word",
-              }}
+      {/* Header: icon, title, remove */}
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <ArticleIcon sx={{ color: "#0a66c2" }} />
+          <Box>
+            <Typography
+              fontWeight={600}
+              fontSize="0.95rem"
+              sx={{ color: theme.palette.text.primary }}
             >
-              {title}
-            </a>
-          </Typography>
-          <Typography fontSize="0.75rem" color="text.secondary">
-            PDF document — click to open
-          </Typography>
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "#0a66c2",
+                  textDecoration: "none",
+                  wordBreak: "break-word",
+                }}
+              >
+                {title}
+              </a>
+            </Typography>
+            <Typography fontSize="0.75rem" color="text.secondary">
+              PDF document — click to open
+            </Typography>
+          </Box>
         </Box>
+
+        {onRemove && (
+          <IconButton
+            size="small"
+            onClick={onRemove}
+            sx={{ color: theme.palette.text.secondary }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
       </Box>
 
-      {onRemove && (
-        <IconButton size="small" onClick={onRemove} sx={{ color: theme.palette.text.secondary }}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      )}
+      {/* PDF Preview */}
+      <iframe
+        src={fileUrl}
+        title={title}
+        style={{
+          width: "100%",
+          height: "500px",
+          border: "none",
+          borderTop: `1px solid ${isDarkMode ? "#444" : "#ccc"}`,
+        }}
+      />
     </Box>
   );
 };

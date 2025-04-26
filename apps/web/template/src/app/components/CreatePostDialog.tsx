@@ -2,18 +2,25 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
-  IconButton, Stack, Typography, Tooltip, Popper, TextField
+  Avatar,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Typography,
+  Tooltip,
 } from "@mui/material";
-import {
-  Close, Edit, Delete, Image, OndemandVideo, Article
-} from "@mui/icons-material";
-// import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import ClickAwayListener from "@mui/material/ClickAwayListener";
-import RepostPreview from "./RepostPreview";
+import { Close, Edit, Delete, Image, OndemandVideo, Article } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
+
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
+import { useProfileStore } from "../stores/useProfileStore"; // ✅ import profile store
 
 import TagInput from "./TagInput";
 import DiscardPostDialog from "./DiscardPostDialog";
@@ -21,15 +28,14 @@ import DiscardRepostDialog from "./DiscardRepostDialog";
 import DraftSavedPopup from "./DraftSavedPopup";
 import Document from "./Document";
 import DocumentPreview from "./DocumentPreview";
+import RepostPreview from "./RepostPreview";
 import RepostPopup from "./RepostPopup";
 
-// import Picker from "@emoji-mart/react";
-// import data from "@emoji-mart/data";
-// import Picker from "@emoji-mart/react";
-// import data from "@emoji-mart/data";
-
 const CreatePostDialog: React.FC = () => {
-  const router = useRouter(); // ✅ router instance
+  const router = useRouter();
+  const theme = useTheme();
+  const [docDialogOpen, setDocDialogOpen] = useState(false);
+
   const {
     open,
     postText,
@@ -45,29 +51,28 @@ const CreatePostDialog: React.FC = () => {
     setDraftSavedPopupOpen,
     setDraftText,
     lastUserPostId,
-    repostSourcePost, 
+    repostSourcePost,
     setRepostSourcePost,
     createPostFromAPI,
-    setUserPostPopupOpen,
     setRepostPopupOpen,
-    repostFromAPI
+    repostFromAPI,
   } = usePostStore();
-
 
   const {
     mediaPreviews,
+    mediaFiles,
+    mediaType,
     removeMediaFile,
     clearAllMedia,
     openEditor,
     documentPreview,
+    documentFile,
     clearDocumentPreview,
   } = useMediaStore();
 
-  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  // const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
-  // const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  // const emojiAnchorRef = useRef<HTMLButtonElement | null>(null);
-  const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const userData = useProfileStore((state) => state.userData); // ✅
+  const userProfilePic = userData?.profile_picture_url || "/default-avatar.png"; // ✅
+  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "You"; // ✅
 
   useEffect(() => {
     if (open && draftText) {
@@ -76,22 +81,24 @@ const CreatePostDialog: React.FC = () => {
   }, [open, draftText]);
 
   const handleSubmit = async () => {
-    if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
-  
-    const media = mediaPreviews[0];
-    const type = media?.includes("video") ? "video" : "image";
-  
+    if (!postText.trim() && mediaFiles.length === 0 && !documentPreview) return;
+
+    const fileToSend = documentPreview ? documentFile : mediaFiles[0];
+    const typeToSend = documentPreview ? "file" : mediaType ?? undefined;
+
     if (repostSourcePost) {
-      // 👉 It's a repost with thoughts
       await repostFromAPI(repostSourcePost.id, postText.trim());
       setRepostPopupOpen(true);
     } else {
-      // 👉 It's a regular post
-      await createPostFromAPI(postText, media, type);
-      setUserPostPopupOpen(true);
+      await createPostFromAPI(
+        postText,
+        fileToSend,
+        typeToSend,
+        documentPreview?.title,
+        "Uploaded from CreatePostDialog"
+      );
     }
-  
-    // ✅ Reset all post state
+
     setDraftText("");
     setPostText("");
     resetPost();
@@ -101,89 +108,74 @@ const CreatePostDialog: React.FC = () => {
   };
 
   const handleClose = () => {
-    const hasUnsavedContent =
-      postText.length > 0 ||
-      mediaPreviews.length > 0 ||
-      documentPreview ||
-      repostSourcePost;
-  
-    if (hasUnsavedContent) {
-      if (repostSourcePost) {
-        openDiscardRepostDialog();
-      } else {
-        openDiscardPostDialog();
-      }
+    const hasUnsaved =
+      !!postText.trim() || mediaFiles.length > 0 || !!documentPreview || !!repostSourcePost;
+
+    if (hasUnsaved) {
+      repostSourcePost ? openDiscardRepostDialog() : openDiscardPostDialog();
     } else {
       resetPost();
-      setRepostSourcePost(null);
       clearAllMedia();
       clearDocumentPreview();
+      setRepostSourcePost(null);
     }
-  };  
+  };
 
   return (
     <>
-      <Dialog open fullWidth maxWidth="sm" onClose={handleClose}>
+      <Dialog open={open} fullWidth maxWidth="sm" onClose={handleClose}>
         <DialogTitle sx={{ pb: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src="/man.jpg" />
+              <Avatar src={userProfilePic}>
+                {fullName.charAt(0)}
+              </Avatar>
               <Box>
-                <Typography fontWeight={600}>Developing Ascend</Typography>
-                <Typography fontSize="0.8rem">Post to Connections only</Typography>
+                <Typography fontWeight={600}>{fullName}</Typography>
+                <Typography fontSize="0.8rem" color="text.secondary">
+                  Post to Connections only
+                </Typography>
               </Box>
             </Stack>
-            <IconButton onClick={handleClose}><Close /></IconButton>
+            <IconButton onClick={handleClose}>
+              <Close />
+            </IconButton>
           </Stack>
         </DialogTitle>
 
         <DialogContent sx={{ pt: 1 }}>
-          <Box
-            sx={{
-              mt: 2,
-              minHeight: "100px",
-              fontSize: "1rem",
-              width: "100%",
-              backgroundColor: "transparent",
-              '& textarea': {
-                fontSize: '1rem',
-                lineHeight: 1.5,
-                padding: 0,
-                border: "none",
-                resize: "none",
-                width: "100%",
-                fontFamily: "inherit",
-                background: "transparent",
-                outline: "none",
-              }
-            }}
-          >
+          <Box sx={{ mt: 2, minHeight: 100 }}>
             <TagInput postId={lastUserPostId ?? -1} />
           </Box>
 
-          {mediaPreviews.length > 0 && (
+          {mediaPreviews[0] && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
-              <img
-                src={mediaPreviews[0]}
-                alt="preview"
-                style={{
-                  width: "100%",
-                  borderRadius: 10,
-                  objectFit: "cover",
-                  maxHeight: "400px",
-                }}
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  display: "flex",
-                  gap: 1,
-                }}
-              >
-                <IconButton sx={{ bgcolor: "white" }} onClick={openEditor}><Edit /></IconButton>
-                <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}><Delete /></IconButton>
+              {mediaType === "video" ? (
+                <video
+                  src={mediaPreviews[0]}
+                  controls
+                  style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+                />
+              ) : (
+                <img
+                  src={mediaPreviews[0]}
+                  alt="preview"
+                  style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+                />
+              )}
+              <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
+                <IconButton
+                  sx={{ bgcolor: theme.palette.background.paper }}
+                  onClick={() => openEditor(mediaType ?? "image")}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton
+                  sx={{ bgcolor: theme.palette.background.paper }}
+                  onClick={() => removeMediaFile(0)}
+                >
+                  <Delete />
+                </IconButton>
               </Box>
             </Box>
           )}
@@ -195,32 +187,37 @@ const CreatePostDialog: React.FC = () => {
               onRemove={clearDocumentPreview}
             />
           )}
-          
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {repostSourcePost && <RepostPreview post={repostSourcePost} />}
-        </Box>
+
+          {repostSourcePost && (
+            <Box sx={{ mt: 2 }}>
+              <RepostPreview post={repostSourcePost} />
+            </Box>
+          )}
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={1}>
-            <Tooltip title="Add a photo"><IconButton onClick={openEditor}><Image /></IconButton></Tooltip>
-            <Tooltip title="Add a video"><IconButton onClick={openEditor}><OndemandVideo /></IconButton></Tooltip>
-            <Tooltip title="Add a document"><IconButton onClick={() => setDocDialogOpen(true)}><Article /></IconButton></Tooltip>
-            {/* <Tooltip title="Add an emoji">
-            {/* <Tooltip title="Add an emoji">
-              <IconButton
-                ref={emojiAnchorRef}
-                onClick={() => setShowEmojiPicker((prev) => !prev)}
-              >
-                <EmojiEmotionsIcon />
+            <Tooltip title="Add a photo">
+              <IconButton onClick={() => openEditor("image")}>
+                <Image />
               </IconButton>
-            </Tooltip> */}
+            </Tooltip>
+            <Tooltip title="Add a video">
+              <IconButton onClick={() => openEditor("video")}>
+                <OndemandVideo />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Add a document">
+              <IconButton onClick={() => setDocDialogOpen(true)}>
+                <Article />
+              </IconButton>
+            </Tooltip>
           </Stack>
 
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!postText.trim() && mediaPreviews.length === 0 && !documentPreview}
+            disabled={!postText.trim() && mediaFiles.length === 0 && !documentPreview}
             sx={{ textTransform: "none", px: 4 }}
           >
             Post
@@ -228,29 +225,7 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Emoji Picker */}
-      {/* <Popper
-        open={showEmojiPicker}
-        anchorEl={emojiAnchorRef.current}
-        placement="top-start"
-        style={{ zIndex: 1600 }}
-      >
-        <ClickAwayListener onClickAway={() => setShowEmojiPicker(false)}>
-          <Box sx={{ zIndex: 1600 }}>
-            <Picker
-              data={data}
-              onEmojiSelect={(emoji: any) => {
-                setPostText((prev: string) => prev + emoji.native);
-                setShowEmojiPicker(false);
-              }}
-              previewPosition="none"
-              theme="light"
-              perLine={9}
-            />
-          </Box>
-        </ClickAwayListener>
-      </Popper> */}
-
+      {/* Popups */}
       <DiscardPostDialog
         open={discardPostDialogOpen}
         onClose={closeDiscardPostDialog}
@@ -287,12 +262,12 @@ const CreatePostDialog: React.FC = () => {
           resetPost();
           clearAllMedia();
           clearDocumentPreview();
+          setRepostSourcePost(null);
         }}
       />
 
       <DraftSavedPopup />
       <RepostPopup />
-
       <Document open={docDialogOpen} onClose={() => setDocDialogOpen(false)} />
     </>
   );

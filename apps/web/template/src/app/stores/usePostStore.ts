@@ -9,9 +9,9 @@ import {
   deletePostById,
   editPost,
   repost,
-  toggleSavePostAPI,
   createCommentAPI,
-  fetchSavedPostsAPI
+  fetchSavedPostsAPI,
+  toggleSavePostAPI
 } from "@/api/posts";
 
 export type ReactionType =
@@ -40,14 +40,14 @@ export type PostType = {
   comments: number;
   image?: string;
   video?: string;
-  file?: string;
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
   tags?: Tag[];
   commentTags?: { [commentIndex: number]: Tag[] };
-  fileTitle?: string;
   fileDescription?: string;
+  file?: string | null;
+  fileTitle?: string | null;
   isEdited?: boolean;
 };
 
@@ -97,20 +97,20 @@ interface PostStoreState {
   fetchPostFromAPI: (id: number) => Promise<void>;
   createPostFromAPI: (
     content: string,
-    media?: string,
-    mediaType?: "image" | "video"
-  ) => Promise<void>;
+    media?: File,
+    mediaType?: "image" | "video" | "file",
+    fileTitle?: string,
+    fileDescription?: string
+  ) => Promise<void>;  
+  
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
-  fetchSavedPostsFromAPI: (page?: number, limit?: number) => Promise<void>;
+  fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
+  toggleSavePostAPI: (postId: number) => Promise<void>;
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
-  // toggleSavePost: (id: number) => void;
-  // toggleSavePostFromAPI: (id: number) => void;
-  toggleSavePostFromAPI: (id: number) => Promise<void>;
-
   commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<void>;
 
   addTagToPost: (postId: number, tag: Tag) => void;
@@ -190,14 +190,18 @@ export const usePostStore = create<PostStoreState>()(
           likes: post.likes_count,
           reposts: post.shares_count,
           comments: post.comments_count,
-          image: post.media?.find((m) => m.type === "image")?.url,
-          video: post.media?.find((m) => m.type === "video")?.url,
+          image: post.media?.find((m) => m.type === "image")?.url || undefined,
+          video: post.media?.find((m) => m.type === "video")?.url || undefined,
+          file: post.media?.find((m) => m.type === "document")?.url || undefined,
+          fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
           commentsList: [],
           isUserPost: false,
           repostSourcePost: null,
         }));
+      
         set({ posts });
       },
+      
       fetchPostFromAPI: async (postId) => {
         try {
           const { data: post } = await fetchPost(postId);
@@ -217,12 +221,13 @@ export const usePostStore = create<PostStoreState>()(
               likes: source.likes_count,
               reposts: source.shares_count,
               comments: source.comments_count,
-              image: source.media?.find((m) => m.type === "image")?.url,
-              video: source.media?.find((m) => m.type === "video")?.url,
+              image: source.media?.find((m) => m.type === "image")?.url || undefined,
+              video: source.media?.find((m) => m.type === "video")?.url || undefined,
+              file: source.media?.find((m) => m.type === "document")?.url || undefined, // ✅ PDF file URL
+              fileTitle: source.media?.find((m) => m.type === "document")?.title || undefined, // ✅ PDF Title
               commentsList: [],
               isUserPost: false,
-              fileTitle: source.media?.[0]?.title ?? "",
-              fileDescription: source.media?.[0]?.description ?? "",
+              repostSourcePost: null,
               isEdited: source.is_edited,
             };
           }
@@ -237,27 +242,49 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url,
-            video: post.media?.find((m) => m.type === "video")?.url,
+            image: post.media?.find((m) => m.type === "image")?.url || undefined,
+            video: post.media?.find((m) => m.type === "video")?.url || undefined,
+            file: post.media?.find((m) => m.type === "document")?.url || undefined,
+            fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
             commentsList: [],
             isUserPost: true,
             repostSourcePost,
-            fileTitle: post.media?.[0]?.title ?? "",
-            fileDescription: post.media?.[0]?.description ?? "",
             isEdited: post.is_edited,
           };
       
-          set({ selectedPost: mapped });
+          set({ selectedPost: mapped, isLastPostDeleted: false });
         } catch (err: any) {
           console.error("❌ fetchPostById error:", err?.response?.data || err.message);
         }
       },      
 
-      createPostFromAPI: async (content, media, type) => {
-        const response = await createPost(content, media, type);
-        const id = response.data?.data?.id;
-        if (id) set({ lastUserPostId: id, userPostPopupOpen: true });
-      },
+      createPostFromAPI: async (
+        content,
+        media,
+        mediaType,
+        fileTitle,
+        fileDescription
+      ) => {
+        try {
+          console.log("📦 Creating post with:", {
+            content,
+            media,
+            mediaType,
+            fileTitle,
+            fileDescription,
+          });
+      
+          const response = await createPost(content, media, mediaType, fileTitle, fileDescription);
+          const id = response.data?.data?.id;
+      
+          if (id) {
+            set({ lastUserPostId: id, userPostPopupOpen: true, isLastPostDeleted: false });
+          }
+        } catch (error) {
+          console.error("❌ Error in createPostFromAPI:", error);
+          throw error;
+        }
+      },      
 
       deletePostFromAPI: async (postId) => {
         await deletePostById(postId);
@@ -332,12 +359,10 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      fetchSavedPostsFromAPI: async () => {
+      fetchSavedPostsAPI: async () => {
         try {
-          const response = await fetchSavedPostsAPI();
-          const savedPosts = response.data;
-      
-          const mapped: PostType[] = savedPosts.map((post: any) => ({
+          const savedData = await fetchSavedPostsAPI();
+          const mapped = savedData.map((post) => ({
             id: post.id,
             username: `${post.user.first_name} ${post.user.last_name}`,
             profilePic: post.user.profile_picture_url ?? "",
@@ -353,17 +378,34 @@ export const usePostStore = create<PostStoreState>()(
             isUserPost: false,
           }));
       
-          // ✅ Fix for duplicate keys
-          set((s) => {
-            const existingIds = new Set(s.posts.map((p) => p.id));
-            const newPosts = mapped.filter((p) => !existingIds.has(p.id));
-            return { posts: [...s.posts, ...newPosts] };
-          });
-        } catch (err: any) {
-          console.error("❌ Failed to fetch saved posts:", err?.response?.data || err.message);
+          const ids = mapped.map((p) => p.id);
+          set((s) => ({
+            posts: [...s.posts, ...mapped.filter((p) => !s.posts.some((x) => x.id === p.id))],
+            savedPosts: [...new Set([...s.savedPosts, ...ids])],
+          }));
+        } catch (error) {
+          console.error("❌ Failed to fetch saved posts from API", error);
         }
-      },         
-
+      },      
+      
+      toggleSavePostAPI: async (postId) => {
+        try {
+          const saved = await toggleSavePostAPI(postId); // ⬅️ This now gives us true = saved, false = unsaved
+      
+          set((s) => ({
+            savedPosts: saved
+              ? [...new Set([...s.savedPosts, postId])]
+              : s.savedPosts.filter((id) => id !== postId),
+            savedPopupOpen: saved,
+            unsavedPopupOpen: !saved,
+          }));
+      
+          console.log(`✅ Post ${postId} is now ${saved ? "saved" : "unsaved"}`);
+        } catch (err: any) {
+          console.error("❌ Failed to save/unsave post:", err?.response?.data || err.message);
+        }
+      },      
+      
       setReaction: (postId, reaction) =>
         set((s) => ({
           postReactions: { ...s.postReactions, [postId]: reaction },
@@ -382,35 +424,6 @@ export const usePostStore = create<PostStoreState>()(
             ),
           };
         }),
-
-      // toggleSavePost: (id) =>
-      //   set((s) => {
-      //     const isSaved = s.savedPosts.includes(id);
-      //     return {
-      //       savedPosts: isSaved ? s.savedPosts.filter((pid) => pid !== id) : [...s.savedPosts, id],
-      //       savedPopupOpen: !isSaved,
-      //       unsavedPopupOpen: isSaved,
-      //     };
-      //   }),
-
-      toggleSavePostFromAPI: async (postId) => {
-        try {
-          const response = await toggleSavePostAPI(postId);
-          const saved = response.data.saved;
-      
-          set((s) => ({
-            savedPosts: saved
-              ? [...s.savedPosts, postId]
-              : s.savedPosts.filter((id) => id !== postId),
-            savedPopupOpen: saved,
-            unsavedPopupOpen: !saved,
-          }));
-      
-          console.log(`✅ Post ${postId} is now ${saved ? "saved" : "unsaved"}`);
-        } catch (error: any) {
-          console.error("❌ Failed to toggle save/unsave:", error?.response?.data || error.message);
-        }
-      },
       
       commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
         try {
@@ -457,7 +470,10 @@ export const usePostStore = create<PostStoreState>()(
     {
       name: "post-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ posts: s.posts }),
+      partialize: (s) => ({ 
+        posts: s.posts,
+        savedPosts: s.savedPosts,
+      }),
     }
   )
 );
