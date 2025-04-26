@@ -74,7 +74,7 @@ export const fetchPost = async (
 // ==== CREATE POST ====
 export const createPost = async (
   content: string,
-  mediaUrl?: string,
+  mediaFile?: File,
   mediaType?: "image" | "video" | "file",
   fileTitle?: string,
   fileDescription?: string
@@ -83,28 +83,14 @@ export const createPost = async (
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  // PDF Document Upload
-  if (mediaUrl && mediaType === "file") {
-    const response = await fetch(mediaUrl);
-    const blob = await response.blob();
-    const file = new File([blob], "document.pdf", { type: "application/pdf" });
-
-    formData.append("media", file);
-    formData.append("type", "file");
+  if (mediaFile && mediaType === "file") {
+    formData.append("media", mediaFile);
+    formData.append("type", "document");
     formData.append("title", fileTitle ?? "Untitled Document");
     formData.append("description", fileDescription ?? "PDF file");
-
-  // Image or Video Upload
-  } else if (mediaUrl && (mediaType === "image" || mediaType === "video")) {
-    const response = await fetch(mediaUrl);
-    const blob = await response.blob();
-    const extension = mediaType === "video" ? "mp4" : "jpg";
-    const file = new File([blob], `upload.${extension}`, { type: blob.type });
-
-    formData.append("media", file);
+  } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
+    formData.append("media", mediaFile);
     formData.append("type", mediaType);
-
-  // Text-only post
   } else {
     formData.append("title", "text only");
     formData.append("description", "no media");

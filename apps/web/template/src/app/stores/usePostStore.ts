@@ -40,14 +40,14 @@ export type PostType = {
   comments: number;
   image?: string;
   video?: string;
-  file?: string;
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
   tags?: Tag[];
   commentTags?: { [commentIndex: number]: Tag[] };
-  fileTitle?: string;
   fileDescription?: string;
+  file?: string | null;
+  fileTitle?: string | null;
   isEdited?: boolean;
 };
 
@@ -97,7 +97,7 @@ interface PostStoreState {
   fetchPostFromAPI: (id: number) => Promise<void>;
   createPostFromAPI: (
     content: string,
-    media?: string,
+    media?: File,
     mediaType?: "image" | "video" | "file",
     fileTitle?: string,
     fileDescription?: string
@@ -190,14 +190,18 @@ export const usePostStore = create<PostStoreState>()(
           likes: post.likes_count,
           reposts: post.shares_count,
           comments: post.comments_count,
-          image: post.media?.find((m) => m.type === "image")?.url,
-          video: post.media?.find((m) => m.type === "video")?.url,
+          image: post.media?.find((m) => m.type === "image")?.url || undefined,
+          video: post.media?.find((m) => m.type === "video")?.url || undefined,
+          file: post.media?.find((m) => m.type === "document")?.url || undefined,
+          fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
           commentsList: [],
           isUserPost: false,
           repostSourcePost: null,
         }));
+      
         set({ posts });
       },
+      
       fetchPostFromAPI: async (postId) => {
         try {
           const { data: post } = await fetchPost(postId);
@@ -217,12 +221,13 @@ export const usePostStore = create<PostStoreState>()(
               likes: source.likes_count,
               reposts: source.shares_count,
               comments: source.comments_count,
-              image: source.media?.find((m) => m.type === "image")?.url,
-              video: source.media?.find((m) => m.type === "video")?.url,
+              image: source.media?.find((m) => m.type === "image")?.url || undefined,
+              video: source.media?.find((m) => m.type === "video")?.url || undefined,
+              file: source.media?.find((m) => m.type === "document")?.url || undefined, // ✅ PDF file URL
+              fileTitle: source.media?.find((m) => m.type === "document")?.title || undefined, // ✅ PDF Title
               commentsList: [],
               isUserPost: false,
-              fileTitle: source.media?.[0]?.title ?? "",
-              fileDescription: source.media?.[0]?.description ?? "",
+              repostSourcePost: null,
               isEdited: source.is_edited,
             };
           }
@@ -237,13 +242,13 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url,
-            video: post.media?.find((m) => m.type === "video")?.url,
+            image: post.media?.find((m) => m.type === "image")?.url || undefined,
+            video: post.media?.find((m) => m.type === "video")?.url || undefined,
+            file: post.media?.find((m) => m.type === "document")?.url || undefined,
+            fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
             commentsList: [],
             isUserPost: true,
             repostSourcePost,
-            fileTitle: post.media?.[0]?.title ?? "",
-            fileDescription: post.media?.[0]?.description ?? "",
             isEdited: post.is_edited,
           };
       

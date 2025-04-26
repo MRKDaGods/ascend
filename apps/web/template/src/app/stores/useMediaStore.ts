@@ -2,15 +2,15 @@ import { create } from "zustand";
 
 interface MediaStoreState {
   mediaFiles: File[];               // Actual uploaded files
-  mediaPreviews: string[];         // Preview URLs (string)
-  editorOpen: boolean;             // Media editor popup state
-  discardMediaDialogOpen: boolean; // Discard confirmation popup
+  mediaPreviews: string[];           // Preview URLs for images/videos
+  editorOpen: boolean;               // Media editor popup state
+  discardMediaDialogOpen: boolean;   // Discard confirmation popup
   mediaType: "image" | "video" | null;
 
-  // Document-specific preview
-  documentPreview: { url: string; title: string } | null;
+  documentPreview: { url: string; title: string } | null; // PDF preview
+  documentFile?: File;               // Real file object for PDF
 
-  // File/Preview control
+  // File management
   setMediaFiles: (files: File[]) => void;
   setMediaPreviews: (previews: string[]) => void;
   addMediaFile: (file: File) => void;
@@ -25,7 +25,7 @@ interface MediaStoreState {
   openDiscardMediaDialog: () => void;
   closeDiscardMediaDialog: () => void;
 
-  // Document preview control
+  // Document control
   setDocumentPreview: (file: File, title: string) => void;
   clearDocumentPreview: () => void;
 }
@@ -35,57 +35,57 @@ export const useMediaStore = create<MediaStoreState>((set) => ({
   mediaPreviews: [],
   editorOpen: false,
   discardMediaDialogOpen: false,
-  documentPreview: null,
   mediaType: null,
 
-  // Set multiple media files
+  documentPreview: null,
+  documentFile: undefined,
+
+  // === File Operations ===
   setMediaFiles: (files: File[]) => {
     const previews = files.map((file) => URL.createObjectURL(file));
     set({ mediaFiles: files, mediaPreviews: previews });
   },
 
-  // Set only preview URLs (e.g. during post edit)
   setMediaPreviews: (previews: string[]) => {
     set({ mediaPreviews: previews });
   },
 
-  // Add one media file
-  addMediaFile: (file: File) =>
-    set((state) => ({
-      mediaFiles: [...state.mediaFiles, file],
-      mediaPreviews: [...state.mediaPreviews, URL.createObjectURL(file)],
-    })),
+  addMediaFile: (file: File) => set((state) => ({
+    mediaFiles: [...state.mediaFiles, file],
+    mediaPreviews: [...state.mediaPreviews, URL.createObjectURL(file)],
+  })),
 
-  // Remove file and its preview by index
-  removeMediaFile: (index: number) =>
-    set((state) => {
-      const updatedFiles = [...state.mediaFiles];
-      const updatedPreviews = [...state.mediaPreviews];
-      updatedFiles.splice(index, 1);
-      updatedPreviews.splice(index, 1);
-      return {
-        mediaFiles: updatedFiles,
-        mediaPreviews: updatedPreviews,
-      };
-    }),
+  removeMediaFile: (index: number) => set((state) => {
+    const updatedFiles = [...state.mediaFiles];
+    const updatedPreviews = [...state.mediaPreviews];
+    updatedFiles.splice(index, 1);
+    updatedPreviews.splice(index, 1);
+    return {
+      mediaFiles: updatedFiles,
+      mediaPreviews: updatedPreviews,
+    };
+  }),
 
-  // Clear everything media-related
   clearAllMedia: () => set({ mediaFiles: [], mediaPreviews: [] }),
 
-  // Editor dialog state
-  openEditor: (type) => {
+  // === Editor Dialog Control ===
+  openEditor: (type: "image" | "video") => {
     set({ mediaType: type, editorOpen: true });
   },
-  closeEditor: () => set({ editorOpen: false }),
 
-  // Discard media popup state
+  closeEditor: () => {
+    set({ editorOpen: false });
+  },
+
+  // === Discard Media Popup Control ===
   openDiscardMediaDialog: () => set({ discardMediaDialogOpen: true }),
   closeDiscardMediaDialog: () => set({ discardMediaDialogOpen: false }),
 
-  // Document preview logic
+  // === Document (PDF) Operations ===
   setDocumentPreview: (file: File, title: string) => {
     const url = URL.createObjectURL(file);
-    set({ documentPreview: { url, title } });
+    set({ documentPreview: { url, title }, documentFile: file }); // ✅ Save BOTH url and file
   },
-  clearDocumentPreview: () => set({ documentPreview: null }),
+
+  clearDocumentPreview: () => set({ documentPreview: null, documentFile: undefined }), // ✅ Clear BOTH
 }));

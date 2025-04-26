@@ -14,14 +14,7 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-import {
-  Close,
-  Edit,
-  Delete,
-  Image,
-  OndemandVideo,
-  Article,
-} from "@mui/icons-material";
+import { Close, Edit, Delete, Image, OndemandVideo, Article } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
@@ -63,6 +56,7 @@ const CreatePostDialog: React.FC = () => {
 
   const {
     mediaPreviews,
+    mediaFiles,
     mediaType,
     removeMediaFile,
     clearAllMedia,
@@ -81,23 +75,29 @@ const CreatePostDialog: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!postText.trim() && mediaPreviews.length === 0 && !documentPreview) return;
-
-    const media = mediaPreviews[0];
-
+  
+    const mediaFile = mediaFiles[0]; // ✅ Use actual file, not preview URL
+  
     if (repostSourcePost) {
       await repostFromAPI(repostSourcePost.id, postText.trim());
       setRepostPopupOpen(true);
     } else {
-      await createPostFromAPI(postText, media, mediaType ?? "image");
+      await createPostFromAPI(
+        postText,
+        documentPreview ? undefined : mediaFile, // if documentPreview exists, no need to send media
+        documentPreview ? "file" : mediaType ?? "image",
+        documentPreview?.title,
+        undefined // you can pass description here if needed
+      );
     }
-
+  
     setDraftText("");
     setPostText("");
     resetPost();
     clearAllMedia();
     clearDocumentPreview();
     setRepostSourcePost(null);
-  };
+  };  
 
   const handleClose = () => {
     const hasUnsavedContent =
@@ -162,41 +162,23 @@ const CreatePostDialog: React.FC = () => {
             <TagInput postId={lastUserPostId ?? -1} />
           </Box>
 
-          {mediaPreviews.length > 0 && (
+          {mediaPreviews.length > 0 && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
               {mediaType === "video" ? (
                 <video
                   src={mediaPreviews[0]}
                   controls
-                  style={{
-                    width: "100%",
-                    borderRadius: 10,
-                    objectFit: "cover",
-                    maxHeight: "400px",
-                  }}
+                  style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: "400px" }}
                 />
               ) : (
                 <img
                   src={mediaPreviews[0]}
                   alt="preview"
-                  style={{
-                    width: "100%",
-                    borderRadius: 10,
-                    objectFit: "cover",
-                    maxHeight: "400px",
-                  }}
+                  style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: "400px" }}
                 />
               )}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 8,
-                  right: 8,
-                  display: "flex",
-                  gap: 1,
-                }}
-              >
-                <IconButton sx={{ bgcolor: "white" }} onClick={(event) => openEditor("image")}>
+              <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
+                <IconButton sx={{ bgcolor: "white" }} onClick={() => openEditor("image")}>
                   <Edit />
                 </IconButton>
                 <IconButton sx={{ bgcolor: "white" }} onClick={() => removeMediaFile(0)}>
@@ -222,26 +204,20 @@ const CreatePostDialog: React.FC = () => {
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={1}>
             <Tooltip title="Add a photo">
-              <IconButton onClick={() => openEditor("image")}>
-                <Image />
-              </IconButton>
+              <IconButton onClick={() => openEditor("image")}> <Image /> </IconButton>
             </Tooltip>
             <Tooltip title="Add a video">
-              <IconButton onClick={() => openEditor("video")}>
-                <OndemandVideo />
-              </IconButton>
+              <IconButton onClick={() => openEditor("video")}> <OndemandVideo /> </IconButton>
             </Tooltip>
             <Tooltip title="Add a document">
-              <IconButton onClick={() => setDocDialogOpen(true)}>
-                <Article />
-              </IconButton>
+              <IconButton onClick={() => setDocDialogOpen(true)}> <Article /> </IconButton>
             </Tooltip>
           </Stack>
 
           <Button
             variant="contained"
             onClick={handleSubmit}
-            disabled={!postText.trim() && mediaPreviews.length === 0 && !documentPreview}
+            disabled={!postText.trim() && mediaFiles.length === 0 && !documentPreview}
             sx={{ textTransform: "none", px: 4 }}
           >
             Post
@@ -249,6 +225,7 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Discard / Save Dialogs */}
       <DiscardPostDialog
         open={discardPostDialogOpen}
         onClose={closeDiscardPostDialog}
