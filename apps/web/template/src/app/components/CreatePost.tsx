@@ -1,3 +1,5 @@
+// Component file: where the user is prompted to create a post "start a post"
+
 "use client";
 
 import React from "react";
@@ -10,7 +12,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { usePostStore } from "../stores/usePostStore";
-import { useProfileStore } from "../stores/useProfileStore"; // ✅ Import profile store
+import { useProfileStore } from "../stores/useProfileStore";
 import AddMedia from "./AddMedia";
 import UserPostPopup from "./UserPostPopup";
 import CreatePostDialog from "./CreatePostDialog";
@@ -22,8 +24,14 @@ const CreatePost: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { open, setOpen, draftText } = usePostStore();
   
-  const userData = useProfileStore((state) => state.userData);
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // ✅ Fallback
+  type Profile = {
+    profile_picture_url?: string;
+    first_name: string;
+    last_name: string;
+  };  
+  
+  const userData = useProfileStore((state) => state.userData) as Profile | null;
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; //❌ Fallback
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   return (
@@ -32,7 +40,7 @@ const CreatePost: React.FC = () => {
         component="section"
         sx={{
           p: 2,
-          mb: 2,
+          mb: 0.01,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           width: "100%",
@@ -60,6 +68,7 @@ const CreatePost: React.FC = () => {
           </Avatar>
 
           <Box
+            id="start-post-button" // ✅ ID added
             sx={{
               flexGrow: 1,
               border: `1px solid ${theme.palette.divider}`,
@@ -84,7 +93,7 @@ const CreatePost: React.FC = () => {
           </Box>
         </Stack>
 
-        <Box sx={{ mt: 2, width: "100%" }}>
+        <Box sx={{ mt: 0.1, width: "100%" }}>
           <AddMedia />
         </Box>
       </Box>

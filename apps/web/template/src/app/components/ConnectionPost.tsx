@@ -1,3 +1,5 @@
+// Component file: appears after the user clicks repost 
+
 "use client";
 
 import React, { useState } from "react";
@@ -131,6 +133,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         <Typography variant="body2">
           👍 {post.likes} •{" "}
           <span
+            id="view-comments-button" // ✅ ID added
             style={{ cursor: "pointer", textDecoration: "underline" }}
             onClick={() => setShowComments(!showComments)}
           >

@@ -1,3 +1,5 @@
+// Page: Connections in Network
+
 "use client";
 
 import React from "react";
@@ -5,7 +7,7 @@ import { Box, Container, CircularProgress } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "@/app/components/Navbar";
-import JobsCard from "@/app/components/JobsCard";
+import WhosHiringCard from "@/app/components/WhosHiringCard";
 import Footer from "@/app/components/Footer";
 import ConnectionsList from "@/app/components/ConnectionsList";
 
@@ -65,7 +67,7 @@ const ConnectionsPage: React.FC = () => {
             alignSelf: "flex-start",
           }}
         >
-          <JobsCard />
+          <WhosHiringCard />
           <Footer />
         </Box>
       </Container>

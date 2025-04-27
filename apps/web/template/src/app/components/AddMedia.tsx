@@ -25,24 +25,32 @@ const AddMedia: React.FC = () => {
         }}
       >
         <Stack direction="row" spacing={6} sx={{ width: "100%", justifyContent: "center" }}>
-        <Button startIcon={<Image sx={{ color: "#0073b1" }}/>} 
-        onClick={() => openEditor("image")}
-        sx={{ textTransform: "none", color: "gray", fontWeight: "bold" }}>
+        <Button
+          id="add-photo-button" // ✅ ID added
+          startIcon={<Image sx={{ color: "#0073b1" }}/>} 
+          onClick={() => openEditor("image")}
+          sx={{ textTransform: "none", color: theme.palette.text.secondary, fontWeight: "bold" }}
+        >
           Photo
         </Button>
 
-        <Button startIcon={<VideoLibrary 
-        sx={{ color: "#228B22" }}/>} 
-        onClick={() => openEditor("video")}
-        sx={{ textTransform: "none", color: "gray", fontWeight: "bold"  }}>
+        <Button
+          id="add-video-button" // ✅ ID added
+          startIcon={<VideoLibrary sx={{ color: "#228B22" }}/>} 
+          onClick={() => openEditor("video")}
+          sx={{ textTransform: "none", color: theme.palette.text.secondary, fontWeight: "bold"  }}
+        >
           Video
         </Button>
-          <Button 
+
+        <Button
+          id="write-article-button" // ✅ ID added
           startIcon={<Article sx={{ color: "#D9534F" }} />} 
-          onClick={() => setOpen(true) }
-          sx={{ textTransform: "none", color: "gray", fontWeight: "bold"  }}>
-            Write article
-          </Button>
+          onClick={() => setOpen(true)}
+          sx={{ textTransform: "none", color: theme.palette.text.secondary, fontWeight: "bold"  }}
+        >
+          Write article
+        </Button>
         </Stack>
       </Box>
       <MediaEditor />
