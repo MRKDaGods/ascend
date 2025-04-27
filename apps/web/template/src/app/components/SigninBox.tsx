@@ -39,7 +39,7 @@ const SigninBox = () => {
           <Box display="flex" alignItems="center">
             <Avatar src="/user.jpg" sx={{ width: 40, height: 40, mr: 2 }} />
             <Box textAlign="left">
-              <Typography fontWeight="bold" id="user-name">Mehrati Sameh</Typography>
+              <Typography sx={{ color: "text.primary" }} fontWeight="bold" id="user-name">Mehrati Sameh</Typography>
               <Typography variant="body2" color="text.secondary" id="user-email">
                 m*****@gmail.com
               </Typography>
@@ -61,7 +61,7 @@ const SigninBox = () => {
           <Box display="flex" alignItems="center">
             <Avatar src="/user.jpg" sx={{ width: 40, height: 40, mr: 2 }} />
             <Box textAlign="left">
-              <Typography fontWeight="bold" id="user-name">Habiba</Typography>
+              <Typography sx={{ color: "text.primary" }} fontWeight="bold" id="user-name">Habiba</Typography>
               <Typography variant="body2" color="text.secondary" id="user-email">
                 h*****@eng-st.cu.edu.eg
               </Typography>
