@@ -1,3 +1,5 @@
+// Component file: card showing the user's created company in feed main page
+
 "use client";
 
 import { Card, CardActionArea, CardContent, Typography, Box, useTheme } from "@mui/material";
@@ -9,7 +11,7 @@ const CompanyCard = () => {
   const theme = useTheme();
 
   const handleClick = () => {
-    router.push("/Company/CompanyPageItself");
+    router.push("/CompanyPageItself");
   };
 
   return (
@@ -23,7 +25,10 @@ const CompanyCard = () => {
         color: theme.palette.text.primary,
       }}
     >
-      <CardActionArea onClick={handleClick}>
+      <CardActionArea
+        id="company-card-button" // ✅ ID added
+        onClick={handleClick}
+      >
         <Box sx={{ position: "relative", width: "100%", height: 200 }}>
           <Image
             src="/mycompany.jpeg"

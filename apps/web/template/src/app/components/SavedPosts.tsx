@@ -1,3 +1,5 @@
+// Component file: appears after the user clicks repost 
+
 "use client";
 
 import React, {useEffect} from "react";

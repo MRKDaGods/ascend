@@ -1,4 +1,4 @@
-// Component file: Reactions bar (like, celebrate, etc.) not just likes
+// Component file: hovering on the like button, to show the reactions bar
 
 "use client";
 
@@ -61,11 +61,11 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
     if (hoveredReaction) {
       setReaction(postId, hoveredReaction);
     } else if (currentReaction === "Like") {
-      clearReaction(postId); // remove like
+      clearReaction(postId);
     } else if (!currentReaction) {
-      setReaction(postId, "Like"); // default to like
+      setReaction(postId, "Like");
     } else {
-      clearReaction(postId); // remove other reaction
+      clearReaction(postId);
     }
   };
 
@@ -79,43 +79,44 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
       sx={{ position: "relative", display: "inline-block", m: 0, p: 0 }}
     >
       {isHovered && (
-        <Paper
-          elevation={4}
-          sx={{
-            position: "absolute",
-            bottom: "calc(100% - 2px)",
-            left: 0,
-            backgroundColor:
-              theme.palette.mode === "dark" ? "#fff" : "#f9f9f9",
-            display: "flex",
-            gap: 1,
-            borderRadius: 5,
-            p: 1,
-            zIndex: 20,
-          }}
-        >
-          {reactions.map((reaction) => (
-            <Tooltip title={reaction.label} key={reaction.label}>
-              <IconButton
-                onClick={() => {
-                  setReaction(postId, reaction.label);
-                }}
-                onMouseEnter={() => setHoveredReaction(reaction.label)}
-                sx={{
-                  padding: 0.5,
-                  "&:hover": {
-                    backgroundColor: "#f0f0f0",
-                  },
-                }}
-              >
-                {reaction.icon}
-              </IconButton>
-            </Tooltip>
-          ))}
-        </Paper>
+       <Paper
+        elevation={4}
+        sx={{
+          position: "absolute",
+          bottom: "calc(100% - 2px)",
+          left: 0,
+          backgroundColor: theme.palette.background.paper, // Dynamically set background color
+          display: "flex",
+          gap: 1,
+          borderRadius: 5,
+          p: 1,
+          zIndex: 20,
+        }}
+      >
+        {reactions.map((reaction) => (
+          <Tooltip title={reaction.label} key={reaction.label}>
+            <IconButton
+              id={`${reaction.label.toLowerCase()}-reaction-button`} // ✅ ID added
+              onClick={() => {
+                setReaction(postId, reaction.label);
+              }}
+              onMouseEnter={() => setHoveredReaction(reaction.label)}
+              sx={{
+                padding: 0.5,
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover, // Adjust hover color dynamically
+                },
+              }}
+            >
+              {reaction.icon}
+            </IconButton>
+          </Tooltip>
+        ))}
+      </Paper>
       )}
 
       <Button
+        id="main-reaction-button" // ✅ ID added
         startIcon={getReactionIcon()}
         sx={{
           textTransform: "none",

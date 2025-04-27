@@ -1,14 +1,17 @@
+// Component file: card showing Try Premium in feed main page
+
 "use client";
 import { Box, Typography, useTheme } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { useRouter } from "next/navigation";
 
-const SalesNavCard = () => {
+const TryPremCard = () => {
   const theme = useTheme();
   const router = useRouter();
 
   return (
     <Box
+      id="try-premium-card-button" // ✅ ID added
       onClick={() => router.push("/mypage")}
       sx={{
         p: 2,
@@ -31,4 +34,4 @@ const SalesNavCard = () => {
   );
 };
 
-export default SalesNavCard;
+export default TryPremCard;

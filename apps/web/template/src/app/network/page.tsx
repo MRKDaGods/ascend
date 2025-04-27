@@ -1,3 +1,5 @@
+// Page: Main Network
+
 "use client";
 
 import React from "react";
@@ -5,7 +7,7 @@ import { Box, Container } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../components/Navbar";
-import JobsCard from "../components/JobsCard";
+import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
 import ManageNetworkCard from "../components/ManageNetworkCard";
 import InvitationsCard from "../components/InvitationsCard";
@@ -50,7 +52,7 @@ const NetworkPage: React.FC = () => {
           }}
         >
           <ManageNetworkCard />
-          <JobsCard />
+          <WhosHiringCard />
           <Footer />
         </Box>
 

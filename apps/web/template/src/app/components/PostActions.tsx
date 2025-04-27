@@ -1,3 +1,5 @@
+// Component file: like, comment, repost and send
+
 "use client";
 
 import React from "react";
@@ -88,6 +90,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           />
 
           <Button
+            id="comment-button" // ✅ ID added
             startIcon={<Comment />}
             onClick={onCommentClick}
             sx={{
@@ -103,6 +106,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           <RepostOptions post={post} />
 
           <Button
+            id="send-post-button" // ✅ ID added
             startIcon={<Send />}
             onClick={() => setSendDialogOpen(true)}
             sx={{

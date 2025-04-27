@@ -1,3 +1,5 @@
+// Component file: appears when clicked on the repost button
+
 "use client";
 
 import React, { useState } from "react";
@@ -16,7 +18,7 @@ const RepostOptions: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const {
-    repostFromAPI, // ✅ new name
+    repostFromAPI,
     setRepostSourcePost,
     setOpen,
   } = usePostStore();
@@ -45,6 +47,7 @@ const RepostOptions: React.FC<{ post: PostType }> = ({ post }) => {
   return (
     <>
       <Button
+        id="open-repost-menu-button" // ✅ ID added
         startIcon={<Repeat />}
         onClick={handleClick}
         sx={{
@@ -56,7 +59,10 @@ const RepostOptions: React.FC<{ post: PostType }> = ({ post }) => {
         Repost
       </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem onClick={handleRepostWithThoughts}>
+        <MenuItem
+          id="repost-with-thoughts-button" // ✅ ID added
+          onClick={handleRepostWithThoughts}
+        >
           <Edit fontSize="small" sx={{ mr: 1 }} />
           <Box>
             <Typography fontWeight="bold">Repost with your thoughts</Typography>
@@ -65,7 +71,10 @@ const RepostOptions: React.FC<{ post: PostType }> = ({ post }) => {
             </Typography>
           </Box>
         </MenuItem>
-        <MenuItem onClick={handleRepost}>
+        <MenuItem
+          id="instant-repost-button" // ✅ ID added
+          onClick={handleRepost}
+        >
           <Repeat fontSize="small" sx={{ mr: 1 }} />
           <Box>
             <Typography fontWeight="bold">Repost</Typography>
