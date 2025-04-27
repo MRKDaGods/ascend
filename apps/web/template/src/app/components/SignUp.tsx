@@ -57,7 +57,7 @@ const SignUp = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" minHeight="50vh" justifyContent="center">
-      <Typography variant="h4" fontWeight={500} gutterBottom>
+      <Typography sx={{color: "text.primary"}} variant="h4" fontWeight={500} gutterBottom>
         Make the most of your professional life
       </Typography>
 
@@ -251,7 +251,7 @@ const SignUp = () => {
         </Paper>
       </Container>
 
-      <Typography align="center" sx={{ mt: 2 }}>
+      <Typography align="center" sx={{ mt: 2, color: "text.primary" }}>
         Looking to create a page for a business?
         <Link href="#" id="get-help-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Get help</Link>
       </Typography>
