@@ -21,6 +21,7 @@ const CompanyCard = () => {
         borderRadius: 3,
         overflow: "hidden",
         boxShadow: 3,
+        border: `1px solid ${theme.palette.divider}`,
         backgroundColor: theme.palette.background.paper,
         color: theme.palette.text.primary,
       }}

@@ -41,6 +41,7 @@ const ProfileCard: React.FC = () => {
           width: "100%",
           maxWidth: "280px",
           minHeight: 180,
+          border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           overflow: "hidden",
           boxShadow: 3,

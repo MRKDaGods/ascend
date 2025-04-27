@@ -6,6 +6,7 @@ import React from "react";
 import {
   Avatar,
   Box,
+  Card,
   Stack,
   Typography,
   useTheme,
@@ -35,12 +36,13 @@ const CreatePost: React.FC = () => {
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   return (
-    <div>
-      <Box
+    <>
+      <Card
         component="section"
         sx={{
           p: 2,
           mb: 0.01,
+          boxShadow: 3,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           width: "100%",
@@ -95,14 +97,14 @@ const CreatePost: React.FC = () => {
         <Box sx={{ mt: 0.1, width: "100%" }}>
           <AddMedia />
         </Box>
-      </Box>
+      </Card>
 
       {/* Popups */}
       {typeof window !== "undefined" && open && <CreatePostDialog />}
       <DraftSavedPopup />
       <UserPostPopup />
       <RepostPopup />
-    </div>
+    </>
   );
 };
 

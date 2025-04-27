@@ -14,12 +14,12 @@ import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
 import CompanyCard from "../components/CompanyCard";
 import TryPremCard from "../components/TryPremCard";
+import ManageFeedCard from "../components/ManageFeedCard";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useProfileStore } from "../stores/useProfileStore";
 
 import {api} from "@/api/";
-import ManageFeedCard from "../components/ManageFeedCard";
 
 const Feed: React.FC = () => {
   const theme = useTheme();
@@ -32,7 +32,6 @@ const Feed: React.FC = () => {
   useEffect(() => {
     fetchNewsFeed();
   
-    // ✅ Fetch user data if not already fetched
     if (!userData) {
       api.user.getLocalUserProfile().then(setUserData).catch(console.error);
     }
