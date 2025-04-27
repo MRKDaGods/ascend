@@ -51,9 +51,15 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
   const theme = useTheme();
   const { setEditingPost } = usePostStore();
 
-  const userData = useProfileStore((state) => state.userData); // ✅ Get user data
-  const userProfilePic = userData?.profile_picture_url || "/default-avatar.png"; // ✅ fallback
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "You"; // ✅ fallback
+  type Profile = {
+    profile_picture_url?: string;
+    first_name: string;
+    last_name: string;
+  };  
+  
+  const userData = useProfileStore((state) => state.userData) as Profile | null;
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; //❌ Fallback
+  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -91,11 +97,11 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
         <CardHeader
           avatar={
             <Avatar
-              src={userProfilePic}
+              src={profilePicture}
               alt={fullName}
-              sx={{ bgcolor: !userProfilePic ? theme.palette.primary.dark : "transparent" }}
+              sx={{ bgcolor: !profilePicture ? theme.palette.primary.dark : "transparent" }}
             >
-              {!userProfilePic && fullName.charAt(0)}
+              {!profilePicture && fullName.charAt(0)}
             </Avatar>
           }
           title={
