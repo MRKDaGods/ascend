@@ -13,6 +13,23 @@ interface PaginatedResponse<T> {
   };
 }
 
+export const isAdmin = async (userId: number): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM auth_service.users
+      WHERE id = $1 AND role = 'admin'
+    `;
+    const values = [userId];
+    const result = await db.query(query, values);
+    const count = parseInt(result.rows[0].count);
+    return count > 0;
+  } catch (error) {
+    console.error("Error in isAdmin:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const isThereJobReportWithId = async (
   reportId: number
 ): Promise<boolean> => {

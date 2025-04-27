@@ -1,16 +1,25 @@
 import { Response, NextFunction } from "express";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
+import { isAdmin } from "../services/adminService";
 
-export const isUserAdmin = (
+export const isUserAdmin = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) => {
-  if (req.user!.id === 14) {
+  try {
+    const userId = req.user!.id;
+    const isAdminUser = await isAdmin(userId);
+
+    if (!isAdminUser) {
+      return res.status(403).json({
+        error:
+          "Unauthorized: Admin privileges required to access this resource",
+      });
+    }
+
     next();
-  } else {
-    return res.status(403).json({
-      error: "You are not authorized to access this resource.",
-    });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
