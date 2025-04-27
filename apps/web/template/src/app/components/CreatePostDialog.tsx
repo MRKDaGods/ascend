@@ -70,9 +70,15 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview,
   } = useMediaStore();
 
-  const userData = useProfileStore((state) => state.userData); // ✅
-  const userProfilePic = userData?.profile_picture_url || "/default-avatar.png"; // ✅
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "You"; // ✅
+  type Profile = {
+    profile_picture_url?: string;
+    first_name: string;
+    last_name: string;
+  };  
+  
+  const userData = useProfileStore((state) => state.userData) as Profile | null;
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; //❌ Fallback
+  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   useEffect(() => {
     if (open && draftText) {
@@ -127,7 +133,7 @@ const CreatePostDialog: React.FC = () => {
         <DialogTitle sx={{ pb: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src={userProfilePic}>
+              <Avatar src={profilePicture}>
                 {fullName.charAt(0)}
               </Avatar>
               <Box>
@@ -137,7 +143,10 @@ const CreatePostDialog: React.FC = () => {
                 </Typography>
               </Box>
             </Stack>
-            <IconButton onClick={handleClose}>
+            <IconButton
+              id="close-create-post-dialog-button" // ✅ ID added
+              onClick={handleClose}
+            >
               <Close />
             </IconButton>
           </Stack>
@@ -165,12 +174,14 @@ const CreatePostDialog: React.FC = () => {
               )}
               <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
                 <IconButton
+                  id="edit-media-preview-button" // ✅ ID added
                   sx={{ bgcolor: theme.palette.background.paper }}
                   onClick={() => openEditor(mediaType ?? "image")}
                 >
                   <Edit />
                 </IconButton>
                 <IconButton
+                  id="delete-media-preview-button" // ✅ ID added
                   sx={{ bgcolor: theme.palette.background.paper }}
                   onClick={() => removeMediaFile(0)}
                 >
@@ -198,23 +209,33 @@ const CreatePostDialog: React.FC = () => {
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={1}>
             <Tooltip title="Add a photo">
-              <IconButton onClick={() => openEditor("image")}>
+              <IconButton
+                id="add-photo-button" // ✅ ID added
+                onClick={() => openEditor("image")}
+              >
                 <Image />
               </IconButton>
             </Tooltip>
             <Tooltip title="Add a video">
-              <IconButton onClick={() => openEditor("video")}>
+              <IconButton
+                id="add-video-button" // ✅ ID added
+                onClick={() => openEditor("video")}
+              >
                 <OndemandVideo />
               </IconButton>
             </Tooltip>
             <Tooltip title="Add a document">
-              <IconButton onClick={() => setDocDialogOpen(true)}>
+              <IconButton
+                id="add-document-button" // ✅ ID added
+                onClick={() => setDocDialogOpen(true)}
+              >
                 <Article />
               </IconButton>
             </Tooltip>
           </Stack>
 
           <Button
+            id="submit-post-button" // ✅ ID added
             variant="contained"
             onClick={handleSubmit}
             disabled={!postText.trim() && mediaFiles.length === 0 && !documentPreview}
