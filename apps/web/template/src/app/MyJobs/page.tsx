@@ -13,7 +13,7 @@ import {
 import JobTabs from './components/JobTabs';
 import JobCard from './components/JobCard';
 import { useJobStore } from '@/app/shared/store/useJobStore';
-import Navbar from '../components/navbar';   // add the navbar without the 2 searches when integrating with the deployed version
+import Navbar from '../components/Jobsnavbar';   // add the navbar without the 2 searches when integrating with the deployed version
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 const MyJobsPage = () => {

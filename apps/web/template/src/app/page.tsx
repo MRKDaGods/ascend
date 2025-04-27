@@ -1,7 +1,7 @@
 "use client"; // only if you're using Next.js App Router
 
 import { Box, Grid, Stack } from "@mui/material";
-import Navbar from "./components/navbar";
+import Navbar from "./components/Jobsnavbar";
 import ProfileCard from "./components/ProfileCard";
 import ListCard from "./components/ListCard";
 import JobPreferences from "./components/lookingfor";

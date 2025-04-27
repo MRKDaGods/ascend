@@ -22,7 +22,7 @@ import {
   TextField,
 } from '@mui/material';
 import ReportIcon from '@mui/icons-material/Report';
-import Navbar from '../components/navbar';
+import Navbar from '../components/Jobsnavbar';
 
 interface Job {
   job_id: number;
