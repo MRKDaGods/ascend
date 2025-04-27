@@ -95,7 +95,7 @@ export const handleFileDelete = async (
   console.log("Received file.deleted event:", payload);
 
   if (!payload.file_id) {
-    console.error("Invalid file.deleted event received:", event);
+    console.error("Invalid file.deleted event received:", payload);
     return;
   }
 

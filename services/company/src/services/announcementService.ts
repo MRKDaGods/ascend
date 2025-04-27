@@ -27,9 +27,7 @@ export const createAnnouncement = async (company_id : number, user_id : number, 
     let payload : CompanyAnnouncementCreatedPayload;
 
     if(announcement_photos){
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
       let announcement_photo_payload : FileUploadPayload.Request;
-      let announcementPhotoResponse, announcementPhotoURLResponse;
       for(const announcement_photo of announcement_photos){
           announcement_photo_payload  = {
               user_id : user_id,
@@ -42,16 +40,21 @@ export const createAnnouncement = async (company_id : number, user_id : number, 
               announcement_photo_payload['context'] = announcement_photo.context;
           }
         
-          announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);
-        
+
+          file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+          let announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);
           file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-          announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : announcementPhotoResponse.file_id }, 10000);
+          let payload : FilePresignedUrlPayload.Request = {
+            file_id : announcementPhotoResponse.file_id as number
+          }
+          let announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
           image_ids.push(announcementPhotoResponse.file_id);
           image_urls.push(announcementPhotoURLResponse.presigned_url);
       }  
     }
     
     if(announcement_video){
+
       file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
       let announcement_video_payload : FileUploadPayload.Request = {
         user_id : user_id,
@@ -62,12 +65,15 @@ export const createAnnouncement = async (company_id : number, user_id : number, 
       };
       
       if(announcement_video.context){
-        announcement_video_payload['context'] = announcement_video.context
+        announcement_video_payload['context'] = announcement_video.context;
       }
       const announcementVideoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_video_payload, 10000);
         
       file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-      const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : announcementVideoResponse.file_id }, 10000);
+      let payload : FilePresignedUrlPayload.Request = {
+        file_id : announcementVideoResponse.file_id as number
+      };
+      const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
       video_url = announcementVideoURLResponse.presigned_url;
       video_id = announcementVideoResponse.file_id;
     }
@@ -84,7 +90,7 @@ export const createAnnouncement = async (company_id : number, user_id : number, 
           posted_by : user_id
         }; 
     }else{
-      result = await db.query("INSERT INTO company_service.announcement (company_id, posted_by, created_at, content, image_urls, image_ids, video_url, video_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", [company_id, user_id, created_at, content, image_urls, image_ids]);
+      result = await db.query("INSERT INTO company_service.announcement (company_id, posted_by, created_at, content, image_urls, image_ids, video_url, video_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [company_id, user_id, created_at, content, image_urls, image_ids, null, -1]);
       payload = {
         announcement_id : result.rows[0].announcement_id,
         image_urls : image_urls,
@@ -150,20 +156,26 @@ export const findNumberOfAnnouncements = async (company_id : number) : Promise<N
   return result.rows[0];
 }
 
-export const deleteAnnouncement = async (id : number, image_ids : Array<number> , video_id : number = -1) : Promise<boolean> => {
-  const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_DELETE);
+export const deleteAnnouncement = async (id : number, image_ids : Array<number> , video_id : number|undefined) : Promise<boolean> => {
+  let delete_payload : FileDeletePayload;
   for(const image_id of image_ids){
-      await callRPC<FileDeletePayload>(file_service_queue, { file_id  : image_id }, 10000);
+      delete_payload = {
+        file_id : image_id
+      };
+      await publishEvent(Events.FILE_DELETE, delete_payload);
   }
 
-  if(video_id != -1){
-    await callRPC<FileDeletePayload>(file_service_queue, { file_id : video_id }, 10000);
+  if(video_id && video_id !== -1){
+    delete_payload = {
+      file_id : video_id
+    }
+    await publishEvent(Events.FILE_DELETE, delete_payload);
   }
   const result = await db.query("DELETE FROM company_service.announcement WHERE announcement_id = $1 RETURNING *", [id]);
   return result.rows.length > 0;
 };
 
-export const updateAnnouncement = async (id : number, user_id : number, company_id : number, updated_at : Date, {content, new_announcement_photos, old_image_ids , new_announcement_video, old_video_id} : { content : string|undefined , new_announcement_photos : Array<any> , old_image_ids : Array<number>, new_announcement_video : any|undefined , old_video_id : number|undefined }) : Promise<Announcement|null> => {
+export const updateAnnouncement = async (id : number, user_id : number, company_id : number, updated_at : Date, {content, new_announcement_photos, old_image_ids , new_announcement_video, old_video_id} : { content : string|undefined , new_announcement_photos : Array<any>|undefined , old_image_ids : Array<number>, new_announcement_video : any|undefined , old_video_id : number|undefined }) : Promise<Announcement|null> => {
     let result;
     let file_service_queue;
   
@@ -180,13 +192,16 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
     let new_image_ids : Array<number> = [];
     let new_video_id, new_video_url;
   
-    if(new_announcement_photos){
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_DELETE);
-      let announcementPhotoResponse, announcementPhotoURLResponse;
-      for(const old_image_id of old_image_ids){
-          await callRPC<FileDeletePayload>(file_service_queue, { file_id  : old_image_id }, 10000);
+    if(new_announcement_photos || (Array.isArray(new_announcement_photos))){
+      let announcementPhotoResponse, announcementPhotoURLResponse, delete_payload : FileDeletePayload;
+      if(old_image_ids){
+          for(const old_image_id of old_image_ids){
+              delete_payload = {
+                file_id : old_image_id
+              };
+              await publishEvent(Events.FILE_DELETE, delete_payload);
+          }
       }
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
       let announcement_photo_payload : FileUploadPayload.Request;
       for(const announcement_photo of new_announcement_photos){
           announcement_photo_payload  = {
@@ -200,6 +215,7 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
               announcement_photo_payload['context'] = announcement_photo.context;
           }
       
+          file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
           announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);    
           file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
           announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : announcementPhotoResponse.file_id }, 10000);
@@ -209,17 +225,22 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
     
 
       counter += 1;
-      db_query += `image_urls = $${counter} AND `;
+      db_query += `image_urls = $${counter}, `;
       parameters.push(new_image_urls);
       counter += 1;
-      db_query += `image_ids = $${counter} AND`;
+      db_query += `image_ids = $${counter}, `;
       parameters.push(new_image_ids);
       updateAnnouncementPayload.new_image_urls = new_image_urls;
     }
 
     if(new_announcement_video){
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_DELETE);
-      await callRPC<FileDeletePayload>(file_service_queue, {file_id : old_video_id}, 10000);
+      if(old_video_id && old_video_id !== -1){
+          const delete_payload : FileDeletePayload = {
+            file_id : old_video_id
+          };
+          await publishEvent(Events.FILE_DELETE, delete_payload);
+      }
+      
 
       let new_announcement_video_payload : FileUploadPayload.Request  = {
         user_id : user_id,
@@ -232,6 +253,7 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
           new_announcement_video_payload['context'] = new_announcement_video.context;
       }
     
+      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
       const announcementVideoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, new_announcement_video_payload, 10000);    
       file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
       const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : announcementVideoResponse.file_id }, 10000);
@@ -239,18 +261,32 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
       new_video_url = announcementVideoURLResponse.presigned_url;
 
       counter += 1;
-      db_query += `video_id = $${counter} AND `;
+      db_query += `video_id = $${counter}, `;
       parameters.push(new_video_id);
       counter += 1;
-      db_query += `video_url = $${counter} AND`;
+      db_query += `video_url = $${counter},`;
       parameters.push(new_video_url);
 
       updateAnnouncementPayload.new_video_url = new_video_url;
+    }else if(new_announcement_video === ""){
+      if(old_video_id){
+        const delete_payload : FileDeletePayload = {
+          file_id : old_video_id
+        };
+        await publishEvent(Events.FILE_DELETE, delete_payload);
+      }
+
+      counter += 1;
+      db_query += `video_id = $${counter}, `;
+      parameters.push(-1);
+      counter += 1;
+      db_query += `video_url = $${counter}, `;
+      parameters.push(null);
     }
     
     if(content){
       counter += 1;
-      db_query += `content = $${content} AND`;
+      db_query += `content = $${counter}, `;
       parameters.push(content);
       updateAnnouncementPayload.new_content = content;
     }
@@ -265,5 +301,6 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
     result = await db.query(db_query, parameters);
 
     await publishEvent(Events.COMPANY_ANNOUNCEMENT_UPDATED, updateAnnouncementPayload);
+    console.log(`from update service ${result.rows[0]}`);
     return result.rows.length > 0 ? result.rows[0] : null;
 };

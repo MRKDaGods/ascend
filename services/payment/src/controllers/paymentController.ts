@@ -10,6 +10,8 @@ import { subscribe } from "diagnostics_channel";
 import { Feature } from "@shared/models/feature";
 import { Subscription } from "@shared/models/subscription";
 import { Usage } from "@shared/models/usage";
+import { insertSurvey } from "../services/surveyService";
+import { getProfile } from "../../../user/src/services/userService";
 
 if(!process.env.STRIPE_SECRET_KEY){
     throw new Error("paymentController : STRIPE_SECRET_KEY not defined");
@@ -17,10 +19,8 @@ if(!process.env.STRIPE_SECRET_KEY){
     throw new Error("paymentController : SESSION_TOKEN_EXPIRY_MS not defined");
 }else if(!process.env.SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS){
     throw new Error("paymentController : SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS not defined");
-}else if(!process.env.BASE_URL){
+}else if(!process.env.PAYMENT_BASE_URL){
     throw new Error("paymentController : BASE_URL not defined");
-}else if(!process.env.FRONTEND_BASE_URL){
-    throw new Error("paymentController : FRONTEND_BASE_URL not defined");
 }else if(!process.env.STRIPE_WEBHOOK_SECRET_KEY){
     throw new Error("paymentController : STRIPE_WEBHOOK_SECRET_KEY not defined");
 }
@@ -28,8 +28,8 @@ if(!process.env.STRIPE_SECRET_KEY){
 const STRIPE_SECRET_KEY : string = process.env.STRIPE_SECRET_KEY;
 const SESSION_TOKEN_EXPIRY_MS : number = parseInt(process.env.SESSION_TOKEN_EXPIRY_MS);
 const SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS : number = parseInt(process.env.SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS);
-const BASE_URL : string = process.env.BASE_URL;
-const FRONTEND_BASE_URL : string = process.env.FRONTEND_BASE_URL;
+const PAYMENT_BASE_URL : string = process.env.PAYMENT_BASE_URL;
+const FRONTEND_BASE_URL : string = "";
 const STRIPE_WEBHOOK_SECRET_KEY : string = process.env.STRIPE_WEBHOOK_SECRET_KEY; 
 
 const stripe = new st(STRIPE_SECRET_KEY);
@@ -117,12 +117,12 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
         const user_usage = await getUsageByUserId(user_id);
         let customer;
         if(!(user_usage?.stripe_customer_id)){ // if no customer ID has been created yet for the user
-            // const user = ?? // retrieve from user profile service
+            const user = await getProfile(user_id);
             customer = await stripe.customers.create({
-                name :  "",
-                email : ""
+                name :  user?.first_name + ' ' + user?.last_name , 
+                email : user?.contact_info?.email
             });
-            await updateUsage(user_id, { stripe_customer_id : customer.id});
+            await updateUsage(user_id, { last_date: new Date(), stripe_customer_id : customer.id});
         }else{
             customer = await stripe.customers.retrieve(user_usage.stripe_customer_id);
         }
@@ -130,8 +130,8 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
         const new_session_token = randomUUID();
         
         const session = await stripe.checkout.sessions.create({
-            success_url : `${BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}&session_token=${new_session_token}`,
-            cancel_url : `${BASE_URL}/payments/process/cancel?session_token=${new_session_token}`,
+            success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}&session_token=${new_session_token}`,
+            cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel?session_token=${new_session_token}`,
             line_items : line_items,
             customer : customer.id,
             payment_method_types : ["card"],
@@ -173,7 +173,7 @@ export const completePayment = async (req : Request, res : Response) => {
             const usage_limits = await getFeatureLimits();
             for(const line_item of line_items){
                 const {usage_field_affected, limit} = usage_limits.get(line_item.name);
-                await updateUsage(user_id, {[usage_field_affected] : limit});
+                await updateUsage(user_id, {last_date : new Date(), [usage_field_affected] : limit});
                 await insertFeature(user_id, session_id as string, line_item.name, new Date(), line_item.price, line_item.currency);
             }
         }else{
@@ -258,12 +258,12 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
         const user_usage = await getUsageByUserId(user_id);
         let customer;
         if(!(user_usage?.stripe_customer_id)){ // if no customer ID has been created yet for the user
-            // const user = ?? // retrieve from user profile service
+            const user = await getProfile(user_id);
             customer = await stripe.customers.create({
-                name :  "",
-                email : ""
+                name :  user?.first_name + ' ' + user?.last_name , 
+                email : user?.contact_info?.email
             });
-            await updateUsage(user_id, {stripe_customer_id : customer.id});
+            await updateUsage(user_id, {last_date : new Date(), stripe_customer_id : customer.id});
         }else{
             customer = await stripe.customers.retrieve(user_usage.stripe_customer_id);
         }
@@ -273,8 +273,8 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
         const { subscription_price_id, relative_return_url } = req.body; 
 
         const session = await stripe.checkout.sessions.create({
-            success_url : `${BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url : `${BASE_URL}/payments/process/cancel`,
+            success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel`,
             line_items :[ {
                     price : subscription_price_id,
                     quantity : 1
@@ -472,4 +472,39 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
   
     // Return a 200 response to acknowledge receipt of the event
     res.send();
+  };
+
+  export const insertSurveyResponse = async (req : AuthenticatedRequest, res : Response) => {
+    const user_id = req.user?.id;
+    if(!user_id){
+        return res.status(401).json({error : "unauthorized"});
+    }    
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
+    try{
+        const { question, answers, user_choice } = req.body;
+        if(user_choice > answers.length){
+            return res.status(400).json({
+                error : "'user_choice' doesn't map to any answer"
+            });
+        }
+        const survey = await insertSurvey(user_id, question, answers, user_choice, new Date());
+        if(survey){
+            return res.status(200).json({
+                data : {
+                    msg : "Response received"
+                },
+                error : null
+            })
+        }else{
+            return res.status(500).json({error : "internal error"});
+        }
+    }catch(e){
+        console.log(`Internal error : ${e}`);
+        return res.status(500).json({error : "internal error"});
+    } 
   };

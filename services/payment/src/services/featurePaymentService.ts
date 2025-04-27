@@ -13,7 +13,7 @@ export const getFeaturesPurchasedByUser = async (user_id : number) : Promise<Arr
 
 
 export const insertFeature = async (user_id : number, session_id : string, feature_purchased : string, payment_date : Date, amount_paid : number, currency : string) : Promise<Feature|null> => {
-    const result = await db.query("INSERT INTO payment_service.feature_payment (user_id, session_id, feature_purchased, payment_date, amount_paid, currency, is_successful) VALUES ($1, $2, $3, $4, $5, $6)", [user_id, session_id, feature_purchased, payment_date, amount_paid, currency]);
+    const result = await db.query("INSERT INTO payment_service.feature_payment user_id, session_id, feature_purchased, payment_date, amount_paid, currency, is_successful VALUES ($1, $2, $3, $4, $5, $6)", [user_id, session_id, feature_purchased, payment_date, amount_paid, currency]);
     return result.rows.length > 0 ? result.rows[0] : null;
 };
 
@@ -24,7 +24,7 @@ export const changeFeatureEnabled = async (session_id : string, enabled : boolea
 
 
 export const getFeatureLimits = async () : Promise<Map<string, any>> => {
-    const results = await db.query("SELECT (feature_name , usage_field_affected , limit) FROM payment_service.features_limit");
+    const results = await db.query("SELECT feature_name , usage_field_affected , limit FROM payment_service.features_limit");
     let map = new Map<string, any>();
     for(const result of results.rows){
         map.set(result[0], {usage_field_affected : result[1], limit : result[2]});

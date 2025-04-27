@@ -17,13 +17,15 @@ export enum Events {
   POST_GET_RPC = "get_post_rpc", // Post get RPC request
 
   // ======================COMPANY-EVENTS=====================
-  COMPANY_ANNOUNCEMENT_CREATED = "company.announcement_created",
-  COMPANY_ANNOUNCEMENT_UPDATED = "company.announcement_updated",
-  GET_COMPANY_PROFILE = "company.company_profile",
-  GET_COMPANY_FOLLOWERS = "company.followers",
+  COMPANY_ANNOUNCEMENT_CREATED = "announcement_created",
+  COMPANY_ANNOUNCEMENT_UPDATED = "announcement_updated",
+  GET_COMPANY_PROFILE = "company_profile",
+  GET_COMPANY_FOLLOWERS = "followers",
 
   // ======================PAYMENT-EVENTS=====================
-  GET_USER_USAGE = "payment.user_usage",
+  GET_USER_USAGE_MESSAGING = "user_usage_messaging",
+  GET_USER_USAGE_CONNECTIONS = "user_usage_connections",
+  GET_USER_USAGE_JOB_APPLICATIONS = "user_usage_job_applications",
 }
 
 /**

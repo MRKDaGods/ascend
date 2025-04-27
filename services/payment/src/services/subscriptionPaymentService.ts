@@ -16,7 +16,7 @@ export const getSubscriptionsByUser = async (user_id : number) : Promise<Array<S
 
 
 export const insertSubscription = async (user_id : number, initial_session_id : string, subscription_plan : string, first_payment_date : Date, amount_paid : number, currency : string) : Promise<Subscription|null> => {
-    const result = await db.query("INSERT INTO payment_service.subscription_payment (user_id, initial_session_id, subscription_plan, first_payment_date, amount_paid, currency) VALUES ($1, $2, $3, $4, $5, $6, $7)", [user_id, initial_session_id, subscription_plan, first_payment_date, amount_paid, currency]);
+    const result = await db.query("INSERT INTO payment_service.subscription_payment user_id, initial_session_id, subscription_plan, first_payment_date, amount_paid, currency VALUES ($1, $2, $3, $4, $5, $6, $7)", [user_id, initial_session_id, subscription_plan, first_payment_date, amount_paid, currency]);
     return result.rows.length > 0 ? result.rows[0] : null;
 };
 
@@ -25,12 +25,11 @@ export const deleteSubscription = async (subscription_id : string) => {
 };
 
 export const getSubscriptionPlanLimits = async () : Promise<Map<string, any>> => {
-    const results = await db.query("SELECT (subscription_plan, messages_per_day_limit, job_applications_per_month_limit, connections_limit) FROM payment_service.subscription_plans");
+    const results = await db.query("SELECT subscription_plan, messages_per_day_limit, job_applications_per_month_limit, connections_limit FROM payment_service.subscription_plans");
     let map = new Map<string, any>();
     for(const result of results.rows){
-        map.set(result[0], {messages_per_day_limit : result[1], job_applications_per_month_limit : result[2], connections_limit : result[3]});
+        map.set(result.subscription_plan, {...result});
     }
-
     return map;
 };
 
@@ -48,7 +47,7 @@ export const disableFeaturesCoveredBySubscription = async (subcription_plan_limi
             await changeFeatureEnabled(feature.session_id, true);
         }
     }
-    await updateUsage(user_id, {...restored_limits});
+    await updateUsage(user_id, {messages_per_day_limit : -2, connections_limit : -2, job_applications_limit : -2, ...restored_limits});
 };
 
 export const enableFeaturesCoveredBySubscription = async (subcription_plan_limits : Map<string, any>, user_id : number) : Promise<void> => {
