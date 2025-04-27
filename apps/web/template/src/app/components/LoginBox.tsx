@@ -74,7 +74,7 @@ export default function LoginBox() {
           textAlign: "center",
         }}
       >
-        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ textAlign: "left" }} id="login-title">
+        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ textAlign: "left", color: "text.primary" }} id="login-title">
           Sign in
         </Typography>
 
@@ -116,7 +116,7 @@ export default function LoginBox() {
           🍏 Sign in with Apple
         </Button>
 
-        <Divider sx={{ my: 2 }}>or</Divider>
+        <Divider sx={{ my: 2, color: "text.primary" }}>or</Divider>
 
         {/* Form Fields */}
         <form onSubmit={handleSubmit}>
@@ -184,7 +184,7 @@ export default function LoginBox() {
           <FormControlLabel
             control={<Checkbox id="keep-logged-in-checkbox" />}
             label="Keep me logged in"
-            sx={{ display: "block", textAlign: "left", mt: 1 }}
+            sx={{ display: "block", textAlign: "left", mt: 1, color: "text.primary" }}
           />
 
           {/* Sign In Button */}
@@ -215,6 +215,7 @@ export default function LoginBox() {
           top: "calc(85%)",
           left: "50%",
           transform: "translateX(-50%)",
+          color: "text.primary",
         }}
       >
         New to Ascend?{" "}
