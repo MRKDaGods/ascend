@@ -37,6 +37,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       sx={{
         mb: 2,
         p: 2,
+        boxShadow: 3,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
         backgroundColor: theme.palette.background.paper,

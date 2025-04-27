@@ -3,7 +3,7 @@
 "use client";
 
 import {
-  Box,
+  Card,
   Typography,
   List,
   ListItem,
@@ -25,11 +25,12 @@ const ManageFeedCard = () => {
   ];
 
   return (
-    <Box
+    <Card
       sx={{
         p: 2,
         borderRadius: 2,
         width: "100%",
+        boxShadow: 3,
         border: `1px solid ${theme.palette.divider}`,
         bgcolor: theme.palette.background.paper,
       }}
@@ -56,7 +57,7 @@ const ManageFeedCard = () => {
           </ListItem>
         ))}
       </List>
-    </Box>
+    </Card>
   );
 };
 
