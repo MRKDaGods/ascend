@@ -13,7 +13,7 @@ import { usepJobStore } from "../stores/usepJobStore";
 import { useIsClient } from "../hooks/useIsClient";
 import CompanyEmailModal from "./CompanyEmailModal";
 import PostJobPopUp from "../components/PostPopUp";
-import { useJobStore as useSharedJobStore } from "@/app/shared/store/useJobStore";
+import { useJobStore as useSharedJobStore } from "@/app/stores/useJobStore";
 
 const workplaceOptions = ["On-site", "Remote", "Hybrid"];
 const jobTypeOptions = [
