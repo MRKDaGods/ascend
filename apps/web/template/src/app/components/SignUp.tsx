@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import Footer from "./Footer";
 import {
   Container,
   TextField,
@@ -13,6 +12,7 @@ import {
   Paper,
   Box,
   Link,
+  InputAdornment,
 } from "@mui/material";
 import { api } from "@/api";
 import { loginWithGoogle } from "@/ext/auth";
@@ -25,7 +25,6 @@ const SignUp = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // ++++++
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
@@ -35,13 +34,11 @@ const SignUp = () => {
     setSuccess("");
 
     api.auth.register(firstName, lastName, email, password)
-      .then((response) => {
+      .then((response: { user_id: string; email: string }) => {
         console.log("Registration successful:", response);
         alert("Registered successfully! ID: " + response.user_id + "\nEmail: " + response.email);
-
-        // Redirect to the dashboard or another page
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error("Registration error:", error);
         setError("An error occurred during registration. Please try again.");
       });
@@ -57,13 +54,13 @@ const SignUp = () => {
       setError("An error occurred during Google login. Please try again.");
     });
   };
-  
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" minHeight="100vh" justifyContent="center" sx={{ mt: -3 }}>
+    <Box display="flex" flexDirection="column" alignItems="center" minHeight="50vh" justifyContent="center">
       <Typography variant="h4" fontWeight={500} gutterBottom>
         Make the most of your professional life
       </Typography>
+
       <Container maxWidth="xs">
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <form onSubmit={handleSubmit}>
@@ -73,6 +70,7 @@ const SignUp = () => {
                 {error}
               </Typography>
             )}
+
             {/* Success Message */}
             {success && (
               <Typography color="success" data-testid="success-message" sx={{ mb: 2 }}>
@@ -80,104 +78,131 @@ const SignUp = () => {
               </Typography>
             )}
 
-            {/* ++++++ */}
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
-              First name
-            </Typography>
+            {/* Input Fields */}
             <TextField
               fullWidth
+              label="First name"
               variant="outlined"
               margin="normal"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
-              aria-label="First Name"
               id="first-name-input"
-              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+              sx={{
+                borderRadius: 5,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             />
 
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
-              Last name
-            </Typography>
             <TextField
               fullWidth
+              label="Last name"
               variant="outlined"
               margin="normal"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
-              aria-label="Last Name"
               id="last-name-input"
-              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+              sx={{
+                borderRadius: 5,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             />
 
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
-              Email
-            </Typography>
             <TextField
               fullWidth
+              label="Email"
               variant="outlined"
               margin="normal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              aria-label="Email"
               id="email-input"
-              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+              sx={{
+                borderRadius: 5,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             />
-            <Typography variant="subtitle1" gutterBottom sx={{ mb: -2 }}>
-              Password
-            </Typography>
+
             <TextField
               fullWidth
+              label="Password"
               type={showPassword ? "text" : "password"}
               variant="outlined"
               margin="normal"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              aria-label="Password"
               id="password-input"
-              sx={{ height: "2em", "& .MuiInputBase-root": { height: "2em", border: "0.01em solid black" } }}
+              sx={{
+                borderRadius: 5,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
               InputProps={{
                 endAdornment: (
-                  <Button
-                    onClick={() => setShowPassword(!showPassword)}
-                    size="medium"
-                    id="toggle-password-visibility"
-                    sx={{ fontWeight: "bold", textTransform: "none" }}
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </Button>
+                  <InputAdornment position="end">
+                    <Typography
+                      sx={{
+                        cursor: "pointer",
+                        color: "primary.main",
+                        fontSize: 14,
+                        fontWeight: "bold",
+                      }}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </Typography>
+                  </InputAdornment>
                 ),
               }}
             />
+
             <FormControlLabel
               control={<Checkbox defaultChecked id="keep-logged-in-checkbox" />}
               label="Keep me logged in"
-              sx={{ mt: 1 }}
+              sx={{ mt: 1, display: "block", textAlign: "left" }}
             />
-            <Typography variant="caption" display="block" align="center" sx={{ mt: 1, mb: 2 }}>
-              By clicking Agree & Join or Continue, you agree to the LinkedIn
+
+            <Typography fontSize={11} variant="caption" display="block" align="center" sx={{ mt: 1, mb: 2 }}>
+              By clicking Agree & Join or Continue, you agree to the Ascend
               <Link href="#" id="user-agreement-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> User Agreement</Link>,
-              <Link href="#" id="privacy-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Privacy Policy</Link>, and
+              <Link href="#" id="privacy-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Privacy Policy</Link>,and
               <Link href="#" id="cookie-policy-link" sx={{ color: "#0a66c2", fontWeight: 500 }}> Cookie Policy</Link>.
             </Typography>
+
+            {/* Agree & Join Button - polished */}
             <Button
               type="submit"
               fullWidth
               variant="contained"
+              color="primary"
               id="agree-and-join-button"
-              sx={{ backgroundColor: "#0a66c2", color: "white", borderRadius: 8, py: 1.5, fontSize: "1rem", fontWeight: 600, textTransform: "none" }}
+              sx={{
+                mt: 2,
+                borderRadius: 5,
+                fontWeight: "bold",
+                textTransform: "none",
+                fontSize: 16,
+              }}
             >
               Agree & Join
             </Button>
           </form>
-          <Box display="flex" alignItems="center" width="100%" my={2} sx={{ mb: -1, mt: -1 }}>
+
+          <Box display="flex" alignItems="center" width="100%" my={2}>
             <Box flex={1} height="1px" bgcolor="gray" />
-            <Typography align="center" sx={{ my: 2 }} mx={2}>or</Typography>
+            <Typography align="center" sx={{ mx: 2 }}>or</Typography>
             <Box flex={1} height="1px" bgcolor="gray" />
           </Box>
+
           <Button
             fullWidth
             variant="outlined"
@@ -198,6 +223,7 @@ const SignUp = () => {
           >
             Continue with Google
           </Button>
+
           <Button
             fullWidth
             variant="outlined"
@@ -217,18 +243,18 @@ const SignUp = () => {
           >
             Continue with Microsoft
           </Button>
+
           <Typography align="center" sx={{ mt: 1 }}>
-            Already on LinkedIn?
+            Already on Ascend?
             <Link href="#" id="sign-in-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }} onClick={() => router.push("/authen/signup")}>Sign in</Link>
           </Typography>
         </Paper>
       </Container>
+
       <Typography align="center" sx={{ mt: 2 }}>
         Looking to create a page for a business?
         <Link href="#" id="get-help-link" sx={{ color: "#0a66c2", fontWeight: 500, ml: 1 }}>Get help</Link>
       </Typography>
-
-      <Footer />
     </Box>
   );
 };

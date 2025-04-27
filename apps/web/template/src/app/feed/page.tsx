@@ -76,7 +76,6 @@ const Feed: React.FC = () => {
           {userData ? (
             <>
               <ProfileCard />
-              <ManageFeedCard />
               <TryPremCard />
               <CompanyCard />
               </>
@@ -123,6 +122,7 @@ const Feed: React.FC = () => {
           }}
         >
           <WhosHiringCard />
+          <ManageFeedCard />
           <Footer />
         </Box>
       </Container>

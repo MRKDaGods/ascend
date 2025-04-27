@@ -103,7 +103,7 @@ export default function HireCard() {
               Quickly presort applicants according to your criteria
             </Typography>
             <Typography component="li" mb={2}>
-              Find up to 25 qualified people on LinkedIn per day to invite to apply
+              Find up to 25 qualified people on Ascend per day to invite to apply
             </Typography>
           </Box>
         </Box>

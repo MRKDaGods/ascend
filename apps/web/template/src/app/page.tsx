@@ -1,3 +1,8 @@
+// Page: Main Page
+
+// currently set exactly like the authentication welcome page
+// to be changed later when implementing "Keep me logged" logic
+
 "use client";
 
 import React from "react";

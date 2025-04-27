@@ -1,7 +1,9 @@
 import React from "react";
-import { Box, TextField, Typography, Button, Paper } from "@mui/material";
+import { TextField, Typography, Button, Paper } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 const ForgotPasswordForm = () => {
+  const router = useRouter();
   return (
     <Paper
       elevation={3}
@@ -27,7 +29,7 @@ const ForgotPasswordForm = () => {
         
         <Typography variant="body2" color="black" mb={2}
          sx={{mt: 1,}} id="verification-message">
-        We’ll send a verification code to this email or phone number if it matches an existing LinkedIn account.
+        We’ll send a verification code to this email or phone number if it matches an existing Ascend account.
       </Typography>
       <Button
         fullWidth
@@ -55,6 +57,7 @@ const ForgotPasswordForm = () => {
           textTransform: "none",
         }}
         id="back-button"
+        onClick={() => router.push("/authen/signup")}
       >
         Back
       </Button>

@@ -71,7 +71,7 @@ const SigninBox = () => {
 
       {/* Join Now Link */}
       <Typography variant="body2" color="text.secondary" mt={3}>
-        New to LinkedIn?{" "}
+        New to Ascend?{" "}
         <Typography 
           component="span" 
           color="primary" 

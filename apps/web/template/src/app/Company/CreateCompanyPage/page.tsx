@@ -40,10 +40,10 @@ export default function CreateLinkedInPage() {
   return (
     <Container maxWidth="md" sx={{ py: 8 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        Create a LinkedIn Page
+        Create an Ascend Page
       </Typography>
       <Typography variant="subtitle1" align="center" color="text.secondary" gutterBottom>
-        Connect with clients, employees, and the LinkedIn community. To get started, choose a page type.
+        Connect with clients, employees, and the Ascend community. To get started, choose a page type.
       </Typography>
       <Box display="flex" justifyContent="center" gap={3} flexWrap="wrap" mt={5}>
         {pageTypes.map((type) => (

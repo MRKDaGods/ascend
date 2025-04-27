@@ -1,4 +1,3 @@
-// File: useUserStore.ts
 import { create } from "zustand";
 
 interface Connection {
