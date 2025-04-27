@@ -3,13 +3,13 @@ import { Box, Typography, useTheme } from "@mui/material";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import { useRouter } from "next/navigation";
 
-const ConnectionsRoute = () => {
+const ConnectionsCard = () => {
   const theme = useTheme();
   const router = useRouter();
 
   return (
     <Box
-      onClick={() => router.push("/mypage")}
+      onClick={() => router.push("/network/connections")}
       sx={{
         p: 2,
         width: "100%",
@@ -33,4 +33,4 @@ const ConnectionsRoute = () => {
   );
 };
 
-export default ConnectionsRoute;
+export default ConnectionsCard;
