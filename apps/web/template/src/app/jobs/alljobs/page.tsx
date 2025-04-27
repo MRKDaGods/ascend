@@ -4,7 +4,7 @@ import { Box, Grid, Typography } from '@mui/material';
 import FilterSidebar from '../../components/FilterSidebar';
 import AllJobList from '../../components/AllJobList';
 import { useJobFilterStore } from '../../stores/useJobFilterStore';
-import { fetchJobs } from '../../lib/api';
+import { fetchJobs } from '@/api/jobs';
 
 const AllJobsPage = () => {
   const { setJobs } = useJobFilterStore();

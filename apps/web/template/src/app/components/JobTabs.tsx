@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
-import { useJobStore } from '@/app/shared/store/useJobStore';
+import { useJobStore } from '@/app/stores/useJobStore';
 
 type TabValue = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Posted';
 
