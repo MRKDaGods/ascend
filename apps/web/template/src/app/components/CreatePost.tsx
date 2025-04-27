@@ -49,7 +49,6 @@ const CreatePost: React.FC = () => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          mt: 2,
           mx: "auto",
         }}
       >
