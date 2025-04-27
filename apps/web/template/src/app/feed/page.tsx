@@ -11,6 +11,7 @@ import ProfileCard from "../components/ProfileCard";
 import JobsCard from "../components/JobsCard";
 import Footer from "../components/Footer";
 import ConnectionsCard from "../components/ConnectionsRoute";
+import CompanyCard from "../components/CompanyCard";
 import SalesNavCard from "../components/SalesNavCard";
 import QuickLinksCard from "../components/QuickLinksCard";
 
@@ -78,7 +79,8 @@ const Feed: React.FC = () => {
               <ConnectionsCard />
               <SalesNavCard />
               <QuickLinksCard />
-            </>
+              <CompanyCard />
+              </>
           ) : (
             <CircularProgress />
           )}
