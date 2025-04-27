@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
   const [searchParams, setSearchParams] = useState({ title: "", location: "" });
   const [isTitleFocused, setIsTitleFocused] = useState(false);
   const [filteredTitles, setFilteredTitles] = useState<string[]>([]);
-  const { recentSearches, addSearch } = useSearchStore();
+  const { recentSearches, addSearch, setRecentSearches } = useSearchStore();
   const open = Boolean(anchorEl);
   const router = useRouter();
 
@@ -70,7 +70,12 @@ const Navbar: React.FC = () => {
     };
 
     fetchUserData();
-  }, []);
+
+    const stored = localStorage.getItem("recentJobSearches");
+    if (stored) {
+      setRecentSearches(JSON.parse(stored));
+    }
+  }, [setRecentSearches]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -95,7 +100,7 @@ const Navbar: React.FC = () => {
   const handleSearch = () => {
     addSearch({ job: searchParams.title, location: searchParams.location });
     router.push(
-      `/search?keyword=${searchParams.title}&location=${searchParams.location}&industry&experience_level=&company=&salary_range_min&salary_range_max&page=1`
+      `/search?keyword=${searchParams.title}&location=${searchParams.location}&industry=&experience_level=&company=&salary_range_min=&salary_range_max=&page=1`
     );
   };
 
@@ -104,12 +109,10 @@ const Navbar: React.FC = () => {
   return (
     <AppBar position="fixed" color="default" sx={{ boxShadow: 1 }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        {/* Logo */}
         <Typography variant="h6" sx={{ fontWeight: "bold", fontFamily: "'Segoe UI', sans-serif" }}>
           ASCEND
         </Typography>
 
-        {/* Search Bar */}
         <Box
           sx={{
             display: "flex",
@@ -140,6 +143,7 @@ const Navbar: React.FC = () => {
             }}
             sx={{ flex: 1 }}
           />
+
           {isTitleFocused && (recentSearches.length > 0 || filteredTitles.length > 0) && (
             <Paper
               sx={{
@@ -156,14 +160,13 @@ const Navbar: React.FC = () => {
             >
               <List>
                 {filteredTitles.length > 0 && (
-                  <div>
+                  <>
                     <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Suggested Titles</Typography>
                     {filteredTitles.map((title, index) => (
                       <ListItem
                         key={index}
-                        component="div"
                         onClick={() => {
-                          setSearchParams((prev) => ({ ...prev, title })); // Update the title field
+                          setSearchParams((prev) => ({ ...prev, title }));
                           setIsTitleFocused(false);
                         }}
                         sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
@@ -171,18 +174,16 @@ const Navbar: React.FC = () => {
                         <ListItemText primary={title} />
                       </ListItem>
                     ))}
-                  </div>
+                  </>
                 )}
-
                 {recentSearches.length > 0 && (
-                  <div>
+                  <>
                     <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Recent Searches</Typography>
                     {recentSearches.map((search, index) => (
                       <ListItem
                         key={index}
-                        component="div"
                         onClick={() => {
-                          setSearchParams((prev) => ({ ...prev, title: search.job, location: search.location })); // Update both title and location
+                          setSearchParams({ title: search.job, location: search.location });
                           setIsTitleFocused(false);
                         }}
                         sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
@@ -190,7 +191,7 @@ const Navbar: React.FC = () => {
                         <ListItemText primary={search.job} secondary={search.location} />
                       </ListItem>
                     ))}
-                  </div>
+                  </>
                 )}
               </List>
             </Paper>
@@ -227,7 +228,6 @@ const Navbar: React.FC = () => {
           </Button>
         </Box>
 
-        {/* Right: Icons & Profile */}
         <Box sx={{ display: "flex", gap: 2 }}>
           <IconButton><Home /></IconButton>
           <IconButton><Work /></IconButton>

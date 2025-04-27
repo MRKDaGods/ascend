@@ -1,5 +1,6 @@
-"use client";
-import React, { useState } from "react";
+'use client';
+
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box, Card, CardContent, Typography, Chip, IconButton,
@@ -8,29 +9,26 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import { useSearchStore } from "../store/useSearchStore";
-import{useEffect} from "react";
 
-
-
-const jobSearches = ["marketing manager", "hr", "legal", "sales", "amazon", "google", "analyst"];
+const jobSearches = ["marketing manager", "hr", "legal", "sales", "amazon", "google", "analyst","manager"];
 
 const Recommends = () => {
   const router = useRouter();
-  const { recentSearches, addSearch, clearSearches } = useSearchStore();
+  const { recentSearches, addSearch, clearSearches, setRecentSearches } = useSearchStore();
   const [showRecommends, setShowRecommends] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("recentJobSearches");
     if (stored) {
-      useSearchStore.getState().setRecentSearches(JSON.parse(stored));
+      setRecentSearches(JSON.parse(stored));
     }
-  }, []);
+  }, [setRecentSearches]);
 
   const handleSelectSearch = (job: string) => {
-    const search = { job, location: "Egypt" };
+    const search = { job, location: "" };
     addSearch(search);
-    router.push(`/search?job=${encodeURIComponent(job)}`);
+    router.push(`/search?keyword=${encodeURIComponent(job)}&location=&industry=&experience_level=&company=&salary_range_min=&salary_range_max=&page=1`);
   };
 
   return (
@@ -101,7 +99,6 @@ const Recommends = () => {
         </Card>
       )}
 
-      {/* Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle sx={{ fontWeight: "bold" }}>Clear search history?</DialogTitle>
         <IconButton
