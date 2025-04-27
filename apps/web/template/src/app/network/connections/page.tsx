@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { Box, Container } from "@mui/material";
+import { Box, Container, CircularProgress } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-import Navbar from "../../components/Navbar";
-import ConnectionsRoute from "../../components/ConnectionsRoute";
-import PremiumAdCard from "../../components/PremiumAdCard";
-import Footer from "../../components/Footer";
+import Navbar from "@/app/components/Navbar";
+import JobsCard from "@/app/components/JobsCard";
+import Footer from "@/app/components/Footer";
+import ConnectionsList from "@/app/components/ConnectionsList";
 
-const InvitationManagerPage: React.FC = () => {
+const ConnectionsPage: React.FC = () => {
   const theme = useTheme();
 
   return (
@@ -24,36 +24,48 @@ const InvitationManagerPage: React.FC = () => {
 
       <Container
         sx={{
-          mt: 4,
+          mt: 2,
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           justifyContent: "center",
-          alignItems: "flex-start",
+          alignItems: { xs: "stretch", md: "flex-start" },
           gap: 3,
           px: { xs: 1, sm: 2 },
           maxWidth: "1400px",
+          pb: 5,
         }}
       >
-        {/* Left Panel: Invitations Card */}
-        <Box
-          sx={{
-            width: "100%",
-            maxWidth: { xs: "100%", md: "640px" },
-          }}
-        >
-          <ConnectionsRoute />
-        </Box>
 
-        {/* Right Panel: Premium Ad */}
+        {/* Center Panel for Connections */}
         <Box
           sx={{
             width: "100%",
-            maxWidth: { xs: "100%", md: "280px" },
-            position: { md: "sticky" },
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
             top: { md: "80px" },
           }}
         >
-          <PremiumAdCard />
+          <Box sx={{ width: "100%", maxWidth: "900px" }}>
+            <ConnectionsList />
+          </Box>
+        </Box>
+
+        {/* Right Panel */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { xs: "100%", md: "300px" },
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            position: { md: "sticky" },
+            top: { md: "80px" },
+            alignSelf: "flex-start",
+          }}
+        >
+          <JobsCard />
           <Footer />
         </Box>
       </Container>
@@ -61,4 +73,4 @@ const InvitationManagerPage: React.FC = () => {
   );
 };
 
-export default InvitationManagerPage;
+export default ConnectionsPage;
