@@ -195,13 +195,41 @@ export namespace GetCompanyFollowers {
   }
 }
 
-export namespace GetUserUsage {
+export namespace GetUserUsageMessaging {
   export interface Request{
-    user_id : number
+    user_id : number;
+    update_usage? : boolean;
   }
 
   export interface Response{
-    usage : Usage
+    messages_per_day : number;
+    messages_per_day_limit : number;
+  }
+}
+
+
+export namespace GetUserUsageConnections {
+  export interface Request{
+    user_id : number;
+    update_usage? : boolean;
+  }
+
+  export interface Response{
+    connections : number;
+    connections_limit : number;
+  }
+}
+
+
+export namespace GetUserUsageJobApplications {
+  export interface Request{
+    user_id : number;
+    update_usage? : boolean;
+  }
+
+  export interface Response{
+    job_applications_per_month : number;
+    job_applications_limit : number;
   }
 }
 /**

@@ -133,6 +133,7 @@ services:
       context: .
       dockerfile: services/company/Dockerfile
     environment:
+      - SERVICE_NAME=company
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
@@ -169,6 +170,7 @@ services:
       context: .
       dockerfile: services/payment/Dockerfile
     environment:
+      - SERVICE_NAME=payment
       # Postgres
       - DB_USER=${DB_USER}
       - DB_NAME=${DB_NAME}
@@ -180,9 +182,10 @@ services:
 
       # STRIPE
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET_KEY=${STRIPE_WEBHOOK_SECRET_KEY}
 
       # Service port
-      - PORT=3011
+      - PORT=3014
 
       # Google OAuth
       - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
@@ -191,8 +194,14 @@ services:
 
       # RabbitMQ
       - RABBITMQ_URL=${RABBITMQ_URL}
+ 
+      # Service
+      - SESSION_TOKEN_EXPIRY_MS=${SESSION_TOKEN_EXPIRY_MS}
+      - SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS=${SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS}
+
+      - PAYMENT_BASE_URL=${PAYMENT_BASE_URL}
     ports:
-      - "3011:3011"
+      - "3014:3014"
     depends_on:
       - postgres
       - rabbitmq

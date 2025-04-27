@@ -1,11 +1,20 @@
 import startSharedService from "@shared/sharedService";
 import paymentRoutes from "./routers/paymentRouter";
-import { setupRPCServer } from "@shared/rabbitMQ";
-import { Events } from "@shared/rabbitMQ";
-import { handleGetUserUsage } from "./consumers/paymentConsumers";
+import { consumeEvents, getRPCQueueName, setupRPCServer } from "@shared/rabbitMQ";
+import { Events, getQueueName } from "@shared/rabbitMQ";
+import {  handleGetUserConnectionsUsage, handleGetUserJobApplicationsUsage, handleGetUserMessagingUsage, handleUserCreated } from "./consumers/paymentConsumers";
+import { Services } from "@ascend/shared";
 
-startSharedService("payment", paymentRoutes, {
+startSharedService(Services.PAYMENT, paymentRoutes, {
     postMQInit : async() => {
-        await setupRPCServer(Events.GET_USER_USAGE , handleGetUserUsage);
-    }
-})
+        await setupRPCServer(getQueueName(Events.GET_USER_USAGE_MESSAGING) , handleGetUserMessagingUsage);
+        await setupRPCServer(getQueueName(Events.GET_USER_USAGE_CONNECTIONS) , handleGetUserConnectionsUsage);
+        await setupRPCServer(getQueueName(Events.GET_USER_USAGE_JOB_APPLICATIONS) , handleGetUserJobApplicationsUsage);
+    },
+
+    registerConsumers : [
+        async () => {
+            await consumeEvents(getQueueName(Events.USER_CREATED), Events.USER_CREATED, handleUserCreated);
+        }
+    ]
+});

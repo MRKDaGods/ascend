@@ -15,5 +15,5 @@ RUN npm run build
 WORKDIR /app/services/payment
 RUN npm run build
 
-EXPOSE 3011
+EXPOSE 3014
 CMD ["npm", "start"]

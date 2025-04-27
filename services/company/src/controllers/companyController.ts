@@ -6,6 +6,8 @@ import { createAnnouncement, deleteAnnouncement, findAnnouncementById, findAnnou
 import { Company } from "@shared/models/company";
 import { validationResult } from "express-validator";
 import { error, profile } from "console";
+import { Job } from "@shared/models/job";
+import { getProfile } from "../../../user/src/services/userService";
 
 /**
  * @route POST /api/companies
@@ -18,13 +20,24 @@ import { error, profile } from "console";
  */
 export const createCompanyProfile = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
+    if(!user_id){
+        return res.status(401).json({error : "unauthorized"});
+    }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+    
     const {name, description, industry, location, profile_photo, cover_photo, company_domain_name} = req.body;
-    // const user = get from user service
-    // check if domain of the email == company_domain_name
     try {
         const date = new Date();
         const company = await createCompany({company_name : name, description : description, profile_photo : profile_photo, cover_photo : cover_photo , location : location, industry : industry,  created_at : date , created_by : user_id, company_domain_name : company_domain_name});
         if(company){
+            // const user_email = from auth service
+            // if(user_email.split('@')[1] !== company.company_domain_name){
+            //     return res.status(401).json({error : "unauthorized"});
+            // }
             return res.status(200).json({
                 data : {
                     company : company
@@ -32,9 +45,9 @@ export const createCompanyProfile = async (req : AuthenticatedRequest, res : Res
                 error : null
             });
         }else{
-            return res.status(500).json({error : "failed to create company profile"});
+            return res.status(400).json({error : "company with the same name or domain name already exist"});
         }
-    }catch(e){
+    }catch(e : any){
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error : "})
     }
@@ -56,6 +69,12 @@ export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Res
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+    
     const company_id = parseInt(req.params.companyId, 10);    
     try {
         const company = await findCompanyById(company_id);
@@ -66,6 +85,7 @@ export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Res
             return res.status(401).json({error : "unauthorized"});
         }
         let delete_options : any = {};
+        console.log(`company to be deleted : ${company}`);
         if(company?.profile_photo_id){
             delete_options["profile_photo_id"] = company.profile_photo_id;
         }
@@ -73,7 +93,7 @@ export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Res
         if(company?.cover_photo_id){
             delete_options["cover_photo_id"] = company.cover_photo_id;
         }
-        const company_deleted = await deleteCompany(company_id, delete_options);
+        const company_deleted = await deleteCompany(company_id, {...delete_options});
         if(company_deleted){
             return res.status(200).json({
                 data : {
@@ -84,7 +104,7 @@ export const deleteCompanyProfile = async (req : AuthenticatedRequest, res : Res
         }else{
             return res.status(500).json({error : "Failed to delete company"});
         }
-    }catch(e){
+    }catch(e : any){
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error"});
     }
@@ -137,9 +157,18 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
-    const {company_name, description, industry, location, profile_photo, cover_photo, profile_photo_id, cover_photo_id, company_domain_name} = req.body;
+    const {company_name, description, industry, location, profile_photo, cover_photo, company_domain_name} = req.body;
     try {
+        if(!company_name && !description && !industry && !location && !profile_photo && !cover_photo && !company_domain_name){
+            return res.status(400).json({error : "no fields to update"});
+        }
         const company = await findCompanyById(company_id);
         if(!company){
             return res.status(404).json({error : "company not found"});
@@ -147,9 +176,9 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
         if(company?.created_by !== user_id){
             return res.status(401).json({error : "unauthorized"});
         }
-        const updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : profile_photo_id, cover_photo : cover_photo, cover_photo_id : cover_photo_id, company_domain_name : company_domain_name});
+        const updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : company.profile_photo_id, cover_photo : cover_photo, cover_photo_id : company.cover_photo_id, company_domain_name : company_domain_name});
         if(!updated_company){
-            return res.status(500).json({error : "Internal error"});    
+            return res.status(400).json({error : "company with the same name or domain name already exist"});    
         }
         return res.status(200).json({
             data : {
@@ -180,6 +209,12 @@ export const getCompanyProfile = async (req : AuthenticatedRequest, res : Respon
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
     }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+
     const company_id = parseInt(req.params.companyId, 10);
     try {
         const company = await findCompanyById(company_id);
@@ -283,6 +318,9 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
     const announcement_id = parseInt(req.params.announcementId, 10);
     let { content, announcement_photos, announcement_video } = req.body;
     try {
+        if(!content && !announcement_photos && (!announcement_video && announcement_video !== "")){
+            return res.status(400).json({error : "no fields to update"});
+        }
         const company = await findCompanyById(company_id);
         const old_announcemnt = await findAnnouncementById(announcement_id);
         if(!company){
@@ -293,9 +331,6 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
         }
         if(company?.created_by !== user_id){
             return res.status(403).json({error : "forbidden"});
-        }
-        if(!announcement_photos){
-            announcement_photos = [];
         }
         
         let updated_announcement_post = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
@@ -356,12 +391,7 @@ export const deleteAnnouncementPost = async (req : AuthenticatedRequest, res : R
         if(company?.created_by !== user_id || company?.company_id !== announcement?.company_id){
             return res.status(403).json({error : "forbidden"});
         }
-        let announcement_deleted;
-        if(announcement.video_id){
-            announcement_deleted = await deleteAnnouncement(announcement_id, announcement.image_ids, announcement.video_id);
-        }else{
-            announcement_deleted = await deleteAnnouncement(announcement_id, announcement.image_ids);
-        }
+        let announcement_deleted = await deleteAnnouncement(announcement_id, announcement.image_ids, announcement.video_id);
          
         if(announcement_deleted){
             return res.status(200).json({
@@ -571,9 +601,9 @@ export const getCompanyAnalytics = async (req : AuthenticatedRequest, res : Resp
         }
         if(company?.created_by !== user_id){
             return res.status(403).json({error : "forbidden"});
-        }
-        const job_application_analytics = 0; // get from job services
-        const number_of_jobs = 0; // get from job service
+        } 
+        let job_application_analytics : Array<any> = []
+        const number_of_jobs = 0;
         const number_of_followrs = await findNumberOfFollowersOfCompany(company_id);
         const number_of_announcements = await findNumberOfAnnouncements(company_id);
         return res.status(200).json({
