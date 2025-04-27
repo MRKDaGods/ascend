@@ -45,7 +45,7 @@ const ProfileCard: React.FC = () => {
           overflow: "hidden",
           boxShadow: 3,
           backgroundColor: "white",
-          mt: 2,
+       
         }}
       >
         {error && <Alert severity="error">{error}</Alert>}
