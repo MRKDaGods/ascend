@@ -126,7 +126,9 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
                 <MenuItem onClick={handleEditPost}>
                   <Edit sx={{ mr: 1 }} /> Edit Post
                 </MenuItem>
-                <MenuItem onClick={handleDeleteClick}>
+                <MenuItem 
+                  id="delete-user-post-button" // ✅ ID added
+                  onClick={handleDeleteClick}>
                   <Delete sx={{ mr: 1 }} /> Delete Post
                 </MenuItem>
               </Menu>
