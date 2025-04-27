@@ -15,13 +15,13 @@ const SigninPage = () => {
         flexDirection="column"
         justifyContent="center"
         alignItems="center"
-        minHeight="100vh"
+        minHeight="90vh"
         bgcolor="background.default"
       >
         <SigninHeader />
         <SigninBox />
-        <Footer />
       </Box>
+      <Footer />
     </LightThemeProvider>
   );
 };

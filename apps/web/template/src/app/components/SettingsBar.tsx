@@ -30,12 +30,14 @@ export default function SettingsBar() {
           px: 3, // Adds padding on left & right
         }}
       >
-        <Typography variant="h5" color="primary" fontWeight="bold">
-          Linked
-          <span style={{ backgroundColor: "#0077b5", color: "white", padding: "0.01em 0.2em", borderRadius: 4 }}>
-            in
-          </span>
-        </Typography>
+        <img
+            src="/logoIcon.png"
+            alt="Ascend"
+            style={{ height: 36, borderRadius: 6 }}
+          />
+          <Typography variant="h5" color="primary" fontWeight="bold">
+            Ascend
+          </Typography>
       </Box>
 
       {/* Settings Sidebar (Starts Below White Bar) */}

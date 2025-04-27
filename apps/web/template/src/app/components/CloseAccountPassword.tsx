@@ -48,7 +48,7 @@ export default function CloseAccountPassword() {
 
         <FormControlLabel
           control={<Checkbox id="unsubscribe-checkbox" checked={unsubscribe} onChange={(e) => setUnsubscribe(e.target.checked)} />}
-          label="Unsubscribe me from LinkedIn email communications, including invitations."
+          label="Unsubscribe me from Ascend email communications, including invitations."
         />
 
         <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>

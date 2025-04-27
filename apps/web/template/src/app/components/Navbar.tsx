@@ -81,9 +81,20 @@ const Navbar: React.FC = () => {
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
 
-  const userData = useProfileStore((state) => state.userData);
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
+  // Fetch user data from the profile store
+  type Profile = {
+    profile_picture_url?: string;
+    first_name: string;
+    last_name: string;
+  };
+
+  const userData = useProfileStore((state) => state.userData) as Profile | null;
+
+  // Safely derive profile picture and full name
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // Fallback to default avatar
+  const fullName = userData
+    ? `${userData.first_name} ${userData.last_name}`
+    : "User"; // Fallback to "User"
 
   return (
     <AppBar
@@ -97,8 +108,20 @@ const Navbar: React.FC = () => {
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
         {/* LEFT */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <img src="/logoIcon.png" alt="Ascend" style={{ height: 36, borderRadius: 6 }} />
+        <Box sx={{ display: "flex", alignItems: "center", py: 1 }}>         
+          <img
+            src="/logoIcon.png"
+            alt="Ascend"
+            style={{ height: 36, borderRadius: 6 }}
+          />
+          <Box
+            onClick={() => router.push("/feed")}
+            sx={{ cursor: "pointer" }} // Add pointer cursor to indicate it's clickable
+          >
+            <Typography variant="h5" color="primary" fontWeight="bold">
+              Ascend
+            </Typography>
+          </Box>
           <SearchBar>
             <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
             <InputBase
@@ -114,15 +137,28 @@ const Navbar: React.FC = () => {
 
         {/* CENTER */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          {[{ icon: <Home />, route: "/feed", label: "Home" }, { icon: <People />, route: "/network", label: "My Network" }, { icon: <Work />, route: "/jobs", label: "Jobs" }, { icon: <Message />, route: "/chat", label: "Messaging" }, { icon: <Notifications />, route: "/notif", label: "Notifications" }].map(({ icon, route, label }, i) => (
+          {[
+            { icon: <Home />, route: "/feed", label: "Home" },
+            { icon: <People />, route: "/network", label: "My Network" },
+            { icon: <Work />, route: "/jobs", label: "Jobs" },
+            { icon: <Message />, route: "/chat", label: "Messaging" },
+            { icon: <Notifications />, route: "/notif", label: "Notifications" },
+          ].map(({ icon, route, label }, i) => (
             <Tooltip key={i} title={label}>
-              <NavIconButton onClick={() => router.push(route)} active={pathname === route}>
+              <NavIconButton
+                onClick={() => router.push(route)}
+                active={pathname === route}
+              >
                 {label === "Notifications" && unseenCount > 0 ? (
                   <Badge badgeContent={unseenCount} color="error">
-                    {React.cloneElement(icon, { sx: { color: muiTheme.palette.text.secondary } })}
+                    {React.cloneElement(icon, {
+                      sx: { color: muiTheme.palette.text.secondary },
+                    })}
                   </Badge>
                 ) : (
-                  React.cloneElement(icon, { sx: { color: muiTheme.palette.text.secondary } })
+                  React.cloneElement(icon, {
+                    sx: { color: muiTheme.palette.text.secondary },
+                  })
                 )}
               </NavIconButton>
             </Tooltip>
@@ -131,7 +167,11 @@ const Navbar: React.FC = () => {
 
         {/* RIGHT */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+          <Tooltip
+            title={
+              theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+            }
+          >
             <IconButton onClick={toggleTheme}>
               {theme === "dark" ? (
                 <LightMode sx={{ color: "#ffeb3b" }} />
@@ -173,7 +213,10 @@ const Navbar: React.FC = () => {
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <Box px={2} py={2} textAlign="center">
-              <Avatar src={profilePicture} sx={{ width: 58, height: 58, mx: "auto" }} />
+              <Avatar
+                src={profilePicture}
+                sx={{ width: 58, height: 58, mx: "auto" }}
+              />
               <Typography fontWeight={600} mt={1}>
                 {fullName}
               </Typography>
@@ -191,28 +234,52 @@ const Navbar: React.FC = () => {
             </Box>
 
             <Divider />
-            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+            <Typography
+              px={2}
+              mt={1}
+              fontSize="0.75rem"
+              fontWeight={700}
+              color="gray"
+            >
               Account
             </Typography>
-            <MenuItem><ListItemText>Try Premium</ListItemText></MenuItem>
+            <MenuItem>
+              <ListItemText>Try Premium</ListItemText>
+            </MenuItem>
             <MenuItem>
               <ListItemText onClick={() => router.push("/authen/Settings")}>
                 Settings & Privacy
               </ListItemText>
-              <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+              <ListItemIcon>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
             </MenuItem>
 
             <Divider />
-            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+            <Typography
+              px={2}
+              mt={1}
+              fontSize="0.75rem"
+              fontWeight={700}
+              color="gray"
+            >
               Manage
             </Typography>
-            <MenuItem><ListItemText>Posts & Activity</ListItemText></MenuItem>
-            <MenuItem><ListItemText>Job Posting Account</ListItemText></MenuItem>
+            <MenuItem>
+              <ListItemText>Posts & Activity</ListItemText>
+            </MenuItem>
+            <MenuItem>
+              <ListItemText>Job Posting Account</ListItemText>
+            </MenuItem>
 
             <Divider />
             <MenuItem onClick={closeMenu}>
-              <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-              <ListItemText onClick={() => router.push("/authen")}>Sign Out</ListItemText>
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText onClick={() => router.push("/authen")}>
+                Sign Out
+              </ListItemText>
             </MenuItem>
           </Menu>
 

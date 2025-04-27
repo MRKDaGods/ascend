@@ -45,12 +45,12 @@ export default function LoginBox() {
     // ++++
     // Call the API to sign in
     api.auth.login(email, password)
-      .then((response) => {
+      .then((response: { token: string; user_id: string }) => {
         console.log("Login successful:", response);
         localStorage.setItem("access_token", response.token); //Habiba
         alert("Logged in successfully! ID: " + response.user_id + "\nToken: " + response.token);
         router.push("/feed");
-      }).catch((error) => {
+      }).catch((error: any) => {
         console.error("Login error:", error);
         setError("An error occurred during login. Please try again.");
       });
@@ -68,7 +68,7 @@ export default function LoginBox() {
           width: 380,
           bgcolor: "background.paper",
           position: "absolute",
-          top: "50%",
+          top: "45%",
           left: "50%",
           transform: "translate(-50%, -50%)",
           textAlign: "center",
@@ -212,12 +212,12 @@ export default function LoginBox() {
         fontSize={14}
         sx={{
           position: "absolute",
-          top: "calc(93%)",
+          top: "calc(85%)",
           left: "50%",
           transform: "translateX(-50%)",
         }}
       >
-        New to LinkedIn?{" "}
+        New to Ascend?{" "}
         <Typography component="a" href="#" color="primary" sx={{ fontWeight: "bold" }} onClick={() => router.push("/authen/NewToLinkedin")} id="join-now-link">
           Join now
         </Typography>
