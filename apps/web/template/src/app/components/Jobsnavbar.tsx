@@ -304,11 +304,13 @@ const JobsNavbar: React.FC = () => {
             sx={{
               textTransform: "none",
               fontWeight: 600,
-              fontSize: "0.875rem",
+             fontSize: isSmallScreen ? "0.65rem" : "0.875rem",
               color: theme.palette.text.primary,
               ":hover": {
                 backgroundColor: theme.palette.action.hover,
                 borderRadius: "8px",
+                px: isSmallScreen ? 0.5 : 2.5,  
+                py: isSmallScreen ? 0.25 : 1,
               },
             }}
             onClick={() => router.push("/for-business")}
@@ -326,7 +328,7 @@ const JobsNavbar: React.FC = () => {
     fontWeight: 600,
     px: isSmallScreen ? 1 : 2.5,  // Reduced padding for small screens
     py: isSmallScreen ? 0.25 : 1,   // Reduced vertical padding for small screens
-    fontSize: isSmallScreen ? "0.75rem" : "0.875rem",  // Smaller font size on small screens
+    fontSize: isSmallScreen ? "0.65rem" : "0.875rem",  // Smaller font size on small screens
     "&:hover": {
       backgroundColor: "#D4AF37",
     },
