@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'add_education_page.dart';
 import 'add_experience_page.dart';
+import 'add_skill_page.dart';
+import 'add_course_page.dart';
+import 'add_project_page.dart';
+import 'add_interest_page.dart';
+import 'models/profile_section.dart';
+import 'profile_entry.dart';
 
 class AddSectionPage extends StatefulWidget {
+  final void Function(ProfileSection) onSectionAdded;
+
+  const AddSectionPage({super.key, required this.onSectionAdded});
+
   @override
   _AddSectionPageState createState() => _AddSectionPageState();
 }
@@ -43,7 +53,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
                 {"label": "Add position", "action": _navigateToAddExperience},
                 {"label": "Add services", "action": null},
                 {"label": "Add career break", "action": null},
-                {"label": "Add skills", "action": null},
+                {"label": "Add skills", "action": _navigateToAddSkill},
               ],
             ),
             const SizedBox(height: 20),
@@ -58,8 +68,8 @@ class _AddSectionPageState extends State<AddSectionPage> {
               items: [
                 {"label": "Add featured", "action": null},
                 {"label": "Add licenses & certifications", "action": null},
-                {"label": "Add projects", "action": null},
-                {"label": "Add courses", "action": null},
+                {"label": "Add projects", "action": _navigateToAddProject},
+                {"label": "Add courses", "action": _navigateToAddCourse},
                 {"label": "Add recommendations", "action": null},
               ],
             ),
@@ -82,6 +92,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
                 {"label": "Add organizations", "action": null},
                 {"label": "Add causes", "action": null},
                 {"label": "Add contact info", "action": null},
+                {"label": "Add interests", "action": _navigateToAddInterest},
               ],
             ),
           ],
@@ -138,7 +149,6 @@ class _AddSectionPageState extends State<AddSectionPage> {
         onTap: action,
         child: Row(
           children: [
-            const Icon(Icons.add, color: Colors.blue),
             const SizedBox(width: 8),
             Text(
               text,
@@ -161,8 +171,19 @@ class _AddSectionPageState extends State<AddSectionPage> {
         builder:
             (context) => AddEducationPage(
               onSave: (education) {
-                // Handle saving the education entry
-                print("Education saved: ${education.toJson()}");
+                final section = ProfileSection(
+                  title: "Education",
+                  content: [
+                    ProfileEntryWidget(
+                      title: education.school,
+                      subtitle:
+                          "${education.degree} in ${education.fieldOfStudy}",
+                      description:
+                          "From ${education.startDate.year} to ${education.endDate ?? 'Present'}",
+                    ),
+                  ],
+                );
+                widget.onSectionAdded(section);
               },
             ),
       ),
@@ -176,8 +197,104 @@ class _AddSectionPageState extends State<AddSectionPage> {
         builder:
             (context) => AddExperiencePage(
               onSave: (experience) {
-                // Handle saving the experience entry
-                print("Experience saved: ${experience.toJson()}");
+                final section = ProfileSection(
+                  title: "Experience",
+                  content: [
+                    ProfileEntryWidget(
+                      title: experience.position,
+                      subtitle: experience.company,
+                      description:
+                          "From ${experience.startDate.year} to ${experience.endDate?.year ?? 'Present'}",
+                    ),
+                  ],
+                );
+                widget.onSectionAdded(section);
+              },
+            ),
+      ),
+    );
+  }
+
+  void _navigateToAddSkill() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddSkillPage(
+              onSave: (skill) {
+                final section = ProfileSection(
+                  title: "Skills",
+                  content: [ProfileEntryWidget(title: skill.name)],
+                );
+                widget.onSectionAdded(section);
+              },
+            ),
+      ),
+    );
+  }
+
+  void _navigateToAddCourse() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddCoursePage(
+              onSave: (course) {
+                final section = ProfileSection(
+                  title: "Courses",
+                  content: [
+                    ProfileEntryWidget(
+                      title: course.name,
+                      subtitle: course.provider,
+                      description:
+                          course.completionDate != null
+                              ? "Completed on ${course.completionDate!.toLocal()}"
+                              : null,
+                    ),
+                  ],
+                );
+                widget.onSectionAdded(section);
+              },
+            ),
+      ),
+    );
+  }
+
+  void _navigateToAddProject() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddProjectPage(
+              onSave: (project) {
+                final section = ProfileSection(
+                  title: "Projects",
+                  content: [
+                    ProfileEntryWidget(
+                      title: project.name,
+                      description: project.description,
+                    ),
+                  ],
+                );
+                widget.onSectionAdded(section);
+              },
+            ),
+      ),
+    );
+  }
+
+  void _navigateToAddInterest() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddInterestPage(
+              onSave: (interest) {
+                final section = ProfileSection(
+                  title: "Interests",
+                  content: [ProfileEntryWidget(title: interest.name)],
+                );
+                widget.onSectionAdded(section);
               },
             ),
       ),
