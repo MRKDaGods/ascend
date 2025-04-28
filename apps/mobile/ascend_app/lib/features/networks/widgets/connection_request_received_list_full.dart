@@ -11,12 +11,12 @@ class ConnectionRequestsReceivedListFull extends StatelessWidget {
   final Function(String) onDecline;
 
   const ConnectionRequestsReceivedListFull({
-    Key? key,
+    super.key,
     required this.invitations,
     required this.pendingRequestsReceived,
     required this.onAccept,
     required this.onDecline,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

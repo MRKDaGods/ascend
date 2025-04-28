@@ -5,11 +5,7 @@ class CommentPreview extends StatelessWidget {
   final Comment comment;
   final VoidCallback onTap;
 
-  const CommentPreview({
-    Key? key,
-    required this.comment,
-    required this.onTap,
-  }) : super(key: key);
+  const CommentPreview({super.key, required this.comment, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +41,7 @@ class CommentPreview extends StatelessWidget {
                 // Time posted
                 Text(
                   comment.timePosted,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
             ),
@@ -58,9 +51,7 @@ class CommentPreview extends StatelessWidget {
               comment.text,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 13,
-              ),
+              style: const TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 4),
             // See more comments row

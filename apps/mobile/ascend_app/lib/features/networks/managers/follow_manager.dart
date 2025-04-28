@@ -32,7 +32,9 @@ List<UserModel> getSuggestedUsersforFollow(
   unFollowedUsers.removeWhere((element) => element.id == "1");
   unFollowedUsers.removeWhere((element) => element.firstFollow == false);
   print("Users to Follow:");
-  unFollowedUsers.forEach((element) => print(element.id));
+  for (var element in unFollowedUsers) {
+    print(element.id);
+  }
   return unFollowedUsers;
 }
 

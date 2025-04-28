@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/settings/presentation/widgets/settings_list_item.dart';
 
 class SettingsMainPage extends StatefulWidget {
-  const SettingsMainPage({Key? key}) : super(key: key);
+  const SettingsMainPage({super.key});
 
   @override
   State<SettingsMainPage> createState() => _SettingsMainPageState();
@@ -121,7 +121,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
                           ),
                       ],
                     );
-                  }).toList(),
+                  }),
                   // Other Settings Items
                   ...otherSettingsItems.map((item) {
                     return SettingsListItem(
@@ -139,7 +139,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
                               )
                               : null,
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),

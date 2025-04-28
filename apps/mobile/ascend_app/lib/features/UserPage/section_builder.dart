@@ -10,6 +10,7 @@ class SectionBuilder extends StatefulWidget {
   final bool isExpanded;
   final bool inEditMode;
   final void Function(ProfileSection)? onUpdateSection;
+  final VoidCallback? onAddEntry; // New callback for adding entries
 
   const SectionBuilder({
     super.key,
@@ -18,6 +19,7 @@ class SectionBuilder extends StatefulWidget {
     this.isExpanded = false,
     this.inEditMode = false,
     this.onUpdateSection,
+    this.onAddEntry, // Pass the callback
   });
 
   @override
@@ -121,9 +123,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                         if (widget.section.title != "About")
                           IconButton(
                             icon: const Icon(Icons.add),
-                            onPressed: () {
-                              // Handle add action
-                            },
+                            onPressed: widget.onAddEntry, // Call the callback
                           ),
                         IconButton(
                           icon: const Icon(Icons.edit_outlined),

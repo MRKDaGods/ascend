@@ -3,10 +3,7 @@ import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
 import 'package:ascend_app/features/UserPage/user_page.dart';
-import 'package:ascend_app/features/UserPage/Data/dummy_profile_sections.dart';
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart'; // Add this import
-import 'package:ascend_app/features/CompanyPage/company_page.dart';
-import 'package:ascend_app/features/CompanyPage/Data/dummy_page_sections.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -26,7 +23,7 @@ class _MainNavigationState extends State<MainNavigation> {
     _pages = [
       Home(),
       //Center(child: Text("Video")),
-      UserProfilePage(sections: sections),
+      UserProfilePage(),
       //CompanyPage(sections: csections),
       Networks(),
       NotificationsPage(), // Replace the placeholder with your actual notifications page

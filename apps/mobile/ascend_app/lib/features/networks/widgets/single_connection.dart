@@ -14,7 +14,7 @@ class SingleConnection extends StatefulWidget {
   final Function(String) onHide;
 
   const SingleConnection({
-    Key? key,
+    super.key,
     required this.user,
     required this.mutualUsers,
     required this.acceptedConnections,
@@ -22,7 +22,7 @@ class SingleConnection extends StatefulWidget {
     required this.ShowAll,
     required this.isConnected,
     required this.onHide,
-  }) : super(key: key);
+  });
 
   @override
   _SingleConnectionState createState() => _SingleConnectionState();

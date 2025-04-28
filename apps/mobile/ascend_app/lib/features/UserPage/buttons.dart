@@ -2,9 +2,12 @@ import 'package:ascend_app/features/UserPage/blue_button.dart';
 import 'package:flutter/material.dart';
 import 'bottom_options_sheet.dart';
 import 'grey_button.dart';
+import 'add_section_page.dart';
+import 'profile_entry.dart';
+import 'package:ascend_app/shared/models/profile.dart';
 
 class ProfileButtons extends StatelessWidget {
-  const ProfileButtons({
+  ProfileButtons({
     required this.isConnect,
     required this.isfollowing,
     required this.isPending,
@@ -13,6 +16,8 @@ class ProfileButtons extends StatelessWidget {
     required this.toggleFollow,
     required this.removeConnection,
     required this.isMyProfile,
+    required this.addOrUpdateSection, // Function passed from UserPage
+    required this.profile,
     super.key,
   });
 
@@ -24,6 +29,9 @@ class ProfileButtons extends StatelessWidget {
   final void Function(BuildContext) withdrawRequest; // Function to show dialog
   final void Function(BuildContext) removeConnection; // Function to show dialog
   final bool isMyProfile;
+  final void Function(String title, ProfileEntryWidget newEntry)
+  addOrUpdateSection;
+  final Profile? profile;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +55,7 @@ class ProfileButtons extends StatelessWidget {
                           icon: Icons.person_add,
                         ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
                 child: GreyButton(
                   text: "Message",
@@ -56,7 +64,7 @@ class ProfileButtons extends StatelessWidget {
                 ),
               ),
             ],
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             SizedBox(
               height: 40,
               width: 40,
@@ -66,7 +74,7 @@ class ProfileButtons extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.more_horiz),
+                  icon: const Icon(Icons.more_horiz),
                   onPressed:
                       () => _showProfileOptionsSheet(
                         context,
@@ -77,7 +85,7 @@ class ProfileButtons extends StatelessWidget {
                         toggleFollow,
                         withdrawRequest,
                         removeConnection,
-                      ), // Show Bottom Sheet
+                      ),
                 ),
               ),
             ),
@@ -90,15 +98,29 @@ class ProfileButtons extends StatelessWidget {
                 Expanded(
                   child: BlueButton(text: "Open to", isMyProfile: isMyProfile),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: GreyButton(
                     text: "Add Section",
-                    action: (context) {},
+                    action: (context) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => AddSectionPage(
+                                onSectionAdded: (newSection) {
+                                  for (var entry in newSection.content) {
+                                    addOrUpdateSection(newSection.title, entry);
+                                  }
+                                },
+                              ),
+                        ),
+                      );
+                    },
                     isMyProfile: isMyProfile,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 SizedBox(
                   height: 38,
                   width: 38,
@@ -153,7 +175,7 @@ class ProfileButtons extends StatelessWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       isScrollControlled: true, // Allows the sheet to expand properly
@@ -168,6 +190,7 @@ class ProfileButtons extends StatelessWidget {
           removeConnection: removeConnectionAlert,
           isMyProfile: isMyProfile,
           isImageSheet: false, // Not an image sheet
+          profile: profile,
         );
       },
     );
