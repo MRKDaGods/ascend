@@ -55,7 +55,7 @@ const LoadingPage = () => {
       </Box>
 
       {/* Animation keyframes */}
-      <style jsx global>{`
+      <style>{`
         @keyframes moveBar {
           0% {
             left: -40px;

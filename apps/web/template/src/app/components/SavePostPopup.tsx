@@ -1,7 +1,7 @@
 // Component file: popup appears to confirm the post is SAVED successfully
 
 "use client";
-
+import React from "react";
 import { Snackbar, Alert, Link, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";

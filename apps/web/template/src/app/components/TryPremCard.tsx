@@ -1,6 +1,7 @@
 // Component file: card showing Try Premium in feed main page
 
 "use client";
+import React from "react";
 import { Card, Typography, useTheme } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { useRouter } from "next/navigation";

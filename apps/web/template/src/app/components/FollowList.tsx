@@ -11,7 +11,7 @@ import {
   Button,
   useTheme,
 } from "@mui/material";
-import { useState } from "react";
+import React, { useState } from "react";
 
 // Dummy data for now (to be fetched from backend later)
 const dummyFollowing = [

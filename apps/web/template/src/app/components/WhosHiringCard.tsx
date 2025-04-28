@@ -1,7 +1,7 @@
 // Component file: card showing Jobs Card in feed main page
 
 "use client";
-
+import React from "react";
 import { Card, CardActionArea, CardContent, Typography, Box, useTheme } from "@mui/material";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
