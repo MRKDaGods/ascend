@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/shared/models/profile.dart';
 
-class AddExperiencePage extends StatefulWidget {
-  final void Function(Experience) onSave;
+class AddCoursePage extends StatefulWidget {
+  final void Function(Course) onSave;
 
-  const AddExperiencePage({super.key, required this.onSave});
+  const AddCoursePage({super.key, required this.onSave});
 
   @override
-  _AddExperiencePageState createState() => _AddExperiencePageState();
+  _AddCoursePageState createState() => _AddCoursePageState();
 }
 
-class _AddExperiencePageState extends State<AddExperiencePage> {
+class _AddCoursePageState extends State<AddCoursePage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _positionController = TextEditingController();
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _providerController = TextEditingController();
+  final TextEditingController _completionDateController =
+      TextEditingController();
   bool _notifyNetwork = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Experience"),
+        title: const Text("Add Course"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -45,35 +44,23 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               ),
               const SizedBox(height: 16),
               _buildNotifyNetworkToggle(),
-              const SizedBox(height: 16),
               _buildLabeledTextField(
-                label: "Title*",
-                controller: _positionController,
-                placeholder: "Ex: Software Engineer",
+                label: "Course Name*",
+                controller: _nameController,
+                placeholder: "Ex: Data Structures",
               ),
               _buildLabeledTextField(
-                label: "Company or organization*",
-                controller: _companyController,
-                placeholder: "Ex: Google",
-              ),
-
-              _buildLabeledDateField(
-                label: "Start Date",
-                controller: _startDateController,
+                label: "Provider",
+                controller: _providerController,
+                placeholder: "Ex: Coursera",
               ),
               _buildLabeledDateField(
-                label: "End Date (or expected)",
-                controller: _endDateController,
-              ),
-              _buildLabeledTextField(
-                label: "Description",
-                controller: _descriptionController,
-                placeholder: "Describe your role and responsibilities",
-                maxLines: 5,
+                label: "Completion Date",
+                controller: _completionDateController,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _saveExperience,
+                onPressed: _saveCourse,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   foregroundColor: Colors.white,
@@ -84,6 +71,44 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabeledTextField({
+    required String label,
+    required TextEditingController controller,
+    String? placeholder,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 8,
+                horizontal: 12,
+              ),
+            ),
+            validator: (value) {
+              if (label.endsWith("*") && (value == null || value.isEmpty)) {
+                return "This field is required";
+              }
+              return null;
+            },
+          ),
+        ],
       ),
     );
   }
@@ -102,7 +127,7 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               ),
               SizedBox(height: 4),
               Text(
-                "Turn on to notify your network of key profile changes (such as new experience) and work anniversaries.",
+                "Turn on to notify your network of key profile changes (such as new education) and work anniversaries.",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
@@ -117,46 +142,6 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildLabeledTextField({
-    required String label,
-    required TextEditingController controller,
-    String? placeholder,
-    int maxLines = 1,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: controller,
-            maxLines: maxLines,
-            decoration: InputDecoration(
-              hintText: placeholder,
-              border: const OutlineInputBorder(),
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8, // Adjust vertical padding to reduce height
-                horizontal: 12,
-              ),
-            ),
-            validator: (value) {
-              if (label.endsWith("*") && (value == null || value.isEmpty)) {
-                return "This field is required";
-              }
-              return null;
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -178,12 +163,12 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
             controller: controller,
             readOnly: true,
             decoration: InputDecoration(
-              fillColor: Colors.white,
               hintText: "Date",
+              fillColor: Colors.white,
               border: const OutlineInputBorder(),
               suffixIcon: const Icon(Icons.calendar_today),
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 8, // Adjust vertical padding to reduce height
+                vertical: 8,
                 horizontal: 12,
               ),
             ),
@@ -204,23 +189,21 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
     );
   }
 
-  void _saveExperience() {
+  void _saveCourse() {
     if (_formKey.currentState!.validate()) {
-      final experience = Experience(
+      final course = Course(
         id: 0, // Dummy ID, replace with actual logic
         userId: 0, // Dummy user ID, replace with actual logic
-        company: _companyController.text,
-        position: _positionController.text,
-        startDate: DateTime.parse(_startDateController.text),
-        endDate:
-            _endDateController.text.isNotEmpty
-                ? DateTime.parse(_endDateController.text)
+        name: _nameController.text,
+        provider: _providerController.text,
+        completionDate:
+            _completionDateController.text.isNotEmpty
+                ? DateTime.parse(_completionDateController.text)
                 : null,
-        description: _descriptionController.text,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      widget.onSave(experience);
+      widget.onSave(course);
       Navigator.pop(context);
     }
   }
