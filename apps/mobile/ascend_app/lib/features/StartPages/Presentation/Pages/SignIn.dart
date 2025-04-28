@@ -146,7 +146,7 @@ class _SignInPageState extends State<SignInPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
+                            SizedBox(
                               width: screenWidth * 0.4,
                               child: Divider(color: Colors.grey, thickness: 1),
                             ),
@@ -162,7 +162,7 @@ class _SignInPageState extends State<SignInPage> {
                                 ),
                               ),
                             ),
-                            Container(
+                            SizedBox(
                               width: screenWidth * 0.4,
                               child: Divider(color: Colors.grey, thickness: 1),
                             ),

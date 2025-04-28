@@ -10,14 +10,14 @@ class FilterOptionWidget extends StatefulWidget {
   final bool isReset; // New parameter to reset filters
 
   const FilterOptionWidget({
-    Key? key,
+    super.key,
     required this.filterName,
     required this.options,
     required this.allowMultipleSelection, // Default to allowing multiple selections
     required this.companyNames,
     required this.onFilterChanged,
     required this.isReset, // Add isReset as a required parameter
-  }) : super(key: key);
+  });
 
   @override
   _FilterOptionWidgetState createState() => _FilterOptionWidgetState();

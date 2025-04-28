@@ -10,12 +10,12 @@ class ConnectionSuggestions extends StatefulWidget {
   final bool ShowAll;
 
   const ConnectionSuggestions({
-    Key? key,
+    super.key,
     required this.suggestedUsers,
     required this.connectionsMap,
     required this.onSend,
     required this.ShowAll,
-  }) : super(key: key);
+  });
 
   @override
   _ConnectionSuggestionsState createState() => _ConnectionSuggestionsState();

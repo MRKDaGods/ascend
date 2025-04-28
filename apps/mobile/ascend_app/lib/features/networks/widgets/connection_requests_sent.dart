@@ -10,11 +10,11 @@ class ConnectionRequestsSent extends StatelessWidget {
   final Function(String) onRemove;
 
   const ConnectionRequestsSent({
-    Key? key,
+    super.key,
     required this.invitations,
     required this.pendingRequestsSent,
     required this.onRemove,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

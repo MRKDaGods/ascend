@@ -37,7 +37,7 @@ class ProfileOptionsSheet extends StatelessWidget {
         // Custom Drag Handle
         Stack(
           children: [
-            Container(
+            SizedBox(
               width: double.infinity, // Full width background
               height: 35, // Slightly taller to match reference
               // Slightly darker background

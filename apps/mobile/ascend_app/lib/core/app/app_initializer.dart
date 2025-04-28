@@ -8,7 +8,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../di/dependency_injection.dart';
@@ -22,6 +21,12 @@ class AppInitializer {
   static Future<void> initialize() async {
     // Ensure Flutter is initialized
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Set preferred orientations
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
     // Initialize Hive for local storage
     await _initializeHive();
@@ -59,6 +64,12 @@ class AppInitializer {
     } catch (e) {
       debugPrint('Firebase initialization error: $e');
     }
+
+    // Initialize service locator with all dependencies
+    await sl.init();
+
+    // Optimize image caching
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 100 * 1024 * 1024;
   }
 
   /// Re-fetch the authentication token

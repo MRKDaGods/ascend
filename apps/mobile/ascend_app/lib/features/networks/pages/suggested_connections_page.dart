@@ -10,13 +10,13 @@ class SuggestedConnectionsPage extends StatefulWidget {
   final bool showAll;
 
   const SuggestedConnectionsPage({
-    Key? key,
+    super.key,
     required this.Message,
     required this.users,
     required this.mutualUsers,
     required this.onSend,
     required this.showAll,
-  }) : super(key: key);
+  });
 
   @override
   _SuggestedConnectionsPageState createState() =>
