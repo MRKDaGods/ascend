@@ -13,6 +13,10 @@ import 'profile_header.dart';
 import 'profile_entry.dart';
 import 'add_education_page.dart';
 import 'add_experience_page.dart';
+import 'add_skill_page.dart';
+import 'add_course_page.dart';
+import 'add_project_page.dart';
+import 'add_interest_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({this.profileId, super.key});
@@ -73,6 +77,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               profile.education!
                   .map(
                     (e) => ProfileEntryWidget(
+                      imageUrl: 'assets/company_placeholder.png',
                       title: e.school,
                       subtitle: "${e.degree} in ${e.fieldOfStudy}",
                       description:
@@ -93,6 +98,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               profile.experience!
                   .map(
                     (e) => ProfileEntryWidget(
+                      imageUrl: 'assets/company_placeholder.png',
                       title: e.position,
                       subtitle: e.company,
                       description:
@@ -178,6 +184,21 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _sections[index] = updatedSection; // Update the section
       }
     });
+  }
+
+  void _addOrUpdateSection(String title, ProfileEntryWidget newEntry) {
+    final existingSectionIndex = _sections.indexWhere(
+      (section) => section.title == title,
+    );
+    if (existingSectionIndex != -1) {
+      setState(() {
+        _sections[existingSectionIndex].content.add(newEntry);
+      });
+    } else {
+      setState(() {
+        _sections.add(ProfileSection(title: title, content: [newEntry]));
+      });
+    }
   }
 
   void _toggleConnect() {
@@ -347,6 +368,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               toggleFollow: _toggleFollow,
                               removeConnection:
                                   _showWarningDialogForRemovingConnection,
+                              addOrUpdateSection: _addOrUpdateSection,
+                              profile: _profile,
                             ),
                             SizedBox(height: 30),
                           ],
@@ -412,8 +435,89 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                             ),
                                       ),
                                     );
+                                  } else if (section.title == "Skills") {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => AddSkillPage(
+                                              onSave: (skill) {
+                                                // Handle saving the skill entry
+                                                setState(() {
+                                                  _profile?.skills?.add(skill);
+                                                  _sections = _buildSections(
+                                                    _profile!,
+                                                  );
+                                                });
+                                              },
+                                            ),
+                                      ),
+                                    );
+                                  } else if (section.title == "Courses") {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => AddCoursePage(
+                                              onSave: (course) {
+                                                final newEntry = ProfileEntryWidget(
+                                                  title: course.name,
+                                                  subtitle: course.provider,
+                                                  description:
+                                                      course.completionDate !=
+                                                              null
+                                                          ? "Completed on ${course.completionDate!.toLocal()}"
+                                                          : null,
+                                                );
+                                                _addOrUpdateSection(
+                                                  "Courses",
+                                                  newEntry,
+                                                );
+                                              },
+                                            ),
+                                      ),
+                                    );
+                                  } else if (section.title == "Projects") {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => AddProjectPage(
+                                              onSave: (project) {
+                                                final newEntry =
+                                                    ProfileEntryWidget(
+                                                      title: project.name,
+                                                      description:
+                                                          project.description,
+                                                    );
+                                                _addOrUpdateSection(
+                                                  "Projects",
+                                                  newEntry,
+                                                );
+                                              },
+                                            ),
+                                      ),
+                                    );
+                                  } else if (section.title == "Interests") {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => AddInterestPage(
+                                              onSave: (interest) {
+                                                final newEntry =
+                                                    ProfileEntryWidget(
+                                                      title: interest.name,
+                                                    );
+                                                _addOrUpdateSection(
+                                                  "Interests",
+                                                  newEntry,
+                                                );
+                                              },
+                                            ),
+                                      ),
+                                    );
                                   }
-                                  // Add similar logic for other sections like Projects, Courses, etc.
                                 },
                               ),
                           ],
