@@ -11,6 +11,7 @@ import {
   handleUpdateApplicationStatus,
   handleGetJobApplications,
   handleReportJob,
+  handleGetUserApplications,
 } from "../controllers/jobController";
 import multer from "multer";
 
@@ -33,6 +34,7 @@ router.post(
   handleJobApplication
 );
 router.post("/:jobId/report", authenticateToken, handleReportJob);
+router.get("/applications", authenticateToken, handleGetUserApplications);
 router.get(
   "/applications/:applicationId/status",
   authenticateToken,
