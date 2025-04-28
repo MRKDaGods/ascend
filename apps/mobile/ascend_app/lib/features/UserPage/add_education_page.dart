@@ -94,8 +94,12 @@ class _AddEducationPageState extends State<AddEducationPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveEducation,
+
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 3),
+                  backgroundColor: const Color.fromARGB(255, 0, 123, 255),
                 ),
                 child: const Text("Save"),
               ),
@@ -162,6 +166,11 @@ class _AddEducationPageState extends State<AddEducationPage> {
             decoration: InputDecoration(
               hintText: placeholder,
               border: const OutlineInputBorder(),
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 8, // Adjust vertical padding to reduce height
+                horizontal: 12,
+              ),
             ),
             validator: (value) {
               if (label.endsWith("*") && (value == null || value.isEmpty)) {
@@ -194,7 +203,13 @@ class _AddEducationPageState extends State<AddEducationPage> {
             readOnly: true,
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
+              fillColor: Colors.white,
+              hintText: "Date",
               suffixIcon: const Icon(Icons.calendar_today),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 8, // Adjust vertical padding to reduce height
+                horizontal: 12,
+              ),
             ),
             onTap: () async {
               final DateTime? pickedDate = await showDatePicker(
