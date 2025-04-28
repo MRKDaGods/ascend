@@ -467,7 +467,7 @@ export const submitJobApplication = async (
   resume: Express.Multer.File,
   email: string,
   phone: string
-): Promise<Application | null> => {
+): Promise<Application> => {
   try {
     // Set up the RPC queue for file upload
     const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
@@ -554,6 +554,7 @@ export const getJobApplicationsByUserId = async (
       result.rows.map(async (row) => {
         // Fetch company logo URL
         const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+        const resume_url = await getPresignedUrl(row.resume_id);
 
         const application = {
           application_id: row.application_id,
@@ -573,7 +574,7 @@ export const getJobApplicationsByUserId = async (
             company_logo_url,
             created_at: row.created_at,
           },
-          resume_url: row.resume_id,
+          resume_url: resume_url!,
           email: row.email,
           phone: row.phone,
           status: row.status,
