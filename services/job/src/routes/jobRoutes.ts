@@ -1,7 +1,6 @@
 import { Router } from "express";
 import authenticateToken from "@shared/middleware/authMiddleware";
 import {
-  handleGetJob,
   handleJobSearch,
   handleJobPosting,
   handleSaveJob,
@@ -10,90 +9,43 @@ import {
   handleJobApplication,
   handleGetApplicationStatus,
   handleUpdateApplicationStatus,
+  handleGetJobApplications,
+  handleReportJob,
 } from "../controllers/jobController";
+import multer from "multer";
 
-/**
- * Express router for job-related API endpoints.
- * @module jobRouter
- */
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
 const router = Router();
 
-/**
- * Route to search for jobs with query parameters.
- * @name get/search
- * @function
- */
 router.get("/search", handleJobSearch);
-
-/**
- * Route to retrieve all saved jobs for an authenticated user.
- * @name get/save
- * @function
- * @protected
- */
 router.get("/save", authenticateToken, handleGetSavedJobs);
-
-/**
- * Route to create a new job posting.
- * @name post/
- * @function
- * @protected
- */
 router.post("/", authenticateToken, handleJobPosting);
-
-/**
- * Route to retrieve a specific job by ID.
- * @name get/:jobId
- * @function
- */
-router.get("/:jobId", handleGetJob);
-
-/**
- * Route to save a job for an authenticated user.
- * @name post/save/:jobId
- * @function
- * @protected
- */
 router.post("/save/:jobId", authenticateToken, handleSaveJob);
-
-/**
- * Route to remove a saved job for an authenticated user.
- * @name delete/save/:jobId
- * @function
- * @protected
- */
 router.delete("/save/:jobId", authenticateToken, handleRemoveSavedJob);
-
-/**
- * Route to apply for a job.
- * @name post/apply/:jobId
- * @function
- * @protected
- */
-router.post("/apply/:jobId", authenticateToken, handleJobApplication);
-
-/**
- * Route to retrieve the status of a job application.
- * @name get/applications/status/:applicationId
- * @function
- * @protected
- */
+router.post(
+  "/apply/:jobId",
+  authenticateToken,
+  upload.single("resume"),
+  handleJobApplication
+);
+router.post("/:jobId/report", authenticateToken, handleReportJob);
 router.get(
-  "/applications/status/:applicationId",
+  "/applications/:applicationId/status",
   authenticateToken,
   handleGetApplicationStatus
 );
-
-/**
- * Route to update the status of a job application.
- * @name put/applications/status/:applicationId
- * @function
- * @protected
- */
-router.put(
-  "/applications/status/:applicationId",
+router.patch(
+  "/applications/:applicationId/status",
   authenticateToken,
   handleUpdateApplicationStatus
 );
-
+router.get(
+  "/applications/job/:jobId",
+  authenticateToken,
+  handleGetJobApplications
+);
 export default router;
