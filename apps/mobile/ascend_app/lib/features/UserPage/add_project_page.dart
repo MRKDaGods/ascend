@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/shared/models/profile.dart';
 
-class AddExperiencePage extends StatefulWidget {
-  final void Function(Experience) onSave;
+class AddProjectPage extends StatefulWidget {
+  final void Function(Project) onSave;
 
-  const AddExperiencePage({super.key, required this.onSave});
+  const AddProjectPage({super.key, required this.onSave});
 
   @override
-  _AddExperiencePageState createState() => _AddExperiencePageState();
+  _AddProjectPageState createState() => _AddProjectPageState();
 }
 
-class _AddExperiencePageState extends State<AddExperiencePage> {
+class _AddProjectPageState extends State<AddProjectPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _positionController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();
   bool _notifyNetwork = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Experience"),
+        title: const Text("Add Project"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -45,18 +45,17 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               ),
               const SizedBox(height: 16),
               _buildNotifyNetworkToggle(),
-              const SizedBox(height: 16),
               _buildLabeledTextField(
-                label: "Title*",
-                controller: _positionController,
-                placeholder: "Ex: Software Engineer",
+                label: "Project Name*",
+                controller: _nameController,
+                placeholder: "Ex: Mobile App Development",
               ),
               _buildLabeledTextField(
-                label: "Company or organization*",
-                controller: _companyController,
-                placeholder: "Ex: Google",
+                label: "Description",
+                controller: _descriptionController,
+                placeholder: "Describe the project",
+                maxLines: 5,
               ),
-
               _buildLabeledDateField(
                 label: "Start Date",
                 controller: _startDateController,
@@ -66,14 +65,13 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
                 controller: _endDateController,
               ),
               _buildLabeledTextField(
-                label: "Description",
-                controller: _descriptionController,
-                placeholder: "Describe your role and responsibilities",
-                maxLines: 5,
+                label: "Project URL",
+                controller: _urlController,
+                placeholder: "Ex: https://github.com/project",
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _saveExperience,
+                onPressed: _saveProject,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   foregroundColor: Colors.white,
@@ -102,7 +100,7 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               ),
               SizedBox(height: 4),
               Text(
-                "Turn on to notify your network of key profile changes (such as new experience) and work anniversaries.",
+                "Turn on to notify your network of key profile changes (such as new education) and work anniversaries.",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
@@ -144,7 +142,7 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               border: const OutlineInputBorder(),
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 8, // Adjust vertical padding to reduce height
+                vertical: 8,
                 horizontal: 12,
               ),
             ),
@@ -178,12 +176,12 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
             controller: controller,
             readOnly: true,
             decoration: InputDecoration(
-              fillColor: Colors.white,
               hintText: "Date",
               border: const OutlineInputBorder(),
+              fillColor: Colors.white,
               suffixIcon: const Icon(Icons.calendar_today),
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 8, // Adjust vertical padding to reduce height
+                vertical: 8,
                 horizontal: 12,
               ),
             ),
@@ -204,23 +202,23 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
     );
   }
 
-  void _saveExperience() {
+  void _saveProject() {
     if (_formKey.currentState!.validate()) {
-      final experience = Experience(
+      final project = Project(
         id: 0, // Dummy ID, replace with actual logic
         userId: 0, // Dummy user ID, replace with actual logic
-        company: _companyController.text,
-        position: _positionController.text,
+        name: _nameController.text,
+        description: _descriptionController.text,
         startDate: DateTime.parse(_startDateController.text),
         endDate:
             _endDateController.text.isNotEmpty
                 ? DateTime.parse(_endDateController.text)
                 : null,
-        description: _descriptionController.text,
+        url: _urlController.text,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      widget.onSave(experience);
+      widget.onSave(project);
       Navigator.pop(context);
     }
   }
