@@ -291,6 +291,87 @@ export const searchJobs = async ({
   }
 };
 
+export const getJobsByCompanyId = async (
+  companyId: number,
+  pageNumber: number
+): Promise<PaginatedResponse<Job>> => {
+  try {
+    // Pagination constants
+    const PAGE_SIZE = 20; // Number of results per page
+    const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
+
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM job_service.jobs
+      WHERE company_id = $1
+    `;
+    const countValues = [companyId];
+
+    const countResult = await db.query(countQuery, countValues);
+
+    const totalRecords = parseInt(countResult.rows[0].total);
+
+    const query = `
+      SELECT j.*, c.company_name, c.profile_photo_id
+      FROM job_service.jobs AS j
+      JOIN company_service.company AS c ON j.company_id = c.company_id
+      WHERE j.company_id = $1
+      ORDER BY j.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+    const values = [companyId, PAGE_SIZE, OFFSET];
+
+    const result = await db.query(query, values);
+
+    const jobsList = await Promise.all(
+      result.rows.map(async (row) => {
+        // Fetch company logo URL
+        const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+
+        const job = {
+          job_id: row.job_id,
+          title: row.title,
+          description: row.description,
+          industry: row.industry,
+          type: row.type,
+          experience_level: row.experience_level,
+          location: row.location,
+          workplace_type: row.workplace_type,
+          salary_min_range: row.salary_min_range,
+          salary_max_range: row.salary_max_range,
+          company_id: row.company_id,
+          company_name: row.company_name,
+          company_logo_url,
+          created_at: row.created_at,
+        };
+
+        return job;
+      })
+    );
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+    const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
+    const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
+
+    const paginationData = {
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      nextPage,
+      previousPage,
+    };
+
+    return {
+      data: jobsList,
+      pagination: paginationData,
+    };
+  } catch (error) {
+    console.error("Error getting jobs by company ID:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const createJob = async (
   title: string,
   description: string,
