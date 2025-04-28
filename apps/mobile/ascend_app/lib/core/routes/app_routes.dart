@@ -1,54 +1,90 @@
+import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
 import 'package:flutter/material.dart';
-
-import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/home/presentation/pages/create_post_page.dart'; // Import the new page
+import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/help_center_page.dart';
+import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
+import 'package:ascend_app/features/startPages/Presentation/Pages/SignIn.dart';
 // Import other page files as needed
 
 /// Class containing all the route names as constants
 class RouteNames {
   // Private constructor to prevent instantiation
   RouteNames._();
-  
+
   // Route name constants
   static const String welcome = '/welcome';
+  static const String signIn = '/signIn';
+  static const String forgetPassword = '/forgotPasswordPage';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String createPost = '/create-post'; // Add new route name
+  static const String accountPreferences = '/accountPreferences';
+  static const String signInSecurity = '/signInSecurity';
+  static const String visibility = '/visibility';
+  static const String dataPrivacy = '/dataPrivacy';
+  static const String advertisingData = '/advertisingData';
+  static const String helpCenter = '/helpCenter';
+  static const String privacyPolicy = '/privacyPolicy';
+  static const String signOut = '/signOut';
   // Add more routes as needed
 }
 
 /// Class that defines all application routes
 class AppRoutes {
-  // Private constructor to prevent instantiation
   AppRoutes._();
-  
+
   /// The initial route when the app starts
-  static const String initialRoute = '/';
-  
+  static const String initialRoute = '/'; // Keep this as '/'
+
   /// Route definitions for MaterialApp
   static Map<String, WidgetBuilder> getRoutes() {
     return {
+      // --- Add the entry for the initial route '/' ---
+      initialRoute: (context) => const SplashScreen(), // Point '/' to SplashScreen
+      // --- End ---
+
       RouteNames.notifications: (context) => const NotificationsPage(),
-      RouteNames.welcome: (context) => const Welcome(),
+      RouteNames.welcome: (context) => const Welcome(), // Keep this for navigation from SplashScreen
+      RouteNames.signIn: (context) => const SignInPage(),
+      RouteNames.forgetPassword: (context) => forgotPasswordPage(),
+      RouteNames.createPost: (context) => const CreatePostPage(),
+      RouteNames.settings: (context) => const SettingsMainPage(),
+      RouteNames.accountPreferences: (context) => const AccountPreferencesPage(),
+      RouteNames.signInSecurity: (context) => const SignInSecurityPage(),
+      RouteNames.visibility: (context) => const VisibilityPage(),
+      RouteNames.dataPrivacy: (context) => const DataPrivacyPage(),
+      RouteNames.advertisingData: (context) => const AdvertisingDataPage(),
+      RouteNames.helpCenter: (context) => const HelpCenterPage(),
+      RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
+      RouteNames.signOut: (context) => const SignOutPage(),
       // Add more routes as needed
     };
   }
-  
+
   /// Get the initial page widget for the app
   static Widget getInitialPage() {
     // You can add logic here to determine the initial page
     // based on authentication state or first-time user, etc.
     return const SplashScreen();
   }
-  
+
   /// Handle dynamic routes or complex navigation logic
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     // Handle routes that aren't defined in the routes map
     // or routes with dynamic parameters
-    
+
     final args = settings.arguments;
-    
+
     switch (settings.name) {
       case '/post-details':
         // Example of a dynamic route with parameters
@@ -59,23 +95,20 @@ class AppRoutes {
           );
         }
         return _errorRoute();
-        
+
       default:
         return _errorRoute();
     }
   }
-  
+
   /// Fallback for undefined routes
   static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(
-      builder: (_) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Error'),
-        ),
-        body: const Center(
-          child: Text('Route not found'),
-        ),
-      ),
+      builder:
+          (_) => Scaffold(
+            appBar: AppBar(title: const Text('Error')),
+            body: const Center(child: Text('Route not found')),
+          ),
     );
   }
 }
@@ -83,28 +116,21 @@ class AppRoutes {
 /// Example of a dynamic route page class
 class PostDetailsPage extends StatelessWidget {
   final String postId;
-  
-  const PostDetailsPage({
-    Key? key,
-    required this.postId,
-  }) : super(key: key);
-  
+
+  const PostDetailsPage({super.key, required this.postId});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post Details'),
-      ),
-      body: Center(
-        child: Text('Post ID: $postId'),
-      ),
+      appBar: AppBar(title: const Text('Post Details')),
+      body: Center(child: Text('Post ID: $postId')),
     );
   }
 }
 
 /// Splash screen widget
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

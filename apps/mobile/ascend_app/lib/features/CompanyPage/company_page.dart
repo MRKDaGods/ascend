@@ -3,7 +3,6 @@ import 'Models/profile_section.dart';
 import 'buttons.dart';
 import 'custom_alert_dialog.dart';
 import 'page_main_images.dart';
-import 'section_builder.dart';
 import 'page_header.dart';
 import 'company_tabs.dart';
 
@@ -254,7 +253,7 @@ class _CompanyPageState extends State<CompanyPage> {
               SizedBox(
                 height:
                     MediaQuery.of(context).size.height -
-                    100, // Adjust height as needed
+                    200, // Adjust height as needed
                 child: CompanyTabs(),
               ),
             ],

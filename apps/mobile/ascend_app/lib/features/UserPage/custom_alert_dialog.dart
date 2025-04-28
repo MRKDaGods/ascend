@@ -55,7 +55,7 @@ class CustomAlertDialog extends StatelessWidget {
                 textColor: Colors.black,
                 onTap: () => Navigator.pop(context),
               ),
-              Container(
+              SizedBox(
                 width: 1, // Thin divider between buttons
                 height: 48,
               ),

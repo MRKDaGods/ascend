@@ -22,8 +22,7 @@ class Post extends StatefulWidget {
   final String postId;
   final Comment? previewComment;
 
-  const Post({Key? key, required this.postId, this.previewComment})
-    : super(key: key);
+  const Post({super.key, required this.postId, this.previewComment});
 
   @override
   State<Post> createState() => _PostState();
@@ -74,9 +73,9 @@ class _PostState extends State<Post> {
           if (post.showFeedbackOptions) {
             return PostFeedbackOptions(
               ownerName: post.ownerName,
-              onFeedbackSubmitted: (reason) {
-                // Handle feedback submission
-                context.read<PostBloc>().add(HidePost(post.id, reason));
+              onReportSubmitted: (reason) {
+                // Dispatch ReportPost event instead of HidePost
+                context.read<PostBloc>().add(ReportPost(post.id, reason));
               },
               onUndo: () {
                 // Use BLoC to hide feedback options
@@ -105,10 +104,13 @@ class _PostState extends State<Post> {
                     ownerOccupation: post.ownerOccupation,
                     isSponsored: post.isSponsored,
                     followers: post.followers,
+                    userId: post.userId, // Pass the userId here
                     onOptionsPressed: null, // Let it use the default behavior
                     onShowFeedbackOptions: () {
                       // Use BLoC event instead of setState
-                      context.read<PostBloc>().add(ShowPostFeedbackOptions(post.id));
+                      context.read<PostBloc>().add(
+                        ShowPostFeedbackOptions(post.id),
+                      );
                     },
                     onHidePost: (reason) {
                       context.read<PostBloc>().add(HidePost(post.id, reason));
@@ -170,6 +172,7 @@ class _PostState extends State<Post> {
                   child: PostEngagementStats(
                     likesCount: post.likesCount,
                     commentsCount: post.commentsCount,
+                    sharesCount: post.sharedCount,
                     reactionIcon: _getReactionIcon(post),
                     reactionColor: _getReactionColor(post),
                     postId: post.id, // Add this line
@@ -230,7 +233,11 @@ class _PostState extends State<Post> {
                       PostActionButton(
                         icon: Icons.share_outlined,
                         label: 'Share',
-                        onTap: () {},
+                        onTap: () {
+                          // Dispatch the SharePost event
+                          context.read<PostBloc>().add(SharePost(post.id));
+                          debugPrint('Share button tapped for post ${post.id}');
+                        },
                       ),
                     ],
                   ),

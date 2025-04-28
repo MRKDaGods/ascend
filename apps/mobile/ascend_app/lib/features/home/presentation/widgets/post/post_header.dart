@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
+import 'package:ascend_app/features/UserPage/user_page.dart'; // Import UserProfilePage
 
 class PostHeader extends StatelessWidget {
   final String ownerName;
@@ -8,6 +9,7 @@ class PostHeader extends StatelessWidget {
   final String timePosted;
   final bool isSponsored;
   final int followers;
+  final String userId; // Add userId field
   final VoidCallback? onRemove;
   final VoidCallback? onOptionsPressed;
   final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
@@ -22,6 +24,7 @@ class PostHeader extends StatelessWidget {
     required this.timePosted,
     this.isSponsored = false,
     this.followers = 0,
+    required this.userId, // Require userId in constructor
     this.onRemove,
     this.onOptionsPressed,
     this.onFeedbackSubmitted,
@@ -64,6 +67,8 @@ class PostHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // You can now use widget.userId within the build method if needed
+    // For example: print('User ID in PostHeader: ${widget.userId}');
     return Row(
       children: [
         CircleAvatar(
@@ -77,9 +82,19 @@ class PostHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                ownerName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              GestureDetector( // Wrap ownerName with GestureDetector
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfilePage(profileId: int.tryParse(userId)), // Navigate to UserProfilePage
+                    ),
+                  );
+                },
+                child: Text(
+                  ownerName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
               if (isSponsored && followers > 0)
                 // Show followers for sponsored posts
@@ -155,7 +170,7 @@ class PostHeader extends StatelessWidget {
       ],
     );
   }
-  
+
   // Helper method to format large numbers
   String _formatNumber(int number) {
     if (number >= 1000000) {

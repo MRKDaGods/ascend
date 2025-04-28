@@ -7,10 +7,10 @@ class MutualFollow extends StatelessWidget {
   final int numFollowers;
 
   const MutualFollow({
-    Key? key,
+    super.key,
     required this.mutualUsers,
     required this.numFollowers,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class MutualFollow extends StatelessWidget {
             width:
                 mutualUsers.length > 1
                     ? 50
-                    : mutualUsers.length > 0
+                    : mutualUsers.isNotEmpty
                     ? 30
                     : 0,
             child: Stack(
@@ -31,7 +31,7 @@ class MutualFollow extends StatelessWidget {
               children: buildAvatarStack(mutualUsers),
             ),
           ),
-          SizedBox(width: mutualUsers.length > 0 ? 5 : 0),
+          SizedBox(width: mutualUsers.isNotEmpty ? 5 : 0),
           Flexible(
             fit: FlexFit.loose,
             child: Text(
