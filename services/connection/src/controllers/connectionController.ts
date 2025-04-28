@@ -174,6 +174,66 @@ export const getConnections = async (
 };
 
 /**
+ * Get followers for a user
+ * @route GET /followers/:userId?
+ * @param {string} userId - Optional ID of the user to get followers for (defaults to current user)
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of followers per page (default: 10)
+ * @returns {object} List of followers with pagination information
+ */
+export const getFollowers = async (
+  req: AuthenticatedRequest, 
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    // Target user ID (if provided) or current user ID
+    const targetUserId = req.params.userId 
+      ? Number(req.params.userId)
+      : req.user.id;
+    
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    
+    // If trying to view someone else's followers, check their privacy settings
+    if (targetUserId !== req.user.id) {
+      const canView = await connectionService.canViewFollowers(
+        req.user.id,
+        targetUserId
+      );
+      
+      if (!canView) {
+        return res.status(403).json({
+          success: false,
+          message: "Not authorized to view this user's followers",
+        });
+      }
+    }
+    
+    const followers = await connectionService.getFollowers(
+      targetUserId,
+      page,
+      limit
+    );
+    
+    res.json({ success: true, data: followers });
+  } catch (error) {
+    console.error("Error in getFollowers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get followers",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
  * Get pending connection requests for the current user
  * @route GET /connections/requests
  * @param {string} direction - Filter by 'incoming' or 'outgoing' requests
@@ -417,7 +477,47 @@ export const respondToMessageRequest = [
     }
   },
 ];
-
+/**
+ * Get mutual connections between current user and another user
+ * @route GET /connections/mutual/:userId
+ * @param {string} userId - ID of the user to find mutual connections with
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of results per page (default: 10)
+ * @returns {object} List of mutual connections with pagination information
+ */
+export const getMutualConnections = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    const targetUserId = Number(req.params.userId);
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    
+    const mutualConnections = await connectionService.getMutualConnections(
+      req.user.id,
+      targetUserId,
+      page,
+      limit
+    );
+    
+    res.json({ success: true, data: mutualConnections });
+  } catch (error) {
+    console.error("Error in getMutualConnections:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get mutual connections",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
 /**
  * Update connection privacy preferences
  * @route PUT /preferences
@@ -456,3 +556,42 @@ export const updateConnectionPreferences = [
     }
   },
 ];
+
+/**
+ * Get connections of connections (2nd degree connections/network)
+ * @route GET /connections/network
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of results per page (default: 10)
+ * @returns {object} List of connections of connections with pagination information
+ */
+export const getConnectionsOfConnections = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    
+    const networkConnections = await connectionService.getConnectionsOfConnections(
+      req.user.id,
+      page,
+      limit
+    );
+    
+    res.json({ success: true, data: networkConnections });
+  } catch (error) {
+    console.error("Error in getConnectionsOfConnections:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get network connections",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
