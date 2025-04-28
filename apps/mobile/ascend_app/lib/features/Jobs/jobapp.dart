@@ -35,13 +35,17 @@ class _JobAppState extends State<JobApp> {
     final isDarkTheme =
         widget.isDarkMode || Theme.of(context).brightness == Brightness.dark;
     final List<String> companyNames =
-        jobs.map((job) => job.company).toSet().toList();
+        jobsDummy.map((job) => job.company).toSet().toList();
 
     Widget? activescreen;
     if (screen == "job-home") {
-      activescreen = JobHomePage(isDarkMode: isDarkTheme, jobs: jobs);
+      activescreen = JobHomePage(isDarkMode: isDarkTheme, jobs: jobsDummy);
     } else if (screen == "searchbar") {
-      activescreen = JobSearchPage(true, onBackPressed: tojobs, jobs: jobs);
+      activescreen = JobSearchPage(
+        true,
+        onBackPressed: tojobs,
+        jobs: jobsDummy,
+      );
     }
 
     return MaterialApp(
