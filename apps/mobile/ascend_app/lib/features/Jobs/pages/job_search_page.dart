@@ -36,7 +36,6 @@ class _JobSearchPageState extends State<JobSearchPage> {
         builder:
             (context) => SearchJobsPage(
               jobs: widget.jobs,
-              companyNames: companyNames,
               searchtext: searchController.text,
               locationtext: locationController.text,
             ),
@@ -187,7 +186,6 @@ class _JobSearchPageState extends State<JobSearchPage> {
             builder:
                 (context) => SearchJobsPage(
                   jobs: widget.jobs,
-                  companyNames: companyNames,
                   searchtext: searchController.text,
                   locationtext: locationController.text,
                 ),
