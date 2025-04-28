@@ -10,10 +10,14 @@ interface SearchStore {
   addSearch: (search: Search) => void;
   clearSearches: () => void;
   setRecentSearches: (searches: Search[]) => void;
+  currentSearch: Search;
+  setCurrentSearch: (search: Search) => void;
 }
 
 export const useSearchStore = create<SearchStore>((set) => ({
   recentSearches: [],
+  currentSearch: { job: "", location: "" }, // <-- NEW
+
   addSearch: (search) =>
     set((state) => {
       const isDuplicate = state.recentSearches.some((s) => s.job === search.job);
@@ -23,11 +27,15 @@ export const useSearchStore = create<SearchStore>((set) => ({
       }
       return { recentSearches: updated };
     }),
+
   clearSearches: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("recentJobSearches");
     }
     set({ recentSearches: [] });
   },
+
   setRecentSearches: (searches) => set({ recentSearches: searches }),
+
+  setCurrentSearch: (search) => set({ currentSearch: search }), // 
 }));

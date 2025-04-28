@@ -2,18 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Card,
-  CardContent,
-  List,
-  ListItem,
-  Avatar,
-  Typography,
-  Divider,
-  IconButton,
+  Card, CardContent, List, ListItem, Avatar, Typography, Divider,
+  IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Button
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import { fetchJobs } from "@/api/jobs";
+import ReportIcon from "@mui/icons-material/Report";
+import { fetchJobs } from "../lib/api";
+import { useDeletedJobsStore } from "../store/useDeletedJobsStore";
 
 interface JobType {
   job_id: number;
@@ -35,15 +32,29 @@ interface JobType {
 const JobList = () => {
   const router = useRouter();
   const [jobs, setJobs] = useState<JobType[]>([]);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [jobToReport, setJobToReport] = useState<JobType | null>(null);
+  const [reportReason, setReportReason] = useState("");
+
+  const { deletedJobIds, deleteJob, loadDeletedJobs } = useDeletedJobsStore();
 
   useEffect(() => {
-    loadJobs();
+    loadDeletedJobs();
   }, []);
+  
+  useEffect(() => {
+    loadJobs();
+  }, [deletedJobIds]);
+  
+
 
   const loadJobs = async () => {
     try {
       const result = await fetchJobs(1, 3); // Only fetch 3 jobs
-      setJobs(result.data);
+      const filteredJobs = result.data.filter(
+        (job: JobType) => !deletedJobIds.includes(job.job_id)
+      );
+      setJobs(filteredJobs);
     } catch (error) {
       console.error("Error fetching jobs:", error);
     }
@@ -60,16 +71,60 @@ const JobList = () => {
     router.push(`/apply?${params.toString()}`);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      const response = await fetch(`https://api.ascendx.tech/job/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error();
-      setJobs((prev) => prev.filter((job) => job.job_id !== id));
-    } catch (error) {
-      console.error("Delete failed", error);
+  const handleDelete = (id: number) => {
+    console.log(`Faking delete for job ID: ${id}`);
+    deleteJob(id); // Zustand update
+    setJobs((prev) => prev.filter((job) => job.job_id !== id)); // UI update
+  };
+  
+  const handleReport = async (id: number) => {
+    if (!reportReason.trim()) {
+      alert("Please provide a valid reason for reporting.");
+      return;
     }
+
+    try {
+      const response = await fetch(`https://api.ascendx.tech/job/${id}/report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NjkxMTk0LCJleHAiOjE3NDU3MzQzOTR9.InSkSi8Ust1rQS401lSoMERDnjwnN3jfwheG6uJQyEc`
+        },
+        body: JSON.stringify({ reason: reportReason }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Unknown error";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || "Unknown error";
+        } catch (e) {
+          console.error("No JSON body in failed report response.");
+        }
+        console.error("Report failed:", errorMessage);
+        alert(`Failed to submit the report: ${errorMessage}`);
+        return;
+      }
+
+      setReportDialogOpen(false);
+      setReportReason("");
+      setJobToReport(null);
+      alert("Report submitted successfully.");
+    } catch (error) {
+      console.error("Report failed:", error);
+      alert("An error occurred while submitting the report. Please try again later.");
+    }
+  };
+
+  const openReportDialog = (job: JobType) => {
+    setJobToReport(job);
+    setReportDialogOpen(true);
+  };
+
+  const closeReportDialog = () => {
+    setReportDialogOpen(false);
+    setReportReason("");
+    setJobToReport(null);
   };
 
   return (
@@ -115,6 +170,9 @@ const JobList = () => {
                 <IconButton onClick={() => handleDelete(job.job_id)}>
                   <CloseIcon fontSize="small" />
                 </IconButton>
+                <IconButton onClick={() => openReportDialog(job)}>
+                  <ReportIcon fontSize="small" sx={{ color: "red" }} />
+                </IconButton>
               </ListItem>
               {index < jobs.length - 1 && <Divider />}
             </React.Fragment>
@@ -129,6 +187,33 @@ const JobList = () => {
           Show more →
         </Typography>
       </CardContent>
+
+      {/* Report Dialog */}
+      <Dialog open={reportDialogOpen} onClose={closeReportDialog}>
+        <DialogTitle>Report Job</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Reason for Report"
+            type="text"
+            fullWidth
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeReportDialog} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => jobToReport && handleReport(jobToReport.job_id)}
+            color="primary"
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };
