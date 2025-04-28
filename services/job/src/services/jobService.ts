@@ -97,18 +97,20 @@ export const searchJobs = async ({
 }: JobSearchParams): Promise<PaginatedResponse<Job>> => {
   try {
     // Pagination constants
-    const PAGE_SIZE = 30; // Number of results per page
+    const PAGE_SIZE = 20; // Number of results per page
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
     let query = `
       SELECT j.*
       FROM job_service.jobs AS j
+      JOIN company_service.company AS c ON j.company_id = c.company_id
       WHERE 1=1
     `;
 
     let countQuery = `
       SELECT COUNT(*) AS total
       FROM job_service.jobs AS j
+      JOIN company_service.company AS c ON j.company_id = c.company_id
       WHERE 1=1
     `;
 
@@ -142,6 +144,14 @@ export const searchJobs = async ({
       values.push(experience_level);
     }
 
+    if (company && company.length > 0) {
+      conditions.push(
+        `c.company_name ILIKE ANY($${values.length + 1}::text[])`
+      );
+      const companySearchTerms = company.map((name) => `%${name}%`);
+      values.push(companySearchTerms);
+    }
+
     if (salary_min_range) {
       conditions.push(`j.salary_min_range >= $${values.length + 1}`);
       values.push(salary_min_range);
@@ -170,30 +180,11 @@ export const searchJobs = async ({
     // Execute main query
     const result = await db.query(query, values);
 
-    /////////////////////////////////////////////////////////
-    // WILL BE CHANGED
-    /////////////////////////////////////////////////////////
-    const companies = await db.query(
-      `
-      SELECT *
-      FROM company_service.companies
-      WHERE 1=1
-      ${company ? `AND name ILIKE $1` : ""}
-    `,
-      company ? [`%${company}%`] : []
-    );
-
-    // If company names are provided, filter jobs by company
-    if (company && companies.rows.length > 0) {
-      const companyIds = companies.rows.map((c) => c.id);
-      result.rows = result.rows.filter((job) =>
-        companyIds.includes(job.company_id)
-      );
-    }
-    /////////////////////////////////////////////////////////
-
     const jobsList = await Promise.all(
       result.rows.map(async (row) => {
+        // Fetch company logo URL
+        const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+
         const job = {
           job_id: row.job_id,
           title: row.title,
@@ -206,20 +197,10 @@ export const searchJobs = async ({
           salary_min_range: row.salary_min_range,
           salary_max_range: row.salary_max_range,
           company_id: row.company_id,
-          company_name: "",
-          company_logo_url: null,
+          company_name: row.company_name,
+          company_logo_url,
           created_at: row.created_at,
         };
-
-        // Fetch company details
-        const companyQuery = `
-          SELECT name
-          FROM company_service.companies
-          WHERE id = $1
-        `;
-        const companyValues = [job.company_id];
-        const companyResult = await db.query(companyQuery, companyValues);
-        job.company_name = companyResult.rows[0].name;
 
         return job;
       })
