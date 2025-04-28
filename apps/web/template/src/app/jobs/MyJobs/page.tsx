@@ -10,10 +10,10 @@ import {
   Paper,
   useTheme,
 } from '@mui/material';
-import JobTabs from './components/JobTabs';
-import JobCard from './components/JobCard';
-import { useJobStore } from '@/app/shared/store/useJobStore';
-import Navbar from '../components/Jobsnavbar';   // add the navbar without the 2 searches when integrating with the deployed version
+import JobTabs from '@/app/components/JobTabs';
+import JobCard from '@/app/components/JobCard';
+import { useJobStore } from '@/app/stores/useJobStore';
+import Jobsnavbar from '@/app/components/Jobsnavbar';   // add the navbar without the 2 searches when integrating with the deployed version
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 const MyJobsPage = () => {
@@ -32,7 +32,7 @@ const MyJobsPage = () => {
 
   return (
     <>
-      <Navbar />
+      <Jobsnavbar />
 
       <Box
         sx={{

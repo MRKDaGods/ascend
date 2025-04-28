@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress, Grid, Paper } from '@mui/material';
-import JobFilter from './components/JobFilter';
-import { useJobFilterStore } from './store/useJobFilterStore';
-import JobItem from './components/JobItem';
-import { useHasHydrated } from '@/hooks/useHasHydrated';
+import JobFilter from '@/app/components/JobFilter';
+import { useJobFilterStore } from '@/app/stores/useJobFilterStore';
+import JobItem from '@/app/components/JobItem';
+import { useHasHydrated } from '@/app/hooks/useHasHydrated';
 
 const buildQuery = (filters: Record<string, any>) => {
   const query = new URLSearchParams();

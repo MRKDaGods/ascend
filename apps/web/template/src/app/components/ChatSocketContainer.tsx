@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { handleIncomingMessage, handleIncomingMessageRead, socket } from "../utils/socketHandler";
 import { api } from "@/api";
 import { Box, Typography } from "@mui/material";
+import { UserProfile } from "firebase/auth";
 
 export default function ChatSocketContainer({ children }: { children: React.ReactNode }) {
     const [fetchingUserData, setFetchingUserData] = useState(true);
