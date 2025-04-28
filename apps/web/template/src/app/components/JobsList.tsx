@@ -9,8 +9,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import ReportIcon from "@mui/icons-material/Report";
-import { fetchJobs } from "../lib/api";
-import { useDeletedJobsStore } from "../store/useDeletedJobsStore";
+import { fetchJobs } from "@/api/jobs"
+import { useDeletedJobsStore } from "../stores/useDeletedJobsStore";
 
 interface JobType {
   job_id: number;
