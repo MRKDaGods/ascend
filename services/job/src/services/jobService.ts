@@ -1,6 +1,11 @@
 import db from "@shared/config/db";
 import { Services } from "@ascend/shared";
-import { Job, Application, SavedJob } from "packages/shared/src/models/job";
+import {
+  Job,
+  Application,
+  SavedJob,
+  JobApplicationForUser,
+} from "packages/shared/src/models/job";
 import { getUserFullName } from "@shared/utils/userProfile";
 import { getPresignedUrl } from "@shared/utils/files";
 import {
@@ -509,6 +514,95 @@ export const submitJobApplication = async (
     return jobApplication;
   } catch (error) {
     console.error("Error applying for job:", error);
+    throw new Error("Database query failed");
+  }
+};
+
+export const getJobApplicationsByUserId = async (
+  user_id: number,
+  pageNumber: number
+): Promise<PaginatedResponse<JobApplicationForUser>> => {
+  try {
+    // Pagination constants
+    const PAGE_SIZE = 20; // Number of results per page
+    const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
+
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM job_service.applications
+      WHERE user_id = $1
+    `;
+    const countValues = [user_id];
+
+    const countResult = await db.query(countQuery, countValues);
+    const totalRecords = parseInt(countResult.rows[0].total);
+
+    const query = `
+      SELECT a.*, j.*, c.company_name, c.profile_photo_id
+      FROM job_service.applications AS a
+      JOIN job_service.jobs AS j ON a.job_id = j.job_id
+      JOIN company_service.company AS c ON j.company_id = c.company_id
+      WHERE a.user_id = $1
+      ORDER BY a.applied_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+    const values = [user_id, PAGE_SIZE, OFFSET];
+
+    const result = await db.query(query, values);
+
+    const applicationsList = await Promise.all(
+      result.rows.map(async (row) => {
+        // Fetch company logo URL
+        const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+
+        const application = {
+          application_id: row.application_id,
+          job: {
+            job_id: row.job_id,
+            title: row.title,
+            description: row.description,
+            industry: row.industry,
+            type: row.type,
+            experience_level: row.experience_level,
+            location: row.location,
+            workplace_type: row.workplace_type,
+            salary_min_range: row.salary_min_range,
+            salary_max_range: row.salary_max_range,
+            company_id: row.company_id,
+            company_name: row.company_name,
+            company_logo_url,
+            created_at: row.created_at,
+          },
+          resume_url: row.resume_id,
+          email: row.email,
+          phone: row.phone,
+          status: row.status,
+          applied_at: row.applied_at,
+        };
+
+        return application;
+      })
+    );
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
+    const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
+    const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
+
+    const paginationData = {
+      totalRecords,
+      totalPages,
+      currentPage: pageNumber,
+      nextPage,
+      previousPage,
+    };
+
+    return {
+      data: applicationsList,
+      pagination: paginationData,
+    };
+  } catch (error) {
+    console.error("Error getting job applications by user ID:", error);
     throw new Error("Database query failed");
   }
 };
