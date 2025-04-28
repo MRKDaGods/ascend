@@ -11,10 +11,10 @@ export const messageValidationRules: ValidationChain[] = [
       return true;
     }
 
-    // Validate file size (max 20MB)
-    const maxSize = 20 * 1024 * 1024;
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
     if (req.file.size > maxSize) {
-      throw new Error("File size exceeds 20MB limit");
+      throw new Error("File size exceeds 5MB limit");
     }
 
     // Validate file type (image, video, document)

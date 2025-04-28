@@ -13,6 +13,8 @@ export enum Events {
   FILE_UPLOAD_RPC = "file_upload_rpc",
   FILE_DELETE = "file_delete",
   FILE_METADATA_RPC = "file_metadata_rpc",
+  // =======================POST-EVENTS=======================
+  POST_GET_RPC = "get_post_rpc", // Post get RPC request
 }
 
 /**
