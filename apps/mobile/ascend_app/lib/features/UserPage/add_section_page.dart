@@ -175,6 +175,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
                   title: "Education",
                   content: [
                     ProfileEntryWidget(
+                      imageUrl: "assets/images/company_placeholder.png",
                       title: education.school,
                       subtitle:
                           "${education.degree} in ${education.fieldOfStudy}",
