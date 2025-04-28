@@ -89,7 +89,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1ODI0NzU1LCJleHAiOjE3NDU4Njc5NTV9.e7GBVuj-ylv3AZWXOcr-293oFTmP_wMog9Q5flqcMh0',
         'x-no-parse-body': '1'
         },
       });
