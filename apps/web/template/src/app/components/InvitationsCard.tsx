@@ -107,16 +107,14 @@ const InvitationsCard = () => {
               </Stack>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Typography
-                variant="body2"
-                sx={{
+              <Button variant="outlined" size="small" 
+              sx={{
                   color: theme.palette.text.secondary,
                   cursor: "pointer",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
+                  border: "0px",
+                }}>
                 Ignore
-              </Typography>
+              </Button>
               <Button variant="outlined" size="small">
                 Accept
               </Button>
