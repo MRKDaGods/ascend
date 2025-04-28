@@ -109,6 +109,14 @@ export const getProfile = async (
   );
   profile.contact_info = contactInfoResult.rows[0] || undefined;
 
+  if (profile.current_position_id) {
+    const currentPositionResult = await db.query(
+      "SELECT * FROM user_service.experience WHERE id = $1",
+      [profile.current_position_id]
+    );
+    profile.current_position = currentPositionResult.rows[0] || undefined;
+  }
+
   return profile;
 };
 
@@ -141,6 +149,8 @@ export const createOrUpdateProfile = async (
     projects,
     courses,
     contact_info,
+    headline,
+    current_position_id,
   } = profileData;
 
   const get = <T>(value: T | undefined, defaultValue: T): T => {
@@ -154,8 +164,8 @@ export const createOrUpdateProfile = async (
       `UPDATE user_service.profiles 
          SET first_name = $1, last_name = $2, industry = $3, location = $4, bio = $5, 
              privacy = $6, show_school = $7, show_current_company = $8, website = $9, 
-             additional_name = $10, name_pronunciation = $11 
-         WHERE user_id = $12`,
+             additional_name = $10, name_pronunciation = $11, headline = $12, current_position_id = $13
+         WHERE user_id = $14`,
       [
         first_name,
         last_name,
@@ -168,6 +178,8 @@ export const createOrUpdateProfile = async (
         get(website, profile.website),
         get(additional_name, profile.additional_name),
         get(name_pronunciation, profile.name_pronunciation),
+        get(headline, profile.headline),
+        get(current_position_id, profile.current_position_id),
         userId,
       ]
     );
