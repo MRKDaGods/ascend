@@ -22,7 +22,7 @@ import {
   TextField,
 } from '@mui/material';
 import ReportIcon from '@mui/icons-material/Report';
-import Navbar from '../components/Jobsnavbar';
+import Jobsnavbar from '@/app/components/Jobsnavbar';
 
 interface Job {
   job_id: number;
@@ -111,10 +111,7 @@ const SearchResultsPage = () => {
     try {
       const response = await fetch(`https://api.ascendx.tech/job/${id}/report`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NjkxMTk0LCJleHAiOjE3NDU3MzQzOTR9.InSkSi8Ust1rQS401lSoMERDnjwnN3jfwheG6uJQyEc`,
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ reason: reportReason }),
       });
 
@@ -143,7 +140,7 @@ const SearchResultsPage = () => {
 
   return (
     <>
-      <Navbar />
+      <Jobsnavbar />
       <Box
         sx={{
           pt: { xs: 10, sm: 12 },

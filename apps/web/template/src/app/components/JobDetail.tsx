@@ -62,10 +62,6 @@ const JobDetails = () => {
     try {
       const response = await fetch(`https://api.ascendx.tech/job/save/${id}`, {
         method: 'POST',
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
-        },
       });
 
       if (!response.ok) {

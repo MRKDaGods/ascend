@@ -88,7 +88,6 @@ const JobList = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NjkxMTk0LCJleHAiOjE3NDU3MzQzOTR9.InSkSi8Ust1rQS401lSoMERDnjwnN3jfwheG6uJQyEc`
         },
         body: JSON.stringify({ reason: reportReason }),
       });
