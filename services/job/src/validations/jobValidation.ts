@@ -99,3 +99,70 @@ export const newJobValidationRules: ValidationChain[] = [
     .isInt({ gt: 0 })
     .withMessage("Valid company_id is required"),
 ];
+
+/**
+ * Validation rules for job application
+ */
+
+export const jobApplicationValidationRules: ValidationChain[] = [
+  // Email
+  body("email")
+    .isEmail()
+    .withMessage("Valid email is required")
+    .normalizeEmail(),
+
+  // Phone
+  body("phone")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required")
+    .isMobilePhone("any")
+    .withMessage("Invalid phone number format"),
+
+  // Validate resume file
+  body("resume").custom((_, { req }) => {
+    // Check if file is provided
+    if (!req.file) {
+      throw new Error("Resume file is required");
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (req.file.size > maxSize) {
+      throw new Error("File size exceeds 5MB limit");
+    }
+
+    // Validate file type (only PDF)
+    const allowedTypes = ["application/pdf"];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      throw new Error("Invalid file type. Only PDF files are allowed");
+    }
+
+    return true;
+  }),
+];
+
+/**
+ * Validation rules for job application status update
+ */
+export const jobApplicationStatusUpdateValidationRules: ValidationChain[] = [
+  // Status
+  body("status")
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Status is required")
+    .isIn(["Pending", "Viewed", "Rejected", "Accepted"])
+    .withMessage(
+      "Invalid status. Allowed values: Pending, Viewed, Rejected, Accepted"
+    ),
+];
+
+/**
+ * Validation rules for job reporting
+ */
+export const jobReportValidationRules: ValidationChain[] = [
+  // Reason
+  body("reason").isString().trim().notEmpty().withMessage("Reason is required"),
+];

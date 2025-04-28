@@ -1,30 +1,20 @@
 {
-    "compilerOptions": {
-        "target": "es6",
-        "jsx": "react-jsx", // Use the new JSX transform for React 17+
-        "allowSyntheticDefaultImports": true,
-        "module": "commonjs",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "outDir": "./dist",
-        "rootDir": "./",
-        "baseUrl": ".",
-        "paths": {
-            "@shared/*": [
-                "packages/shared/src/*"
-            ],
-            "@ascend/api-client/*": ["packages/api-client/pkg/*"]
-        }
-    },
-    "include": [
-        "packages/**/*",
-        "services/**/*"
-    ],
-    "ts-node": {
-        "require": [
-            "tsconfig-paths/register"
-        ]
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["packages/shared/src/*"]
     }
+  },
+  "include": ["packages/**/*", "services/**/*"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
 }
