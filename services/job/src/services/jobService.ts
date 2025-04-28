@@ -85,6 +85,44 @@ export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
   }
 };
 
+export const isUserCompanyCreator = async (
+  userId: number,
+  companyId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM company_service.company
+      WHERE company_id = $1 AND created_by = $2
+    `;
+    const values = [companyId, userId];
+    const result = await db.query(query, values);
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking if user is company creator:", error);
+    throw new Error("Database query failed");
+  }
+};
+
+export const hasUserSavedJob = async (
+  userId: number,
+  jobId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM job_service.saved_jobs
+      WHERE user_id = $1 AND job_id = $2
+    `;
+    const values = [userId, jobId];
+    const result = await db.query(query, values);
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking if user has saved job:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const searchJobs = async ({
   keyword,
   location,
@@ -260,6 +298,7 @@ export const createJob = async (
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `;
+
     const values = [
       title,
       description,
@@ -273,7 +312,7 @@ export const createJob = async (
       company_id,
       user_id,
     ];
-    console.log("Creating job with values:", values);
+
     const result = await db.query(query, values);
     return result.rows[0];
   } catch (error) {
@@ -304,27 +343,15 @@ export const saveJob = async (
 export const removeSavedJob = async (
   user_id: number,
   job_id: number
-): Promise<boolean> => {
+): Promise<void> => {
   try {
-    // Check if job is saved before deleting
-    const checkQuery = `
-      SELECT * FROM job_service.saved_jobs
-      WHERE user_id = $1 AND job_id = $2
-    `;
-    const checkValues = [user_id, job_id];
-    const checkResult = await db.query(checkQuery, checkValues);
-
-    if (checkResult.rows.length === 0) {
-      return false;
-    }
-
     const query = `
       DELETE FROM job_service.saved_jobs
       WHERE user_id = $1 AND job_id = $2
+      RETURNING *
     `;
     const values = [user_id, job_id];
     await db.query(query, values);
-    return true;
   } catch (error) {
     console.error("Error deleting saved job:", error);
     throw new Error("Database query failed");
@@ -337,7 +364,7 @@ export const getSavedJobs = async (
 ): Promise<PaginatedResponse<SavedJob>> => {
   try {
     // Pagination constants
-    const PAGE_SIZE = 30; // Number of results per page
+    const PAGE_SIZE = 20; // Number of results per page
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
     const countQuery = `
@@ -350,9 +377,10 @@ export const getSavedJobs = async (
     const totalRecords = parseInt(countResult.rows[0].total);
 
     const query = `
-      SELECT s.saved_at, j.*
+      SELECT s.saved_at, j.*, c.company_name, c.profile_photo_id
       FROM job_service.saved_jobs AS s
       JOIN job_service.jobs AS j ON s.job_id = j.job_id
+      JOIN company_service.company AS c ON j.company_id = c.company_id
       WHERE s.user_id = $1
       ORDER BY s.saved_at DESC
       LIMIT $2 OFFSET $3
@@ -362,6 +390,9 @@ export const getSavedJobs = async (
 
     const savedJobsList = await Promise.all(
       result.rows.map(async (row) => {
+        // Fetch company logo URL
+        const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+
         const job = {
           job_id: row.job_id,
           title: row.title,
@@ -374,19 +405,10 @@ export const getSavedJobs = async (
           salary_min_range: row.salary_min_range,
           salary_max_range: row.salary_max_range,
           company_id: row.company_id,
-          company_name: "",
-          company_logo_url: null,
+          company_name: row.company_name,
+          company_logo_url,
           saved_at: row.saved_at,
         };
-
-        const companyQuery = `
-          SELECT name, logo_url
-          FROM company_service.companies
-          WHERE id = $1
-        `;
-        const companyValues = [job.company_id];
-        const companyResult = await db.query(companyQuery, companyValues);
-        job.company_name = companyResult.rows[0]?.name || "Unknown Company";
 
         return job;
       })
