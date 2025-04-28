@@ -137,3 +137,5 @@ dist
 
 **/.DS_Store
 
+apps/mobile/dummy_cross
+node_modules

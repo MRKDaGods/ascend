@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const authMiddleware_1 = __importDefault(require("@shared/middleware/authMiddleware"));
+const express_1 = require("express");
+const authController_1 = require("../controllers/authController");
+const router = (0, express_1.Router)();
+router.post("/register", authController_1.register);
+router.post("/login", authController_1.login);
+router.post("/confirm-email", authController_1.confirmEmail);
+router.post("/resend-confirm", authController_1.resendConfirmEmail);
+router.post("/forget-password", authController_1.forgetPassword);
+router.post("/reset-password", authController_1.resetPassword);
+router.put("/update-password", authMiddleware_1.default, authController_1.updatePassword);
+router.put("/update-email", authMiddleware_1.default, authController_1.updateEmail);
+router.post("/social-login", authController_1.socialLogin);
+router.delete("/delete-account", authMiddleware_1.default, authController_1.deleteAccount);
+router.post("/fcm-token", authMiddleware_1.default, authController_1.updateFCMToken);
+exports.default = router;
