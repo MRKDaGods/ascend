@@ -50,4 +50,5 @@ router.get(
   authenticateToken,
   handleGetJobApplications
 );
+
 export default router;
