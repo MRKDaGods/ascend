@@ -21,6 +21,7 @@ class _JobHomePageState extends State<JobHomePage> {
   void initState() {
     super.initState();
     jobsList = List.from(widget.jobs); // Initialize jobsList in initState
+    _randomizeJobs(); // Randomize the order of the jobs during initialization
   }
 
   void removeJob(Jobsattributes job) {
@@ -38,7 +39,6 @@ class _JobHomePageState extends State<JobHomePage> {
   @override
   Widget build(BuildContext context) {
     final savedJobs = widget.jobs.where((job) => job.isBookmarked).toList();
-    _randomizeJobs(); // Randomize the order of the jobs
     return Scaffold(
       // backgroundColor:
       //     widget.isDarkMode
@@ -188,7 +188,7 @@ class _JobHomePageState extends State<JobHomePage> {
         ),
       ),
 
-      child: Text(title, style: TextStyle(fontSize: 13)),
+      child: Text(title, style: TextStyle(fontSize: 13, color: Colors.grey)),
     );
   }
 
@@ -202,5 +202,12 @@ class _JobHomePageState extends State<JobHomePage> {
       jobsList = List.from(widget.jobs); // Reset the jobs list
       _randomizeJobs(); // Randomize the order of the jobs
     });
+  }
+
+  @override
+  void dispose() {
+    // Dispose of any resources, such as timers or streams
+    searchController.dispose();
+    super.dispose();
   }
 }
