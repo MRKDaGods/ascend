@@ -47,11 +47,15 @@ class _SignInPageState extends State<SignInPage> {
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthSuccess) {
-              // Navigate to the main page after successful login
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const MainNavigation()),
-              );
+              // --- ADD THIS CHECK ---
+              if (!state.signUpMode) {
+                // Only navigate if it was a sign-in, not a sign-up
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainNavigation()),
+                );
+              }
+              // --- END ADDED CHECK ---
             } else if (state is AuthFailure) {
               // Show an error message if login fails
               ScaffoldMessenger.of(
