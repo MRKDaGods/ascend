@@ -127,6 +127,89 @@ services:
     networks:
       - ascend-network
 
+  company:
+    hostname: company
+    build:
+      context: .
+      dockerfile: services/company/Dockerfile
+    environment:
+      - SERVICE_NAME=company
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3009
+
+      # Google OAuth
+      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
+      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
+      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3009:3009"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - file
+      - user
+    networks:
+      - ascend-network
+
+
+  payment:
+    hostname: payment
+    build:
+      context: .
+      dockerfile: services/payment/Dockerfile
+    environment:
+      - SERVICE_NAME=payment
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # STRIPE
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET_KEY=${STRIPE_WEBHOOK_SECRET_KEY}
+
+      # Service port
+      - PORT=3014
+
+      # Google OAuth
+      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
+      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
+      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+ 
+      # Service
+      - SESSION_TOKEN_EXPIRY_MS=${SESSION_TOKEN_EXPIRY_MS}
+      - SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS=${SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS}
+
+      - PAYMENT_BASE_URL=${PAYMENT_BASE_URL}
+    ports:
+      - "3014:3014"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - user
+    networks:
+      - ascend-network
+
+
   user:
     hostname: user
     build:

@@ -5,4 +5,6 @@ export enum Services {
   NOTIFICATION = "notification",
   MESSAGING = "messaging",
   POST = "post",
+  COMPANY = "company",
+  PAYMENT = "payment",
 }
