@@ -15,6 +15,7 @@ import {
   isThereJobWithId,
   isUserCompanyCreator,
   hasUserSavedJob,
+  hasUserAppliedToJob,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -229,6 +230,18 @@ export const handleJobApplication = [
       const email = req.body.email;
       const phone = req.body.phone;
 
+      // Check if the job exists
+      const jobExists = await isThereJobWithId(jobId);
+      if (!jobExists) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
+      // Check if the user has already applied for the job
+      const hasApplied = await hasUserAppliedToJob(userId, jobId);
+      if (hasApplied) {
+        return res.status(409).json({ error: "Already applied to this job" });
+      }
+
       const jobApplication = await submitJobApplication(
         userId,
         jobId,
@@ -236,10 +249,6 @@ export const handleJobApplication = [
         email,
         phone
       );
-
-      if (!jobApplication) {
-        return res.status(404).json({ error: "Job not found" });
-      }
 
       // Remove the job from saved jobs
       await removeSavedJob(userId, jobId);
