@@ -364,7 +364,7 @@ export const handleGetJobApplications = async (
     }
 
     const applications = await getJobApplications(jobId, pageNumber);
-    res.sendStatus(200).json(applications);
+    res.json(applications);
   } catch (error) {
     console.error("Error in handleGetUserApplications:", error);
     res.status(500).json({ error: "Server error" });
