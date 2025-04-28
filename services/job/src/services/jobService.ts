@@ -101,7 +101,7 @@ export const searchJobs = async ({
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
     let query = `
-      SELECT j.*
+      SELECT j.*, c.company_name, c.profile_photo_id
       FROM job_service.jobs AS j
       JOIN company_service.company AS c ON j.company_id = c.company_id
       WHERE 1=1
