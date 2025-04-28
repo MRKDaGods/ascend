@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import PremiumSurvey from "../src/app/components/PremiumSurvey";
+import PremiumSurvey from "../components/PremiumSurvey";
 
 describe("PremiumSurvey Component", () => {
   it("renders the first question correctly", () => {
