@@ -9,7 +9,7 @@ import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../services/push_notification_service.dart';
 import '../../core/network/network_info.dart';
 import '../../features/StartPages/Bloc/bloc/auth_bloc.dart';
-import '../../features/StartPages/Repository/auth_repository.dart';
+import '../../features/StartPages/repository/auth_repository.dart';
 import '../../features/StartPages/repository/ApiClient.dart';
 
 /// Service locator for dependency injection

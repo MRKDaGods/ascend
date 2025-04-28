@@ -2,9 +2,10 @@ import 'package:ascend_app/features/UserPage/blue_button.dart';
 import 'package:flutter/material.dart';
 import 'bottom_options_sheet.dart';
 import 'grey_button.dart';
+import 'add_section_page.dart';
 
 class ProfileButtons extends StatelessWidget {
-  const ProfileButtons({
+  ProfileButtons({
     required this.isConnect,
     required this.isfollowing,
     required this.isPending,
@@ -94,7 +95,14 @@ class ProfileButtons extends StatelessWidget {
                 Expanded(
                   child: GreyButton(
                     text: "Add Section",
-                    action: (context) {},
+                    action: (context) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddSectionPage(),
+                        ),
+                      );
+                    },
                     isMyProfile: isMyProfile,
                   ),
                 ),
