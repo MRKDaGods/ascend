@@ -329,14 +329,10 @@ export const handleUpdateApplicationStatus = [
         return res.status(403).json({ error: "Unauthorized to update status" });
       }
 
-      const updatedApplication = await updateApplicationStatus(
-        applicationId,
-        status
-      );
+      // Update the application status
+      await updateApplicationStatus(applicationId, status);
 
-      if (!updatedApplication) {
-        return res.status(404).json({ error: "Application not found" });
-      }
+      // Send a 204 No Content response
       res.sendStatus(200);
     } catch (error) {
       console.error("Error in handleUpdateApplicationStatus:", error);
@@ -368,7 +364,7 @@ export const handleGetJobApplications = async (
     }
 
     const applications = await getJobApplications(jobId, pageNumber);
-    res.json(applications);
+    res.sendStatus(200).json(applications);
   } catch (error) {
     console.error("Error in handleGetUserApplications:", error);
     res.status(500).json({ error: "Server error" });
@@ -391,13 +387,14 @@ export const handleReportJob = [
 
       const report = await reportJob(userId, jobId, reason);
 
+      // Check if the user has already reported the job
       if (!report) {
-        // user has already reported the job
         return res.status(409).json({
           error: "You have already reported this job.",
         });
       }
 
+      // Send a 201 Created response
       res.sendStatus(201);
     } catch (error) {
       console.error("Error in handleReportJob:", error);

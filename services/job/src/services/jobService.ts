@@ -629,17 +629,15 @@ export const getApplicationStatus = async (
 export const updateApplicationStatus = async (
   application_id: number,
   status: string
-): Promise<boolean> => {
+): Promise<void> => {
   try {
     const query = `
       UPDATE job_service.applications a
       SET status = $1
       WHERE a.application_id = $2
-      RETURNING a.*
     `;
     const values = [status, application_id];
-    const result = await db.query(query, values);
-    return result.rows.length > 0;
+    await db.query(query, values);
   } catch (error) {
     console.error("Error updating application status:", error);
     throw new Error("Database query failed");
@@ -649,10 +647,10 @@ export const updateApplicationStatus = async (
 export const getJobApplications = async (
   job_id: number,
   pageNumber: number
-): Promise<PaginatedResponse<Application & { userFullName: string }>> => {
+): Promise<PaginatedResponse<Application & { user_full_name: string }>> => {
   try {
     // Pagination constants
-    const PAGE_SIZE = 30; // Number of results per page
+    const PAGE_SIZE = 20; // Number of results per page
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
     const countQuery = `
@@ -676,20 +674,22 @@ export const getJobApplications = async (
 
     const applicationsList = await Promise.all(
       result.rows.map(async (row) => {
+        // Fetch user full name
+        const user_full_name = await getUserFullName(row.user_id);
+        // Fetch resume URL
+        const resume_url = await getPresignedUrl(row.resume_id);
+
         const application = {
           application_id: row.application_id,
           job_id: row.job_id,
           user_id: row.user_id,
-          userFullName: "",
-          resume_url: row.resume_id,
+          user_full_name,
+          resume_url: resume_url!,
           email: row.email,
           phone: row.phone,
           status: row.status,
           applied_at: row.applied_at,
         };
-
-        application.userFullName = await getUserFullName(application.user_id);
-        application.resume_url = await getPresignedUrl(application.resume_url);
 
         return application;
       })
