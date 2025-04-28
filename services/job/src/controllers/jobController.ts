@@ -13,6 +13,8 @@ import {
   getJobApplications,
   reportJob,
   isThereJobWithId,
+  isUserCompanyCreator,
+  hasUserSavedJob,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -68,11 +70,13 @@ export const handleJobSearch = async (req: Request, res: Response) => {
 
     const jobs = await searchJobs(searchParams);
 
+    // Check if no jobs were found
     if (jobs.data.length === 0) {
       return res.status(404).json({ error: "No jobs found" });
     }
 
-    res.json(jobs);
+    // Send a 200 OK response with the jobs
+    res.status(200).json(jobs);
   } catch (error) {
     console.error("Error in handleJobSearch:", error);
     res.status(500).json({ error: "Server error" });
@@ -97,6 +101,15 @@ export const handleJobPosting = [
       const company_id = req.body.company_id;
       const user_id = req.user!.id;
 
+      // Check if the user is the creator of the company
+      const isCompanyCreator = await isUserCompanyCreator(user_id, company_id);
+
+      if (!isCompanyCreator) {
+        return res.status(403).json({
+          error: "You are not authorized to create a job for this company",
+        });
+      }
+
       const job = await createJob(
         title,
         description,
@@ -111,6 +124,7 @@ export const handleJobPosting = [
         user_id
       );
 
+      // Send a 201 Created response with the created job
       res.status(201).json(job);
     } catch (error) {
       console.error("Error in handleJobPosting:", error);
@@ -123,10 +137,26 @@ export const handleSaveJob = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = req.user!.id;
-  const job_id = Number(req.params.jobId);
   try {
+    const userId = req.user!.id;
+    const job_id = Number(req.params.jobId);
+
+    // Check if the job exists
+    const jobExists = await isThereJobWithId(job_id);
+    if (!jobExists) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    // Check if the job is already saved
+    const jobAlreadySaved = await hasUserSavedJob(userId, job_id);
+    if (jobAlreadySaved) {
+      return res.status(409).json({ error: "Job already saved" });
+    }
+
+    // Save the job
     const savedJob = await saveJob(userId, job_id);
+
+    // Send a 201 Created response with the saved job
     res.status(201).json(savedJob);
   } catch (error) {
     console.error("Error in handleSaveJob:", error);
@@ -138,13 +168,20 @@ export const handleRemoveSavedJob = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = req.user!.id;
-  const jobId = Number(req.params.jobId);
   try {
-    const result = await removeSavedJob(userId, jobId);
-    if (result === false) {
-      return res.status(404).json({ error: "Job not found" });
+    const userId = req.user!.id;
+    const jobId = Number(req.params.jobId);
+
+    // Check if the user has saved the job
+    const jobSaved = await hasUserSavedJob(userId, jobId);
+    if (!jobSaved) {
+      return res.status(404).json({ error: "Job not found in saved jobs" });
     }
+
+    // Remove the job from saved jobs
+    await removeSavedJob(userId, jobId);
+
+    // Send a 204 No Content response
     res.sendStatus(204);
   } catch (error) {
     console.error("Error in handleRemoveSavedJob:", error);
@@ -159,11 +196,22 @@ export const handleGetSavedJobs = async (
   try {
     const userId = req.user!.id;
     const pageNumber = Number(req.query.page) || 1;
+
+    // Validate page number
     if (pageNumber < 1) {
       return res.status(400).json({ error: "Page number must be at least 1" });
     }
+
+    // Get saved jobs for the user
     const savedJobs = await getSavedJobs(userId, pageNumber);
-    res.json(savedJobs);
+
+    // Check if no saved jobs were found
+    if (savedJobs.data.length === 0) {
+      return res.status(404).json({ error: "No saved jobs found" });
+    }
+
+    // Send a 200 OK response with the saved jobs
+    res.status(200).json(savedJobs);
   } catch (error) {
     console.error("Error in handleGetSavedJobs:", error);
     res.status(500).json({ error: "Server error" });
