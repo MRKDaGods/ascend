@@ -1,7 +1,7 @@
 // Component file: card showing connections and saved items in feed main page
 
 "use client";
-
+import React from "react";
 import {
   Card,
   Typography,

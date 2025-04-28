@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { Card, CardContent, Typography, Avatar, Box } from "@mui/material";
 import { PostType } from "@/app/stores/usePostStore";
 

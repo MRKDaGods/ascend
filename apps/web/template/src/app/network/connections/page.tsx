@@ -9,7 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import Navbar from "@/app/components/Navbar";
 import WhosHiringCard from "@/app/components/WhosHiringCard";
 import Footer from "@/app/components/Footer";
-import ConnectionsList from "@/app/components/ConnectionsList";
+import ConnectionsList from "@/app/network/components/ConnectionsList";
 
 const ConnectionsPage: React.FC = () => {
   const theme = useTheme();

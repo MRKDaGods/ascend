@@ -18,7 +18,6 @@ interface DiscardRepostDialogProps {
   open: boolean;
   onClose: () => void;
   onDiscard: () => void;
-  onSave: () => void;
 }
 
 const DiscardRepostDialog: React.FC<DiscardRepostDialogProps> = ({ open, onClose, onDiscard }) => {
