@@ -364,7 +364,7 @@ export const getSavedJobs = async (
 ): Promise<PaginatedResponse<SavedJob>> => {
   try {
     // Pagination constants
-    const PAGE_SIZE = 30; // Number of results per page
+    const PAGE_SIZE = 20; // Number of results per page
     const OFFSET = (pageNumber - 1) * PAGE_SIZE; // Offset based on page number
 
     const countQuery = `
@@ -377,9 +377,10 @@ export const getSavedJobs = async (
     const totalRecords = parseInt(countResult.rows[0].total);
 
     const query = `
-      SELECT s.saved_at, j.*
+      SELECT s.saved_at, j.*, c.company_name, c.profile_photo_id
       FROM job_service.saved_jobs AS s
       JOIN job_service.jobs AS j ON s.job_id = j.job_id
+      JOIN company_service.company AS c ON j.company_id = c.company_id
       WHERE s.user_id = $1
       ORDER BY s.saved_at DESC
       LIMIT $2 OFFSET $3
@@ -389,6 +390,9 @@ export const getSavedJobs = async (
 
     const savedJobsList = await Promise.all(
       result.rows.map(async (row) => {
+        // Fetch company logo URL
+        const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+
         const job = {
           job_id: row.job_id,
           title: row.title,
@@ -401,19 +405,10 @@ export const getSavedJobs = async (
           salary_min_range: row.salary_min_range,
           salary_max_range: row.salary_max_range,
           company_id: row.company_id,
-          company_name: "",
-          company_logo_url: null,
+          company_name: row.company_name,
+          company_logo_url,
           saved_at: row.saved_at,
         };
-
-        const companyQuery = `
-          SELECT name, logo_url
-          FROM company_service.companies
-          WHERE id = $1
-        `;
-        const companyValues = [job.company_id];
-        const companyResult = await db.query(companyQuery, companyValues);
-        job.company_name = companyResult.rows[0]?.name || "Unknown Company";
 
         return job;
       })
