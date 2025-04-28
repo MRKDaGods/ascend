@@ -22,7 +22,11 @@ import {
   removeTag,
   getTaggedUsers,
   reportPost, 
-  deleteReport 
+  deleteReport,
+  getSavedArticles,
+ultimateSearch,
+  reactToPost,
+  getPostReactions
 } from "../controllers/postController";
 
 const upload = multer({
@@ -36,6 +40,10 @@ const router = Router();
 router.get("/feed", authenticateToken, upload.none(),getFeed);
 router.get("/search", authenticateToken,upload.none(),searchPosts);
 router.get("/saved", authenticateToken, getSavedPosts);
+router.get('/articles', authenticateToken, getSavedArticles);
+
+// New ultimate search route that combines users and posts
+router.get("/search/ultimate", authenticateToken, ultimateSearch);
 
 // Post CRUD routes 
 router.post("/", authenticateToken, upload.array("media"), createPost);
@@ -44,8 +52,9 @@ router.patch("/:postId", authenticateToken,  upload.none(), updatePost);
 router.delete("/:postId", authenticateToken, deletePost);
 
 // Engagement routes
-router.post("/:postId/like", authenticateToken, likePost);
-router.get("/:postId/engagement", authenticateToken, getPostEngagement);
+router.post("/:postId/react", authenticateToken, reactToPost); 
+router.get("/:postId/reactions", authenticateToken, getPostReactions); 
+router.get("/:postId/engagement", authenticateToken, getPostEngagement);//prolyl i will remove it
 
 // Comment routes
 router.get("/:postId/comments", authenticateToken, getPostComments);

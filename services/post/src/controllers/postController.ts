@@ -446,7 +446,7 @@ export const getPostEngagement = async (
  * Save or unsave a post
  * @route POST /posts/:postId/save
  * @param {string} postId - The ID of the post to save/unsave
- * @returns {object} Success message
+ * @returns {object} Success message with saved state
  */
 export const savePost = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user!.id;
@@ -457,8 +457,8 @@ export const savePost = async (req: AuthenticatedRequest, res: Response) => {
     res.json({
       success: true,
       data: {
-        saved: true,
-        message: "Post saved/UnSaved successfully",
+        saved: result.saved,
+        message: result.saved ? "Post saved successfully" : "Post unsaved successfully",
       },
     });
   } catch (error) {
@@ -491,6 +491,55 @@ export const getSavedPosts = async (
     res.json({ success: true, data: savedPosts });
   } catch (error) {
     console.error("Error fetching saved posts:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
+ * Get longer-form articles saved by the user
+ * @route GET /posts/saved/articles
+ * @param {number} page - Page number for pagination (default: 1)
+ * @param {number} limit - Number of articles per page (default: 10)
+ * @param {number} minContentLength - Minimum character count to qualify as an article (default: 500)
+ * @returns {object} Saved articles (longer-form posts)
+ */
+export const getSavedArticles = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const userId = req.user!.id;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const minContentLength = parseInt(req.query.minContentLength as string) || 500;
+
+  try {
+    // Get all saved posts first
+    const savedPosts = await postService.getSavedPosts(
+      userId,
+      limit * 3, // Fetch more than needed to account for filtering
+      (page - 1) * limit
+    );
+
+    // Filter to only include posts with content longer than minContentLength
+    const savedArticles = savedPosts.filter(
+      (post) => post.content && post.content.length >= minContentLength
+    );
+
+    // Apply pagination manually after filtering
+    const paginatedArticles = savedArticles.slice(0, limit);
+
+    res.json({ 
+      success: true, 
+      data: paginatedArticles,
+      pagination: {
+        page,
+        limit,
+        total: savedArticles.length,
+        minContentLength
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching saved articles:", error);
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
@@ -744,6 +793,124 @@ export const deleteReport = async (
     res.json({ success: true, message: "Report deleted successfully" });
   } catch (error) {
     console.error("Error deleting report:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
+ * Ultimate search for users and posts
+ * @route GET /search/ultimate
+ * @param {string} q - Search query
+ * @param {number} limit - Number of items to return per category (default: 5)
+ * @returns {object} Object containing matched users and posts
+ */
+export const ultimateSearch = async (req: AuthenticatedRequest, res: Response) => {
+  const query = req.query.q as string;
+  const limit = parseInt(req.query.limit as string) || 5;
+  const offset = parseInt(req.query.offset as string) || 0;
+
+  if (!query || query.trim() === '') {
+    return res.status(400).json({
+      success: false,
+      error: 'Search query is required'
+    });
+  }
+
+  try {
+    const results = await postService.ultimateSearch(query, limit, offset);
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error("Error in ultimate search:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
+ * React to a post with a specific reaction type
+ * @route POST /posts/:postId/react
+ * @param {string} postId - The ID of the post to react to
+ * @param {string} type - Reaction type ('like', 'love', 'support', 'celebrate', 'funny', 'curious', 'insightful')
+ * @returns {object} Success message with reaction info
+ */
+export const reactToPost = async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user!.id;
+  const postId = parseInt(req.params.postId);
+  const { type } = req.body;
+  
+  // Validate reaction type
+  const validReactions = ['like', 'love', 'support', 'celebrate', 'funny', 'curious', 'insightful'];
+  
+  if (!validReactions.includes(type)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid reaction type. Must be one of: ${validReactions.join(', ')}`
+    });
+  }
+  
+  try {
+    const result = await postService.reactToPost(userId, postId, type);
+    res.json({
+      success: true,
+      data: {
+        reacted: result.reacted,
+        type: result.type,
+        message: result.reacted 
+          ? `Added "${result.type}" reaction to post`
+          : `Removed "${result.type}" reaction from post`
+      }
+    });
+  } catch (error) {
+    console.error("Error reacting to post:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
+ * Get all users who reacted to a post with their reaction types
+ * @route GET /posts/:postId/reactions
+ * @param {string} postId - The ID of the post to get reactions for
+ * @param {string} type - Optional filter by reaction type
+ * @param {number} limit - Number of reactions to return (default: 20)
+ * @param {number} offset - Pagination offset (default: 0)
+ * @returns {object} List of users with their reaction types
+ */
+export const getPostReactions = async (req: AuthenticatedRequest, res: Response) => {
+  const postId = parseInt(req.params.postId);
+  const type = req.query.type as string;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = parseInt(req.query.offset as string) || 0;
+  
+  // Validate reaction type if provided
+  const validReactions = ['like', 'love', 'support', 'celebrate', 'funny', 'curious', 'insightful'];
+  
+  if (type && !validReactions.includes(type)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid reaction type filter. Must be one of: ${validReactions.join(', ')}`
+    });
+  }
+  
+  try {
+    const reactions = await postService.getPostReactions(
+      postId,
+      type as any,
+      limit,
+      offset
+    );
+    
+    res.json({
+      success: true,
+      data: reactions,
+      pagination: {
+        limit,
+        offset
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching post reactions:", error);
     res.status(500).json({ success: false, error: "Server error" });
   }
 };
