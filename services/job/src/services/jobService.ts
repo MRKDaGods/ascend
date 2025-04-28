@@ -123,6 +123,25 @@ export const hasUserSavedJob = async (
   }
 };
 
+export const hasUserAppliedToJob = async (
+  userId: number,
+  jobId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM job_service.applications
+      WHERE user_id = $1 AND job_id = $2
+    `;
+    const values = [userId, jobId];
+    const result = await db.query(query, values);
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking if user has applied to job:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const searchJobs = async ({
   keyword,
   location,
@@ -445,20 +464,10 @@ export const submitJobApplication = async (
   phone: string
 ): Promise<Application | null> => {
   try {
-    // Check if job exists before applying
-    const checkQuery = `
-      SELECT * FROM job_service.jobs
-      WHERE job_id = $1
-    `;
-    const checkValues = [job_id];
-    const checkResult = await db.query(checkQuery, checkValues);
-
-    if (checkResult.rows.length === 0) {
-      return null;
-    }
-
+    // Set up the RPC queue for file upload
     const fileRpcQueue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
 
+    // Create the payload for file upload
     const payload: FileUploadPayload.Request = {
       user_id,
       file_buffer: resume.buffer.toString("base64"),
@@ -468,6 +477,7 @@ export const submitJobApplication = async (
       context: "job_application",
     };
 
+    // Call the RPC to upload the file
     const fileResponse = await callRPC<FileUploadPayload.Response>(
       fileRpcQueue,
       payload,
