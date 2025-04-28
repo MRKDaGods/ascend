@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Home, Work, Chat, Notifications, Search } from "@mui/icons-material";
-import { useSearchStore } from "../store/useSearchStore";
+import { useSearchStore } from "../stores/useSearchStore";
 import { useRouter, usePathname } from "next/navigation";
 
 interface UserData {

@@ -14,7 +14,7 @@ import {
   Autocomplete,
 } from '@mui/material';
 import { RestartAlt as ResetIcon } from '@mui/icons-material';
-import { useJobFilterStore } from '../store/useJobFilterStore';
+import { useJobFilterStore } from '../stores/useJobFilterStore';
 
 const experienceLevels = ['Internship', 'Entry', 'Associate', 'Mid', 'Director'];
 const industries = ['Technology', 'Finance', 'Healthcare', 'Education', 'Retail', 'Creative'];

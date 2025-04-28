@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import { useSearchStore } from "../store/useSearchStore";
+import { useSearchStore } from "../stores/useSearchStore";
 
 const jobSearches = ["marketing manager", "hr", "legal", "sales", "amazon", "google", "analyst","manager"];
 
