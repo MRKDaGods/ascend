@@ -7,7 +7,7 @@ import { Company } from "@shared/models/company";
 import { validationResult } from "express-validator";
 import { error, profile } from "console";
 import { Job } from "@shared/models/job";
-import { getProfile } from "../../../user/src/services/userService";
+import { getUserProfile } from "@shared/utils/userProfile";
 
 /**
  * @route POST /api/companies
