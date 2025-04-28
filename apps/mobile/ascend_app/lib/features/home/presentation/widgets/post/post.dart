@@ -104,6 +104,7 @@ class _PostState extends State<Post> {
                     ownerOccupation: post.ownerOccupation,
                     isSponsored: post.isSponsored,
                     followers: post.followers,
+                    userId: post.userId, // Pass the userId here
                     onOptionsPressed: null, // Let it use the default behavior
                     onShowFeedbackOptions: () {
                       // Use BLoC event instead of setState

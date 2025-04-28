@@ -26,6 +26,7 @@ class PostRepository {
     // Keep the sponsored posts initialization
     _sponsoredPosts['sponsored_1'] = PostModel(
       id: 'sponsored_1',
+      userId: 'sponsor_user_1', // Add userId
       title: 'Sponsored: Premium Subscription',
       description: 'Get 50% off our premium plan today!',
       ownerName: 'Ascend Premium',
@@ -42,6 +43,7 @@ class PostRepository {
     // Keep other sponsored posts
     _sponsoredPosts['sponsored_2'] = PostModel(
       id: 'sponsored_2',
+      userId: 'sponsor_user_2', // Add userId
       title: 'Sponsored: Learn New Skills',
       description: 'Join our workshop to learn the latest tech skills!',
       ownerName: 'Tech Academy',

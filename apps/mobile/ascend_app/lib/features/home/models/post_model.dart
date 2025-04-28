@@ -5,6 +5,7 @@ import 'package:ascend_app/features/home/managers/post_manager.dart';
 // Renamed from Post to PostModel for consistency
 class PostModel extends Equatable {
   final String id;
+  final String userId; // Add userId field
   final String title;
   final String description;
   final List<String> images;
@@ -26,6 +27,7 @@ class PostModel extends Equatable {
 
   const PostModel({
     required this.id,
+    required this.userId, // Add to constructor
     required this.title,
     required this.description,
     this.images = const [],
@@ -49,6 +51,7 @@ class PostModel extends Equatable {
   @override
   List<Object?> get props => [
     id,
+    userId, // Add to props
     title,
     description,
     images,
@@ -72,6 +75,7 @@ class PostModel extends Equatable {
   // Updated to return PostModel
   PostModel copyWith({
     String? id,
+    String? userId, // Add userId parameter
     String? title,
     String? description,
     List<String>? images,
@@ -93,6 +97,7 @@ class PostModel extends Equatable {
   }) {
     return PostModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId, // Add to copyWith logic
       title: title ?? this.title,
       description: description ?? this.description,
       images: images ?? this.images,
@@ -149,6 +154,7 @@ class PostModel extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'user_id': userId, // Add to toJson, matching API key
       'title': title,
       'description': description,
       'images': images,
@@ -172,10 +178,15 @@ class PostModel extends Equatable {
 
   // Updated factory constructor
   factory PostModel.fromJson(Map<String, dynamic> json) {
+    // Ensure userId is handled correctly, converting if necessary
+    final userIdValue = json['user_id'] ?? json['userId']; // Check both keys
+    final userIdString = userIdValue?.toString() ?? 'unknown_user'; // Convert to string, provide default
+
     return PostModel(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
+      id: (json['id'] ?? '').toString(), // Ensure id is string
+      userId: userIdString, // Use the processed userId
+      title: json['title'] as String? ?? '', // Handle potential null title
+      description: json['description'] as String? ?? '',
       images: List<String>.from(json['images'] as List),
       useCarousel: json['useCarousel'] as bool? ?? false,
       isSponsored: json['isSponsored'] as bool? ?? false,
@@ -205,6 +216,7 @@ class PostModel extends Equatable {
   factory PostModel.fromLegacyModel(Map<String, dynamic> oldModel) {
     return PostModel(
       id: oldModel['id'] ?? 'post_${DateTime.now().millisecondsSinceEpoch}',
+      userId: oldModel['userId']?.toString() ?? 'legacy_user', // Add default userId, ensure string
       title: oldModel['title'] ?? '',
       description: oldModel['description'] ?? '',
       images: oldModel['images'] != null ? List<String>.from(oldModel['images']) : const [],
@@ -229,6 +241,7 @@ class PostModel extends Equatable {
   factory PostModel.empty() {
     return PostModel(
       id: '',
+      userId: '', // Add default userId
       title: '',
       description: '',
       ownerName: '',
@@ -254,6 +267,10 @@ class PostModel extends Equatable {
     
     // Extract user data
     final userData = apiPost['user'] as Map<String, dynamic>? ?? {};
+    
+    // Extract userId directly from the post object or user object
+    final userIdValue = apiPost['user_id'] ?? userData['id'];
+    final userIdString = userIdValue?.toString() ?? 'unknown_user'; // Fallback
     
     // Combine first and last name
     final firstName = userData['first_name'] as String? ?? '';
@@ -282,6 +299,7 @@ class PostModel extends Equatable {
     return PostModel(
       // Convert numeric ID to string
       id: (apiPost['id'] ?? '').toString(),
+      userId: userIdString, // Use the extracted userId
       
       // Set title empty and use content for description
       title: '',
