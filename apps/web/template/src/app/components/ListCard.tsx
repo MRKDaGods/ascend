@@ -27,22 +27,6 @@ const ListCard = () => {
   const { userData, setUserData } = useProfileStore();
   const { openModal } = usePreferencesModal();
 
-  useEffect(() => {
-    if (!userData) {
-      const fetchUserData = async () => {
-        try {
-          const res = await fetch("http://localhost:5000/api/user");
-          const data = await res.json();
-          setUserData(data);
-        } catch (error) {
-          console.error("Failed to fetch user data", error);
-        }
-      };
-
-      fetchUserData();
-    }
-  }, [userData, setUserData]);
-
   return (
     <>
       <Card sx={{ width: 300, borderRadius: 3, boxShadow: 1 }}>

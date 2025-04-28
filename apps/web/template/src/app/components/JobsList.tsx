@@ -9,7 +9,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import ReportIcon from "@mui/icons-material/Report";
-import { fetchJobs } from "@/api/jobs"
+// import { fetchJobs } from "@/api/jobs"
 import { useDeletedJobsStore } from "../stores/useDeletedJobsStore";
 
 interface JobType {
@@ -42,23 +42,21 @@ const JobList = () => {
     loadDeletedJobs();
   }, []);
   
-  useEffect(() => {
-    loadJobs();
-  }, [deletedJobIds]);
-  
+  // useEffect(() => {
+  //   loadJobs();
+  // }, [deletedJobIds]);
 
-
-  const loadJobs = async () => {
-    try {
-      const result = await fetchJobs(1, 3); // Only fetch 3 jobs
-      const filteredJobs = result.data.filter(
-        (job: JobType) => !deletedJobIds.includes(job.job_id)
-      );
-      setJobs(filteredJobs);
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-    }
-  };
+  // const loadJobs = async () => {
+  //   try {
+  //     const result = await fetchJobs(1, 3); // Only fetch 3 jobs
+  //     const filteredJobs = result.data.filter(
+  //       (job: JobType) => !deletedJobIds.includes(job.job_id)
+  //     );
+  //     setJobs(filteredJobs);
+  //   } catch (error) {
+  //     console.error("Error fetching jobs:", error);
+  //   }
+  // };
 
   const handleNavigate = (job: JobType) => {
     const params = new URLSearchParams({
