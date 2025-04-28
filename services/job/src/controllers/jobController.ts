@@ -17,6 +17,7 @@ import {
   hasUserSavedJob,
   hasUserAppliedToJob,
   getJobApplicationsByUserId,
+  getJobsByCompanyId,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -81,6 +82,44 @@ export const handleJobSearch = async (req: Request, res: Response) => {
     res.status(200).json(jobs);
   } catch (error) {
     console.error("Error in handleJobSearch:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const handleGetCompanyJobs = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user!.id;
+    const companyId = Number(req.params.companyId);
+    const pageNumber = Number(req.query.page) || 1;
+
+    // Validate page number
+    if (pageNumber < 1) {
+      return res.status(400).json({ error: "Page number must be at least 1" });
+    }
+
+    // Check if user is authorized to view the company's jobs
+    const isCompanyCreator = await isUserCompanyCreator(userId, companyId);
+    if (!isCompanyCreator) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to view this company's jobs" });
+    }
+
+    // Get jobs for the company
+    const jobs = await getJobsByCompanyId(companyId, pageNumber);
+
+    // Check if no jobs were found
+    if (jobs.data.length === 0) {
+      return res.status(404).json({ error: "No jobs found for this company" });
+    }
+
+    // Send a 200 OK response with the jobs
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error("Error in handleGetCompanyJobs:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
