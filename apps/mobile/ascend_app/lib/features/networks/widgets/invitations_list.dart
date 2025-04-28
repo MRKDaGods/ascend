@@ -7,10 +7,10 @@ class InvitationsList extends StatefulWidget {
   final bool isExpanded;
 
   const InvitationsList({
-    Key? key,
+    super.key,
     required this.invitations,
     required this.isExpanded,
-  }) : super(key: key);
+  });
 
   @override
   _InvitationsListState createState() => _InvitationsListState();

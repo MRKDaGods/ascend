@@ -1,7 +1,11 @@
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
+import 'package:shared_preferences/shared_preferences.dart'; // Import for SharedPreferences
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart'; // Import Hive
+import 'package:path_provider/path_provider.dart'; // Import for Hive initialization
 import 'dart:async';
 
 import 'core/app/app_initializer.dart';
@@ -15,7 +19,17 @@ import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_event.dart';
 import 'theme.dart';
 
-void main() {
+void main() async {
+  // Ensure Flutter binding is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDocumentDir.path);
+
+  // // Clear local storage for testing
+  // await _clearLocalStorage();
+
   // Set up error handling
   AppInitializer.setupErrorHandling((error, stack) {
     debugPrint('Global error: $error');
@@ -23,20 +37,35 @@ void main() {
   });
 
   // Run app in an error zone to catch all errors
-  runZonedGuarded(() async {
-    // Initialize all services and dependencies
-    await AppInitializer.initialize();
-    
-    // Set up BLoC observer for debugging
-    AppInitializer.setupBlocObserver();
+  runZonedGuarded(
+    () async {
+      // Initialize all services and dependencies
+      await AppInitializer.initialize();
 
-    // Run the app
-    runApp(const MainApp());
-  }, (error, stackTrace) {
-    debugPrint('Error in runZonedGuarded: $error');
-    // In production, you'd want to log this to a service
-  });
+      // Set up BLoC observer for debugging
+      AppInitializer.setupBlocObserver();
+
+      // Run the app
+      runApp(const MainApp());
+    },
+    (error, stackTrace) {
+      debugPrint('Error in runZonedGuarded: $error');
+      // In production, you'd want to log this to a service
+    },
+  );
 }
+
+// // Function to clear local storage
+// Future<void> _clearLocalStorage() async {
+//   // Clear SharedPreferences
+//   final prefs = await SharedPreferences.getInstance();
+//   await prefs.clear();
+//   debugPrint('💡 SharedPreferences cleared.');
+
+//   // Clear Hive secure storage
+//   await SecureStorageHelper.clearAll();
+//   debugPrint('💡 Secure storage cleared.');
+// }
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -47,7 +76,7 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   bool _isInitialized = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -56,7 +85,7 @@ class _MainAppState extends State<MainApp> {
       _isInitialized = true;
     });
   }
-  
+
   // Method to set up push notification handlers
   Future<void> _setupPushNotifications() async {
     try {
@@ -72,7 +101,7 @@ class _MainAppState extends State<MainApp> {
       debugPrint('Error setting up push notifications: $e');
     }
   }
-  
+
   @override
   void dispose() {
     sl.dispose();
@@ -85,19 +114,15 @@ class _MainAppState extends State<MainApp> {
       return MaterialApp(
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
-    
+
     return MultiBlocProvider(
       providers: [
         // Updated BlocProvider
         BlocProvider<AuthBloc>.value(value: sl.authBloc),
-        
+
         // Your existing providers
         BlocProvider<UserProfileBloc>(
           create: (context) => UserProfileBloc()..add(LoadUserProfile()),
@@ -113,10 +138,10 @@ class _MainAppState extends State<MainApp> {
             }
           },
         ),
-        
+
         // Add the notification bloc
         BlocProvider<NotificationBloc>.value(value: sl.notificationBloc),
-        
+
         // Add SearchBloc to the providers
         BlocProvider<SearchBloc>.value(value: sl.searchBloc),
       ],
@@ -125,12 +150,12 @@ class _MainAppState extends State<MainApp> {
         darkTheme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
         navigatorKey: sl.navigatorKey,
-        
+
         // Use the routes from AppRoutes
         initialRoute: AppRoutes.initialRoute,
         routes: AppRoutes.getRoutes(),
         onGenerateRoute: AppRoutes.onGenerateRoute,
-        
+
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: ScrollBehavior().copyWith(

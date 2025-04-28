@@ -9,6 +9,8 @@ import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ascend_app/core/routes/app_routes.dart';
+
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -144,7 +146,7 @@ class _SignInPageState extends State<SignInPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
+                            SizedBox(
                               width: screenWidth * 0.4,
                               child: Divider(color: Colors.grey, thickness: 1),
                             ),
@@ -160,7 +162,7 @@ class _SignInPageState extends State<SignInPage> {
                                 ),
                               ),
                             ),
-                            Container(
+                            SizedBox(
                               width: screenWidth * 0.4,
                               child: Divider(color: Colors.grey, thickness: 1),
                             ),
@@ -201,7 +203,7 @@ class _SignInPageState extends State<SignInPage> {
                           alignment: Alignment.centerLeft,
                           child: TextButton(
                             onPressed: () {
-                              // Handle forgot password
+                              Navigator.pushReplacementNamed(context, '/forgotPasswordPage');
                             },
                             style: TextButton.styleFrom(
                               animationDuration: Duration.zero,

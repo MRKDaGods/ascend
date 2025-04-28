@@ -10,12 +10,12 @@ class NotificationCard extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const NotificationCard({
-    Key? key,
+    super.key,
     required this.notification,
     required this.onTap,
     this.onMarkAsRead,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,12 @@ class NotificationCard extends StatelessWidget {
                   child: const Text("CANCEL"),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
+                    if (onDelete != null) {
+                      onDelete!();
+                    }
+                  },
                   child: const Text("DELETE"),
                 ),
               ],

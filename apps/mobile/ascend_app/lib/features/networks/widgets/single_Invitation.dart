@@ -7,8 +7,7 @@ import 'package:ascend_app/features/networks/bloc/bloc/invitation_bloc.dart';
 class SingleInvitation extends StatelessWidget {
   final InvitationModel invitation;
 
-  const SingleInvitation({Key? key, required this.invitation})
-    : super(key: key);
+  const SingleInvitation({super.key, required this.invitation});
 
   @override
   Widget build(BuildContext context) {

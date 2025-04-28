@@ -27,7 +27,9 @@ List<UserModel> getSuggestedUsersforConnection(
   unConnectedUsers.removeWhere((element) => element.id == "1");
   unConnectedUsers.removeWhere((element) => element.firstFollow == true);
   print("Users to Connect:");
-  unConnectedUsers.forEach((element) => print(element.id));
+  for (var element in unConnectedUsers) {
+    print(element.id);
+  }
   return unConnectedUsers;
 }
 

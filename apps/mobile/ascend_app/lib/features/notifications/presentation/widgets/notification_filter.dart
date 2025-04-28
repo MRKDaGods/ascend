@@ -13,11 +13,11 @@ class NotificationFilter extends StatefulWidget {
   final Function(NotificationType?) onFilterSelected;
 
   const NotificationFilter({
-    Key? key,
+    super.key,
     required this.availableTypes,
     this.selectedType,
     required this.onFilterSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<NotificationFilter> createState() => _NotificationFilterState();
@@ -70,7 +70,7 @@ class _NotificationFilterState extends State<NotificationFilter> {
           });
           widget.onFilterSelected(_selectedType);
         },
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         selectedColor: Theme.of(context).colorScheme.primaryContainer,
         checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
         labelStyle: TextStyle(

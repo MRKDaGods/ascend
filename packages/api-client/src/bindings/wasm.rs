@@ -127,6 +127,11 @@ impl WasmApiClient {
     }
 
     #[wasm_bindgen]
+    pub async fn get_user_profile(&self, id: i32) -> Result<JsValue, JsValue> {
+        wasm_wrap!(self.user().get_user_profile(id: i32))
+    }
+
+    #[wasm_bindgen]
     pub async fn update_local_user_profile(&self, profile: JsValue) -> Result<JsValue, JsValue> {
         let profile: Profile = serde_wasm_bindgen::from_value(profile).map_err(map_error_wasm)?;
 
