@@ -8,8 +8,8 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePreferencesModal } from "../stores/usePreferencesModal";
-import MainPreferencesPage from "../jobs/PreferencesViews/MainPreferencesPage";
-import OpenToWorkModal from "../jobs/PreferencesViews/OpenToWorkPage";
+import MainPreferencesPage from "../jobs/MainPreferences/page";
+import OpenToWorkModal from "../jobs/OpenToWork/page";
 //add more views here 
 
 export default function PreferencesModal() {
