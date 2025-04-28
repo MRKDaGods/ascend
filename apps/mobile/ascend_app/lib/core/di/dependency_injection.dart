@@ -23,6 +23,9 @@ class ServiceLocator {
   // Internal constructor
   ServiceLocator._internal();
 
+  // Flag to track initialization status
+  bool _isInitialized = false; // Add this flag
+
   // Navigator key for navigation from background
   final navigatorKey = GlobalKey<NavigatorState>();
   // Add Auth related properties
@@ -40,6 +43,12 @@ class ServiceLocator {
 
   /// Initialize all dependencies
   Future<void> init() async {
+    // Add guard check
+    if (_isInitialized) {
+      debugPrint('ServiceLocator already initialized. Skipping.');
+      return;
+    }
+
     // Core
     networkInfo = NetworkInfoImpl(InternetConnectionChecker.createInstance());
 
@@ -75,12 +84,23 @@ class ServiceLocator {
     // BLOCs
     notificationBloc = NotificationBloc(apiClient: apiClient);
     searchBloc = SearchBloc();
+
+    // Set flag to true after successful initialization
+    _isInitialized = true;
+    debugPrint('ServiceLocator initialized successfully.');
   }
 
   /// Dispose of resources when app is closed
   void dispose() {
-    notificationBloc.close();
-    authBloc.close();
+    // Only close if initialized to avoid errors
+    if (_isInitialized) {
+      notificationBloc.close();
+      authBloc.close();
+      searchBloc.close(); // Also close SearchBloc if needed
+      // Reset flag if you intend for it to be re-initializable (less common)
+      // _isInitialized = false;
+      debugPrint('ServiceLocator resources disposed.');
+    }
   }
 }
 
