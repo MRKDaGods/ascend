@@ -282,6 +282,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: PostHeader(
                                 ownerName: post.ownerName,
+                                userId: post.userId,
                                 ownerImageUrl: post.ownerImageUrl,
                                 timePosted: post.timePosted,
                                 ownerOccupation: post.ownerOccupation,
