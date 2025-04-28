@@ -1,7 +1,6 @@
 import startSharedService from "@shared/sharedService";
 import paymentRoutes from "./routers/paymentRouter";
-import { consumeEvents, getRPCQueueName, setupRPCServer } from "@shared/rabbitMQ";
-import { Events, getQueueName } from "@shared/rabbitMQ";
+import { consumeEvents, getRPCQueueName, setupRPCServer, Events, getQueueName } from "@shared/rabbitMQ";
 import {  handleGetUserConnectionsUsage, handleGetUserJobApplicationsUsage, handleGetUserMessagingUsage, handleUserCreated } from "./consumers/paymentConsumers";
 import { Services } from "@ascend/shared";
 

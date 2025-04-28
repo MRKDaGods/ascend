@@ -11,7 +11,7 @@ import { Feature } from "@shared/models/feature";
 import { Subscription } from "@shared/models/subscription";
 import { Usage } from "@shared/models/usage";
 import { insertSurvey } from "../services/surveyService";
-import { getProfile } from "../../../user/src/services/userService";
+import { getUserProfile } from "@shared/utils/userProfile";
 
 if(!process.env.STRIPE_SECRET_KEY){
     throw new Error("paymentController : STRIPE_SECRET_KEY not defined");
@@ -23,13 +23,15 @@ if(!process.env.STRIPE_SECRET_KEY){
     throw new Error("paymentController : BASE_URL not defined");
 }else if(!process.env.STRIPE_WEBHOOK_SECRET_KEY){
     throw new Error("paymentController : STRIPE_WEBHOOK_SECRET_KEY not defined");
+}else if(!process.env.FRONTEND_BASE_URL){
+    throw new Error("paymentController : FRONTEND_BASE_URL not defined");
 }
 
 const STRIPE_SECRET_KEY : string = process.env.STRIPE_SECRET_KEY;
 const SESSION_TOKEN_EXPIRY_MS : number = parseInt(process.env.SESSION_TOKEN_EXPIRY_MS);
 const SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS : number = parseInt(process.env.SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS);
 const PAYMENT_BASE_URL : string = process.env.PAYMENT_BASE_URL;
-const FRONTEND_BASE_URL : string = "";
+const FRONTEND_BASE_URL : string = process.env.FRONTEND_BASE_URL;
 const STRIPE_WEBHOOK_SECRET_KEY : string = process.env.STRIPE_WEBHOOK_SECRET_KEY; 
 
 const stripe = new st(STRIPE_SECRET_KEY);
@@ -117,7 +119,7 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
         const user_usage = await getUsageByUserId(user_id);
         let customer;
         if(!(user_usage?.stripe_customer_id)){ // if no customer ID has been created yet for the user
-            const user = await getProfile(user_id);
+            const user = await getUserProfile(user_id);
             customer = await stripe.customers.create({
                 name :  user?.first_name + ' ' + user?.last_name , 
                 email : user?.contact_info?.email
@@ -258,7 +260,7 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
         const user_usage = await getUsageByUserId(user_id);
         let customer;
         if(!(user_usage?.stripe_customer_id)){ // if no customer ID has been created yet for the user
-            const user = await getProfile(user_id);
+            const user = await getUserProfile(user_id);
             customer = await stripe.customers.create({
                 name :  user?.first_name + ' ' + user?.last_name , 
                 email : user?.contact_info?.email
