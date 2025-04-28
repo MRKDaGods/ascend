@@ -1,7 +1,4 @@
 {
-  "/feed/page": "app/feed/page.js",
-  "/chat/page": "app/chat/page.js",
-  "/notif/page": "app/notif/page.js",
-  "/network/page": "app/network/page.js",
-  "/profile/page": "app/profile/page.js"
+  "/page": "app/page.js",
+  "/feed/saved-post/page": "app/feed/saved-post/page.js"
 }

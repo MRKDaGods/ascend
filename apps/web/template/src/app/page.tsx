@@ -1,59 +1,133 @@
-// Page: Main Page
-
-// currently set exactly like the authentication welcome page
-// to be changed later when implementing "Keep me logged" logic
+// Page: Main Feed
 
 "use client";
 
-import React from "react";
-import { Box, Container } from "@mui/material";
-import Header from "@/app/components/Header";
-import AuthSection from "@/app/components/AuthSection";
-import Illustration from "@/app/components/Illustration";
-import LightThemeProvider from "@/app/providers/LightThemeProvider";
+import React, { useEffect } from "react";
+import { Box, Container, CircularProgress, Divider } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
-const HomePage = () => {
+import Navbar from "./components/Navbar";
+import CreatePost from "./components/CreatePost";
+import ConnectionPost from "./components/ConnectionPost";
+import ProfileCard from "./components/ProfileCard";
+import WhosHiringCard from "./components/WhosHiringCard";
+import Footer from "./components/Footer";
+import CompanyCard from "./components/CompanyCard";
+import TryPremCard from "./components/TryPremCard";
+import ManageFeedCard from "./components/ManageFeedCard";
+
+import { usePostStore } from "./stores/usePostStore";
+import { useProfileStore } from "./stores/useProfileStore";
+
+import {api} from "@/api/";
+
+const Home: React.FC = () => {
+  const theme = useTheme();
+  const posts = usePostStore((state) => state.posts);
+  const fetchNewsFeed = usePostStore((state) => state.fetchNewsFeedFromAPI);
+  const { userData, setUserData } = useProfileStore();
+
+  const visiblePosts = posts.filter((post) => post.isUserPost !== true);
+
+  useEffect(() => {
+    fetchNewsFeed();
+  
+    if (!userData) {
+      api.user.getLocalUserProfile().then(setUserData).catch(console.error);
+    }
+  }, []);
+
   return (
-    <LightThemeProvider>
-      <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-        <Header />
-        <Container>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column-reverse", md: "row" },
-              alignItems: "center",
-              justifyContent: "center",
-              gap: { xs: 2, md: 4 },
-              px: { xs: 2, md: 0 },
-              mt: { xs: 2, md: 0 },
-            }}
-          >
-            <Box
-              sx={{
-                width: { xs: "100%", md: "50%" },
-                textAlign: { xs: "center", md: "left" },
-                color: "text.primary",
-              }}
-            >
-              <AuthSection />
-            </Box>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+      }}
+    >
+      <Navbar />
 
-            <Box
-              sx={{
-                width: { xs: "100%", md: "50%" },
-                display: "flex",
-                justifyContent: "center",
-                mb: { xs: -12, md: 0 },
-              }}
-            >
-              <Illustration />
-            </Box>
+      <Container
+        sx={{
+          mt: 2,
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          justifyContent: "center",
+          alignItems: { xs: "stretch", md: "flex-start" },
+          gap: 3,
+          px: { xs: 1, sm: 2 },
+          maxWidth: "1400px",
+          pb: 5,
+        }}
+      >
+        {/* Left Panel */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { xs: "100%", md: "280px" },
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            position: { md: "sticky" },
+            top: { md: "80px" },
+            alignSelf: "flex-start",
+          }}
+        >
+          {userData ? (
+            <>
+              <ProfileCard />
+              <TryPremCard />
+              <CompanyCard />
+              </>
+          ) : (
+            <CircularProgress />
+          )}
+        </Box>
+
+        {/* Center Feed */}
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+            top: { md: "80px" },
+          }}
+        >
+          <Box sx={{ width: "100%", maxWidth: "600px" }}>
+            <CreatePost />
           </Box>
-        </Container>
-      </Box>
-    </LightThemeProvider>
+
+          <Divider sx={{ borderColor: theme.palette.divider, borderWidth: "1px", width: "100%", maxWidth: "600px" }} />
+
+          {visiblePosts.map((post) => (
+            <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
+              <ConnectionPost post={post} />
+            </Box>
+          ))}
+        </Box>
+
+        {/* Right Panel */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { xs: "100%", md: "300px" },
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            position: { md: "sticky" },
+            top: { md: "80px" },
+            alignSelf: "flex-start",
+          }}
+        >
+          <WhosHiringCard />
+          <ManageFeedCard />
+          <Footer />
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
-export default HomePage;
+export default Home;
