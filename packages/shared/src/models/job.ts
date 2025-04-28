@@ -3,10 +3,22 @@ export interface SavedJob {
   saved_at: Date;
 }
 
+// Interface for job application response
 export interface Application {
   application_id: number;
   user_id: number;
   job_id: number;
+  resume_url: string;
+  email: string;
+  phone: string;
+  status: string;
+  applied_at: Date;
+}
+
+// Interface for getting job applications for user
+export interface JobApplicationForUser {
+  application_id: number;
+  job: Job;
   resume_url: string;
   email: string;
   phone: string;
