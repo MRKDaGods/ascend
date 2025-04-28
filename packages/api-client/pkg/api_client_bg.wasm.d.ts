@@ -16,6 +16,7 @@ export const wasmapiclient_reset_password: (a: number, b: number, c: number, d: 
 export const wasmapiclient_delete_account: (a: number) => any;
 export const wasmapiclient_logout: (a: number) => any;
 export const wasmapiclient_get_local_user_profile: (a: number) => any;
+export const wasmapiclient_get_user_profile: (a: number, b: number) => any;
 export const wasmapiclient_update_local_user_profile: (a: number, b: any) => any;
 export const wasmapiclient_upload_profile_picture: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => any;
 export const wasmapiclient_delete_profile_picture: (a: number) => any;
@@ -36,6 +37,6 @@ export const __wbindgen_export_5: WebAssembly.Table;
 export const __externref_table_dealloc: (a: number) => void;
 export const __wbindgen_free: (a: number, b: number, c: number) => void;
 export const _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h3360e2c19bacbc8b: (a: number, b: number) => void;
-export const closure260_externref_shim: (a: number, b: number, c: any) => void;
-export const closure308_externref_shim: (a: number, b: number, c: any, d: any) => void;
+export const closure264_externref_shim: (a: number, b: number, c: any) => void;
+export const closure312_externref_shim: (a: number, b: number, c: any, d: any) => void;
 export const __wbindgen_start: () => void;

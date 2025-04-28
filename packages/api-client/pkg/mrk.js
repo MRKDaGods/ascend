@@ -204,6 +204,9 @@ class UserService {
     async getLocalUserProfile() {
         return this.client.get_local_user_profile();
     }
+    async getUserProfile(userId) {
+        return this.client.get_user_profile(userId);
+    }
     /**
      * Updates the currently authenticated user's profile
      * @param profile - The user's profile data
@@ -226,7 +229,7 @@ class UserService {
     async uploadProfilePicture(file) {
         const name = file.name;
         const mime = file.type;
-        const buffer = await file.bytes();
+        const buffer = new Uint8Array(await file.arrayBuffer());
         return this.client.upload_profile_picture(name, mime, buffer);
     }
     /**
@@ -246,7 +249,7 @@ class UserService {
     async uploadCoverPhoto(file) {
         const name = file.name;
         const mime = file.type;
-        const buffer = await file.bytes();
+        const buffer = new Uint8Array(await file.arrayBuffer());
         return this.client.upload_cover_photo(name, mime, buffer);
     }
     /**
@@ -266,7 +269,7 @@ class UserService {
     async uploadResume(file) {
         const name = file.name;
         const mime = file.type;
-        const buffer = await file.bytes();
+        const buffer = new Uint8Array(await file.arrayBuffer());
         return this.client.upload_resume(name, mime, buffer);
     }
     /**

@@ -12,6 +12,6 @@ services:
       - JWT_SECRET=${JWT_SECRET}
 
       # Service port
-      - PORT=80
+      - PORT=23469
     ports:
-      - "80:80"
+      - "23469:23469"

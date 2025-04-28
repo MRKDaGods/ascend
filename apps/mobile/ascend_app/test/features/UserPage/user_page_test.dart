@@ -26,25 +26,7 @@ void main() {
     const name = 'Maged Amgad';
     const bio = 'Computer engineering student at Cairo University';
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: UserProfilePage(
-          name: name,
-          bio: bio,
-          location: 'Cairo, Egypt',
-          latestEducation: 'Cairo University',
-          sections: const [],
-          isconnect: false,
-          isfollow: false,
-          isPending: true,
-          connections: 15,
-          verified: true,
-          degree: '1st',
-          mutualConnections: const [],
-          links: const [],
-        ),
-      ),
-    );
+    await tester.pumpWidget(MaterialApp(home: UserProfilePage(profileId: 6)));
 
     // Assert
     expect(find.text(name), findsOneWidget);
