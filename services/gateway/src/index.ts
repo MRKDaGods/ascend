@@ -56,5 +56,11 @@ startSharedService("Gateway", undefined, {
 
     // Notification service
     app.use("/notifications", conditionalProxy("http://notification:3004"));
+
+    // Company service
+    app.use("/company", conditionalProxy("http://company:3009"));
+
+    // Payment service
+    app.use("/payment", conditionalProxy("http://payment:3014"));
   },
 });

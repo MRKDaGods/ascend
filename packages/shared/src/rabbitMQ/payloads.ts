@@ -1,6 +1,10 @@
-// =======================AUTH-EVENTS=======================
-
+import { Company } from "@shared/models/company";
+import { Follows } from "@shared/models/follows";
 import { FileMetadata, Profile, Post } from "@shared/models";
+import { Usage } from "@shared/models/usage";
+
+
+// =======================AUTH-EVENTS=======================
 
 /**
  * [RPC] Represents the payload for an admin user request event
@@ -150,6 +154,84 @@ export namespace FileMetadataRequestPayload {
   }
 }
 
+export interface CompanyAnnouncementCreatedPayload {
+  announcement_id: number;
+  company_id: number;
+  image_urls : Array<string>;
+  video_url? : string
+  created_at: Date;
+  posted_by: number;
+  content : string;
+};
+
+export interface CompanyAnnouncementUpdatedPayload {
+  announcement_id: number;
+  company_id: number;
+  new_image_urls : Array<string>;
+  new_video_url? : string;
+  updated_at: Date;
+  posted_by: number;
+  new_content? : string;
+};
+
+
+export namespace GetCompanyProfile {
+  export interface Request{
+    company_id : number
+  }
+
+  export interface Response{
+    company : Company|null
+  }
+};
+
+export namespace GetCompanyFollowers {
+  export interface Request{
+    company_id : number
+  }
+
+  export interface Response{
+    company_followers : Array<Follows>
+  }
+}
+
+export namespace GetUserUsageMessaging {
+  export interface Request{
+    user_id : number;
+    update_usage? : boolean;
+  }
+
+  export interface Response{
+    messages_per_day : number;
+    messages_per_day_limit : number;
+  }
+}
+
+
+export namespace GetUserUsageConnections {
+  export interface Request{
+    user_id : number;
+    update_usage? : boolean;
+  }
+
+  export interface Response{
+    connections : number;
+    connections_limit : number;
+  }
+}
+
+
+export namespace GetUserUsageJobApplications {
+  export interface Request{
+    user_id : number;
+    update_usage? : boolean;
+  }
+
+  export interface Response{
+    job_applications_per_month : number;
+    job_applications_limit : number;
+  }
+}
 /**
  * [RPC] Represents the payload for a get post event
  */

@@ -13,10 +13,25 @@ services:
     environment:
       - NODE_ENV=development
 
+
   user:
     volumes:
       - ./services/user:/app/services/user
     command: [ "npm", "run", "dev" ]
+    environment:
+      - NODE_ENV=development
+
+  company:
+    volumes:
+      - ./services/company:/app/services/company
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  payment:
+    volumes:
+      - ./services/payment:/app/services/payment
+    command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
 
