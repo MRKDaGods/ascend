@@ -8,7 +8,7 @@ class PostOptionsSheet extends StatelessWidget {
   final VoidCallback? onUnfollow;
   final VoidCallback? onReport;
   final VoidCallback? onMessage; // Add this callback
-  
+
   // Options to show/hide specific items
   final bool showSave;
   final bool showShare;
@@ -16,12 +16,12 @@ class PostOptionsSheet extends StatelessWidget {
   final bool showUnfollow;
   final bool showReport;
   final bool showMessage; // Add this option
-  
+
   // Customizable text for report option
   final String reportText;
 
   const PostOptionsSheet({
-    Key? key,
+    super.key,
     required this.ownerName,
     this.onSave,
     this.onShare,
@@ -36,7 +36,7 @@ class PostOptionsSheet extends StatelessWidget {
     this.showReport = true,
     this.showMessage = false, // Default to false
     this.reportText = 'Report post',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +53,13 @@ class PostOptionsSheet extends StatelessWidget {
                 if (onSave != null) {
                   onSave!();
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Post saved')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Post saved')));
                 }
               },
             ),
-            
+
           if (showShare)
             ListTile(
               leading: const Icon(Icons.share),
@@ -69,13 +69,13 @@ class PostOptionsSheet extends StatelessWidget {
                 if (onShare != null) {
                   onShare!();
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sharing...')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Sharing...')));
                 }
               },
             ),
-            
+
           // Add the message option here
           if (showMessage)
             ListTile(
@@ -92,7 +92,7 @@ class PostOptionsSheet extends StatelessWidget {
                 }
               },
             ),
-            
+
           if (showNotInterested)
             ListTile(
               leading: const Icon(Icons.not_interested),
@@ -103,12 +103,14 @@ class PostOptionsSheet extends StatelessWidget {
                   onNotInterested!();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('We\'ll show fewer posts like this')),
+                    const SnackBar(
+                      content: Text('We\'ll show fewer posts like this'),
+                    ),
                   );
                 }
               },
             ),
-            
+
           if (showUnfollow)
             ListTile(
               leading: const Icon(Icons.person_remove_outlined),
@@ -124,7 +126,7 @@ class PostOptionsSheet extends StatelessWidget {
                 }
               },
             ),
-            
+
           if (showReport)
             ListTile(
               leading: const Icon(Icons.flag_outlined),
@@ -140,7 +142,9 @@ class PostOptionsSheet extends StatelessWidget {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: Text(reportText),
-                        content: Text('Why are you reporting this ${reportText.toLowerCase().contains('post') ? 'post' : 'content'}?'),
+                        content: Text(
+                          'Why are you reporting this ${reportText.toLowerCase().contains('post') ? 'post' : 'content'}?',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
@@ -150,7 +154,11 @@ class PostOptionsSheet extends StatelessWidget {
                             onPressed: () {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('${reportText.toLowerCase().contains('post') ? 'Post' : 'Content'} reported')),
+                                SnackBar(
+                                  content: Text(
+                                    '${reportText.toLowerCase().contains('post') ? 'Post' : 'Content'} reported',
+                                  ),
+                                ),
                               );
                             },
                             child: const Text('Submit'),

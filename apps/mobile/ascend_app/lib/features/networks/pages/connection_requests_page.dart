@@ -13,12 +13,12 @@ class ConnectionRequestsPage extends StatelessWidget {
   final List<ConnectionRequestModel> pendingRequestsSent;
 
   const ConnectionRequestsPage({
-    Key? key,
+    super.key,
     required this.invitationsReceived,
     required this.invitationsSent,
     required this.pendingRequestsReceived,
     required this.pendingRequestsSent,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -22,6 +22,7 @@ class PostModel extends Equatable {
   final String? currentReaction;
   final List<Comment> comments;
   final bool showFeedbackOptions;
+  final bool isSaved; // Add this field
 
   const PostModel({
     required this.id,
@@ -42,6 +43,7 @@ class PostModel extends Equatable {
     this.currentReaction,
     this.comments = const [],
     this.showFeedbackOptions = false,
+    this.isSaved = false, // Initialize with default value
   });
 
   @override
@@ -64,6 +66,7 @@ class PostModel extends Equatable {
     currentReaction,
     comments,
     showFeedbackOptions,
+    isSaved, // Add to props
   ];
 
   // Updated to return PostModel
@@ -86,6 +89,7 @@ class PostModel extends Equatable {
     String? currentReaction,
     List<Comment>? comments,
     bool? showFeedbackOptions,
+    bool? isSaved, // Add to copyWith parameters
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -106,6 +110,7 @@ class PostModel extends Equatable {
       currentReaction: currentReaction ?? this.currentReaction,
       comments: comments ?? this.comments,
       showFeedbackOptions: showFeedbackOptions ?? this.showFeedbackOptions,
+      isSaved: isSaved ?? this.isSaved, // Add to copyWith logic
     );
   }
   
@@ -161,6 +166,7 @@ class PostModel extends Equatable {
       'currentReaction': currentReaction,
       'comments': comments.map((comment) => comment.toJson()).toList(),
       'showFeedbackOptions': showFeedbackOptions,
+      'isSaved': isSaved, // Add to toJson
     };
   }
 
@@ -191,6 +197,7 @@ class PostModel extends Equatable {
             )
           : const [],
       showFeedbackOptions: json['showFeedbackOptions'] as bool? ?? false,
+      isSaved: json['isSaved'] as bool? ?? false, // Add fromJson logic
     );
   }
   
@@ -214,6 +221,7 @@ class PostModel extends Equatable {
       isLiked: oldModel['isLiked'] ?? false,
       comments: const [],
       showFeedbackOptions: oldModel['showFeedbackOptions'] ?? false,
+      isSaved: false, // Add default value
     );
   }
 
@@ -234,6 +242,7 @@ class PostModel extends Equatable {
       isLiked: false,
       comments: [],
       images: [],
+      isSaved: false, // Add default value
     );
   }
 
@@ -262,7 +271,13 @@ class PostModel extends Equatable {
     final createdAt = apiPost['created_at'] != null 
         ? DateTime.parse(apiPost['created_at'] as String)
         : DateTime.now();
-    final timeAgo = _formatTimeAgo(createdAt);
+    final timeAgo = formatTimeAgo(createdAt);
+    
+    // Extract profile picture URL, provide a valid default if missing
+    final profilePicUrl = userData['profile_picture_url'] as String?;
+    final ownerImageUrl = (profilePicUrl != null && profilePicUrl.isNotEmpty)
+        ? profilePicUrl
+        : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
     
     return PostModel(
       // Convert numeric ID to string
@@ -277,8 +292,8 @@ class PostModel extends Equatable {
       useCarousel: imageUrls.length > 1,
       
       // User information
-      ownerName: fullName,
-      ownerImageUrl: 'assets/images/profile/default_user.jpg', // Default until profile pic integration
+      ownerName: fullName.isNotEmpty ? fullName : 'Ascend User', // Fallback name
+      ownerImageUrl: ownerImageUrl, // Use the determined image URL
       ownerOccupation: 'User', // Not provided by API
       
       // Time posted
@@ -295,6 +310,7 @@ class PostModel extends Equatable {
       currentReaction: null,
       comments: [],
       isSponsored: false,
+      isSaved: apiPost['is_saved'] as bool? ?? false, // Assuming API provides 'is_saved'
     );
     } catch (e) {
     print('Error creating PostModel from API data: $e');
@@ -303,8 +319,8 @@ class PostModel extends Equatable {
   }
   }
 
-  // Helper method to format timestamps
-  static String _formatTimeAgo(DateTime timestamp) {
+  // Helper method to format timestamps - Made public static
+  static String formatTimeAgo(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
     

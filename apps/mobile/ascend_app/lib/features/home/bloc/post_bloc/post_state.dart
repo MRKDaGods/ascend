@@ -14,27 +14,40 @@ class PostsLoading extends PostState {}
 
 class PostsLoaded extends PostState {
   final List<PostModel> posts;
-  final bool freshLoad; // Added this parameter
-  
-  const PostsLoaded(this.posts, {this.freshLoad = false}); // Added default value
-  
+  final bool freshLoad; // Indicates if this is a fresh load vs. pagination
+  final int currentPage;
+  final bool hasMorePages;
+
+  const PostsLoaded(
+    this.posts, {
+    this.freshLoad = false,
+    this.currentPage = 1, // Default to page 1
+    this.hasMorePages = true, // Assume more pages initially
+  });
+
   @override
-  List<Object?> get props => [posts, freshLoad]; // Added to props
-  
-  // Helper method to find a post by id
+  List<Object?> get props => [posts, freshLoad, currentPage, hasMorePages];
+
+  // Helper to get post by ID
   PostModel? getPostById(String id) {
     try {
       return posts.firstWhere((post) => post.id == id);
     } catch (e) {
-      return null;
+      return null; // Return null if not found
     }
   }
-  
-  // Include freshLoad in copyWith
-  PostsLoaded copyWith({List<PostModel>? posts, bool? freshLoad}) {
+
+  PostsLoaded copyWith({
+    List<PostModel>? posts,
+    bool? freshLoad,
+    int? currentPage,
+    bool? hasMorePages,
+  }) {
     return PostsLoaded(
       posts ?? this.posts,
       freshLoad: freshLoad ?? this.freshLoad,
+      currentPage: currentPage ?? this.currentPage,
+      hasMorePages: hasMorePages ?? this.hasMorePages,
     );
   }
 }

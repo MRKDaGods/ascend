@@ -7,6 +7,9 @@ import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
+import 'package:ascend_app/core/routes/app_routes.dart';
+
 
 class JoinAscend extends StatefulWidget {
   const JoinAscend({super.key});
@@ -27,7 +30,8 @@ class _JoinAscendState extends State<JoinAscend>
   bool showPasswordField = false;
   bool showNameFields = false;
   double progress = _initialProgress;
-
+  int currentStep = 1;
+  final _logger = Logger();
   // Error messages
   String emailError = '';
   String passwordError = '';
@@ -49,6 +53,8 @@ class _JoinAscendState extends State<JoinAscend>
     super.initState();
     _initializeAnimations();
     _addFieldListeners();
+    final authBloc = context.read<AuthBloc>();
+    _logger.i('AuthBloc initialized: $authBloc');
   }
 
   void _initializeAnimations() {
@@ -95,46 +101,48 @@ class _JoinAscendState extends State<JoinAscend>
   }
 
   void handleContinue() {
+    final authBloc = context.read<AuthBloc>();
     setState(() {
-      if (!showPasswordField) {
+      if (currentStep == 1) {
         _validateEmail();
-      } else if (!showNameFields) {
+        if (emailError.isEmpty) {
+          currentStep = 2;
+          showPasswordField = true;
+          progress = _passwordProgress;
+        }
+      } else if (currentStep == 2) {
         _validatePassword();
-      } else {
+        if (passwordError.isEmpty) {
+          currentStep = 3;
+          showNameFields = true;
+          progress = _nameProgress;
+        }
+      } else if (currentStep == 3) {
         _validateNameFields();
+        if (firstNameError.isEmpty && lastNameError.isEmpty) {
+          final email = emailController.text.trim();
+          final password = passwordController.text.trim();
+          final firstName = firstNameController.text.trim();
+          final lastName = lastNameController.text.trim();
+
+          // Log the event dispatch
+          _logger.i(
+            'Dispatching SignUpRequested event with: '
+            'email=$email, firstName=$firstName, lastName=$lastName',
+          );
+
+          // Dispatch SignUpRequested event to AuthBloc
+          authBloc.add(
+            SignUpRequested(
+              email: email,
+              password: password,
+              firstName: firstName,
+              lastName: lastName,
+            ),
+          );
+        }
       }
     });
-
-    if (showNameFields && firstNameError.isEmpty && lastNameError.isEmpty) {
-      final email = emailController.text.trim();
-      final password = passwordController.text.trim();
-      final firstName = firstNameController.text.trim();
-      final lastName = lastNameController.text.trim();
-
-      // Dispatch SignUpRequested event to AuthBloc
-      context.read<AuthBloc>().add(
-        SignUpRequested(
-          email: email,
-          password: password,
-          firstName: firstName,
-          lastName: lastName,
-        ),
-      );
-      context.read<AuthBloc>().stream.listen((state) {
-        if (state is AuthSuccess) {
-          // Handle successful sign-up
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainNavigation()),
-          );
-        } else if (state is AuthFailure) {
-          // Handle sign-up failure
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.error)));
-        }
-      });
-    }
   }
 
   void _validateEmail() {
@@ -209,42 +217,62 @@ class _JoinAscendState extends State<JoinAscend>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: handleBackPress,
-      child: Scaffold(
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final screenWidth = constraints.maxWidth;
-            final screenHeight = constraints.maxHeight;
-            return SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 20),
-                      _buildProgressBar(),
-                      const SizedBox(height: 40),
-                      _buildTitle(),
-                      _buildSignInLink(),
-                      const SizedBox(height: 20),
-                      _buildInputFields(),
-                      const SizedBox(height: 20),
-                      _buildAgreementText(),
-                      const SizedBox(height: 10),
-                      _buildContinueButton(),
-                      const SizedBox(height: 15),
-                      _buildDivider(screenWidth),
-                      const SizedBox(height: 20),
-                      _buildSocialButtons(screenHeight),
-                    ],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        _logger.i('BlocListener triggered with state: $state');
+        final authBloc = context.read<AuthBloc>();
+        if (state is AuthSuccess) {
+          _logger.i('AuthSuccess detected: signUpMode=${state.signUpMode}');
+          if (state.signUpMode) {
+            _logger.i('Navigating to SignInPage after successful sign-up');
+            Navigator.pushReplacementNamed(context, '/signInPage');
+          } else {
+            _logger.i('Navigating to HomePage after successful sign-in');
+            Navigator.pushReplacementNamed(context, '/welcome');
+          }
+        } else if (state is AuthFailure) {
+          _logger.e('Authentication failed: ${state.error}');
+          ScaffoldMessenger.of(context,).showSnackBar(
+            SnackBar(content: Text('Error: ${state.error}')));
+        }
+      },
+      child: WillPopScope(
+        onWillPop: handleBackPress,
+        child: Scaffold(
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final screenHeight = constraints.maxHeight;
+              return SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 20),
+                        _buildProgressBar(),
+                        const SizedBox(height: 40),
+                        _buildTitle(),
+                        _buildSignInLink(),
+                        const SizedBox(height: 20),
+                        _buildInputFields(),
+                        const SizedBox(height: 20),
+                        _buildAgreementText(),
+                        const SizedBox(height: 10),
+                        _buildContinueButton(),
+                        const SizedBox(height: 15),
+                        _buildDivider(screenWidth),
+                        const SizedBox(height: 20),
+                        _buildSocialButtons(screenHeight),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -429,7 +457,7 @@ class _JoinAscendState extends State<JoinAscend>
 
   Widget _buildContinueButton() {
     return buildTextButton(
-      label: 'Agree & Join',
+      label: currentStep == 3 ? 'Sign Up' : 'Continue',
       onPressed: handleContinue,
       backgroundColor: Colors.blue,
       textColor: Colors.white,
@@ -440,7 +468,7 @@ class _JoinAscendState extends State<JoinAscend>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
+        SizedBox(
           width: screenWidth * 0.4,
           child: Divider(color: Colors.grey[500], thickness: 1),
         ),
@@ -451,7 +479,7 @@ class _JoinAscendState extends State<JoinAscend>
             style: TextStyle(color: Colors.grey[800], fontSize: 16),
           ),
         ),
-        Container(
+        SizedBox(
           width: screenWidth * 0.4,
           child: Divider(color: Colors.grey[500], thickness: 1),
         ),

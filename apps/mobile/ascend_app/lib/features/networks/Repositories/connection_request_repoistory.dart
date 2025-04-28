@@ -1,8 +1,6 @@
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/Mock Data/connections_request.dart';
 
-import 'dart:async';
-
 class ConnectionRequestRepository {
   final List<ConnectionRequestModel> connectionRequests = ConnectionRequests();
 
