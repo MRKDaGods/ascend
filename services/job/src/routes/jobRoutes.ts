@@ -29,7 +29,7 @@ router.post("/", authenticateToken, handleJobPosting);    // Create a job
 router.post("/:jobId/report", authenticateToken, handleReportJob);
 
 // Company jobs sub-resource
-router.get("/company/:companyId", handleGetCompanyJobs);
+router.get("/company/:companyId", authenticateToken, handleGetCompanyJobs);
 
 // Saved jobs sub-resource
 router.get("/saved", authenticateToken, handleGetSavedJobs);
