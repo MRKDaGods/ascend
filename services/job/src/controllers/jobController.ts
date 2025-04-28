@@ -261,6 +261,35 @@ export const handleJobApplication = [
   },
 ];
 
+export const handleGetUserApplications = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user!.id;
+    const pageNumber = Number(req.query.page) || 1;
+
+    // Validate page number
+    if (pageNumber < 1) {
+      return res.status(400).json({ error: "Page number must be at least 1" });
+    }
+
+    // Get applications for the user
+    const applications = await getJobApplications(userId, pageNumber);
+
+    // Check if no applications were found
+    if (applications.data.length === 0) {
+      return res.status(404).json({ error: "No applications found" });
+    }
+
+    // Send a 200 OK response with the applications
+    res.status(200).json(applications);
+  } catch (error) {
+    console.error("Error in handleGetUserApplications:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 export const handleGetApplicationStatus = async (
   req: AuthenticatedRequest,
   res: Response
