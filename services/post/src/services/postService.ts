@@ -211,14 +211,14 @@ export class PostService {
       if (isLiked) {
         // Unlike
         await db.query(
-          "DELETE FROM post_service.likes WHERE user_id = $1 AND post_id = $2",
+          "DELETE FROM post_service.post_engagement WHERE user_id = $1 AND post_id = $2",
           [userId, postId]
         );
         return { liked: false };
       } else {
         // Like
         await db.query(
-          `INSERT INTO post_service.likes (user_id, post_id, created_at)
+          `INSERT INTO post_service.post_engagement (user_id, post_id, created_at)
            VALUES ($1, $2, NOW())`,
           [userId, postId]
         );
@@ -232,7 +232,7 @@ export class PostService {
 
   async unlikePost(userId: number, postId: number): Promise<boolean> {
     const result = await db.query(
-      "DELETE FROM post_service.likes WHERE user_id = $1 AND post_id = $2",
+      "DELETE FROM post_service.post_engagement WHERE user_id = $1 AND post_id = $2",
       [userId, postId]
     );
     if (result.rowCount == null) return false;
@@ -478,7 +478,7 @@ export class PostService {
   // Helper methods for counting engagements
   private async getPostLikesCount(postId: number): Promise<number> {
     const result = await db.query(
-      "SELECT COUNT(*) FROM post_service.likes WHERE post_id = $1",
+      "SELECT COUNT(*) FROM post_service.post_engagement WHERE post_id = $1",
       [postId]
     );
     return parseInt(result.rows[0].count, 10);
@@ -621,7 +621,7 @@ export class PostService {
       if (includeLikes) {
         const likesQuery = await db.query(
           `SELECT u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id
-           FROM post_service.likes l
+           FROM post_service.post_engagement l
            JOIN user_service.profiles u ON l.user_id = u.user_id
            WHERE l.post_id = $1`,
           [postId]
@@ -749,7 +749,7 @@ export class PostService {
   // Check if post is liked by user
   async isPostLikedByUser(postId: number, userId: number): Promise<boolean> {
     const result = await db.query(
-      "SELECT EXISTS(SELECT 1 FROM post_service.likes WHERE post_id = $1 AND user_id = $2)",
+      "SELECT EXISTS(SELECT 1 FROM post_service.post_engagement WHERE post_id = $1 AND user_id = $2)",
       [postId, userId]
     );
     return result.rows[0].exists;
@@ -1001,6 +1001,258 @@ export class PostService {
       [reportId]
     );
     return (result.rowCount ?? 0) > 0 ? undefined : 0;
+  }
+    async ultimateSearch(
+    query: string,
+    limit: number = 5,
+    offset: number = 0
+  ): Promise<{ users: any[]; posts: Post[] }> {
+    if (!query || typeof query !== "string") {
+      throw new Error("Search query is required");
+    }
+  
+    // Clean and prepare search terms
+    const searchTerms = query
+      .toLowerCase()
+      .replace(/[^\w\s]/g, "")
+      .trim()
+      .split(/\s+/)
+      .filter((term) => term.length >= 2);
+  
+    if (searchTerms.length === 0) {
+      throw new Error("Search query must contain valid terms");
+    }
+  
+    try {
+      // 1. Search for posts
+      const posts = await this.searchPosts(query, limit, offset);
+  
+      // 2. Search for users (requires calling user service)
+      const usersResult = await db.query(
+        `SELECT 
+          u.user_id as id,
+          u.first_name,
+          u.last_name,
+          u.profile_picture_id,
+          u.bio,
+          ts_rank_cd(to_tsvector('english', concat(u.first_name, ' ', u.last_name)), 
+                    plainto_tsquery('english', $1)) as rank
+        FROM user_service.profiles u
+        WHERE to_tsvector('english', concat(u.first_name, ' ', u.last_name)) @@ 
+             plainto_tsquery('english', $1)
+          OR u.first_name ILIKE ANY(array[${searchTerms.map((_, i) => `$${i + 3}`).join(", ")}])
+          OR u.last_name ILIKE ANY(array[${searchTerms.map((_, i) => `$${i + 3}`).join(", ")}])
+        ORDER BY rank DESC
+        LIMIT $2`,
+        [query, limit, ...searchTerms.map((term) => `%${term}%`)]
+      );
+  
+      // Process user profile pictures
+      const users = await Promise.all(
+        usersResult.rows.map(async (user) => ({
+          ...user,
+          profile_picture_url: user.profile_picture_id
+            ? await this.getFileUrl(user.profile_picture_id)
+            : null,
+        }))
+      );
+  
+      return {
+        users,
+        posts,
+      };
+    } catch (error) {
+      console.error("Error in ultimate search:", error);
+      throw new Error("Failed to perform ultimate search");
+    }
+  }
+    async reactToPost(
+    userId: number, 
+    postId: number, 
+    reactionType: string
+  ): Promise<{ reacted: boolean; type: string }> {
+    try {
+      // Check if post exists
+      const post = await this.getPostById(postId);
+      if (!post) {
+        throw new Error("Post not found");
+      }
+  
+      // Check if user already reacted to this post
+      const existingReaction = await db.query(
+        "SELECT reaction_type FROM post_service.reactions WHERE user_id = $1 AND post_id = $2",
+        [userId, postId]
+      );
+      
+      const hasExistingReaction = existingReaction.rows.length > 0;
+      const currentReactionType = hasExistingReaction ? existingReaction.rows[0].reaction_type : null;
+      
+      // If same reaction type exists, remove it (toggle off)
+      if (hasExistingReaction && currentReactionType === reactionType) {
+        await db.query(
+          "DELETE FROM post_service.reactions WHERE user_id = $1 AND post_id = $2",
+          [userId, postId]
+        );
+        
+        // Update engagement counts
+        await this.updateReactionCounts(postId);
+        
+        return { reacted: false, type: reactionType };
+      } 
+      // If different reaction or no reaction exists, add/update the reaction
+      else {
+        if (hasExistingReaction) {
+          // Update existing reaction
+          await db.query(
+            `UPDATE post_service.reactions 
+             SET reaction_type = $1, updated_at = NOW()
+             WHERE user_id = $2 AND post_id = $3`,
+            [reactionType, userId, postId]
+          );
+        } else {
+          // Add new reaction
+          await db.query(
+            `INSERT INTO post_service.reactions (user_id, post_id, reaction_type, created_at, updated_at)
+             VALUES ($1, $2, $3, NOW(), NOW())`,
+            [userId, postId, reactionType]
+          );
+        }
+        
+        // Update engagement counts
+        await this.updateReactionCounts(postId);
+        
+        return { reacted: true, type: reactionType };
+      }
+    } catch (error) {
+      console.error("Error reacting to post:", error);
+      throw new Error("Failed to react to post");
+    }
+  }
+  
+  // Helper method to update reaction counts in post_engagement table
+  private async updateReactionCounts(postId: number): Promise<void> {
+    try {
+      // Get counts of each reaction type
+      const reactionCounts = await db.query(
+        `SELECT 
+          COUNT(CASE WHEN reaction_type = 'like' THEN 1 END) as like_count,
+          COUNT(CASE WHEN reaction_type = 'love' THEN 1 END) as love_count,
+          COUNT(CASE WHEN reaction_type = 'support' THEN 1 END) as support_count,
+          COUNT(CASE WHEN reaction_type = 'celebrate' THEN 1 END) as celebrate_count,
+          COUNT(CASE WHEN reaction_type = 'funny' THEN 1 END) as funny_count,
+          COUNT(CASE WHEN reaction_type = 'curious' THEN 1 END) as curious_count,
+          COUNT(CASE WHEN reaction_type = 'insightful' THEN 1 END) as insightful_count,
+          COUNT(*) as total_reactions_count
+        FROM post_service.reactions
+        WHERE post_id = $1`,
+        [postId]
+      );
+  
+      const counts = reactionCounts.rows[0];
+      
+      // Update the post_engagement table
+      await db.query(
+        `INSERT INTO post_service.post_engagement
+          (post_id, like_count, love_count, support_count, celebrate_count,
+           funny_count, curious_count, insightful_count, total_reactions_count, 
+           comments_count, shares_count, last_updated)
+         VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, 
+           (SELECT COUNT(*) FROM post_service.comments WHERE post_id = $1),
+           (SELECT COUNT(*) FROM post_service.shares WHERE post_id = $1), 
+           NOW()
+         )
+         ON CONFLICT (post_id) DO UPDATE
+         SET like_count = $2,
+             love_count = $3,
+             support_count = $4,
+             celebrate_count = $5,
+             funny_count = $6,
+             curious_count = $7,
+             insightful_count = $8,
+             total_reactions_count = $9,
+             comments_count = (SELECT COUNT(*) FROM post_service.comments WHERE post_id = $1),
+             shares_count = (SELECT COUNT(*) FROM post_service.shares WHERE post_id = $1),
+             last_updated = NOW()`,
+        [
+          postId,
+          counts.like_count,
+          counts.love_count,
+          counts.support_count,
+          counts.celebrate_count,
+          counts.funny_count,
+          counts.curious_count,
+          counts.insightful_count,
+          counts.total_reactions_count,
+        ]
+      );
+    } catch (error) {
+      console.error("Error updating reaction counts:", error);
+      throw new Error("Failed to update reaction counts");
+    }
+  }
+    async getPostReactions(
+    postId: number,
+    reactionType?: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<any[]> {
+    try {
+      // Check if post exists
+      const post = await this.getPostById(postId);
+      if (!post) {
+        throw new Error("Post not found");
+      }
+  
+      // Build query based on whether a reaction type filter is provided
+      let query = `
+        SELECT 
+          r.user_id,
+          r.reaction_type,
+          r.created_at,
+          r.updated_at,
+          json_build_object(
+            'id', u.user_id,
+            'first_name', u.first_name,
+            'last_name', u.last_name,
+            'profile_picture_id', u.profile_picture_id
+          ) as user
+        FROM post_service.reactions r
+        JOIN user_service.profiles u ON r.user_id = u.user_id
+        WHERE r.post_id = $1
+      `;
+      
+      const queryParams: any[] = [postId];
+      
+      if (reactionType) {
+        query += ` AND r.reaction_type = $2`;
+        queryParams.push(reactionType);
+      }
+      
+      // Add ordering and pagination
+      query += ` ORDER BY r.created_at DESC
+                 LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+      queryParams.push(limit, offset);
+      
+      const result = await db.query(query, queryParams);
+      
+      // Process results to include profile pictures
+      const reactions = await Promise.all(
+        result.rows.map(async (reaction) => {
+          if (reaction.user && reaction.user.profile_picture_id) {
+            reaction.user.profile_picture_url = await this.getFileUrl(
+              reaction.user.profile_picture_id
+            );
+          }
+          return reaction;
+        })
+      );
+      
+      return reactions;
+    } catch (error) {
+      console.error("Error getting post reactions:", error);
+      throw new Error("Failed to get post reactions");
+    }
   }
 }
 

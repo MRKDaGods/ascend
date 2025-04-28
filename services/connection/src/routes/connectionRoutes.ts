@@ -14,7 +14,10 @@ import {
   getBlockedUsers,
   sendMessageRequest,
   respondToMessageRequest,
-  updateConnectionPreferences
+  updateConnectionPreferences,
+  getMutualConnections,
+  getFollowers,
+  getConnectionsOfConnections,
 } from '../controllers/connectionController';
 
 
@@ -33,6 +36,7 @@ router.get('/connections/pending', authenticateToken, getPendingRequests);
 // Following routes
 router.post('/follow/:userId', authenticateToken, followUser);
 router.delete('/follow/:userId', authenticateToken, unfollowUser);
+router.get('/followers/:userId?', authenticateToken, getFollowers);
 
 // Blocking routes
 router.post('/block/:userId', authenticateToken, blockUser);
@@ -45,5 +49,11 @@ router.put('/message-request/:requestId', authenticateToken, respondToMessageReq
 
 // Preferences routes
 router.put('/preferences', authenticateToken, updateConnectionPreferences);
+
+// Mutual connections route
+router.get('/connections/mutual/:userId', authenticateToken, getMutualConnections);
+
+// Connections of connections (first level mutual)
+router.get('/connections/network', authenticateToken, getConnectionsOfConnections);
 
 export default router;
