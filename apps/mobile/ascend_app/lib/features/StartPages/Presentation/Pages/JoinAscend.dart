@@ -170,18 +170,24 @@ class _JoinAscendState extends State<JoinAscend>
   }
 
   void _validateNameFields() {
+    // Reset errors first
+    firstNameError = '';
+    lastNameError = '';
+
     if (firstNameController.text.isEmpty) {
       firstNameError = 'Please enter your first name';
     }
     if (lastNameController.text.isEmpty) {
       lastNameError = 'Please enter your last name';
     }
-    if (firstNameError.isEmpty && lastNameError.isEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-      );
-    }
+    // --- REMOVE THE INCORRECT NAVIGATION ---
+    // if (firstNameError.isEmpty && lastNameError.isEmpty) {
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => const MainNavigation()),
+    //   );
+    // }
+    // --- END REMOVAL ---
   }
 
   Future<bool> handleBackPress() async {
@@ -225,15 +231,18 @@ class _JoinAscendState extends State<JoinAscend>
           _logger.i('AuthSuccess detected: signUpMode=${state.signUpMode}');
           if (state.signUpMode) {
             _logger.i('Navigating to SignInPage after successful sign-up');
-            Navigator.pushReplacementNamed(context, '/signInPage');
+            // Use the correct route name for SignInPage
+            Navigator.pushReplacementNamed(context, RouteNames.signIn); // <-- Change this line
           } else {
             _logger.i('Navigating to HomePage after successful sign-in');
-            Navigator.pushReplacementNamed(context, '/welcome');
+            // Assuming '/welcome' eventually leads to home or checks auth state
+            Navigator.pushReplacementNamed(context, RouteNames.welcome);
           }
         } else if (state is AuthFailure) {
           _logger.e('Authentication failed: ${state.error}');
           ScaffoldMessenger.of(context,).showSnackBar(
-            SnackBar(content: Text('Error: ${state.error}')));
+            SnackBar(content: Text('Error: ${state.error}')), // Ensure context is available
+          );
         }
       },
       child: WillPopScope(

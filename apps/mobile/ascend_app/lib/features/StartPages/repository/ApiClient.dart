@@ -165,8 +165,7 @@ class ApiClient {
       // Success
       return;
     } else {
-      // Handle errors
-throw Exception('Error: ${response.statusCode}, ${response.body}');
+      // Handle errorthrow Exception('Error: ${response.statusCode}, ${response.body}');
     }
   }
 }

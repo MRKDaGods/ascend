@@ -41,24 +41,25 @@ class RouteNames {
 
 /// Class that defines all application routes
 class AppRoutes {
-  // Private constructor to prevent instantiation
   AppRoutes._();
 
   /// The initial route when the app starts
-  static const String initialRoute = '/';
+  static const String initialRoute = '/'; // Keep this as '/'
 
   /// Route definitions for MaterialApp
   static Map<String, WidgetBuilder> getRoutes() {
     return {
+      // --- Add the entry for the initial route '/' ---
+      initialRoute: (context) => const SplashScreen(), // Point '/' to SplashScreen
+      // --- End ---
+
       RouteNames.notifications: (context) => const NotificationsPage(),
-      RouteNames.welcome: (context) => const Welcome(),
+      RouteNames.welcome: (context) => const Welcome(), // Keep this for navigation from SplashScreen
       RouteNames.signIn: (context) => const SignInPage(),
       RouteNames.forgetPassword: (context) => forgotPasswordPage(),
-      RouteNames.createPost:
-          (context) => const CreatePostPage(), // Add the new route
+      RouteNames.createPost: (context) => const CreatePostPage(),
       RouteNames.settings: (context) => const SettingsMainPage(),
-      RouteNames.accountPreferences:
-          (context) => const AccountPreferencesPage(),
+      RouteNames.accountPreferences: (context) => const AccountPreferencesPage(),
       RouteNames.signInSecurity: (context) => const SignInSecurityPage(),
       RouteNames.visibility: (context) => const VisibilityPage(),
       RouteNames.dataPrivacy: (context) => const DataPrivacyPage(),
