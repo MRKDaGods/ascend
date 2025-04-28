@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/shared/models/profile.dart';
 
 class ProfileOptionsSheet extends StatelessWidget {
   const ProfileOptionsSheet({
@@ -14,6 +15,7 @@ class ProfileOptionsSheet extends StatelessWidget {
     this.showImage,
     this.imageUrl,
     this.imageType,
+    this.profile, // Pass the profile object
     super.key,
   });
 
@@ -29,31 +31,34 @@ class ProfileOptionsSheet extends StatelessWidget {
   final void Function(BuildContext, String)? showImage;
   final String? imageType; // 'profile' or 'cover'
   final String? imageUrl;
+  final Profile? profile; // Profile object to fetch data
+
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min, // Ensures it wraps content properly
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Custom Drag Handle
         Stack(
           children: [
+
+            Container(width: double.infinity, height: 35),
+
             SizedBox(
               width: double.infinity, // Full width background
               height: 35, // Slightly taller to match reference
               // Slightly darker background
             ),
+
             Center(
               child: Container(
-                width: 54, // Proper width as in the reference image
-                height: 7, // Slightly thicker
+                width: 54,
+                height: 7,
                 decoration: BoxDecoration(
-                  color: Colors.grey[400], // Drag handle color
-                  // Drag handle color
-                  borderRadius: BorderRadius.circular(3), // Rounded edges
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(3),
                 ),
-                margin: const EdgeInsets.symmetric(
-                  vertical: 10,
-                ), // Adds proper spacing
+                margin: const EdgeInsets.symmetric(vertical: 10),
               ),
             ),
           ],
@@ -167,7 +172,6 @@ class ProfileOptionsSheet extends StatelessWidget {
                           "Personalize invite",
                           toggleConnect,
                         ),
-
                         _buildSheetOption(
                           context,
                           Icons.flag,
@@ -179,7 +183,7 @@ class ProfileOptionsSheet extends StatelessWidget {
                         context,
                         Icons.info,
                         "About this profile",
-                        null,
+                        () => _showAboutProfileDialog(context),
                       ),
                     ],
           ),
@@ -215,8 +219,122 @@ class ProfileOptionsSheet extends StatelessWidget {
             const SnackBar(content: Text("This feature is not available yet")),
           );
         }
-        //Navigator.pop(context); // Always close the sheet after selection
       },
     );
+  }
+
+  void _showAboutProfileDialog(BuildContext context) {
+    if (profile == null) {
+      print("profile is null");
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      isScrollControlled: true, // Allows the sheet to expand properly
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Custom Drag Handle
+            Stack(
+              children: [
+                Container(width: double.infinity, height: 35),
+                Center(
+                  child: Container(
+                    width: 54,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ],
+            ),
+
+            // Main content with padding
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+              child: Wrap(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        "${profile!.firstName} ${profile!.lastName}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      profile!.namePronunciation != null
+                          ? Icon(Icons.volume_up, size: 20)
+                          : const SizedBox(width: 2),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildInfoRow(
+                    "Joined",
+                    profile!.createdAt != null
+                        ? "${profile!.createdAt!.month} ${profile!.createdAt!.year}"
+                        : "N/A",
+                  ),
+                  _buildInfoRow(
+                    "Contact information",
+                    profile!.contactInfo?.updatedAt != null
+                        ? "Updated over ${_calculateTimeAgo(profile!.contactInfo!.updatedAt!)}"
+                        : "N/A",
+                  ),
+                  _buildInfoRow(
+                    "Profile photo",
+                    profile!.profilePictureUrl != null
+                        ? "Updated over ${_calculateTimeAgo(profile!.updatedAt!)}"
+                        : "N/A",
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [Text(value, style: const TextStyle(color: Colors.grey))],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _calculateTimeAgo(DateTime date) {
+    final Duration difference = DateTime.now().difference(date);
+    if (difference.inDays >= 365) {
+      return "${difference.inDays ~/ 365} year(s) ago";
+    } else if (difference.inDays >= 30) {
+      return "${difference.inDays ~/ 30} month(s) ago";
+    } else if (difference.inDays >= 1) {
+      return "${difference.inDays} day(s) ago";
+    } else {
+      return "less than a day ago";
+    }
   }
 }
