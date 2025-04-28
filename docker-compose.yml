@@ -1,0 +1,296 @@
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ascend-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ascend-network
+    depends_on:
+      - postgres
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=ascend_vhost
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - ascend-network
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    hostname: minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - ascend-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=gateway
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth
+      - user
+      - file
+      - notification
+    networks:
+      - ascend-network
+
+  auth:
+    hostname: auth
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=auth
+      - ASCEND_ADMIN_FIRST_NAME=${ASCEND_ADMIN_FIRST_NAME}
+      - ASCEND_ADMIN_LAST_NAME=${ASCEND_ADMIN_LAST_NAME}
+      - ASCEND_ADMIN_EMAIL=${ASCEND_ADMIN_EMAIL}
+      - ASCEND_ADMIN_PASSWORD=${ASCEND_ADMIN_PASSWORD}
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3001
+
+      # Google OAuth
+      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
+      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
+      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+
+  user:
+    hostname: user
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=user
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3002
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - file
+    networks:
+      - ascend-network
+
+  file:
+    hostname: file
+    build:
+      context: .
+      dockerfile: services/file/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=file
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Minio
+      - MINIO_ENDPOINT=minio
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET=ascend-files
+      - MINIO_PORT=9000
+
+      # Service port
+      - PORT=3003
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+
+      # Gateway
+      - GATEWAY_ENDPOINT=${GATEWAY_ENDPOINT}
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - ascend-network
+
+  notification:
+    hostname: notification
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=notification
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3004
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3004:3004"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+
+  job:
+    hostname: job
+    build:
+      context: .
+      dockerfile: services/job/Dockerfile
+    environment:
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3008
+    ports:
+      - "3008:3008"
+    depends_on:
+      - postgres
+    networks:
+      - ascend-network
+
+  messaging:
+    hostname: messaging
+    build:
+      context: .
+      dockerfile: services/messaging/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=messaging
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3010
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3010:3010"
+      - "3011:3011"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  rabbitmq_data:
+  minio_data:
+
+
+networks:
+  ascend-network:
+    driver: bridge
