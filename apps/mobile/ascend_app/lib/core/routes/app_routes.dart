@@ -116,7 +116,7 @@ class AppRoutes {
 class PostDetailsPage extends StatelessWidget {
   final String postId;
 
-  const PostDetailsPage({Key? key, required this.postId}) : super(key: key);
+  const PostDetailsPage({super.key, required this.postId});
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +129,7 @@ class PostDetailsPage extends StatelessWidget {
 
 /// Splash screen widget
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

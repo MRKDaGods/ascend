@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
-  const JobDetailsPage({Key? key, required this.job}) : super(key: key);
+  const JobDetailsPage({super.key, required this.job});
 
   @override
   _JobDetailsPageState createState() => _JobDetailsPageState();

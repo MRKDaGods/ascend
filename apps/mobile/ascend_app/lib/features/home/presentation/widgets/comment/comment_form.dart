@@ -17,7 +17,7 @@ class CommentForm extends StatefulWidget {
   final VoidCallback? onCancelReply;
 
   const CommentForm({
-    Key? key,
+    super.key,
     required this.controller,
     this.focusNode,
     required this.onSubmit,
@@ -27,7 +27,7 @@ class CommentForm extends StatefulWidget {
     this.userName,
     this.replyingTo,
     this.onCancelReply,
-  }) : super(key: key);
+  });
 
   @override
   State<CommentForm> createState() => _CommentFormState();
@@ -42,13 +42,48 @@ class _CommentFormState extends State<CommentForm> {
   int _tagStartIndex = -1;
 
   final List<UserProfileModel> _mockUsers = [
-    UserProfileModel(id: '1', name: 'Rafat Sarosh', avatarUrl: 'assets/EmptyUser.png', position: 'AI for Enterprise'),
-    UserProfileModel(id: '2', name: 'Abdallah Khalil', avatarUrl: 'assets/EmptyUser.png', position: 'Ex-Software Testing Engineer'),
-    UserProfileModel(id: '3', name: 'Ali Mamdouh', avatarUrl: 'assets/EmptyUser.png', position: 'Head of Embedded Team'),
-    UserProfileModel(id: '4', name: 'Alan Levy', avatarUrl: 'assets/EmptyUser.png', position: 'Virtual Mentorship Leader'),
-    UserProfileModel(id: '5', name: 'Ahmed Sarhan', avatarUrl: 'assets/EmptyUser.png', position: 'IT Helpdesk Specialist'),
-    UserProfileModel(id: '6', name: 'Ahmed 2bany', avatarUrl: 'assets/EmptyUser.png', position: 'Interior Designer'),
-    UserProfileModel(id: '7', name: 'Abdelrahman Amin', avatarUrl: 'assets/EmptyUser.png', position: 'Software Engineer'),
+    UserProfileModel(
+      id: '1',
+      name: 'Rafat Sarosh',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'AI for Enterprise',
+    ),
+    UserProfileModel(
+      id: '2',
+      name: 'Abdallah Khalil',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'Ex-Software Testing Engineer',
+    ),
+    UserProfileModel(
+      id: '3',
+      name: 'Ali Mamdouh',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'Head of Embedded Team',
+    ),
+    UserProfileModel(
+      id: '4',
+      name: 'Alan Levy',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'Virtual Mentorship Leader',
+    ),
+    UserProfileModel(
+      id: '5',
+      name: 'Ahmed Sarhan',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'IT Helpdesk Specialist',
+    ),
+    UserProfileModel(
+      id: '6',
+      name: 'Ahmed 2bany',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'Interior Designer',
+    ),
+    UserProfileModel(
+      id: '7',
+      name: 'Abdelrahman Amin',
+      avatarUrl: 'assets/EmptyUser.png',
+      position: 'Software Engineer',
+    ),
   ];
 
   @override
@@ -113,10 +148,13 @@ class _CommentFormState extends State<CommentForm> {
       if (query.isEmpty) {
         _suggestedUsers = _mockUsers.take(5).toList();
       } else {
-        _suggestedUsers = _mockUsers
-            .where((user) =>
-                user.name.toLowerCase().contains(query.toLowerCase()))
-            .toList();
+        _suggestedUsers =
+            _mockUsers
+                .where(
+                  (user) =>
+                      user.name.toLowerCase().contains(query.toLowerCase()),
+                )
+                .toList();
       }
     });
     if (_showTaggingOverlay) {
@@ -175,7 +213,8 @@ class _CommentFormState extends State<CommentForm> {
     final spaceBelow = screenHeight - (offset.dy + textFieldHeight);
 
     // Decide position: prefer below if enough space, otherwise above
-    final bool showAbove = (spaceBelow < overlayHeight) && (spaceAbove > overlayHeight);
+    final bool showAbove =
+        (spaceBelow < overlayHeight) && (spaceAbove > overlayHeight);
 
     // Calculate the vertical offset
     // If showing above, offset is negative overlay height.
@@ -183,18 +222,19 @@ class _CommentFormState extends State<CommentForm> {
     final verticalOffset = showAbove ? -overlayHeight : textFieldHeight;
 
     return OverlayEntry(
-      builder: (context) => Positioned(
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0, verticalOffset),
-          child: UserTaggingOverlay(
-            users: _suggestedUsers,
-            onUserSelected: _insertTag,
+      builder:
+          (context) => Positioned(
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0, verticalOffset),
+              child: UserTaggingOverlay(
+                users: _suggestedUsers,
+                onUserSelected: _insertTag,
+              ),
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -224,7 +264,8 @@ class _CommentFormState extends State<CommentForm> {
   @override
   Widget build(BuildContext context) {
     final String displayName = widget.userName ?? 'You';
-    final bool hasAvatar = widget.userAvatarUrl != null && widget.userAvatarUrl!.isNotEmpty;
+    final bool hasAvatar =
+        widget.userAvatarUrl != null && widget.userAvatarUrl!.isNotEmpty;
 
     return CompositedTransformTarget(
       link: _layerLink,
@@ -233,10 +274,7 @@ class _CommentFormState extends State<CommentForm> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            UserAvatar(
-              imageUrl: widget.userAvatarUrl,
-              radius: 18,
-            ),
+            UserAvatar(imageUrl: widget.userAvatarUrl, radius: 18),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -257,7 +295,11 @@ class _CommentFormState extends State<CommentForm> {
                           const Spacer(),
                           InkWell(
                             onTap: widget.onCancelReply,
-                            child: Icon(Icons.close, size: 16, color: Colors.grey[600]),
+                            child: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
@@ -278,9 +320,14 @@ class _CommentFormState extends State<CommentForm> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(25.0),
-                        borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.send),
                         onPressed: () {

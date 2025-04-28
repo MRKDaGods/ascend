@@ -12,7 +12,7 @@ class RecommendedToFollow extends StatefulWidget {
   final bool showAll;
 
   const RecommendedToFollow({
-    Key? key,
+    super.key,
     required this.Message,
     required this.users,
     required this.mutualUsers,
@@ -20,7 +20,7 @@ class RecommendedToFollow extends StatefulWidget {
     required this.onUnfollow,
     required this.onHide,
     required this.showAll,
-  }) : super(key: key);
+  });
 
   @override
   _RecommendedToFollowState createState() => _RecommendedToFollowState();

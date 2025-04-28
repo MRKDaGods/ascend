@@ -3,7 +3,7 @@ import 'full_screen_image.dart';
 import 'bottom_options_sheet.dart';
 
 class ProfileMainImages extends StatelessWidget {
-  ProfileMainImages({
+  const ProfileMainImages({
     super.key,
     this.profilePic = 'https://picsum.photos/150/150',
     this.coverPic = 'https://picsum.photos/1500/500',

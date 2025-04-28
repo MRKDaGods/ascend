@@ -11,14 +11,14 @@ class PeopleToFollow extends StatefulWidget {
   final bool showAll;
 
   const PeopleToFollow({
-    Key? key,
+    super.key,
     required this.users,
     required this.mutualUsers,
     required this.onFollow,
     required this.onUnfollow,
     required this.onHide,
     required this.showAll,
-  }) : super(key: key);
+  });
   @override
   _PeopleToFollowState createState() => _PeopleToFollowState();
 }

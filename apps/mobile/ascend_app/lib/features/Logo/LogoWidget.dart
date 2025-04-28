@@ -4,14 +4,9 @@ class LogoWidget extends StatelessWidget {
   final double height;
   final double fontSize;
 
-  const LogoWidget({
-    Key? key,
-    required this.height,
-    required this.fontSize,
-  }) : super(key: key);
+  const LogoWidget({super.key, required this.height, required this.fontSize});
 
-
- @override
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: [

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SignInSecurityPage extends StatelessWidget {
-  const SignInSecurityPage({Key? key}) : super(key: key);
+  const SignInSecurityPage({super.key});
 
   @override
   Widget build(BuildContext context) {
