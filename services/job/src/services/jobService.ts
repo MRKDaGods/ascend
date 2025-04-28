@@ -85,6 +85,44 @@ export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
   }
 };
 
+export const isUserCompanyCreator = async (
+  userId: number,
+  companyId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM company_service.company
+      WHERE company_id = $1 AND created_by = $2
+    `;
+    const values = [companyId, userId];
+    const result = await db.query(query, values);
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking if user is company creator:", error);
+    throw new Error("Database query failed");
+  }
+};
+
+export const hasUserSavedJob = async (
+  userId: number,
+  jobId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM job_service.saved_jobs
+      WHERE user_id = $1 AND job_id = $2
+    `;
+    const values = [userId, jobId];
+    const result = await db.query(query, values);
+    return result.rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking if user has saved job:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const searchJobs = async ({
   keyword,
   location,
@@ -260,6 +298,7 @@ export const createJob = async (
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `;
+
     const values = [
       title,
       description,
@@ -273,7 +312,7 @@ export const createJob = async (
       company_id,
       user_id,
     ];
-    console.log("Creating job with values:", values);
+
     const result = await db.query(query, values);
     return result.rows[0];
   } catch (error) {
@@ -304,27 +343,15 @@ export const saveJob = async (
 export const removeSavedJob = async (
   user_id: number,
   job_id: number
-): Promise<boolean> => {
+): Promise<void> => {
   try {
-    // Check if job is saved before deleting
-    const checkQuery = `
-      SELECT * FROM job_service.saved_jobs
-      WHERE user_id = $1 AND job_id = $2
-    `;
-    const checkValues = [user_id, job_id];
-    const checkResult = await db.query(checkQuery, checkValues);
-
-    if (checkResult.rows.length === 0) {
-      return false;
-    }
-
     const query = `
       DELETE FROM job_service.saved_jobs
       WHERE user_id = $1 AND job_id = $2
+      RETURNING *
     `;
     const values = [user_id, job_id];
     await db.query(query, values);
-    return true;
   } catch (error) {
     console.error("Error deleting saved job:", error);
     throw new Error("Database query failed");
