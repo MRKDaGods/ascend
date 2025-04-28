@@ -387,6 +387,7 @@ volumes:
   rabbitmq_data:
   minio_data:
 
+
 networks:
   ascend-network:
     driver: bridge
