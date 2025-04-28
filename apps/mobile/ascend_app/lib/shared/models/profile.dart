@@ -342,6 +342,7 @@ class Profile {
   final int userId;
   final String firstName;
   final String lastName;
+  final String? headline;
   final String? resumeUrl;
   final int? resumeId;
   final String? coverPhotoUrl;
@@ -372,6 +373,7 @@ class Profile {
     required this.firstName,
     required this.lastName,
     this.resumeUrl,
+    this.headline,
     this.resumeId,
     this.coverPhotoUrl,
     this.coverPhotoId,
@@ -404,6 +406,7 @@ class Profile {
       lastName: json['last_name'],
       resumeUrl: json['resume_url'],
       resumeId: json['resume_id'],
+      headline: json['headline'],
       coverPhotoUrl: json['cover_photo_url'],
       coverPhotoId: json['cover_photo_id'],
       profilePictureUrl: json['profile_picture_url'],
@@ -464,6 +467,7 @@ class Profile {
     return {
       'user_id': userId,
       'first_name': firstName,
+      'headline': headline,
       'last_name': lastName,
       'resume_url': resumeUrl,
       'resume_id': resumeId,

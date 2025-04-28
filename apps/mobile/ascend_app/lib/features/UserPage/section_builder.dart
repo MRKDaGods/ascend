@@ -154,7 +154,8 @@ class _SectionBuilderState extends State<SectionBuilder> {
                   ],
                 ),
               const SizedBox(height: 5),
-
+              if (widget.section.title == "Featured")
+                widget.section.contentWidgets[0],
               // Section Content with Dividers
               for (var item in displayedContent) ...[
                 if (item != displayedContent.first || !widget.isExpanded)
