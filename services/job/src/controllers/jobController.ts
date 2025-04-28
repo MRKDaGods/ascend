@@ -16,6 +16,7 @@ import {
   isUserCompanyCreator,
   hasUserSavedJob,
   hasUserAppliedToJob,
+  getJobApplicationsByUserId,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -275,7 +276,7 @@ export const handleGetUserApplications = async (
     }
 
     // Get applications for the user
-    const applications = await getJobApplications(userId, pageNumber);
+    const applications = await getJobApplicationsByUserId(userId, pageNumber);
 
     // Check if no applications were found
     if (applications.data.length === 0) {
