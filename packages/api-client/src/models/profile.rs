@@ -123,5 +123,7 @@ pub struct Profile {
     pub contact_info: Option<ContactInfo>,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub headline: Option<String>,
+    pub current_position_id: Option<i32>,
 }
 

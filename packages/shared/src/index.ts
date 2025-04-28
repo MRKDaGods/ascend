@@ -4,4 +4,5 @@ export enum Services {
   FILE = "file",
   NOTIFICATION = "notification",
   MESSAGING = "messaging",
+  POST = "post",
 }
