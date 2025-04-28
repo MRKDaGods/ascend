@@ -19,21 +19,14 @@ import {
   Paper,
   InputBase,
   Badge,
+  Tooltip,
   useMediaQuery
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Home, Work, Chat, Notifications, Search } from "@mui/icons-material";
 import { useSearchStore } from "../stores/useSearchStore";
 import { useRouter, usePathname } from "next/navigation";
-
-interface UserData {
-  name: string;
-  profilePhoto: string;
-  coverPhoto: string;
-  role: string;
-  entity: string;
-  location: string;
-}
+import { useProfileStore } from "../stores/useProfileStore";
 
 const SearchContainer = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -75,7 +68,6 @@ const jobTitles = [
 ];
 
 const Jobsnavbar: React.FC = () => {
-  const [userData, setUserData] = useState<UserData | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchParams, setSearchParams] = useState({ title: "", location: "" });
@@ -88,25 +80,24 @@ const Jobsnavbar: React.FC = () => {
   const open = Boolean(anchorEl);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md')); // Detect small screens
 
+   // Fetch user data from the profile store
+     type Profile = {
+       profile_picture_url?: string;
+       first_name: string;
+       last_name: string;
+     };
+   
+     const userData = useProfileStore((state) => state.userData) as Profile | null;
+   
+     // Safely derive profile picture and full name
+     const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // Fallback to default avatar
+     const fullName = userData
+       ? `${userData.first_name} ${userData.last_name}`
+       : "User"; // Fallback to "User"
+   
+
   useEffect(() => {
     setIsClient(true);
-
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/user");
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const data: UserData = await response.json();
-        setUserData(data);
-        setSearchParams((prev) => ({
-          ...prev,
-          location: data.location || "",
-        }));
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
 
     const stored = localStorage.getItem("recentJobSearches");
     if (stored) {
@@ -354,28 +345,17 @@ const Jobsnavbar: React.FC = () => {
             </Badge>
           </NavIconButton>
 
-          {userData ? (
-            <>
-              <IconButton onClick={handleMenuOpen}>
-                <Avatar src={userData.profilePhoto} alt={userData.name} sx={{ width: 36, height: 36 }} />
-              </IconButton>
-              <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-                <MenuItem disabled>
-                  <Typography variant="body1" fontWeight="bold">{userData.name}</Typography>
-                </MenuItem>
-                <MenuItem disabled>
-                  <Typography variant="body2" color="textSecondary">
-                    {userData.role} at {userData.entity}
-                  </Typography>
-                </MenuItem>
-                <MenuItem onClick={handleMenuClose}>View Profile</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Settings & Privacy</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <CircularProgress size={24} />
-          )}
+           {/* User Avatar */}
+          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <Avatar
+              src={profilePicture}
+              alt={fullName}
+              sx={{
+                transition: "0.3s",
+                "&:hover": { transform: "scale(1.1)" },
+              }}
+            />
+          </IconButton>
         </Box>
       </Toolbar>
     </AppBar>
