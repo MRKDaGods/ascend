@@ -74,7 +74,7 @@ const jobTitles = [
   "Web Developer", "Mobile Developer"
 ];
 
-const JobsNavbar: React.FC = () => {
+const Jobsnavbar: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -382,4 +382,4 @@ const JobsNavbar: React.FC = () => {
   );
 };
 
-export default JobsNavbar;
+export default Jobsnavbar;
