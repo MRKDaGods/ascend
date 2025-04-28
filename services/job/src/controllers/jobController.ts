@@ -67,6 +67,11 @@ export const handleJobSearch = async (req: Request, res: Response) => {
     };
 
     const jobs = await searchJobs(searchParams);
+
+    if (jobs.data.length === 0) {
+      return res.status(404).json({ error: "No jobs found" });
+    }
+
     res.json(jobs);
   } catch (error) {
     console.error("Error in handleJobSearch:", error);
