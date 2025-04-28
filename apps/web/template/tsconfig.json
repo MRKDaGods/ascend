@@ -29,8 +29,9 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*"
-      ]
+        "./src/*",
+      ],
+      "@ascend/api-client/*": ["../../../packages/api-client/pkg/*"],
     }
   },
   "include": [

@@ -6,7 +6,7 @@ import ProfileCard from "../components/ProfileCard";
 import ListCard from "../components/ListCard";
 import JobPreferences from "../components/lookingfor";
 import JobList from "../components/JobsList";
-import Recommends from "../components/Recommends";
+import Recommends from "../components/recommends";
 
 function JobsPage() {
   return (
