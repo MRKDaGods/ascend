@@ -1,42 +1,73 @@
 import db from "@shared/config/db";
 import { Services } from "@ascend/shared";
-import {
-  Job,
-  Application,
-  SavedJob,
-  JobApplicationForUser,
-} from "packages/shared/src/models/job";
-import { getUserFullName } from "@shared/utils/userProfile";
 import { getPresignedUrl } from "@shared/utils/files";
+import { getUserFullName } from "@shared/utils/userProfile";
+
 import {
-  callRPC,
   Events,
-  FileUploadPayload,
+  callRPC,
   getRPCQueueName,
+  FileUploadPayload,
 } from "@shared/rabbitMQ";
 
+import {
+  Job,
+  SavedJob,
+  Application,
+  JobApplicationForUser,
+} from "packages/shared/src/models/job";
+
+/**
+ * Parameters for searching jobs with various filters
+ */
 interface JobSearchParams {
+  /** Optional keyword to search in job title and description */
   keyword?: string;
+  /** Optional array of locations to filter jobs */
   location?: string[];
+  /** Optional array of industries to filter jobs */
   industry?: string[];
+  /** Optional array of experience levels to filter jobs */
   experience_level?: string[];
+  /** Optional array of company names to filter jobs */
   company?: string[];
+  /** Optional minimum salary range to filter jobs */
   salary_min_range?: number;
+  /** Optional maximum salary range to filter jobs */
   salary_max_range?: number;
+  /** Current page number for pagination */
   pageNumber: number;
 }
 
+/**
+ * Generic paginated response structure
+ * @template T - The type of data contained in the response
+ */
 interface PaginatedResponse<T> {
+  /** Array of data items */
   data: T[];
+  /** Pagination metadata */
   pagination: {
+    /** Total number of records across all pages */
     totalRecords: number;
+    /** Total number of pages */
     totalPages: number;
+    /** Current page number */
     currentPage: number;
+    /** Next page number, or null if this is the last page */
     nextPage: number | null;
+    /** Previous page number, or null if this is the first page */
     previousPage: number | null;
   };
 }
 
+/**
+ * Checks if a user is the creator of a specific job
+ * @param userId - ID of the user to check
+ * @param jobId - ID of the job to check
+ * @returns Promise resolving to boolean indicating if the user is the job creator
+ * @throws {Error} When database query fails
+ */
 export const isUserJobCreator = async (
   userId: number,
   jobId: number
@@ -56,6 +87,12 @@ export const isUserJobCreator = async (
   }
 };
 
+/**
+ * Gets the job ID associated with a specific application
+ * @param applicationId - The ID of the application
+ * @returns Promise resolving to the job ID or null if not found
+ * @throws {Error} When database query fails
+ */
 export const getJobIdByApplicationId = async (
   applicationId: number
 ): Promise<number | null> => {
@@ -74,6 +111,12 @@ export const getJobIdByApplicationId = async (
   }
 };
 
+/**
+ * Checks if a job with the specified ID exists
+ * @param jobId - ID of the job to check
+ * @returns Promise resolving to boolean indicating if the job exists
+ * @throws {Error} When database query fails
+ */
 export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
   try {
     const query = `
@@ -90,6 +133,13 @@ export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
   }
 };
 
+/**
+ * Checks if a user is the creator of a specific company
+ * @param userId - ID of the user to check
+ * @param companyId - ID of the company to check
+ * @returns Promise resolving to boolean indicating if the user is the company creator
+ * @throws {Error} When database query fails
+ */
 export const isUserCompanyCreator = async (
   userId: number,
   companyId: number
@@ -109,6 +159,13 @@ export const isUserCompanyCreator = async (
   }
 };
 
+/**
+ * Checks if a user has saved a specific job
+ * @param userId - ID of the user
+ * @param jobId - ID of the job
+ * @returns Promise resolving to boolean indicating if the user has saved the job
+ * @throws {Error} When database query fails
+ */
 export const hasUserSavedJob = async (
   userId: number,
   jobId: number
@@ -128,6 +185,13 @@ export const hasUserSavedJob = async (
   }
 };
 
+/**
+ * Checks if a user has applied to a specific job
+ * @param userId - ID of the user
+ * @param jobId - ID of the job
+ * @returns Promise resolving to boolean indicating if the user has applied to the job
+ * @throws {Error} When database query fails
+ */
 export const hasUserAppliedToJob = async (
   userId: number,
   jobId: number
@@ -147,6 +211,20 @@ export const hasUserAppliedToJob = async (
   }
 };
 
+/**
+ * Searches for jobs based on provided filters and pagination
+ * @param params - Search parameters and filters
+ * @param params.keyword - Optional search term for job title and description
+ * @param params.location - Optional array of locations to filter by
+ * @param params.industry - Optional array of industries to filter by
+ * @param params.experience_level - Optional array of experience levels to filter by
+ * @param params.company - Optional array of company names to filter by
+ * @param params.salary_min_range - Optional minimum salary to filter by
+ * @param params.salary_max_range - Optional maximum salary to filter by
+ * @param params.pageNumber - Page number for pagination
+ * @returns Promise resolving to paginated list of jobs matching the search criteria
+ * @throws {Error} When database query fails
+ */
 export const searchJobs = async ({
   keyword,
   location,
@@ -164,13 +242,6 @@ export const searchJobs = async ({
 
     let query = `
       SELECT j.*, c.company_name, c.profile_photo_id
-      FROM job_service.jobs AS j
-      JOIN company_service.company AS c ON j.company_id = c.company_id
-      WHERE 1=1
-    `;
-
-    let countQuery = `
-      SELECT COUNT(*) AS total
       FROM job_service.jobs AS j
       JOIN company_service.company AS c ON j.company_id = c.company_id
       WHERE 1=1
@@ -226,20 +297,18 @@ export const searchJobs = async ({
 
     if (conditions.length > 0) {
       query += " AND " + conditions.join(" AND ");
-      countQuery += " AND " + conditions.join(" AND ");
     }
 
-    // Execute count query to get total records
-    const countResult = await db.query(countQuery, values);
-    const totalRecords = parseInt(countResult.rows[0].total);
+    // Execute the query without pagination parameters to get the total count
+    const countResult = await db.query(query, values);
 
-    // Add pagination to main query
+    // Add pagination parameters to the query
     query += ` ORDER BY j.created_at DESC LIMIT $${values.length + 1} OFFSET $${
       values.length + 2
     }`;
     values.push(PAGE_SIZE, OFFSET);
 
-    // Execute main query
+    // Execute the paginated query
     const result = await db.query(query, values);
 
     const jobsList = await Promise.all(
@@ -269,6 +338,7 @@ export const searchJobs = async ({
     );
 
     // Calculate pagination metadata
+    const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
     const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
@@ -291,6 +361,13 @@ export const searchJobs = async ({
   }
 };
 
+/**
+ * Retrieves jobs associated with a specific company
+ * @param companyId - ID of the company
+ * @param pageNumber - Page number for pagination
+ * @returns Promise resolving to paginated list of jobs for the company
+ * @throws {Error} When database query fails
+ */
 export const getJobsByCompanyId = async (
   companyId: number,
   pageNumber: number
@@ -307,9 +384,8 @@ export const getJobsByCompanyId = async (
     `;
     const countValues = [companyId];
 
+    // Execute the count query
     const countResult = await db.query(countQuery, countValues);
-
-    const totalRecords = parseInt(countResult.rows[0].total);
 
     const query = `
       SELECT j.*, c.company_name, c.profile_photo_id
@@ -321,6 +397,7 @@ export const getJobsByCompanyId = async (
     `;
     const values = [companyId, PAGE_SIZE, OFFSET];
 
+    // Execute the paginated query
     const result = await db.query(query, values);
 
     const jobsList = await Promise.all(
@@ -350,6 +427,7 @@ export const getJobsByCompanyId = async (
     );
 
     // Calculate pagination metadata
+    const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
     const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
@@ -372,6 +450,22 @@ export const getJobsByCompanyId = async (
   }
 };
 
+/**
+ * Creates a new job listing
+ * @param title - Title of the job
+ * @param description - Detailed job description
+ * @param industry - Industry category of the job
+ * @param type - Type of job (e.g., full-time, part-time)
+ * @param experience_level - Experience level required
+ * @param location - Job location
+ * @param workplace_type - Workplace type (e.g., remote, on-site)
+ * @param salary_min_range - Minimum salary range (can be null)
+ * @param salary_max_range - Maximum salary range (can be null)
+ * @param company_id - ID of the company creating the job
+ * @param userId - ID of the user creating the job
+ * @returns Promise resolving to the created job
+ * @throws {Error} When database query fails
+ */
 export const createJob = async (
   title: string,
   description: string,
@@ -383,7 +477,7 @@ export const createJob = async (
   salary_min_range: number | null,
   salary_max_range: number | null,
   company_id: number,
-  user_id: number
+  userId: number
 ): Promise<Job> => {
   try {
     const query = `
@@ -415,10 +509,13 @@ export const createJob = async (
       salary_min_range,
       salary_max_range,
       company_id,
-      user_id,
+      userId,
     ];
 
+    // Execute the query to insert the new job
     const result = await db.query(query, values);
+
+    // Return the created job
     return result.rows[0];
   } catch (error) {
     console.error("Error creating job:", error);
@@ -426,6 +523,21 @@ export const createJob = async (
   }
 };
 
+/**
+ * Updates an existing job listing
+ * @param jobId - ID of the job to update
+ * @param title - Optional new title for the job
+ * @param description - Optional new description for the job
+ * @param industry - Optional new industry for the job
+ * @param type - Optional new job type
+ * @param experience_level - Optional new experience level
+ * @param location - Optional new job location
+ * @param workplace_type - Optional new workplace type
+ * @param salary_min_range - Optional new minimum salary range
+ * @param salary_max_range - Optional new maximum salary range
+ * @returns Promise resolving to the updated job
+ * @throws {Error} When database query fails or if salary ranges are invalid
+ */
 export const updateJob = async (
   jobId: number,
   title?: string,
@@ -471,6 +583,7 @@ export const updateJob = async (
       WHERE job_id = $10
       RETURNING *
     `;
+
     const values = [
       title,
       description,
@@ -483,7 +596,11 @@ export const updateJob = async (
       salary_max_range,
       jobId,
     ];
+
+    // Execute the query to update the job
     const result = await db.query(query, values);
+
+    // Return the updated job
     return result.rows[0];
   } catch (error) {
     console.error("Error updating job:", error);
@@ -491,6 +608,12 @@ export const updateJob = async (
   }
 };
 
+/**
+ * Deletes a job listing
+ * @param jobId - ID of the job to delete
+ * @returns Promise resolving when the job is deleted
+ * @throws {Error} When database query fails
+ */
 export const deleteJob = async (jobId: number): Promise<void> => {
   try {
     const query = `
@@ -505,9 +628,16 @@ export const deleteJob = async (jobId: number): Promise<void> => {
   }
 };
 
+/**
+ * Saves a job for a user
+ * @param userId - ID of the user saving the job
+ * @param jobId - ID of the job to save
+ * @returns Promise resolving to the saved job record
+ * @throws {Error} When database query fails
+ */
 export const saveJob = async (
-  user_id: number,
-  job_id: number
+  userId: number,
+  jobId: number
 ): Promise<SavedJob> => {
   try {
     const query = `
@@ -515,7 +645,7 @@ export const saveJob = async (
       VALUES ($1, $2)
       RETURNING *
     `;
-    const values = [user_id, job_id];
+    const values = [userId, jobId];
     const result = await db.query(query, values);
     return result.rows[0];
   } catch (error) {
@@ -524,9 +654,16 @@ export const saveJob = async (
   }
 };
 
+/**
+ * Removes a saved job for a user
+ * @param userId - ID of the user
+ * @param jobId - ID of the job to remove from saved list
+ * @returns Promise resolving when the job is removed from saved list
+ * @throws {Error} When database query fails
+ */
 export const removeSavedJob = async (
-  user_id: number,
-  job_id: number
+  userId: number,
+  jobId: number
 ): Promise<void> => {
   try {
     const query = `
@@ -534,7 +671,7 @@ export const removeSavedJob = async (
       WHERE user_id = $1 AND job_id = $2
       RETURNING *
     `;
-    const values = [user_id, job_id];
+    const values = [userId, jobId];
     await db.query(query, values);
   } catch (error) {
     console.error("Error deleting saved job:", error);
@@ -542,8 +679,15 @@ export const removeSavedJob = async (
   }
 };
 
+/**
+ * Gets all jobs saved by a user
+ * @param userId - ID of the user
+ * @param pageNumber - Page number for pagination
+ * @returns Promise resolving to paginated list of jobs saved by the user
+ * @throws {Error} When database query fails
+ */
 export const getSavedJobs = async (
-  user_id: number,
+  userId: number,
   pageNumber: number
 ): Promise<PaginatedResponse<SavedJob>> => {
   try {
@@ -556,9 +700,10 @@ export const getSavedJobs = async (
       FROM job_service.saved_jobs
       WHERE user_id = $1
     `;
-    const countValues = [user_id];
+    const countValues = [userId];
+
+    // Execute the count query
     const countResult = await db.query(countQuery, countValues);
-    const totalRecords = parseInt(countResult.rows[0].total);
 
     const query = `
       SELECT s.saved_at, j.*, c.company_name, c.profile_photo_id
@@ -569,7 +714,9 @@ export const getSavedJobs = async (
       ORDER BY s.saved_at DESC
       LIMIT $2 OFFSET $3
     `;
-    const values = [user_id, PAGE_SIZE, OFFSET];
+    const values = [userId, PAGE_SIZE, OFFSET];
+
+    // Execute the paginated query
     const result = await db.query(query, values);
 
     const savedJobsList = await Promise.all(
@@ -577,7 +724,7 @@ export const getSavedJobs = async (
         // Fetch company logo URL
         const company_logo_url = await getPresignedUrl(row.profile_photo_id);
 
-        const job = {
+        return {
           job_id: row.job_id,
           title: row.title,
           description: row.description,
@@ -593,12 +740,11 @@ export const getSavedJobs = async (
           company_logo_url,
           saved_at: row.saved_at,
         };
-
-        return job;
       })
     );
 
     // Calculate pagination metadata
+    const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
     const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
@@ -621,9 +767,19 @@ export const getSavedJobs = async (
   }
 };
 
+/**
+ * Submits a job application
+ * @param userId - ID of the user applying for the job
+ * @param jobId - ID of the job being applied to
+ * @param resume - Resume file upload
+ * @param email - Contact email for the application
+ * @param phone - Contact phone number for the application
+ * @returns Promise resolving to the created application
+ * @throws {Error} When database query or file upload fails
+ */
 export const submitJobApplication = async (
-  user_id: number,
-  job_id: number,
+  userId: number,
+  jobId: number,
   resume: Express.Multer.File,
   email: string,
   phone: string
@@ -634,7 +790,7 @@ export const submitJobApplication = async (
 
     // Create the payload for file upload
     const payload: FileUploadPayload.Request = {
-      user_id,
+      user_id: userId,
       file_buffer: resume.buffer.toString("base64"),
       file_name: resume.originalname,
       mime_type: resume.mimetype,
@@ -657,10 +813,12 @@ export const submitJobApplication = async (
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
-    const values = [user_id, job_id, resumeId, email, phone];
+    const values = [userId, jobId, resumeId, email, phone];
+
+    // Execute the query to insert the new application
     const result = await db.query(query, values);
 
-    const jobApplication = {
+    return {
       application_id: result.rows[0].application_id,
       user_id: result.rows[0].user_id,
       job_id: result.rows[0].job_id,
@@ -670,16 +828,21 @@ export const submitJobApplication = async (
       status: result.rows[0].status,
       applied_at: result.rows[0].applied_at,
     };
-
-    return jobApplication;
   } catch (error) {
     console.error("Error applying for job:", error);
     throw new Error("Database query failed");
   }
 };
 
+/**
+ * Gets all job applications for a specific user
+ * @param userId - ID of the user
+ * @param pageNumber - Page number for pagination
+ * @returns Promise resolving to paginated list of job applications for the user
+ * @throws {Error} When database query fails
+ */
 export const getJobApplicationsByUserId = async (
-  user_id: number,
+  userId: number,
   pageNumber: number
 ): Promise<PaginatedResponse<JobApplicationForUser>> => {
   try {
@@ -692,10 +855,10 @@ export const getJobApplicationsByUserId = async (
       FROM job_service.applications
       WHERE user_id = $1
     `;
-    const countValues = [user_id];
+    const countValues = [userId];
 
+    // Execute the count query
     const countResult = await db.query(countQuery, countValues);
-    const totalRecords = parseInt(countResult.rows[0].total);
 
     const query = `
       SELECT a.*, j.*, c.company_name, c.profile_photo_id
@@ -706,17 +869,20 @@ export const getJobApplicationsByUserId = async (
       ORDER BY a.applied_at DESC
       LIMIT $2 OFFSET $3
     `;
-    const values = [user_id, PAGE_SIZE, OFFSET];
+    const values = [userId, PAGE_SIZE, OFFSET];
 
+    // Execute the paginated query
     const result = await db.query(query, values);
 
     const applicationsList = await Promise.all(
       result.rows.map(async (row) => {
         // Fetch company logo URL
         const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+
+        // Fetch resume URL
         const resume_url = await getPresignedUrl(row.resume_id);
 
-        const application = {
+        return {
           application_id: row.application_id,
           job: {
             job_id: row.job_id,
@@ -740,12 +906,11 @@ export const getJobApplicationsByUserId = async (
           status: row.status,
           applied_at: row.applied_at,
         };
-
-        return application;
       })
     );
 
     // Calculate pagination metadata
+    const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
     const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
@@ -768,8 +933,15 @@ export const getJobApplicationsByUserId = async (
   }
 };
 
+/**
+ * Gets the status of a specific job application
+ * @param applicationId - ID of the application
+ * @param userId - ID of the user to validate ownership
+ * @returns Promise resolving to application status or null if not found
+ * @throws {Error} When database query fails
+ */
 export const getApplicationStatus = async (
-  application_id: number,
+  applicationId: number,
   userId: number
 ): Promise<string | null> => {
   try {
@@ -777,7 +949,7 @@ export const getApplicationStatus = async (
       SELECT status FROM job_service.applications
       WHERE application_id = $1 AND user_id = $2
     `;
-    const values = [application_id, userId];
+    const values = [applicationId, userId];
     const result = await db.query(query, values);
     return result.rows.length > 0 ? result.rows[0] : null;
   } catch (error) {
@@ -786,8 +958,15 @@ export const getApplicationStatus = async (
   }
 };
 
+/**
+ * Updates the status of a job application
+ * @param applicationId - ID of the application to update
+ * @param status - New status for the application
+ * @returns Promise resolving when the status is updated
+ * @throws {Error} When database query fails
+ */
 export const updateApplicationStatus = async (
-  application_id: number,
+  applicationId: number,
   status: string
 ): Promise<void> => {
   try {
@@ -796,7 +975,7 @@ export const updateApplicationStatus = async (
       SET status = $1
       WHERE a.application_id = $2
     `;
-    const values = [status, application_id];
+    const values = [status, applicationId];
     await db.query(query, values);
   } catch (error) {
     console.error("Error updating application status:", error);
@@ -804,8 +983,15 @@ export const updateApplicationStatus = async (
   }
 };
 
+/**
+ * Gets all applications for a specific job
+ * @param jobId - ID of the job
+ * @param pageNumber - Page number for pagination
+ * @returns Promise resolving to paginated list of applications for the job with user names
+ * @throws {Error} When database query fails
+ */
 export const getJobApplications = async (
-  job_id: number,
+  jobId: number,
   pageNumber: number
 ): Promise<PaginatedResponse<Application & { user_full_name: string }>> => {
   try {
@@ -818,9 +1004,10 @@ export const getJobApplications = async (
       FROM job_service.applications
       WHERE job_id = $1
     `;
-    const countValues = [job_id];
+    const countValues = [jobId];
+
+    // Execute the count query
     const countResult = await db.query(countQuery, countValues);
-    const totalRecords = parseInt(countResult.rows[0].total);
 
     const query = `
       SELECT a.*
@@ -829,17 +1016,20 @@ export const getJobApplications = async (
       ORDER BY a.applied_at DESC
       LIMIT $2 OFFSET $3
     `;
-    const values = [job_id, PAGE_SIZE, OFFSET];
+    const values = [jobId, PAGE_SIZE, OFFSET];
+
+    // Execute the paginated query
     const result = await db.query(query, values);
 
     const applicationsList = await Promise.all(
       result.rows.map(async (row) => {
         // Fetch user full name
         const user_full_name = await getUserFullName(row.user_id);
+
         // Fetch resume URL
         const resume_url = await getPresignedUrl(row.resume_id);
 
-        const application = {
+        return {
           application_id: row.application_id,
           job_id: row.job_id,
           user_id: row.user_id,
@@ -850,12 +1040,11 @@ export const getJobApplications = async (
           status: row.status,
           applied_at: row.applied_at,
         };
-
-        return application;
       })
     );
 
     // Calculate pagination metadata
+    const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
     const previousPage = pageNumber > 1 ? pageNumber - 1 : null;
@@ -878,9 +1067,17 @@ export const getJobApplications = async (
   }
 };
 
+/**
+ * Reports a job listing for inappropriate content or other issues
+ * @param userId - ID of the user making the report
+ * @param jobId - ID of the job being reported
+ * @param reason - Reason for reporting the job
+ * @returns Promise resolving to boolean indicating if report was successful
+ * @throws {Error} When database query fails
+ */
 export const reportJob = async (
-  user_id: number,
-  job_id: number,
+  userId: number,
+  jobId: number,
   reason: string
 ): Promise<boolean> => {
   try {
@@ -889,8 +1086,12 @@ export const reportJob = async (
       SELECT * FROM job_service.reports
       WHERE reporter_id = $1 AND job_id = $2
     `;
-    const checkValues = [user_id, job_id];
+    const checkValues = [userId, jobId];
+
+    // Execute the check query
     const checkResult = await db.query(checkQuery, checkValues);
+
+    // If the user has already reported the job, return false
     if (checkResult.rows.length > 0) {
       return false; // User has already reported this job
     }
@@ -900,8 +1101,12 @@ export const reportJob = async (
       VALUES ($1, $2, $3)
       returning *
     `;
-    const values = [user_id, job_id, reason];
+    const values = [userId, jobId, reason];
+
+    // Execute the query to insert the new report
     const result = await db.query(query, values);
+
+    // Return true if the report was successful
     return result.rows.length > 0;
   } catch (error) {
     console.error("Error reporting job:", error);

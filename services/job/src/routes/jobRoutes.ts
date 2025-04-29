@@ -1,22 +1,23 @@
+import multer from "multer";
 import { Router } from "express";
 import authenticateToken from "@shared/middleware/authMiddleware";
+
 import {
-  handleJobSearch,
-  handleJobPosting,
   handleSaveJob,
-  handleRemoveSavedJob,
-  handleGetSavedJobs,
-  handleJobApplication,
-  handleGetApplicationStatus,
-  handleUpdateApplicationStatus,
-  handleGetJobApplications,
   handleReportJob,
-  handleGetUserApplications,
-  handleGetCompanyJobs,
   handleDeleteJob,
   handleUpdateJob,
+  handleJobSearch,
+  handleJobPosting,
+  handleGetSavedJobs,
+  handleJobApplication,
+  handleRemoveSavedJob,
+  handleGetCompanyJobs,
+  handleGetJobApplications,
+  handleGetUserApplications,
+  handleGetApplicationStatus,
+  handleUpdateApplicationStatus,
 } from "../controllers/jobController";
-import multer from "multer";
 
 const upload = multer({
   storage: multer.memoryStorage(),

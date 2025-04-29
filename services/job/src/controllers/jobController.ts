@@ -1,37 +1,44 @@
 import { Request, Response } from "express";
-import {
-  searchJobs,
-  createJob,
-  saveJob,
-  removeSavedJob,
-  getSavedJobs,
-  submitJobApplication,
-  getApplicationStatus,
-  updateApplicationStatus,
-  isUserJobCreator,
-  getJobIdByApplicationId,
-  getJobApplications,
-  reportJob,
-  isThereJobWithId,
-  isUserCompanyCreator,
-  hasUserSavedJob,
-  hasUserAppliedToJob,
-  getJobApplicationsByUserId,
-  getJobsByCompanyId,
-  deleteJob,
-  updateJob,
-} from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
-import {
-  newJobValidationRules,
-  jobApplicationValidationRules,
-  jobApplicationStatusUpdateValidationRules,
-  jobReportValidationRules,
-  atLeastOneFieldPresent,
-  updateJobValidationRules,
-} from "../validations/jobValidation";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 
+import {
+  newJobValidationRules,
+  atLeastOneFieldPresent,
+  updateJobValidationRules,
+  jobReportValidationRules,
+  jobApplicationValidationRules,
+  jobApplicationStatusUpdateValidationRules,
+} from "../validations/jobValidation";
+
+import {
+  saveJob,
+  deleteJob,
+  createJob,
+  updateJob,
+  reportJob,
+  searchJobs,
+  getSavedJobs,
+  removeSavedJob,
+  isThereJobWithId,
+  isUserJobCreator,
+  getJobApplications,
+  hasUserSavedJob,
+  isUserCompanyCreator,
+  getApplicationStatus,
+  submitJobApplication,
+  hasUserAppliedToJob,
+  updateApplicationStatus,
+  getJobsByCompanyId,
+  getJobIdByApplicationId,
+  getJobApplicationsByUserId,
+} from "../services/jobService";
+
+/**
+ * Handles job search requests
+ * @param {Request} req - Express request object containing search parameters in query
+ * @param {Response} res - Express response object
+ */
 export const handleJobSearch = async (req: Request, res: Response) => {
   try {
     // Validate salary range min and max values if provided
@@ -75,6 +82,7 @@ export const handleJobSearch = async (req: Request, res: Response) => {
       pageNumber: Number(req.query.page || 1),
     };
 
+    // Query the database for jobs based on the search parameters
     const jobs = await searchJobs(searchParams);
 
     // Check if no jobs were found
@@ -90,6 +98,11 @@ export const handleJobSearch = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Retrieves jobs associated with a specific company
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and company ID
+ * @param {Response} res - Express response object
+ */
 export const handleGetCompanyJobs = async (
   req: AuthenticatedRequest,
   res: Response
@@ -128,6 +141,11 @@ export const handleGetCompanyJobs = async (
   }
 };
 
+/**
+ * Handles the creation of a new job posting
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and job details
+ * @param {Response} res - Express response object
+ */
 export const handleJobPosting = [
   ...newJobValidationRules,
   validate,
@@ -155,6 +173,7 @@ export const handleJobPosting = [
         });
       }
 
+      // Create the job
       const job = await createJob(
         title,
         description,
@@ -178,6 +197,11 @@ export const handleJobPosting = [
   },
 ];
 
+/**
+ * Updates an existing job posting
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and job update details
+ * @param {Response} res - Express response object
+ */
 export const handleUpdateJob = [
   atLeastOneFieldPresent,
   ...updateJobValidationRules,
@@ -229,6 +253,11 @@ export const handleUpdateJob = [
   },
 ];
 
+/**
+ * Deletes a job posting
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and job ID to delete
+ * @param {Response} res - Express response object
+ */
 export const handleDeleteJob = async (
   req: AuthenticatedRequest,
   res: Response
@@ -256,6 +285,11 @@ export const handleDeleteJob = async (
   }
 };
 
+/**
+ * Saves a job for the authenticated user
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and job ID to save
+ * @param {Response} res - Express response object
+ */
 export const handleSaveJob = async (
   req: AuthenticatedRequest,
   res: Response
@@ -287,6 +321,11 @@ export const handleSaveJob = async (
   }
 };
 
+/**
+ * Removes a job from the user's saved jobs
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and job ID to remove
+ * @param {Response} res - Express response object
+ */
 export const handleRemoveSavedJob = async (
   req: AuthenticatedRequest,
   res: Response
@@ -312,6 +351,11 @@ export const handleRemoveSavedJob = async (
   }
 };
 
+/**
+ * Retrieves saved jobs for the authenticated user
+ * @param {AuthenticatedRequest} req - Express request with authenticated user
+ * @param {Response} res - Express response object
+ */
 export const handleGetSavedJobs = async (
   req: AuthenticatedRequest,
   res: Response
@@ -341,6 +385,11 @@ export const handleGetSavedJobs = async (
   }
 };
 
+/**
+ * Handles job application submission
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and application details
+ * @param {Response} res - Express response object
+ */
 export const handleJobApplication = [
   ...jobApplicationValidationRules,
   validate,
@@ -364,6 +413,7 @@ export const handleJobApplication = [
         return res.status(409).json({ error: "Already applied to this job" });
       }
 
+      // Submit the job application
       const jobApplication = await submitJobApplication(
         userId,
         jobId,
@@ -375,6 +425,7 @@ export const handleJobApplication = [
       // Remove the job from saved jobs
       await removeSavedJob(userId, jobId);
 
+      // Send a 201 Created response with the job application
       res.status(201).json(jobApplication);
     } catch (error) {
       console.error("Error in handleJobApplication:", error);
@@ -383,6 +434,11 @@ export const handleJobApplication = [
   },
 ];
 
+/**
+ * Retrieves all job applications for the authenticated user
+ * @param {AuthenticatedRequest} req - Express request with authenticated user
+ * @param {Response} res - Express response object
+ */
 export const handleGetUserApplications = async (
   req: AuthenticatedRequest,
   res: Response
@@ -412,6 +468,11 @@ export const handleGetUserApplications = async (
   }
 };
 
+/**
+ * Retrieves status of a specific job application
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and application ID
+ * @param {Response} res - Express response object
+ */
 export const handleGetApplicationStatus = async (
   req: AuthenticatedRequest,
   res: Response
@@ -430,6 +491,11 @@ export const handleGetApplicationStatus = async (
   }
 };
 
+/**
+ * Updates the status of a job application
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and new status
+ * @param {Response} res - Express response object
+ */
 export const handleUpdateApplicationStatus = [
   ...jobApplicationStatusUpdateValidationRules,
   validate,
@@ -462,6 +528,11 @@ export const handleUpdateApplicationStatus = [
   },
 ];
 
+/**
+ * Retrieves all applications for a specific job
+ * @param {AuthenticatedRequest} req - Express request with authenticated user and job ID
+ * @param {Response} res - Express response object
+ */
 export const handleGetJobApplications = async (
   req: AuthenticatedRequest,
   res: Response
@@ -484,7 +555,10 @@ export const handleGetJobApplications = async (
         .json({ error: "Unauthorized to view applications" });
     }
 
+    // Get applications for the job
     const applications = await getJobApplications(jobId, pageNumber);
+
+    // Send a 200 OK response with the applications
     res.json(applications);
   } catch (error) {
     console.error("Error in handleGetUserApplications:", error);
@@ -492,6 +566,11 @@ export const handleGetJobApplications = async (
   }
 };
 
+/**
+ * Handles reporting a job posting for inappropriate content
+ * @param {AuthenticatedRequest} req - Express request with authenticated user, job ID, and reason
+ * @param {Response} res - Express response object
+ */
 export const handleReportJob = [
   ...jobReportValidationRules,
   validate,
@@ -501,11 +580,14 @@ export const handleReportJob = [
       const jobId = Number(req.params.jobId);
       const reason = req.body.reason;
 
+
+      // Check if the job exists
       const jobExists = await isThereJobWithId(jobId);
       if (!jobExists) {
         return res.status(404).json({ error: "Job not found" });
       }
 
+      // Submit the report
       const report = await reportJob(userId, jobId, reason);
 
       // Check if the user has already reported the job
