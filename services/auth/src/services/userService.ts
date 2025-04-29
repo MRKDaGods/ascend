@@ -1,6 +1,7 @@
 import db from "@shared/config/db";
 import { User, UserRole } from "@shared/models";
 import { Events, publishEvent } from "@shared/rabbitMQ";
+import { getUserProfile } from "@shared/utils/userProfile";
 import bcrypt from "bcryptjs";
 
 /**
@@ -261,3 +262,45 @@ export const getAdminUserId = async (): Promise<number | null> => {
   );
   return result.rows.length > 0 ? result.rows[0].id : null;
 };
+
+export const reportUser = async(reportedUserId: number, reportingUserId: number, reason?: string) => {
+  await db.query(
+    "INSERT INTO auth_service.reports (reported_id, reported_by_id, reason) VALUES ($1, $2, $3)",
+    [reportedUserId, reportingUserId, reason]
+  );
+};
+
+export const getAllUserReports = async() => {
+  const result = await db.query(
+    "SELECT * FROM auth_service.reports"
+  );
+
+  const reports = await Promise.all(result.rows.map(async (report) => {
+    // add profile to report
+    const reporterProfile = await getUserProfile(report.reported_by_id);
+    const reportedProfile = await getUserProfile(report.reported_id);
+    return {
+      ...report,
+      reported_by: reporterProfile,
+      reported: reportedProfile,
+    };
+  }));
+
+  return reports;
+};
+
+export const deleteUserReport = async(reportId: number) => {
+  // Check if the report exists
+  const result = await db.query(
+    "SELECT * FROM auth_service.reports WHERE id = $1",
+    [reportId]
+  );
+  if (result.rows.length === 0) {
+    throw new Error("Report not found");
+  }
+
+  await db.query(
+    "DELETE FROM auth_service.reports WHERE id = $1",
+    [reportId]
+  );
+}
