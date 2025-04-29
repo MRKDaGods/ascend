@@ -21,11 +21,10 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<ShowPostFeedbackOptions>(_onShowPostFeedbackOptions);
     on<HidePostFeedbackOptions>(_onHidePostFeedbackOptions);
     on<AddCommentReply>(_onAddCommentReply);
-    // Register other events here
-    on<SavePost>(_onSavePost); // Add handler
-    on<UnsavePost>(_onUnsavePost); // Add handler
-    on<ReportPost>(_onReportPost); // Add handler for ReportPost
-    on<AddNewPost>(_onAddNewPost); // Add handler for AddNewPost
+    on<SavePost>(_onSavePost);
+    on<UnsavePost>(_onUnsavePost);
+    on<ReportPost>(_onReportPost);
+    on<AddNewPost>(_onAddNewPost);
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -106,32 +105,56 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   Future<void> _onTogglePostReaction(
-    TogglePostReaction event, 
+    TogglePostReaction event,
     Emitter<PostState> emit
   ) async {
-    if (state is PostsLoaded) {
-      final currentState = state as PostsLoaded;
-      try {
-        // Find post by ID
-        final post = currentState.getPostById(event.postId);
-        if (post == null) return;
-        
-        // Toggle reaction
-        final updatedPost = post.toggleReaction(event.reactionType);
-        
-        // Update repository
-        await _postRepository.updatePost(updatedPost);
-        
-        // Update state with new post
-        final posts = currentState.posts.map((p) => 
-          p.id == updatedPost.id ? updatedPost : p
-        ).toList();
-        
-        emit(PostsLoaded(posts));
-      } catch (e) {
-        emit(PostsError('Failed to update reaction: $e'));
-        emit(currentState); // Revert to previous state
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      // Store the original state before optimistic update
+      final originalPosts = List<PostModel>.from(currentState.posts);
+      final originalState = currentState.copyWith(posts: originalPosts); // Keep a copy
+
+      // Optimistic UI update first
+      final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
+      if (postIndex == -1) {
+         debugPrint('⚠️ [PostBloc] Post ${event.postId} not found for reaction toggle.');
+         return; // Post not found
       }
+      final originalPost = currentState.posts[postIndex];
+      // Use the PostModel's logic to get the updated state
+      final optimisticallyUpdatedPost = originalPost.toggleReaction(event.reactionType);
+      final optimisticPosts = List<PostModel>.from(currentState.posts);
+      optimisticPosts[postIndex] = optimisticallyUpdatedPost;
+      // Emit the optimistic state immediately
+      emit(currentState.copyWith(posts: optimisticPosts, freshLoad: false));
+      debugPrint('🔄 [PostBloc] Optimistically updated reaction for post ${event.postId} to ${event.reactionType}');
+
+
+      try {
+        // Call the repository to update the backend
+        debugPrint('📡 [PostBloc] Calling repository togglePostReaction for post ${event.postId}, type: ${event.reactionType}');
+        final success = await _postRepository.togglePostReaction(event.postId, event.reactionType);
+
+        if (success) {
+          debugPrint('✅ [PostBloc] API call successful for togglePostReaction post ${event.postId}. State already updated optimistically.');
+          // State is already updated optimistically. No need to emit again unless API returns different data.
+        } else {
+          // This case might not be reached if repository throws on failure
+          debugPrint('⚠️ [PostBloc] API call togglePostReaction returned false for post ${event.postId}. Reverting optimistic update.');
+          // Revert the optimistic update by emitting the original state
+          emit(originalState);
+        }
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Error during togglePostReaction API call for post ${event.postId}: $e. Reverting optimistic update.');
+        // Revert the optimistic update on error
+        emit(originalState); // Emit the original state before the optimistic update
+        // Optionally emit a specific error state *after* reverting, maybe with a delay
+        // emit(PostsError('Failed to update reaction: $e'));
+        // await Future.delayed(const Duration(milliseconds: 50));
+        // emit(originalState); // Re-emit original state again if needed after error display
+      }
+    } else {
+       debugPrint('⚠️ [PostBloc] TogglePostReaction event received but state is not PostsLoaded.');
     }
   }
 
@@ -534,6 +557,16 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     } else {
       // If posts are not loaded yet, maybe trigger a load? Or ignore?
       debugPrint('⚠️ [PostBloc] AddNewPost received but state is not PostsLoaded. Ignoring.');
+    }
+  }
+}
+
+extension PostsLoadedExtension on PostsLoaded {
+  PostModel? getPostById(String id) {
+    try {
+      return posts.firstWhere((post) => post.id == id);
+    } catch (e) {
+      return null;
     }
   }
 }
