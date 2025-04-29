@@ -1,3 +1,5 @@
+import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
+import { Response, NextFunction } from "express";
 import { body, ValidationChain } from "express-validator";
 
 /**
@@ -82,10 +84,10 @@ export const newJobValidationRules: ValidationChain[] = [
     .optional()
     .isNumeric()
     .withMessage("Salary max range must be a valid number")
-    .custom((salary_range_max, { req }) => {
+    .custom((salary_max_range, { req }) => {
       if (
-        req.body.salary_range_min &&
-        Number(salary_range_max) < Number(req.body.salary_range_min)
+        req.body.salary_min_range &&
+        Number(salary_max_range) < Number(req.body.salary_min_range)
       ) {
         throw new Error(
           "Salary max range must be greater than or equal to salary min range"
@@ -98,6 +100,134 @@ export const newJobValidationRules: ValidationChain[] = [
   body("company_id")
     .isInt({ gt: 0 })
     .withMessage("Valid company_id is required"),
+];
+
+/**
+ * Middleware to ensure at least one field is present in body
+ */
+export const atLeastOneFieldPresent = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const allowedFields = [
+    "title",
+    "description",
+    "industry",
+    "type",
+    "experience_level",
+    "location",
+    "workplace_type",
+    "salary_min_range",
+    "salary_max_range",
+  ];
+
+  const hasAtLeastOne = allowedFields.some((field) => field in req.body);
+
+  if (!hasAtLeastOne) {
+    return res.status(400).json({
+      error: "At least one field must be provided to update the job.",
+    });
+  }
+
+  next();
+};
+
+/**
+ * Validation rules for updating a job
+ */
+export const updateJobValidationRules: ValidationChain[] = [
+  body("title")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Title must be a non-empty string"),
+
+  body("description")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Description must be a non-empty string"),
+
+  body("industry")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Industry must be a non-empty string"),
+
+  body("type")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Type must be a non-empty string")
+    .isIn([
+      "Full-time",
+      "Part-time",
+      "Contract",
+      "Temporary",
+      "Volunteer",
+      "Internship",
+      "Other",
+    ])
+    .withMessage(
+      "Invalid type. Allowed values: Full-time, Part-time, Contract, Temporary, Volunteer, Internship, Other"
+    ),
+
+  body("experience_level")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Experience level must be a non-empty string")
+    .isIn(["Internship", "Entry", "Associate", "Mid", "Director"])
+    .withMessage(
+      "Invalid experience level. Allowed values: Internship, Entry, Associate, Mid, Director"
+    ),
+
+  body("location")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Location must be a non-empty string"),
+
+  body("workplace_type")
+    .optional()
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage("Workplace type must be a non-empty string")
+    .isIn(["On-site", "Hybrid", "Remote"])
+    .withMessage(
+      "Invalid workplace type. Allowed values: On-site, Hybrid, Remote"
+    ),
+
+  body("salary_min_range")
+    .optional()
+    .isNumeric()
+    .withMessage("Salary min range must be a valid number")
+    .custom((value) => value >= 0)
+    .withMessage("Salary min range must be at least 0"),
+
+  body("salary_max_range")
+    .optional()
+    .isNumeric()
+    .withMessage("Salary max range must be a valid number")
+    .custom((salary_max_range, { req }) => {
+      if (
+        req.body.salary_min_range &&
+        Number(salary_max_range) < Number(req.body.salary_min_range)
+      ) {
+        throw new Error(
+          "Salary max range must be greater than or equal to salary min range"
+        );
+      }
+      return true;
+    }),
 ];
 
 /**
