@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import { useEffect, useState } from "react";
 import {
@@ -35,7 +36,7 @@ export default function PremiumPage() {
   const [features, setFeatures] = useState<Feature[]>([]);
 
   useEffect(() => {
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setSubscriptions([
         {
           subscription_id: "sub_001",
@@ -67,19 +68,9 @@ export default function PremiumPage() {
 
       setLoading(false);
     }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
-
-  const handleBuyFeature = (featureId: string) => {
-    alert(`Buying feature: ${featureId}`);
-  };
-
-  const handleSubscribe = () => {
-    alert("Redirecting to subscribe...");
-  };
-
-  const handleCancelSubscription = (subscriptionId: string) => {
-    alert(`Cancel subscription: ${subscriptionId}`);
-  };
 
   if (loading) {
     return (
@@ -100,7 +91,6 @@ export default function PremiumPage() {
 
       <Divider sx={{ my: 4 }} />
 
-      {/* Subscriptions Section */}
       <Typography variant="h6" gutterBottom>
         Your Subscriptions
       </Typography>
@@ -123,7 +113,7 @@ export default function PremiumPage() {
                     variant="outlined"
                     color="error"
                     sx={{ mt: 2 }}
-                    onClick={() => handleCancelSubscription(sub.subscription_id)}
+                    onClick={() => alert(`Cancel subscription: ${sub.subscription_id}`)}
                   >
                     Cancel Subscription
                   </Button>
@@ -136,7 +126,6 @@ export default function PremiumPage() {
 
       <Divider sx={{ my: 4 }} />
 
-      {/* One-Time Features */}
       <Typography variant="h6" gutterBottom>
         One-Time Features
       </Typography>
@@ -156,7 +145,7 @@ export default function PremiumPage() {
                   variant="contained"
                   sx={{ mt: 2 }}
                   fullWidth
-                  onClick={() => handleBuyFeature(feat.id)}
+                  onClick={() => alert(`Buying feature: ${feat.id}`)}
                 >
                   Buy Feature
                 </Button>
@@ -168,7 +157,6 @@ export default function PremiumPage() {
 
       <Divider sx={{ my: 4 }} />
 
-      {/* Subscribe Section */}
       <Typography variant="h6" gutterBottom>
         Ready to Go Premium?
       </Typography>
@@ -179,7 +167,7 @@ export default function PremiumPage() {
         variant="contained"
         color="primary"
         size="large"
-        onClick={handleSubscribe}
+        onClick={() => alert("Redirecting to subscribe...")}
       >
         Subscribe Now
       </Button>

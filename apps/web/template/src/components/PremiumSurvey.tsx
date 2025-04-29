@@ -15,7 +15,7 @@ import {
   Divider,
 } from "@mui/material";
 import { deepOrange, green } from "@mui/material/colors";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useRouter } from "next/navigation";
 
 const question1 = {
   question: "Which of these best describes your primary goal for using Premium?",
@@ -48,7 +48,7 @@ const PremiumSurvey = () => {
   const [step, setStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [subOptions, setSubOptions] = useState<string[]>([]);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const router = useRouter();
   const totalSteps = 2;
 
   const progress = ((step + 1) / (totalSteps + 1)) * 100; // Adjust progress calculation
@@ -62,19 +62,22 @@ const PremiumSurvey = () => {
       if (selectedOption === "I'd use Premium for my personal goals") {
         setSubOptions(personalGoalsOptions);
         setStep(1);
-        setSelectedOption("");
+        setSelectedOption(""); // reset for next step
       } else if (selectedOption === "I'd use Premium as part of my job") {
         setSubOptions(jobGoalsOptions);
         setStep(1);
-        setSelectedOption("");
+        setSelectedOption(""); // reset for next step
       } else if (selectedOption === "Other") {
-        navigate("/premium"); // Navigate directly to the premium page
+        router.push("/premium");
       }
     } else if (step === 1) {
-      // Navigate to the premium page after completing the survey
-      navigate("/premium");
+      // After selecting a sub-option
+      router.push("/premium");
     }
   };
+  
+  
+  
 
   const handleBack = () => {
     if (step > 0) {
@@ -134,30 +137,6 @@ const PremiumSurvey = () => {
             {Math.round(progress)}%
           </Typography>
         </Box>
-      </Box>
-
-      {/* Testimonial */}
-      <Box
-        sx={{
-          maxWidth: 900,
-          mx: "auto",
-          mb: 4,
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ width: "60%" }}></Box>
-        <Paper sx={{ p: 2, width: 250, bgcolor: "#fafafa" }}>
-          <Typography variant="body2" gutterBottom>
-            "With Premium, I grew my followers to 14,000, landed two jobs, and made hundreds of connections."
-          </Typography>
-          <Typography variant="caption" display="block">
-            Vugar Rustamli
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Program Consultant
-          </Typography>
-        </Paper>
       </Box>
 
       {/* Main Survey Box */}

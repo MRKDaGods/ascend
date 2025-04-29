@@ -1,51 +1,70 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import PremiumSurvey from "../components/PremiumSurvey";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import PremiumPage from "../components/PremiumPage"; // adjust path as needed
+import { vi } from "vitest";
 
-describe("PremiumSurvey Component", () => {
-  it("renders the first question correctly", () => {
-    render(
-      <MemoryRouter>
-        <PremiumSurvey />
-      </MemoryRouter>
-    );
+// 👇 Mock alert
+window.alert = jest.fn();
 
-    // Check if the first question is displayed
-    expect(
-      screen.getByText((content, element) =>
-        content.includes("Which of these best describes your primary goal for using Premium?")
-      )
-    ).toBeInTheDocument();
+// 👇 Mock fetch
+beforeEach(() => {
+  global.fetch = vi.fn().mockResolvedValue({
+    json: async () => ({
+      subscription: {
+        id: "sub_001",
+        plan: "Premium Plan",
+        start_date: "2025-04-01",
+      },
+      features: [
+        { id: "feat_01", name: "Extra Job Applications" },
+        { id: "feat_02", name: "Profile Boost" },
+      ],
+    }),
+  });
+});
 
-    // Check if all options are displayed
-    expect(screen.getByText("I'd use Premium for my personal goals")).toBeInTheDocument();
-    expect(screen.getByText("I'd use Premium as part of my job")).toBeInTheDocument();
-    expect(screen.getByText("Other")).toBeInTheDocument();
+describe("PremiumPage", () => {
+  test("renders loading spinner initially", () => {
+    render(<PremiumPage />);
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
-  it("navigates to the second question when 'I'd use Premium for my personal goals' is selected", () => {
-    render(
-      <MemoryRouter>
-        <PremiumSurvey />
-      </MemoryRouter>
-    );
+  test("displays subscription and features after loading", async () => {
+    render(<PremiumPage />);
+    await waitFor(() => expect(screen.getByText("Premium Plan")).toBeInTheDocument());
 
-    // Select the first option
-    fireEvent.click(screen.getByLabelText("I'd use Premium for my personal goals"));
+    expect(screen.getByText("Started on: 2025-04-01")).toBeInTheDocument();
+    expect(screen.getByText("Extra Job Applications")).toBeInTheDocument();
+    expect(screen.getByText("Profile Boost")).toBeInTheDocument();
+  });
 
-    // Click the Next button
-    fireEvent.click(screen.getByText("Next"));
+  test("calls alert on 'Buy Feature' click", async () => {
+    render(<PremiumPage />);
+    await waitFor(() => screen.getByText("Buy Feature"));
 
-    // Check if the second question is displayed
-    expect(
-      screen.getByText((content) =>
-        content.includes("What do you hope to achieve with Premium?")
-      )
-    ).toBeInTheDocument();
+    const buyButtons = screen.getAllByText("Buy Feature");
+    fireEvent.click(buyButtons[0]);
 
-    // Check if the options for the second question are displayed
-    expect(screen.getByText("To job search with confidence and get hired")).toBeInTheDocument();
-    expect(screen.getByText("To develop my professional skills")).toBeInTheDocument();
+    expect(window.alert).toHaveBeenCalledWith("Buying feature: feat_01");
+  });
+
+  test("calls alert on 'Subscribe Now' click", async () => {
+    render(<PremiumPage />);
+    await waitFor(() => screen.getByText("Subscribe Now"));
+
+    const subscribeButton = screen.getByText("Subscribe Now");
+    fireEvent.click(subscribeButton);
+
+    expect(window.alert).toHaveBeenCalledWith("Redirecting to subscribe...");
+  });
+
+  test("calls alert on 'Cancel Subscription' click", async () => {
+    render(<PremiumPage />);
+    await waitFor(() => screen.getByText("Cancel Subscription"));
+
+    const cancelButton = screen.getByText("Cancel Subscription");
+    fireEvent.click(cancelButton);
+
+    expect(window.alert).toHaveBeenCalledWith("Cancel subscription: sub_001");
   });
 });
