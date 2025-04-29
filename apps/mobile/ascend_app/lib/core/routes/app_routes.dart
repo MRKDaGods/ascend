@@ -10,6 +10,7 @@ import 'package:ascend_app/features/settings/Presentation/pages/help_center_page
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
+import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -32,6 +33,7 @@ class RouteNames {
   static const String helpCenter = '/helpCenter';
   static const String privacyPolicy = '/privacyPolicy';
   static const String signOut = '/signOut';
+  static const String mainMessage = '/mainMessage';
   // Add more routes as needed
 }
 
@@ -60,6 +62,7 @@ class AppRoutes {
       RouteNames.helpCenter: (context) => const HelpCenterPage(),
       RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
       RouteNames.signOut: (context) => const SignOutPage(),
+      RouteNames.mainMessage: (context) => const MainMessagingPage(),
 
       // Add more routes as needed
     };

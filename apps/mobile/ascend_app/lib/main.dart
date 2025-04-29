@@ -1,7 +1,10 @@
+import 'package:ascend_app/features/Messaging/domain/repoistories/messaging_repoistory.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 
 import 'core/app/app_initializer.dart';
@@ -14,6 +17,9 @@ import 'features/home/repositories/post_repository.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_event.dart';
 import 'theme.dart';
+import 'features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
+import 'features/Messaging/data/datasources/remote_datasource.dart';
+import 'services/web_socket_service.dart';
 
 void main() {
   // Set up error handling
@@ -23,19 +29,22 @@ void main() {
   });
 
   // Run app in an error zone to catch all errors
-  runZonedGuarded(() async {
-    // Initialize all services and dependencies
-    await AppInitializer.initialize();
-    
-    // Set up BLoC observer for debugging
-    AppInitializer.setupBlocObserver();
+  runZonedGuarded(
+    () async {
+      // Initialize all services and dependencies
+      await AppInitializer.initialize();
 
-    // Run the app
-    runApp(const MainApp());
-  }, (error, stackTrace) {
-    debugPrint('Error in runZonedGuarded: $error');
-    // In production, you'd want to log this to a service
-  });
+      // Set up BLoC observer for debugging
+      AppInitializer.setupBlocObserver();
+
+      // Run the app
+      runApp(const MainApp());
+    },
+    (error, stackTrace) {
+      debugPrint('Error in runZonedGuarded: $error');
+      // In production, you'd want to log this to a service
+    },
+  );
 }
 
 class MainApp extends StatefulWidget {
@@ -47,16 +56,34 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   bool _isInitialized = false;
-  
+
   @override
   void initState() {
     super.initState();
     _setupPushNotifications();
+    _setupAuthListener();
     setState(() {
       _isInitialized = true;
     });
   }
-  
+
+  // Add this method to initialize MessagingBloc on successful authentication
+  void _setupAuthListener() {
+    sl.authBloc.stream.listen((state) {
+      if (state is AuthSuccess) {
+        // Find the MessagingBloc and initialize it
+        final messagingBloc = BlocProvider.of<MessagingBloc>(
+          sl.navigatorKey.currentContext!,
+        );
+        // Check if the MessagingBloc is already initialized
+        if (!messagingBloc.isIntialized) {
+          // Initialize the MessagingBloc
+          messagingBloc.add(IntializeMessaging(forceReconnect: true));
+        }
+      }
+    });
+  }
+
   // Method to set up push notification handlers
   Future<void> _setupPushNotifications() async {
     try {
@@ -72,7 +99,7 @@ class _MainAppState extends State<MainApp> {
       debugPrint('Error setting up push notifications: $e');
     }
   }
-  
+
   @override
   void dispose() {
     sl.dispose();
@@ -85,19 +112,15 @@ class _MainAppState extends State<MainApp> {
       return MaterialApp(
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
-    
+
     return MultiBlocProvider(
       providers: [
         // Updated BlocProvider
         BlocProvider<AuthBloc>.value(value: sl.authBloc),
-        
+
         // Your existing providers
         BlocProvider<UserProfileBloc>(
           create: (context) => UserProfileBloc()..add(LoadUserProfile()),
@@ -113,10 +136,13 @@ class _MainAppState extends State<MainApp> {
             }
           },
         ),
-        
+
+        // Add the MessagingBloc to the providers
+        Provider<MessagingBloc>.value(value: sl.messagingBloc),
+
         // Add the notification bloc
         BlocProvider<NotificationBloc>.value(value: sl.notificationBloc),
-        
+
         // Add SearchBloc to the providers
         BlocProvider<SearchBloc>.value(value: sl.searchBloc),
       ],
@@ -125,12 +151,12 @@ class _MainAppState extends State<MainApp> {
         darkTheme: AppTheme.dark,
         debugShowCheckedModeBanner: false,
         navigatorKey: sl.navigatorKey,
-        
+
         // Use the routes from AppRoutes
         initialRoute: AppRoutes.initialRoute,
         routes: AppRoutes.getRoutes(),
         onGenerateRoute: AppRoutes.onGenerateRoute,
-        
+
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: ScrollBehavior().copyWith(
