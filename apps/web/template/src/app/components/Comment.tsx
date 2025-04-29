@@ -2,14 +2,20 @@
 
 import React, { useState } from "react";
 import {
-  Avatar, Box, IconButton, Typography, Stack, Menu,
-  MenuItem, useTheme,
+  Avatar,
+  Box,
+  IconButton,
+  Typography,
+  Stack,
+  Menu,
+  MenuItem,
+  useTheme,
+  Tooltip,
 } from "@mui/material";
 import { MoreHoriz, Edit, Delete } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import TagInput from "./TagInput";
 
-// Define the comment object shape
 interface FetchedComment {
   id: number;
   post_id: number;
@@ -44,15 +50,49 @@ const Comment: React.FC<CommentProps> = ({
   fetchedComments,
 }) => {
   const theme = useTheme();
-  const { commentOnPostFromAPI, addTagToComment } = usePostStore();
+  const {
+    commentOnPostFromAPI,
+    addTagToComment,
+    taggedUsers,
+    tagUsersOnContent,
+  } = usePostStore();
 
   const [commentText, setCommentText] = useState("");
   const [commentMenuAnchor, setCommentMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedCommentIndex, setSelectedCommentIndex] = useState<number | null>(null);
 
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) return;
+
+    try {
+      const res = await commentOnPostFromAPI(post.id, commentText);
+      const commentId = res?.id; // ✅ no more .data needed
+
+      if (commentId && taggedUsers.length > 0 && commentText.includes("@")) {
+        const tagsToSend = taggedUsers.map((tag) => {
+          const atIndex = commentText.indexOf(`@${tag.name}`);
+          return {
+            userId: tag.id,
+            startIndex: atIndex,
+            endIndex: atIndex + tag.name.length,
+          };
+        }).filter(tag => tag.startIndex !== -1);
+
+        if (tagsToSend.length > 0) {
+          await tagUsersOnContent("comment", commentId, tagsToSend);
+        }
+      }
+
+      setCommentText("");
+      setShowComments(true);
+    } catch (err) {
+      console.error("❌ Failed to submit comment:", err);
+    }
+  };
+
   return (
     <>
-      {/* Comment Input Section */}
+      {/* ✍️ Comment Input */}
       {showCommentInput && (
         <Box
           sx={{
@@ -66,6 +106,7 @@ const Comment: React.FC<CommentProps> = ({
           <Avatar src={post.profilePic || undefined} sx={{ width: 32, height: 32 }}>
             {!post.profilePic && post.username?.charAt(0)}
           </Avatar>
+
           <Box sx={{ flexGrow: 1 }}>
             <TagInput
               postId={post.id}
@@ -77,19 +118,10 @@ const Comment: React.FC<CommentProps> = ({
               onTagSelect={(tag) => addTagToComment(post.id, post.commentsList.length, tag)}
             />
           </Box>
+
           <Stack>
             <button
-              onClick={async () => {
-                if (commentText.trim()) {
-                  try {
-                    await commentOnPostFromAPI(post.id, commentText);
-                    setCommentText("");
-                    setShowComments(true);
-                  } catch (err) {
-                    console.error("❌ Failed to comment:", err);
-                  }
-                }
-              }}
+              onClick={handleCommentSubmit}
               style={{
                 backgroundColor: "#0a66c2",
                 color: "white",
@@ -105,14 +137,11 @@ const Comment: React.FC<CommentProps> = ({
         </Box>
       )}
 
-      {/* Comments Section */}
+      {/* 📜 Comment List */}
       {showComments && (
         <Box sx={{ px: 2, pb: 2 }}>
           {fetchedComments.length === 0 ? (
-            <Typography
-              variant="body2"
-              sx={{ color: theme.palette.text.secondary, py: 1 }}
-            >
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, py: 1 }}>
               No comments yet. Be the first to comment!
             </Typography>
           ) : (
@@ -125,6 +154,7 @@ const Comment: React.FC<CommentProps> = ({
                   >
                     {!comment.user?.profile_picture_url && comment.user?.first_name?.charAt(0)}
                   </Avatar>
+
                   <Box>
                     <Typography
                       variant="subtitle2"
@@ -133,6 +163,7 @@ const Comment: React.FC<CommentProps> = ({
                     >
                       {comment.user.first_name} {comment.user.last_name}
                     </Typography>
+
                     <Typography
                       variant="body2"
                       sx={{
@@ -147,6 +178,7 @@ const Comment: React.FC<CommentProps> = ({
                     </Typography>
                   </Box>
                 </Box>
+
                 <IconButton
                   onClick={(e) => {
                     setCommentMenuAnchor(e.currentTarget);
@@ -161,14 +193,20 @@ const Comment: React.FC<CommentProps> = ({
         </Box>
       )}
 
-      {/* Menu for editing/deleting comments */}
+      {/* ⚙️ Menu for Edit/Delete */}
       <Menu
         anchorEl={commentMenuAnchor}
         open={Boolean(commentMenuAnchor)}
         onClose={() => setCommentMenuAnchor(null)}
       >
-        <MenuItem><Edit fontSize="small" sx={{ mr: 1 }} /> Edit</MenuItem>
-        <MenuItem><Delete fontSize="small" sx={{ mr: 1 }} /> Delete</MenuItem>
+        <MenuItem>
+          <Edit fontSize="small" sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        <MenuItem>
+          <Delete fontSize="small" sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
       </Menu>
     </>
   );

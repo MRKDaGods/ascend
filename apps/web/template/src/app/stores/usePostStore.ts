@@ -13,15 +13,18 @@ import {
   fetchSavedPostsAPI,
   toggleSavePostAPI,
   fetchCommentsForPost,
-  ultimateSearchAPI
+  ultimateSearchAPI,
+  tagUsersAPI,
+  tagUsersOnContentAPI
 } from "@/api/posts";
+
 
 export type ReactionType =
   | "Like"
   | "Celebrate"
   | "Support"
   | "Love"
-  | "Idea"
+  | "Insightful"
   | "Funny";
 
 export interface Tag {
@@ -75,6 +78,7 @@ interface PostStoreState {
   postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
   savedPosts: number[];
+  taggedUsers: Tag[]; 
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
@@ -94,6 +98,8 @@ interface PostStoreState {
   setLastRepostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
+
+  setTaggedUsers: (tags: Tag[]) => void;
 
   fetchNewsFeedFromAPI: () => Promise<void>;
   fetchPostFromAPI: (id: number) => Promise<void>;
@@ -136,9 +142,12 @@ interface PostStoreState {
     posts: PostType[];
   } | null) => void;  
 
+  tagUsersOnContent: (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number; }[]) => Promise<void>;
+
+  
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
-  commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<void>;
+  commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<{ id: number }>;
 
   addTagToPost: (postId: number, tag: Tag) => void;
   removeTagFromPost: (postId: number, tagId: number) => void;
@@ -443,6 +452,18 @@ export const usePostStore = create<PostStoreState>()(
           throw error;
         }
       },
+      taggedUsers: [],
+
+      setTaggedUsers: (tags) => set({ taggedUsers: tags }),
+      
+      tagUsersOnContent: async (contentType, contentId, tags) => {
+        try {
+          await tagUsersOnContentAPI(contentType, contentId, tags);
+          console.log(`✅ Tagged users successfully on ${contentType} ${contentId}`);
+        } catch (err: any) {
+          console.error("❌ Failed to tag users:", err?.response?.data || err.message);
+        }
+      },
       
       setReaction: (postId, reaction) =>
         set((s) => ({
@@ -463,14 +484,16 @@ export const usePostStore = create<PostStoreState>()(
           };
         }),
       
-      commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
-        try {
-          const response = await createCommentAPI(postId, content, parentCommentId);
-          console.log("✅ Comment created:", response.data);
-        } catch (error: any) {
-          console.error("❌ Failed to create comment:", error?.response?.data || error.message);
-        }
-      },      
+        commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
+          try {
+            const response = await createCommentAPI(postId, content, parentCommentId);
+            console.log("✅ Comment created:", response.data);
+            return response.data;  // <-- must return { id: number }
+          } catch (error: any) {
+            console.error("❌ Failed to create comment:", error?.response?.data || error.message);
+            throw error;
+          }
+        },
 
       searchResults: null,
       setSearchResults: (results) => set({ searchResults: results }),
@@ -502,7 +525,7 @@ export const usePostStore = create<PostStoreState>()(
           console.error("❌ Failed to perform ultimate search:", err?.response?.data || err.message);
           set({ searchResults: null });
         }
-      },      
+      },   
 
       addTagToPost: (postId, tag) =>
         set((s) => ({

@@ -1,4 +1,5 @@
 import API from "./api";
+import axios from "axios";
 import { AxiosResponse } from "axios";
 import { Post } from "./types";
 
@@ -98,6 +99,36 @@ export interface UltimateSearchResponse {
     }[];
   };
 }
+
+interface TagUserRequest {
+  contentType: "post" | "comment";
+  contentId: number;
+  tags: {
+    userId: number;
+    startIndex: number;
+    endIndex: number;
+  }[];
+}
+
+interface TagUserResponse {
+  success: boolean;
+  data: {
+    contentType: "post" | "comment";
+    contentId: number;
+    tags: {
+      id: number;
+      tagged_user_id: number;
+      tagger_user_id: number;
+      post_id: number | null;
+      comment_id: number | null;
+      start_index: number;
+      end_index: number;
+      created_at: string;
+    }[];
+  };
+}
+
+// ================================================================================================= //
 
 // ==== FETCH FEED ====
 
@@ -276,4 +307,20 @@ export const ultimateSearchAPI = async (
     params: { q, limit, offset },
   });
   return response.data;
+};
+
+// ==== TAG USERS ON POST OR COMMENT ====
+
+export const tagUsersAPI = async (payload: TagUserRequest): Promise<TagUserResponse> => {
+  const response = await API.post<TagUserResponse>("/post/tags", payload);
+  return response.data;
+};
+
+export const tagUsersOnContentAPI = async (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number }[]) => {
+  const res = await axios.post(`/tags`, {
+    contentType,
+    contentId,
+    tags,
+  });
+  return res.data;
 };
