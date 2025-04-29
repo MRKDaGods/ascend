@@ -5,6 +5,7 @@ import 'package:ascend_app/features/Jobs/pages/premium_section.dart';
 import 'package:ascend_app/features/Jobs/pages/explore_section.dart';
 import 'package:ascend_app/features/Jobs/pages/more_jobs_section.dart';
 import 'package:ascend_app/features/Jobs/pages/saved_section.dart';
+import 'package:ascend_app/features/Jobs/pages/my_jobs_page.dart';
 
 class JobHomePage extends StatefulWidget {
   final bool isDarkMode;
@@ -175,7 +176,19 @@ class _JobHomePageState extends State<JobHomePage> {
 
   Widget _filterButton(String title) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        if (title == "Preferences") {
+          // Handle Preferences button press
+        } else if (title == "Post a free job") {
+          // Handle Post a free job button press
+        } else if (title == "My jobs") {
+          // Handle My jobs button press
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MyJobsPage()),
+          );
+        }
+      },
       style: ElevatedButton.styleFrom(
         // backgroundColor:
         //     widget.isDarkMode
