@@ -1,5 +1,4 @@
 import API from "./api";
-import axios from "axios";
 import { AxiosResponse } from "axios";
 import { Post } from "./types";
 
@@ -159,41 +158,43 @@ export const fetchPost = async (
 // ==== CREATE POST ====
 export const createPost = async (
   content: string,
-  mediaFile?: File,
+  mediaFiles?: File[],
   mediaType?: "image" | "video" | "file",
   fileTitle?: string,
   fileDescription?: string
 ): Promise<AxiosResponse<CreatePostResponse>> => {
   const formData = new FormData();
+
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  if (mediaFile && mediaType === "file") {
-    formData.append("media", mediaFile);
-    formData.append("type", "document");
-    formData.append("title", fileTitle ?? "Untitled Document");
-    formData.append("description", fileDescription ?? "PDF file");
-    console.log("📄 Document being uploaded:", mediaFile.name);
-  } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
-    formData.append("media", mediaFile);
-    formData.append("type", mediaType);
-    formData.append("title", "Uploaded Media");
-    formData.append("description", `${mediaType} file`);
-    console.log("🖼️ Media being uploaded:", mediaFile.name);
+  if (mediaFiles && mediaFiles.length > 0 && mediaType) {
+    mediaFiles.forEach((file) => {
+      formData.append("media", file); // ✅ supports multiple
+    });
+
+    formData.append("type", mediaType === "file" ? "document" : mediaType);
+    formData.append("title", fileTitle ?? "Untitled");
+    formData.append("description", fileDescription ?? "No description");
+
+    console.log(`📁 Uploading ${mediaFiles.length} files of type: ${mediaType}`);
   } else {
-    formData.append("title", "text only");
-    formData.append("description", "no media");
-    console.log("📝 Text-only post");
+    // No media case
+    formData.append("type", "text");
+    formData.append("title", "Text only");
+    formData.append("description", "No media attached");
+
+    console.log("📝 Creating text-only post");
   }
 
   return await API.post("/post", formData, {
+
     headers: {
       "Content-Type": "multipart/form-data",
       "x-no-parse-body": "1",
     },
   });
 };
-
 
 // ==== DELETE POST ====
 
@@ -317,7 +318,7 @@ export const tagUsersAPI = async (payload: TagUserRequest): Promise<TagUserRespo
 };
 
 export const tagUsersOnContentAPI = async (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number }[]) => {
-  const res = await axios.post(`/tags`, {
+  const res = await API.post(`/tags`, {
     contentType,
     contentId,
     tags,

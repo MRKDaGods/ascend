@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardMedia,
   Typography,
   useTheme,
   useMediaQuery,
@@ -17,7 +16,7 @@ import PostActions from "./PostActions";
 import Comment from "./Comment";
 import SaveandLink from "./SaveandLink";
 
-// New: Define Comment type for local usage
+// Type for fetched comments
 interface FetchedComment {
   id: number;
   post_id: number;
@@ -36,6 +35,7 @@ interface FetchedComment {
   replies: any[];
 }
 
+// Utility to detect and link URLs
 const renderTextWithLinks = (text: string) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
@@ -59,9 +59,9 @@ const renderTextWithLinks = (text: string) => {
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   const { repostFromAPI, postReactions, fetchCommentsForPostFromAPI } = usePostStore();
 
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [fetchedComments, setFetchedComments] = useState<FetchedComment[]>([]);
@@ -76,16 +76,16 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         mb: 2,
         p: 2,
         boxShadow: 3,
-        border: `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
-        backgroundColor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        bgcolor: theme.palette.background.paper,
         color: theme.palette.text.primary,
         width: "100%",
         maxWidth: "600px",
         mx: "auto",
       }}
     >
-      {/* Post Header */}
+      {/* Header */}
       <CardHeader
         avatar={
           <Avatar src={post.profilePic || undefined}>
@@ -94,7 +94,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         }
         title={<Typography fontWeight="bold">{post.username}</Typography>}
         subheader={
-          <Typography color={theme.palette.text.secondary} fontSize="0.75rem">
+          <Typography fontSize="0.75rem" color="text.secondary">
             {post.followers} • {post.timestamp}
           </Typography>
         }
@@ -108,40 +108,109 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Typography>
       </CardContent>
 
-      {/* Media Preview */}
-      {post.image && !post.video && (
-        <CardMedia
-          component="img"
-          image={post.image}
-          alt="Post image"
-          sx={{
-            width: "100%",
-            objectFit: "cover",
-            borderRadius: "0 0 12px 12px",
-          }}
-        />
-      )}
+      {/* Media Carousel */}
+      {post.media && post.media.length > 0 && (
+        <Box sx={{ position: "relative", mt: 2 }}>
+          {post.media[currentMediaIndex].type === "video" ? (
+            <video
+              src={post.media[currentMediaIndex].url}
+              controls
+              style={{
+                width: "100%",
+                objectFit: "cover",
+                borderRadius: "0 0 12px 12px",
+                maxHeight: "500px",
+              }}
+            />
+          ) : (
+            <img
+              src={post.media[currentMediaIndex].url}
+              alt={`Post media ${currentMediaIndex}`}
+              style={{
+                width: "100%",
+                objectFit: "cover",
+                borderRadius: "0 0 12px 12px",
+                maxHeight: "500px",
+              }}
+            />
+          )}
 
-      {post.video && (
-        <Box sx={{ mt: 2 }}>
-          <video
-            controls
-            style={{
-              width: "100%",
-              borderRadius: "0 0 12px 12px",
-              maxHeight: "500px",
-              objectFit: "cover",
+          {/* Left Arrow */}
+          {currentMediaIndex > 0 && (
+            <Box
+              onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: 16,
+                transform: "translateY(-50%)",
+                bgcolor: "rgba(0,0,0,0.5)",
+                color: "white",
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+                userSelect: "none",
+                fontWeight: "bold",
+              }}
+            >
+              {"<"}
+            </Box>
+          )}
+
+          {/* Right Arrow */}
+          {currentMediaIndex < post.media.length - 1 && (
+            <Box
+              onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
+              sx={{
+                position: "absolute",
+                top: "50%",
+                right: 16,
+                transform: "translateY(-50%)",
+                bgcolor: "rgba(0,0,0,0.5)",
+                color: "white",
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                cursor: "pointer",
+                userSelect: "none",
+                fontWeight: "bold",
+              }}
+            >
+              {">"}
+            </Box>
+          )}
+
+          {/* Media Counter */}
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 8,
+              left: "50%",
+              transform: "translateX(-50%)",
+              bgcolor: "rgba(0,0,0,0.6)",
+              color: "white",
+              px: 1.5,
+              py: 0.5,
+              borderRadius: "16px",
+              fontSize: "0.75rem",
+              fontWeight: "bold",
             }}
           >
-            <source src={post.video} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+            {`${currentMediaIndex + 1}/${post.media.length}`}
+          </Box>
         </Box>
       )}
 
-      {/* PDF Preview */}
+      {/* PDF Document Preview */}
       {post.file && post.fileTitle && (
-        <Box sx={{ mt: 2, width: "100%" }}>
+        <Box sx={{ mt: 2 }}>
           <iframe
             src={post.file}
             title={post.fileTitle}
@@ -152,64 +221,66 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
               borderRadius: "8px",
             }}
           />
-          <Typography fontSize="0.8rem" color="text.secondary" textAlign="center" mt={1}>
-            <a href={post.file} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+          <Typography
+            fontSize="0.8rem"
+            color="text.secondary"
+            textAlign="center"
+            mt={1}
+          >
+            <a
+              href={post.file}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#0a66c2" }}
+            >
               View or download {post.fileTitle}
             </a>
           </Typography>
         </Box>
       )}
 
-      {/* Post Statistics */}
-      <Box
-        sx={{
-          px: 2,
-          py: 1,
-          color: theme.palette.text.secondary,
-          fontSize: "0.875rem",
-        }}
-      >
+      {/* Likes, Comments, Reposts */}
+      <Box sx={{ px: 2, py: 1, color: theme.palette.text.secondary, fontSize: "0.875rem" }}>
         <Typography variant="body2">
-  👍 {post.likes} •{" "}
-  <span
-    id="view-comments-button"
-    style={{ cursor: "pointer", textDecoration: "underline" }}
-    onClick={async () => {
-      setShowComments((prev) => !prev);
-      if (post.comments > 0 && fetchedComments.length === 0) {
-        try {
-          const comments = await fetchCommentsForPostFromAPI(post.id);
-          setFetchedComments(comments); 
-        } catch (error) {
-          console.error("❌ Failed to fetch comments:", error);
-        }
-      }
-    }}
-  >
-    {post.comments} comments
-  </span>{" "}
-  • {post.reposts} reposts
-</Typography>
-
+          👍 {post.likes} •{" "}
+          <span
+            id="view-comments-button"
+            style={{ cursor: "pointer", textDecoration: "underline" }}
+            onClick={async () => {
+              setShowComments((prev) => !prev);
+              if (post.comments > 0 && fetchedComments.length === 0) {
+                try {
+                  const comments = await fetchCommentsForPostFromAPI(post.id);
+                  setFetchedComments(comments);
+                } catch (error) {
+                  console.error("❌ Failed to fetch comments:", error);
+                }
+              }
+            }}
+          >
+            {post.comments} comments
+          </span>{" "}
+          • {post.reposts} reposts
+        </Typography>
       </Box>
 
-      {/* Actions */}
+      {/* Action Buttons */}
       <PostActions
         postId={post.id}
         liked={!!postReactions[post.id]}
         reposted={false}
         onLike={() => {}}
         onRepost={handleRepost}
-        onCommentClick={() => setShowCommentInput(!showCommentInput)}
+        onCommentClick={() => setShowCommentInput((prev) => !prev)}
       />
 
-      {/* Comment Section */}
+      {/* Comments Section */}
       <Comment
         post={post}
         showCommentInput={showCommentInput}
         showComments={showComments}
         setShowComments={setShowComments}
-        fetchedComments={fetchedComments} // Pass the real fetched comments
+        fetchedComments={fetchedComments}
       />
     </Card>
   );
