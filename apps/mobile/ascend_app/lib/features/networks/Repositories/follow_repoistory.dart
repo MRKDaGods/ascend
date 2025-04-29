@@ -6,10 +6,12 @@ import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_followed_users.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_suggested_to_follow.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
-import 'package:ascend_app/core/constants/api_bases.dart';
 
 class FollowRepoistory {
   final http.Client _client;
+  final String baseUrl;
+  final Map<String, String> headers;
+  final bool useMockData;
   //final AuthService _authService;
 
   // Keep the mock data for development
@@ -20,16 +22,21 @@ class FollowRepoistory {
   */
 
   FollowRepoistory({
-    http.Client? client,
-    //AuthService? authService,
-  }) : _client = client ?? http.Client();
+    this.baseUrl = 'https://api.ascendx.tech',
+    this.headers = const {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    this.useMockData = false,
+  }) : _client = http.Client();
+
   //_authService = authService ?? AuthService();
   Future<void> addFollowingRepoistory(String userId) async {
     try {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.post(
-        Uri.parse('${ApiBases.Connection_Base}${ApiEndpoints.follow}/:$userId'),
+        Uri.parse('$baseUrl${ApiEndpoints.follow}/:$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -52,7 +59,7 @@ class FollowRepoistory {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.delete(
-        Uri.parse('${ApiBases.Connection_Base}${ApiEndpoints.follow}/:$userId'),
+        Uri.parse('$baseUrl${ApiEndpoints.follow}/:$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -76,9 +83,7 @@ class FollowRepoistory {
   }) async {
     try {
       final token = 'your_token_here';
-      final uri = Uri.parse(
-        '${ApiBases.Connection_Base}${ApiEndpoints.follow}',
-      ).replace(
+      final uri = Uri.parse('$baseUrl${ApiEndpoints.follow}').replace(
         queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       );
 
@@ -109,9 +114,7 @@ class FollowRepoistory {
   }) async {
     try {
       final token = 'your_token_here';
-      final uri = Uri.parse(
-        '${ApiBases.Connection_Base}${ApiEndpoints.follow}',
-      ).replace(
+      final uri = Uri.parse('$baseUrl${ApiEndpoints.follow}').replace(
         queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       );
 

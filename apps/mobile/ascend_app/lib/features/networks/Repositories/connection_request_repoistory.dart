@@ -6,21 +6,28 @@ import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dar
 import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
-import 'package:ascend_app/core/constants/api_bases.dart';
 //import 'package:ascend_app/core/services/auth_service.dart';
 
 class ConnectionRequestRepository {
   final http.Client _client;
   //final AuthService _authService;
+  final String baseUrl;
+  final Map<String, String> headers;
+  final bool useMockData;
 
   // Keep the mock data for development
   final List<ConnectionRequestModel> connectionRequests = ConnectionRequests();
 
   ConnectionRequestRepository({
-    http.Client? client,
-    //AuthService? authService,
-  }) : _client = client ?? http.Client();
-  //_authService = authService ?? AuthService();
+    this.baseUrl = 'https://api.ascendx.tech',
+    this.headers = const {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    this.useMockData = false,
+  }) : _client = http.Client() {
+    // _authService = authService ?? AuthService();
+  }
 
   /// Send a connection request to another user
   Future<void> sendConnectionRequest(String connectionId) async {
@@ -35,9 +42,7 @@ class ConnectionRequestRepository {
       };
 
       final response = await _client.post(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.sendConnectionRequest}',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.sendconnectionRequest}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -61,9 +66,7 @@ class ConnectionRequestRepository {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.put(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.acceptConnectionRequest}/$requestId',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.acceptConnectionRequest}/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -89,9 +92,7 @@ class ConnectionRequestRepository {
       //final token = await _authService.getToken();
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.put(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.rejectConnectionRequest}/$requestId',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.rejectConnectionRequest}/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -120,9 +121,7 @@ class ConnectionRequestRepository {
       //final token = await _authService.getToken();
       final token = 'your_token_here';
       final response = await _client.get(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.fetchPendingRequests}',
-        ).replace(
+        Uri.parse('$baseUrl${ApiEndpoints.connectionPending}').replace(
           queryParameters: {
             'direction': 'outgoing',
             'page': page.toString(),
@@ -159,9 +158,7 @@ class ConnectionRequestRepository {
       //final token = await _authService.getToken();
       final token = 'your_token_here';
       final response = await _client.get(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.fetchPendingRequests}',
-        ).replace(
+        Uri.parse('$baseUrl${ApiEndpoints.connectionPending}').replace(
           queryParameters: {
             'direction': 'incoming',
             'page': page.toString(),
@@ -199,9 +196,7 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here';
       final response = await _client.get(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.fetchConnections}',
-        ).replace(
+        Uri.parse('$baseUrl${ApiEndpoints.fetchConnections}').replace(
           queryParameters: {
             'search': search,
             'page': page.toString(),
@@ -234,7 +229,7 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here';
       final response = await _client.delete(
-        Uri.parse('${ApiEndpoints.cancelConnectionRequest}/$requestId'),
+        Uri.parse('$baseUrl${ApiEndpoints.cancelConnectionRequest}/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -258,7 +253,7 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.delete(
-        Uri.parse('/$connectionId'),
+        Uri.parse('$baseUrl$connectionId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -290,9 +285,7 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.get(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.fetchConnectionRecommendations}',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.fetchConnectionRecommendations}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -321,9 +314,7 @@ class ConnectionRequestRepository {
     try {
       final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.get(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.fetchMutualConnections}',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.fetchMutualConnections}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

@@ -1,34 +1,30 @@
 import 'package:ascend_app/features/networks/bloc/bloc/messaging/bloc/messaging_bloc.dart';
 import 'package:ascend_app/features/networks/model/message_model.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
-import 'package:ascend_app/core/constants/api_bases.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class MessageRequestRepoistory {
+class MessageRequestRepository {
   final http.Client _client;
-  //final AuthService _authService;
+  final String baseUrl;
+  final Map<String, String> headers;
+  final bool useMockData;
 
-  // Keep the mock data for development
-  /*
-  final List<FollowedUser> followedUsers = MockFollowedUsers.getFollowing('10');
-  final List<UserSuggestedtoFollow> suggestedUsers =
-      MockSuggestedToFollow.getSuggestedToFollow();
-  */
-
-  MessageRequestRepoistory({
-    http.Client? client,
-    //AuthService? authService,
-  }) : _client = client ?? http.Client();
+  MessageRequestRepository({
+    this.baseUrl = 'https://api.ascendx.tech',
+    this.headers = const {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    this.useMockData = false,
+  }) : _client = http.Client();
 
   Future<void> sendMessagingRequests(String userId) async {
     try {
       final token = 'your_token_here';
       final response = await _client.post(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.sendMessageRequest}/:${userId}',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.sendMessageRequest}/$userId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -42,7 +38,6 @@ class MessageRequestRepoistory {
         throw Exception('Failed to send message request: ${response.body}');
       }
     } catch (e) {
-      // print error
       print('Error sending message request: $e');
     }
   }
@@ -51,20 +46,17 @@ class MessageRequestRepoistory {
     try {
       final token = 'your_token_here';
       final response = await _client.put(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.acceptConnectionRequest}/:${requestId}',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.acceptMessageRequest}/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode({'accept': 'true'}),
+        body: json.encode({'accept': true}),
       );
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send message request: ${response.body}');
+        throw Exception('Failed to accept message request: ${response.body}');
       }
     } catch (e) {
-      // print error
       print('Error accepting message request: $e');
     }
   }
@@ -73,20 +65,17 @@ class MessageRequestRepoistory {
     try {
       final token = 'your_token_here';
       final response = await _client.put(
-        Uri.parse(
-          '${ApiBases.Connection_Base}${ApiEndpoints.rejectMessageRequest}/:${requestId}',
-        ),
+        Uri.parse('$baseUrl${ApiEndpoints.rejectMessageRequest}/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: json.encode({'accept': 'true'}),
+        body: json.encode({'accept': false}),
       );
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send message request: ${response.body}');
+        throw Exception('Failed to reject message request: ${response.body}');
       }
     } catch (e) {
-      // print error
       print('Error rejecting message request: $e');
     }
   }

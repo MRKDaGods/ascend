@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+import 'package:ascend_app/services/web_socket_service.dart';
 
 class ApiClient {
   final String _baseUrl = 'https://api.ascendx.tech';
+  final WebSocketService _wsService = WebSocketService();
 
   // Helper method to get headers (e.g., for authentication)
   Future<Map<String, String>> _getHeaders() async {
@@ -61,12 +63,20 @@ class ApiClient {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       await SecureStorageHelper.setAuthToken(responseData['token']);
+
+      if (responseData['user_id'] != null) {
+        await SecureStorageHelper.setUserId('16');
+      } else {
+        print('User ID is null in the response data.');
+      }
+      //await SecureStorageHelper.setUserId(responseData['user_id']);
     } else {
       throw Exception(
         'Failed to login: ${response.statusCode}, ${response.body}',
       );
     }
 
+    _handleResponse(response); // Ensure this is outside the if block
     return response;
   }
 
@@ -119,6 +129,18 @@ class ApiClient {
     } else {
       // Handle errors
       throw Exception('Error: ${response.statusCode}, ${response.body}');
+    }
+  }
+
+  // get Socket Server URL
+  Future<String> getSocketServerUrl() async {
+    final headers = await _getHeaders();
+    final url = Uri.parse('$_baseUrl/messaging/socket-server-url');
+    final response = await http.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['socketServerUrl'];
+    } else {
+      throw Exception('Failed to load socket server URL');
     }
   }
 }

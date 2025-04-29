@@ -5,6 +5,7 @@ import '../../features/profile/bloc/user_profile_bloc.dart';
 import '../../features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
 import 'package:ascend_app/core/routes/app_routes.dart'; // Import app routes
+import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
 
 import 'bloc/search_bloc.dart';
 import 'bloc/search_event.dart';
@@ -45,29 +46,32 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
       pinned: widget.pinned,
       floating: widget.floating,
       leading: Builder(
-        builder: (context) => GestureDetector(
-          onTap: () {
-            Scaffold.of(context).openDrawerWithAnimation(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-            );
-          },
-          child: BlocBuilder<UserProfileBloc, UserProfileState>(
-            builder: (context, state) {
-              final avatarUrl = state is UserProfileLoaded && state.profile.avatarUrl.isNotEmpty
-                  ? state.profile.avatarUrl
-                  : null;
-                  
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: UserAvatar(
-                  imageUrl: avatarUrl,
-                  radius: 18, // Adjust radius as needed
-                ),
-              );
-            },
-          ),
-        ),
+        builder:
+            (context) => GestureDetector(
+              onTap: () {
+                Scaffold.of(context).openDrawerWithAnimation(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+              child: BlocBuilder<UserProfileBloc, UserProfileState>(
+                builder: (context, state) {
+                  final avatarUrl =
+                      state is UserProfileLoaded &&
+                              state.profile.avatarUrl.isNotEmpty
+                          ? state.profile.avatarUrl
+                          : null;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: UserAvatar(
+                      imageUrl: avatarUrl,
+                      radius: 18, // Adjust radius as needed
+                    ),
+                  );
+                },
+              ),
+            ),
       ),
       title: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
@@ -144,7 +148,10 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
               ),
             IconButton(
               icon: const Icon(Icons.message_outlined),
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to MainMessagePage
+                Navigator.pushNamed(context, RouteNames.mainMessage);
+              },
             ),
           ],
         ),

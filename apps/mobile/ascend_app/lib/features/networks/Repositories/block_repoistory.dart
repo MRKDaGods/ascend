@@ -2,22 +2,31 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
-import 'package:ascend_app/core/constants/api_bases.dart';
 //import 'package:ascend_app/core/services/auth_service.dart';
 
 class BlockRepository {
   final http.Client _client;
+  final String baseUrl;
+  final Map<String, String> headers;
+  final bool useMockData;
+
   //final AuthService _authService;
 
-  BlockRepository({http.Client? client}) : _client = client ?? http.Client();
+  BlockRepository({
+    this.baseUrl = 'https://api.ascendx.tech',
+    this.headers = const {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    this.useMockData = false,
+  }) : _client = http.Client();
+  // _authService = authService ?? AuthService();
 
   /// Block a user by their ID
   Future<void> blockUser(String userId) async {
     try {
       final token = 'your_token_here';
-      final uri = Uri.parse(
-        '${ApiBases.Connection_Base}${ApiEndpoints.block}/:$userId',
-      );
+      final uri = Uri.parse('$baseUrl${ApiEndpoints.block}/:$userId');
       final response = await _client.post(
         uri,
         headers: {
@@ -40,9 +49,7 @@ class BlockRepository {
   Future<void> unblockUser(String userId) async {
     try {
       final token = 'your_token_here';
-      final uri = Uri.parse(
-        '${ApiBases.Connection_Base}${ApiEndpoints.block}/:$userId',
-      );
+      final uri = Uri.parse('$baseUrl${ApiEndpoints.block}/:$userId');
       final response = await _client.delete(
         uri,
         headers: {
@@ -69,7 +76,7 @@ class BlockRepository {
       final token = 'your_token_here';
 
       final uri = Uri.parse(
-        '${ApiBases.Connection_Base}${ApiEndpoints.fetchBlockedUsers}',
+        '$baseUrl${ApiEndpoints.fetchBlockedUsers}',
       ).replace(
         queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       );
