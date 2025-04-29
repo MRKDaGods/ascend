@@ -14,6 +14,7 @@ import {
   handleGetUserApplications,
   handleGetCompanyJobs,
   handleDeleteJob,
+  handleUpdateJob,
 } from "../controllers/jobController";
 import multer from "multer";
 
@@ -28,6 +29,7 @@ const router = Router();
 router.get("/", handleJobSearch);                         // Search jobs (with query params)
 router.post("/", authenticateToken, handleJobPosting);    // Create a job
 router.delete("/:jobId", authenticateToken, handleDeleteJob); // Delete a job
+router.patch("/:jobId", authenticateToken, handleUpdateJob); // Update a job
 router.post("/:jobId/report", authenticateToken, handleReportJob); // Report a job
 
 // Company jobs sub-resource
