@@ -439,6 +439,24 @@ export const updateJob = async (
   salary_max_range?: number
 ): Promise<Job> => {
   try {
+    // If only one salary range is provided, fetch the existing job to validate against the other range
+    if ((salary_min_range !== undefined && salary_max_range === undefined) ||
+        (salary_min_range === undefined && salary_max_range !== undefined)) {
+      const existingJobQuery = `SELECT salary_min_range, salary_max_range FROM job_service.jobs WHERE job_id = $1`;
+      const existingJobResult = await db.query(existingJobQuery, [jobId]);
+
+      const existingJob = existingJobResult.rows[0];
+
+      // get the effective min and max range (if one of them is not provided, use the existing one)
+      const effectiveMinRange = (salary_min_range !== undefined) ? salary_min_range : existingJob.salary_min_range;
+      const effectiveMaxRange = (salary_max_range !== undefined) ? salary_max_range : existingJob.salary_max_range;
+
+      // Only validate if both ranges exist (not null)
+      if (effectiveMinRange !== null && effectiveMaxRange !== null && effectiveMinRange > effectiveMaxRange) {
+        throw new Error("Salary minimum range must be less than or equal to salary maximum range");
+      }
+    }
+
     const query = `
       UPDATE job_service.jobs
       SET title = COALESCE($1, title),
