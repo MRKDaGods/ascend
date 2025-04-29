@@ -4,31 +4,23 @@ import { api } from "@/api";
 import { Experience, Profile } from "@ascend/api-client/models";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import EmailIcon from "@mui/icons-material/Email";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-
 import PhoneIcon from "@mui/icons-material/Phone";
-
 import WorkIcon from "@mui/icons-material/Work";
 import {
   Avatar,
   Box,
   Button,
-  Card,
-  CardContent,
-  Chip,
   Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   Grid,
   IconButton,
   Menu,
-  Paper,
   TextField,
   Typography,
 } from "@mui/material";
