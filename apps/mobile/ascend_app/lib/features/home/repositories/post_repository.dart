@@ -245,6 +245,70 @@ class PostRepository {
     }
   }
 
+  // Toggle Post Reaction via API
+  Future<bool> togglePostReaction(String postId, String? reactionType) async {
+    // Use the correct endpoint provided by the user
+    final String reactionUrl = '$baseUrl/post/$postId/react';
+    debugPrint('🔄 Toggling reaction for post $postId: Type=$reactionType, URL=$reactionUrl');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        throw Exception('Authentication token not found.');
+      }
+
+      http.Response response;
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json', // Needed even for empty body sometimes
+      };
+
+      // If reactionType is provided, send it in the body
+      if (reactionType != null) {
+         debugPrint('  Sending POST with body: {"type": "$reactionType"}');
+         response = await _client.post(
+           Uri.parse(reactionUrl),
+           headers: headers,
+           body: jsonEncode({'type': reactionType}),
+         );
+      } else {
+        // If reactionType is null, attempt to remove the reaction.
+        // Assuming POST without body or DELETE might work. Let's try POST without body first.
+        debugPrint('  Sending POST without body (attempting removal)');
+        response = await _client.post(
+          Uri.parse(reactionUrl),
+          headers: headers,
+           // body: jsonEncode({}), // Or send empty JSON object? Test required.
+        );
+        // Alternative: Try DELETE if POST without body fails
+        // debugPrint(' Sending DELETE request for removal');
+        // response = await _client.delete(Uri.parse(reactionUrl), headers: headers);
+      }
+
+
+      debugPrint('Toggle Reaction Response Status Code: ${response.statusCode}');
+      // debugPrint('Toggle Reaction Response Body: ${response.body}');
+
+      // Check for successful status codes (200 OK, 201 Created, potentially 204 No Content for removal)
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+         // Handle empty body for 204 No Content
+         final responseBody = response.body;
+         final message = (responseBody.isNotEmpty && response.statusCode != 204)
+             ? (jsonDecode(responseBody)['data']?['message'] ?? 'Reaction updated')
+             : 'Reaction updated/removed'; // Default message for success/204
+         debugPrint('✅ Reaction toggled successfully for post $postId. Message: $message');
+         return true;
+      } else {
+        debugPrint('❌ Failed to toggle reaction for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to toggle reaction: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error in togglePostReaction: $e');
+      rethrow;
+    }
+  }
+
   /// Adds a comment to a specific post via the API.
   Future<Comment> addComment(
     String postId,
