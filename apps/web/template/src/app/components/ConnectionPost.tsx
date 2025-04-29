@@ -109,33 +109,37 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       </CardContent>
 
       {/* Media Carousel */}
-      {post.media && post.media.length > 0 && (
-        <Box sx={{ position: "relative", mt: 2 }}>
-          {post.media[currentMediaIndex].type === "video" ? (
-            <video
-              src={post.media[currentMediaIndex].url}
-              controls
-              style={{
-                width: "100%",
-                objectFit: "cover",
-                borderRadius: "0 0 12px 12px",
-                maxHeight: "500px",
-              }}
-            />
-          ) : (
-            <img
-              src={post.media[currentMediaIndex].url}
-              alt={`Post media ${currentMediaIndex}`}
-              style={{
-                width: "100%",
-                objectFit: "cover",
-                borderRadius: "0 0 12px 12px",
-                maxHeight: "500px",
-              }}
-            />
-          )}
+      {post.media &&
+  post.media.length > 0 &&
+  post.media[currentMediaIndex] && (
+    <Box sx={{ position: "relative", mt: 2 }}>
+      {post.media[currentMediaIndex].type === "video" ? (
+        <video
+          src={post.media[currentMediaIndex].url}
+          controls
+          style={{
+            width: "100%",
+            objectFit: "cover",
+            borderRadius: 10,
+            maxHeight: "500px",
+          }}
+        />
+      ) : (
+        <img
+          src={post.media[currentMediaIndex].url}
+          alt={`Post media ${currentMediaIndex}`}
+          style={{
+            width: "100%",
+            objectFit: "cover",
+            borderRadius: 10,
+            maxHeight: "500px",
+          }}
+        />
+      )}
 
-          {/* Left Arrow */}
+      {/* Arrows */}
+      {post.media.length > 1 && (
+        <>
           {currentMediaIndex > 0 && (
             <Box
               onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
@@ -155,13 +159,13 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
                 cursor: "pointer",
                 userSelect: "none",
                 fontWeight: "bold",
+                zIndex: 5,
               }}
             >
               {"<"}
             </Box>
           )}
 
-          {/* Right Arrow */}
           {currentMediaIndex < post.media.length - 1 && (
             <Box
               onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
@@ -181,13 +185,14 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
                 cursor: "pointer",
                 userSelect: "none",
                 fontWeight: "bold",
+                zIndex: 5,
               }}
             >
               {">"}
             </Box>
           )}
 
-          {/* Media Counter */}
+          {/* Counter */}
           <Box
             sx={{
               position: "absolute",
@@ -201,12 +206,15 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
               borderRadius: "16px",
               fontSize: "0.75rem",
               fontWeight: "bold",
+              zIndex: 5,
             }}
           >
             {`${currentMediaIndex + 1}/${post.media.length}`}
           </Box>
-        </Box>
+        </>
       )}
+    </Box>
+)}
 
       {/* PDF Document Preview */}
       {post.file && post.fileTitle && (
