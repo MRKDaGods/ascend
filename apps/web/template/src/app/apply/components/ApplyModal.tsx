@@ -130,6 +130,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           margin="normal"
           error={!isEmailValid}
           helperText={!isEmailValid ? 'Invalid email format.' : ''}
+          data-testid="apply-email-input"
         />
 
         <TextField
@@ -145,6 +146,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           margin="normal"
           error={!isPhoneValid}
           helperText={!isPhoneValid ? 'Use format +201234567890 (10–15 digits).' : ''}
+          data-testid="apply-phone-input"
         />
 
         <Box mt={4}>
@@ -178,12 +180,12 @@ export default function ApplyModal({ job, open, onClose }: any) {
                 Upload resume
               </Button>
               <input
-                ref={fileInputRef}
                 type="file"
                 accept=".pdf,.doc,.docx"
-                id="resumeInput"
-                style={{ display: 'none' }}
                 onChange={handleFileUpload}
+                style={{ display: 'none' }}
+                id="resume-file"
+                data-testid="apply-resume-upload"
               />
             </Box>
           )}
@@ -191,9 +193,17 @@ export default function ApplyModal({ job, open, onClose }: any) {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} variant="outlined">Back</Button>
+        <Button 
+          variant="outlined" 
+          onClick={onClose}
+          data-testid="apply-back-button"
+        >
+          Back
+        </Button>
         <Button
           variant="contained"
+          color="primary"
+          type="submit"
           disabled={
             !userData.email ||
             !userData.fullPhone ||
@@ -202,6 +212,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
             !isPhoneValid
           }
           onClick={handleSubmit}
+          data-testid="apply-submit-button"
         >
           Submit application
         </Button>

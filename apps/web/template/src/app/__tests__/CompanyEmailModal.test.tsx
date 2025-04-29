@@ -29,12 +29,12 @@ describe('CompanyEmailModal Component', () => {
     expect(screen.getByText(/Please enter your company email to verify you work at/)).toBeInTheDocument();
     expect(screen.getByText('AcmeInc')).toBeInTheDocument();
     
-    // Check if the email input field is present
-    expect(screen.getByLabelText('Company Email')).toBeInTheDocument();
+    // Check if the email input field is present using data-testid
+    expect(screen.getByTestId('company-email-input')).toBeInTheDocument();
     
-    // Check if buttons are present
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Verify' })).toBeInTheDocument();
+    // Check if buttons are present using data-testid
+    expect(screen.getByTestId('company-email-cancel-button')).toBeInTheDocument();
+    expect(screen.getByTestId('company-email-verify-button')).toBeInTheDocument();
   });
 
   it('calls onClose when Cancel button is clicked', () => {
@@ -46,8 +46,8 @@ describe('CompanyEmailModal Component', () => {
       />
     );
     
-    // Click the Cancel button
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    // Click the Cancel button using data-testid
+    fireEvent.click(screen.getByTestId('company-email-cancel-button'));
     
     // Verify onClose was called
     expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -64,14 +64,15 @@ describe('CompanyEmailModal Component', () => {
       />
     );
     
-    // Get the email input field
-    const emailInput = screen.getByLabelText('Company Email');
+    // Get the email input field by targeting the input element within the TextField component
+    const emailInput = screen.getByTestId('company-email-input').querySelector('input');
+    if (!emailInput) throw new Error('Email input not found');
     
     // Enter a valid email (matches company domain)
     fireEvent.change(emailInput, { target: { value: 'test@acmeinc.com' } });
     
-    // Click the Verify button
-    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    // Click the Verify button using data-testid
+    fireEvent.click(screen.getByTestId('company-email-verify-button'));
     
     // Verify onVerify was called with the correct email
     expect(mockOnVerify).toHaveBeenCalledWith('test@acmeinc.com');
@@ -89,14 +90,15 @@ describe('CompanyEmailModal Component', () => {
       />
     );
     
-    // Get the email input field
-    const emailInput = screen.getByLabelText('Company Email');
+    // Get the email input field by targeting the input element within the TextField component
+    const emailInput = screen.getByTestId('company-email-input').querySelector('input');
+    if (!emailInput) throw new Error('Email input not found');
     
     // Enter an invalid email (wrong domain)
     fireEvent.change(emailInput, { target: { value: 'test@wrongdomain.com' } });
     
-    // Click the Verify button
-    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    // Click the Verify button using data-testid
+    fireEvent.click(screen.getByTestId('company-email-verify-button'));
     
     // Verify error message is displayed
     expect(screen.getByText('Email must end with @acmeinc.com')).toBeInTheDocument();
@@ -118,14 +120,15 @@ describe('CompanyEmailModal Component', () => {
       />
     );
     
-    // Get the email input field
-    const emailInput = screen.getByLabelText('Company Email');
+    // Get the email input field by targeting the input element within the TextField component
+    const emailInput = screen.getByTestId('company-email-input').querySelector('input');
+    if (!emailInput) throw new Error('Email input not found');
     
     // Enter a valid email based on the company name with spaces removed
     fireEvent.change(emailInput, { target: { value: 'test@techsolutions.com' } });
     
-    // Click the Verify button
-    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    // Click the Verify button using data-testid
+    fireEvent.click(screen.getByTestId('company-email-verify-button'));
     
     // Verify onVerify was called with the correct email
     expect(mockOnVerify).toHaveBeenCalledWith('test@techsolutions.com');
@@ -143,12 +146,13 @@ describe('CompanyEmailModal Component', () => {
       />
     );
     
-    // Get the email input field
-    const emailInput = screen.getByLabelText('Company Email');
+    // Get the email input field by targeting the input element within the TextField component
+    const emailInput = screen.getByTestId('company-email-input').querySelector('input');
+    if (!emailInput) throw new Error('Email input not found');
     
     // First enter an invalid email
     fireEvent.change(emailInput, { target: { value: 'test@wrongdomain.com' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    fireEvent.click(screen.getByTestId('company-email-verify-button'));
     
     // Verify error message is displayed
     expect(screen.getByText('Email must end with @acmeinc.com')).toBeInTheDocument();
@@ -160,7 +164,7 @@ describe('CompanyEmailModal Component', () => {
     expect(screen.getByText('Email must end with @acmeinc.com')).toBeInTheDocument();
     
     // Submit the form again with correct email
-    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    fireEvent.click(screen.getByTestId('company-email-verify-button'));
     
     // Verify onVerify was called with the correct email
     expect(mockOnVerify).toHaveBeenCalledWith('test@acmeinc.com');

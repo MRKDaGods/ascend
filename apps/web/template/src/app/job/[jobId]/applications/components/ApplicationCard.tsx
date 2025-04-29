@@ -150,24 +150,31 @@ const ApplicationCard: React.FC<ApplicationProps> = ({ application, onUpdateStat
                 Update Status:
               </Typography>
               <ButtonGroup orientation="vertical" variant="outlined" fullWidth>
-                <Button 
-                  color="info"
+                <Button
+                  variant="outlined"
                   disabled={application.status === 'Viewed'}
                   onClick={() => onUpdateStatus(application.application_id, 'Viewed')}
+                  data-testid="application-view-button"
                 >
                   Mark as Viewed
                 </Button>
-                <Button 
+
+                <Button
+                  variant="outlined"
                   color="success"
                   disabled={application.status === 'Accepted'}
                   onClick={() => onUpdateStatus(application.application_id, 'Accepted')}
+                  data-testid="application-accept-button"
                 >
                   Accept
                 </Button>
-                <Button 
+
+                <Button
+                  variant="outlined"
                   color="error"
                   disabled={application.status === 'Rejected'}
                   onClick={() => onUpdateStatus(application.application_id, 'Rejected')}
+                  data-testid="application-reject-button"
                 >
                   Reject
                 </Button>

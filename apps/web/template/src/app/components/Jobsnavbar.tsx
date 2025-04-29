@@ -24,7 +24,7 @@ import {
   ListItemText,
   ListSubheader,
   ClickAwayListener,
-  // Add these imports
+  TextField // Add TextField import
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Home, Work, Chat, Notifications, Search, MoreVert, History, Bookmark } from "@mui/icons-material";
@@ -244,6 +244,7 @@ const JobsNavbar: React.FC = () => {
                 onFocus={() => setShowTitleDropdown(true)}
                 inputRef={searchInputRef}
                 sx={{ fontSize: "0.85rem", width: "100%" }} 
+                data-testid="navbar-job-title-input" // Add data-testid to job title input
               />
             </SearchContainer>
             
@@ -290,9 +291,16 @@ const JobsNavbar: React.FC = () => {
               value={searchParams.location} 
               onChange={handleSearchChange} 
               sx={{ fontSize: "0.85rem", width: "100%" }} 
+              data-testid="navbar-location-input" // Add data-testid to location input
             />
           </SearchContainer>
-          <Button variant="contained" onClick={handleSearch} sx={{ borderRadius: 30, textTransform: 'none', backgroundColor: "#0a66c2", px: 3, py: 1 }}>Search</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSearch}
+            data-testid="navbar-search-button" // Add data-testid to search button
+          >
+            Search
+          </Button>
         </Box>
 
         {/* RIGHT */}
@@ -301,14 +309,14 @@ const JobsNavbar: React.FC = () => {
             <>
               <IconButton onClick={handleMoreOpen}><MoreVert /></IconButton>
               <Menu anchorEl={moreAnchorEl} open={openMore} onClose={handleMoreClose}>
-                <MenuItem onClick={() => router.push("/for-business")}>For Business</MenuItem>
+                <MenuItem onClick={() => router.push("/for-business")} data-testid="navbar-business-button">For Business</MenuItem>
                 <Divider />
                 <MenuItem onClick={() => alert('Premium Coming Soon')}>Try Premium</MenuItem>
               </Menu>
             </>
           ) : (
             <>
-              <Button variant="text" onClick={() => router.push("/for-business")} sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.875rem", color: theme.palette.text.primary }}>
+              <Button variant="text" onClick={() => router.push("/for-business")} sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.875rem", color: theme.palette.text.primary }} data-testid="navbar-business-button">
                 For Business
               </Button>
               <Button variant="contained" sx={{ backgroundColor: "#FFC107", color: "#000", textTransform: "none", borderRadius: 999, fontWeight: 600, px: 2.5, py: 1, fontSize: "0.875rem" }}>

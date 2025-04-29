@@ -18,20 +18,24 @@ jest.mock('../shared/store/useJobStore', () => ({
 
 // Instead of mocking the entire MUI library, just mock specific components
 jest.mock('@mui/material/Dialog', () => {
-  return function MockDialog({ open, children }) {
+  return function MockDialog({ open, children }: { open: boolean; children: React.ReactNode }) {
     return open ? <div data-testid="mock-dialog">{children}</div> : null;
   };
 });
 
 jest.mock('@mui/material/Snackbar', () => {
-  return function MockSnackbar({ open, children }) {
+  return function MockSnackbar({ open, children }: { open: boolean; children: React.ReactNode }) {
     return open ? <div data-testid="mock-snackbar">{children}</div> : null;
   };
 });
 
-// Add Alert mock - this is necessary!
+// Add proper type annotations for the Alert mock
 jest.mock('@mui/material/Alert', () => {
-  return function MockAlert(props) {
+  return function MockAlert(props: { 
+    severity?: 'error' | 'warning' | 'info' | 'success'; 
+    children: React.ReactNode;
+    [key: string]: any;
+  }) {
     const { severity, children, ...rest } = props;
     return (
       <div data-testid={`mock-alert-${severity}`} {...rest}>

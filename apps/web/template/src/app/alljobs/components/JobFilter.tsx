@@ -68,52 +68,34 @@ export default function JobFilter() {
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Keyword"
-            fullWidth
-            variant="outlined"
-            size="small"
             value={keyword}
             onChange={(e) => setFilter('keyword', e.target.value)}
-            sx={textFieldStyle}
+            fullWidth
+            margin="normal"
+            data-testid="job-filter-keyword"
           />
         </Grid>
 
         {/* Location */}
         <Grid item xs={12} sm={6} md={4}>
           <Autocomplete
-            freeSolo
             options={locations}
             value={location}
-            onInputChange={(_, newValue) => setFilter('location', newValue)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Location"
-                variant="outlined"
-                size="small"
-                fullWidth
-                sx={textFieldStyle}
-              />
-            )}
+            onChange={(e, newValue) => setFilter('location', newValue || '')}
+            renderInput={(params) => <TextField {...params} label="Location" margin="normal" />}
+            data-testid="job-filter-location"
           />
         </Grid>
 
         {/* Industry */}
         <Grid item xs={12} sm={6} md={4}>
-          <Autocomplete
-            freeSolo
-            options={industries}
+          <TextField
+            label="Industry"
             value={industry}
-            onInputChange={(_, newValue) => setFilter('industry', newValue)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Industry"
-                variant="outlined"
-                size="small"
-                fullWidth
-                sx={textFieldStyle}
-              />
-            )}
+            onChange={(e) => setFilter('industry', e.target.value)}
+            fullWidth
+            margin="normal"
+            data-testid="job-filter-industry"
           />
         </Grid>
 
@@ -121,32 +103,22 @@ export default function JobFilter() {
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Company"
-            fullWidth
-            variant="outlined"
-            size="small"
             value={company}
             onChange={(e) => setFilter('company', e.target.value)}
-            sx={textFieldStyle}
+            fullWidth
+            margin="normal"
+            data-testid="job-filter-company"
           />
         </Grid>
 
         {/* Workplace Type */}
         <Grid item xs={12} sm={6} md={4}>
           <Autocomplete
-            freeSolo
             options={workplaceTypes}
             value={workplace_type}
-            onInputChange={(_, newValue) => setFilter('workplace_type', newValue)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Workplace Type"
-                variant="outlined"
-                size="small"
-                fullWidth
-                sx={textFieldStyle}
-              />
-            )}
+            onChange={(e, newValue) => setFilter('workplace_type', newValue || '')}
+            renderInput={(params) => <TextField {...params} label="Workplace Type" margin="normal" />}
+            data-testid="job-filter-workplace-type"
           />
         </Grid>
 
@@ -164,6 +136,7 @@ export default function JobFilter() {
                     size="small"
                     checked={experience_level.includes(level)}
                     onChange={() => handleExperienceChange(level)}
+                    data-testid={`job-filter-exp-${level.toLowerCase()}`}
                   />
                 }
                 label={level}
@@ -177,26 +150,24 @@ export default function JobFilter() {
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Minimum Salary"
-            fullWidth
-            variant="outlined"
             type="number"
-            size="small"
             value={salary_range_min || ''}
-            onChange={(e) => setFilter('salary_range_min', Number(e.target.value) || 0)}
-            sx={textFieldStyle}
+            onChange={(e) => setFilter('salary_range_min', e.target.value === '' ? 0 : parseInt(e.target.value))}
+            fullWidth
+            margin="normal"
+            data-testid="job-filter-salary-min"
           />
         </Grid>
 
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Maximum Salary"
-            fullWidth
-            variant="outlined"
             type="number"
-            size="small"
             value={salary_range_max || ''}
-            onChange={(e) => setFilter('salary_range_max', Number(e.target.value) || 0)}
-            sx={textFieldStyle}
+            onChange={(e) => setFilter('salary_range_max', e.target.value === '' ? 0 : parseInt(e.target.value))}
+            fullWidth
+            margin="normal"
+            data-testid="job-filter-salary-max"
           />
         </Grid>
 
@@ -204,16 +175,11 @@ export default function JobFilter() {
         <Grid item xs={12}>
           <Divider sx={{ my: 2 }} />
           <Box display="flex" justifyContent="flex-end">
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={resetFilters}
-              startIcon={<ResetIcon />}
-              sx={{
-                textTransform: 'none',
-                borderRadius: 20, // Make button rounded to match text fields
-                px: 3,
-              }}
+            <Button 
+              onClick={resetFilters} 
+              variant="outlined" 
+              color="primary"
+              data-testid="job-filter-reset-button"
             >
               Reset Filters
             </Button>

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { Typography, Box, Paper, Button } from '@mui/material';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SaveJobPopup from './SaveJobPopup';
@@ -95,22 +96,22 @@ const JobDetails = () => {
         </Typography>
 
         <Box display="flex" gap={2} my={2}>
-          <Button
-            variant="outlined"
-            color="success"
-            sx={{ borderRadius: '20px' }}
+          <Button 
+            variant="outlined" 
             onClick={handleSave}
+            startIcon={<BookmarkIcon />}
+            data-testid="job-detail-save-button"
           >
             Save
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ borderRadius: '20px' }}
+
+          <Button 
+            variant="contained" 
             onClick={() => {
               console.log('Opening apply modal');
               setApplyOpen(true);
             }}
+            data-testid="job-detail-apply-button"
           >
             Apply
           </Button>

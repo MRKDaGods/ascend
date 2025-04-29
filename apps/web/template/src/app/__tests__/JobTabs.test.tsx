@@ -102,11 +102,18 @@ describe('JobTabs Component', () => {
     
     // Check if we have a scroller element (which is what we found in the error)
     const scrollerElement = tabsElement.parentElement;
-    expect(scrollerElement).toHaveClass('MuiTabs-scroller');
+    expect(scrollerElement).not.toBeNull(); // First check that it's not null
     
-    // Find the actual Tabs root element (parent of scroller)
-    const tabsRoot = scrollerElement.parentElement;
-    expect(tabsRoot).toHaveClass('MuiTabs-root');
+    if (scrollerElement) { // Add a null check to satisfy TypeScript
+      expect(scrollerElement).toHaveClass('MuiTabs-scroller');
+      
+      // Find the actual Tabs root element (parent of scroller)
+      const tabsRoot = scrollerElement.parentElement;
+      expect(tabsRoot).not.toBeNull();
+      if (tabsRoot) {
+        expect(tabsRoot).toHaveClass('MuiTabs-root');
+      }
+    }
   });
 
   it('renders each tab with correct value and key', () => {

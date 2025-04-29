@@ -53,7 +53,12 @@ const JobItem = ({ job_id, title, company, location, type, description, experien
         </Box>
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button size="small" variant="contained" color="primary" onClick={handleApplyClick}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={handleApplyClick}
+          data-testid="job-item-apply-button"
+        >
           Apply Now
         </Button>
       </CardActions>

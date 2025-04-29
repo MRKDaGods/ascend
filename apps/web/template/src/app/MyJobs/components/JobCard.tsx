@@ -480,6 +480,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 // Pass the title and company as query parameters
                 router.push(`/job/${job_id}/applications?title=${encodeURIComponent(displayValues.title)}&company=${encodeURIComponent(company_name)}&location=${encodeURIComponent(displayValues.location || '')}`);
               }}
+              data-testid="job-card-view-applications"
             >
               View Applications
             </Button>
@@ -500,6 +501,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 setDetailsModalOpen(true);
                 setIsEditMode(true);
               }}
+              data-testid="job-card-edit-button"
             >
               Edit
             </Button>
@@ -515,15 +517,10 @@ const JobCard: React.FC<JobCardProps> = ({
         )}
 
         <Box display="flex" justifyContent="flex-end" mt={1}>
-          <IconButton
+          <IconButton 
             onClick={handleDelete}
-            color="error"
             size="small"
-            sx={{ 
-              '&:hover': { 
-                bgcolor: 'rgba(211, 47, 47, 0.04)' 
-              } 
-            }}
+            data-testid="job-card-delete-button"
           >
             <DeleteIcon />
           </IconButton>
@@ -582,6 +579,7 @@ const JobCard: React.FC<JobCardProps> = ({
                   variant="outlined"
                   size="small"
                   sx={{ mb: 1, minWidth: { xs: '100%', sm: '300px' } }}
+                  data-testid="job-card-edit-title"
                 />
               ) : (
                 <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
@@ -613,6 +611,7 @@ const JobCard: React.FC<JobCardProps> = ({
                   py: { xs: 0.5, sm: 1 },
                   whiteSpace: 'nowrap'
                 }}
+                data-testid="job-card-save-changes"
               >
                 {isSaving ? (
                   <>
@@ -648,14 +647,14 @@ const JobCard: React.FC<JobCardProps> = ({
               
               {isEditMode ? (
                 <TextField
-                  fullWidth
+                  label="Job Description"
                   multiline
-                  rows={{ xs: 6, sm: 8 }}
+                  rows={4}
+                  fullWidth
                   value={editedJob.description}
                   onChange={(e) => handleEditChange('description', e.target.value)}
-                  label="Job Description"
-                  variant="outlined"
-                  sx={{ mb: { xs: 2, sm: 3 } }}
+                  margin="normal"
+                  data-testid="job-card-edit-description"
                 />
               ) : (
                 <Typography variant="body1" sx={{ 
@@ -720,8 +719,8 @@ const JobCard: React.FC<JobCardProps> = ({
                   {isEditMode ? (
                     <>
                       <TextField
-                        fullWidth
                         label="Location"
+                        fullWidth
                         variant="outlined"
                         size="small"
                         value={editedJob.location}
@@ -730,8 +729,8 @@ const JobCard: React.FC<JobCardProps> = ({
                       
                       <TextField
                         select
-                        fullWidth
                         label="Job Type"
+                        fullWidth
                         variant="outlined"
                         size="small"
                         value={editedJob.type}
@@ -744,8 +743,8 @@ const JobCard: React.FC<JobCardProps> = ({
                       
                       <TextField
                         select
-                        fullWidth
                         label="Experience Level"
+                        fullWidth
                         variant="outlined"
                         size="small"
                         value={editedJob.experience_level}
@@ -758,8 +757,8 @@ const JobCard: React.FC<JobCardProps> = ({
                       
                       <TextField
                         select
-                        fullWidth
                         label="Industry"
+                        fullWidth
                         variant="outlined"
                         size="small"
                         value={editedJob.industry}
@@ -772,8 +771,8 @@ const JobCard: React.FC<JobCardProps> = ({
                       
                       <TextField
                         select
-                        fullWidth
                         label="Workplace Type"
+                        fullWidth
                         variant="outlined"
                         size="small"
                         value={editedJob.workplace_type}

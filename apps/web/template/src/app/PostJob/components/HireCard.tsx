@@ -11,6 +11,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 import { usepJobStore } from "@/app/JobPosting/store/usepJobStore";
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 const jobTitles = [
   "Software Engineer",
@@ -173,62 +174,51 @@ export default function HireCard() {
               maxWidth: "400px",
             }}
           >
-            <Typography variant="body2" fontWeight={600}>
-              Job title
-            </Typography>
-            <Autocomplete
-              freeSolo
-              options={jobTitles}
-              inputValue={selectedTitle}
-              onInputChange={(e, newValue) => setSelectedTitle(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Add the title you are hiring for"
-                  size="small"
-                  fullWidth
-                />
-              )}
+            <TextField
+              label="Job title"
+              placeholder="Add the title you are hiring for"
+              variant="outlined"
+              fullWidth
+              value={selectedTitle}
+              onChange={(e) => setSelectedTitle(e.target.value)}
+              margin="normal"
+              data-testid="hire-card-job-title"
             />
 
-            <Typography variant="body2" fontWeight={600}>
-              Company
-            </Typography>
             <Autocomplete
               options={companies}
+              getOptionLabel={(option) => option.company_name}
               value={selectedCompany}
               onChange={(e, newValue) => setSelectedCompany(newValue)}
-              getOptionLabel={(option) => (typeof option === "string" ? option : option.company_name)}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
               renderInput={(params) => (
-                <TextField
-                  {...params}
+                <TextField 
+                  {...params} 
+                  label="Company" 
                   placeholder="Select your company"
-                  size="small"
-                  fullWidth
+                  variant="outlined" 
+                  margin="normal"
+                  data-testid="hire-card-company-select"
                 />
               )}
             />
 
-            <Button
-              variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#0a66c2",
-                color: "#fff",
-                textTransform: "none",
-                mt: 4,
-              }}
+            <Button 
+              variant="contained" 
+              color="primary" 
               onClick={handleStartHiringWithAI}
+              startIcon={<AutoAwesomeIcon />}
+              fullWidth
+              sx={{ marginBottom: 2 }}
+              data-testid="hire-card-ai-button"
             >
               ✨ Start hiring with AI
             </Button>
 
-            <Button
-              variant="outlined"
-              size="large"
-              sx={{ textTransform: "none" }}
+            <Button 
+              variant="outlined" 
               onClick={handleStartWithDescription}
+              fullWidth
+              data-testid="hire-card-manual-button"
             >
               Start with my job description
             </Button>
