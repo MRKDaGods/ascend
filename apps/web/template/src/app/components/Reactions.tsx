@@ -14,7 +14,7 @@ import {
 import { ThumbUp } from "@mui/icons-material";
 import { usePostStore } from "../stores/usePostStore";
 
-type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Idea" | "Funny";
+type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Insightful" | "Funny";
 
 interface Props {
   postId: number;
@@ -38,7 +38,7 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
     { label: "Celebrate", icon: <img src="/reactions/clap.png" alt="Clap" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/clap.png" },
     { label: "Support", icon: <img src="/reactions/support.png" alt="Support" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/support.png" },
     { label: "Love", icon: <img src="/reactions/love.png" alt="Love" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/love.png" },
-    { label: "Idea", icon: <img src="/reactions/idea.png" alt="Idea" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/idea.png" },
+    { label: "Insightful", icon: <img src="/reactions/idea.png" alt="Insightful" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/idea.png" },
     { label: "Funny", icon: <img src="/reactions/funny.png" alt="Funny" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/funny.png" },
   ];
 
