@@ -15,7 +15,8 @@ import {
   fetchCommentsForPost,
   ultimateSearchAPI,
   tagUsersAPI,
-  tagUsersOnContentAPI
+  tagUsersOnContentAPI,
+  reactToPostAPI
 } from "@/api/posts";
 
 
@@ -117,6 +118,7 @@ interface PostStoreState {
   fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
   toggleSavePostAPI: (postId: number) => Promise<void>;
   fetchCommentsForPostFromAPI: (postId: number, page?: number, limit?: number) => Promise<any>;
+  reactToPostFromAPI: (postId: number, type: "like" | "love" | "support" | "celebrate" | "funny" | "insightful") => Promise<void>;
 
   searchResults: {
     users: {
@@ -144,7 +146,6 @@ interface PostStoreState {
 
   tagUsersOnContent: (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number; }[]) => Promise<void>;
 
-  
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
   commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<{ id: number }>;
@@ -213,7 +214,6 @@ export const usePostStore = create<PostStoreState>()(
       setLastRepostId: (id) => set({ lastRepostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
-
       fetchNewsFeedFromAPI: async () => {
         const response = await fetchNewsFeed();
         const posts = (response.data ?? []).reverse().map((post) => ({
@@ -464,25 +464,41 @@ export const usePostStore = create<PostStoreState>()(
           console.error("❌ Failed to tag users:", err?.response?.data || err.message);
         }
       },
+
+      reactToPostFromAPI: async (postId, type) => {
+        try {
+          const response = await reactToPostAPI(postId, type);
+          const { reacted, type: reactionType } = response.data;
+      
+          if (reacted) {
+            set((state) => ({
+              postReactions: {
+                ...state.postReactions,
+                [postId]: reactionType,
+              },
+              posts: state.posts, // don't touch likes locally
+            }));
+            console.log(`✅ Added '${reactionType}' reaction to post ${postId}`);
+          }
+        } catch (err: any) {
+          console.error("❌ Failed to react to post:", err?.response?.data || err.message);
+        }
+      },      
       
       setReaction: (postId, reaction) =>
-        set((s) => ({
-          postReactions: { ...s.postReactions, [postId]: reaction },
-          posts: s.posts.map((p) =>
-            p.id === postId && !s.postReactions[postId] ? { ...p, likes: p.likes + 1 } : p
-          ),
+        set((state) => ({
+          postReactions: { ...state.postReactions, [postId]: reaction },
+          posts: state.posts, // don't touch likes anymore
         })),
-
-      clearReaction: (postId) =>
-        set((s) => {
-          const { [postId]: _, ...rest } = s.postReactions;
-          return {
-            postReactions: rest,
-            posts: s.posts.map((p) =>
-              p.id === postId ? { ...p, likes: p.likes - 1 } : p
-            ),
-          };
-        }),
+        
+        clearReaction: (postId) =>
+          set((state) => {
+            const { [postId]: _, ...rest } = state.postReactions;
+            return {
+              postReactions: rest,
+              posts: state.posts, // don't touch likes anymore
+            };
+          }),          
       
         commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
           try {

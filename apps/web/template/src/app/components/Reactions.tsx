@@ -1,5 +1,3 @@
-// Component file: hovering on the like button, to show the reactions bar
-
 "use client";
 
 import React, { useState } from "react";
@@ -12,9 +10,7 @@ import {
   Box,
 } from "@mui/material";
 import { ThumbUp } from "@mui/icons-material";
-import { usePostStore } from "../stores/usePostStore";
-
-type ReactionType = "Like" | "Celebrate" | "Support" | "Love" | "Insightful" | "Funny";
+import { usePostStore, ReactionType } from "../stores/usePostStore"; // ✅ import ReactionType from store!
 
 interface Props {
   postId: number;
@@ -24,27 +20,32 @@ interface Props {
 
 const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
   const theme = useTheme();
-  const { postReactions, setReaction, clearReaction } = usePostStore();
+  const { postReactions, reactToPostFromAPI } = usePostStore();
 
   const [hoveredReaction, setHoveredReaction] = useState<ReactionType | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const reactions: {
     label: ReactionType;
-    icon: React.ReactElement;
     imgSrc: string;
   }[] = [
-    { label: "Like", icon: <img src="/reactions/like.png" alt="Like" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/like.png" },
-    { label: "Celebrate", icon: <img src="/reactions/clap.png" alt="Clap" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/clap.png" },
-    { label: "Support", icon: <img src="/reactions/support.png" alt="Support" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/support.png" },
-    { label: "Love", icon: <img src="/reactions/love.png" alt="Love" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/love.png" },
-    { label: "Insightful", icon: <img src="/reactions/idea.png" alt="Insightful" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/idea.png" },
-    { label: "Funny", icon: <img src="/reactions/funny.png" alt="Funny" style={{ width: 30, height: 30 }} />, imgSrc: "/reactions/funny.png" },
+    { label: "Like", imgSrc: "/reactions/like.png" },
+    { label: "Celebrate", imgSrc: "/reactions/clap.png" },
+    { label: "Support", imgSrc: "/reactions/support.png" },
+    { label: "Love", imgSrc: "/reactions/love.png" },
+    { label: "Insightful", imgSrc: "/reactions/idea.png" },
+    { label: "Funny", imgSrc: "/reactions/funny.png" },
   ];
 
   const currentReaction = postReactions[postId];
 
   const getReactionIcon = () => {
+    if (!currentReaction) {
+      return (
+        <ThumbUp sx={{ color: theme.palette.text.secondary }} />
+      );
+    }
+  
     const found = reactions.find((r) => r.label === currentReaction);
     return found ? (
       <img
@@ -53,19 +54,32 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
         style={{ width: 22, height: 22 }}
       />
     ) : (
-      <ThumbUp />
+      <ThumbUp sx={{ color: theme.palette.text.secondary }} />
     );
-  };
+  };  
 
-  const handleClick = () => {
-    if (hoveredReaction) {
-      setReaction(postId, hoveredReaction);
-    } else if (currentReaction === "Like") {
-      clearReaction(postId);
-    } else if (!currentReaction) {
-      setReaction(postId, "Like");
-    } else {
-      clearReaction(postId);
+  const handleMainClick = async () => {
+    try {
+      if (currentReaction) {
+        // Already reacted → unlike
+        usePostStore.getState().clearReaction(postId);
+      } else {
+        // No reaction → Like
+        await reactToPostFromAPI(postId, "like");
+        usePostStore.getState().setReaction(postId, "Like");
+      }
+      onLike(); // Still call external callback
+    } catch (error) {
+      console.error("❌ Failed to react:", error);
+    }
+  };  
+  
+  const handleReactionClick = async (reaction: ReactionType) => {
+    try {
+      await reactToPostFromAPI(postId, reaction.toLowerCase() as any);
+      usePostStore.getState().setReaction(postId, reaction); 
+    } catch (error) {
+      console.error("❌ Failed to react:", error);
     }
   };
 
@@ -79,51 +93,53 @@ const Reactions: React.FC<Props> = ({ postId, liked, onLike }) => {
       sx={{ position: "relative", display: "inline-block", m: 0, p: 0 }}
     >
       {isHovered && (
-       <Paper
-        elevation={4}
-        sx={{
-          position: "absolute",
-          bottom: "calc(100% - 2px)",
-          left: 0,
-          backgroundColor: theme.palette.background.paper, // Dynamically set background color
-          display: "flex",
-          gap: 1,
-          borderRadius: 5,
-          p: 1,
-          zIndex: 20,
-        }}
-      >
-        {reactions.map((reaction) => (
-          <Tooltip title={reaction.label} key={reaction.label}>
-            <IconButton
-              id={`${reaction.label.toLowerCase()}-reaction-button`} // ✅ ID added
-              onClick={() => {
-                setReaction(postId, reaction.label);
-              }}
-              onMouseEnter={() => setHoveredReaction(reaction.label)}
-              sx={{
-                padding: 0.5,
-                "&:hover": {
-                  backgroundColor: theme.palette.action.hover, // Adjust hover color dynamically
-                },
-              }}
-            >
-              {reaction.icon}
-            </IconButton>
-          </Tooltip>
-        ))}
-      </Paper>
+        <Paper
+          elevation={4}
+          sx={{
+            position: "absolute",
+            bottom: "calc(100% - 2px)",
+            left: 0,
+            backgroundColor: theme.palette.background.paper,
+            display: "flex",
+            gap: 1,
+            borderRadius: 5,
+            p: 1,
+            zIndex: 20,
+          }}
+        >
+          {reactions.map((reaction) => (
+            <Tooltip title={reaction.label} key={reaction.label}>
+              <IconButton
+                id={`${reaction.label.toLowerCase()}-reaction-button`}
+                onClick={() => handleReactionClick(reaction.label)}
+                onMouseEnter={() => setHoveredReaction(reaction.label)}
+                sx={{
+                  padding: 0.5,
+                  "&:hover": {
+                    backgroundColor: theme.palette.action.hover,
+                  },
+                }}
+              >
+                <img
+                  src={reaction.imgSrc}
+                  alt={reaction.label}
+                  style={{ width: 30, height: 30 }}
+                />
+              </IconButton>
+            </Tooltip>
+          ))}
+        </Paper>
       )}
 
       <Button
-        id="main-reaction-button" // ✅ ID added
+        id="main-reaction-button"
         startIcon={getReactionIcon()}
         sx={{
           textTransform: "none",
           fontWeight: "bold",
           color: currentReaction ? "#0a66c2" : theme.palette.text.secondary,
         }}
-        onClick={handleClick}
+        onClick={handleMainClick}
       >
         {currentReaction
           ? currentReaction.charAt(0).toUpperCase() + currentReaction.slice(1)
