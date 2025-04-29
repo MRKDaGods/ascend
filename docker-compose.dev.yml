@@ -63,13 +63,6 @@ services:
     environment:
       - NODE_ENV=development
 
-  job:
-    volumes:
-      - ./services/job:/app/services/job
-    command: ["npm", "run", "dev"]
-    environment:
-      - NODE_ENV=development
-
   post:
     volumes:
       - ./services/post:/app/services/post
@@ -87,12 +80,5 @@ services:
     volumes:
       - ./services/admin:/app/services/admin
     command: ["npm", "run", "dev"]
-    environment:
-      - NODE_ENV=development
-
-  messaging:
-    volumes:
-      - ./services/messaging:/app/services/messaging
-    command: [ "npm", "run", "dev" ]
     environment:
       - NODE_ENV=development

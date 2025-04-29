@@ -17,9 +17,17 @@ import {
   updateUserNewEmailConfirmation,
   updateUserPassword,
   updateUserResetToken,
+  getAllUserReports,
+  deleteUserReport,
+  reportUser as reportUserService,
 } from "../services/userService";
 import { UserRole } from "@shared/models";
-import { banUser, getBannedUsers, isUserBanned, unbanUser } from "../services/banService";
+import {
+  banUser,
+  getBannedUsers,
+  isUserBanned,
+  unbanUser,
+} from "../services/banService";
 
 /**
  * Handles user registration process
@@ -446,6 +454,27 @@ export const updateFCMToken = async (
   }
 };
 
+export const reportUser = async (req: AuthenticatedRequest, res: Response) => {
+  const { user_id, reason } = req.body;
+  const reporterId = req.user!.id;
+
+  try {
+    if (!(await findUserById(user_id))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (reporterId === user_id) {
+      return res.status(400).json({ error: "Cannot report yourself" });
+    }
+
+    await reportUserService(user_id, reporterId, reason);
+    res.json({ message: "User reported successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 export const adminBanUser = async (
   req: AuthenticatedRequest,
   res: Response
@@ -500,7 +529,7 @@ export const adminUnbanUser = async (
     console.error(error);
     res.status(500).json({ error });
   }
-}
+};
 
 export const adminGetBannedUsers = async (
   req: AuthenticatedRequest,
@@ -521,4 +550,101 @@ export const adminGetBannedUsers = async (
     console.error(error);
     res.status(500).json({ error });
   }
-}
+};
+
+export const adminCreateUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const adminId = req.user!.id;
+  const { first_name, last_name, email, password } = req.body;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(adminId);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const createdUser = await createUser(
+      first_name,
+      last_name,
+      email,
+      password,
+      true
+    );
+    res.status(201).json({ user_id: createdUser.id, email: createdUser.email });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+};
+
+export const adminDeleteUser = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const adminId = req.user!.id;
+  const { user_id } = req.body;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(adminId);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    if (!(await findUserById(user_id))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await deleteUser(user_id);
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+};
+
+export const adminGetUserReports = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const adminId = req.user!.id;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(adminId);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const reports = await getAllUserReports();
+    res.json(reports);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+};
+
+export const adminDeleteReport = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const adminId = req.user!.id;
+  const { report_id } = req.body;
+
+  try {
+    // Verify if the user is an admin
+    const user = await findUserById(adminId);
+    if (!user || user.role !== UserRole.ADMIN) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    await deleteUserReport(report_id);
+    res.json({ message: "Report deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error });
+  }
+};
