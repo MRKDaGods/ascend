@@ -36,13 +36,38 @@ import LanguageIcon from '@mui/icons-material/Language';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
-import { useJobStore } from '@/app/shared/store/useJobStore';
+import { useJobStore, JobStatus, ApplicationStatus } from '@/app/shared/store/useJobStore';
 
 // Add these options for dropdowns
 const jobTypeOptions = ["Full-time", "Part-time", "Contract", "Temporary", "Volunteer", "Internship", "Other"];
 const experienceLevelOptions = ["Internship", "Entry", "Associate", "Mid", "Director"];
 const workplaceTypeOptions = ["On-site", "Remote", "Hybrid"];
 const industryOptions = ["Technology", "Finance", "Healthcare", "Education", "Retail", "Creative", "Other"];
+
+// Define JobCardProps interface
+interface JobCardProps {
+  job_id: number;
+  title: string;
+  description: string;
+  industry: string;
+  type: string;
+  experience_level: string;
+  location: string;
+  workplace_type: string;
+  salary_min_range: number | null;
+  salary_max_range: number | null;
+  company_id?: number;
+  company_name: string;
+  company_logo_url: string | null;
+  saved_at: Date;
+  applicationStatus?: ApplicationStatus;
+  status?: JobStatus;
+  onDelete: (job_id: number) => void;
+  created_at?: Date;
+  company_description?: string;
+  company_industry?: string;
+  company_location?: string;
+}
 
 const JobCard: React.FC<JobCardProps> = ({
   job_id,
@@ -162,8 +187,8 @@ const JobCard: React.FC<JobCardProps> = ({
     setIsSaving(true);
     
     try {
-      // Create an object to track only changed fields
-      const changedFields = {};
+      // Create an object to track only changed fields with proper type
+      const changedFields: Record<string, any> = {};
       
       // Compare each field with the original values
       if (editedJob.title !== title) changedFields.title = editedJob.title;
@@ -243,6 +268,11 @@ const JobCard: React.FC<JobCardProps> = ({
       
       // Exit edit mode
       setIsEditMode(false);
+      
+      // Close the modal after a short delay to show success message
+      setTimeout(() => {
+        setDetailsModalOpen(false);
+      }, 1500);
       
     } catch (error) {
       console.error('Error updating job:', error);
@@ -376,17 +406,17 @@ const JobCard: React.FC<JobCardProps> = ({
 
           <Box flexGrow={1}>
             <Typography variant="h6" fontWeight={600} color="#0a66c2">
-              {title}
+              {displayValues.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {company_name} • {isPostedJob ? company_location || location : location}
+              {company_name} • {isPostedJob ? company_location || displayValues.location : displayValues.location}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {type}
+              {displayValues.type}
             </Typography>
             {isPostedJob && company_industry && (
               <Typography variant="body2" color="text.secondary">
-                Industry: {company_industry}
+                Industry: {displayValues.industry}
               </Typography>
             )}
           </Box>
@@ -448,7 +478,7 @@ const JobCard: React.FC<JobCardProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 // Pass the title and company as query parameters
-                router.push(`/job/${job_id}/applications?title=${encodeURIComponent(title)}&company=${encodeURIComponent(company_name)}&location=${encodeURIComponent(location || '')}`);
+                router.push(`/job/${job_id}/applications?title=${encodeURIComponent(displayValues.title)}&company=${encodeURIComponent(company_name)}&location=${encodeURIComponent(displayValues.location || '')}`);
               }}
             >
               View Applications

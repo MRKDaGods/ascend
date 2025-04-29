@@ -222,8 +222,8 @@ export const useJobStore = create<JobStore>((set) => ({
         return;
       }
       
-      // Extract company IDs
-      const companyIds = companiesResult.data.companies.map(company => company.company_id);
+      // Extract company IDs - add type annotation for company
+      const companyIds = companiesResult.data.companies.map((company: { company_id: number }) => company.company_id);
       console.log('User company IDs:', companyIds);
       
       if (companyIds.length === 0) {
@@ -236,8 +236,8 @@ export const useJobStore = create<JobStore>((set) => ({
         return;
       }
       
-      // Fetch jobs for all companies in parallel
-      const jobPromises = companyIds.map(companyId => 
+      // Fetch jobs for all companies in parallel - add type annotation for companyId
+      const jobPromises = companyIds.map((companyId: number) => 
         fetch(`https://api.ascendx.tech/job/company/${companyId}?page=${page}`, {
           method: 'GET',
           headers: {
