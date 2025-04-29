@@ -25,7 +25,7 @@ const jobTypeOptions = [
   "Internship",
   "Other",
 ];
-const experienceOptions = ["Internship", "Entry", "Associate", "MID", "Director"];
+const experienceOptions = ["Internship", "Entry", "Associate", "Mid", "Director"];
 
 const JobForm = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -34,6 +34,7 @@ const JobForm = () => {
   const {
     title,
     companyName,
+    companyId,
     location,
     description,
     workplaceType,
@@ -70,9 +71,9 @@ const JobForm = () => {
       workplace_type: workplaceType,
       salary_min_range: salaryMin ? Number(salaryMin) : null,
       salary_max_range: salaryMax ? Number(salaryMax) : null,
-      company_id: 1,
       email: verifiedEmail,
       company: companyName,
+      company_id: companyId,
       logo: "",
       about: "",
       requirements: [],
@@ -83,7 +84,7 @@ const JobForm = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" , 
         Authorization:
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
+        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8',
 
     },
         body: JSON.stringify(jobData),
@@ -103,7 +104,6 @@ const JobForm = () => {
       setSavedJobPopupOpen(true);
       setOpenModal(false);
     } catch (err) {
-      console.error("❌ Error posting job:", err);
       alert("Failed to post job.");
     }
   };
@@ -123,7 +123,7 @@ const JobForm = () => {
             <TextField fullWidth label="Job title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+            <TextField fullWidth label="Company" value={companyName} disabled onChange={(e) => setCompanyName(e.target.value)} />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField fullWidth label="Industry" value={industry} onChange={(e) => setIndustry(e.target.value)} />

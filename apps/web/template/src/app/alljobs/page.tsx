@@ -68,7 +68,7 @@ export default function JobsPage() {
       return;
     }
 
-    const url = `https://api.ascendx.tech/job/search?${buildQuery(filters)}`;
+    const url = `https://api.ascendx.tech/job/?${buildQuery(filters)}`;
     console.log('Fetching URL:', url); // Log the full query URL being sent to the API
 
     try {

@@ -85,11 +85,11 @@ export default function ApplyModal({ job, open, onClose }: any) {
       formData.append('phone', userData.fullPhone.trim());
       console.log('************');
       console.log('FormData:', userData.fullPhone.trim()); // Debugging line
-      const response = await fetch(`https://api.ascendx.tech/job/apply/${job.id}`, {
+      const response = await fetch(`https://api.ascendx.tech/job/${job.id}/applications`, {
         method: 'POST',
         body: formData,
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1ODI0NzU1LCJleHAiOjE3NDU4Njc5NTV9.e7GBVuj-ylv3AZWXOcr-293oFTmP_wMog9Q5flqcMh0',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8',
         'x-no-parse-body': '1'
         },
       });
@@ -104,7 +104,6 @@ export default function ApplyModal({ job, open, onClose }: any) {
       alert(result.message);
       router.push('/MyJobs');
     } catch (error) {
-      console.error('Application error:', error);
       alert(`Application failed: ${(error as Error).message}`);
     }
   };

@@ -26,32 +26,70 @@ const jobTitles = [
   "DevOps Engineer",
 ];
 
+type Company = {
+  id: number;
+  company_id: number;
+  company_name: string;
+};
+
 export default function HireCard() {
   const [name, setName] = useState("there");
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedTitle, setSelectedTitle] = useState("");
-  const [companyInput, setCompanyInput] = useState("");
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   const router = useRouter();
-
   const { setTitle, setCompanyName } = usepJobStore();
 
   useEffect(() => {
     setHasMounted(true);
+
+    // Fetch user name
     fetch("http://localhost:5000/api/user")
       .then((res) => res.json())
       .then((data) => {
         setName(data.name || "there");
       })
       .catch((err) => console.error("Failed to fetch user:", err));
+
+    // Fetch companies
+    fetch("https://api.ascendx.tech/company/companies", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const companiesData = data?.data?.companies || [];
+        setCompanies(companiesData);
+      })
+      .catch((err) => console.error("Failed to fetch companies:", err));
   }, []);
 
   if (!hasMounted) return null;
 
   const handleStartWithDescription = () => {
+    if (!selectedCompany) {
+      alert("Please select a company before proceeding.");
+      return;
+    }
     setTitle(selectedTitle);
-    setCompanyName(companyInput);
+    setCompanyName(selectedCompany.company_name);
+    usepJobStore.getState().setCompanyId(selectedCompany.company_id);
     router.push("/JobPosting");
+  };
+
+  const handleStartHiringWithAI = () => {
+    if (!selectedCompany) {
+      alert("Please select a company before proceeding.");
+      return;
+    }
+    setTitle(selectedTitle);
+    setCompanyName(selectedCompany.company_name); // Fixed here too
+    usepJobStore.getState().setCompanyId(selectedCompany.id); // Added this missing line
+    router.push("/AIpost-job");
   };
 
   return (
@@ -111,30 +149,30 @@ export default function HireCard() {
         </Box>
 
         {/* Right Form */}
-<Box
-  sx={{
-    flex: "0 0 auto", // Don't stretch the gradient
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    p: "2px",
-    background: "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
-    borderRadius: "16px",
-    width: { xs: "100%", md: "auto" }, // Full width on mobile, auto width on desktop
-  }}
->
-  <Box
-    sx={{
-      borderRadius: "14px",
-      p: { xs: 3, md: 4 },
-      backgroundColor: "white",
-      display: "flex",
-      flexDirection: "column",
-      gap: 3,
-      width: "100%",
-      maxWidth: "400px",
-    }}
-  >
+        <Box
+          sx={{
+            flex: "0 0 auto",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            p: "2px",
+            background: "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
+            borderRadius: "16px",
+            width: { xs: "100%", md: "auto" },
+          }}
+        >
+          <Box
+            sx={{
+              borderRadius: "14px",
+              p: { xs: 3, md: 4 },
+              backgroundColor: "white",
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              width: "100%",
+              maxWidth: "400px",
+            }}
+          >
             <Typography variant="body2" fontWeight={600}>
               Job title
             </Typography>
@@ -156,12 +194,20 @@ export default function HireCard() {
             <Typography variant="body2" fontWeight={600}>
               Company
             </Typography>
-            <TextField
-              value={companyInput}
-              onChange={(e) => setCompanyInput(e.target.value)}
-              placeholder="Enter company name"
-              size="small"
-              fullWidth
+            <Autocomplete
+              options={companies}
+              value={selectedCompany}
+              onChange={(e, newValue) => setSelectedCompany(newValue)}
+              getOptionLabel={(option) => (typeof option === "string" ? option : option.company_name)}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select your company"
+                  size="small"
+                  fullWidth
+                />
+              )}
             />
 
             <Button
@@ -173,11 +219,7 @@ export default function HireCard() {
                 textTransform: "none",
                 mt: 4,
               }}
-              onClick={() => {
-                setTitle(selectedTitle);
-                setCompanyName(companyInput);
-                router.push("/AIpost-job");
-              }}
+              onClick={handleStartHiringWithAI}
             >
               ✨ Start hiring with AI
             </Button>

@@ -1,7 +1,7 @@
 // Updated JobsNavbar.tsx
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,10 +17,17 @@ import {
   InputBase,
   Badge,
   useMediaQuery,
-  Divider
+  Divider,
+  Popper,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader,
+  ClickAwayListener,
+  // Add these imports
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import { Home, Work, Chat, Notifications, Search, MoreVert } from "@mui/icons-material";
+import { Home, Work, Chat, Notifications, Search, MoreVert, History, Bookmark } from "@mui/icons-material";
 import { useSearchStore } from "../store/useSearchStore";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -71,6 +78,31 @@ const jobTitles = [
   "Web Developer", "Mobile Developer"
 ];
 
+const SearchDropdown = styled(Paper)(({ theme }) => ({
+  width: '300px',
+  maxHeight: '400px',
+  overflow: 'auto',
+  marginTop: '5px',
+  borderRadius: '8px',
+  boxShadow: theme.shadows[3],
+}));
+
+const SearchListItem = styled(ListItem)(({ theme }) => ({
+  padding: '8px 16px',
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    cursor: 'pointer',
+  },
+}));
+
+const SearchListHeader = styled(ListSubheader)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.secondary,
+  fontWeight: 600,
+  padding: '8px 16px',
+  lineHeight: '32px',
+}));
+
 const JobsNavbar: React.FC = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -78,6 +110,9 @@ const JobsNavbar: React.FC = () => {
   const [moreAnchorEl, setMoreAnchorEl] = useState<null | HTMLElement>(null);
   const [searchParams, setSearchParams] = useState({ title: "", location: "" });
   const [filteredTitles, setFilteredTitles] = useState<string[]>([]);
+  const [showTitleDropdown, setShowTitleDropdown] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { recentSearches, addSearch, setRecentSearches } = useSearchStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -128,6 +163,27 @@ const JobsNavbar: React.FC = () => {
     setMoreAnchorEl(null);
   };
 
+  // Filter for recommended titles
+  const getRecommendedTitles = (): string[] => {
+    if (!searchParams.title) {
+      return jobTitles.slice(0, 5); // Show top 5 job titles when empty
+    }
+    return filteredTitles.slice(0, 5); // Show top 5 filtered results
+  };
+
+  // Get recent job title searches
+  const getRecentTitleSearches = (): string[] => {
+    return recentSearches
+      .map(search => search.job)
+      .filter((job, index, self) => job && self.indexOf(job) === index)
+      .slice(0, 5); // Only show the 5 most recent unique job searches
+  };
+
+  const handleTitleClick = (title: string) => {
+    setSearchParams(prev => ({ ...prev, title }));
+    setShowTitleDropdown(false);
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({ ...prev, [name]: value }));
@@ -137,13 +193,29 @@ const JobsNavbar: React.FC = () => {
         title.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredTitles(filtered);
+      setShowTitleDropdown(true); // Show dropdown when typing
     }
   };
 
   const handleSearch = () => {
     addSearch({ job: searchParams.title, location: searchParams.location });
-    router.push(`/search?keyword=${searchParams.title}&location=${searchParams.location}`);
+    router.push(`/?keyword=${searchParams.title}&location=${searchParams.location}`);
   };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+        setShowTitleDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef, searchInputRef]);
 
   if (!isClient) return null;
 
@@ -160,13 +232,64 @@ const JobsNavbar: React.FC = () => {
 
         {/* CENTER */}
         <Box sx={{ display: "flex", alignItems: "center", flexGrow: 2, gap: 1, marginY: 1, flexDirection: isSmallScreen ? 'column' : 'row' }}>
+          <Box sx={{ position: 'relative', width: isSmallScreen ? '130px' : '300px' }}>
+            <SearchContainer>
+              <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
+              <InputBase 
+                name="title" 
+                placeholder="Job title" 
+                value={searchParams.title} 
+                onChange={handleSearchChange}
+                onFocus={() => setShowTitleDropdown(true)}
+                inputRef={searchInputRef}
+                sx={{ fontSize: "0.85rem", width: "100%" }} 
+              />
+            </SearchContainer>
+            
+            {showTitleDropdown && (
+              <Box sx={{ position: 'absolute', width: '100%', zIndex: 1000 }} ref={dropdownRef}>
+                <SearchDropdown>
+                  {getRecentTitleSearches().length > 0 && (
+                    <>
+                      <SearchListHeader>
+                        Recent Searches
+                      </SearchListHeader>
+                      <List disablePadding>
+                        {getRecentTitleSearches().map((title, index) => (
+                          <SearchListItem key={`recent-${index}`} onClick={() => handleTitleClick(title)}>
+                            <History fontSize="small" color="action" sx={{ marginRight: 1 }} />
+                            <ListItemText primary={title} />
+                          </SearchListItem>
+                        ))}
+                      </List>
+                    </>
+                  )}
+                  
+                  <SearchListHeader>
+                    Recommended
+                  </SearchListHeader>
+                  <List disablePadding>
+                    {getRecommendedTitles().map((title, index) => (
+                      <SearchListItem key={`recommended-${index}`} onClick={() => handleTitleClick(title)}>
+                        <Bookmark fontSize="small" color="primary" sx={{ marginRight: 1 }} />
+                        <ListItemText primary={title} />
+                      </SearchListItem>
+                    ))}
+                  </List>
+                </SearchDropdown>
+              </Box>
+            )}
+          </Box>
+          
           <SearchContainer sx={{ width: isSmallScreen ? '130px' : '300px' }}>
             <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-            <InputBase name="title" placeholder="Job title" value={searchParams.title} onChange={handleSearchChange} sx={{ fontSize: "0.85rem", width: "100%" }} />
-          </SearchContainer>
-          <SearchContainer sx={{ width: isSmallScreen ? '130px' : '300px' }}>
-            <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-            <InputBase name="location" placeholder="Location" value={searchParams.location} onChange={handleSearchChange} sx={{ fontSize: "0.85rem", width: "100%" }} />
+            <InputBase 
+              name="location" 
+              placeholder="Location" 
+              value={searchParams.location} 
+              onChange={handleSearchChange} 
+              sx={{ fontSize: "0.85rem", width: "100%" }} 
+            />
           </SearchContainer>
           <Button variant="contained" onClick={handleSearch} sx={{ borderRadius: 30, textTransform: 'none', backgroundColor: "#0a66c2", px: 3, py: 1 }}>Search</Button>
         </Box>
