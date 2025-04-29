@@ -1,6 +1,6 @@
-import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { Response, NextFunction } from "express";
 import { body, ValidationChain } from "express-validator";
+import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 
 /**
  * Validation rules for creating a new job
@@ -233,7 +233,6 @@ export const updateJobValidationRules: ValidationChain[] = [
 /**
  * Validation rules for job application
  */
-
 export const jobApplicationValidationRules: ValidationChain[] = [
   // Email
   body("email")
