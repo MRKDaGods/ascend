@@ -13,6 +13,8 @@ import {
 import Link from "next/link";
 import { useProfileStore } from "../stores/useProfileStore";
 import { Profile } from "@ascend/api-client/models";
+import { useEffect } from "react";
+import { api } from "@/api";
 
 const ProfileCard: React.FC = () => {
   const theme = useTheme();
@@ -22,8 +24,10 @@ const ProfileCard: React.FC = () => {
 
   const profileImg = userData?.profile_picture_url || "/default-avatar.png";
   const coverImg = userData?.cover_photo_url || "/default-cover.png";
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "";
-  const isOpenToWork = true;
+  const fullName = userData
+    ? `${userData.first_name} ${userData.last_name}`
+    : "";
+  const isOpenToWork = false;
 
   const currentExperience = userData?.experience?.sort((a, b) => {
     const dateA = a.end_date ? new Date(a.end_date) : new Date();
@@ -34,8 +38,23 @@ const ProfileCard: React.FC = () => {
   const currentRole = currentExperience?.position;
   const currentCompany = currentExperience?.company;
 
+  useEffect(() => {
+    if (!userData) {
+      // Fetch profile
+      api.user
+        .getLocalUserProfile()
+        .then((profile) => useProfileStore.getState().setUserData(profile))
+        .catch((err) => {
+          console.error("Error fetching user profile:", err);
+        });
+    }
+  }, []);
+
   return (
-    <Link href="/profile" style={{ textDecoration: "none", color: "inherit", width: "100%" }}>
+    <Link
+      href="/profile"
+      style={{ textDecoration: "none", color: "inherit", width: "100%" }}
+    >
       <Card
         sx={{
           width: "100%",
@@ -65,9 +84,16 @@ const ProfileCard: React.FC = () => {
         </Box>
 
         {/* Profile Section */}
-        <CardContent sx={{ textAlign: "left", position: "relative", mt: -6, px: 2 }}>
+        <CardContent
+          sx={{ textAlign: "left", position: "relative", mt: -6, px: 2 }}
+        >
           {isLoading ? (
-            <Skeleton variant="circular" width={80} height={80} sx={{ mt: -5 }} />
+            <Skeleton
+              variant="circular"
+              width={80}
+              height={80}
+              sx={{ mt: -5 }}
+            />
           ) : (
             <Box sx={{ position: "relative", display: "inline-block" }}>
               <Avatar
