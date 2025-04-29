@@ -83,6 +83,9 @@ export interface Profile {
     website?: string;
     additional_name?: string;
     name_pronunciation?: string;
+    headline?: string;
+    current_position_id?: number;
+    current_position?: Experience;
     skills?: Skill[];
     education?: Education[];
     experience?: Experience[];
