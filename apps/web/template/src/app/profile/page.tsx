@@ -75,6 +75,9 @@ function Home() {
   const [resourcesMenuAnchor, setResourcesMenuAnchor] = useState<null | HTMLElement>(null);
   const [profileInfoOpen, setProfileInfoOpen] = useState(false);
 
+  // Add state for viewing profile picture in modal
+  const [viewImageUrl, setViewImageUrl] = useState<string | null>(null);
+
   const { palette } = useTheme();
 
   const profileId = searchParams.get("id");
@@ -167,6 +170,7 @@ function Home() {
       setEditFormData({
         first_name: profile?.first_name || "",
         last_name: profile?.last_name || "",
+        headline: profile?.headline || "",
         industry: profile?.industry,
         location: profile?.location,
         bio: profile?.bio,
@@ -469,6 +473,16 @@ function Home() {
     }
   };
 
+  // Handle view image for non-editable profiles
+  const handleViewImage = (url: string) => {
+    setViewImageUrl(url);
+  };
+
+  // Handle close view image
+  const handleCloseViewImage = () => {
+    setViewImageUrl(null);
+  };
+
   const handleSectionMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setSectionMenuAnchor(event.currentTarget);
   };
@@ -509,9 +523,15 @@ function Home() {
                       backgroundImage: profile?.cover_photo_url ? `url(${profile.cover_photo_url})` : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
-                      cursor: isEditable ? 'pointer' : 'default'
+                      cursor: profile?.cover_photo_url ? 'pointer' : (isEditable ? 'pointer' : 'default')
                     }}
-                    onClick={() => isEditable && handleImageDialogOpen('cover')}
+                    onClick={() => {
+                      if (isEditable) {
+                        handleImageDialogOpen('cover');
+                      } else if (profile?.cover_photo_url) {
+                        handleViewImage(profile.cover_photo_url);
+                      }
+                    }}
                   >
                     {isEditable && !profile?.cover_photo_url && (
                       <Box sx={{
@@ -562,9 +582,9 @@ function Home() {
                                     height: { xs: 120, sm: 150 },
                                     border: `4px solid ${palette.background.paper}`,
                                     boxShadow: 1,
-                                    cursor: isEditable ? 'pointer' : 'default'
+                                    cursor: 'pointer'
                                   }}
-                                  onClick={() => isEditable && handleImageDialogOpen('profile')}
+                                  onClick={() => handleImageDialogOpen('profile')}
                                 >
                                   {profile?.first_name?.[0]}
                                 </Avatar>
@@ -577,9 +597,9 @@ function Home() {
                                   height: { xs: 120, sm: 150 },
                                   border: `4px solid ${palette.background.paper}`,
                                   boxShadow: 1,
-                                  cursor: isEditable ? 'pointer' : 'default'
+                                  cursor: 'pointer'
                                 }}
-                                onClick={() => isEditable && handleImageDialogOpen('profile')}
+                                onClick={() => handleImageDialogOpen('profile')}
                               />
                             )}
                           </>
@@ -590,8 +610,10 @@ function Home() {
                               width: { xs: 120, sm: 150 },
                               height: { xs: 120, sm: 150 },
                               border: `4px solid ${palette.background.paper}`,
-                              boxShadow: 1
+                              boxShadow: 1,
+                              cursor: profile?.profile_picture_url ? 'pointer' : 'default'
                             }}
+                            onClick={() => profile?.profile_picture_url && handleViewImage(profile.profile_picture_url)}
                           >
                             {!profile?.profile_picture_url && profile?.first_name?.[0]}
                           </Avatar>
@@ -607,6 +629,12 @@ function Home() {
                               </Typography>
                               <VerifiedIcon sx={{ ml: 1, color: 'primary.main' }} />
                             </Box>
+
+                            {profile?.headline && (
+                              <Typography variant="h6" sx={{ mt: 0.5 }}>
+                                {profile.headline}
+                              </Typography>
+                            )}
 
                             {profile?.name_pronunciation && (
                               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -1412,6 +1440,16 @@ function Home() {
                       required
                     />
                   </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Headline"
+                      name="headline"
+                      value={editFormData.headline || ''}
+                      onChange={handleFormChange}
+                      helperText="Professional headline (e.g., Software Engineer at Company)"
+                    />
+                  </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
@@ -1844,6 +1882,72 @@ function Home() {
                   </Button>
                 </Grid>
               </Grid>
+            </Box>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog for viewing profile image for non-editable profiles */}
+        <Dialog
+          open={viewImageUrl !== null}
+          onClose={handleCloseViewImage}
+          maxWidth="md"
+          PaperProps={{
+            sx: {
+              bgcolor: palette.mode === 'dark' ? '#121212' : 'black',
+              color: 'white',
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }
+          }}
+        >
+          <DialogTitle sx={{
+            color: 'white',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            p: 2
+          }}>
+            {viewImageUrl === profile?.profile_picture_url ? 'Profile Photo' : 'Cover Photo'}
+            <IconButton
+              onClick={handleCloseViewImage}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                color: 'white'
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ p: 0 }}>
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '300px',
+              bgcolor: '#000',
+              p: 3
+            }}>
+              {viewImageUrl && viewImageUrl === profile?.profile_picture_url ? (
+                <Avatar
+                  src={viewImageUrl}
+                  sx={{ 
+                    width: 300, 
+                    height: 300,
+                    boxShadow: '0 0 20px rgba(255,255,255,0.2)'
+                  }}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    width: '100vw',
+                    height: 500,
+                    backgroundImage: viewImageUrl ? `url(${viewImageUrl})` : 'none',
+                    backgroundSize: 'contain',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                />
+              )}
             </Box>
           </DialogContent>
         </Dialog>
