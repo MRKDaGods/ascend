@@ -5,8 +5,10 @@ import {
   deletePost,
   getConnectionsCount,
   getFollowsCount,
+  getJobReports,
   getJobReportsCount,
   getJobsCount,
+  getPostReports,
   getPostReportsCount,
   getPostsCount,
   getReportedJobs,
@@ -27,9 +29,34 @@ export const handleGetReportedJobs = async (
   try {
     const pageNumber = Number(req.query.page || 1);
     const reportedJobs = await getReportedJobs(pageNumber);
+
+    if (reportedJobs.data.length === 0) {
+      return res.status(404).json({ error: "No reported jobs found" });
+    }
+
     res.json(reportedJobs);
   } catch (error) {
     console.error("Error in handleGetReportedJobs:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const handleGetJobReports = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const jobId = Number(req.params.jobId);
+    const pageNumber = Number(req.query.page || 1);
+    const jobReports = await getJobReports(jobId, pageNumber);
+
+    if (jobReports.data.length === 0) {
+      return res.status(404).json({ error: "No reports found for this job" });
+    }
+
+    res.json(jobReports);
+  } catch (error) {
+    console.error("Error in handleGetJobReports:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -352,9 +379,32 @@ export const handleGetReportedPosts = async (
   try {
     const pageNumber = Number(req.query.page || 1);
     const reportedPosts = await getReportedPosts(pageNumber);
+
+    if (reportedPosts.data.length === 0) {
+      return res.status(404).json({ error: "No reported posts found" });
+    }
+
     res.json(reportedPosts);
   } catch (error) {
     console.error("Error in handleGetReportedPosts:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const handleGetPostReports = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const postId = Number(req.params.postId);
+    const pageNumber = Number(req.query.page || 1);
+    const postReports = await getPostReports(postId, pageNumber);
+    if (postReports.data.length === 0) {
+      return res.status(404).json({ error: "No reports found for this post" });
+    }
+    res.json(postReports);
+  } catch (error) {
+    console.error("Error in handleGetPostReports:", error);
     res.status(500).json({ error: "Server error" });
   }
 };

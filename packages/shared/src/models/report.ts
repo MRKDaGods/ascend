@@ -1,19 +1,18 @@
-import { Job } from "./job";
-import { Post } from "./post";
-
-export interface ReportedJob {
+export interface JobReport {
   id: number;
-  job: Job;
   reporter_id: number;
+  reporter_full_name: string;
+  reporter_profile_picture: string | null;
   reason: string;
   status: string;
   created_at: Date;
 }
 
-export interface ReportedPost {
+export interface PostReport {
   id: number;
-  post: Post;
   reporter_id: number;
+  reporter_full_name: string;
+  reporter_profile_picture: string | null;
   reason: string;
   description: string;
   status: string;
