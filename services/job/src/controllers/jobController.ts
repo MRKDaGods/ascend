@@ -19,6 +19,7 @@ import {
   getJobApplicationsByUserId,
   getJobsByCompanyId,
   deleteJob,
+  updateJob,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -26,6 +27,8 @@ import {
   jobApplicationValidationRules,
   jobApplicationStatusUpdateValidationRules,
   jobReportValidationRules,
+  atLeastOneFieldPresent,
+  updateJobValidationRules,
 } from "../validations/jobValidation";
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 
@@ -170,6 +173,57 @@ export const handleJobPosting = [
       res.status(201).json(job);
     } catch (error) {
       console.error("Error in handleJobPosting:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+];
+
+export const handleUpdateJob = [
+  atLeastOneFieldPresent,
+  ...updateJobValidationRules,
+  validate,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const jobId = Number(req.params.jobId);
+
+      // Check if the user is authorized to update the job
+      const isJobCreator = await isUserJobCreator(userId, jobId);
+      if (!isJobCreator) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this job" });
+      }
+
+      // Extract job update details from request body
+      const title = req.body.title;
+      const description = req.body.description;
+      const industry = req.body.industry;
+      const type = req.body.type;
+      const experience_level = req.body.experience_level;
+      const location = req.body.location;
+      const workplace_type = req.body.workplace_type;
+      const salary_min_range = req.body.salary_min_range;
+      const salary_max_range = req.body.salary_max_range;
+
+      // Update the job
+      const updatedJob = await updateJob(
+        jobId,
+        title,
+        description,
+        industry,
+        type,
+        experience_level,
+        location,
+        workplace_type,
+        salary_min_range,
+        salary_max_range
+      );
+
+      // Send a 200 OK response with the updated job
+      res.status(200).json(updatedJob);
+    } catch (error) {
+      console.error("Error in handleUpdateJob:", error);
       res.status(500).json({ error: "Server error" });
     }
   },

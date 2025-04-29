@@ -426,6 +426,53 @@ export const createJob = async (
   }
 };
 
+export const updateJob = async (
+  jobId: number,
+  title?: string,
+  description?: string,
+  industry?: string,
+  type?: string,
+  experience_level?: string,
+  location?: string,
+  workplace_type?: string,
+  salary_min_range?: number,
+  salary_max_range?: number
+): Promise<Job> => {
+  try {
+    const query = `
+      UPDATE job_service.jobs
+      SET title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          industry = COALESCE($3, industry),
+          type = COALESCE($4, type),
+          experience_level = COALESCE($5, experience_level),
+          location = COALESCE($6, location),
+          workplace_type = COALESCE($7, workplace_type),
+          salary_min_range = COALESCE($8, salary_min_range),
+          salary_max_range = COALESCE($9, salary_max_range)
+      WHERE job_id = $10
+      RETURNING *
+    `;
+    const values = [
+      title,
+      description,
+      industry,
+      type,
+      experience_level,
+      location,
+      workplace_type,
+      salary_min_range,
+      salary_max_range,
+      jobId,
+    ];
+    const result = await db.query(query, values);
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error updating job:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const deleteJob = async (jobId: number): Promise<void> => {
   try {
     const query = `
