@@ -46,7 +46,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
   List<String> jobTypes = [];
   List<String> originalSelectedJobTypes = [];
   int originalMinSalary = 0;
-  int originalMaxSalary = 0;
+  int originalMaxSalary = 200000;
   final filterOptions = [
     {
       'filterName': 'Experience Level',
@@ -209,6 +209,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       }
     } else {
       print('Request failed with status: ${response.statusCode}');
+      filteredJobs = []; // Reset filtered jobs on error
     }
   }
 

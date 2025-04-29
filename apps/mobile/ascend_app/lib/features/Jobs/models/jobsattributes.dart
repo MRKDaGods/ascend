@@ -19,7 +19,7 @@ class Jobsattributes {
     this.isBookmarked = false,
     this.jobDescription,
     this.applied = false,
-    this.applicationStatus = "Pending", // Default status
+    this.applicationStatus = "", // Default status
     this.alumniCount = 0,
     this.isPromoted = false,
     this.viewed = false,
