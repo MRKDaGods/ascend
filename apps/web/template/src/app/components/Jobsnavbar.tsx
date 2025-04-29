@@ -199,7 +199,8 @@ const JobsNavbar: React.FC = () => {
 
   const handleSearch = () => {
     addSearch({ job: searchParams.title, location: searchParams.location });
-    router.push(`/?keyword=${searchParams.title}&location=${searchParams.location}`);
+    // Change this line to route to the search page instead of root
+    router.push(`/search?keyword=${encodeURIComponent(searchParams.title)}&location=${encodeURIComponent(searchParams.location)}`);
   };
 
   // Handle click outside to close dropdown

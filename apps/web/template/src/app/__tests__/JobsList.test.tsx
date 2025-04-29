@@ -24,11 +24,15 @@ jest.mock('../lib/api', () => ({
 // Mock window.alert
 window.alert = jest.fn();
 
-// Mock fetch API
+// Mock fetch API - improve the implementation to return proper headers and handle response.text()
 global.fetch = jest.fn(() => 
   Promise.resolve({
     ok: true,
+    headers: {
+      get: jest.fn((name) => name === 'content-type' ? 'text/plain' : null)
+    },
     json: () => Promise.resolve({ success: true }),
+    text: () => Promise.resolve("Created")
   })
 ) as jest.Mock;
 
@@ -182,7 +186,14 @@ describe('JobList Component', () => {
       'https://api.ascendx.tech/job/1/report',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ reason: 'This is inappropriate' }),
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'Authorization': expect.stringContaining('Bearer')
+        }),
+        body: JSON.stringify({ 
+          reason: 'This is inappropriate',
+          job_id: 1 
+        })
       })
     );
     

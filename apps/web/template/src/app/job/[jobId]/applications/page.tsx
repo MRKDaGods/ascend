@@ -64,7 +64,7 @@ const ApplicationsPage = () => {
           const jobResponse = await fetch(`https://api.ascendx.tech/job/${jobId}`, {
             headers: {
               Authorization:
-                'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8',
+                'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTk1MzI2OCwiZXhwIjoxNzQ1OTk2NDY4fQ.qbls-HS1EPXglqpymZ_13YtIdzma3E4USsxgeVuNa1o',
             },
           });
           
@@ -88,7 +88,7 @@ const ApplicationsPage = () => {
           const response = await fetch(`https://api.ascendx.tech/job/${jobId}/applications?page=1`, {
             headers: {
               Authorization:
-                'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8',
+                'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTk1MzI2OCwiZXhwIjoxNzQ1OTk2NDY4fQ.qbls-HS1EPXglqpymZ_13YtIdzma3E4USsxgeVuNa1o',
             },
           });
 
@@ -139,7 +139,7 @@ const ApplicationsPage = () => {
         method: 'PATCH', 
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTk1MzI2OCwiZXhwIjoxNzQ1OTk2NDY4fQ.qbls-HS1EPXglqpymZ_13YtIdzma3E4USsxgeVuNa1o',
         },
         body: JSON.stringify({ status: newStatus }),
       });

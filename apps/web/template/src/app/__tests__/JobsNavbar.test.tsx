@@ -162,7 +162,9 @@ describe('JobsNavbar Component', () => {
         job: 'Software Engineer',
         location: 'San Francisco'
       });
-      expect(mockPush).toHaveBeenCalledWith('/?keyword=Software Engineer&location=San Francisco');
+      
+      // Check that we're redirecting to the /search route instead of root (/)
+      expect(mockPush).toHaveBeenCalledWith('/search?keyword=Software%20Engineer&location=San%20Francisco');
     });
   });
 

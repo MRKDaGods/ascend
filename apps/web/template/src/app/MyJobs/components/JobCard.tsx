@@ -224,7 +224,7 @@ const JobCard: React.FC<JobCardProps> = ({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTkzNjc1OSwiZXhwIjoxNzQ1OTc5OTU5fQ.WIm_tsdNxFna8iSU82Q6Q0wykRHN8W93rwwuixbtbZ8',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTk1MzI2OCwiZXhwIjoxNzQ1OTk2NDY4fQ.qbls-HS1EPXglqpymZ_13YtIdzma3E4USsxgeVuNa1o',
         },
         body: JSON.stringify(changedFields),
       });
@@ -543,20 +543,36 @@ const JobCard: React.FC<JobCardProps> = ({
         PaperProps={{
           sx: { 
             borderRadius: 3,
-            p: 1
+            p: { xs: 0.5, sm: 1 }, // Adjust padding based on screen size
+            width: { xs: '95%', sm: '90%', md: '80%' }, // Control width more precisely
+            margin: 'auto'
           }
         }}
       >
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box display="flex" alignItems="center" gap={2}>
+        <DialogTitle 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on mobile
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            gap: 2,
+            pb: { xs: 1, sm: 2 }
+          }}
+        >
+          <Box 
+            display="flex" 
+            alignItems="center" 
+            gap={2}
+            width={{ xs: '100%', sm: 'auto' }}
+          >
             <Avatar
               src={company_logo_url || ''}
               alt={company_name}
-              sx={{ width: 60, height: 60 }}
+              sx={{ width: { xs: 50, sm: 60 }, height: { xs: 50, sm: 60 } }}
             >
-              {!company_logo_url && <BusinessCenterIcon sx={{ fontSize: 36 }} />}
+              {!company_logo_url && <BusinessCenterIcon sx={{ fontSize: { xs: 30, sm: 36 } }} />}
             </Avatar>
-            <Box>
+            <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
               {isEditMode ? (
                 <TextField 
                   fullWidth
@@ -565,55 +581,68 @@ const JobCard: React.FC<JobCardProps> = ({
                   label="Job Title"
                   variant="outlined"
                   size="small"
-                  sx={{ mb: 1, minWidth: '300px' }}
+                  sx={{ mb: 1, minWidth: { xs: '100%', sm: '300px' } }}
                 />
               ) : (
-                <Typography variant="h5" fontWeight="bold">
+                <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
                   {displayValues.title}
                 </Typography>
               )}
-              <Typography variant="subtitle1" color="text.secondary">
+              <Typography variant="subtitle1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                 {company_name}
               </Typography>
             </Box>
           </Box>
           
-          {isPostedJob && (
-            <Button 
-              variant={isEditMode ? "contained" : "outlined"}
-              color={isEditMode ? "success" : "primary"}
-              startIcon={isEditMode ? <SaveIcon /> : <EditIcon />}
-              onClick={isEditMode ? saveChanges : toggleEditMode}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <>
-                  <CircularProgress size={20} sx={{ mr: 1 }} /> Saving...
-                </>
-              ) : isEditMode ? (
-                "Save Changes"
-              ) : (
-                "Edit Details"
-              )}
-            </Button>
-          )}
-          
-          {isEditMode && (
-            <IconButton 
-              onClick={toggleEditMode}
-              sx={{ ml: 1 }}
-              color="default"
-            >
-              <CloseIcon />
-            </IconButton>
-          )}
+          <Box 
+            display="flex" 
+            alignItems="center"
+            mt={{ xs: 1, sm: 0 }}
+            width={{ xs: '100%', sm: 'auto' }}
+            justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
+          >
+            {isPostedJob && (
+              <Button 
+                variant={isEditMode ? "contained" : "outlined"}
+                color={isEditMode ? "success" : "primary"}
+                startIcon={isEditMode ? <SaveIcon /> : <EditIcon />}
+                onClick={isEditMode ? saveChanges : toggleEditMode}
+                disabled={isSaving}
+                sx={{
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  py: { xs: 0.5, sm: 1 },
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <CircularProgress size={16} sx={{ mr: 1 }} /> Saving...
+                  </>
+                ) : isEditMode ? (
+                  "Save Changes"
+                ) : (
+                  "Edit Details"
+                )}
+              </Button>
+            )}
+            
+            {isEditMode && (
+              <IconButton 
+                onClick={toggleEditMode}
+                sx={{ ml: 1 }}
+                color="default"
+              >
+                <CloseIcon />
+              </IconButton>
+            )}
+          </Box>
         </DialogTitle>
         
-        <DialogContent dividers>
-          <Grid container spacing={3}>
+        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
             {/* Job details section */}
             <Grid item xs={12} md={8}>
-              <Typography variant="h6" gutterBottom fontWeight={600}>
+              <Typography variant="h6" gutterBottom fontWeight={600} sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Job Description
               </Typography>
               
@@ -621,43 +650,49 @@ const JobCard: React.FC<JobCardProps> = ({
                 <TextField
                   fullWidth
                   multiline
-                  rows={8}
+                  rows={{ xs: 6, sm: 8 }}
                   value={editedJob.description}
                   onChange={(e) => handleEditChange('description', e.target.value)}
                   label="Job Description"
                   variant="outlined"
-                  sx={{ mb: 3 }}
+                  sx={{ mb: { xs: 2, sm: 3 } }}
                 />
               ) : (
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
+                <Typography variant="body1" sx={{ 
+                  whiteSpace: 'pre-line', 
+                  mb: { xs: 2, sm: 3 },
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}>
                   {displayValues.description || "No description provided."}
                 </Typography>
               )}
               
               {/* Salary information */}
-              <Typography variant="h6" gutterBottom fontWeight={600}>
+              <Typography variant="h6" gutterBottom fontWeight={600} sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Salary
               </Typography>
               
               {isEditMode ? (
-                <Grid container spacing={2} sx={{ mb: 3 }}>
-                  <Grid item xs={6}>
+                <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       type="number"
                       label="Minimum Salary"
                       variant="outlined"
+                      size="small"
                       value={editedJob.salary_min_range}
                       onChange={(e) => handleEditChange('salary_min_range', e.target.value)}
                       InputProps={{ inputProps: { min: 0 } }}
                     />
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       type="number"
                       label="Maximum Salary"
                       variant="outlined"
+                      size="small"
                       value={editedJob.salary_max_range}
                       onChange={(e) => handleEditChange('salary_max_range', e.target.value)}
                       InputProps={{ inputProps: { min: 0 } }}
@@ -665,7 +700,10 @@ const JobCard: React.FC<JobCardProps> = ({
                   </Grid>
                 </Grid>
               ) : (
-                <Typography variant="body1" sx={{ mb: 3 }}>
+                <Typography variant="body1" sx={{ 
+                  mb: { xs: 2, sm: 3 },
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}>
                   {formatSalary()}
                 </Typography>
               )}
@@ -673,12 +711,12 @@ const JobCard: React.FC<JobCardProps> = ({
             
             {/* Job meta info section */}
             <Grid item xs={12} md={4}>
-              <Paper elevation={1} sx={{ p: 2, borderRadius: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom fontWeight={600}>
+              <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2, mb: 2 }}>
+                <Typography variant="h6" gutterBottom fontWeight={600} sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                   Job Details
                 </Typography>
                 
-                <Stack spacing={isEditMode ? 3 : 2}>
+                <Stack spacing={isEditMode ? { xs: 2, sm: 3 } : { xs: 1.5, sm: 2 }}>
                   {isEditMode ? (
                     <>
                       <TextField
@@ -749,36 +787,36 @@ const JobCard: React.FC<JobCardProps> = ({
                   ) : (
                     <>
                       <Box display="flex" gap={1.5} alignItems="center">
-                        <LocationOnIcon color="action" />
-                        <Typography variant="body2">
+                        <LocationOnIcon color="action" sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           <strong>Location:</strong> {displayValues.location}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
-                        <WorkIcon color="action" />
-                        <Typography variant="body2">
+                        <WorkIcon color="action" sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           <strong>Job Type:</strong> {displayValues.type}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
-                        <SchoolIcon color="action" />
-                        <Typography variant="body2">
+                        <SchoolIcon color="action" sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           <strong>Experience:</strong> {displayValues.experience_level}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
-                        <CategoryIcon color="action" />
-                        <Typography variant="body2">
+                        <CategoryIcon color="action" sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           <strong>Industry:</strong> {displayValues.industry}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
-                        <LanguageIcon color="action" />
-                        <Typography variant="body2">
+                        <LanguageIcon color="action" sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           <strong>Workplace:</strong> {displayValues.workplace_type}
                         </Typography>
                       </Box>
@@ -796,12 +834,18 @@ const JobCard: React.FC<JobCardProps> = ({
           </Grid>
         </DialogContent>
         
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions sx={{ 
+          p: { xs: 1.5, sm: 2 }, 
+          flexDirection: { xs: 'column', sm: 'row' }, 
+          alignItems: 'stretch'
+        }}>
           {!isEditMode && (
             <Button 
               onClick={() => router.push(`/job/${job_id}/applications?title=${encodeURIComponent(title)}&company=${encodeURIComponent(company_name)}`)} 
               variant="contained" 
               color="primary"
+              fullWidth={window.innerWidth < 600} // Responsive full-width button on mobile
+              sx={{ mb: { xs: 1, sm: 0 } }}
             >
               View Applications
             </Button>
@@ -815,6 +859,7 @@ const JobCard: React.FC<JobCardProps> = ({
               }
             }} 
             variant="outlined"
+            fullWidth={window.innerWidth < 600} // Responsive full-width button on mobile
           >
             {isEditMode ? "Cancel" : "Close"}
           </Button>
