@@ -5,7 +5,7 @@ import { useMediaStore } from "./useMediaStore";
 import {
   fetchNewsFeed,
   fetchPost,
-  createPost,
+  // createPost,
   deletePostById,
   editPost,
   repost,
@@ -16,7 +16,8 @@ import {
   ultimateSearchAPI,
   tagUsersAPI,
   tagUsersOnContentAPI,
-  reactToPostAPI
+  reactToPostAPI,
+  createPostNew
 } from "@/api/posts";
 
 
@@ -108,15 +109,15 @@ interface PostStoreState {
 
   fetchNewsFeedFromAPI: () => Promise<void>;
   fetchPostFromAPI: (id: number) => Promise<void>;
-  createPostFromAPI: (
+
+
+  createPostNewFromAPI: (
     content: string,
-    singleFile?: File,
-    type?: "image" | "video" | "file"| "text",
     mediaFiles?: File[],
-    mediaType?: "image" | "video" | "file"| "text",
-    fileTitle?: string,
-    fileDescription?: string
-  ) => Promise<void>;
+    mediaType?: "image" | "video" | "file",
+    title?: string,
+    description?: string
+  ) => Promise<void>;  
   
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
@@ -318,52 +319,27 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
 
-      createPostFromAPI: async (
-        content,
-        singleFile,
-        type,
-        mediaFiles,
-        mediaType,
-        fileTitle,
-        fileDescription
+    
+
+      createPostNewFromAPI: async (
+        content: string,
+        mediaFiles?: File[],
+        mediaType?: "image" | "video" | "file",
+        title?: string,
+        description?: string
       ) => {
         try {
-          console.log("📦 Creating post with:", {
-            content,
-            singleFile,
-            type,
-            mediaFiles,
-            mediaType,
-            fileTitle,
-            fileDescription,
-          });
-      
-          // Determine final files and type
-          const filesToUpload = singleFile ? [singleFile] : mediaFiles || [];
-          const finalType = type || mediaType;
-      
-          if (filesToUpload.length === 0 && finalType !== "file") {
-            console.warn("⚠️ No media files provided for upload");
-          }
-      
-          const response = await createPost(
-            content,
-            filesToUpload,
-            finalType,
-            fileTitle,
-            fileDescription
-          );
-      
+          const response = await createPostNew(content, mediaFiles?.[0], mediaType, title, description);
           const id = response.data?.data?.id;
       
           if (id) {
             set({ lastUserPostId: id, userPostPopupOpen: true, isLastPostDeleted: false });
           }
-        } catch (error) {
-          console.error("❌ Error in createPostFromAPI:", error);
+        } catch (error: any) {
+          console.error("❌ Failed to create post (new):", error?.response?.data || error.message);
           throw error;
         }
-      },      
+      },
 
       deletePostFromAPI: async (postId) => {
         await deletePostById(postId);

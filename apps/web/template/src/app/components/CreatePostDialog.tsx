@@ -54,10 +54,11 @@ const CreatePostDialog: React.FC = () => {
     lastUserPostId,
     repostSourcePost,
     setRepostSourcePost,
-    createPostFromAPI,
     setRepostPopupOpen,
     repostFromAPI,
     taggedUsers,
+    createPostNewFromAPI,
+    tagUsersOnContent
   } = usePostStore();
 
   const {
@@ -89,58 +90,69 @@ const CreatePostDialog: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!postText.trim() && mediaFiles.length === 0 && !documentPreview) return;
-  
-    let postId: number | null = null;
-  
-    if (repostSourcePost) {
-      await repostFromAPI(repostSourcePost.id, postText.trim());
-      setRepostPopupOpen(true);
-    } else {
-      const fileToSend = documentPreview ? documentFile : mediaFiles[0];
-      const typeToSend = documentPreview
-        ? "file"
-        : mediaFiles.length > 0
-          ? mediaType ?? "image"
-          : "text"; // ✅ If no file, post is text type
-  
-          await createPostFromAPI(
-            postText,
-            fileToSend ?? undefined,
-            typeToSend,
-            mediaFiles,                             // ✅ new argument
-            mediaType ?? undefined,                 // ✅ new argument
-            mediaFiles.length > 0 ? "Uploaded Media" : "Text Post",
-            mediaFiles.length > 0 ? `${mediaType ?? "media"} file` : "No media attached"
-          );
-          
-  
-      postId = usePostStore.getState().lastUserPostId;
-    }
-  
-    // 👉 Tag users if there are mentions
-    if (postId && taggedUsers.length > 0 && postText.includes("@")) {
-      const tagsToSend = taggedUsers.map((tag) => {
-        const atIndex = postText.indexOf(`@${tag.name}`);
-        return {
-          userId: tag.id,
-          startIndex: atIndex,
-          endIndex: atIndex + tag.name.length,
-        };
-      }).filter(tag => tag.startIndex !== -1);
-  
-      if (tagsToSend.length > 0) {
-        await usePostStore.getState().tagUsersOnContent("post", postId, tagsToSend);
-      }
-    }
-  
-    setDraftText("");
-    setPostText("");
-    resetPost();
-    clearAllMedia();
-    clearDocumentPreview();
-    setRepostSourcePost(null);
-  }; 
 
+    let postId: number | null = null;
+
+    try {
+      if (repostSourcePost) {
+        await repostFromAPI(repostSourcePost.id, postText.trim());
+        setRepostPopupOpen(true);
+      } else {
+        // Determine file info
+        const isDocument = !!documentPreview && !!documentFile;
+        const isMedia = mediaFiles.length > 0;
+
+        if (isDocument) {
+          await createPostNewFromAPI(
+            postText.trim(),
+            [documentFile!],
+            "file",
+            documentPreview?.title || "Untitled Document",
+            "PDF file"
+          );
+        } else if (isMedia) {
+          await createPostNewFromAPI(
+            postText.trim(),
+            mediaFiles,
+            mediaType || "image",
+            "Uploaded Media",
+            `${mediaType || "media"} file`
+          );
+        } else {
+          await createPostNewFromAPI(postText.trim());
+        }
+
+        postId = usePostStore.getState().lastUserPostId;
+      }
+
+      // Handle tagging users
+      if (postId && taggedUsers.length > 0 && postText.includes("@")) {
+        const tags = taggedUsers
+          .map((tag) => {
+            const startIndex = postText.indexOf(`@${tag.name}`);
+            return startIndex !== -1
+              ? { userId: tag.id, startIndex, endIndex: startIndex + tag.name.length }
+              : null;
+          })
+          .filter((tag) => tag !== null) as { userId: number; startIndex: number; endIndex: number }[];
+
+        if (tags.length > 0) {
+          await tagUsersOnContent("post", postId, tags);
+        }
+      }
+
+      // Reset state
+      setDraftText("");
+      setPostText("");
+      resetPost();
+      clearAllMedia();
+      clearDocumentPreview();
+      setRepostSourcePost(null);
+    } catch (err) {
+      console.error("❌ Error during post creation:", err);
+    }
+  };
+  
   const handleClose = () => {
     const hasUnsaved =
       !!postText.trim() || mediaFiles.length > 0 || !!documentPreview || !!repostSourcePost;
@@ -181,95 +193,93 @@ const CreatePostDialog: React.FC = () => {
           </Box>
 
           {mediaPreviews.length > 0 && !documentPreview && (
-  <Box sx={{ position: "relative", mt: 2 }}>
-    {mediaFiles[currentIndex]?.type.startsWith("video") ? (
-      <video
-        src={mediaPreviews[currentIndex]}
-        controls
-        style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
-      />
-    ) : (
-      <img
-        src={mediaPreviews[currentIndex]}
-        alt={`preview-${currentIndex}`}
-        style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
-      />
-    )}
+            <Box sx={{ position: "relative", mt: 2 }}>
+              {mediaFiles[currentIndex]?.type.startsWith("video") ? (
+                <video
+                  src={mediaPreviews[currentIndex]}
+                  controls
+                  style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+                />
+              ) : (
+                <img
+                  src={mediaPreviews[currentIndex]}
+                  alt={`preview-${currentIndex}`}
+                  style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+                />
+              )}
 
-    {/* Left Arrow */}
-    {currentIndex > 0 && (
-      <Box
-        onClick={() => setCurrentIndex((prev) => prev - 1)}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: 8,
-          transform: "translateY(-50%)",
-          bgcolor: "rgba(0,0,0,0.5)",
-          color: "white",
-          width: 32,
-          height: 32,
-          borderRadius: "50%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          cursor: "pointer",
-          zIndex: 1,
-        }}
-      >
-        {"<"}
-      </Box>
-    )}
+              {/* Left Arrow */}
+              {currentIndex > 0 && (
+                <Box
+                  onClick={() => setCurrentIndex((prev) => prev - 1)}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 8,
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 1,
+                  }}
+                >
+                  {"<"}
+                </Box>
+              )}
 
-    {/* Right Arrow */}
-    {currentIndex < mediaPreviews.length - 1 && (
-      <Box
-        onClick={() => setCurrentIndex((prev) => prev + 1)}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          right: 8,
-          transform: "translateY(-50%)",
-          bgcolor: "rgba(0,0,0,0.5)",
-          color: "white",
-          width: 32,
-          height: 32,
-          borderRadius: "50%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          cursor: "pointer",
-          zIndex: 1,
-        }}
-      >
-        {">"}
-      </Box>
-    )}
+              {/* Right Arrow */}
+              {currentIndex < mediaPreviews.length - 1 && (
+                <Box
+                  onClick={() => setCurrentIndex((prev) => prev + 1)}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    right: 8,
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 1,
+                  }}
+                >
+                  {">"}
+                </Box>
+              )}
 
-    {/* Edit/Delete Controls */}
-    <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-      <IconButton
-        id="edit-media-preview-button"
-        sx={{ bgcolor: theme.palette.background.paper }}
-        onClick={() => openEditor(mediaFiles[currentIndex].type.startsWith("video") ? "video" : "image")}
-      >
-        <Edit />
-      </IconButton>
-      <IconButton
-        id="delete-media-preview-button"
-        sx={{ bgcolor: theme.palette.background.paper }}
-        onClick={() => {
-          removeMediaFile(currentIndex);
-          setCurrentIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        }}
-      >
-        <Delete />
-      </IconButton>
-    </Box>
-  </Box>
-)}
-
-
+              {/* Edit/Delete Controls */}
+              <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
+                <IconButton
+                  id="edit-media-preview-button"
+                  sx={{ bgcolor: theme.palette.background.paper }}
+                  onClick={() => openEditor(mediaFiles[currentIndex].type.startsWith("video") ? "video" : "image")}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton
+                  id="delete-media-preview-button"
+                  sx={{ bgcolor: theme.palette.background.paper }}
+                  onClick={() => {
+                    removeMediaFile(currentIndex);
+                    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : 0));
+                  }}
+                >
+                  <Delete />
+                </IconButton>
+              </Box>
+            </Box>
+          )}
           {documentPreview && (
             <DocumentPreview fileUrl={documentPreview.url} title={documentPreview.title} onRemove={clearDocumentPreview} />
           )}

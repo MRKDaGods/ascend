@@ -188,28 +188,23 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
           )}
 
           {/* Media Counter */}
-          {post.media &&
-          post.media.filter((media) => media.type === "image").length > 1 && (
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: 8,
-                left: "50%",
-                transform: "translateX(-50%)",
-                bgcolor: "rgba(0,0,0,0.6)",
-                color: "white",
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "16px",
-                fontSize: "0.75rem",
-                fontWeight: "bold",
-              }}
-            >
-              {`${currentMediaIndex + 1}/${post.media.filter(
-                (media) => media.type === "image"
-              ).length}`}
-            </Box>
-          )}
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 8,
+              left: "50%",
+              transform: "translateX(-50%)",
+              bgcolor: "rgba(0,0,0,0.6)",
+              color: "white",
+              px: 1.5,
+              py: 0.5,
+              borderRadius: "16px",
+              fontSize: "0.75rem",
+              fontWeight: "bold",
+            }}
+          >
+            {`${currentMediaIndex + 1}/${post.media.length}`}
+          </Box>
         </Box>
       )}
 

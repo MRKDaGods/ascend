@@ -32,7 +32,13 @@ const renderTextWithLinks = (text: string) => {
   const parts = text.split(urlRegex);
   return parts.map((part, index) =>
     urlRegex.test(part) ? (
-      <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2" }}>
+      <a
+        key={index}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#0a66c2" }}
+      >
         {part}
       </a>
     ) : (
@@ -46,11 +52,13 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
   const { setEditingPost } = usePostStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const userData = useProfileStore((state) => state.userData);
   const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
+
+  const totalMedia = post.media ? post.media.length : 0;
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -98,70 +106,70 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           }
         />
 
-        {/* Post Text */}
+        {/* Post Content */}
         <CardContent>
           <Typography variant="body1">{renderTextWithLinks(post.content)}</Typography>
         </CardContent>
 
-        {/* Media Carousel */}
+        {/* Media Preview */}
         {!post.file && post.media && post.media.length > 0 && (
           <Box sx={{ position: "relative", mt: 1 }}>
-            {post.media[currentMediaIndex].type === "video" ? (
+            {post.media[currentIndex]?.type.startsWith("video") ? (
               <CardMedia
                 component="video"
                 controls
-                src={post.media[currentMediaIndex].url}
-                sx={{ width: "100%", borderRadius: 2, maxHeight: 700 }}
+                src={post.media[currentIndex].url}
+                sx={{ width: "100%", borderRadius: 2, maxHeight: 800 }}
               />
             ) : (
               <CardMedia
                 component="img"
-                image={post.media[currentMediaIndex].url}
-                alt="Post media"
-                sx={{ width: "100%", borderRadius: 2, maxHeight: 700 }}
+                image={post.media[currentIndex].url}
+                alt={`Post media ${currentIndex}`}
+                sx={{ width: "100%", borderRadius: 2, maxHeight: 800 }}
               />
             )}
 
-            {/* Arrows */}
-            {currentMediaIndex > 0 && (
-              <Box
-                onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
-                sx={arrowStyle("left")}
-              >
-                {"<"}
-              </Box>
-            )}
-            {currentMediaIndex < post.media.length - 1 && (
-              <Box
-                onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
-                sx={arrowStyle("right")}
-              >
-                {">"}
-              </Box>
-            )}
+            {/* Always Render Arrows */}
+            <Box
+              onClick={() => {
+                if (totalMedia > 1 && currentIndex > 0) setCurrentIndex((prev) => prev - 1);
+              }}
+              sx={{ ...arrowStyle("left"), opacity: totalMedia > 1 && currentIndex > 0 ? 1 : 0.4, pointerEvents: totalMedia > 1 && currentIndex > 0 ? "auto" : "none" }}
+            >
+              {"<"}
+            </Box>
 
-            {post.media &&
-              post.media.filter((media) => media.type === "image").length > 1 && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: 8,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    bgcolor: "rgba(0,0,0,0.6)",
-                    color: "white",
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: "16px",
-                    fontSize: "0.75rem",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {`${currentMediaIndex + 1}/${post.media.filter(
-                    (media) => media.type === "image"
-                  ).length}`}
-                </Box>
-              )}
+            <Box
+              onClick={() => {
+                if (totalMedia > 1 && currentIndex < totalMedia - 1) setCurrentIndex((prev) => prev + 1);
+              }}
+              sx={{ ...arrowStyle("right"), opacity: totalMedia > 1 && currentIndex < totalMedia - 1 ? 1 : 0.4, pointerEvents: totalMedia > 1 && currentIndex < totalMedia - 1 ? "auto" : "none" }}
+            >
+              {">"}
+            </Box>
+
+            {/* Media Counter */}
+            {totalMedia > 1 && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 8,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  bgcolor: "rgba(0,0,0,0.6)",
+                  color: "white",
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: "16px",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  zIndex: 2,
+                }}
+              >
+                {`${currentIndex + 1}/${totalMedia}`}
+              </Box>
+            )}
           </Box>
         )}
 
@@ -179,7 +187,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
           </Box>
         )}
 
-        {/* Buttons */}
+        {/* Action Buttons */}
         <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
           <Button startIcon={<ThumbUp />} sx={buttonStyle(theme)}>
             Like
@@ -190,6 +198,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
         </Stack>
       </Card>
 
+      {/* Delete Dialog */}
       <DeletePostDialog
         open={deleteDialogOpen}
         postId={post.id}
@@ -202,7 +211,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
 const arrowStyle = (side: "left" | "right") => ({
   position: "absolute",
   top: "50%",
-  [side]: 16,
+  [side]: 8,
   transform: "translateY(-50%)",
   bgcolor: "rgba(0,0,0,0.5)",
   color: "white",
@@ -216,6 +225,7 @@ const arrowStyle = (side: "left" | "right") => ({
   userSelect: "none",
   fontWeight: "bold",
   zIndex: 2,
+  transition: "opacity 0.3s",
 });
 
 const buttonStyle = (theme: any) => ({
