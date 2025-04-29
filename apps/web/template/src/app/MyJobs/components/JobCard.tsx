@@ -79,6 +79,25 @@ const JobCard: React.FC<JobCardProps> = ({
   // Add states for editing job details
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Define job status variables
+  const isPostedJob = status === 'Posted';
+  const isAppliedJob = status === 'Applied';
+  const isSavedJob = status === 'Saved';
+  
+  // Move displayValues state to the component level
+  const [displayValues, setDisplayValues] = useState({
+    title: title,
+    description: description,
+    industry: industry,
+    type: type,
+    experience_level: experience_level,
+    location: location,
+    workplace_type: workplace_type,
+    salary_min_range: salary_min_range,
+    salary_max_range: salary_max_range
+  });
+  
   const [editedJob, setEditedJob] = useState({
     title: title,
     description: description,
@@ -91,10 +110,33 @@ const JobCard: React.FC<JobCardProps> = ({
     salary_max_range: salary_max_range !== null ? salary_max_range : '',
   });
   
-  const isPostedJob = status === 'Posted';
-  const isAppliedJob = status === 'Applied';
-  const isSavedJob = status === 'Saved';
-
+  // Define the toggleEditMode function
+  const toggleEditMode = () => {
+    if (isEditMode) {
+      // Reset form if canceling edit
+      setEditedJob({
+        title: displayValues.title,
+        description: displayValues.description,
+        industry: displayValues.industry,
+        type: displayValues.type,
+        experience_level: displayValues.experience_level,
+        location: displayValues.location,
+        workplace_type: displayValues.workplace_type,
+        salary_min_range: displayValues.salary_min_range !== null ? displayValues.salary_min_range : '',
+        salary_max_range: displayValues.salary_max_range !== null ? displayValues.salary_max_range : '',
+      });
+    }
+    setIsEditMode(!isEditMode);
+  };
+  
+  // Add the missing handleEditChange function
+  const handleEditChange = (field: string, value: any) => {
+    setEditedJob(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
   // Format date without date-fns
   const formatDate = (date: Date | undefined): string => {
     if (!date) return '';
@@ -115,33 +157,6 @@ const JobCard: React.FC<JobCardProps> = ({
       ? formatDate(saved_at)
       : null;
       
-  // Handle changes to the edited job fields
-  const handleEditChange = (field: string, value: any) => {
-    setEditedJob(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-  
-  // Toggle edit mode
-  const toggleEditMode = () => {
-    if (isEditMode) {
-      // If we're exiting edit mode, reset changes
-      setEditedJob({
-        title: title,
-        description: description,
-        industry: industry,
-        type: type,
-        experience_level: experience_level,
-        location: location,
-        workplace_type: workplace_type,
-        salary_min_range: salary_min_range !== null ? salary_min_range : '',
-        salary_max_range: salary_max_range !== null ? salary_max_range : '',
-      });
-    }
-    setIsEditMode(!isEditMode);
-  };
-  
   // Save changes using PATCH endpoint
   const saveChanges = async () => {
     setIsSaving(true);
@@ -196,31 +211,30 @@ const JobCard: React.FC<JobCardProps> = ({
       // Parse the response to get the updated job data
       const updatedJobData = await response.json();
       
-      // Update the display values with the response data
-      // We need to create a new state variable to hold our current display values
-      const [displayValues, setDisplayValues] = useState({
-        title,
-        description,
-        industry,
-        type,
-        experience_level,
-        location,
-        workplace_type,
-        salary_min_range,
-        salary_max_range
-      });
-      
       // Update the display values with the response
       setDisplayValues({
-        title: updatedJobData.title,
-        description: updatedJobData.description,
-        industry: updatedJobData.industry,
-        type: updatedJobData.type,
-        experience_level: updatedJobData.experience_level,
-        location: updatedJobData.location,
-        workplace_type: updatedJobData.workplace_type,
-        salary_min_range: updatedJobData.salary_min_range,
-        salary_max_range: updatedJobData.salary_max_range
+        title: updatedJobData.title || title,
+        description: updatedJobData.description || description,
+        industry: updatedJobData.industry || industry,
+        type: updatedJobData.type || type,
+        experience_level: updatedJobData.experience_level || experience_level,
+        location: updatedJobData.location || location,
+        workplace_type: updatedJobData.workplace_type || workplace_type,
+        salary_min_range: updatedJobData.salary_min_range ?? salary_min_range,
+        salary_max_range: updatedJobData.salary_max_range ?? salary_max_range
+      });
+      
+      // Update the edited job values to match the new display values
+      setEditedJob({
+        title: updatedJobData.title || title,
+        description: updatedJobData.description || description,
+        industry: updatedJobData.industry || industry,
+        type: updatedJobData.type || type,
+        experience_level: updatedJobData.experience_level || experience_level,
+        location: updatedJobData.location || location,
+        workplace_type: updatedJobData.workplace_type || workplace_type,
+        salary_min_range: (updatedJobData.salary_min_range !== null) ? updatedJobData.salary_min_range : '',
+        salary_max_range: (updatedJobData.salary_max_range !== null) ? updatedJobData.salary_max_range : ''
       });
       
       // Show success message
@@ -320,12 +334,12 @@ const JobCard: React.FC<JobCardProps> = ({
 
   // Format salary display
   const formatSalary = () => {
-    if (salary_min_range && salary_max_range) {
-      return `$${salary_min_range.toLocaleString()} - $${salary_max_range.toLocaleString()}`;
-    } else if (salary_min_range) {
-      return `From $${salary_min_range.toLocaleString()}`;
-    } else if (salary_max_range) {
-      return `Up to $${salary_max_range.toLocaleString()}`;
+    if (displayValues.salary_min_range && displayValues.salary_max_range) {
+      return `$${displayValues.salary_min_range.toLocaleString()} - $${displayValues.salary_max_range.toLocaleString()}`;
+    } else if (displayValues.salary_min_range) {
+      return `From $${displayValues.salary_min_range.toLocaleString()}`;
+    } else if (displayValues.salary_max_range) {
+      return `Up to $${displayValues.salary_max_range.toLocaleString()}`;
     }
     return 'Not specified';
   };
@@ -525,7 +539,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 />
               ) : (
                 <Typography variant="h5" fontWeight="bold">
-                  {title}
+                  {displayValues.title}
                 </Typography>
               )}
               <Typography variant="subtitle1" color="text.secondary">
@@ -586,7 +600,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 />
               ) : (
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-                  {description || "No description provided."}
+                  {displayValues.description || "No description provided."}
                 </Typography>
               )}
               
@@ -707,35 +721,35 @@ const JobCard: React.FC<JobCardProps> = ({
                       <Box display="flex" gap={1.5} alignItems="center">
                         <LocationOnIcon color="action" />
                         <Typography variant="body2">
-                          <strong>Location:</strong> {location}
+                          <strong>Location:</strong> {displayValues.location}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
                         <WorkIcon color="action" />
                         <Typography variant="body2">
-                          <strong>Job Type:</strong> {type}
+                          <strong>Job Type:</strong> {displayValues.type}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
                         <SchoolIcon color="action" />
                         <Typography variant="body2">
-                          <strong>Experience:</strong> {experience_level}
+                          <strong>Experience:</strong> {displayValues.experience_level}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
                         <CategoryIcon color="action" />
                         <Typography variant="body2">
-                          <strong>Industry:</strong> {industry}
+                          <strong>Industry:</strong> {displayValues.industry}
                         </Typography>
                       </Box>
                       
                       <Box display="flex" gap={1.5} alignItems="center">
                         <LanguageIcon color="action" />
                         <Typography variant="body2">
-                          <strong>Workplace:</strong> {workplace_type}
+                          <strong>Workplace:</strong> {displayValues.workplace_type}
                         </Typography>
                       </Box>
                     </>
