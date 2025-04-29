@@ -426,6 +426,20 @@ export const createJob = async (
   }
 };
 
+export const deleteJob = async (jobId: number): Promise<void> => {
+  try {
+    const query = `
+      DELETE FROM job_service.jobs
+      WHERE job_id = $1
+    `;
+    const values = [jobId];
+    await db.query(query, values);
+  } catch (error) {
+    console.error("Error deleting job:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 export const saveJob = async (
   user_id: number,
   job_id: number
