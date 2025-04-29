@@ -170,26 +170,27 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         }}
       >
         <Typography variant="body2">
-          👍 {post.likes} •{" "}
-          <span
-            id="view-comments-button"
-            style={{ cursor: "pointer", textDecoration: "underline" }}
-            onClick={async () => {
-              setShowComments((prev) => !prev);
-              if (post.comments > 0 && fetchedComments.length === 0) {
-                try {
-                  const comments = await fetchCommentsForPostFromAPI(post.id);
-                  setFetchedComments(comments); // Comments are objects now
-                } catch (error) {
-                  console.error("❌ Failed to fetch comments:", error);
-                }
-              }
-            }}
-          >
-            {post.comments} comments
-          </span>{" "}
-          • {post.reposts} reposts
-        </Typography>
+  👍 {post.likes} •{" "}
+  <span
+    id="view-comments-button"
+    style={{ cursor: "pointer", textDecoration: "underline" }}
+    onClick={async () => {
+      setShowComments((prev) => !prev);
+      if (post.comments > 0 && fetchedComments.length === 0) {
+        try {
+          const comments = await fetchCommentsForPostFromAPI(post.id);
+          setFetchedComments(comments); 
+        } catch (error) {
+          console.error("❌ Failed to fetch comments:", error);
+        }
+      }
+    }}
+  >
+    {post.comments} comments
+  </span>{" "}
+  • {post.reposts} reposts
+</Typography>
+
       </Box>
 
       {/* Actions */}

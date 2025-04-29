@@ -324,3 +324,14 @@ export const tagUsersOnContentAPI = async (contentType: "post" | "comment", cont
   });
   return res.data;
 };
+
+// ==== CREATE REACTION ON POST ====
+
+export const reactToPostAPI = async (postId: number, type: string) => {
+  const response = await API.post(`/post/${postId}/react`, { type }, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
