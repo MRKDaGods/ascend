@@ -11,7 +11,9 @@ import {
   repost,
   createCommentAPI,
   fetchSavedPostsAPI,
-  toggleSavePostAPI
+  toggleSavePostAPI,
+  fetchCommentsForPost,
+  ultimateSearchAPI
 } from "@/api/posts";
 
 export type ReactionType =
@@ -108,6 +110,31 @@ interface PostStoreState {
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
   fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
   toggleSavePostAPI: (postId: number) => Promise<void>;
+  fetchCommentsForPostFromAPI: (postId: number, page?: number, limit?: number) => Promise<any>;
+
+  searchResults: {
+    users: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      profile_picture_url: string | null;
+      bio: string | null;
+    }[];
+    posts: PostType[];
+  } | null;
+
+  ultimateSearch: (query: string) => Promise<void>;
+
+  setSearchResults: (results: {
+    users: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      profile_picture_url: string | null;
+      bio: string | null;
+    }[];
+    posts: PostType[];
+  } | null) => void;  
 
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
@@ -406,6 +433,17 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
       
+      fetchCommentsForPostFromAPI: async (postId, page = 1, limit = 10) => {
+        try {
+          const response = await fetchCommentsForPost(postId, page, limit);
+          console.log("✅ Fetched comments:", response.data);
+          return response.data;
+        } catch (error: any) {
+          console.error("❌ Failed to fetch comments:", error?.response?.data || error.message);
+          throw error;
+        }
+      },
+      
       setReaction: (postId, reaction) =>
         set((s) => ({
           postReactions: { ...s.postReactions, [postId]: reaction },
@@ -429,9 +467,40 @@ export const usePostStore = create<PostStoreState>()(
         try {
           const response = await createCommentAPI(postId, content, parentCommentId);
           console.log("✅ Comment created:", response.data);
-          // Optional: Append comment to selectedPost.commentsList or refetch post/comments
         } catch (error: any) {
           console.error("❌ Failed to create comment:", error?.response?.data || error.message);
+        }
+      },      
+
+      searchResults: null,
+      setSearchResults: (results) => set({ searchResults: results }),
+
+      ultimateSearch: async (query: string) => {
+        try {
+          const res = await ultimateSearchAPI(query);
+          const users = res.data.users;
+          const posts = res.data.posts.map((post) => ({
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url ? post.user.profile_picture_url.toString() : "",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url || undefined,
+            video: post.media?.find((m) => m.type === "video")?.url || undefined,
+            file: post.media?.find((m) => m.type === "document")?.url || undefined,
+            fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
+            commentsList: [],
+            isUserPost: false,
+          }));
+      
+          set({ searchResults: { users, posts } });
+        } catch (err: any) {
+          console.error("❌ Failed to perform ultimate search:", err?.response?.data || err.message);
+          set({ searchResults: null });
         }
       },      
 

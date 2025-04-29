@@ -35,9 +35,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { useMenuStore } from "../stores/useMenuStore";
 import { useNotificationStore } from "../stores/useNotificationStore";
 import { useProfileStore } from "../stores/useProfileStore";
+import { usePostStore } from "../stores/usePostStore";
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SearchResults from "./SearchResults";
 
 // 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
@@ -77,6 +79,8 @@ const Navbar: React.FC = () => {
   const muiTheme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const { ultimateSearch } = usePostStore();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
@@ -126,12 +130,24 @@ const Navbar: React.FC = () => {
             <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
             <InputBase
               placeholder="Search for jobs, people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  try {
+                    await ultimateSearch(searchQuery.trim());
+                  } catch (error) {
+                    console.error("❌ Search failed:", error);
+                  }
+                }
+              }}
               sx={{
                 color: muiTheme.palette.text.primary,
                 fontSize: "0.85rem",
                 width: "100%",
               }}
             />
+
           </SearchBar>
         </Box>
 
@@ -313,6 +329,7 @@ const Navbar: React.FC = () => {
           </Button>
         </Box>
       </Toolbar>
+      <SearchResults />
     </AppBar>
   );
 };

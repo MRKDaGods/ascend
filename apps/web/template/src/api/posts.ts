@@ -45,6 +45,60 @@ export interface GetSavedPostsResponse {
   data: Post[];
 }
 
+export interface GetCommentsResponse {
+  success: boolean;
+  data: any[]; // You can replace `any` later with your real Comment type
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
+export interface UltimateSearchResponse {
+  success: boolean;
+  data: {
+    users: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      profile_picture_id: number | null;
+      bio: string | null;
+      rank: number;
+      profile_picture_url: string | null;
+    }[];
+    posts: {
+      id: number;
+      content: string;
+      is_edited: boolean;
+      privacy: "public" | "private";
+      created_at: string;
+      updated_at: string;
+      rank: number;
+      user: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        profile_picture_url: string | null;
+      };
+      media: {
+        id: number;
+        post_id: number;
+        url: string;
+        type: string;
+        thumbnail_url: string | null;
+        title: string;
+        description: string;
+        created_at: string;
+        updated_at: string;
+      }[];
+      likes_count: number;
+      comments_count: number;
+      shares_count: number;
+    }[];
+  };
+}
+
 // ==== FETCH FEED ====
 
 export const fetchNewsFeed = async (
@@ -185,6 +239,8 @@ export const createCommentAPI = async (
     formData.append("parentCommentId", parentCommentId.toString());
   }
 
+  // ==== GET COMMENTS ON POST ====
+
   const res = await API.post(`/post/${postId}/comments`, formData, {
     headers: {
       "x-no-parse-body": "1",
@@ -192,4 +248,32 @@ export const createCommentAPI = async (
   });
 
   return res.data;
+};
+
+  // ==== GET COMMENTS ON POST ====
+
+export const fetchCommentsForPost = async (
+  postId: number,
+  page = 1,
+  limit = 10
+): Promise<GetCommentsResponse> => {
+  const response = await API.get<GetCommentsResponse>(`/post/${postId}/comments`, {
+    params: { page, limit },
+  });
+  return response.data;
+};
+
+// ==== ULTIMATE SEARCH ====
+
+// Fetch function
+
+export const ultimateSearchAPI = async (
+  q: string,
+  limit = 5,
+  offset = 0
+): Promise<UltimateSearchResponse> => {
+  const response = await API.get<UltimateSearchResponse>(`/post/search/ultimate`, {
+    params: { q, limit, offset },
+  });
+  return response.data;
 };
