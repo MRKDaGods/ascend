@@ -1,6 +1,7 @@
 import db from "@shared/config/db";
 import { ReportedJob, ReportedPost } from "packages/shared/src/models/report";
 import { getPostById } from "@shared/utils/post";
+import { getPresignedUrl } from "@shared/utils/files";
 
 interface PaginatedResponse<T> {
   data: T[];
@@ -128,39 +129,45 @@ export const getReportedJobs = async (
     };
 
     const query = `
-      SELECT r.*, j.*, c.*
+      SELECT r.*, j.*, c.company_name, c.profile_photo_id
       FROM job_service.reports AS r
       JOIN job_service.jobs AS j ON r.job_id = j.job_id
-      JOIN company_service.companies AS c ON j.company_id = c.id
+      JOIN company_service.company AS c ON j.company_id = c.company_id
       ORDER BY r.created_at DESC
       LIMIT $1 OFFSET $2
     `;
     const values = [PAGE_SIZE, OFFSET];
     const result = await db.query(query, values);
 
-    const reportedJobs = result.rows.map((row) => ({
-      id: row.id,
-      job: {
-        job_id: row.job_id,
-        title: row.title,
-        description: row.description,
-        industry: row.industry,
-        type: row.type,
-        experience_level: row.experience_level,
-        location: row.location,
-        workplace_type: row.workplace_type,
-        salary_min_range: row.salary_min_range,
-        salary_max_range: row.salary_max_range,
-        company_id: row.company_id,
-        company_name: row.name,
-        company_logo_url: row.logo_url,
-        created_at: row.created_at,
-      },
-      reporter_id: row.reporter_id,
-      reason: row.reason,
-      status: row.status,
-      created_at: row.created_at,
-    }));
+    const reportedJobs = await Promise.all(
+      result.rows.map(async (row) => {
+        // Fetch company logo URL
+        const company_logo_url = await getPresignedUrl(row.profile_photo_id);
+        return {
+          id: row.id,
+          job: {
+            job_id: row.job_id,
+            title: row.title,
+            description: row.description,
+            industry: row.industry,
+            type: row.type,
+            experience_level: row.experience_level,
+            location: row.location,
+            workplace_type: row.workplace_type,
+            salary_min_range: row.salary_min_range,
+            salary_max_range: row.salary_max_range,
+            company_id: row.company_id,
+            company_name: row.company_name,
+            company_logo_url,
+            created_at: row.created_at,
+          },
+          reporter_id: row.reporter_id,
+          reason: row.reason,
+          status: row.status,
+          created_at: row.created_at,
+        };
+      })
+    );
 
     return {
       data: reportedJobs,
