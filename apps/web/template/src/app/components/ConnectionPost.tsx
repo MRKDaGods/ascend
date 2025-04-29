@@ -1,5 +1,3 @@
-// Component file: appears after the user clicks repost 
-
 "use client";
 
 import React, { useState } from "react";
@@ -19,14 +17,54 @@ import PostActions from "./PostActions";
 import Comment from "./Comment";
 import SaveandLink from "./SaveandLink";
 
+// New: Define Comment type for local usage
+interface FetchedComment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  parent_comment_id: number | null;
+  content: string;
+  is_edited: boolean;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    profile_picture_url: string | null;
+  };
+  replies: any[];
+}
+
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, index) =>
+    urlRegex.test(part) ? (
+      <a
+        key={index}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#0a66c2", wordBreak: "break-word" }}
+      >
+        {part}
+      </a>
+    ) : (
+      <React.Fragment key={index}>{part}</React.Fragment>
+    )
+  );
+};
+
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const { repostFromAPI, postReactions } = usePostStore();
+  const { repostFromAPI, postReactions, fetchCommentsForPostFromAPI } = usePostStore();
 
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [fetchedComments, setFetchedComments] = useState<FetchedComment[]>([]);
 
   const handleRepost = async () => {
     await repostFromAPI(post.id, "");
@@ -65,8 +103,8 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
 
       {/* Post Content */}
       <CardContent sx={{ pt: 0 }}>
-        <Typography variant="body1" fontSize="1rem">
-          {post.content}
+        <Typography variant="body1" sx={{ fontSize: "1rem" }}>
+          {renderTextWithLinks(post.content)}
         </Typography>
       </CardContent>
 
@@ -134,9 +172,19 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         <Typography variant="body2">
           👍 {post.likes} •{" "}
           <span
-            id="view-comments-button" // ✅ ID added
+            id="view-comments-button"
             style={{ cursor: "pointer", textDecoration: "underline" }}
-            onClick={() => setShowComments(!showComments)}
+            onClick={async () => {
+              setShowComments((prev) => !prev);
+              if (post.comments > 0 && fetchedComments.length === 0) {
+                try {
+                  const comments = await fetchCommentsForPostFromAPI(post.id);
+                  setFetchedComments(comments); // Comments are objects now
+                } catch (error) {
+                  console.error("❌ Failed to fetch comments:", error);
+                }
+              }
+            }}
           >
             {post.comments} comments
           </span>{" "}
@@ -154,12 +202,13 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         onCommentClick={() => setShowCommentInput(!showCommentInput)}
       />
 
-      {/* Comments */}
+      {/* Comment Section */}
       <Comment
         post={post}
         showCommentInput={showCommentInput}
         showComments={showComments}
         setShowComments={setShowComments}
+        fetchedComments={fetchedComments} // Pass the real fetched comments
       />
     </Card>
   );
