@@ -110,12 +110,13 @@ interface PostStoreState {
   fetchPostFromAPI: (id: number) => Promise<void>;
   createPostFromAPI: (
     content: string,
+    singleFile?: File,
+    type?: "image" | "video" | "file"| "text",
     mediaFiles?: File[],
-    mediaType?: "image" | "video" | "file",
+    mediaType?: "image" | "video" | "file"| "text",
     fileTitle?: string,
     fileDescription?: string
   ) => Promise<void>;
-  
   
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
@@ -317,17 +318,42 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
 
-      createPostFromAPI: async (content, mediaFiles, mediaType, fileTitle, fileDescription) => {
+      createPostFromAPI: async (
+        content,
+        singleFile,
+        type,
+        mediaFiles,
+        mediaType,
+        fileTitle,
+        fileDescription
+      ) => {
         try {
-          console.log("📦 Creating post with multiple media:", {
+          console.log("📦 Creating post with:", {
             content,
+            singleFile,
+            type,
             mediaFiles,
             mediaType,
             fileTitle,
             fileDescription,
           });
       
-          const response = await createPost(content, mediaFiles, mediaType, fileTitle, fileDescription);
+          // Determine final files and type
+          const filesToUpload = singleFile ? [singleFile] : mediaFiles || [];
+          const finalType = type || mediaType;
+      
+          if (filesToUpload.length === 0 && finalType !== "file") {
+            console.warn("⚠️ No media files provided for upload");
+          }
+      
+          const response = await createPost(
+            content,
+            filesToUpload,
+            finalType,
+            fileTitle,
+            fileDescription
+          );
+      
           const id = response.data?.data?.id;
       
           if (id) {

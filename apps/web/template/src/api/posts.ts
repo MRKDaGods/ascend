@@ -159,7 +159,7 @@ export const fetchPost = async (
 export const createPost = async (
   content: string,
   mediaFiles?: File[],
-  mediaType?: "image" | "video" | "file",
+  mediaType?: "image" | "video" | "file" | "text",
   fileTitle?: string,
   fileDescription?: string
 ): Promise<AxiosResponse<CreatePostResponse>> => {

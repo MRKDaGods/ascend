@@ -89,27 +89,34 @@ const CreatePostDialog: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!postText.trim() && mediaFiles.length === 0 && !documentPreview) return;
-
-    const fileToSend = documentPreview ? documentFile : mediaFiles[0];
-    const typeToSend = documentPreview ? "file" : mediaType ?? undefined;
-
+  
     let postId: number | null = null;
-
+  
     if (repostSourcePost) {
       await repostFromAPI(repostSourcePost.id, postText.trim());
       setRepostPopupOpen(true);
     } else {
-      await createPostFromAPI(
-        postText,
-        mediaFiles,
-        mediaType ?? undefined,          // ✅ image or video from useMediaStore
-        "Uploaded Media",                // ✅ required title
-        mediaType ? `${mediaType} file` : "No description" // ✅ fallback
-      );
-      
+      const fileToSend = documentPreview ? documentFile : mediaFiles[0];
+      const typeToSend = documentPreview
+        ? "file"
+        : mediaFiles.length > 0
+          ? mediaType ?? "image"
+          : "text"; // ✅ If no file, post is text type
+  
+          await createPostFromAPI(
+            postText,
+            fileToSend ?? undefined,
+            typeToSend,
+            mediaFiles,                             // ✅ new argument
+            mediaType ?? undefined,                 // ✅ new argument
+            mediaFiles.length > 0 ? "Uploaded Media" : "Text Post",
+            mediaFiles.length > 0 ? `${mediaType ?? "media"} file` : "No media attached"
+          );
+          
+  
       postId = usePostStore.getState().lastUserPostId;
     }
-
+  
     // 👉 Tag users if there are mentions
     if (postId && taggedUsers.length > 0 && postText.includes("@")) {
       const tagsToSend = taggedUsers.map((tag) => {
@@ -120,19 +127,19 @@ const CreatePostDialog: React.FC = () => {
           endIndex: atIndex + tag.name.length,
         };
       }).filter(tag => tag.startIndex !== -1);
-
+  
       if (tagsToSend.length > 0) {
         await usePostStore.getState().tagUsersOnContent("post", postId, tagsToSend);
       }
     }
-
+  
     setDraftText("");
     setPostText("");
     resetPost();
     clearAllMedia();
     clearDocumentPreview();
     setRepostSourcePost(null);
-  };
+  }; 
 
   const handleClose = () => {
     const hasUnsaved =
@@ -263,7 +270,7 @@ const CreatePostDialog: React.FC = () => {
 )}
 
 
-          {/* {documentPreview && (
+          {documentPreview && (
             <DocumentPreview fileUrl={documentPreview.url} title={documentPreview.title} onRemove={clearDocumentPreview} />
           )}
 
@@ -271,7 +278,7 @@ const CreatePostDialog: React.FC = () => {
             <Box sx={{ mt: 2 }}>
               <RepostPreview post={repostSourcePost} />
             </Box>
-          )} */}
+          )}
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
