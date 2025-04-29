@@ -18,6 +18,7 @@ import {
   hasUserAppliedToJob,
   getJobApplicationsByUserId,
   getJobsByCompanyId,
+  deleteJob,
 } from "../services/jobService";
 import validate from "@shared/middleware/validationMiddleware";
 import {
@@ -173,6 +174,33 @@ export const handleJobPosting = [
     }
   },
 ];
+
+export const handleDeleteJob = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user!.id;
+    const jobId = Number(req.params.jobId);
+
+    // Check if the user is authorized to delete the job
+    const isJobCreator = await isUserJobCreator(userId, jobId);
+    if (!isJobCreator) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to delete this job" });
+    }
+
+    // Delete the job
+    await deleteJob(jobId);
+
+    // Send a 204 No Content response
+    res.sendStatus(204);
+  } catch (error) {
+    console.error("Error in handleDeleteJob:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 export const handleSaveJob = async (
   req: AuthenticatedRequest,
