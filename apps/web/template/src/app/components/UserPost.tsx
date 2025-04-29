@@ -104,7 +104,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
         </CardContent>
 
         {/* Media Carousel */}
-        {post.media && post.media.length > 0 && (
+        {!post.file && post.media && post.media.length > 0 && (
           <Box sx={{ position: "relative", mt: 1 }}>
             {post.media[currentMediaIndex].type === "video" ? (
               <CardMedia
@@ -140,24 +140,28 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
               </Box>
             )}
 
-            Counter
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: 8,
-                left: "50%",
-                transform: "translateX(-50%)",
-                bgcolor: "rgba(0,0,0,0.6)",
-                color: "white",
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "16px",
-                fontSize: "0.75rem",
-                fontWeight: "bold",
-              }}
-            >
-              {`${currentMediaIndex + 1}/${post.media.length}`}
-            </Box>
+            {post.media &&
+              post.media.filter((media) => media.type === "image").length > 1 && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: 8,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    bgcolor: "rgba(0,0,0,0.6)",
+                    color: "white",
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "16px",
+                    fontSize: "0.75rem",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {`${currentMediaIndex + 1}/${post.media.filter(
+                    (media) => media.type === "image"
+                  ).length}`}
+                </Box>
+              )}
           </Box>
         )}
 
