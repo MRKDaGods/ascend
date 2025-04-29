@@ -44,8 +44,6 @@ export type PostType = {
   likes: number;
   reposts: number;
   comments: number;
-  image?: string;
-  video?: string;
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
@@ -55,6 +53,12 @@ export type PostType = {
   file?: string | null;
   fileTitle?: string | null;
   isEdited?: boolean;
+
+  /** ✅ New field: media array */
+  media?: {
+    url: string;
+    type: "image" | "video";
+  }[];
 };
 
 interface PostStoreState {
@@ -106,11 +110,12 @@ interface PostStoreState {
   fetchPostFromAPI: (id: number) => Promise<void>;
   createPostFromAPI: (
     content: string,
-    media?: File,
+    mediaFiles?: File[],
     mediaType?: "image" | "video" | "file",
     fileTitle?: string,
     fileDescription?: string
-  ) => Promise<void>;  
+  ) => Promise<void>;
+  
   
   deletePostFromAPI: (postId: number) => Promise<void>;
   editPostFromAPI: (id: number, newText: string) => void;
@@ -193,12 +198,18 @@ export const usePostStore = create<PostStoreState>()(
       setEditingPost: (post) => {
         const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
         const previews: string[] = [];
-        if (post?.image) previews.push(post.image);
-        if (post?.video) previews.push(post.video);
-        setMediaFiles([]);
+      
+        if (post?.media && Array.isArray(post.media)) {
+          post.media.forEach((m) => {
+            previews.push(m.url);
+          });
+        }
+      
+        setMediaFiles([]); // You may adjust this if restoring original files is needed
         setMediaPreviews(previews);
         set({ editingPost: post, postText: post?.content ?? "", open: true });
       },
+      
 
       setUserPostPopupOpen: (open) => set({ userPostPopupOpen: open }),
       setCopyPostPopupOpen: (val) => set({ copyPostPopupOpen: val }),
@@ -214,8 +225,10 @@ export const usePostStore = create<PostStoreState>()(
       setLastRepostId: (id) => set({ lastRepostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
+
       fetchNewsFeedFromAPI: async () => {
         const response = await fetchNewsFeed();
+        
         const posts = (response.data ?? []).reverse().map((post) => ({
           id: post.id,
           username: `${post.user.first_name} ${post.user.last_name}`,
@@ -226,10 +239,15 @@ export const usePostStore = create<PostStoreState>()(
           likes: post.likes_count,
           reposts: post.shares_count,
           comments: post.comments_count,
-          image: post.media?.find((m) => m.type === "image")?.url || undefined,
-          video: post.media?.find((m) => m.type === "video")?.url || undefined,
-          file: post.media?.find((m) => m.type === "document")?.url || undefined,
-          fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
+      
+          media: post.media?.map((m: any) => ({
+            url: m.url as string,
+            type: m.type === "image" || m.type === "video" ? m.type : "image", // Ensure type matches union
+          })) || [],
+      
+          file: post.media?.find((m: any) => m.type === "document")?.url || undefined,
+          fileTitle: post.media?.find((m: any) => m.type === "document")?.title || undefined,
+      
           commentsList: [],
           isUserPost: false,
           repostSourcePost: null,
@@ -237,6 +255,7 @@ export const usePostStore = create<PostStoreState>()(
       
         set({ posts });
       },
+      
       
       fetchPostFromAPI: async (postId) => {
         try {
@@ -257,8 +276,10 @@ export const usePostStore = create<PostStoreState>()(
               likes: source.likes_count,
               reposts: source.shares_count,
               comments: source.comments_count,
-              image: source.media?.find((m) => m.type === "image")?.url || undefined,
-              video: source.media?.find((m) => m.type === "video")?.url || undefined,
+              media: post.media?.map((m: any) => ({
+                url: m.url,
+                type: m.type === "image" ? "image" : "video",
+              })) || [],              
               file: source.media?.find((m) => m.type === "document")?.url || undefined, // ✅ PDF file URL
               fileTitle: source.media?.find((m) => m.type === "document")?.title || undefined, // ✅ PDF Title
               commentsList: [],
@@ -278,8 +299,10 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url || undefined,
-            video: post.media?.find((m) => m.type === "video")?.url || undefined,
+            media: post.media?.map((m: any) => ({
+              url: m.url,
+              type: m.type === "image" ? "image" : "video",
+            })) || [],            
             file: post.media?.find((m) => m.type === "document")?.url || undefined,
             fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
             commentsList: [],
@@ -294,23 +317,17 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
 
-      createPostFromAPI: async (
-        content,
-        media,
-        mediaType,
-        fileTitle,
-        fileDescription
-      ) => {
+      createPostFromAPI: async (content, mediaFiles, mediaType, fileTitle, fileDescription) => {
         try {
-          console.log("📦 Creating post with:", {
+          console.log("📦 Creating post with multiple media:", {
             content,
-            media,
+            mediaFiles,
             mediaType,
             fileTitle,
             fileDescription,
           });
       
-          const response = await createPost(content, media, mediaType, fileTitle, fileDescription);
+          const response = await createPost(content, mediaFiles, mediaType, fileTitle, fileDescription);
           const id = response.data?.data?.id;
       
           if (id) {
@@ -344,8 +361,10 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url,
-            video: post.media?.find((m) => m.type === "video")?.url,
+            media: post.media?.map((m: any) => ({
+              url: m.url,
+              type: m.type === "image" ? "image" : "video",
+            })) || [],            
             commentsList: [],
             isUserPost: true,
           },

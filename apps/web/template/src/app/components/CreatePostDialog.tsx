@@ -35,6 +35,7 @@ const CreatePostDialog: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
   const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const {
     open,
@@ -100,11 +101,12 @@ const CreatePostDialog: React.FC = () => {
     } else {
       await createPostFromAPI(
         postText,
-        fileToSend,
-        typeToSend,
-        documentPreview?.title,
-        "Uploaded from CreatePostDialog"
+        mediaFiles,
+        mediaType ?? undefined,          // ✅ image or video from useMediaStore
+        "Uploaded Media",                // ✅ required title
+        mediaType ? `${mediaType} file` : "No description" // ✅ fallback
       );
+      
       postId = usePostStore.getState().lastUserPostId;
     }
 
@@ -168,28 +170,100 @@ const CreatePostDialog: React.FC = () => {
 
         <DialogContent sx={{ pt: 1 }}>
           <Box sx={{ mt: 2, minHeight: 100 }}>
-            <TagInput postId={lastUserPostId ?? -1} />
+            <TagInput postId={lastUserPostId ?? -1} placeholder="What do you want to talk about?" />
           </Box>
 
-          {mediaPreviews[0] && !documentPreview && (
-            <Box sx={{ position: "relative", mt: 2 }}>
-              {mediaType === "video" ? (
-                <video src={mediaPreviews[0]} controls style={{ width: "100%", borderRadius: 10, maxHeight: 800 }} />
-              ) : (
-                <img src={mediaPreviews[0]} alt="preview" style={{ width: "100%", borderRadius: 10, maxHeight: 800 }} />
-              )}
-              <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
-                <IconButton id="edit-media-preview-button" sx={{ bgcolor: theme.palette.background.paper }} onClick={() => openEditor(mediaType ?? "image")}>
-                  <Edit />
-                </IconButton>
-                <IconButton id="delete-media-preview-button" sx={{ bgcolor: theme.palette.background.paper }} onClick={() => removeMediaFile(0)}>
-                  <Delete />
-                </IconButton>
-              </Box>
-            </Box>
-          )}
+          {mediaPreviews.length > 0 && !documentPreview && (
+  <Box sx={{ position: "relative", mt: 2 }}>
+    {mediaFiles[currentIndex]?.type.startsWith("video") ? (
+      <video
+        src={mediaPreviews[currentIndex]}
+        controls
+        style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+      />
+    ) : (
+      <img
+        src={mediaPreviews[currentIndex]}
+        alt={`preview-${currentIndex}`}
+        style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
+      />
+    )}
 
-          {documentPreview && (
+    {/* Left Arrow */}
+    {currentIndex > 0 && (
+      <Box
+        onClick={() => setCurrentIndex((prev) => prev - 1)}
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: 8,
+          transform: "translateY(-50%)",
+          bgcolor: "rgba(0,0,0,0.5)",
+          color: "white",
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          cursor: "pointer",
+          zIndex: 1,
+        }}
+      >
+        {"<"}
+      </Box>
+    )}
+
+    {/* Right Arrow */}
+    {currentIndex < mediaPreviews.length - 1 && (
+      <Box
+        onClick={() => setCurrentIndex((prev) => prev + 1)}
+        sx={{
+          position: "absolute",
+          top: "50%",
+          right: 8,
+          transform: "translateY(-50%)",
+          bgcolor: "rgba(0,0,0,0.5)",
+          color: "white",
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          cursor: "pointer",
+          zIndex: 1,
+        }}
+      >
+        {">"}
+      </Box>
+    )}
+
+    {/* Edit/Delete Controls */}
+    <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
+      <IconButton
+        id="edit-media-preview-button"
+        sx={{ bgcolor: theme.palette.background.paper }}
+        onClick={() => openEditor(mediaFiles[currentIndex].type.startsWith("video") ? "video" : "image")}
+      >
+        <Edit />
+      </IconButton>
+      <IconButton
+        id="delete-media-preview-button"
+        sx={{ bgcolor: theme.palette.background.paper }}
+        onClick={() => {
+          removeMediaFile(currentIndex);
+          setCurrentIndex((prev) => (prev > 0 ? prev - 1 : 0));
+        }}
+      >
+        <Delete />
+      </IconButton>
+    </Box>
+  </Box>
+)}
+
+
+          {/* {documentPreview && (
             <DocumentPreview fileUrl={documentPreview.url} title={documentPreview.title} onRemove={clearDocumentPreview} />
           )}
 
@@ -197,7 +271,7 @@ const CreatePostDialog: React.FC = () => {
             <Box sx={{ mt: 2 }}>
               <RepostPreview post={repostSourcePost} />
             </Box>
-          )}
+          )} */}
         </DialogContent>
 
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
