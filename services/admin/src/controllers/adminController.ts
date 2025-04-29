@@ -48,6 +48,7 @@ export const handleGetJobReports = async (
   try {
     const jobId = Number(req.params.jobId);
     const pageNumber = Number(req.query.page || 1);
+
     const jobReports = await getJobReports(jobId, pageNumber);
 
     if (jobReports.data.length === 0) {

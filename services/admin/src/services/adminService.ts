@@ -117,7 +117,9 @@ export const getReportedJobs = async (
       SELECT COUNT(DISTINCT job_id) AS total
       FROM job_service.reports
     `;
+
     const countResult = await db.query(countQuery);
+
     const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
@@ -135,7 +137,7 @@ export const getReportedJobs = async (
       FROM job_service.reports AS r
       JOIN job_service.jobs AS j ON r.job_id = j.job_id
       JOIN company_service.company AS c ON j.company_id = c.company_id
-      ORDER BY j.id
+      ORDER BY j.job_id
       LIMIT $1 OFFSET $2
     `;
     const values = [PAGE_SIZE, OFFSET];
@@ -189,7 +191,9 @@ export const getJobReports = async (
       WHERE job_id = $1
     `;
     const countValues = [jobId];
+
     const countResult = await db.query(countQuery, countValues);
+
     const totalRecords = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
     const nextPage = pageNumber < totalPages ? pageNumber + 1 : null;
@@ -201,6 +205,7 @@ export const getJobReports = async (
       nextPage,
       previousPage,
     };
+
     const query = `
       SELECT r.*, u.first_name, u.last_name, u.profile_photo_id
       FROM job_service.reports AS r
@@ -210,7 +215,9 @@ export const getJobReports = async (
       LIMIT $2 OFFSET $3
     `;
     const values = [jobId, PAGE_SIZE, OFFSET];
+
     const result = await db.query(query, values);
+
     const reportedJobs = await Promise.all(
       result.rows.map(async (row) => {
         // Fetch reporter profile photo URL
@@ -229,6 +236,7 @@ export const getJobReports = async (
         };
       })
     );
+
     return {
       data: reportedJobs,
       pagination: paginationMetadata,
@@ -453,7 +461,7 @@ export const getReportedPosts = async (
     };
 
     const query = `
-      SELECT DISTINCT ON (r.post_id)
+      SELECT DISTINCT ON (r.post_id) r.post_id
       FROM post_service.reports AS r
       ORDER BY r.post_id DESC
       LIMIT $1 OFFSET $2
