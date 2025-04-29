@@ -207,7 +207,7 @@ export const getJobReports = async (
     };
 
     const query = `
-      SELECT r.*, u.first_name, u.last_name, u.profile_photo_id
+      SELECT r.*, u.first_name, u.last_name, u.profile_picture_id
       FROM job_service.reports AS r
       JOIN user_service.profiles AS u ON r.reporter_id = u.user_id
       WHERE r.job_id = $1
@@ -221,15 +221,15 @@ export const getJobReports = async (
     const reportedJobs = await Promise.all(
       result.rows.map(async (row) => {
         // Fetch reporter profile photo URL
-        const reporter_profile_photo_url = await getPresignedUrl(
-          row.profile_photo_id
+        const profile_picture_url = await getPresignedUrl(
+          row.profile_picture_id
         );
 
         return {
           id: row.id,
           reporter_id: row.reporter_id,
           reporter_full_name: `${row.first_name} ${row.last_name}`,
-          reporter_profile_picture: reporter_profile_photo_url,
+          reporter_profile_picture: profile_picture_url,
           reason: row.reason,
           status: row.status,
           created_at: row.created_at,
@@ -515,7 +515,7 @@ export const getPostReports = async (
       previousPage,
     };
     const query = `
-      SELECT r.*, u.first_name, u.last_name, u.profile_photo_id
+      SELECT r.*, u.first_name, u.last_name, u.profile_picture_id
       FROM post_service.reports AS r
       JOIN user_service.profiles AS u ON r.reporter_id = u.user_id
       WHERE r.post_id = $1
@@ -527,15 +527,15 @@ export const getPostReports = async (
     const reportedPosts = await Promise.all(
       result.rows.map(async (row) => {
         // Fetch reporter profile photo URL
-        const reporter_profile_photo_url = await getPresignedUrl(
-          row.profile_photo_id
+        const reporter_profile_picture_url = await getPresignedUrl(
+          row.profile_picture_id
         );
 
         return {
           id: row.id,
           reporter_id: row.reporter_id,
           reporter_full_name: `${row.first_name} ${row.last_name}`,
-          reporter_profile_picture: reporter_profile_photo_url,
+          reporter_profile_picture: reporter_profile_picture_url,
           reason: row.reason,
           description: row.description,
           status: row.status,
