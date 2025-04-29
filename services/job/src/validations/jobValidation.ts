@@ -245,9 +245,7 @@ export const jobApplicationValidationRules: ValidationChain[] = [
     .isString()
     .trim()
     .notEmpty()
-    .withMessage("Phone number is required")
-    .isMobilePhone("any")
-    .withMessage("Invalid phone number format"),
+    .withMessage("Phone number is required"),
 
   // Validate resume file
   body("resume").custom((_, { req }) => {
