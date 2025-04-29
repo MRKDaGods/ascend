@@ -53,14 +53,14 @@ describe('ListCard Component', () => {
       push: mockPush,
     });
     
-    // Setup profile store mock
-    (useProfileStore as jest.Mock).mockReturnValue({
+    // Setup profile store mock with type assertion to fix TypeScript errors
+    (useProfileStore as unknown as jest.Mock).mockReturnValue({
       userData: null,
       setUserData: mockSetUserData,
     });
     
-    // Setup preferences modal store mock
-    (usePreferencesModal as jest.Mock).mockReturnValue({
+    // Setup preferences modal store mock with type assertion to fix TypeScript errors
+    (usePreferencesModal as unknown as jest.Mock).mockReturnValue({
       openModal: mockOpenModal,
     });
   });
@@ -94,8 +94,8 @@ describe('ListCard Component', () => {
   });
   
   it('does not fetch user data when userData exists', async () => {
-    // Setup profile store to already have userData
-    (useProfileStore as jest.Mock).mockReturnValue({
+    // Setup profile store to already have userData - with type assertion
+    (useProfileStore as unknown as jest.Mock).mockReturnValue({
       userData: { name: 'Existing User' },
       setUserData: mockSetUserData,
     });

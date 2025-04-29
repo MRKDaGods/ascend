@@ -64,8 +64,8 @@ describe('JobsNavbar Component', () => {
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
     (usePathname as jest.Mock).mockReturnValue('/feed');
     
-    // Setup zustand store mock
-    (useSearchStore as jest.Mock).mockReturnValue({
+    // Setup zustand store mock with type assertion to fix TypeScript error
+    (useSearchStore as unknown as jest.Mock).mockReturnValue({
       recentSearches: [
         { job: 'Frontend Developer', location: 'Remote' },
         { job: 'UX Designer', location: 'New York' }
@@ -189,7 +189,7 @@ describe('JobsNavbar Component', () => {
     
     await waitFor(() => {
       // Check if fetch was called
-      expect(global.fetch).toHaveBeenCalledWith('http://localhost:5000/api/user');  // hatetghyar lama n merge fa momken el test y fail besababha 
+      expect(global.fetch).toHaveBeenCalledWith('http://localhost:5000/api/user');
       
       // Check if location field was populated
       const locationInput = screen.getByPlaceholderText('Location');

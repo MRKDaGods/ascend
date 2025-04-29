@@ -3,12 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import JobFilter from '../alljobs/components/JobFilter';
-import { useJobFilterStore } from '../alljobs/store/useJobFilterStore';
 
-// Mock the job filter store
+// Mock the job filter store - import it after mocking
 jest.mock('../alljobs/store/useJobFilterStore', () => ({
   useJobFilterStore: jest.fn(),
 }));
+
+// Import after mocking to get the mocked version
+import { useJobFilterStore } from '../alljobs/store/useJobFilterStore';
+
+// Add this to make TypeScript aware of the workplaceTypes constant used in tests
+const workplaceTypes = ['Remote', 'On-site', 'Hybrid'];
 
 describe('JobFilter Component', () => {
   // Mock store values and functions
@@ -18,8 +23,8 @@ describe('JobFilter Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Setup the mock store with default values
-    (useJobFilterStore as jest.Mock).mockReturnValue({
+    // Setup the mock store with default values - use type assertion to fix TypeScript error
+    (useJobFilterStore as unknown as jest.Mock).mockReturnValue({
       keyword: '',
       location: '',
       industry: '',
@@ -67,10 +72,11 @@ describe('JobFilter Component', () => {
   });
   
   it('calls setFilter when location input changes', async () => {
+    const user = userEvent.setup();
     render(<JobFilter />);
     
     const locationInput = screen.getByLabelText('Location');
-    fireEvent.change(locationInput, { target: { value: 'New York' } });
+    await user.type(locationInput, 'New York');
     
     // Since Autocomplete component handles the change internally
     // we need to wait for the input change to be processed
@@ -80,10 +86,11 @@ describe('JobFilter Component', () => {
   });
   
   it('calls setFilter when industry input changes', async () => {
+    const user = userEvent.setup();
     render(<JobFilter />);
     
     const industryInput = screen.getByLabelText('Industry');
-    fireEvent.change(industryInput, { target: { value: 'Technology' } });
+    await user.type(industryInput, 'Technology');
     
     await waitFor(() => {
       expect(mockSetFilter).toHaveBeenCalledWith('industry', 'Technology');
@@ -100,10 +107,11 @@ describe('JobFilter Component', () => {
   });
   
   it('calls setFilter when workplace type input changes', async () => {
+    const user = userEvent.setup();
     render(<JobFilter />);
     
     const workplaceTypeInput = screen.getByLabelText('Workplace Type');
-    fireEvent.change(workplaceTypeInput, { target: { value: 'Remote' } });
+    await user.type(workplaceTypeInput, 'Remote');
     
     await waitFor(() => {
       expect(mockSetFilter).toHaveBeenCalledWith('workplace_type', 'Remote');
@@ -128,9 +136,9 @@ describe('JobFilter Component', () => {
     expect(mockSetFilter).toHaveBeenCalledWith('salary_range_max', 100000);
   });
   
-  it('handles experience level checkbox toggles correctly', () => {
+  it('handles experience level checkbox toggles correctly', async () => {
     // Mock with one experience level already selected
-    (useJobFilterStore as jest.Mock).mockReturnValue({
+    (useJobFilterStore as unknown as jest.Mock).mockReturnValue({
       keyword: '',
       location: '',
       industry: '',
@@ -153,7 +161,7 @@ describe('JobFilter Component', () => {
     fireEvent.click(entryCheckbox);
     expect(mockSetFilter).toHaveBeenCalledWith('experience_level', []);
     
-    // Toggle Mid on
+    // Toggle Mid on (with a separate test to avoid confusion with previous state)
     const midCheckbox = screen.getByLabelText('Mid');
     fireEvent.click(midCheckbox);
     expect(mockSetFilter).toHaveBeenCalledWith('experience_level', ['Entry', 'Mid']);
@@ -194,7 +202,7 @@ describe('JobFilter Component', () => {
   
   it('handles pre-populated filter values correctly', () => {
     // Mock store with pre-populated values
-    (useJobFilterStore as jest.Mock).mockReturnValue({
+    (useJobFilterStore as unknown as jest.Mock).mockReturnValue({
       keyword: 'software',
       location: 'New York',
       industry: 'Technology',
@@ -219,5 +227,54 @@ describe('JobFilter Component', () => {
     expect((screen.getByLabelText('Entry') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Mid') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Director') as HTMLInputElement).checked).toBe(false);
+  });
+
+  it('handles empty salary values correctly', () => {
+    // Mock with empty salary values
+    (useJobFilterStore as unknown as jest.Mock).mockReturnValue({
+      keyword: '',
+      location: '',
+      industry: '',
+      company: '',
+      workplace_type: '',
+      experience_level: [],
+      salary_range_min: 0,
+      salary_range_max: 0,
+      setFilter: mockSetFilter,
+      resetFilters: mockResetFilters,
+    });
+    
+    render(<JobFilter />);
+    
+    // Salary inputs should be empty strings when value is 0
+    expect((screen.getByLabelText('Minimum Salary') as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText('Maximum Salary') as HTMLInputElement).value).toBe('');
+    
+    // Test setting salary to 0 explicitly
+    const minSalaryInput = screen.getByLabelText('Minimum Salary');
+    fireEvent.change(minSalaryInput, { target: { value: '0' } });
+    expect(mockSetFilter).toHaveBeenCalledWith('salary_range_min', 0);
+  });
+
+  it('handles autocomplete option selection', async () => {
+    const user = userEvent.setup();
+    render(<JobFilter />);
+    
+    // Test workplace type dropdown
+    await user.click(screen.getByLabelText('Workplace Type'));
+    
+    // Should show all workplace type options
+    await waitFor(() => {
+      workplaceTypes.forEach(type => {
+        expect(screen.getByText(type)).toBeInTheDocument();
+      });
+    });
+    
+    // Select Hybrid option
+    await user.click(screen.getByText('Hybrid'));
+    
+    await waitFor(() => {
+      expect(mockSetFilter).toHaveBeenCalledWith('workplace_type', 'Hybrid');
+    });
   });
 });

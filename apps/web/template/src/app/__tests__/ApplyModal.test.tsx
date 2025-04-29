@@ -2,9 +2,31 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import ApplyModal from '../apply/components/ApplyModal';
 import { useRouter } from 'next/navigation';
-import { useJobStore } from '../shared/store/useJobStore';
+
+// Define custom query types first
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toHaveFormValues: (values: Record<string, any>) => R;
+    }
+  }
+}
+
+// Extend the testing library types with our custom queries
+import { queries, screen as _screen, within } from '@testing-library/dom';
+
+// Define custom query types
+type CustomQueries = {
+  getByAcceptingFiles(): HTMLInputElement;
+  queryByAcceptingFiles(): HTMLInputElement | null;
+  findByAcceptingFiles(): Promise<HTMLInputElement>;
+};
+
+// Add custom queries to Testing Library
+declare module '@testing-library/dom' {
+  interface Queries extends CustomQueries {}
+}
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
@@ -21,8 +43,28 @@ global.fetch = jest.fn();
 global.URL.createObjectURL = jest.fn(() => 'mock-url');
 global.URL.revokeObjectURL = jest.fn();
 
+// Mock console.log to prevent debug output in tests
+const originalConsoleLog = console.log;
+console.log = jest.fn();
+
 // Mock alert
 global.alert = jest.fn();
+
+// Define the custom query implementation
+const getByAcceptingFiles = (): HTMLInputElement => {
+  return document.querySelector('input[type="file"]') as HTMLInputElement;
+};
+
+// Add the custom query to the screen object
+// This extends the screen object with our custom query at runtime
+const customScreen = screen as typeof screen & {
+  getByAcceptingFiles: typeof getByAcceptingFiles;
+};
+customScreen.getByAcceptingFiles = getByAcceptingFiles;
+
+// Import components and hooks after defining mocks
+import ApplyModal from '../apply/components/ApplyModal';
+import { useJobStore } from '../shared/store/useJobStore';
 
 describe('ApplyModal Component', () => {
   const mockJob = {
@@ -47,12 +89,12 @@ describe('ApplyModal Component', () => {
     jest.clearAllMocks();
     
     // Mock router
-    (useRouter as jest.Mock).mockReturnValue({
+    (useRouter as unknown as jest.Mock).mockReturnValue({
       push: mockPush,
     });
     
-    // Mock job store
-    (useJobStore as jest.Mock).mockImplementation((selector) => {
+    // Mock job store - use unknown as intermediate type to fix TypeScript error
+    (useJobStore as unknown as jest.Mock).mockImplementation((selector) => {
       return selector({
         applyJob: mockApplyJob,
       });
@@ -69,6 +111,11 @@ describe('ApplyModal Component', () => {
     });
   });
   
+  afterAll(() => {
+    // Restore original console.log after tests
+    console.log = originalConsoleLog;
+  });
+
   it('renders the modal with job details', async () => {
     render(<ApplyModal job={mockJob} open={true} onClose={mockOnClose} />);
     
@@ -134,7 +181,8 @@ describe('ApplyModal Component', () => {
     
     // Prepare file for upload
     const file = new File(['dummy content'], 'resume.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByAcceptingFiles();
+    // Use querySelector directly instead of the custom query
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     // Simulate file upload
     await user.upload(fileInput, file);
@@ -169,7 +217,8 @@ describe('ApplyModal Component', () => {
     
     // Upload resume
     const file = new File(['dummy content'], 'resume.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByAcceptingFiles();
+    // Use querySelector directly
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, file);
     
     // Now button should be enabled
@@ -206,26 +255,31 @@ describe('ApplyModal Component', () => {
     
     // Upload resume
     const file = new File(['dummy content'], 'resume.pdf', { type: 'application/pdf' });
-    const fileInput = screen.getByAcceptingFiles();
+    // Use querySelector directly
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, file);
     
     // Submit the form
     const submitButton = screen.getByText('Submit application');
     await user.click(submitButton);
     
-    // Check if fetch was called with correct data - Use the actual endpoint from the component
+    // Check if fetch was called with correct authorization token
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
         `https://api.ascendx.tech/job/${mockJob.id}/applications`,
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Authorization': expect.stringContaining('Bearer'),  //momken teb2a 3ayza tetshal lama n merge 
+            'Authorization': expect.stringContaining('Bearer'), 
             'x-no-parse-body': '1'
           })
         })
       );
     });
+    
+    // Verify console.log was called with debugging information
+    expect(console.log).toHaveBeenCalledWith('************');
+    expect(console.log).toHaveBeenCalledWith('FormData:', '+201234567890');
     
     // Check if FormData was created with correct values
     const fetchCalls = (global.fetch as jest.Mock).mock.calls;
@@ -277,8 +331,9 @@ describe('ApplyModal Component', () => {
     
     // Enter phone number and upload resume
     await user.type(screen.getByLabelText(/Mobile phone number*/i), '+201234567890');
+    // Use querySelector directly
     await user.upload(
-      screen.getByAcceptingFiles(),
+      document.querySelector('input[type="file"]') as HTMLInputElement,
       new File(['dummy content'], 'resume.pdf', { type: 'application/pdf' })
     );
     
@@ -320,7 +375,10 @@ describe('ApplyModal Component', () => {
     
     // Upload a file to create an object URL
     const file = new File(['dummy content'], 'resume.pdf', { type: 'application/pdf' });
-    fireEvent.change(screen.getByAcceptingFiles(), { target: { files: [file] } });
+    // Use querySelector directly
+    fireEvent.change(document.querySelector('input[type="file"]') as HTMLInputElement, { 
+      target: { files: [file] } 
+    });
     
     // Unmount component
     unmount();
@@ -329,28 +387,3 @@ describe('ApplyModal Component', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('mock-url');
   });
 });
-
-// Custom matcher for file inputs
-function getByAcceptingFiles(): HTMLInputElement {
-  return screen.getByAcceptingFiles();
-}
-
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toHaveFormValues: (values: Record<string, any>) => R;
-    }
-  }
-}
-
-// Add custom queries to Testing Library
-declare module '@testing-library/dom' {
-  function getByAcceptingFiles(): HTMLInputElement;
-  function queryByAcceptingFiles(): HTMLInputElement | null;
-  function findByAcceptingFiles(): Promise<HTMLInputElement>;
-}
-
-// Add custom query to Testing Library
-if (!screen.getByAcceptingFiles) {
-  screen.getByAcceptingFiles = () => document.querySelector('input[type="file"]') as HTMLInputElement;
-}

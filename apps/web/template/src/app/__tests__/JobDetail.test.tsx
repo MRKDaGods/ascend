@@ -1,9 +1,28 @@
-import React from 'react'; // Added React import
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import JobDetails from '../apply/components/JobDetail';
 import { useJobStore } from '../shared/store/useJobStore';
+
+// Interface for the job object structure
+interface JobData {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  type: string;
+  about?: string;
+  requirements?: string;
+}
+
+// Interface for ApplyModal props
+interface ApplyModalProps {
+  open: boolean;
+  onClose: () => void;
+  job: JobData;
+}
 
 // Mock Next.js navigation hooks
 jest.mock('next/navigation', () => ({
@@ -12,7 +31,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock job store
-jest.mock('@/app/shared/store/useJobStore', () => ({
+jest.mock('../shared/store/useJobStore', () => ({
   useJobStore: jest.fn(),
 }));
 
@@ -26,9 +45,12 @@ jest.mock('../apply/components/SaveJobPopup', () => {
   };
 });
 
+// Mock console.log
+console.log = jest.fn();
+
 // Mock the ApplyModal component
 jest.mock('../apply/components/ApplyModal', () => {
-  return function MockApplyModal({ open, onClose, job }) {
+  return function MockApplyModal({ open, onClose, job }: ApplyModalProps) {
     return open ? (
       <div data-testid="apply-modal">
         <button onClick={onClose}>Close Modal</button>
@@ -73,8 +95,8 @@ describe('JobDetails Component', () => {
     // Mock router
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     
-    // Mock job store hooks
-    (useJobStore as jest.Mock).mockReturnValue({
+    // Mock job store hooks with type assertion to fix TypeScript error
+    (useJobStore as unknown as jest.Mock).mockReturnValue({
       setSavedJobPopupOpen: mockSetSavedJobPopupOpen,
       saveJob: mockSaveJob,
     });
@@ -222,6 +244,9 @@ describe('JobDetails Component', () => {
     // Click the Apply button
     fireEvent.click(screen.getByText('Apply'));
     
+    // Check if console.log was called (new test based on the updated component)
+    expect(console.log).toHaveBeenCalledWith('Opening apply modal');
+    
     // Check if the ApplyModal is now open
     expect(screen.getByTestId('apply-modal')).toBeInTheDocument();
     
@@ -291,16 +316,25 @@ describe('JobDetails Component', () => {
   it('correctly initializes after initial render cycle', async () => {
     // Mock React useState to control isReady state for this test
     const mockSetState = jest.fn();
-    let setState = mockSetState;
     
-    // Mock useState to return false for isReady initially
-    jest.spyOn(React, 'useState').mockImplementation((initialValue) => {
-      if (initialValue === false) {  // This is for the isReady state
-        return [false, setState];
+    // Save the original implementation
+    const originalUseState = React.useState;
+    
+    // Create a generic mock function that will handle all useState calls
+    const mockUseState = jest.fn();
+    
+    // First implementation - return false for isReady state
+    mockUseState.mockImplementation((initialValue) => {
+      // For the isReady state specifically (initialized as false)
+      if (initialValue === false) {
+        return [false, mockSetState];
       }
-      // Return regular useState for other cases
+      // For all other useState calls, use the original implementation
       return originalUseState(initialValue);
     });
+    
+    // Apply the mock
+    jest.spyOn(React, 'useState').mockImplementation(mockUseState);
     
     // Initial render with isReady = false
     const { rerender } = render(<JobDetails />);
@@ -309,13 +343,11 @@ describe('JobDetails Component', () => {
     // So no content should be visible yet
     expect(screen.queryByText('Software Engineer')).not.toBeInTheDocument();
     
-    // Now simulate the effect running, which would set isReady to true
-    // Update our mock to return true
-    jest.spyOn(React, 'useState').mockImplementation((initialValue) => {
-      if (initialValue === false) {  // This is for the isReady state
-        return [true, setState];
+    // Change the mock implementation to return true for isReady state
+    mockUseState.mockImplementation((initialValue) => {
+      if (initialValue === false) {
+        return [true, mockSetState];
       }
-      // Return regular useState for other cases
       return originalUseState(initialValue);
     });
     
@@ -324,5 +356,8 @@ describe('JobDetails Component', () => {
     
     // Now the content should be visible
     expect(screen.getByText('Software Engineer')).toBeInTheDocument();
+    
+    // Restore the original useState
+    jest.spyOn(React, 'useState').mockRestore();
   });
 });

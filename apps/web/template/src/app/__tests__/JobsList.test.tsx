@@ -34,6 +34,8 @@ global.fetch = jest.fn(() =>
 
 describe('JobList Component', () => {
   const mockPush = jest.fn();
+  const mockDeleteJob = jest.fn();
+  const mockLoadDeletedJobs = jest.fn();
 
   beforeEach(() => {
     // Reset mocks
@@ -42,11 +44,11 @@ describe('JobList Component', () => {
     // Setup router mock
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
 
-    // Setup zustand store mock
+    // Setup zustand store mock with type assertion to fix TypeScript errors
     (useDeletedJobsStore as unknown as jest.Mock).mockReturnValue({
       deletedJobIds: [],
-      deleteJob: jest.fn(),
-      loadDeletedJobs: jest.fn(),
+      deleteJob: mockDeleteJob,
+      loadDeletedJobs: mockLoadDeletedJobs,
     });
 
     // Setup API mock data
@@ -83,6 +85,9 @@ describe('JobList Component', () => {
       expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
       expect(screen.getByText('Tech Corp - Remote (Full-time)')).toBeInTheDocument();
     });
+    
+    // Verify that loadDeletedJobs was called on component mount
+    expect(mockLoadDeletedJobs).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to apply page when job title is clicked', async () => {
@@ -100,18 +105,13 @@ describe('JobList Component', () => {
 
     // Check router.push was called with the correct path
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('/apply?'));
-    // Fix: Update the test to match the actual URL encoding format (+ instead of %20)
+    // Check that URL parameters are correctly formatted
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('title=Frontend+Developer'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('company=Tech+Corp'));
+    expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('id=1'));
   });
 
   it('handles job deletion', async () => {
-    const mockDeleteJob = jest.fn();
-    (useDeletedJobsStore as unknown as jest.Mock).mockReturnValue({
-      deletedJobIds: [],
-      deleteJob: mockDeleteJob,
-      loadDeletedJobs: jest.fn(),
-    });
-
     render(<JobList />);
 
     // Wait for job to be rendered
@@ -119,11 +119,12 @@ describe('JobList Component', () => {
       expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
     });
 
-    // Find delete button (first IconButton)
-    const deleteButtons = screen.getAllByRole('button');
-    // Assuming close icon is the first button in each job item
+    // Find delete button (close icon)
+    const closeButton = screen.getByTestId('CloseIcon').closest('button');
+    expect(closeButton).not.toBeNull();
+    
     await act(async () => {
-      fireEvent.click(deleteButtons[0]);
+      fireEvent.click(closeButton!);
     });
 
     // Check deleteJob was called with job_id
@@ -138,11 +139,12 @@ describe('JobList Component', () => {
       expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
     });
 
-    // Find all buttons and click the report button (second IconButton for each job)
-    const buttons = screen.getAllByRole('button');
-    // Assuming report icon is the second button in each job item
+    // Find and click the report button using the ReportIcon
+    const reportButton = screen.getByTestId('ReportIcon').closest('button');
+    expect(reportButton).not.toBeNull();
+    
     await act(async () => {
-      fireEvent.click(buttons[1]);
+      fireEvent.click(reportButton!);
     });
 
     // Check dialog is shown
@@ -159,9 +161,9 @@ describe('JobList Component', () => {
     });
 
     // Open report dialog
-    const buttons = screen.getAllByRole('button');
+    const reportButton = screen.getByTestId('ReportIcon').closest('button');
     await act(async () => {
-      fireEvent.click(buttons[1]);
+      fireEvent.click(reportButton!);
     });
 
     // Enter report reason
@@ -183,5 +185,86 @@ describe('JobList Component', () => {
         body: JSON.stringify({ reason: 'This is inappropriate' }),
       })
     );
+    
+    // Verify alert was called for successful submission
+    expect(window.alert).toHaveBeenCalledWith('Report submitted successfully.');
+  });
+  
+  it('shows error when reporting with empty reason', async () => {
+    render(<JobList />);
+
+    // Wait for job to be rendered
+    await waitFor(() => {
+      expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
+    });
+
+    // Open report dialog
+    const reportButton = screen.getByTestId('ReportIcon').closest('button');
+    await act(async () => {
+      fireEvent.click(reportButton!);
+    });
+
+    // Submit without entering a reason
+    await act(async () => {
+      fireEvent.click(screen.getByText('Submit'));
+    });
+
+    // Check that alert was shown for empty reason
+    expect(window.alert).toHaveBeenCalledWith('Please provide a valid reason for reporting.');
+    // Verify fetch was not called
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+  
+  it('filters out deleted jobs', async () => {
+    // Mock with one deleted job ID
+    (useDeletedJobsStore as unknown as jest.Mock).mockReturnValue({
+      deletedJobIds: [1], // Job ID 1 is "deleted"
+      deleteJob: mockDeleteJob,
+      loadDeletedJobs: mockLoadDeletedJobs,
+    });
+    
+    // Add a second job to the API response
+    (fetchJobs as jest.Mock).mockResolvedValue({
+      data: [
+        {
+          job_id: 1, // This job should be filtered out
+          title: 'Frontend Developer',
+          company_name: 'Tech Corp',
+          location: 'Remote',
+          type: 'Full-time',
+        },
+        {
+          job_id: 2, // This job should remain
+          title: 'Backend Developer',
+          company_name: 'Code Inc',
+          location: 'San Francisco',
+          type: 'Full-time',
+        }
+      ],
+    });
+    
+    render(<JobList />);
+    
+    // Should not find the deleted job
+    await waitFor(() => {
+      expect(screen.queryByText('Frontend Developer')).not.toBeInTheDocument();
+      // But should find the non-deleted job
+      expect(screen.getByText('Backend Developer')).toBeInTheDocument();
+    });
+  });
+  
+  it('navigates to all jobs page when "Show more" is clicked', async () => {
+    render(<JobList />);
+    
+    // Wait for component to render
+    await waitFor(() => {
+      expect(screen.getByText('Show more →')).toBeInTheDocument();
+    });
+    
+    // Click "Show more"
+    fireEvent.click(screen.getByText('Show more →'));
+    
+    // Check router navigation
+    expect(mockPush).toHaveBeenCalledWith('/alljobs');
   });
 });

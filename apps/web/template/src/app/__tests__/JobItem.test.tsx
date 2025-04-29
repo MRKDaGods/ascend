@@ -40,13 +40,13 @@ describe('JobItem Component', () => {
     expect(screen.getByText('Tech Corp - New York')).toBeInTheDocument();
     
     // Check if job type is displayed
-    expect(screen.getByText('Full-time', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/Full-time/)).toBeInTheDocument();
     
     // Check if experience level is displayed
-    expect(screen.getByText('Mid-Level', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/Mid-Level/)).toBeInTheDocument();
     
     // Check if salary range is displayed
-    expect(screen.getByText('$80,000 - $100,000', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/\$80,000 - \$100,000/)).toBeInTheDocument();
     
     // Check if description is displayed
     expect(screen.getByText('This is a job description for a software engineer position.')).toBeInTheDocument();
@@ -62,7 +62,7 @@ describe('JobItem Component', () => {
     const jobWithoutSalary = { ...mockJob, salaryRange: '' };
     render(<JobItem {...jobWithoutSalary} />);
     
-    expect(screen.getByText('Not specified', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/Not specified/)).toBeInTheDocument();
   });
   
   it('navigates to apply page when Apply Now button is clicked', () => {
@@ -81,10 +81,15 @@ describe('JobItem Component', () => {
     const jobWithoutCompany = { ...mockJob, company: undefined };
     render(<JobItem {...jobWithoutCompany} />);
     
-    // Instead of looking for an img role, check for the avatar element
-    // and ensure it doesn't cause the component to crash
-    const avatarElement = screen.getByTestId('PersonIcon');
-    expect(avatarElement).toBeInTheDocument();
+    // The component should still render without errors
+    expect(screen.getByText('Software Engineer')).toBeInTheDocument();
+    
+    // The PersonIcon should be used as a fallback when company name is missing
+    // Use data-testid to find the PersonIcon in the Avatar component
+    expect(screen.getByTestId('PersonIcon')).toBeInTheDocument();
+    
+    // The company name should not appear in the avatar
+    expect(screen.queryByText('T')).not.toBeInTheDocument();
   });
   
   it('renders all job details even with partial data', () => {
@@ -93,7 +98,7 @@ describe('JobItem Component', () => {
       title: 'Frontend Developer',
       company: 'WebCo',
       location: 'Remote',
-      // Missing other fields
+      // Missing type, experienceLevel, salaryRange, and description
     };
     
     render(<JobItem {...partialJob} />);
@@ -101,6 +106,11 @@ describe('JobItem Component', () => {
     // Check that the component renders with partial data
     expect(screen.getByText('Frontend Developer')).toBeInTheDocument();
     expect(screen.getByText('WebCo - Remote')).toBeInTheDocument();
+    
+    // These fields should still be rendered, but with empty or undefined values
+    expect(screen.getByText(/Type:/)).toBeInTheDocument();
+    expect(screen.getByText(/Experience Level:/)).toBeInTheDocument();
+    expect(screen.getByText(/Not specified/)).toBeInTheDocument();
     
     // Check that Apply button still works
     fireEvent.click(screen.getByText('Apply Now'));
