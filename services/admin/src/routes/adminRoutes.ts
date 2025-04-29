@@ -15,6 +15,8 @@ import {
   handleGetReportedPosts,
   handleUpdatePostReport,
   handleGetPostReportsCount,
+  handleGetJobReports,
+  handleGetPostReports,
 } from "../controllers/adminController";
 
 const router = Router();
@@ -30,11 +32,13 @@ router.get("/connections/count", handleGetConnectionsCount);
 router.get("/jobs/reports/count", handleGetJobReportsCount);
 router.get("/posts/reports/count", handleGetPostReportsCount);
 
-router.get("/jobs/reports", handleGetReportedJobs);
+router.get("/jobs/reported", handleGetReportedJobs);
+router.get("/jobs/:jobId/reports", handleGetJobReports);
 router.patch("/jobs/reports/:reportId", handleUpdateJobReport);
 router.delete("/jobs/:jobId", handleDeleteJob);
 
-router.get("/posts/reports", handleGetReportedPosts);
+router.get("/posts/reported", handleGetReportedPosts);
+router.get("/posts/:postId/reports", handleGetPostReports);
 router.patch("/posts/reports/:reportId", handleUpdatePostReport);
 router.delete("/posts/:postId", handleDeletePost);
 
