@@ -1,6 +1,5 @@
-import "../app/globals.css"; // Ensure the correct import path
+import "../app/globals.css"; // Ensure the correct import pathimport React from "react";
 import React from "react";
-
 export default function RootLayout({
   children,
 }: {
