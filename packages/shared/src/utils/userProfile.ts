@@ -5,6 +5,7 @@ import {
   getRPCQueueName,
 } from "@shared/rabbitMQ";
 import { Services } from "..";
+import { Profile } from "@shared/models";
 
 export const getUserFullName = async (userId: number): Promise<string> => {
   try {
@@ -56,3 +57,28 @@ export const getUserProfilePictureUrl = async (
     return null;
   }
 };
+
+export const getUserProfile = async (
+  userId: number
+): Promise<Profile | null> => {
+  try {
+    const profileRpcQueue = getRPCQueueName(
+      Services.USER,
+      Events.USER_PROFILE_RPC
+    );
+
+    const payload: UserProfilePayload.Request = {
+      user_id: userId,
+    };
+
+    const profileRes = await callRPC<UserProfilePayload.Response>(
+      profileRpcQueue,
+      payload
+    );
+
+    return profileRes.profile;
+  } catch (error) {
+    console.error(`Error getting profile for user ${userId}:`, error);
+    return null;
+  }
+}

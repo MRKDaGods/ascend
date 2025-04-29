@@ -14,7 +14,12 @@ import {
   updatePassword,
   adminBanUser,
   adminUnbanUser,
-  adminGetBannedUsers
+  adminGetBannedUsers,
+  adminCreateUser,
+  adminDeleteUser,
+  adminGetUserReports,
+  adminDeleteReport,
+  reportUser
 } from "../controllers/authController";
 
 const router = Router();
@@ -30,9 +35,15 @@ router.put("/update-email", authenticateToken, updateEmail);
 router.post("/social-login", socialLogin);
 router.delete("/delete-account", authenticateToken, deleteAccount);
 router.post("/fcm-token", authenticateToken, updateFCMToken);
+router.post("/report-user", authenticateToken, reportUser);
 
 router.post("/ban-user", authenticateToken, adminBanUser);
 router.post("/unban-user", authenticateToken, adminUnbanUser);
 router.get("/banned", authenticateToken, adminGetBannedUsers);
+
+router.post("/admin-create-user", authenticateToken, adminCreateUser);
+router.post("/admin-delete-user", authenticateToken, adminDeleteUser);
+router.get("/admin-get-user-reports", authenticateToken, adminGetUserReports);
+router.post("/admin-delete-user-report", authenticateToken, adminDeleteReport);
 
 export default router;
