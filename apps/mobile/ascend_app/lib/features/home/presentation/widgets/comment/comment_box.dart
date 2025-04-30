@@ -16,7 +16,6 @@ class CommentBox extends StatelessWidget {
   final VoidCallback? onReplyTap;
   final VoidCallback? onReactionTap;
   final VoidCallback? onReactionLongPress;
-  final bool isLiked;
   final String? reaction;
   final int likeCount;
 
@@ -34,7 +33,6 @@ class CommentBox extends StatelessWidget {
     this.onReplyTap,
     this.onReactionTap,
     this.onReactionLongPress,
-    this.isLiked = false,
     this.reaction,
     this.likeCount = 0,
     this.child,
@@ -144,7 +142,6 @@ class CommentBox extends StatelessWidget {
                           ReactionButton(
                             // Create a manager with the current state
                             manager: ReactionManager(
-                              isLiked: isLiked,
                               currentReaction: reaction,
                             ),
                             // Connect callbacks
