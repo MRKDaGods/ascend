@@ -20,11 +20,9 @@ export const findAnnouncementsByCompanyId = async ( company_id: number,  limit: 
 
 export const createAnnouncement = async (company_id : number, user_id : number, created_at : Date, content : string, announcement_photos : Array<any>, announcement_video : any) : Promise<Announcement> => {
     let result;
-    let image_urls : Array<string> = [];
     let image_ids : Array<number> = [];
-    let video_url, video_id;
+    let video_id;
     let file_service_queue;
-    let payload : CompanyAnnouncementCreatedPayload;
 
     if(announcement_photos){
       let announcement_photo_payload : FileUploadPayload.Request;
@@ -43,13 +41,7 @@ export const createAnnouncement = async (company_id : number, user_id : number, 
 
           file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
           let announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);
-          file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-          let payload : FilePresignedUrlPayload.Request = {
-            file_id : announcementPhotoResponse.file_id as number
-          }
-          let announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
           image_ids.push(announcementPhotoResponse.file_id);
-          image_urls.push(announcementPhotoURLResponse.presigned_url);
       }  
     }
     
@@ -68,39 +60,15 @@ export const createAnnouncement = async (company_id : number, user_id : number, 
         announcement_video_payload['context'] = announcement_video.context;
       }
       const announcementVideoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_video_payload, 10000);
-        
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-      let payload : FilePresignedUrlPayload.Request = {
-        file_id : announcementVideoResponse.file_id as number
-      };
-      const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
-      video_url = announcementVideoURLResponse.presigned_url;
       video_id = announcementVideoResponse.file_id;
     }
 
     if(announcement_video){
-        result = await db.query("INSERT INTO company_service.announcement (company_id, posted_by, created_at, content, image_urls, image_ids, video_url, video_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [company_id, user_id, created_at, content, image_urls, image_ids, video_url, video_id]);
-        payload = {
-          announcement_id : result.rows[0].announcement_id,
-          image_urls : image_urls,
-          video_url : video_url,
-          company_id : company_id,
-          content : content,
-          created_at : created_at,
-          posted_by : user_id
-        }; 
+        result = await db.query("INSERT INTO company_service.announcement (company_id, posted_by, created_at, content, image_ids, video_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", [company_id, user_id, created_at, content, image_ids, video_id]);
     }else{
-      result = await db.query("INSERT INTO company_service.announcement (company_id, posted_by, created_at, content, image_urls, image_ids, video_url, video_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", [company_id, user_id, created_at, content, image_urls, image_ids, null, -1]);
-      payload = {
-        announcement_id : result.rows[0].announcement_id,
-        image_urls : image_urls,
-        company_id : company_id,
-        content : content,
-        created_at : created_at,
-        posted_by : user_id
-      };
+      result = await db.query("INSERT INTO company_service.announcement (company_id, posted_by, created_at, content, image_ids, video_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", [company_id, user_id, created_at, content, image_ids, null]);
     }
-    await publishEvent(Events.COMPANY_ANNOUNCEMENT_CREATED, payload); // any exception will be handeled in the controller
+    
 
     return result.rows[0];
 };
@@ -188,12 +156,11 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
       updated_at : updated_at,
       posted_by : user_id
     };
-    let new_image_urls : Array<string> = [];
     let new_image_ids : Array<number> = [];
-    let new_video_id, new_video_url;
+    let new_video_id;
   
     if(new_announcement_photos || (Array.isArray(new_announcement_photos))){
-      let announcementPhotoResponse, announcementPhotoURLResponse, delete_payload : FileDeletePayload;
+      let announcementPhotoResponse, delete_payload : FileDeletePayload;
       if(old_image_ids){
           for(const old_image_id of old_image_ids){
               delete_payload = {
@@ -216,21 +183,14 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
           }
       
           file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
-          announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);    
-          file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-          announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : announcementPhotoResponse.file_id }, 10000);
+          announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);
           new_image_ids.push(announcementPhotoResponse.file_id);
-          new_image_urls.push(announcementPhotoURLResponse.presigned_url);
       }
     
 
       counter += 1;
-      db_query += `image_urls = $${counter}, `;
-      parameters.push(new_image_urls);
-      counter += 1;
       db_query += `image_ids = $${counter}, `;
       parameters.push(new_image_ids);
-      updateAnnouncementPayload.new_image_urls = new_image_urls;
     }
 
     if(new_announcement_video){
@@ -255,19 +215,11 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
     
       file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
       const announcementVideoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, new_announcement_video_payload, 10000);    
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-      const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : announcementVideoResponse.file_id }, 10000);
       new_video_id = announcementVideoResponse.file_id;
-      new_video_url = announcementVideoURLResponse.presigned_url;
 
       counter += 1;
       db_query += `video_id = $${counter}, `;
       parameters.push(new_video_id);
-      counter += 1;
-      db_query += `video_url = $${counter},`;
-      parameters.push(new_video_url);
-
-      updateAnnouncementPayload.new_video_url = new_video_url;
     }else if(new_announcement_video === ""){
       if(old_video_id){
         const delete_payload : FileDeletePayload = {
@@ -278,9 +230,6 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
 
       counter += 1;
       db_query += `video_id = $${counter}, `;
-      parameters.push(-1);
-      counter += 1;
-      db_query += `video_url = $${counter}, `;
       parameters.push(null);
     }
     

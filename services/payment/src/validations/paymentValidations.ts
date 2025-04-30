@@ -8,8 +8,7 @@ export const featurePurchaseValidation : ValidationChain[] = [
     .withMessage('every feature must be a string'),
 
     body("relative_return_url").exists().withMessage("'relative_return_url' is required (with '/' at the beginning)")
-    .notEmpty().withMessage("'relative_return_url' can't be empty")
-    .matches(/^([^\/]+)(\/[^\/]+)*$/)
+    .matches(/^$|^([^\/]+)(\/[^\/]+)*$/)
     .withMessage("'relative_return_url' must be in the format: segment1/segment2/... with no empty segments")
 ];
 
@@ -18,13 +17,12 @@ export const subscriptionValidation : ValidationChain[] = [
     .notEmpty().withMessage("'subscription_price_id' can't be empty"),
 
     body("relative_return_url").exists().withMessage("'relative_return_url' is required (with '/' at the beginning)")
-    .notEmpty().withMessage("'relative_return_url' can't be empty")
-    .matches(/^([^\/]+)(\/[^\/]+)*$/)
+    .matches(/^$|^([^\/]+)(\/[^\/]+)*$/)
     .withMessage("'relative_return_url' must be in the format: segment1/segment2/... with no empty segments")
 ];
 
 export const subscriptionCancellationValidation : ValidationChain[] = [
-    body("subscription_id").exists().withMessage("'subscription_id' is required")
+    param("subscriptionId").exists().withMessage("'subscriptionId'  path parameter is required")
     .notEmpty().withMessage("'subscription_id' can't be empty")
 ]
 

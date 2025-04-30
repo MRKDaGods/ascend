@@ -8,6 +8,9 @@ import { validationResult } from "express-validator";
 import { error, profile } from "console";
 import { Job } from "@shared/models/job";
 import { getUserProfile } from "@shared/utils/userProfile";
+import { callRPC, CompanyAnnouncementCreatedPayload, CompanyAnnouncementUpdatedPayload, Events, FilePresignedUrlPayload, getRPCQueueName, publishEvent } from "@shared/rabbitMQ";
+import { Services } from "@ascend/shared";
+import { getJobAnalyticsOfCompany, getNumberOfJobPosts } from "../services/jobAnalyticsService";
 
 /**
  * @route POST /api/companies
@@ -32,15 +35,19 @@ export const createCompanyProfile = async (req : AuthenticatedRequest, res : Res
     const {name, description, industry, location, profile_photo, cover_photo, company_domain_name} = req.body;
     try {
         const date = new Date();
+        const user_email = (await getUserProfile(user_id))?.contact_info?.email as string;
+        if(user_email.split('@')[1].trim() !== company_domain_name.trim()){
+            return res.status(401).json({error : "unauthorized"});
+        }
         const company = await createCompany({company_name : name, description : description, profile_photo : profile_photo, cover_photo : cover_photo , location : location, industry : industry,  created_at : date , created_by : user_id, company_domain_name : company_domain_name});
+
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+        const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company?.profile_photo_id as number }, 10000);
+        const coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company?.cover_photo_id as number }, 10000);
         if(company){
-            // const user_email = from auth service
-            // if(user_email.split('@')[1] !== company.company_domain_name){
-            //     return res.status(401).json({error : "unauthorized"});
-            // }
             return res.status(200).json({
                 data : {
-                    company : company
+                    company : {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url,  ...company}
                 },
                 error : null
             });
@@ -127,7 +134,18 @@ export const getCompaniesCreatedByUser = async (req : AuthenticatedRequest, res 
         return res.status(401).json({error : "unauthorized"});
     }
     try {
-        const companies = await findCompaniesCreatedByUser(user_id);
+        const companies = (await findCompaniesCreatedByUser(user_id)).forEach(async (company : any) => {
+            profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.profile_photo_id }, 10000);
+            coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.cover_photo_id }, 10000);
+
+            company.profile_photo_url = profilePhotoURLResponse.presigned_url;
+            company.cover_photo_url = coverPhotoURLResponse.presigned_url;
+        });
+
+
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+        let profilePhotoURLResponse, coverPhotoURLResponse;
+
         return res.status(200).json({
             data : {
                 companies : companies
@@ -176,13 +194,18 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
         if(company?.created_by !== user_id){
             return res.status(401).json({error : "unauthorized"});
         }
-        const updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : company.profile_photo_id, cover_photo : cover_photo, cover_photo_id : company.cover_photo_id, company_domain_name : company_domain_name});
+        let updated_company = await updateCompanyProfile(company_id, user_id, {company_name : company_name, location : location, description : description, industry : industry, profile_photo : profile_photo, profile_photo_id : company.profile_photo_id, cover_photo : cover_photo, cover_photo_id : company.cover_photo_id, company_domain_name : company_domain_name});
         if(!updated_company){
             return res.status(400).json({error : "company with the same name or domain name already exist"});    
         }
+
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+        const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : updated_company.profile_photo_id }, 10000);
+        const coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : updated_company.cover_photo_id }, 10000);
+
         return res.status(200).json({
             data : {
-                company : updated_company
+                company : {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url, updated_company}
             },
             error : null
         });
@@ -224,9 +247,14 @@ export const getCompanyProfile = async (req : AuthenticatedRequest, res : Respon
         if(company?.created_by !== user_id){
             return res.status(401).json({error : "unauthorized"});
         }
+
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+        const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.profile_photo_id }, 10000);
+        const coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.cover_photo_id }, 10000);
+
         return res.status(200).json({
             data : {
-                company : company
+                company : {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url,  ...company}
             },
             error : null
         });
@@ -275,7 +303,44 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
         if(!announcement_photos){
             announcement_photos = [];
         }
-        const new_announcement_post = await createAnnouncement(company_id, user_id, new Date(), content, announcement_photos, announcement_video);
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+
+        let new_announcement_post : any = await createAnnouncement(company_id, user_id, new Date(), content, announcement_photos, announcement_video)
+
+        let image_urls = [];
+        let announcementPhotoURLResponse;
+        for(const image_id of new_announcement_post.image_ids){
+            let payload : FilePresignedUrlPayload.Request = {
+                file_id : image_id as number
+            }
+            announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
+            image_urls.push(announcementPhotoURLResponse.presigned_url);
+        }
+
+        new_announcement_post.image_urls = image_urls;
+
+        let payload : CompanyAnnouncementCreatedPayload = {
+            announcement_id : new_announcement_post.announcement_id,
+            company_id : new_announcement_post.company_id,
+            image_ids : new_announcement_post.image_ids,
+            content : new_announcement_post.content,
+            created_at : new_announcement_post.created_at,
+            posted_by : new_announcement_post.user_id
+        };
+
+        new_announcement_post.video_url = null;
+        if(new_announcement_post.video_id){
+            let url_payload : FilePresignedUrlPayload.Request = {
+              file_id : new_announcement_post.video_id as number
+            };
+            const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, url_payload, 10000);
+            new_announcement_post.video_url = announcementVideoURLResponse.presigned_url;
+            payload.video_id = new_announcement_post.video_id;
+        }
+
+         
+        await publishEvent(Events.COMPANY_ANNOUNCEMENT_CREATED, payload);
+        
         return res.status(200).json({
             data : {
                 announcement : new_announcement_post
@@ -333,9 +398,44 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
             return res.status(403).json({error : "forbidden"});
         }
         
-        let updated_announcement_post = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
+        let updated_announcement_post : any = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
         
         if(updated_announcement_post){
+            let image_urls = [];
+            let announcementPhotoURLResponse;
+            const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+            for(const image_id of updated_announcement_post.image_ids){
+                let payload : FilePresignedUrlPayload.Request = {
+                    file_id : image_id as number
+                }
+                announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
+                image_urls.push(announcementPhotoURLResponse.presigned_url);
+            }
+    
+            updated_announcement_post.image_urls = image_urls;
+    
+            let payload : CompanyAnnouncementUpdatedPayload = {
+                announcement_id : updated_announcement_post.announcement_id,
+                company_id : updated_announcement_post.company_id,
+                new_image_ids : updated_announcement_post.image_ids,
+                new_content : updated_announcement_post.content,
+                updated_at : updated_announcement_post.created_at,
+                posted_by : updated_announcement_post.user_id
+            };
+    
+            updated_announcement_post.video_url = null;
+            if(updated_announcement_post.video_id){
+                let url_payload : FilePresignedUrlPayload.Request = {
+                  file_id : updated_announcement_post.video_id as number
+                };
+                const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, url_payload, 10000);
+                updated_announcement_post.video_url = announcementVideoURLResponse.presigned_url;
+                payload.new_video_id = updated_announcement_post.video_id;
+            }
+    
+             
+            await publishEvent(Events.COMPANY_ANNOUNCEMENT_UPDATED, payload);
+    
             return res.status(200).json({
                 data : {
                     announcement : updated_announcement_post
@@ -435,8 +535,30 @@ export const getAnnouncement = async (req : AuthenticatedRequest, res : Response
     }
     const announcement_id = parseInt(req.params.announcementId, 10);
     try {
-        const announcement = await findAnnouncementById(announcement_id);
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+        const announcement : any = await findAnnouncementById(announcement_id);
         if(announcement){
+            let image_urls = [];
+            let announcementPhotoURLResponse;
+            for(const image_id of announcement.image_ids){
+                let payload : FilePresignedUrlPayload.Request = {
+                    file_id : image_id as number
+                }
+                announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
+                image_urls.push(announcementPhotoURLResponse.presigned_url);
+            }
+    
+            announcement.image_urls = image_urls;
+    
+            announcement.video_url = null;
+            if(announcement.video_id){
+                let url_payload : FilePresignedUrlPayload.Request = {
+                  file_id : announcement.video_id as number
+                };
+                const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, url_payload, 10000);
+                announcement.video_url = announcementVideoURLResponse.presigned_url;
+            }
+    
             return res.status(200).json({
                 data : {
                     announcement : announcement
@@ -547,6 +669,32 @@ export const getCompanyAnnouncements = async (req : AuthenticatedRequest, res : 
             company_announcements = await findAnnouncementsByCompanyId(company_id, limit, page-1);
         }
 
+
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+
+        company_announcements.forEach(async (announcement : any) => {
+            let image_urls = [];
+            let announcementPhotoURLResponse;
+            for(const image_id of announcement.image_ids){
+                let payload : FilePresignedUrlPayload.Request = {
+                    file_id : image_id as number
+                }
+                announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
+                image_urls.push(announcementPhotoURLResponse.presigned_url);
+            }
+    
+            announcement.image_urls = image_urls;
+    
+            announcement.video_url = null;
+            if(announcement.video_id){
+                let url_payload : FilePresignedUrlPayload.Request = {
+                  file_id : announcement.video_id as number
+                };
+                const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, url_payload, 10000);
+                announcement.video_url = announcementVideoURLResponse.presigned_url;
+            }
+
+        })
         return res.status(200).json({
             data : {
                 announcements : company_announcements
@@ -602,8 +750,8 @@ export const getCompanyAnalytics = async (req : AuthenticatedRequest, res : Resp
         if(company?.created_by !== user_id){
             return res.status(403).json({error : "forbidden"});
         } 
-        let job_application_analytics : Array<any> = []
-        const number_of_jobs = 0;
+        let job_application_analytics : Array<any> = await getJobAnalyticsOfCompany(company_id);
+        const number_of_jobs = await getNumberOfJobPosts(company_id);
         const number_of_followrs = await findNumberOfFollowersOfCompany(company_id);
         const number_of_announcements = await findNumberOfAnnouncements(company_id);
         return res.status(200).json({
@@ -712,6 +860,6 @@ export const unfollowCompany = async (req : AuthenticatedRequest, res : Response
             return res.status(404).json({error : "company not found"});
         }
         console.log(`Internal error : ${e}`)
-        return res.status(500).json({error : "Internal error : "})
+        return res.status(500).json({error : "Internal error : "});
     }
 }

@@ -157,8 +157,8 @@ export namespace FileMetadataRequestPayload {
 export interface CompanyAnnouncementCreatedPayload {
   announcement_id: number;
   company_id: number;
-  image_urls : Array<string>;
-  video_url? : string
+  image_ids : Array<string>;
+  video_id? : string
   created_at: Date;
   posted_by: number;
   content : string;
@@ -167,8 +167,8 @@ export interface CompanyAnnouncementCreatedPayload {
 export interface CompanyAnnouncementUpdatedPayload {
   announcement_id: number;
   company_id: number;
-  new_image_urls : Array<string>;
-  new_video_url? : string;
+  new_image_ids : Array<string>;
+  new_video_id? : string;
   updated_at: Date;
   posted_by: number;
   new_content? : string;
