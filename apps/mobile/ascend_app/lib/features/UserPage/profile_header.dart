@@ -16,9 +16,14 @@ class ProfileHeader extends StatelessWidget {
     this.verified = false,
     this.degree = '1st',
     this.isMyProfile = false,
+    this.namePronunciation = false,
+    this.showSchool = true,
+    this.showCurrentCompany = true,
+    this.currentPosition = '',
   });
 
   final String name;
+  final bool namePronunciation;
   final String bio;
   final String location;
   final String latestEducation;
@@ -27,6 +32,9 @@ class ProfileHeader extends StatelessWidget {
   final bool isPending;
   final List<String> mutualConnections;
   final List<Map<String, String>> links;
+  final bool showSchool;
+  final bool showCurrentCompany;
+  final String currentPosition;
   final bool verified;
   final String degree;
   final bool isMyProfile;
@@ -39,6 +47,7 @@ class ProfileHeader extends StatelessWidget {
         if (name.isNotEmpty) _buildNameSection(),
 
         if (bio.isNotEmpty) _buildBioSection(),
+        const SizedBox(height: 10),
 
         if (latestEducation.isNotEmpty || location.isNotEmpty)
           _buildEducationLocationSection(),
@@ -57,7 +66,7 @@ class ProfileHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
           children: [
             Text(
               name,
@@ -65,16 +74,18 @@ class ProfileHeader extends StatelessWidget {
             ),
             if (verified) const Icon(Icons.gpp_good_outlined, size: 20),
             const SizedBox(width: 5),
+            if (namePronunciation)
+              const Icon(Icons.volume_up_outlined, size: 20),
+            const SizedBox(width: 5),
             Text(degree, style: const TextStyle(color: Colors.white70)),
           ],
         ),
-        const SizedBox(height: 5),
       ],
     );
   }
 
   Widget _buildBioSection() {
-    return Column(children: [Text(bio)]);
+    return Column(children: [Text(bio, style: const TextStyle(fontSize: 16))]);
   }
 
   // Education & Location Section
@@ -83,9 +94,22 @@ class ProfileHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(latestEducation),
+        Wrap(
+          spacing: 5, // Space between items
+          runSpacing: 5, // Space between lines
+          children: [
+            if (showCurrentCompany && currentPosition.isNotEmpty)
+              Text(currentPosition, style: const TextStyle(fontSize: 14)),
+            if (showCurrentCompany &&
+                currentPosition.isNotEmpty &&
+                showSchool &&
+                latestEducation.isNotEmpty)
+              const Text("•", style: TextStyle(fontSize: 14)),
+            if (showSchool && latestEducation.isNotEmpty)
+              Text(latestEducation, style: const TextStyle(fontSize: 14)),
+          ],
+        ),
         Text(location),
-        const SizedBox(height: 5),
       ],
     );
   }
@@ -107,7 +131,6 @@ class ProfileHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 10),
         if (links.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

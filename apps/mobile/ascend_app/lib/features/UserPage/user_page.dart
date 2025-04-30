@@ -5,6 +5,7 @@ import 'package:ascend_app/features/settings/Presentation/widgets/loading_indica
 import 'package:ascend_app/shared/models/profile.dart';
 import 'package:flutter/material.dart';
 import 'models/profile_section.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'buttons.dart';
 import 'custom_alert_dialog.dart';
 import 'profile_main_images.dart';
@@ -17,6 +18,9 @@ import 'add_skill_page.dart';
 import 'add_course_page.dart';
 import 'add_project_page.dart';
 import 'add_interest_page.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
+import 'edit_profile_page.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Add this import for PDF rendering
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({this.profileId, super.key});
@@ -62,8 +66,45 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (profile.bio != null && profile.bio!.isNotEmpty) {
       sections.add(
         ProfileSection(
-          title: "Bio",
+          title: "About",
           content: [ProfileEntryWidget(description: profile.bio)],
+        ),
+      );
+    }
+
+    // Add featured section if resumeUrl exists
+    if (profile.resumeUrl != null && profile.resumeUrl!.isNotEmpty) {
+      sections.add(
+        ProfileSection(
+          title: "Featured",
+          content: [],
+          contentWidgets: [
+            GestureDetector(
+              onTap: () async {
+                final Uri url = Uri.parse(profile.resumeUrl!);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Could not open the link")),
+                  );
+                }
+              },
+              child: Container(
+                height: 300, // Adjust height for the preview
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SfPdfViewer.network(
+                  profile.resumeUrl!,
+                  canShowScrollHead: false,
+                  canShowScrollStatus: false,
+                  enableDoubleTapZooming: true,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -168,7 +209,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<Profile> _fetchProfileData(int? profileId) async {
     final endpoint =
-        profileId == null ? "/user/profile/6" : "/user/profile/$profileId";
+        profileId == null ? "/user/profile/16" : "/user/profile/$profileId";
     final data = await ServiceLocator().apiClient.get(endpoint);
     final json = jsonDecode(data.body);
     return Profile.fromJson(json);
@@ -272,259 +313,298 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-          child: TextField(
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              border: InputBorder.none,
-              hintText: 'Search',
-            ),
-          ),
-        ),
-      ),
       body:
           _profile == null
               ? LoadingIndicator()
-              : RefreshIndicator(
-                onRefresh: _onRefresh,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ProfileMainImages(
-                        profilePic:
-                            _profile?.profilePictureUrl ??
-                            'https://picsum.photos/500',
-                        coverPic:
-                            _profile?.coverPhotoUrl ??
-                            'https://picsum.photos/1500/500',
-                        isMyProfile: _isMyProfile,
-                      ),
-                      if (_isMyProfile)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.edit_outlined),
-                            ),
-                          ],
-                        ),
-                      SizedBox(height: _isMyProfile ? 5 : 50),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+              : CustomScrollView(
+                slivers: [
+                  CustomSliverAppBar(
+                    pinned: true,
+                    floating: true,
+                    showTabBar: false,
+                    addpost: false,
+                    settings: true,
+                    jobs: false,
+                    showProfileAvatar: false,
+                    contextin: context,
+                  ),
+                  SliverToBoxAdapter(
+                    child: RefreshIndicator(
+                      onRefresh: _onRefresh,
+                      child: SingleChildScrollView(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ProfileHeader(
-                              name:
-                                  "${_profile?.firstName} ${_profile?.lastName}",
-                              bio:
-                                  _profile?.bio ??
-                                  "Computer engineering student at Cairo University",
-                              location: _profile?.location ?? 'Cairo, Egypt',
-                              latestEducation:
-                                  _profile?.education?.isNotEmpty == true
-                                      ? _profile!.education!.first.school
-                                      : 'Cairo University', // Safely access the first element
-                              connections: 15, // Dummy data
-                              isconnect: _isConnect,
-                              isPending: _isPending,
-                              mutualConnections: [
-                                "Ahmed Hassan",
-                                "Sarah Ali",
-                              ], // Dummy data
-                              links: [
-                                {
-                                  "title": "My Portfolio",
-                                  "url": "https://dartcode.org/docs/settings/",
-                                },
-                                {
-                                  "title": "GitHub",
-                                  "url": "https://github.com/MagedWadi",
-                                },
-                              ],
-                              verified: true, // Dummy data
-                              degree: _degree,
+                            ProfileMainImages(
+                              profilePic:
+                                  _profile?.profilePictureUrl ??
+                                  'https://picsum.photos/500',
+                              coverPic:
+                                  _profile?.coverPhotoUrl ??
+                                  'https://picsum.photos/1500/500',
                               isMyProfile: _isMyProfile,
                             ),
-                            SizedBox(height: 15),
-                            ProfileButtons(
-                              isfollowing: _isFollow,
-                              isMyProfile: _isMyProfile,
-                              isConnect: _isConnect,
-                              isPending: _isPending,
-                              toggleConnect: _toggleConnect,
-                              withdrawRequest: _showWarningDialogForPending,
-                              toggleFollow: _toggleFollow,
-                              removeConnection:
-                                  _showWarningDialogForRemovingConnection,
-                              addOrUpdateSection: _addOrUpdateSection,
-                              profile: _profile,
+                            if (_isMyProfile)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => EditProfilePage(
+                                                profile: _profile!,
+                                                onSave: (updatedProfile) {
+                                                  setState(() {
+                                                    _profile =
+                                                        updatedProfile; // Update the profile
+                                                    _sections = _buildSections(
+                                                      updatedProfile,
+                                                    ); // Refresh sections
+                                                  });
+                                                },
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    icon: Icon(Icons.edit_outlined),
+                                  ),
+                                ],
+                              ),
+                            SizedBox(height: _isMyProfile ? 5 : 50),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ProfileHeader(
+                                    name:
+                                        "${_profile?.firstName} ${_profile?.additionalName != null && _profile!.additionalName!.isNotEmpty ? "(${_profile!.additionalName})" : ""}${_profile?.lastName}",
+                                    bio:
+                                        _profile?.bio ??
+                                        "Computer & communications engineering student at Cairo University",
+                                    location:
+                                        _profile?.location ?? 'Cairo, Egypt',
+                                    showSchool: _profile?.showSchool ?? true,
+                                    showCurrentCompany:
+                                        _profile?.showCurrentCompany ?? true,
+                                    latestEducation:
+                                        _profile?.education?.isNotEmpty == true
+                                            ? _profile!.education!.first.school
+                                            : 'Cairo University',
+                                    connections: 15, // Dummy data
+                                    isconnect: _isConnect,
+                                    isPending: _isPending,
+                                    currentPosition:
+                                        _profile?.experience?.isNotEmpty == true
+                                            ? _profile!
+                                                .experience!
+                                                .first
+                                                .company
+                                            : 'Google',
+                                    mutualConnections: [
+                                      "Ahmed Hassan",
+                                      "Sarah Ali",
+                                    ], // Dummy data
+                                    links: [
+                                      {
+                                        "title": "My Portfolio",
+                                        "url":
+                                            "https://dartcode.org/docs/settings/",
+                                      },
+                                      {
+                                        "title": "GitHub",
+                                        "url": "https://github.com/MagedWadi",
+                                      },
+                                    ],
+                                    verified: true, // Dummy data
+                                    degree: _degree,
+                                    isMyProfile: _isMyProfile,
+                                    namePronunciation:
+                                        _profile?.namePronunciation != null,
+                                  ),
+                                  SizedBox(height: 15),
+                                  ProfileButtons(
+                                    isfollowing: _isFollow,
+                                    isMyProfile: _isMyProfile,
+                                    isConnect: _isConnect,
+                                    isPending: _isPending,
+                                    toggleConnect: _toggleConnect,
+                                    withdrawRequest:
+                                        _showWarningDialogForPending,
+                                    toggleFollow: _toggleFollow,
+                                    removeConnection:
+                                        _showWarningDialogForRemovingConnection,
+                                    addOrUpdateSection: _addOrUpdateSection,
+                                    profile: _profile,
+                                  ),
+                                  SizedBox(height: 30),
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 30),
-                          ],
-                        ),
-                      ),
-                      if (_sections.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text(
-                            "No sections available.",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        )
-                      else
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Section Title
-                            SizedBox(height: 10),
-                            for (var section in _sections)
-                              SectionBuilder(
-                                section: section,
-                                isMyProfile: _isMyProfile,
-                                onUpdateSection: _updateSection,
-                                onAddEntry: () {
-                                  if (section.title == "Education") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddEducationPage(
-                                              onSave: (education) {
-                                                // Handle saving the education entry
-                                                setState(() {
-                                                  _profile?.education?.add(
-                                                    education,
-                                                  );
-                                                  _sections = _buildSections(
-                                                    _profile!,
-                                                  );
-                                                });
-                                              },
+                            if (_sections.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Text(
+                                  "No sections available.",
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 10),
+                                  for (var section in _sections)
+                                    SectionBuilder(
+                                      section: section,
+                                      isMyProfile: _isMyProfile,
+                                      onUpdateSection: _updateSection,
+                                      onAddEntry: () {
+                                        if (section.title == "Education") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => AddEducationPage(
+                                                    onSave: (education) {
+                                                      setState(() {
+                                                        _profile?.education
+                                                            ?.add(education);
+                                                        _sections =
+                                                            _buildSections(
+                                                              _profile!,
+                                                            );
+                                                      });
+                                                    },
+                                                  ),
                                             ),
-                                      ),
-                                    );
-                                  } else if (section.title == "Experience") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddExperiencePage(
-                                              onSave: (experience) {
-                                                // Handle saving the experience entry
-                                                setState(() {
-                                                  _profile?.experience?.add(
-                                                    experience,
-                                                  );
-                                                  _sections = _buildSections(
-                                                    _profile!,
-                                                  );
-                                                });
-                                              },
+                                          );
+                                        } else if (section.title ==
+                                            "Experience") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) =>
+                                                      AddExperiencePage(
+                                                        onSave: (experience) {
+                                                          setState(() {
+                                                            _profile?.experience
+                                                                ?.add(
+                                                                  experience,
+                                                                );
+                                                            _sections =
+                                                                _buildSections(
+                                                                  _profile!,
+                                                                );
+                                                          });
+                                                        },
+                                                      ),
                                             ),
-                                      ),
-                                    );
-                                  } else if (section.title == "Skills") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddSkillPage(
-                                              onSave: (skill) {
-                                                // Handle saving the skill entry
-                                                setState(() {
-                                                  _profile?.skills?.add(skill);
-                                                  _sections = _buildSections(
-                                                    _profile!,
-                                                  );
-                                                });
-                                              },
+                                          );
+                                        } else if (section.title == "Skills") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => AddSkillPage(
+                                                    onSave: (skill) {
+                                                      setState(() {
+                                                        _profile?.skills?.add(
+                                                          skill,
+                                                        );
+                                                        _sections =
+                                                            _buildSections(
+                                                              _profile!,
+                                                            );
+                                                      });
+                                                    },
+                                                  ),
                                             ),
-                                      ),
-                                    );
-                                  } else if (section.title == "Courses") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddCoursePage(
-                                              onSave: (course) {
-                                                final newEntry = ProfileEntryWidget(
-                                                  title: course.name,
-                                                  subtitle: course.provider,
-                                                  description:
-                                                      course.completionDate !=
-                                                              null
-                                                          ? "Completed on ${course.completionDate!.toLocal()}"
-                                                          : null,
-                                                );
-                                                _addOrUpdateSection(
-                                                  "Courses",
-                                                  newEntry,
-                                                );
-                                              },
+                                          );
+                                        } else if (section.title == "Courses") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => AddCoursePage(
+                                                    onSave: (course) {
+                                                      final newEntry =
+                                                          ProfileEntryWidget(
+                                                            title: course.name,
+                                                            subtitle:
+                                                                course.provider,
+                                                            description:
+                                                                course.completionDate !=
+                                                                        null
+                                                                    ? "Completed on ${course.completionDate!.toLocal()}"
+                                                                    : null,
+                                                          );
+                                                      _addOrUpdateSection(
+                                                        "Courses",
+                                                        newEntry,
+                                                      );
+                                                    },
+                                                  ),
                                             ),
-                                      ),
-                                    );
-                                  } else if (section.title == "Projects") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddProjectPage(
-                                              onSave: (project) {
-                                                final newEntry =
-                                                    ProfileEntryWidget(
-                                                      title: project.name,
-                                                      description:
-                                                          project.description,
-                                                    );
-                                                _addOrUpdateSection(
-                                                  "Projects",
-                                                  newEntry,
-                                                );
-                                              },
+                                          );
+                                        } else if (section.title ==
+                                            "Projects") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => AddProjectPage(
+                                                    onSave: (project) {
+                                                      final newEntry =
+                                                          ProfileEntryWidget(
+                                                            title: project.name,
+                                                            description:
+                                                                project
+                                                                    .description,
+                                                          );
+                                                      _addOrUpdateSection(
+                                                        "Projects",
+                                                        newEntry,
+                                                      );
+                                                    },
+                                                  ),
                                             ),
-                                      ),
-                                    );
-                                  } else if (section.title == "Interests") {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => AddInterestPage(
-                                              onSave: (interest) {
-                                                final newEntry =
-                                                    ProfileEntryWidget(
-                                                      title: interest.name,
-                                                    );
-                                                _addOrUpdateSection(
-                                                  "Interests",
-                                                  newEntry,
-                                                );
-                                              },
+                                          );
+                                        } else if (section.title ==
+                                            "Interests") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => AddInterestPage(
+                                                    onSave: (interest) {
+                                                      final newEntry =
+                                                          ProfileEntryWidget(
+                                                            title:
+                                                                interest.name,
+                                                          );
+                                                      _addOrUpdateSection(
+                                                        "Interests",
+                                                        newEntry,
+                                                      );
+                                                    },
+                                                  ),
                                             ),
-                                      ),
-                                    );
-                                  }
-                                },
+                                          );
+                                        }
+                                      },
+                                    ),
+                                ],
                               ),
                           ],
                         ),
-                    ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
     );
   }
