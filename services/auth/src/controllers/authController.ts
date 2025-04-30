@@ -141,6 +141,20 @@ export const confirmEmail = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid or expired token" });
     }
 
+    if (isNewEmail) {
+      await sendEmail(
+        email,
+        "Welcome to Ascend!",
+        `Your new email has been confirmed. Welcome aboard!`
+      );
+    } else {
+      await sendEmail(
+        email,
+        "Welcome to Ascend!",
+        `Your email has been confirmed. Welcome aboard!`
+      );
+    }
+
     res.json({ message: "Email confirmed successfully" });
   } catch (error) {
     console.error(error);
@@ -646,5 +660,16 @@ export const adminDeleteReport = async (
   } catch (error) {
     console.error(error);
     res.status(500).json({ error });
+  }
+};
+
+export const emailExists = async (req: Request, res: Response) => {
+  const { email } = req.params;
+  try {
+    const user = await findUserByEmail(email);
+    res.json({ exists: user != null });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
   }
 };
