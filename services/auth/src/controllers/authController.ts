@@ -141,6 +141,20 @@ export const confirmEmail = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid or expired token" });
     }
 
+    if (isNewEmail) {
+      await sendEmail(
+        email,
+        "Welcome to Ascend!",
+        `Your new email has been confirmed. Welcome aboard!`
+      );
+    } else {
+      await sendEmail(
+        email,
+        "Welcome to Ascend!",
+        `Your email has been confirmed. Welcome aboard!`
+      );
+    }
+
     res.json({ message: "Email confirmed successfully" });
   } catch (error) {
     console.error(error);
