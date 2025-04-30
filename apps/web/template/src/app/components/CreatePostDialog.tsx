@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
-import { useProfileStore } from "../stores/useProfileStore"; // ✅ import profile store
+import { useProfileStore } from "../stores/useProfileStore";
 
 import TagInput from "./TagInput";
 import DiscardPostDialog from "./DiscardPostDialog";
@@ -35,6 +35,7 @@ const CreatePostDialog: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
   const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const {
     open,
@@ -53,9 +54,11 @@ const CreatePostDialog: React.FC = () => {
     lastUserPostId,
     repostSourcePost,
     setRepostSourcePost,
-    createPostFromAPI,
     setRepostPopupOpen,
     repostFromAPI,
+    taggedUsers,
+    createPostNewFromAPI,
+    tagUsersOnContent
   } = usePostStore();
 
   const {
@@ -70,14 +73,13 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview,
   } = useMediaStore();
 
-  type Profile = {
+  const userData = useProfileStore((state) => state.userData) as {
     profile_picture_url?: string;
     first_name: string;
     last_name: string;
-  };  
-  
-  const userData = useProfileStore((state) => state.userData) as Profile | null;
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; //❌ Fallback
+  } | null;
+
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   useEffect(() => {
@@ -88,31 +90,55 @@ const CreatePostDialog: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!postText.trim() && mediaFiles.length === 0 && !documentPreview) return;
-
-    const fileToSend = documentPreview ? documentFile : mediaFiles[0];
-    const typeToSend = documentPreview ? "file" : mediaType ?? undefined;
-
-    if (repostSourcePost) {
-      await repostFromAPI(repostSourcePost.id, postText.trim());
-      setRepostPopupOpen(true);
-    } else {
-      await createPostFromAPI(
-        postText,
-        fileToSend,
-        typeToSend,
-        documentPreview?.title,
-        "Uploaded from CreatePostDialog"
-      );
+  
+    let postId: number | null = null;
+  
+    try {
+      if (repostSourcePost) {
+        await repostFromAPI(repostSourcePost.id, postText.trim());
+        setRepostPopupOpen(true);
+      } else {
+        const isDocument = !!documentPreview && !!documentFile;
+  
+        await createPostNewFromAPI(
+          postText.trim(),
+          isDocument ? [documentFile!] : mediaFiles,
+          isDocument ? "file" : mediaType ?? undefined, // ✅ FIXED
+          isDocument ? documentPreview?.title || "Untitled Document" : "Uploaded Media",
+          isDocument ? "PDF file" : `${mediaType || "media"} file`
+        );
+  
+        postId = usePostStore.getState().lastUserPostId;
+      }
+  
+      // Tagging
+      if (postId && taggedUsers.length > 0 && postText.includes("@")) {
+        const tags = taggedUsers
+          .map((tag) => {
+            const startIndex = postText.indexOf(`@${tag.name}`);
+            return startIndex !== -1
+              ? { userId: tag.id, startIndex, endIndex: startIndex + tag.name.length }
+              : null;
+          })
+          .filter((tag) => tag !== null) as { userId: number; startIndex: number; endIndex: number }[];
+  
+        if (tags.length > 0) {
+          await tagUsersOnContent("post", postId, tags);
+        }
+      }
+  
+      // Cleanup
+      setDraftText("");
+      setPostText("");
+      resetPost();
+      clearAllMedia();
+      clearDocumentPreview();
+      setRepostSourcePost(null);
+    } catch (err) {
+      console.error("❌ Error during post creation:", err);
     }
-
-    setDraftText("");
-    setPostText("");
-    resetPost();
-    clearAllMedia();
-    clearDocumentPreview();
-    setRepostSourcePost(null);
-  };
-
+  };  
+  
   const handleClose = () => {
     const hasUnsaved =
       !!postText.trim() || mediaFiles.length > 0 || !!documentPreview || !!repostSourcePost;
@@ -133,9 +159,7 @@ const CreatePostDialog: React.FC = () => {
         <DialogTitle sx={{ pb: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src={profilePicture}>
-                {fullName.charAt(0)}
-              </Avatar>
+              <Avatar src={profilePicture}>{fullName.charAt(0)}</Avatar>
               <Box>
                 <Typography fontWeight={600}>{fullName}</Typography>
                 <Typography fontSize="0.8rem" color="text.secondary">
@@ -143,10 +167,7 @@ const CreatePostDialog: React.FC = () => {
                 </Typography>
               </Box>
             </Stack>
-            <IconButton
-              id="close-create-post-dialog-button" // ✅ ID added
-              onClick={handleClose}
-            >
+            <IconButton id="close-create-post-dialog-button" onClick={handleClose}>
               <Close />
             </IconButton>
           </Stack>
@@ -154,49 +175,99 @@ const CreatePostDialog: React.FC = () => {
 
         <DialogContent sx={{ pt: 1 }}>
           <Box sx={{ mt: 2, minHeight: 100 }}>
-            <TagInput postId={lastUserPostId ?? -1} />
+            <TagInput postId={lastUserPostId ?? -1} placeholder="What do you want to talk about?" />
           </Box>
 
-          {mediaPreviews[0] && !documentPreview && (
+          {mediaPreviews.length > 0 && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
-              {mediaType === "video" ? (
+              {mediaFiles[currentIndex]?.type.startsWith("video") ? (
                 <video
-                  src={mediaPreviews[0]}
+                  src={mediaPreviews[currentIndex]}
                   controls
                   style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
                 />
               ) : (
                 <img
-                  src={mediaPreviews[0]}
-                  alt="preview"
+                  src={mediaPreviews[currentIndex]}
+                  alt={`preview-${currentIndex}`}
                   style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
                 />
               )}
+
+              {/* Left Arrow */}
+              {currentIndex > 0 && (
+                <Box
+                  onClick={() => setCurrentIndex((prev) => prev - 1)}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 8,
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 1,
+                  }}
+                >
+                  {"<"}
+                </Box>
+              )}
+
+              {/* Right Arrow */}
+              {currentIndex < mediaPreviews.length - 1 && (
+                <Box
+                  onClick={() => setCurrentIndex((prev) => prev + 1)}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    right: 8,
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 1,
+                  }}
+                >
+                  {">"}
+                </Box>
+              )}
+
+              {/* Edit/Delete Controls */}
               <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
                 <IconButton
-                  id="edit-media-preview-button" // ✅ ID added
+                  id="edit-media-preview-button"
                   sx={{ bgcolor: theme.palette.background.paper }}
-                  onClick={() => openEditor(mediaType ?? "image")}
+                  onClick={() => openEditor(mediaFiles[currentIndex].type.startsWith("video") ? "video" : "image")}
                 >
                   <Edit />
                 </IconButton>
                 <IconButton
-                  id="delete-media-preview-button" // ✅ ID added
+                  id="delete-media-preview-button"
                   sx={{ bgcolor: theme.palette.background.paper }}
-                  onClick={() => removeMediaFile(0)}
+                  onClick={() => {
+                    removeMediaFile(currentIndex);
+                    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : 0));
+                  }}
                 >
                   <Delete />
                 </IconButton>
               </Box>
             </Box>
           )}
-
           {documentPreview && (
-            <DocumentPreview
-              fileUrl={documentPreview.url}
-              title={documentPreview.title}
-              onRemove={clearDocumentPreview}
-            />
+            <DocumentPreview fileUrl={documentPreview.url} title={documentPreview.title} onRemove={clearDocumentPreview} />
           )}
 
           {repostSourcePost && (
@@ -209,33 +280,24 @@ const CreatePostDialog: React.FC = () => {
         <DialogActions sx={{ justifyContent: "space-between", px: 3, pb: 2 }}>
           <Stack direction="row" spacing={1}>
             <Tooltip title="Add a photo">
-              <IconButton
-                id="add-photo-button" // ✅ ID added
-                onClick={() => openEditor("image")}
-              >
+              <IconButton id="add-photo-button" onClick={() => openEditor("image")}>
                 <Image />
               </IconButton>
             </Tooltip>
             <Tooltip title="Add a video">
-              <IconButton
-                id="add-video-button" // ✅ ID added
-                onClick={() => openEditor("video")}
-              >
+              <IconButton id="add-video-button" onClick={() => openEditor("video")}>
                 <OndemandVideo />
               </IconButton>
             </Tooltip>
             <Tooltip title="Add a document">
-              <IconButton
-                id="add-document-button" // ✅ ID added
-                onClick={() => setDocDialogOpen(true)}
-              >
+              <IconButton id="add-document-button" onClick={() => setDocDialogOpen(true)}>
                 <Article />
               </IconButton>
             </Tooltip>
           </Stack>
 
           <Button
-            id="submit-post-button" // ✅ ID added
+            id="submit-post-button"
             variant="contained"
             onClick={handleSubmit}
             disabled={!postText.trim() && mediaFiles.length === 0 && !documentPreview}
@@ -246,46 +308,35 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Popups */}
-      <DiscardPostDialog
-        open={discardPostDialogOpen}
-        onClose={closeDiscardPostDialog}
-        onDiscard={() => {
-          closeDiscardPostDialog();
-          resetPost();
-          clearAllMedia();
-          clearDocumentPreview();
-        }}
-        onSave={() => {
-          setDraftText(postText);
-          setDraftSavedPopupOpen(true);
-          closeDiscardPostDialog();
-          resetPost();
-          clearAllMedia();
-          clearDocumentPreview();
-        }}
-      />
+      <DiscardPostDialog open={discardPostDialogOpen} onClose={closeDiscardPostDialog} onDiscard={() => {
+        closeDiscardPostDialog();
+        resetPost();
+        clearAllMedia();
+        clearDocumentPreview();
+      }} onSave={() => {
+        setDraftText(postText);
+        setDraftSavedPopupOpen(true);
+        closeDiscardPostDialog();
+        resetPost();
+        clearAllMedia();
+        clearDocumentPreview();
+      }} />
 
-      <DiscardRepostDialog
-        open={discardRepostDialogOpen}
-        onClose={closeDiscardRepostDialog}
-        onDiscard={() => {
-          closeDiscardRepostDialog();
-          resetPost();
-          clearAllMedia();
-          clearDocumentPreview();
-          setRepostSourcePost(null);
-        }}
-        onSave={() => {
-          setDraftText(postText);
-          setDraftSavedPopupOpen(true);
-          closeDiscardRepostDialog();
-          resetPost();
-          clearAllMedia();
-          clearDocumentPreview();
-          setRepostSourcePost(null);
-        }}
-      />
+      <DiscardRepostDialog open={discardRepostDialogOpen} onClose={closeDiscardRepostDialog} onDiscard={() => {
+        closeDiscardRepostDialog();
+        resetPost();
+        clearAllMedia();
+        clearDocumentPreview();
+        setRepostSourcePost(null);
+      }} onSave={() => {
+        setDraftText(postText);
+        setDraftSavedPopupOpen(true);
+        closeDiscardRepostDialog();
+        resetPost();
+        clearAllMedia();
+        clearDocumentPreview();
+        setRepostSourcePost(null);
+      }} />
 
       <DraftSavedPopup />
       <RepostPopup />

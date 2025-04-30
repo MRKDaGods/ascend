@@ -1,21 +1,45 @@
-// Component file: comment for each connection post
-
 "use client";
 
 import React, { useState } from "react";
 import {
-  Avatar, Box, IconButton, Typography, Stack, Menu,
-  MenuItem, Dialog, DialogActions, DialogTitle, useTheme,
+  Avatar,
+  Box,
+  IconButton,
+  Typography,
+  Stack,
+  Menu,
+  MenuItem,
+  useTheme,
+  Tooltip,
 } from "@mui/material";
-import { MoreHoriz, Link, Edit, Delete } from "@mui/icons-material";
+import { MoreHoriz, Edit, Delete } from "@mui/icons-material";
 import { usePostStore, PostType } from "../stores/usePostStore";
 import TagInput from "./TagInput";
+
+interface FetchedComment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  parent_comment_id: number | null;
+  content: string;
+  is_edited: boolean;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    profile_picture_url: string | null;
+  };
+  replies: any[];
+}
 
 interface CommentProps {
   post: PostType;
   showCommentInput: boolean;
   showComments: boolean;
   setShowComments: (val: boolean) => void;
+  fetchedComments: FetchedComment[];
 }
 
 const Comment: React.FC<CommentProps> = ({
@@ -23,17 +47,52 @@ const Comment: React.FC<CommentProps> = ({
   showCommentInput,
   showComments,
   setShowComments,
+  fetchedComments,
 }) => {
   const theme = useTheme();
-  const { commentOnPostFromAPI, addTagToComment } = usePostStore();
+  const {
+    commentOnPostFromAPI,
+    addTagToComment,
+    taggedUsers,
+    tagUsersOnContent,
+  } = usePostStore();
 
   const [commentText, setCommentText] = useState("");
   const [commentMenuAnchor, setCommentMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedCommentIndex, setSelectedCommentIndex] = useState<number | null>(null);
-  const [setDeleteDialogOpen] = useState(false);
+
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) return;
+
+    try {
+      const res = await commentOnPostFromAPI(post.id, commentText);
+      const commentId = res?.id; // ✅ no more .data needed
+
+      if (commentId && taggedUsers.length > 0 && commentText.includes("@")) {
+        const tagsToSend = taggedUsers.map((tag) => {
+          const atIndex = commentText.indexOf(`@${tag.name}`);
+          return {
+            userId: tag.id,
+            startIndex: atIndex,
+            endIndex: atIndex + tag.name.length,
+          };
+        }).filter(tag => tag.startIndex !== -1);
+
+        if (tagsToSend.length > 0) {
+          await tagUsersOnContent("comment", commentId, tagsToSend);
+        }
+      }
+
+      setCommentText("");
+      setShowComments(true);
+    } catch (err) {
+      console.error("❌ Failed to submit comment:", err);
+    }
+  };
 
   return (
     <>
+      {/* ✍️ Comment Input */}
       {showCommentInput && (
         <Box
           sx={{
@@ -47,6 +106,7 @@ const Comment: React.FC<CommentProps> = ({
           <Avatar src={post.profilePic || undefined} sx={{ width: 32, height: 32 }}>
             {!post.profilePic && post.username?.charAt(0)}
           </Avatar>
+
           <Box sx={{ flexGrow: 1 }}>
             <TagInput
               postId={post.id}
@@ -55,24 +115,13 @@ const Comment: React.FC<CommentProps> = ({
               setCommentText={setCommentText}
               commentIndex={post.commentsList.length}
               placeholder="Write a comment..."
-              onTagSelect={(tag) => {
-                addTagToComment(post.id, post.commentsList.length, tag);
-              }}
+              onTagSelect={(tag) => addTagToComment(post.id, post.commentsList.length, tag)}
             />
           </Box>
+
           <Stack>
-          <button
-              onClick={async () => {
-                if (commentText.trim()) {
-                  try {
-                    await commentOnPostFromAPI(post.id, commentText);
-                    setCommentText("");
-                    setShowComments(true);
-                  } catch (err) {
-                    console.error("❌ Failed to comment:", err);
-                  }
-                }
-              }}
+            <button
+              onClick={handleCommentSubmit}
               style={{
                 backgroundColor: "#0a66c2",
                 color: "white",
@@ -88,26 +137,48 @@ const Comment: React.FC<CommentProps> = ({
         </Box>
       )}
 
+      {/* 📜 Comment List */}
       {showComments && (
         <Box sx={{ px: 2, pb: 2 }}>
-          {post.commentsList.length > 0 ? (
-            post.commentsList.map((comment, index) => (
-              <Box key={index} sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
+          {fetchedComments.length === 0 ? (
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, py: 1 }}>
+              No comments yet. Be the first to comment!
+            </Typography>
+          ) : (
+            fetchedComments.map((comment, index) => (
+              <Box key={comment.id} sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Avatar src={post.profilePic || undefined} sx={{ width: 32, height: 32 }}>
-                    {!post.profilePic && post.username?.charAt(0)}
-                  </Avatar>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      backgroundColor: theme.palette.background.paper,
-                      p: 1,
-                      borderRadius: 2,
-                    }}
+                  <Avatar
+                    src={comment.user?.profile_picture_url || undefined}
+                    sx={{ width: 32, height: 32 }}
                   >
-                    {comment}
-                  </Typography>
+                    {!comment.user?.profile_picture_url && comment.user?.first_name?.charAt(0)}
+                  </Avatar>
+
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="bold"
+                      sx={{ color: theme.palette.text.primary }}
+                    >
+                      {comment.user.first_name} {comment.user.last_name}
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        backgroundColor: theme.palette.background.paper,
+                        p: 1,
+                        borderRadius: 2,
+                        maxWidth: "80%",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {comment.content}
+                    </Typography>
+                  </Box>
                 </Box>
+
                 <IconButton
                   onClick={(e) => {
                     setCommentMenuAnchor(e.currentTarget);
@@ -118,25 +189,24 @@ const Comment: React.FC<CommentProps> = ({
                 </IconButton>
               </Box>
             ))
-          ) : (
-            <Typography
-              variant="body2"
-              sx={{ color: theme.palette.text.secondary, py: 1 }}
-            >
-              No comments yet. Be the first to comment!
-            </Typography>
           )}
         </Box>
       )}
 
-      {/* Menu for comment actions */}
+      {/* ⚙️ Menu for Edit/Delete */}
       <Menu
         anchorEl={commentMenuAnchor}
         open={Boolean(commentMenuAnchor)}
         onClose={() => setCommentMenuAnchor(null)}
       >
-        <MenuItem><Edit fontSize="small" sx={{ mr: 1 }} /> Edit</MenuItem>
-        <MenuItem><Delete fontSize="small" sx={{ mr: 1 }} /> Delete</MenuItem>
+        <MenuItem>
+          <Edit fontSize="small" sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        <MenuItem>
+          <Delete fontSize="small" sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
       </Menu>
     </>
   );
