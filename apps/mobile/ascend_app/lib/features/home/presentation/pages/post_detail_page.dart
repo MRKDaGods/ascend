@@ -98,7 +98,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       showShare: true,
       showNotInterested: true,
       showUnfollow: true, // Add logic if needed
-      showReport: true,
+      showReport: false, // --- MODIFICATION: Hide report option ---
       showMessage: false, // Assuming messaging isn't direct from post detail options
       reportText: 'Report Post',
       // --- MODIFICATION START ---
@@ -149,11 +149,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
           ),
         );
       },
-      onReport: () {
-        // Keep existing logic
-        Navigator.of(context).pop(); // Close the sheet first
-        _showReportReasonDialog(context, post.id);
-      },
+      // --- MODIFICATION: Remove onReport callback ---
+      // onReport: () { ... },
       // Add other required callbacks if SheetHelpers needs them, e.g.:
       onMessage: () {
          Navigator.pop(context);
@@ -163,7 +160,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   void _showReportReasonDialog(BuildContext context, String postId) {
-    String selectedReason = 'General report'; // Initial value
+    String selectedReason = 'other'; // Default to 'other'
 
     showDialog(
       context: context,
@@ -178,13 +175,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 children: <Widget>[
                   const Text('Please select a reason for reporting:'),
                   ListTile(
-                    title: const Text('Spam'),
+                    title: const Text('Harassment'),
                     leading: Radio<String>(
-                      value: 'Spam',
+                      value: 'harassment', // Use backend value
                       groupValue: selectedReason,
                       onChanged: (String? value) {
                         if (value != null) {
-                          // Use setState from StatefulBuilder to update the selection
                           setState(() {
                             selectedReason = value;
                           });
@@ -192,20 +188,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       },
                     ),
                     onTap: () {
-                      // Allow tapping the whole row
                       setState(() {
-                        selectedReason = 'Spam';
+                        selectedReason = 'harassment'; // Use backend value
                       });
                     },
                   ),
                   ListTile(
-                    title: const Text('Inappropriate Content'),
+                    title: const Text('Violence'),
                     leading: Radio<String>(
-                      value: 'Inappropriate Content',
+                      value: 'violence', // Use backend value
                       groupValue: selectedReason,
                       onChanged: (String? value) {
                         if (value != null) {
-                          // Use setState from StatefulBuilder to update the selection
                           setState(() {
                             selectedReason = value;
                           });
@@ -213,13 +207,68 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       },
                     ),
                     onTap: () {
-                      // Allow tapping the whole row
                       setState(() {
-                        selectedReason = 'Inappropriate Content';
+                        selectedReason = 'violence'; // Use backend value
                       });
                     },
                   ),
-                  // Add more reasons as needed following the same pattern
+                  ListTile(
+                    title: const Text('Hate Speech'),
+                    leading: Radio<String>(
+                      value: 'hate_speech', // Use backend value
+                      groupValue: selectedReason,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        }
+                      },
+                    ),
+                    onTap: () {
+                      setState(() {
+                        selectedReason = 'hate_speech'; // Use backend value
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Misinformation'),
+                    leading: Radio<String>(
+                      value: 'misinformation', // Use backend value
+                      groupValue: selectedReason,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        }
+                      },
+                    ),
+                    onTap: () {
+                      setState(() {
+                        selectedReason = 'misinformation'; // Use backend value
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Other'),
+                    leading: Radio<String>(
+                      value: 'other', // Use backend value
+                      groupValue: selectedReason,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedReason = value;
+                          });
+                        }
+                      },
+                    ),
+                    onTap: () {
+                      setState(() {
+                        selectedReason = 'other'; // Use backend value
+                      });
+                    },
+                  ),
                 ],
               ),
               actions: <Widget>[
@@ -232,7 +281,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 TextButton(
                   child: const Text('Submit Report'),
                   onPressed: () {
-                    // Now selectedReason will hold the user's choice
+                    // Dispatch the event with the selected backend-valid reason
                     BlocProvider.of<PostBloc>(
                       context,
                     ).add(ReportPost(postId, selectedReason));
@@ -524,11 +573,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                                 userProfile.id.isNotEmpty
                                                     ? userProfile.id
                                                     : 'default_user_id',
-                                            onAddReply: (text, parentId) {
+                                            onAddReply: (text, parentId) { // parentId received from CommentDetailPage
+                                              // Log the parentId received here
+                                              debugPrint('📨 [PostDetailPage] onAddReply called. Parent ID: $parentId');
                                               context.read<PostBloc>().add(
                                                 AddCommentReply(
                                                   post.id,
-                                                  parentId,
+                                                  parentId, // Passing it to the BLoC event
                                                   text,
                                                   userProfile.id.isNotEmpty
                                                       ? userProfile.id

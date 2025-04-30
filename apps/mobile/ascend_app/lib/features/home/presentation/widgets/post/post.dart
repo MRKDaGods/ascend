@@ -92,7 +92,7 @@ class _PostState extends State<Post> {
       showShare: true, // Control visibility as needed
       showNotInterested: true, // Control visibility as needed
       showUnfollow: true, // Control visibility as needed
-      showReport: true, // Control visibility as needed
+      showReport: false, // Control visibility as needed
       // Add other show flags based on your sheet implementation
 
       onSave: () {
