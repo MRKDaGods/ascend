@@ -56,6 +56,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
         if (shouldLoad) {
            debugPrint('🔄 [PostDetailPage] Dispatching initial LoadComments for post ${widget.postId}');
+           // Remove page and limit parameters
            context.read<PostBloc>().add(LoadComments(widget.postId));
         }
       }
