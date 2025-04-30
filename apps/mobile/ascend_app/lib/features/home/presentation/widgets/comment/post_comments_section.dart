@@ -18,7 +18,7 @@ class PostCommentsSection extends StatefulWidget {
   final String? currentUserAvatarUrl;
 
   const PostCommentsSection({
-    Key? key,
+    super.key,
     required this.comments,
     required this.commentController,
     this.commentFocusNode,
@@ -31,7 +31,7 @@ class PostCommentsSection extends StatefulWidget {
     required this.currentUserId,
     required this.currentUserName,
     this.currentUserAvatarUrl,
-  }) : super(key: key);
+  });
 
   @override
   State<PostCommentsSection> createState() => _PostCommentsSectionState();
@@ -54,33 +54,33 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
             "${widget.comments.length} ${widget.comments.length == 1 ? 'Comment' : 'Comments'}",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
-        
+
         // Comment form
         CommentForm(
           controller: widget.commentController,
           focusNode: widget.commentFocusNode,
           replyingTo: _replyingToAuthor,
-          onCancelReply: _replyingToAuthor != null ? () {
-            setState(() {
-              _replyingToCommentId = null;
-              _replyingToAuthor = null;
-              widget.commentController.clear();
-            });
-          } : null,
+          onCancelReply:
+              _replyingToAuthor != null
+                  ? () {
+                    setState(() {
+                      _replyingToCommentId = null;
+                      _replyingToAuthor = null;
+                      widget.commentController.clear();
+                    });
+                  }
+                  : null,
           onSubmit: (text) => _addComment(context, text),
           onTap: widget.onTapCommentArea,
           userName: widget.currentUserName,
           userAvatarUrl: widget.currentUserAvatarUrl,
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Comments list
         ListView.builder(
           shrinkWrap: true,
@@ -93,10 +93,15 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
               child: CommentItem(
                 comment: comment,
                 showReplies: _expandedComments[comment.id] ?? false,
-                isCurrentUser: comment.authorId == widget.currentUserId, // Pass this flag
+                isCurrentUser:
+                    comment.authorId == widget.currentUserId, // Pass this flag
                 onReaction: widget.onReaction,
-                onReply: (commentId) => _handleReply(context, commentId, comment.authorName),
-                onMenuAction: (commentId, action) => _handleMenuAction(context, commentId, action),
+                onReply:
+                    (commentId) =>
+                        _handleReply(context, commentId, comment.authorName),
+                onMenuAction:
+                    (commentId, action) =>
+                        _handleMenuAction(context, commentId, action),
                 onViewRepliesTap: (commentId) {
                   setState(() {
                     _expandedComments[commentId] = true;
@@ -122,10 +127,10 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
     } else {
       widget.onAddComment(text, null);
     }
-    
+
     // Clear the form and reset reply state
     widget.commentController.clear();
-    
+
     if (_replyingToCommentId != null) {
       setState(() {
         _replyingToCommentId = null;
@@ -138,7 +143,7 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
     // Find the comment we're replying to
     Comment? targetComment;
     Comment? parentComment;
-    
+
     // Find the target comment (could be parent or reply)
     for (final comment in widget.comments) {
       if (comment.id == commentId) {
@@ -146,7 +151,7 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
         parentComment = comment; // If it's a parent comment, they're the same
         break;
       }
-      
+
       // Check if it's a reply
       for (final reply in comment.replies) {
         if (reply.id == commentId) {
@@ -155,27 +160,33 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
           break;
         }
       }
-      
+
       if (targetComment != null) break;
     }
-    
+
     // If we found the comments and have a navigation callback, navigate
-    if (targetComment != null && parentComment != null && widget.onNavigateToReply != null) {
+    if (targetComment != null &&
+        parentComment != null &&
+        widget.onNavigateToReply != null) {
       widget.onNavigateToReply!(parentComment, targetComment);
       return;
     }
-    
+
     // Fallback to the original behavior
     setState(() {
       _replyingToCommentId = commentId;
       _replyingToAuthor = authorName;
     });
-    
+
     // Focus the input
     widget.commentFocusNode?.requestFocus();
   }
 
-  void _handleMenuAction(BuildContext context, String commentId, String action) {
+  void _handleMenuAction(
+    BuildContext context,
+    String commentId,
+    String action,
+  ) {
     // Handle menu options
     switch (action) {
       case 'report':
@@ -192,31 +203,32 @@ class _PostCommentsSectionState extends State<PostCommentsSection> {
         break;
     }
   }
-  
+
   void _showReportDialog(BuildContext context, String commentId) {
     // Show a dialog to report the comment
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Report Comment'),
-        content: const Text('Why are you reporting this comment?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Report Comment'),
+            content: const Text('Why are you reporting this comment?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  // Handle report submission
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Comment reported')),
+                  );
+                },
+                child: const Text('Submit'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              // Handle report submission
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Comment reported')),
-              );
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
     );
   }
 }

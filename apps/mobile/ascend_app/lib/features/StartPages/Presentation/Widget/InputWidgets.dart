@@ -11,7 +11,7 @@ class CustomTextFormField extends StatefulWidget {
   final String fieldId; // Unique identifier for testing
 
   const CustomTextFormField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     required this.errorText,
@@ -19,7 +19,7 @@ class CustomTextFormField extends StatefulWidget {
     this.obscureText = false,
     this.onChanged,
     this.onFieldSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   _CustomTextFormFieldState createState() => _CustomTextFormFieldState();

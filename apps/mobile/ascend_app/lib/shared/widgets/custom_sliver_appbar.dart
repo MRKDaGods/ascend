@@ -5,7 +5,6 @@ import '../../features/profile/bloc/user_profile_bloc.dart';
 import '../../features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
 import 'package:ascend_app/core/routes/app_routes.dart'; // Import app routes
-import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
 
 import 'bloc/search_bloc.dart';
 import 'bloc/search_event.dart';
@@ -20,7 +19,8 @@ class CustomSliverAppBar extends StatefulWidget {
   final bool jobs;
   final bool showAppBar;
   final VoidCallback? onJobAction;
-
+  final bool showProfileAvatar; // Added property to show/hide QR code button
+  final BuildContext? contextin;
   const CustomSliverAppBar({
     super.key,
     this.showTabBar = false,
@@ -31,6 +31,8 @@ class CustomSliverAppBar extends StatefulWidget {
     this.jobs = false,
     this.showAppBar = false,
     this.onJobAction, // To detetct the job action
+    this.showProfileAvatar = true, // To show/hide profile avatar
+    this.contextin, // To show/hide context
   });
 
   @override
@@ -64,10 +66,18 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
 
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: UserAvatar(
-                      imageUrl: avatarUrl,
-                      radius: 18, // Adjust radius as needed
-                    ),
+                    child:
+                        widget.showProfileAvatar
+                            ? UserAvatar(
+                              imageUrl: avatarUrl,
+                              radius: 18, // Adjust radius as needed
+                            )
+                            : IconButton(
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: () {
+                                Navigator.pop(widget.contextin!);
+                              },
+                            ), // Default icon if no avatar
                   );
                 },
               ),
@@ -148,10 +158,7 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
               ),
             IconButton(
               icon: const Icon(Icons.message_outlined),
-              onPressed: () {
-                // Navigate to MainMessagePage
-                Navigator.pushNamed(context, RouteNames.mainMessage);
-              },
+              onPressed: () {},
             ),
           ],
         ),

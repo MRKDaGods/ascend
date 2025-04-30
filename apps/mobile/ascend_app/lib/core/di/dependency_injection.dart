@@ -7,13 +7,17 @@ import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../features/notifications/data/datasources/notification_local_datasource.dart';
+// Add these imports
+import '../../features/home/repositories/post_repository.dart';
+import '../../features/home/bloc/post_bloc/post_bloc.dart';
+import '../../features/home/bloc/saved_posts_bloc/saved_posts_bloc.dart';
+
 import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../services/push_notification_service.dart';
 import '../../core/network/network_info.dart';
 import '../../features/StartPages/Bloc/bloc/auth_bloc.dart';
-import '../../features/StartPages/Repository/auth_repository.dart';
+import '../../features/StartPages/repository/auth_repository.dart';
 import '../../features/StartPages/repository/ApiClient.dart';
 
 /// Service locator for dependency injection
@@ -27,12 +31,20 @@ class ServiceLocator {
   // Internal constructor
   ServiceLocator._internal();
 
+  // Flag to track initialization status
+  bool _isInitialized = false; // Add this flag
+
   // Navigator key for navigation from background
   final navigatorKey = GlobalKey<NavigatorState>();
   // Add Auth related properties
   late final AuthRepository authRepository;
   late final ApiClient apiClient;
   late final AuthBloc authBloc;
+
+  // Add Post related properties
+  late final PostRepository postRepository;
+  late final PostBloc postBloc;
+  late final SavedPostsBloc savedPostsBloc;
 
   // Services
   late final PushNotificationService pushNotificationService;
@@ -46,6 +58,12 @@ class ServiceLocator {
 
   /// Initialize all dependencies
   Future<void> init() async {
+    // Add guard check
+    if (_isInitialized) {
+      debugPrint('ServiceLocator already initialized. Skipping.');
+      return;
+    }
+
     // Core
     networkInfo = NetworkInfoImpl(InternetConnectionChecker.createInstance());
 
@@ -61,6 +79,18 @@ class ServiceLocator {
 
     // Initialize AuthBloc
     authBloc = AuthBloc(authRepository: authRepository, apiClient: apiClient);
+
+    // Initialize PostRepository
+    postRepository = PostRepository(client: client); // Pass the http client
+
+    // Initialize PostBloc
+    postBloc = PostBloc(postRepository); // Pass the repository
+
+    // Initialize SavedPostsBloc
+    savedPostsBloc = SavedPostsBloc(
+      postRepository: postRepository,
+      postBloc: postBloc, // Pass the PostBloc
+    );
 
     // Data sources
     final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
@@ -84,6 +114,7 @@ class ServiceLocator {
     // BLOCs
     notificationBloc = NotificationBloc(apiClient: apiClient);
     searchBloc = SearchBloc();
+
     // Initialize the MessagingBloc
     final messagingRepo = MessagingRepoistoryImpl(
       webSocketService: webSocketService,
@@ -108,12 +139,25 @@ class ServiceLocator {
     } catch (e) {
       debugPrint('Error dispatching SetActiveConversation: $e');
     }
+
+    // Set flag to true after successful initialization
+    _isInitialized = true;
+    debugPrint('ServiceLocator initialized successfully.');
   }
 
   /// Dispose of resources when app is closed
   void dispose() {
-    notificationBloc.close();
-    authBloc.close();
+    // Only close if initialized to avoid errors
+    if (_isInitialized) {
+      notificationBloc.close();
+      authBloc.close();
+      searchBloc.close(); // Also close SearchBloc if needed
+      postBloc.close(); // Close PostBloc
+      savedPostsBloc.close(); // Close SavedPostsBloc
+      // Reset flag if you intend for it to be re-initializable (less common)
+      // _isInitialized = false;
+      debugPrint('ServiceLocator resources disposed.');
+    }
   }
 }
 
