@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useMediaStore } from "./useMediaStore";
-import { createCompanyAnnouncementAPI } from "@/api/company";
+import { createCompanyAnnouncementAPI, deleteCompanyAnnouncementAPI } from "@/api/company";
 import { useCompanyStore } from "./useCreateCompanyStore";
 
 export interface MediaFile {
@@ -163,11 +163,26 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
 
     return true;
   },
-  deletePost: (postId: string) => {
-    set((state) => ({
-      posts: state.posts.filter((post) => post.id !== postId),
-    }));
+  deletePost: async (postId: string) => {
+    const companyId = useCompanyStore.getState().companyId;
+  
+    if (!companyId) {
+      console.error("❌ No company ID available for deletion.");
+      return;
+    }
+  
+    try {
+      await deleteCompanyAnnouncementAPI(companyId, Number(postId));
+      set((state) => ({
+        posts: state.posts.filter((post) => post.id !== postId),
+      }));
+      console.log(`✅ Post ${postId} deleted successfully.`);
+    } catch (error) {
+      console.error(`❌ Failed to delete post ${postId}:`, error);
+    }
   },
+  
+  
   createAnnouncementPost: async () => {
     const { draftPost, posts } = get();
     const companyId = useCompanyStore.getState().companyId;

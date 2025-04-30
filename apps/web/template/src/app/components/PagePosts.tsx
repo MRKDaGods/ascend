@@ -98,11 +98,12 @@ export default function PagePosts() {
     setSelectedPostId(null);
   };
 
-  const handleDeletePost = (postId: string) => {
-    deletePost(postId);
+  const handleDeletePost = async (postId: string) => {
+    await deletePost(postId);
     setAnchorEl(null);
     setSelectedPostId(null);
   };
+  
 
   return (
     <Grid container spacing={3}>
