@@ -16,6 +16,9 @@ class SavedPostsBloc extends Bloc<SavedPostsEvent, SavedPostsState> {
       : _postRepository = postRepository,
         _postBloc = postBloc, // Store PostBloc
         super(SavedPostsInitial()) {
+    // --- MODIFICATION START ---
+    debugPrint('✅ [SavedPostsBloc] Constructor called.');
+    // --- MODIFICATION END ---
     on<LoadSavedPosts>(_onLoadSavedPosts);
     on<LoadMoreSavedPosts>(_onLoadMoreSavedPosts);
     on<UnsavePostFromSaved>(_onUnsavePostFromSaved);
