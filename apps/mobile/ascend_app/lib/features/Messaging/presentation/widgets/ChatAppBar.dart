@@ -355,18 +355,6 @@ class _ChatAppBarState extends State<ChatAppBar>
           ),
           title: Row(
             children: [
-              // Online indicator
-              if (widget.isOnline)
-                Container(
-                  width: 10,
-                  height: 10,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-
               // User name and status
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -131,16 +131,4 @@ class ApiClient {
       throw Exception('Error: ${response.statusCode}, ${response.body}');
     }
   }
-
-  // get Socket Server URL
-  Future<String> getSocketServerUrl() async {
-    final headers = await _getHeaders();
-    final url = Uri.parse('$_baseUrl/messaging/socket-server-url');
-    final response = await http.get(url, headers: headers);
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body)['socketServerUrl'];
-    } else {
-      throw Exception('Failed to load socket server URL');
-    }
-  }
 }
