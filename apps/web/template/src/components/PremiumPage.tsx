@@ -44,7 +44,7 @@ const PremiumPage = () => {
   const [purchasedFeatures, setPurchasedFeatures] = useState<PurchasedFeature[]>([]);
   const [purchasedSubscriptions, setPurchasedSubscriptions] = useState<PurchasedSubscription[]>([]);
 
-  const token = 'Bearer YOUR_JWT_TOKEN'; // Replace with your actual token
+  const token = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsImlhdCI6MTc0NjAxNzk1MSwiZXhwIjoxNzQ4NjA5OTUxfQ.Ntd3QgB1sKXeRDABUxYHEAmnKyU8fJraasmkm51msAU'; // Replace with your actual token
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': token,
@@ -63,16 +63,20 @@ const PremiumPage = () => {
       .then(res => setSubscriptions(res.data.subscription_plans))
       .catch(console.error);
 
-    // Fetch purchased features
-    fetch('https://ascendx.tech/payment/payments/features/purchased', { headers })
-      .then(res => res.json())
-      .then(res => setPurchasedFeatures(res.data.features))
-      .catch(console.error);
+    
+// Fetch purchased features
+fetch('https://api.ascendx.tech/payment/payments/features/purchased', { headers })
+.then(res => res.json())
+.then((res) => {setPurchasedFeatures(res.data.features); ;
+  
+})
+.catch(err => console.log(err));
+
 
     // Fetch purchased subscriptions
-    fetch('https://ascendx.tech/payment/payments/subscriptions/purchased', { headers })
+    fetch('https://api.ascendx.tech/payment/payments/subscriptions/purchased', { headers })
       .then(res => res.json())
-      .then(res => setPurchasedSubscriptions(res.data.features))
+      .then(res => setPurchasedSubscriptions(res.data.subscriptions))
       .catch(console.error);
   }, []);
 
@@ -82,11 +86,24 @@ const PremiumPage = () => {
       headers,
       body: JSON.stringify({
         features: [{ price_id }],
-        relative_return_url: '/feed',
+        relative_return_url: 'feed',
       }),
     })
-      .then(res => res.ok && res.json())
-      .then(({ data: { url } }) => (window.location = url))
+      .then(res => res.json())
+      .then((body) => {
+        if(body.error){
+           alert(body.error)
+        }else{
+            window.location = body.data.url;
+        }
+        
+  
+        // Refresh purchased features after purchase
+        fetch('https://ascendx.tech/payment/payments/features/purchased', { headers })
+          .then(res => res.json())
+          .then(res => setPurchasedFeatures(res.data.features))
+          .catch(console.error);
+      })
       .catch(console.error);
   };
 
@@ -96,16 +113,24 @@ const PremiumPage = () => {
       headers,
       body: JSON.stringify({
         subscription_price_id,
-        relative_return_url: '/feed',
+        relative_return_url: 'feed',
       }),
     })
-      .then(res => res.ok && res.json())
-      .then(({ data: { url } }) => (window.location = url))
+      .then((res) => {
+          return res.json()
+      })
+      .then((body) => {
+          if(body.error){
+              alert(body.error);
+          }else{
+              window.location = body.data.url;
+          }
+      })
       .catch(console.error);
   };
 
   const cancelSubscription = (subscription_id: string) => {
-    fetch(`https://api.ascendx.tech/payment/subscriptions/${subscription_id}`, {
+    fetch(`https://api.ascendx.tech/payment/payments/subscriptions/${subscription_id}`, {
       method: 'DELETE',
       headers,
     })
@@ -113,9 +138,9 @@ const PremiumPage = () => {
       .then(data => {
         alert(data.message);
         // Refresh purchased subscriptions
-        fetch('https://ascendx.tech/payment/payments/subscriptions/purchased', { headers })
+        fetch('https://api.ascendx.tech/payment/payments/subscriptions/purchased', { headers })
           .then(res => res.json())
-          .then(res => setPurchasedSubscriptions(res.data.features));
+          .then(res => setPurchasedSubscriptions(res.data.subscriptions));
       })
       .catch(console.error);
   };

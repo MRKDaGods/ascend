@@ -51,7 +51,7 @@ const PremiumSurvey = () => {
   const router = useRouter();
   const totalSteps = 2;
 
-  const progress = ((step + 1) / (totalSteps + 1)) * 100; // Adjust progress calculation
+  const progress = ((step + 1) / (totalSteps + 1)) * 100;
 
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
@@ -62,22 +62,39 @@ const PremiumSurvey = () => {
       if (selectedOption === "I'd use Premium for my personal goals") {
         setSubOptions(personalGoalsOptions);
         setStep(1);
-        setSelectedOption(""); // reset for next step
+        setSelectedOption("");
       } else if (selectedOption === "I'd use Premium as part of my job") {
         setSubOptions(jobGoalsOptions);
         setStep(1);
-        setSelectedOption(""); // reset for next step
+        setSelectedOption("");
       } else if (selectedOption === "Other") {
         router.push("/premium");
       }
     } else if (step === 1) {
-      // After selecting a sub-option
-      router.push("/premium");
+      fetch("https://api.ascendx.tech/payment/payments/survey", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTMsImlhdCI6MTc0NTk1MzU4MiwiZXhwIjoxNzQ1OTk2NzgyfQ.h05vb40OC2MwPABUpR42XgRO-vuOQ1KU6qyJcu6aBeY",
+        },
+        body: JSON.stringify({
+          question: "What do you hope to achieve with Premium?",
+          answers: subOptions,
+          user_choice: subOptions.findIndex((opt) => opt === selectedOption),
+        }),
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+        })
+        .then(() => {
+          router.push("/premium");
+        })
+        .catch((e) => {
+          console.error(e);
+        });
     }
   };
-  
-  
-  
 
   const handleBack = () => {
     if (step > 0) {
@@ -101,7 +118,6 @@ const PremiumSurvey = () => {
 
   return (
     <Box sx={{ p: 4, backgroundColor: "#f3f2ef", minHeight: "100vh" }}>
-      {/* Top Info */}
       <Box sx={{ maxWidth: 900, mx: "auto", mb: 4 }}>
         <Typography variant="h6" gutterBottom>
           The average career is 42 years. Drive sales and boost your success with Sales Navigator.
@@ -139,7 +155,6 @@ const PremiumSurvey = () => {
         </Box>
       </Box>
 
-      {/* Main Survey Box */}
       <Box sx={{ maxWidth: 600, mx: "auto" }}>
         <Paper elevation={1} sx={{ p: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
