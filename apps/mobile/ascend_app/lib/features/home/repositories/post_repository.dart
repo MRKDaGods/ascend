@@ -4,9 +4,6 @@ import '../data/sample_posts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart'; // For debugPrint
-
-// Import for secure storage
-import 'package:ascend_app/core/constants/api_endpoints.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 // Base URL for the API - replace with your actual API base URL
@@ -242,6 +239,56 @@ class PostRepository {
       print('Exception in fetchFeed: $e');
       // Rethrow specific exception
       throw Exception('Error fetching posts: $e');
+    }
+  }
+
+  // Get User's Reaction for a Post via API
+  Future<String?> getPostReaction(String postId) async {
+    final String reactionUrl = '$baseUrl/post/$postId/reactions'; // Endpoint from user image
+    debugPrint('❓ Fetching user reaction for post $postId: URL=$reactionUrl');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        // Don't throw, just return null as we might not be logged in or allowed to see reactions
+        debugPrint('⚠️ Auth token null, cannot fetch reaction for post $postId.');
+        return null;
+      }
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      };
+
+      final response = await _client.get(Uri.parse(reactionUrl), headers: headers);
+
+      debugPrint('Get Reaction Response Status Code: ${response.statusCode}');
+      // debugPrint('Get Reaction Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        // *** Adjust parsing based on your actual API response structure ***
+        // Assuming response is like: {"data": {"user_reaction": "like"}} or {"data": {"user_reaction": null}}
+        final reactionData = responseData['data'];
+        if (reactionData is Map<String, dynamic>) {
+           final userReaction = reactionData['user_reaction'] as String?;
+           debugPrint('✅ Fetched reaction for post $postId: $userReaction');
+           return userReaction;
+        } else {
+           debugPrint('⚠️ Unexpected reaction data format for post $postId: $reactionData');
+           return null; // Return null if format is wrong
+        }
+      } else if (response.statusCode == 404) {
+         debugPrint('ℹ️ No specific reaction found for user on post $postId (404).');
+         return null; // Treat 404 as no reaction found
+      }
+      else {
+        debugPrint('❌ Failed to fetch reaction for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        return null; // Return null on other errors, don't block post loading
+      }
+    } catch (e) {
+      debugPrint('❌ Error in getPostReaction for post $postId: $e');
+      return null; // Return null on exception
     }
   }
 
@@ -600,6 +647,48 @@ class PostRepository {
       );
       // Rethrow the exception so the BLoC can handle it
       throw Exception('Error reporting post: $e');
+    }
+  }
+
+  // Fetch comments for a specific post
+  Future<List<Comment>> fetchComments(String postId, {int page = 1, int limit = 10}) async {
+    final token = await SecureStorageHelper.getAuthToken();
+    if (token == null) {
+      throw Exception('Authentication token not found.');
+    }
+
+    final url = Uri.parse('$baseUrl/post/$postId/comments?page=$page&limit=$limit');
+    debugPrint('🔄 [PostRepository] Fetching comments for post $postId from $url');
+
+    try {
+      final response = await _client.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      debugPrint('📄 [PostRepository] Comments Response Status: ${response.statusCode}');
+      // debugPrint('📄 [PostRepository] Comments Response Body: ${response.body}'); // Optional: Log body
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Assuming the API returns a list of comments directly or under a key like 'comments' or 'data'
+        final List<dynamic> commentListJson = data['comments'] ?? data['data'] ?? data;
+
+        final comments = commentListJson
+            .map((json) => Comment.fromJson(json as Map<String, dynamic>))
+            .toList();
+        debugPrint('✅ [PostRepository] Fetched ${comments.length} comments for post $postId.');
+        return comments;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to load comments for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to load comments: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error fetching comments for post $postId: $e');
+      throw Exception('Error fetching comments: $e');
     }
   }
 

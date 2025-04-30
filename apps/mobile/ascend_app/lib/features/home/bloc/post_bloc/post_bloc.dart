@@ -25,6 +25,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<UnsavePost>(_onUnsavePost);
     on<ReportPost>(_onReportPost);
     on<AddNewPost>(_onAddNewPost);
+on<LoadComments>(_onLoadComments); // Register the new handler
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -33,13 +34,27 @@ class PostBloc extends Bloc<PostEvent, PostState> {
       debugPrint('🔄 [PostBloc] Attempting to load initial posts (page 1)...');
       // Fetch page 1 explicitly
       final result = await _postRepository.fetchFeed(page: 1, limit: 15);
-      final posts = result['posts'] as List<PostModel>;
+      final rawPosts = result['posts'] as List<PostModel>; // Renamed to rawPosts
       final currentPage = result['currentPage'] as int;
       final hasMorePages = result['hasMorePages'] as bool;
 
-      debugPrint('✅ [PostBloc] Initial posts loaded: ${posts.length} posts. Page: $currentPage, HasMore: $hasMorePages');
+      debugPrint('✅ [PostBloc] Initial raw posts loaded: ${rawPosts.length}. Fetching reactions...');
+
+      // Fetch reactions for all posts in parallel
+      final reactionFutures = rawPosts.map((post) => _postRepository.getPostReaction(post.id)).toList();
+      final reactions = await Future.wait(reactionFutures);
+
+      // Update posts with fetched reactions
+      final postsWithReactions = <PostModel>[];
+      for (int i = 0; i < rawPosts.length; i++) {
+        // Assuming PostModel has copyWith and currentReaction field
+        postsWithReactions.add(rawPosts[i].copyWith(currentReaction: reactions[i]));
+      }
+      debugPrint('✅ [PostBloc] Reactions fetched. Updated ${postsWithReactions.length} posts.');
+
+
       emit(PostsLoaded(
-        posts,
+        postsWithReactions, // Emit posts with updated reactions
         freshLoad: true,
         currentPage: currentPage,
         hasMorePages: hasMorePages,
@@ -66,31 +81,43 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
         // Load more posts using the next page number
         final result = await _postRepository.getMorePosts(page: nextPage, limit: event.count);
-        final newPosts = result['posts'] as List<PostModel>;
+        final newRawPosts = result['posts'] as List<PostModel>; // Renamed to newRawPosts
         final currentPage = result['currentPage'] as int;
         final hasMorePages = result['hasMorePages'] as bool;
 
-        debugPrint('✅ [PostBloc] More posts loaded: ${newPosts.length} posts. Page: $currentPage, HasMore: $hasMorePages');
+        debugPrint('✅ [PostBloc] More raw posts loaded: ${newRawPosts.length}. Fetching reactions...');
 
-        // Combine with existing posts, ensuring no duplicates if API behaves unexpectedly
+        // Fetch reactions for the new posts in parallel
+        final reactionFutures = newRawPosts.map((post) => _postRepository.getPostReaction(post.id)).toList();
+        final reactions = await Future.wait(reactionFutures);
+
+        // Update new posts with fetched reactions
+        final newPostsWithReactions = <PostModel>[];
+        for (int i = 0; i < newRawPosts.length; i++) {
+          newPostsWithReactions.add(newRawPosts[i].copyWith(currentReaction: reactions[i]));
+        }
+        debugPrint('✅ [PostBloc] Reactions fetched for new posts. Updated ${newPostsWithReactions.length} posts.');
+
+
+        // Combine with existing posts, ensuring no duplicates
         final combinedPosts = List<PostModel>.from(currentState.posts);
         final existingPostIds = currentState.posts.map((p) => p.id).toSet();
-        for (var newPost in newPosts) {
+        for (var newPost in newPostsWithReactions) { // Use posts with reactions
           if (!existingPostIds.contains(newPost.id)) {
             combinedPosts.add(newPost);
-            existingPostIds.add(newPost.id); // Add new ID to set
+            existingPostIds.add(newPost.id);
           } else {
              debugPrint(' [PostBloc] Duplicate post ID found and skipped: ${newPost.id}');
           }
         }
 
-        // Add a 1-second delay before emitting the new state
-        await Future.delayed(const Duration(seconds: 1));
+        // Add a 1-second delay before emitting the new state (optional, kept from previous code)
+        // await Future.delayed(const Duration(seconds: 1)); // Removed delay for faster loading
 
         // Emit updated state
         emit(currentState.copyWith(
-          posts: combinedPosts,
-          freshLoad: false, // Not a fresh load
+          posts: combinedPosts, // Emit combined list with updated reactions
+          freshLoad: false,
           currentPage: currentPage,
           hasMorePages: hasMorePages,
         ));
@@ -268,7 +295,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   }
 
   Future<void> _onToggleCommentReaction(
-    ToggleCommentReaction event, 
+    ToggleCommentReaction event,
     Emitter<PostState> emit
   ) async {
     if (state is PostsLoaded) {
@@ -557,6 +584,73 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     } else {
       // If posts are not loaded yet, maybe trigger a load? Or ignore?
       debugPrint('⚠️ [PostBloc] AddNewPost received but state is not PostsLoaded. Ignoring.');
+    }
+  }
+
+  Future<void> _onLoadComments(LoadComments event, Emitter<PostState> emit) async {
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      try {
+        debugPrint('🔄 [PostBloc] Attempting to load comments for post ${event.postId} (page ${event.page})');
+        // Fetch comments from the repository
+        final comments = await _postRepository.fetchComments(
+          event.postId,
+          page: event.page,
+          limit: event.limit,
+        );
+        debugPrint('✅ [PostBloc] Fetched ${comments.length} comments for post ${event.postId}');
+
+        // Find the index of the post to update
+        final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
+        if (postIndex == -1) {
+          debugPrint('⚠️ [PostBloc] Post ${event.postId} not found in state while loading comments.');
+          return; // Post not found
+        }
+
+        final originalPost = currentState.posts[postIndex];
+
+        // Decide whether to replace or append comments based on page number
+        final List<Comment> updatedCommentList;
+        if (event.page == 1) {
+          // If it's the first page, replace existing comments
+          updatedCommentList = comments;
+          debugPrint('📝 [PostBloc] Replacing comments for post ${event.postId}. New count: ${updatedCommentList.length}');
+        } else {
+          // If it's a subsequent page, append new comments (avoiding duplicates)
+          final existingCommentIds = originalPost.comments.map((c) => c.id).toSet();
+          final uniqueNewComments = comments.where((c) => !existingCommentIds.contains(c.id)).toList();
+          updatedCommentList = [...originalPost.comments, ...uniqueNewComments];
+           debugPrint('📝 [PostBloc] Appending ${uniqueNewComments.length} new comments for post ${event.postId}. Total count: ${updatedCommentList.length}');
+        }
+
+        // Create the updated post
+        // Note: We update the comments list but might keep the original commentsCount from the post fetch,
+        // or update it based on the fetched list length. Let's update based on list length for consistency here.
+        final updatedPost = originalPost.copyWith(
+          comments: updatedCommentList,
+          commentsCount: updatedCommentList.length, // Update count based on fetched list
+        );
+
+        // Create a new list of posts with the updated post
+        final updatedPosts = List<PostModel>.from(currentState.posts);
+        updatedPosts[postIndex] = updatedPost;
+
+        debugPrint('➡️ [PostBloc] Emitting state with updated comments for post ${event.postId}.');
+        // Emit the new state, preserving pagination etc.
+        emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+        debugPrint('✅ [PostBloc] State emitted with updated comments for post ${event.postId}.');
+
+      } catch (e) {
+        debugPrint('❌ [PostBloc] Failed to load comments for post ${event.postId}: $e');
+        // Optionally emit an error state, but keep the existing posts
+        emit(PostsError("Failed to load comments: ${e.toString()}"));
+        await Future.delayed(const Duration(milliseconds: 50)); // Brief delay
+        emit(currentState); // Re-emit current state
+      }
+    } else {
+      debugPrint('⚠️ [PostBloc] LoadComments event received but state is not PostsLoaded.');
+      // Optionally load initial posts if state is not loaded?
+      // add(const LoadPosts());
     }
   }
 }

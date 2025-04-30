@@ -173,8 +173,6 @@ class _PostState extends State<Post> {
                     likesCount: post.likesCount,
                     commentsCount: post.commentsCount,
                     sharesCount: post.sharedCount,
-                    reactionIcon: _getReactionIcon(post),
-                    reactionColor: _getReactionColor(post),
                     postId: post.id, // Add this line
                   ),
                 ),
@@ -191,16 +189,18 @@ class _PostState extends State<Post> {
                       ReactionButton(
                         key: _reactionButtonKey,
                         manager: ReactionManager(
-                          isLiked: post.isLiked,
                           currentReaction: post.currentReaction,
+                          // Pass postId and context if manager needs to dispatch BLoC events directly
+                          // postId: post.id,
+                          // context: context,
                         ),
-                        onTap:
-                            () => context.read<PostBloc>().add(
-                              TogglePostReaction(
-                                post.id,
-                                post.isLiked ? null : 'like',
-                              ),
-                            ),
+                        onTap: () {
+                           // Determine next state based on current reaction
+                           final nextReaction = post.currentReaction == null ? 'like' : null;
+                           context.read<PostBloc>().add(
+                             TogglePostReaction(post.id, nextReaction),
+                           );
+                        },
                         onLongPressStart: () {
                           final RenderBox box =
                               _reactionButtonKey.currentContext!
