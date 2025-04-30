@@ -1,6 +1,7 @@
 // ✅ company.ts
+import API from "./api";
+
 import { MediaFile } from "@/app/stores/useCompanyPostStore";
-import axios from "axios";
 
 const API_BASE = "https://api.ascendx.tech";
 const COMPANY_BASE = `${API_BASE}/company`;
@@ -14,24 +15,21 @@ const getAuthToken = (): string => {
 };
 
 export const getCompanyProfileAPI = async (companyId: number) => {
-  const token = getAuthToken();
-  const response = await axios.get(`${COMPANY_BASE}/companies/${companyId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  
+  const response = await API.get(`${COMPANY_BASE}/companies/${companyId}`, {
   });
   return response.data.data.company;
 };
 
 export const createCompanyProfileAPI = async (payload: any) => {
-  const token = getAuthToken();
+  
   try {
-    const response = await axios.post(
+    const response = await API.post(
       `${COMPANY_BASE}/companies`,
       JSON.stringify(payload), // Ensure correct serialization
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+
           "Content-Type": "application/json",
         },
       }
@@ -45,7 +43,7 @@ export const createCompanyProfileAPI = async (payload: any) => {
 
 export const updateCompanyProfileAPI = async (companyId: number, payload: any) => {
   const token = getAuthToken();
-  const response = await axios.patch(
+  const response = await API.patch(
     `${COMPANY_BASE}/companies/${companyId}`,
     payload,
     {
@@ -60,7 +58,7 @@ export const updateCompanyProfileAPI = async (companyId: number, payload: any) =
 
 export const deleteCompanyProfileAPI = async (companyId: number) => {
   const token = getAuthToken();
-  const response = await axios.delete(`${COMPANY_BASE}/companies/${companyId}`, {
+  const response = await API.delete(`${COMPANY_BASE}/companies/${companyId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -70,7 +68,7 @@ export const deleteCompanyProfileAPI = async (companyId: number) => {
 
 export const getCompanyAnnouncementsAPI = async (companyId: number) => {
   const token = getAuthToken();
-  const response = await axios.get(`${COMPANY_BASE}/companies/${companyId}/announcements`, {
+  const response = await API.get(`${COMPANY_BASE}/companies/${companyId}/announcements`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -116,7 +114,7 @@ export const createCompanyAnnouncementAPI = async (
     };
   }
 
-  const response = await axios.post(
+  const response = await API.post(
     `${COMPANY_BASE}/companies/${companyId}/announcements`,  
     JSON.stringify(payload),
     {
@@ -129,3 +127,21 @@ export const createCompanyAnnouncementAPI = async (
 
   return response.data.data.announcement;
 };
+
+export const deleteCompanyAnnouncementAPI = async (
+  companyId: number,
+  announcementId: number
+) => {
+  const token = getAuthToken();
+  const response = await API.delete(
+    `${COMPANY_BASE}/companies/${companyId}/announcements/${announcementId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data.data.msg;
+};
+
+
