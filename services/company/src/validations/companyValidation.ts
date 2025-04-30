@@ -187,7 +187,7 @@ export const updateCompanyValidation: ValidationChain[] = [
 ];
 
 export const createAnnouncementValidation: ValidationChain[] = [
-    body("content").exists().withMessage("'content' is required").isString().trim()
+    body("content").optional().isString().trim()
         .notEmpty().withMessage("'content' cannot be empty"),
 
     body("announcement_video").optional().custom(videoFileValidation),
