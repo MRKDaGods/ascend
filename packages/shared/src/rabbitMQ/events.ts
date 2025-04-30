@@ -2,6 +2,7 @@ export enum Events {
   // =======================AUTH-EVENTS=======================
   AUTH_GET_ADMIN_RPC = "get_admin_rpc", // Admin get user RPC request
   AUTH_FCM_TOKEN_RPC = "fcm_token_rpc", // Auth FCM token RPC request
+  AUTH_USER_DELETED = "auth_user_deleted", // User deleted event
 
   // =======================USER-EVENTS=======================
   USER_CREATED = "user_created", // A new user has been created
@@ -26,6 +27,8 @@ export enum Events {
   GET_USER_USAGE_MESSAGING = "user_usage_messaging",
   GET_USER_USAGE_CONNECTIONS = "user_usage_connections",
   GET_USER_USAGE_JOB_APPLICATIONS = "user_usage_job_applications",
+  // ========================EMAIL-EVENTS=======================
+  EMAIL_SEND = "send_email", // Email send event
 }
 
 /**

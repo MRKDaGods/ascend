@@ -33,6 +33,10 @@ export namespace AuthFCMTokenPayload {
   }
 }
 
+export interface AuthUserDeletedPayload {
+  user_id: number;
+}
+
 // =======================USER-EVENTS=======================
 
 /**
@@ -249,4 +253,14 @@ export namespace GetPostByIdPayload {
   export interface Response {
     post: Post;
   }
+}
+
+// =======================EMAIL-EVENTS=======================
+/**
+ * Represents the payload for a send email request event
+ */
+export interface SendEmailPayload {
+  to: string;
+  subject: string;
+  content: string;
 }

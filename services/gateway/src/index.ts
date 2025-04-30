@@ -62,5 +62,7 @@ startSharedService("Gateway", undefined, {
 
     // Payment service
     app.use("/payment", conditionalProxy("http://payment:3014"));
+    // Email service
+    app.use("/email", conditionalProxy("http://email:3069"));
   },
 });

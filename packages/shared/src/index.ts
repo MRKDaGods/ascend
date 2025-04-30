@@ -7,4 +7,5 @@ export enum Services {
   POST = "post",
   COMPANY = "company",
   PAYMENT = "payment",
+  EMAIL = "email",
 }
