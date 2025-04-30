@@ -19,15 +19,18 @@ const SubmitReportDialog: React.FC<{ open: boolean; onClose: () => void; postId:
   open,
   onClose,
   postId,
-  reason
+  reason,
 }) => {
   const [receiveUpdates, setReceiveUpdates] = useState(false);
-  const { reportPostFromAPI } = usePostStore();
+  const { reportPostFromAPI, closeAllDialogs } = usePostStore();
 
   const handleSubmit = async () => {
     try {
-      await reportPostFromAPI(postId, reason, receiveUpdates ? "User wants updates" : "");
-      onClose(); // Close the dialog after submitting
+      await reportPostFromAPI(postId, "other" ,reason);
+      // closeAllDialogs();
+      onClose();
+
+      console.log("Report submitted:", { postId, reason, receiveUpdates });
     } catch (error) {
       console.error("Error submitting report:", error);
     }
@@ -57,7 +60,7 @@ const SubmitReportDialog: React.FC<{ open: boolean; onClose: () => void; postId:
         <Button onClick={onClose} color="primary">
           Back
         </Button>
-        <Button onClick={handleSubmit} color="primary">
+        <Button onClick={handleSubmit} color="primary" variant="contained">
           Submit Report
         </Button>
       </DialogActions>

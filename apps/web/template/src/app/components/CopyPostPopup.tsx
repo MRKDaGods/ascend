@@ -15,11 +15,6 @@ const CopyPostPopup = () => {
     setCopyPostPopupOpen(false);
   };
 
-  const handleViewPost = () => {
-    setCopyPostPopupOpen(false);
-    router.push("/feed/copypost");
-  };
-
   return (
     <Snackbar
       open={copyPostPopupOpen}
@@ -31,13 +26,6 @@ const CopyPostPopup = () => {
         sx={{ display: "flex", alignItems: "center", gap: 1 }}
         action={
           <>
-            <Link
-              underline="hover"
-              onClick={handleViewPost}
-              sx={{ cursor: "pointer", color: "#0a66c2", fontWeight: "bold" }}
-            >
-              View post
-            </Link>
             <IconButton onClick={handleClose} size="small" color="inherit">
               <CloseIcon fontSize="small" />
             </IconButton>

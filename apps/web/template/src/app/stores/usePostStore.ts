@@ -188,6 +188,7 @@ interface PostStoreState {
 
   // Report Dialog
   isReportDialogOpen: boolean;
+  reportThisPostDialogOpen: boolean; // Tracks the state of the "Report This Post" dialog
 
   openReportDialog: () => void;
   closeReportDialog: () => void;
@@ -199,7 +200,14 @@ interface PostStoreState {
 
   openSubmitReportDialog: (postId: number, reason: string) => void;
   closeSubmitReportDialog: () => void;
-}
+
+  // Function to delete a post
+  deletePost: (postId: number) => void;
+
+  // Function to close all dialogs
+  closeAllDialogs: () => void;
+
+  }
 
 export const usePostStore = create<PostStoreState>()(
   persist(
@@ -654,6 +662,7 @@ export const usePostStore = create<PostStoreState>()(
       isSubmitReportDialogOpen: false,
       reportDialogPostId: null,
       selectedReportReason: null,
+      reportThisPostDialogOpen: false,
 
       openSubmitReportDialog: (postId: number, reason: string) => set({
         isSubmitReportDialogOpen: true,
@@ -674,7 +683,24 @@ export const usePostStore = create<PostStoreState>()(
 
       setReportDialogReason: (reason: string) => set({ selectedReportReason: reason }),
 
+       // Function to delete a post
+       deletePost: (postId: number) => {
+        set((state) => ({
+          posts: state.posts.filter((post) => post.id !== postId),
+        }));
+      },
+
+      // Function to close all dialogs
+      closeAllDialogs: () => {
+        set({
+          isFeedbackDialogOpen: false,
+          isReportDialogOpen: false,
+          isSubmitReportDialogOpen: false,
+          reportThisPostDialogOpen: false, 
+        });
+      },
     }),
+
     {
       name: "post-storage",
       storage: createJSONStorage(() => localStorage),

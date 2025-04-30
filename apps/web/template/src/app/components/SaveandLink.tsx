@@ -38,33 +38,40 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
   } = usePostStore();
 
   const [reportThisPostDialogOpen, setReportThisPostDialogOpen] = useState(false);
+  const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
 
   const isSaved = savedPosts.includes(post.id);
 
+  // Handle the copy link to post
   const handleCopyLink = () => {
-    const link = `${window.location.origin}/copypost?id=${post.id}`;
+    const link = `${window.location.origin}/post/${post.id}`; // Adjust link format if needed
     navigator.clipboard.writeText(link);
-    setCopyPostPopupOpen(true);
+    setCopyPostPopupOpen(true); // Show the feedback popup that the link was copied
     setMenuAnchorEl(null);
   };
 
+  // Handle opening report post dialog
   const handleReportPost = () => {
-    setReportThisPostDialogOpen(true); // Open the ReportThisPostDialog
+    setReportThisPostDialogOpen(true);
     setMenuAnchorEl(null);
   };
 
+  // Handle selecting a reason for reporting the post
   const handleReasonSelected = (reason: string) => {
-    openSubmitReportDialog(post.id, reason); // Open the Submit Report Dialog with the selected reason and post ID
-    closeReportDialog(); // Close the Report Policy Dialog
+    setSelectedReportReason(reason);
+    openSubmitReportDialog(post.id, reason); // Open the submit report dialog
+    closeReportDialog();
   };
 
+  // Handle closing the submit report dialog
   const handleSubmitReportClose = () => {
-    closeSubmitReportDialog(); // Close the Submit Report Dialog
+    closeSubmitReportDialog();
   };
 
+  // Handle feedback click
   const handleFeedbackClick = () => {
-    openFeedbackDialog(post.id); // Open the Feedback Dialog
-    setReportThisPostDialogOpen(false); // Close the ReportThisPostDialog
+    openFeedbackDialog(post.id);
+    setReportThisPostDialogOpen(false); // Close report dialog if feedback is clicked
   };
 
   return (
@@ -121,11 +128,11 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
         open={reportThisPostDialogOpen}
         onClose={() => setReportThisPostDialogOpen(false)}
         post={post}
-        onFeedbackClick={handleFeedbackClick} // Pass the feedback handler
+        onFeedbackClick={handleFeedbackClick} // Pass feedback handler
         onReportContentClick={() => openReportDialog()} // Open ReportPolicyDialog
       />
 
-      {/* Report Policy Dialog */}
+      {/* Report Policy Dialog (handles reason selection) */}
       <ReportPolicyDialogWrapper
         postId={post.id}
         onReasonSelected={handleReasonSelected}
