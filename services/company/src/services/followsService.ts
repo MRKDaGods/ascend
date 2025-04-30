@@ -13,7 +13,7 @@ export const findFollowersOfCompany = async (company_id : number, limit : number
 
 export const findNumberOfFollowersOfCompany = async (company_id : number) : Promise<number> => {
     const result = await db.query("SELECT COUNT(*) FROM company_service.follows WHERE company_id = $1", [company_id]);
-    return result.rows[0];
+    return result.rows.length > 0 ? parseInt(result.rows[0].count) : 0;
 }
 
 export const findCompaniesFollowedByUser = async (user_id : number, limit : number = -1, offset : number = 0) : Promise<Array<Follows>> => {

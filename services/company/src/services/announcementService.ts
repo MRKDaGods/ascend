@@ -121,7 +121,7 @@ export const findAnnouncementsCreatedBetween = async (date1: Date,  date2: Date,
 
 export const findNumberOfAnnouncements = async (company_id : number) : Promise<Number> =>{
   const result = await db.query("SELECT COUNT(*) FROM company_service.announcement WHERE company_id = $1", [company_id]);
-  return parseInt(result.rows[0]);
+  return result.rows.length > 0 ? parseInt(result.rows[0].count) : 0;
 }
 
 export const deleteAnnouncement = async (id : number, image_ids : Array<number> , video_id : number|undefined) : Promise<boolean> => {
