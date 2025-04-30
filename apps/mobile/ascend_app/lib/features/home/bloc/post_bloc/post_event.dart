@@ -188,3 +188,13 @@ class AddNewPost extends PostEvent {
   @override
   List<Object?> get props => [newPost];
 }
+
+// Event to load comments for a specific post
+class LoadComments extends PostEvent {
+  final String postId;
+
+  const LoadComments(this.postId);
+
+  @override
+  List<Object?> get props => [postId];
+}

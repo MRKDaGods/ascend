@@ -4,9 +4,6 @@ import '../data/sample_posts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart'; // For debugPrint
-
-// Import for secure storage
-import 'package:ascend_app/core/constants/api_endpoints.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 // Base URL for the API - replace with your actual API base URL
@@ -26,6 +23,7 @@ class PostRepository {
     // Keep the sponsored posts initialization
     _sponsoredPosts['sponsored_1'] = PostModel(
       id: 'sponsored_1',
+      userId: 'sponsor_user_1', // Add userId
       title: 'Sponsored: Premium Subscription',
       description: 'Get 50% off our premium plan today!',
       ownerName: 'Ascend Premium',
@@ -42,6 +40,7 @@ class PostRepository {
     // Keep other sponsored posts
     _sponsoredPosts['sponsored_2'] = PostModel(
       id: 'sponsored_2',
+      userId: 'sponsor_user_2', // Add userId
       title: 'Sponsored: Learn New Skills',
       description: 'Join our workshop to learn the latest tech skills!',
       ownerName: 'Tech Academy',
@@ -243,6 +242,204 @@ class PostRepository {
     }
   }
 
+  // Fetch Saved Posts
+  Future<Map<String, dynamic>> fetchSavedPosts({int page = 1, int limit = 15}) async {
+    final uri = Uri.parse('$baseUrl/post/saved?page=$page&limit=$limit');
+    debugPrint('🔄 [PostRepository] Fetching saved posts: $uri');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot fetch saved posts.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      };
+
+      final response = await _client.get(uri, headers: headers);
+      debugPrint('✅ [PostRepository] Saved Posts API response status: ${response.statusCode}');
+      // Limit printing large bodies
+      debugPrint(
+        '📄 [PostRepository] Saved Posts API response body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body}',
+      );
+
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        final List<dynamic> apiPosts = jsonData['data'] ?? [];
+        final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
+        final int totalPosts = pagination['total'] ?? 0;
+        final int currentPage = pagination['page'] ?? page;
+        final int currentLimit = pagination['limit'] ?? limit;
+        // Calculate hasMorePages based on total, current page, and limit
+        final bool hasMorePages = (currentPage * currentLimit) < totalPosts;
+
+        debugPrint(
+          '📄 [PostRepository] Saved Posts Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages',
+        );
+
+        if (apiPosts.isEmpty) {
+           debugPrint('ℹ️ [PostRepository] API returned empty saved posts array for page $page');
+          return {
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // No more pages if current page is empty
+          };
+        }
+
+        try {
+          // Assuming saved posts might not have reaction info, fetch it separately if needed
+          // For simplicity, we'll use the standard conversion first.
+          final posts = PostModel.fromApiResponseList(apiPosts);
+          debugPrint(
+            '✅ [PostRepository] Converted ${posts.length} saved API posts to PostModel objects',
+          );
+          return {
+            'posts': posts,
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': hasMorePages,
+          };
+        } catch (e) {
+          debugPrint('❌ [PostRepository] Error converting saved API posts: $e');
+          // Return empty but with pagination info
+           return {
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // Assume false on conversion error
+          };
+        }
+      } else {
+        debugPrint(
+          '❌ [PostRepository] Failed to load saved posts. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception('Failed to load saved posts: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception fetching saved posts: $e');
+      throw Exception('Error fetching saved posts: $e');
+    }
+  }
+
+  // Get User's Reaction for a Post via API
+  Future<String?> getPostReaction(String postId) async {
+    final String reactionUrl = '$baseUrl/post/$postId/reactions'; // Endpoint from user image
+    debugPrint('❓ Fetching user reaction for post $postId: URL=$reactionUrl');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        // Don't throw, just return null as we might not be logged in or allowed to see reactions
+        debugPrint('⚠️ Auth token null, cannot fetch reaction for post $postId.');
+        return null;
+      }
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      };
+
+      final response = await _client.get(Uri.parse(reactionUrl), headers: headers);
+
+      debugPrint('Get Reaction Response Status Code: ${response.statusCode}');
+      // debugPrint('Get Reaction Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        // *** Adjust parsing based on your actual API response structure ***
+        // Assuming response is like: {"data": {"user_reaction": "like"}} or {"data": {"user_reaction": null}}
+        final reactionData = responseData['data'];
+        if (reactionData is Map<String, dynamic>) {
+           final userReaction = reactionData['user_reaction'] as String?;
+           debugPrint('✅ Fetched reaction for post $postId: $userReaction');
+           return userReaction;
+        } else {
+           debugPrint('⚠️ Unexpected reaction data format for post $postId: $reactionData');
+           return null; // Return null if format is wrong
+        }
+      } else if (response.statusCode == 404) {
+         debugPrint('ℹ️ No specific reaction found for user on post $postId (404).');
+         return null; // Treat 404 as no reaction found
+      }
+      else {
+        debugPrint('❌ Failed to fetch reaction for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        return null; // Return null on other errors, don't block post loading
+      }
+    } catch (e) {
+      debugPrint('❌ Error in getPostReaction for post $postId: $e');
+      return null; // Return null on exception
+    }
+  }
+
+  // Toggle Post Reaction via API
+  Future<bool> togglePostReaction(String postId, String? reactionType) async {
+    // Use the correct endpoint provided by the user
+    final String reactionUrl = '$baseUrl/post/$postId/react';
+    debugPrint('🔄 Toggling reaction for post $postId: Type=$reactionType, URL=$reactionUrl');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        throw Exception('Authentication token not found.');
+      }
+
+      http.Response response;
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json', // Needed even for empty body sometimes
+      };
+
+      // If reactionType is provided, send it in the body
+      if (reactionType != null) {
+         debugPrint('  Sending POST with body: {"type": "$reactionType"}');
+         response = await _client.post(
+           Uri.parse(reactionUrl),
+           headers: headers,
+           body: jsonEncode({'type': reactionType}),
+         );
+      } else {
+        // If reactionType is null, attempt to remove the reaction.
+        // Assuming POST without body or DELETE might work. Let's try POST without body first.
+        debugPrint('  Sending POST without body (attempting removal)');
+        response = await _client.post(
+          Uri.parse(reactionUrl),
+          headers: headers,
+           // body: jsonEncode({}), // Or send empty JSON object? Test required.
+        );
+        // Alternative: Try DELETE if POST without body fails
+        // debugPrint(' Sending DELETE request for removal');
+        // response = await _client.delete(Uri.parse(reactionUrl), headers: headers);
+      }
+
+
+      debugPrint('Toggle Reaction Response Status Code: ${response.statusCode}');
+      // debugPrint('Toggle Reaction Response Body: ${response.body}');
+
+      // Check for successful status codes (200 OK, 201 Created, potentially 204 No Content for removal)
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+         // Handle empty body for 204 No Content
+         final responseBody = response.body;
+         final message = (responseBody.isNotEmpty && response.statusCode != 204)
+             ? (jsonDecode(responseBody)['data']?['message'] ?? 'Reaction updated')
+             : 'Reaction updated/removed'; // Default message for success/204
+         debugPrint('✅ Reaction toggled successfully for post $postId. Message: $message');
+         return true;
+      } else {
+        debugPrint('❌ Failed to toggle reaction for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to toggle reaction: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error in togglePostReaction: $e');
+      rethrow;
+    }
+  }
+
   /// Adds a comment to a specific post via the API.
   Future<Comment> addComment(
     String postId,
@@ -361,12 +558,12 @@ class PostRepository {
     }
   }
 
-  /// Unsaves a post via the API.
+  /// Unsaves a post via the API. (Now uses POST to toggle)
   Future<bool> unsavePost(String postId) async {
     final url = Uri.parse(
       '$baseUrl/post/$postId/save',
-    ); // Endpoint for unsaving (DELETE)
-    debugPrint('🗑️ [PostRepository] Unsaving post $postId at $url');
+    ); // Endpoint for saving/unsaving (using POST)
+    debugPrint('🔄 [PostRepository] Toggling save state (unsave) for post $postId at $url using POST');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
@@ -377,25 +574,34 @@ class PostRepository {
         throw Exception('Authentication token not found.');
       }
 
-      final response = await _client.delete(
-        // Use DELETE method
+      // --- MODIFICATION START ---
+      // Use POST method instead of DELETE
+      final response = await _client.post(
         url,
-        headers: {'Authorization': 'Bearer $authToken'},
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json; charset=UTF-8', // Keep content type if needed by API
+        },
+        // Add body if the API requires it for unsaving via POST, otherwise remove/empty it
+        // body: jsonEncode({}), // Example: Empty body
       );
+      // --- MODIFICATION END ---
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        // 204 No Content is also common for DELETE success
-        debugPrint('✅ [PostRepository] Post $postId unsaved successfully.');
+      // --- MODIFICATION START ---
+      // Adjust expected success codes if needed (200/201 are common for POST toggle)
+      if (response.statusCode == 200 || response.statusCode == 201) {
+      // --- MODIFICATION END ---
+        debugPrint('✅ [PostRepository] Post $postId unsaved successfully (toggled via POST).');
         return true;
       } else {
         debugPrint(
-          '❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}',
+          '❌ [PostRepository] Failed to unsave post $postId via POST. Status: ${response.statusCode}, Body: ${response.body}',
         );
         throw Exception('Failed to unsave post: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint(
-        '❌ [PostRepository] Exception while unsaving post $postId: $e',
+        '❌ [PostRepository] Exception while unsaving post $postId via POST: $e',
       );
       throw Exception('Error unsaving post: $e');
     }
@@ -534,6 +740,48 @@ class PostRepository {
       );
       // Rethrow the exception so the BLoC can handle it
       throw Exception('Error reporting post: $e');
+    }
+  }
+
+  // Fetch comments for a specific post
+  Future<List<Comment>> fetchComments(String postId, {int page = 1, int limit = 10}) async {
+    final token = await SecureStorageHelper.getAuthToken();
+    if (token == null) {
+      throw Exception('Authentication token not found.');
+    }
+
+    final url = Uri.parse('$baseUrl/post/$postId/comments?page=$page&limit=$limit');
+    debugPrint('🔄 [PostRepository] Fetching comments for post $postId from $url');
+
+    try {
+      final response = await _client.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      debugPrint('📄 [PostRepository] Comments Response Status: ${response.statusCode}');
+      // debugPrint('📄 [PostRepository] Comments Response Body: ${response.body}'); // Optional: Log body
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Assuming the API returns a list of comments directly or under a key like 'comments' or 'data'
+        final List<dynamic> commentListJson = data['comments'] ?? data['data'] ?? data;
+
+        final comments = commentListJson
+            .map((json) => Comment.fromJson(json as Map<String, dynamic>))
+            .toList();
+        debugPrint('✅ [PostRepository] Fetched ${comments.length} comments for post $postId.');
+        return comments;
+      } else {
+        debugPrint('❌ [PostRepository] Failed to load comments for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to load comments: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error fetching comments for post $postId: $e');
+      throw Exception('Error fetching comments: $e');
     }
   }
 

@@ -1,10 +1,12 @@
 import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
 import 'package:flutter/material.dart';
-import '../../features/home/presentation/pages/create_post_page.dart'; // Import the new page
+import '../../features/home/presentation/pages/create_post_page.dart'; 
 import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/help_center_page.dart';
@@ -12,6 +14,7 @@ import 'package:ascend_app/features/notifications/presentation/pages/notificatio
 import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
 import 'package:ascend_app/features/startPages/Presentation/Pages/SignIn.dart';
+import 'package:ascend_app/features/home/presentation/pages/saved_posts_page.dart'; 
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -23,6 +26,9 @@ class RouteNames {
   static const String welcome = '/welcome';
   static const String signIn = '/signIn';
   static const String forgetPassword = '/forgotPasswordPage';
+  static const String verficationPasswordCodePage =
+      '/verficationPasswordCodePage';
+  static const String resetPasswordPage = '/resetPasswordPage';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
@@ -36,26 +42,41 @@ class RouteNames {
   static const String helpCenter = '/helpCenter';
   static const String privacyPolicy = '/privacyPolicy';
   static const String signOut = '/signOut';
+  static const String savedPosts = '/saved_posts_page';
   // Add more routes as needed
 }
 
 /// Class that defines all application routes
 class AppRoutes {
-  // Private constructor to prevent instantiation
   AppRoutes._();
 
   /// The initial route when the app starts
-  static const String initialRoute = '/';
+  static const String initialRoute = '/'; // Keep this as '/'
 
   /// Route definitions for MaterialApp
   static Map<String, WidgetBuilder> getRoutes() {
     return {
+      // --- Add the entry for the initial route '/' ---
+      initialRoute:
+          (context) => const SplashScreen(), // Point '/' to SplashScreen
+      // --- End ---
       RouteNames.notifications: (context) => const NotificationsPage(),
-      RouteNames.welcome: (context) => const Welcome(),
+      RouteNames.welcome:
+          (context) =>
+              const Welcome(), // Keep this for navigation from SplashScreen
       RouteNames.signIn: (context) => const SignInPage(),
-      RouteNames.forgetPassword: (context) => forgotPasswordPage(),
-      RouteNames.createPost:
-          (context) => const CreatePostPage(), // Add the new route
+      RouteNames.forgetPassword: (context) => ForgotPasswordPage(),
+      RouteNames.verficationPasswordCodePage:
+          (context) => VerificationPasswordCodePage(),
+      RouteNames.resetPasswordPage: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        final token = args?['token'] ?? ''; // Extract the token from arguments
+        return ResetPasswordPage(
+          token: token,
+        ); // Pass the token to ResetPasswordPage
+      },
+      RouteNames.createPost: (context) => const CreatePostPage(),
       RouteNames.settings: (context) => const SettingsMainPage(),
       RouteNames.accountPreferences:
           (context) => const AccountPreferencesPage(),
@@ -66,6 +87,7 @@ class AppRoutes {
       RouteNames.helpCenter: (context) => const HelpCenterPage(),
       RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
       RouteNames.signOut: (context) => const SignOutPage(),
+      RouteNames.savedPosts: (context) => const SavedPostsPage(),
       // Add more routes as needed
     };
   }
