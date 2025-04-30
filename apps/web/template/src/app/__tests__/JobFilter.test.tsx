@@ -90,8 +90,8 @@ describe('JobFilter Component', () => {
     expect(screen.getByLabelText('Minimum Salary')).toBeInTheDocument();
     expect(screen.getByLabelText('Maximum Salary')).toBeInTheDocument();
     
-    // Check experience level checkboxes
-    expect(screen.getByText('Experience Level')).toBeInTheDocument();
+    // Check experience level section - updated to match new text
+    expect(screen.getByText('Experience:')).toBeInTheDocument();
     expect(screen.getByLabelText('Internship')).toBeInTheDocument();
     expect(screen.getByLabelText('Entry')).toBeInTheDocument();
     expect(screen.getByLabelText('Associate')).toBeInTheDocument();

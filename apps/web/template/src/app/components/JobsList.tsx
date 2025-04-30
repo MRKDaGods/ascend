@@ -62,12 +62,28 @@ const JobList = () => {
 
   const handleNavigate = (job: JobType) => {
     const params = new URLSearchParams({
+      id: job.job_id.toString(),
       title: job.title,
       company: job.company_name,
       location: job.location,
       type: job.type,
-      id: job.job_id.toString(),
+      description: job.description,
+      industry: job.industry || '',
+      experience_level: job.experience_level || '',
+      workplace_type: job.workplace_type || '',
+      ...(job.salary_min_range && { salary_min_range: job.salary_min_range.toString() }),
+      ...(job.salary_max_range && { salary_max_range: job.salary_max_range.toString() })
     });
+    
+    // If you have about and requirements properties, add them too
+    if (job.about) {
+      params.append('about', job.about);
+    }
+    
+    if (job.requirements && Array.isArray(job.requirements)) {
+      params.append('requirements', job.requirements.join(','));
+    }
+    
     router.push(`/apply?${params.toString()}`);
   };
 

@@ -137,9 +137,20 @@ const JobForm = () => {
               label="Company"
               fullWidth
               value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
+              disabled={true} // Add this line to disable editing
               margin="normal"
               data-testid="job-form-company"
+              // Optional styling to make it look less "disabled"
+              sx={{
+                "& .MuiInputBase-input.Mui-disabled": {
+                  WebkitTextFillColor: "#000000",
+                  opacity: 0.8,
+                },
+                "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(0, 0, 0, 0.23)", // Keep normal border color
+                }
+              }}
+              helperText="Company name cannot be edited" // Optional explanation
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -236,13 +247,22 @@ const JobForm = () => {
           <TextField
             label="Description"
             multiline
-            rows={6}
+            rows={10}  // Increased from 6 to 10 rows
             fullWidth
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add your responsibilities, requirements, and details..."
             margin="normal"
             data-testid="job-form-description"
+            sx={{
+              '& .MuiInputBase-root': {
+                minHeight: '250px', 
+              },
+              '& .MuiOutlinedInput-input': {
+                fontSize: '1rem',    
+                lineHeight: '1.6', 
+              }
+            }}
           />
           <Typography variant="caption" color="text.secondary">{description.length}/10,000</Typography>
         </Box>
@@ -251,7 +271,7 @@ const JobForm = () => {
           <Button 
             variant="contained" 
             color="primary" 
-            onClick={postJob}
+            onClick={() => setOpenModal(true)} 
             data-testid="job-form-post-button"
           >
             Post

@@ -73,7 +73,9 @@ describe('JobItem Component', () => {
     
     // Check if router.push was called with the correct URL
     expect(mockPush).toHaveBeenCalledTimes(1);
-    const expectedUrl = `/apply?id=123&title=Software+Engineer&company=Tech+Corp&location=New+York&type=Full-time&description=This+is+a+job+description+for+a+software+engineer+position.&experienceLevel=Mid-Level&salaryRange=%2480%2C000+-+%24100%2C000`;
+    
+    // Updated to match the new URL structure with industry, experience_level, and workplace_type
+    const expectedUrl = `/apply?id=123&title=Software+Engineer&company=Tech+Corp&location=New+York&type=Full-time&description=This+is+a+job+description+for+a+software+engineer+position.&industry=&experience_level=Mid-Level&workplace_type=`;
     expect(mockPush).toHaveBeenCalledWith(expectedUrl);
   });
   

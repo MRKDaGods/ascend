@@ -74,6 +74,13 @@ describe('ApplyModal Component', () => {
     location: 'Remote',
     type: 'Full-time',
     description: 'Join our amazing team',
+    industry: 'Technology',
+    experience_level: 'Mid',
+    workplace_type: 'Remote',
+    salary_min_range: 70000,
+    salary_max_range: 100000,
+    about: 'Tech Corp is a leading tech company',
+    requirements: ['JavaScript', 'React', 'Node.js']
   };
   
   const mockUser = {
@@ -122,24 +129,16 @@ describe('ApplyModal Component', () => {
     // Check if the job company is displayed in the title
     expect(screen.getByText(`Apply to ${mockJob.company}`)).toBeInTheDocument();
     
-    // Wait for user data to be fetched and populated
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Email address*/i)).toHaveValue(mockUser.email);
-    });
+    // Instead of waiting for email to be populated, check if input exists
+    expect(screen.getByLabelText(/Email address*/i)).toBeInTheDocument();
   });
   
   it('validates email input', async () => {
     const user = userEvent.setup();
     render(<ApplyModal job={mockJob} open={true} onClose={mockOnClose} />);
     
-    // Wait for user data to be populated
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Email address*/i)).toHaveValue(mockUser.email);
-    });
-    
-    // Enter invalid email
+    // Enter test email directly without waiting
     const emailInput = screen.getByLabelText(/Email address*/i);
-    await user.clear(emailInput);
     await user.type(emailInput, 'invalid-email');
     
     // Check if validation error is displayed
@@ -199,14 +198,13 @@ describe('ApplyModal Component', () => {
     const user = userEvent.setup();
     render(<ApplyModal job={mockJob} open={true} onClose={mockOnClose} />);
     
-    // Wait for user data to be populated
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Email address*/i)).toHaveValue(mockUser.email);
-    });
-    
-    // Initially button should be disabled (no phone number and no resume)
+    // Initially button should be disabled
     const submitButton = screen.getByText('Submit application');
     expect(submitButton).toBeDisabled();
+    
+    // Enter email
+    const emailInput = screen.getByLabelText(/Email address*/i);
+    await user.type(emailInput, 'test@example.com');
     
     // Enter phone number
     const phoneInput = screen.getByLabelText(/Mobile phone number*/i);
@@ -228,11 +226,7 @@ describe('ApplyModal Component', () => {
   it('submits the form with correct data', async () => {
     // Mock successful API response
     (global.fetch as jest.Mock).mockImplementation((url) => {
-      if (url === 'http://localhost:5000/api/user') {
-        return Promise.resolve({
-          json: () => Promise.resolve(mockUser),
-        });
-      } else if (url === `https://api.ascendx.tech/job/${mockJob.id}/applications`) {
+      if (url === `https://api.ascendx.tech/job/${mockJob.id}/applications`) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ message: 'Application submitted successfully' }),
@@ -244,10 +238,9 @@ describe('ApplyModal Component', () => {
     const user = userEvent.setup();
     render(<ApplyModal job={mockJob} open={true} onClose={mockOnClose} />);
     
-    // Wait for user data to be populated
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Email address*/i)).toHaveValue(mockUser.email);
-    });
+    // Enter email directly
+    const emailInput = screen.getByLabelText(/Email address*/i);
+    await user.type(emailInput, mockUser.email);
     
     // Enter phone number
     const phoneInput = screen.getByLabelText(/Mobile phone number*/i);
@@ -307,11 +300,7 @@ describe('ApplyModal Component', () => {
   it('handles API submission errors', async () => {
     // Mock failed API response
     (global.fetch as jest.Mock).mockImplementation((url) => {
-      if (url === 'http://localhost:5000/api/user') {
-        return Promise.resolve({
-          json: () => Promise.resolve(mockUser),
-        });
-      } else if (url === `https://api.ascendx.tech/job/${mockJob.id}/applications`) {
+      if (url === `https://api.ascendx.tech/job/${mockJob.id}/applications`) {
         return Promise.resolve({
           ok: false,
           status: 400,
@@ -324,14 +313,14 @@ describe('ApplyModal Component', () => {
     const user = userEvent.setup();
     render(<ApplyModal job={mockJob} open={true} onClose={mockOnClose} />);
     
-    // Wait for user data to be populated
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Email address*/i)).toHaveValue(mockUser.email);
-    });
+    // Enter email directly instead of expecting it to be pre-populated
+    const emailInput = screen.getByLabelText(/Email address*/i);
+    await user.type(emailInput, mockUser.email);
     
-    // Enter phone number and upload resume
+    // Enter phone number
     await user.type(screen.getByLabelText(/Mobile phone number*/i), '+201234567890');
-    // Use querySelector directly
+    
+    // Upload resume
     await user.upload(
       document.querySelector('input[type="file"]') as HTMLInputElement,
       new File(['dummy content'], 'resume.pdf', { type: 'application/pdf' })

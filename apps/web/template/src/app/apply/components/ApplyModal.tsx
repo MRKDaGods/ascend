@@ -33,19 +33,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
   const router = useRouter();
   const applyJob = useJobStore((state) => state.applyJob);
 
-  useEffect(() => {
-    if (open) {
-      fetch('http://localhost:5000/api/user')
-        .then((res) => res.json())
-        .then((data) => {
-          setUserData((prev) => ({
-            ...prev,
-            email: data.email || '',
-            fullPhone: '',
-          }));
-        });
-    }
-  }, [open]);
+
 
   useEffect(() => {
     return () => {
@@ -90,7 +78,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
         body: formData,
         headers: {
           'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
-        'x-no-parse-body': '1'
+          'x-no-parse-body': '1'
         },
       });
 
@@ -174,7 +162,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
               <Button
                 variant="outlined"
                 startIcon={<UploadCloud size={18} />}
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, borderRadius: '20px' }}
                 onClick={() => fileInputRef.current?.click()}
               >
                 Upload resume
@@ -184,6 +172,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
                 accept=".pdf,.doc,.docx"
                 onChange={handleFileUpload}
                 style={{ display: 'none' }}
+                ref={fileInputRef}  // Add the ref here
                 id="resume-file"
                 data-testid="apply-resume-upload"
               />
@@ -197,6 +186,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           variant="outlined" 
           onClick={onClose}
           data-testid="apply-back-button"
+          sx={{ borderRadius: '20px' }} // Make button rounded
         >
           Back
         </Button>
@@ -213,6 +203,10 @@ export default function ApplyModal({ job, open, onClose }: any) {
           }
           onClick={handleSubmit}
           data-testid="apply-submit-button"
+          sx={{ 
+            borderRadius: '20px',  // Make button rounded 
+            border: '2px solid #4caf50', // Green border
+          }}
         >
           Submit application
         </Button>
