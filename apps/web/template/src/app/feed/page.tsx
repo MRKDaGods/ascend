@@ -9,6 +9,7 @@ import { useTheme } from "@mui/material/styles";
 import Navbar from "../components/Navbar";
 import CreatePost from "../components/CreatePost";
 import ConnectionPost from "../components/ConnectionPost";
+import FeedbackAcknowledgement from "../components/FeedbackAcknowledgement";
 import ProfileCard from "../components/ProfileCard";
 import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
@@ -25,7 +26,7 @@ const Feed: React.FC = () => {
   const theme = useTheme();
   const posts = usePostStore((state) => state.posts);
   const fetchNewsFeed = usePostStore((state) => state.fetchNewsFeedFromAPI);
-  const { userData, setUserData } = useProfileStore();
+  const { userData, setUserData,  } = useProfileStore();
 
   const visiblePosts = posts.filter((post) => post.isUserPost !== true);
 
@@ -103,7 +104,11 @@ const Feed: React.FC = () => {
 
           {visiblePosts.map((post) => (
             <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
-              <ConnectionPost post={post} />
+              {post.isReported ? (
+                <FeedbackAcknowledgement />
+              ) : (
+                <ConnectionPost post={post} />
+              )}
             </Box>
           ))}
         </Box>

@@ -340,3 +340,25 @@ export const reactToPostAPI = async (postId: number, type: string) => {
   });
   return response.data;
 };
+
+// ==== REPORT POST ====
+
+export const reportPostAPI = async (
+  postId: number,
+  reason: "harassment" | "violence" | "hate_speech" | "misinformation" | "other",
+  description: string
+): Promise<{
+  success: boolean;
+  data: {
+    id: number;
+    post_id: number;
+    reason: string;
+    description: string;
+  };
+}> => {
+  const response = await API.post(`/post/${postId}/report`, {
+    reason,
+    description,
+  });
+  return response.data;
+};
