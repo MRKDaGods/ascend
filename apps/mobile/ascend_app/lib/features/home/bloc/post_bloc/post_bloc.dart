@@ -403,41 +403,57 @@ on<LoadComments>(_onLoadComments); // Register the new handler
     final currentState = state;
     if (currentState is PostsLoaded) {
       try {
-        // TODO: Implement API call for adding a reply similar to addComment
-        // For now, keeping the local update logic
-        debugPrint('📝 [PostBloc] Adding reply locally for comment ${event.parentId} on post ${event.postId}');
-        final newReply = Comment.create(
-          text: event.text,
-          authorId: event.authorId,
-          authorName: event.authorName,
-          authorImageUrl: event.authorImageUrl,
-          parentId: event.parentId,
+        debugPrint('🔄 [PostBloc] Attempting to add reply via API for comment ${event.parentId} on post ${event.postId}');
+        // Call the repository to add the reply via API
+        final newReply = await _postRepository.addComment(
+          event.postId,
+          event.parentId,
+          event.text,
+          event.authorId,
+          event.authorName,
         );
+        debugPrint('✅ [PostBloc] Reply added via API: ${newReply.id}, Text: ${newReply.text}');
 
-        final updatedPosts = currentState.posts.map((post) {
-          if (post.id == event.postId) {
-            final updatedComments = post.comments.map((comment) {
-              // Find the parent comment and add the reply
-              Comment updatedComment = _findAndUpdateParentComment(comment, event.parentId, newReply);
-              return updatedComment;
-            }).toList();
+        // Find the index of the post to update
+        final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
+        if (postIndex == -1) {
+          debugPrint('⚠️ [PostBloc] Post ${event.postId} not found in current state after adding reply.');
+          return; // Post not found
+        }
 
-            // Also update the main commentsCount for the post
-            return post.copyWith(
-              comments: updatedComments,
-              commentsCount: (post.commentsCount ?? 0) + 1, // Increment count for the reply
-            );
-          }
-          return post;
+        final originalPost = currentState.posts[postIndex];
+        debugPrint('📝 [PostBloc] Original post comments count: ${originalPost.commentsCount}, comments list size: ${originalPost.comments.length}');
+
+        // Recursively find the parent comment and add the reply
+        final updatedComments = originalPost.comments.map((comment) {
+          return _findAndUpdateParentComment(comment, event.parentId, newReply);
         }).toList();
 
-        emit(currentState.copyWith(posts: updatedPosts, freshLoad: false)); // Use copyWith
+        // Create the updated post
+        final updatedPost = originalPost.copyWith(
+          comments: updatedComments,
+          commentsCount: (originalPost.commentsCount ?? 0) + 1, // Increment count for the reply
+        );
+        debugPrint('📝 [PostBloc] Updated post comments count: ${updatedPost.commentsCount}, comments list size: ${updatedPost.comments.length}');
+
+        // Create a new list of posts with the updated post
+        final updatedPosts = List<PostModel>.from(currentState.posts);
+        updatedPosts[postIndex] = updatedPost;
+
+        debugPrint('➡️ [PostBloc] Emitting updated state with new reply.');
+        // Emit the new state with the updated list
+        emit(currentState.copyWith(posts: updatedPosts, freshLoad: false)); // Use copyWith to maintain pagination state
+        debugPrint('✅ [PostBloc] State emitted with updated reply list for post ${event.postId}.');
 
       } catch (e) {
-        debugPrint('❌ [PostBloc] Failed to add reply locally: $e');
+        debugPrint('❌ [PostBloc] Failed to add reply via API: $e');
         emit(PostsError("Failed to add reply: ${e.toString()}"));
-        emit(currentState); // Revert on error
+        // Optionally re-emit the current state to avoid UI freeze on error
+        await Future.delayed(const Duration(milliseconds: 50)); // Short delay before reverting
+        emit(currentState);
       }
+    } else {
+       debugPrint('⚠️ [PostBloc] AddCommentReply event received but state is not PostsLoaded. Current state: $state');
     }
   }
 
