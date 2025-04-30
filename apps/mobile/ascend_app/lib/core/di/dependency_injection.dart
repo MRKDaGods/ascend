@@ -1,3 +1,6 @@
+import 'package:ascend_app/features/Messaging/data/datasources/remote_datasource.dart';
+import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
+import 'package:ascend_app/services/web_socket_service.dart';
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -46,10 +49,12 @@ class ServiceLocator {
   // Services
   late final PushNotificationService pushNotificationService;
   late final NetworkInfo networkInfo;
+  late final WebSocketService webSocketService;
 
   // BLOCs
   late final NotificationBloc notificationBloc;
   late final SearchBloc searchBloc;
+  late final MessagingBloc messagingBloc;
 
   /// Initialize all dependencies
   Future<void> init() async {
@@ -87,7 +92,6 @@ class ServiceLocator {
       postBloc: postBloc, // Pass the PostBloc
     );
 
-
     // Data sources
     final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
       client: client,
@@ -104,13 +108,41 @@ class ServiceLocator {
     pushNotificationService = PushNotificationService();
     await pushNotificationService.initialize();
 
+    // Intialize webSocket Service
+    webSocketService = WebSocketService();
+
     // BLOCs
     notificationBloc = NotificationBloc(apiClient: apiClient);
     searchBloc = SearchBloc();
 
+    // Initialize the MessagingBloc
+    final messagingRepo = MessagingRepoistoryImpl(
+      webSocketService: webSocketService,
+      apiClient: apiClient,
+    );
+
+    // Create it here instead of in the BlocProvider
+    messagingBloc = MessagingBloc(repository: messagingRepo);
+
     // Set flag to true after successful initialization
     _isInitialized = true;
     debugPrint('ServiceLocator initialized successfully.');
+  }
+
+  void dispatchMessagingEvent(MessagingBlocEvent event) {
+    try {
+      messagingBloc.add(event);
+    } catch (e) {
+      debugPrint('Error dispatching event: $e');
+    }
+  }
+
+  void dispatchSetActiveConversation(String conversationId) {
+    try {
+      messagingBloc.add(SetActiveConversation(conversationId));
+    } catch (e) {
+      debugPrint('Error dispatching SetActiveConversation: $e');
+    }
   }
 
   /// Dispose of resources when app is closed
