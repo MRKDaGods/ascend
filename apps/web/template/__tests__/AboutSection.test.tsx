@@ -1,3 +1,4 @@
+import React from 'react'; // Add this line
 import { render, screen } from "@testing-library/react";
 import { AboutSection } from "@/app/components/Profile/AboutSection"; // Adjust the import path accordingly
 import { Profile } from "@ascend/api-client/models";
