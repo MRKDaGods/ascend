@@ -107,9 +107,11 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
         });
         let line_items : Array<any> = [];
         const purchased_features : Set<any> = new Set(feature_already_purchased);
-        // don't repurchase already purchased features
+        const features_available = (await stripe.products.list({expand : ["data.default_price"], active : true})).data;
+        let requested_feature;
         for (const feature of features){
-            if(!purchased_features.has(feature)){
+            requested_feature = features_available.find((f : any) => {return feature.price_id === (f.default_price as st.Price).id;});
+            if(requested_feature && !purchased_features.has(requested_feature.name)){
                 if(!line_items.find((item) => {return item.price_id === feature.price_id;})){
                     line_items.push({price : feature.price_id, quantity : 1});
                 }
