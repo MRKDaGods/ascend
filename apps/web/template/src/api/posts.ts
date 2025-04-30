@@ -156,48 +156,6 @@ export const fetchPost = async (
 };
 
 // ==== CREATE POST ====
-// export const createPost = async (
-//   content: string,
-//   mediaFiles?: File[],                                      // accepts multiple files
-//   mediaType?: "image" | "video" | "file" | "text",          // includes 'text'
-//   fileTitle?: string,
-//   fileDescription?: string
-// ): Promise<AxiosResponse<CreatePostResponse>> => {
-//   const formData = new FormData();
-//   formData.append("content", content);
-//   formData.append("privacy", "public");
-
-//   const hasMedia = mediaFiles && mediaFiles.length > 0;
-
-//   if (hasMedia && mediaType) {
-//     mediaFiles.forEach((file) => {
-//       formData.append("media", file);
-//     });
-
-//     const normalizedType = mediaType === "file" ? "document" : mediaType;
-//     formData.append("type", normalizedType);
-//     formData.append("title", fileTitle ?? "Uploaded Media");
-//     formData.append("description", fileDescription ?? `${normalizedType} file`);
-
-//     console.log(`📁 Uploading ${mediaFiles.length} files as ${normalizedType}`);
-//   } else {
-//     // ✅ Text-only fallback
-//     formData.append("type", "text");
-//     formData.append("title", "Text Post");
-//     formData.append("description", "No media attached");
-
-//     console.log("📝 Creating text-only post");
-//   }
-
-//   return await API.post("/post", formData, {
-//     headers: {
-//       "Content-Type": "multipart/form-data",
-//       "x-no-parse-body": "1",
-//     },
-//   });
-// };
-
-// NEW VERSION - handles all cases
 export const createPostNew = async (
   content: string,
   mediaFiles?: File[],
@@ -233,6 +191,7 @@ export const createPostNew = async (
   
     console.log("📝 Text-only post");
   }
+
   return await API.post("/post", formData, {
     headers: {
       "Content-Type": "multipart/form-data",

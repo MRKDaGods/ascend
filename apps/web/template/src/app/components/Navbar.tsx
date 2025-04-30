@@ -35,10 +35,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { useMenuStore } from "../stores/useMenuStore";
 import { useNotificationStore } from "../stores/useNotificationStore";
 import { useProfileStore } from "../stores/useProfileStore";
+import { usePostStore } from "../stores/usePostStore";
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { api, refreshAuthState } from "@/api";
+import SearchResults from "./SearchResults";
 
 // 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
@@ -67,7 +68,9 @@ const NavIconButton = styled(IconButton, {
   "&:hover": {
     transform: "scale(1.1)",
     backgroundColor:
-      theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "#eaeaea",
+      theme.palette.mode === "dark"
+        ? "rgba(255, 255, 255, 0.05)"
+        : "#eaeaea",
   },
 }));
 
@@ -76,6 +79,8 @@ const Navbar: React.FC = () => {
   const muiTheme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const { ultimateSearch } = usePostStore();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
@@ -95,20 +100,6 @@ const Navbar: React.FC = () => {
     ? `${userData.first_name} ${userData.last_name}`
     : "User"; // Fallback to "User"
 
-  const handleLogout = () => {
-    api.auth
-      .logout()
-      .then(() => {
-        console.log("Logout successful");
-        console.log("auth tk:", localStorage.getItem("auth_token"));
-        refreshAuthState();
-        router.push("/authen");
-      })
-      .catch((error) => {
-        console.error("Logout error:", error);
-      });
-  };
-
   return (
     <AppBar
       elevation={0}
@@ -121,7 +112,7 @@ const Navbar: React.FC = () => {
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
         {/* LEFT */}
-        <Box sx={{ display: "flex", alignItems: "center", py: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", py: 1 }}>         
           <img
             src="/logoIcon.png"
             alt="Ascend"
@@ -139,12 +130,24 @@ const Navbar: React.FC = () => {
             <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
             <InputBase
               placeholder="Search for jobs, people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  try {
+                    await ultimateSearch(searchQuery.trim());
+                  } catch (error) {
+                    console.error("❌ Search failed:", error);
+                  }
+                }
+              }}
               sx={{
                 color: muiTheme.palette.text.primary,
                 fontSize: "0.85rem",
                 width: "100%",
               }}
             />
+
           </SearchBar>
         </Box>
 
@@ -155,11 +158,7 @@ const Navbar: React.FC = () => {
             { icon: <People />, route: "/network", label: "My Network" },
             { icon: <Work />, route: "/jobs", label: "Jobs" },
             { icon: <Message />, route: "/chat", label: "Messaging" },
-            {
-              icon: <Notifications />,
-              route: "/notif",
-              label: "Notifications",
-            },
+            { icon: <Notifications />, route: "/notif", label: "Notifications" },
           ].map(({ icon, route, label }, i) => (
             <Tooltip key={i} title={label}>
               <NavIconButton
@@ -294,7 +293,9 @@ const Navbar: React.FC = () => {
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText onClick={handleLogout}>Sign Out</ListItemText>
+              <ListItemText onClick={() => router.push("/authen")}>
+                Sign Out
+              </ListItemText>
             </MenuItem>
           </Menu>
 
@@ -328,6 +329,7 @@ const Navbar: React.FC = () => {
           </Button>
         </Box>
       </Toolbar>
+      <SearchResults />
     </AppBar>
   );
 };
