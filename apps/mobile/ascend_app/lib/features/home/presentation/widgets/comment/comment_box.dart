@@ -193,23 +193,28 @@ class CommentBox extends StatelessWidget {
     SheetHelpers.showPostOptionsSheet(
       context: context,
       ownerName: authorName,
-      showSave: false,
-      showNotInterested: false,
-      showUnfollow: false,
+      showSave: false, // Comments typically aren't saved like posts
+      showUnsave: false, // Add this - Comments typically aren't saved
+      showNotInterested: false, // Assuming not applicable to comments
+      showUnfollow: false, // Assuming not applicable directly to comments
       showMessage: true, // Enable message option
-      reportText: 'Report comment',
+      reportText: 'Report comment', // Customize report text
+      onSave: () {}, // Add empty required callback
+      onUnsave: () {}, // Add empty required callback
       onShare: () {
         Navigator.pop(context);
-        onMenuOptionSelected('share');
+        onMenuOptionSelected('share'); // Use existing callback system
       },
       onMessage: () {
         Navigator.pop(context);
-        onMenuOptionSelected('message');
+        onMenuOptionSelected('message'); // Use existing callback system
       },
       onReport: () {
         Navigator.pop(context);
-        onMenuOptionSelected('report');
+        onMenuOptionSelected('report'); // Use existing callback system
       },
+      // Add other required callbacks from SheetHelpers with empty functions if not used
+      // e.g., onNotInterested: () {}, onUnfollow: () {},
     );
   }
 }

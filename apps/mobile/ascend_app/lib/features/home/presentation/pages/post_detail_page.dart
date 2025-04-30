@@ -75,36 +75,50 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final state = postBloc.state;
     PostModel? currentPost;
 
+    // Get the most up-to-date post data from the state if possible
     if (state is PostsLoaded) {
       currentPost = state.posts.firstWhere(
         (p) => p.id == post.id,
-        orElse: () => post,
+        orElse: () => post, // Fallback to the post passed in
       );
     } else {
-      currentPost = post;
+      currentPost = post; // Use the post passed in if state is not PostsLoaded
     }
 
-    final bool isCurrentlySaved = currentPost.isSaved ?? post.isSaved;
+    // Determine the current saved status reliably
+    final bool isCurrentlySaved = currentPost.isSaved; // Directly use the boolean
 
     SheetHelpers.showPostOptionsSheet(
       context: context,
-      ownerName: post.ownerName,
-      showSave: true,
+      ownerName: post.ownerName, // Use original post data for owner info
+      // --- MODIFICATION START ---
+      showSave: !isCurrentlySaved, // Show Save only if NOT currently saved
+      showUnsave: isCurrentlySaved, // Show Unsave only if currently saved
+      // --- MODIFICATION END ---
       showShare: true,
       showNotInterested: true,
-      showUnfollow: true,
+      showUnfollow: true, // Add logic if needed
       showReport: true,
-      showMessage: false,
+      showMessage: false, // Assuming messaging isn't direct from post detail options
       reportText: 'Report Post',
+      // --- MODIFICATION START ---
+      // onSave should only handle saving
       onSave: () {
-        if (isCurrentlySaved) {
-          postBloc.add(UnsavePost(post.id));
-          debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
-        } else {
-          postBloc.add(SavePost(post.id));
-          debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
-        }
+        postBloc.add(SavePost(post.id));
+        debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Post saved'), duration: Duration(seconds: 1)),
+         );
       },
+      // Add the required onUnsave callback
+      onUnsave: () {
+        postBloc.add(UnsavePost(post.id));
+        debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
+         );
+      },
+      // --- MODIFICATION END ---
       onShare: () {
         postBloc.add(SharePost(post.id));
         debugPrint("[PostDetailPage] Dispatching SharePost for ${post.id}");
@@ -113,9 +127,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
         ).showSnackBar(const SnackBar(content: Text('Sharing post...')));
       },
       onNotInterested: () {
+        // Keep existing logic
+        Navigator.pop(context); // Close the sheet first
         _showHideConfirmationDialog(context, post.id);
       },
       onUnfollow: () {
+        // Keep existing logic
+        Navigator.pop(context); // Close the sheet first
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Unfollow ${post.ownerName} (not implemented)'),
@@ -123,8 +141,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
         );
       },
       onReport: () {
-        Navigator.of(context).pop();
+        // Keep existing logic
+        Navigator.of(context).pop(); // Close the sheet first
         _showReportReasonDialog(context, post.id);
+      },
+      // Add other required callbacks if SheetHelpers needs them, e.g.:
+      onMessage: () {
+         Navigator.pop(context);
+         // Implement message logic if needed
       },
     );
   }

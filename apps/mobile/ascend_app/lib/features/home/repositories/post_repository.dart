@@ -242,6 +242,90 @@ class PostRepository {
     }
   }
 
+  // Fetch Saved Posts
+  Future<Map<String, dynamic>> fetchSavedPosts({int page = 1, int limit = 15}) async {
+    final uri = Uri.parse('$baseUrl/post/saved?page=$page&limit=$limit');
+    debugPrint('🔄 [PostRepository] Fetching saved posts: $uri');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot fetch saved posts.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      };
+
+      final response = await _client.get(uri, headers: headers);
+      debugPrint('✅ [PostRepository] Saved Posts API response status: ${response.statusCode}');
+      // Limit printing large bodies
+      debugPrint(
+        '📄 [PostRepository] Saved Posts API response body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body}',
+      );
+
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        final List<dynamic> apiPosts = jsonData['data'] ?? [];
+        final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
+        final int totalPosts = pagination['total'] ?? 0;
+        final int currentPage = pagination['page'] ?? page;
+        final int currentLimit = pagination['limit'] ?? limit;
+        // Calculate hasMorePages based on total, current page, and limit
+        final bool hasMorePages = (currentPage * currentLimit) < totalPosts;
+
+        debugPrint(
+          '📄 [PostRepository] Saved Posts Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages',
+        );
+
+        if (apiPosts.isEmpty) {
+           debugPrint('ℹ️ [PostRepository] API returned empty saved posts array for page $page');
+          return {
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // No more pages if current page is empty
+          };
+        }
+
+        try {
+          // Assuming saved posts might not have reaction info, fetch it separately if needed
+          // For simplicity, we'll use the standard conversion first.
+          final posts = PostModel.fromApiResponseList(apiPosts);
+          debugPrint(
+            '✅ [PostRepository] Converted ${posts.length} saved API posts to PostModel objects',
+          );
+          return {
+            'posts': posts,
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': hasMorePages,
+          };
+        } catch (e) {
+          debugPrint('❌ [PostRepository] Error converting saved API posts: $e');
+          // Return empty but with pagination info
+           return {
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // Assume false on conversion error
+          };
+        }
+      } else {
+        debugPrint(
+          '❌ [PostRepository] Failed to load saved posts. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception('Failed to load saved posts: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception fetching saved posts: $e');
+      throw Exception('Error fetching saved posts: $e');
+    }
+  }
+
   // Get User's Reaction for a Post via API
   Future<String?> getPostReaction(String postId) async {
     final String reactionUrl = '$baseUrl/post/$postId/reactions'; // Endpoint from user image

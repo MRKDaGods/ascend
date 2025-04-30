@@ -18,7 +18,7 @@ class SheetHelpers {
     bool showUnfollow = true,
     bool showReport = true,
     bool showMessage = false, // Default to false
-    String reportText = 'Report post',
+    String reportText = 'Report post', required bool showUnsave, required Null Function() onUnsave,
   }) async {
     return showModalBottomSheet(
       context: context,

@@ -16,7 +16,8 @@ import '../post/post_action_button.dart';
 import '../post/post_engagement_stats.dart';
 import '../reaction/reaction_button.dart';
 import '../comment/comment_preview.dart';
-import '../../utils/full_screen_image_viewer.dart'; // Add this import
+import '../../utils/full_screen_image_viewer.dart';
+import '../../utils/sheet_helpers.dart'; 
 
 class Post extends StatefulWidget {
   final String postId;
@@ -57,6 +58,70 @@ class _PostState extends State<Post> {
       ),
     );
   }
+
+  // Method to show the post options bottom sheet
+  void _showPostOptions(BuildContext context, PostModel post) {
+    print("Showing options sheet for post: ${post.id} from Post widget");
+    SheetHelpers.showPostOptionsSheet(
+      context: context,
+      ownerName: post.ownerName,
+      showSave: !post.isSaved, // Show Save if not saved
+      showUnsave: post.isSaved, // Show Unsave if saved
+      showShare: true, // Control visibility as needed
+      showNotInterested: true, // Control visibility as needed
+      showUnfollow: true, // Control visibility as needed
+      showReport: true, // Control visibility as needed
+      // Add other show flags based on your sheet implementation
+
+      onSave: () {
+        print("Save selected for post ${post.id}");
+        context.read<PostBloc>().add(SavePost(post.id));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post saved'), duration: Duration(seconds: 1)),
+        );
+      },
+      onUnsave: () {
+        print("Unsave selected for post ${post.id}");
+        context.read<PostBloc>().add(UnsavePost(post.id));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
+        );
+      },
+      onShare: () {
+        print("Share selected for post ${post.id}");
+        context.read<PostBloc>().add(SharePost(post.id));
+        // Add sharing logic or feedback
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Sharing...'), duration: Duration(seconds: 1)),
+         );
+      },
+      onNotInterested: () {
+        print("Not interested selected for post ${post.id}");
+        context.read<PostBloc>().add(HidePost(post.id, "Not interested"));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post hidden'), duration: Duration(seconds: 1)),
+        );
+      },
+      onUnfollow: () {
+        print("Unfollow selected for user ${post.ownerName}");
+        // Add unfollow logic (likely involves a different BLoC)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unfollow ${post.ownerName} (not implemented)')),
+        );
+      },
+      onReport: () {
+        print("Report selected for post ${post.id}");
+        // Show report reason dialog, then dispatch event
+        // For now, just dispatch with a placeholder reason
+        context.read<PostBloc>().add(ReportPost(post.id, "Reason from dialog"));
+         ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post reported'), duration: Duration(seconds: 1)),
+        );
+      },
+      // Add other callbacks corresponding to your sheet options
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +170,7 @@ class _PostState extends State<Post> {
                     isSponsored: post.isSponsored,
                     followers: post.followers,
                     userId: post.userId, // Pass the userId here
-                    onOptionsPressed: null, // Let it use the default behavior
+                    onOptionsPressed: () => _showPostOptions(context, post), // Use the new method
                     onShowFeedbackOptions: () {
                       // Use BLoC event instead of setState
                       context.read<PostBloc>().add(
