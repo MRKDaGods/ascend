@@ -75,7 +75,13 @@ export default function LoginBox() {
       .login(email, password)
       .then((response: { token: string; user_id: number }) => {
         console.log("Login successful:", response);
-        //localStorage.setItem("access_token", response.token);
+
+        // Check if remember me is set, if so set persist
+        const rememberMe = document.getElementById(
+          "keep-logged-in-checkbox"
+        ) as HTMLInputElement;
+        localStorage.setItem("persist", rememberMe.checked ? "true" : "false");
+
         refreshAuthState(); // Trigger auth state refresh
         router.push("/feed");
       })

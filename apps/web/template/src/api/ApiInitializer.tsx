@@ -115,6 +115,14 @@ export const ApiInitializer: React.FC<ApiInitializerProps> = ({ content }) => {
   };
 
   useEffect(() => {
+    // Check if persist is set to true in local storage
+    const persist = localStorage.getItem("persist") === "true";
+    if (!persist) {
+      // If not, clear the local storage and reset the API client
+      console.log("Persist is false, clearing local storage and resetting API client");
+      localStorage.clear();
+    }
+    
     initializeApi();
   }, []);
 
