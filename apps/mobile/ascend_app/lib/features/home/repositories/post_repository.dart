@@ -774,12 +774,15 @@ class PostRepository {
   }
 
   // Fetch comments for a specific post
+  // This method correctly fetches the list as provided by the API.
+  // It should NOT be responsible for structuring replies.
   Future<List<Comment>> fetchComments(String postId, {int page = 1, int limit = 10}) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null) {
       throw Exception('Authentication token not found.');
     }
 
+    // The API endpoint provides comments for the post, potentially including parent_comment_id
     final url = Uri.parse('$baseUrl/post/$postId/comments?page=$page&limit=$limit');
     debugPrint('🔄 [PostRepository] Fetching comments for post $postId from $url');
 
@@ -793,17 +796,19 @@ class PostRepository {
       );
 
       debugPrint('📄 [PostRepository] Comments Response Status: ${response.statusCode}');
-      // debugPrint('📄 [PostRepository] Comments Response Body: ${response.body}'); // Optional: Log body
+      // debugPrint('📄 [PostRepository] Comments Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // Assuming the API returns a list of comments directly or under a key like 'comments' or 'data'
+        // The API response (data['data'] or data['comments']) contains the list.
+        // Comment.fromJson handles parsing each comment, including its parent_comment_id and potentially nested replies if the API sends them.
         final List<dynamic> commentListJson = data['comments'] ?? data['data'] ?? data;
 
         final comments = commentListJson
             .map((json) => Comment.fromJson(json as Map<String, dynamic>))
             .toList();
         debugPrint('✅ [PostRepository] Fetched ${comments.length} comments for post $postId.');
+        // Return the list as is. The BLoC will structure it.
         return comments;
       } else {
         debugPrint('❌ [PostRepository] Failed to load comments for post $postId. Status: ${response.statusCode}, Body: ${response.body}');
