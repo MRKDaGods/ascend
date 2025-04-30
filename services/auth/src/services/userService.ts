@@ -184,6 +184,15 @@ export const updateUserEmail = async (
 
 export const deleteUser = async (id: number): Promise<void> => {
   await db.query("DELETE FROM auth_service.users WHERE id = $1", [id]);
+
+  // Publish user deleted event
+  try {
+    await publishEvent(Events.AUTH_USER_DELETED, {
+      user_id: id,
+    });
+  } catch (error) {
+    console.error("Failed to publish user deleted event:", error);
+  }
 };
 
 /**
@@ -263,33 +272,37 @@ export const getAdminUserId = async (): Promise<number | null> => {
   return result.rows.length > 0 ? result.rows[0].id : null;
 };
 
-export const reportUser = async(reportedUserId: number, reportingUserId: number, reason?: string) => {
+export const reportUser = async (
+  reportedUserId: number,
+  reportingUserId: number,
+  reason?: string
+) => {
   await db.query(
     "INSERT INTO auth_service.reports (reported_id, reported_by_id, reason) VALUES ($1, $2, $3)",
     [reportedUserId, reportingUserId, reason]
   );
 };
 
-export const getAllUserReports = async() => {
-  const result = await db.query(
-    "SELECT * FROM auth_service.reports"
-  );
+export const getAllUserReports = async () => {
+  const result = await db.query("SELECT * FROM auth_service.reports");
 
-  const reports = await Promise.all(result.rows.map(async (report) => {
-    // add profile to report
-    const reporterProfile = await getUserProfile(report.reported_by_id);
-    const reportedProfile = await getUserProfile(report.reported_id);
-    return {
-      ...report,
-      reported_by: reporterProfile,
-      reported: reportedProfile,
-    };
-  }));
+  const reports = await Promise.all(
+    result.rows.map(async (report) => {
+      // add profile to report
+      const reporterProfile = await getUserProfile(report.reported_by_id);
+      const reportedProfile = await getUserProfile(report.reported_id);
+      return {
+        ...report,
+        reported_by: reporterProfile,
+        reported: reportedProfile,
+      };
+    })
+  );
 
   return reports;
 };
 
-export const deleteUserReport = async(reportId: number) => {
+export const deleteUserReport = async (reportId: number) => {
   // Check if the report exists
   const result = await db.query(
     "SELECT * FROM auth_service.reports WHERE id = $1",
@@ -299,8 +312,5 @@ export const deleteUserReport = async(reportId: number) => {
     throw new Error("Report not found");
   }
 
-  await db.query(
-    "DELETE FROM auth_service.reports WHERE id = $1",
-    [reportId]
-  );
-}
+  await db.query("DELETE FROM auth_service.reports WHERE id = $1", [reportId]);
+};

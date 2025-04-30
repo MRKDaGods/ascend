@@ -87,6 +87,41 @@ services:
     networks:
       - ascend-network
 
+  email:
+    hostname: email
+    build:
+      context: .
+      dockerfile: services/email/Dockerfile
+    environment:
+      # Service
+      - SERVICE_NAME=email
+      - ASCEND_ADMIN_FIRST_NAME=${ASCEND_ADMIN_FIRST_NAME}
+      - ASCEND_ADMIN_LAST_NAME=${ASCEND_ADMIN_LAST_NAME}
+      - ASCEND_ADMIN_EMAIL=${ASCEND_ADMIN_EMAIL}
+      - ASCEND_ADMIN_PASSWORD=${ASCEND_ADMIN_PASSWORD}
+
+      # Postgres
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Service port
+      - PORT=3069
+
+      # RabbitMQ
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    ports:
+      - "3069:3069"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - ascend-network
+  
   auth:
     hostname: auth
     build:
