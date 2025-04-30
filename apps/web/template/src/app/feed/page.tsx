@@ -1,18 +1,20 @@
+// Page: Main Feed
+
 "use client";
 
 import React, { useEffect } from "react";
-import { Box, Container, CircularProgress } from "@mui/material";
+import { Box, Container, CircularProgress, Divider } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../components/Navbar";
 import CreatePost from "../components/CreatePost";
 import ConnectionPost from "../components/ConnectionPost";
 import ProfileCard from "../components/ProfileCard";
-import JobsCard from "../components/JobsCard";
+import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
-import ConnectionsCard from "../components/ConnectionsRoute";
-import SalesNavCard from "../components/SalesNavCard";
-import QuickLinksCard from "../components/QuickLinksCard";
+import CompanyCard from "../components/CompanyCard";
+import TryPremCard from "../components/TryPremCard";
+import ManageFeedCard from "../components/ManageFeedCard";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useProfileStore } from "../stores/useProfileStore";
@@ -30,7 +32,6 @@ const Feed: React.FC = () => {
   useEffect(() => {
     fetchNewsFeed();
   
-    // ✅ Fetch user data if not already fetched
     if (!userData) {
       api.user.getLocalUserProfile().then(setUserData).catch(console.error);
     }
@@ -75,10 +76,9 @@ const Feed: React.FC = () => {
           {userData ? (
             <>
               <ProfileCard />
-              <ConnectionsCard />
-              <SalesNavCard />
-              <QuickLinksCard />
-            </>
+              <TryPremCard />
+              <CompanyCard />
+              </>
           ) : (
             <CircularProgress />
           )}
@@ -98,6 +98,8 @@ const Feed: React.FC = () => {
           <Box sx={{ width: "100%", maxWidth: "600px" }}>
             <CreatePost />
           </Box>
+
+          <Divider sx={{ borderColor: theme.palette.divider, borderWidth: "1px", width: "100%", maxWidth: "600px" }} />
 
           {visiblePosts.map((post) => (
             <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
@@ -119,7 +121,8 @@ const Feed: React.FC = () => {
             alignSelf: "flex-start",
           }}
         >
-          <JobsCard />
+          <WhosHiringCard />
+          <ManageFeedCard />
           <Footer />
         </Box>
       </Container>

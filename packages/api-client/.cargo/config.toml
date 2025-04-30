@@ -1,6 +1,6 @@
 [build]
 # WASM
-# target = "wasm32-unknown-unknown"
+target = "wasm32-unknown-unknown"
 # iOS
 # target = "aarch64-apple-ios"
 # Android: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android

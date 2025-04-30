@@ -24,8 +24,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
   const {
     postReactions,
     repostedPosts,
-    setReaction,
-    clearReaction,
+    reactToPostFromAPI,
     posts,
     setCopyPostPopupOpen,
   } = usePostStore();
@@ -58,6 +57,14 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
     });
   };
 
+  const handleLikeClick = async () => {
+    try {
+      await reactToPostFromAPI(postId, "like");
+    } catch (err) {
+      console.error("❌ Failed to like post:", err);
+    }
+  };
+
   return (
     <>
       <Box
@@ -81,13 +88,16 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
             px: { xs: 0, sm: 2 },
           }}
         >
+          {/* 🧠 Reactions (fixed) */}
           <Reactions
             postId={postId}
             liked={liked}
-            onLike={() => (liked ? clearReaction(postId) : setReaction(postId, "Like"))}
+            onLike={handleLikeClick} // ✅ use updated function
           />
 
+          {/* 💬 Comment */}
           <Button
+            id="comment-button"
             startIcon={<Comment />}
             onClick={onCommentClick}
             sx={{
@@ -100,9 +110,12 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
             Comment
           </Button>
 
+          {/* 🔄 Repost */}
           <RepostOptions post={post} />
 
+          {/* 📩 Send */}
           <Button
+            id="send-post-button"
             startIcon={<Send />}
             onClick={() => setSendDialogOpen(true)}
             sx={{
@@ -116,6 +129,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           </Button>
         </Stack>
 
+        {/* ➡️ Send Post Dialog */}
         <SendPostDialog
           open={sendDialogOpen}
           onClose={() => setSendDialogOpen(false)}
@@ -124,6 +138,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           postId={postId}
         />
 
+        {/* 📋 Copy Link Popup */}
         <CopyPostPopup />
       </Box>
     </>

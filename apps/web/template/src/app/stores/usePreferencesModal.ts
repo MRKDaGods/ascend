@@ -1,6 +1,6 @@
 // store/usePreferencesModal.ts
 import { create } from 'zustand';
-import MainPreferencesPage from '../jobs/PreferencesViews/MainPreferencesPage';
+import MainPreferencesPage from '../jobs/MainPreferences/page';
 type PreferencesView = 'main' | 'openToWork' | 'jobAlerts' | 'resume' | 'aiResume' | 'verifications';
 
 interface PreferencesModalState {

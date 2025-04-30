@@ -46,7 +46,7 @@ const AuthSection = () => {
           color: theme.palette.text.secondary,
         }}
       >
-        By clicking Continue to join or sign in, you agree to LinkedIn's
+        By clicking Continue to join or sign in, you agree to Ascend's
         <Link href="#" id="user-agreement-link" sx={{ ml: 0.5 }}>
           User Agreement
         </Link>
@@ -69,7 +69,7 @@ const AuthSection = () => {
           color: theme.palette.text.primary,
         }}
       >
-        New to LinkedIn?{" "}
+        New to Ascend?{" "}
         <Link
           href="#"
           id="join-now-link"

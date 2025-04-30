@@ -1,3 +1,5 @@
+// Component file: 3 dots in connection post (menu for save and link)
+
 "use client";
 
 import React, { useState } from "react";
@@ -42,7 +44,10 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
 
   return (
     <>
-      <IconButton onClick={(e) => setMenuAnchorEl(e.currentTarget)}>
+      <IconButton
+        id="post-menu-button" // ✅ ID added
+        onClick={(e) => setMenuAnchorEl(e.currentTarget)}
+      >
         <MoreHoriz />
       </IconButton>
 
@@ -52,6 +57,7 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
         onClose={() => setMenuAnchorEl(null)}
       >
         <MenuItem
+          id="save-post-button" // ✅ ID added
           onClick={async () => {
             await toggleSavePostAPI(post.id);
             setMenuAnchorEl(null);
@@ -70,7 +76,10 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
           )}
         </MenuItem>
 
-        <MenuItem onClick={handleCopyLink}>
+        <MenuItem
+          id="copy-post-link-button" // ✅ ID added
+          onClick={handleCopyLink}
+        >
           <LinkIcon sx={{ fontSize: 18, mr: 1 }} />
           Copy link to post
         </MenuItem>

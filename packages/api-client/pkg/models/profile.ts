@@ -94,6 +94,9 @@ export interface Profile /* MRK_ATTR_REF */ {
   website?: string;
   additional_name?: string;
   name_pronunciation?: string;
+  headline?: string;
+  current_position_id?: number;
+  current_position?: Experience; // Injected
   skills?: Skill[];
   education?: Education[];
   experience?: Experience[];
