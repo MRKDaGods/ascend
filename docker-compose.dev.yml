@@ -67,3 +67,10 @@ services:
     command: ["npm", "run", "dev"]
     environment:
       - NODE_ENV=development
+
+  email:
+    volumes:
+      - ./services/email:/app/services/email
+    command: ["npm", "run", "dev"]
+    environment:
+      - NODE_ENV=development

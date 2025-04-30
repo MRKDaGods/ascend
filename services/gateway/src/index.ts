@@ -56,5 +56,8 @@ startSharedService("Gateway", undefined, {
 
     // Notification service
     app.use("/notifications", conditionalProxy("http://notification:3004"));
+
+    // Email service
+    app.use("/email", conditionalProxy("http://email:3069"));
   },
 });

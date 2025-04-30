@@ -52,17 +52,17 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Create user
-    const user = await createUser(first_name, last_name, email, password, true); // is_verified = true for now
+    const user = await createUser(first_name, last_name, email, password);
 
     // Send confirmation email
-    // const confirmation_token = generateToken({ email }, "24h");
-    // await updateUserEmail(user.id, null, confirmation_token); // Set confirmation token
+    const confirmation_token = generateToken({ email }, "24h");
+    await updateUserEmail(user.id, null, confirmation_token); // Set confirmation token
 
-    // await sendEmail(
-    //   email,
-    //   "Confirm Your Email",
-    //   `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
-    // );
+    await sendEmail(
+      email,
+      "Confirm Your Email",
+      `Welcome to Ascend!\nClick this link to confirm your email: https://api.ascendx.tech/auth/confirm-email?token=${confirmation_token}`
+    );
 
     res.status(201).json({ user_id: user.id, email: user.email });
   } catch (error) {
@@ -183,7 +183,7 @@ export const resendConfirmEmail = async (req: Request, res: Response) => {
     await sendEmail(
       email,
       "Confirm Your Email",
-      `Click this link to confirm your email: http://localhost:3001/confirm-email?token=${confirmation_token}`
+      `Click this link to confirm your email: https://api.ascendx.tech/auth/confirm-email?token=${confirmation_token}`
     );
 
     res.json({ message: "Confirmation email resent" });
@@ -221,7 +221,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
     await sendEmail(
       email,
       "Reset Your Password",
-      `Click this link to reset your password: http://localhost:3001/auth/reset-password?token=${reset_token}`
+      `Click this link to reset your password: https://www.ascendx.tech/resetpwd?token=${reset_token}`
     );
 
     res.json({ message: "Password reset email sent" });
@@ -338,7 +338,7 @@ export const updateEmail = async (req: AuthenticatedRequest, res: Response) => {
     await sendEmail(
       new_email,
       "Confirm Your New Email",
-      `Click this link to confirm your new email: http://localhost:3001/auth/confirm-email?token=${confirmation_token}`
+      `Click this link to confirm your new email: https://api.ascendx.tech/auth/confirm-email?token=${confirmation_token}`
     );
 
     res.json({ message: "Confirmation email sent to new email address" });
