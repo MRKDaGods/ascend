@@ -447,6 +447,7 @@ class PostRepository {
     String authorId,
     String authorName,
     String authorImageUrl,
+    [String? parentId] // Received here
   ) async {
     // Use the correct baseUrl and endpoint for adding comments
     final url = Uri.parse(
@@ -464,49 +465,78 @@ class PostRepository {
         throw Exception('Authentication token not found.');
       }
       debugPrint('🔑 [PostRepository] Using auth token for adding comment.');
+      debugPrint('📬 [PostRepository] addComment called. Received parentId: $parentId'); // Log received parentId
+
+
+      final Map<String, dynamic> requestBody = {
+        'content': text,
+
+      };
+      if (parentId != null && parentId.isNotEmpty) {
+        // Use 'parentCommentId' to match the API expectation (Postman)
+        try {
+          final parentIdInt = int.parse(parentId);
+          requestBody['parentCommentId'] = parentIdInt; // Use camelCase key
+          debugPrint('📬 [PostRepository] Adding reply with parentCommentId (int): $parentIdInt'); // Updated log key
+        } catch (e) {
+          // If parsing fails, decide if sending as string is acceptable or should error out
+          // For now, let's log the error and potentially send as string if API might handle it
+          debugPrint('⚠️ [PostRepository] Failed to parse parentId "$parentId" to int. Sending as string (if API supports). Error: $e');
+          requestBody['parentCommentId'] = parentId; // Use camelCase key, send as string
+          debugPrint('📬 [PostRepository] Adding reply with parentCommentId (String - int parse failed): $parentId'); // Updated log key
+        }
+      } else {
+         debugPrint('📬 [PostRepository] parentId is null or empty. Not adding parentCommentId.'); // Updated log key
+      }
+
+
 
       final response = await _client.post(
         url,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $authToken', // Add the authentication token
+          // 'x-no-parse-body': 'true', // Temporarily remove this header
         },
-        body: jsonEncode(<String, dynamic>{
-          'content': text,
-          // The backend should associate the comment with the authenticated user via the token.
-          // Sending authorId might be redundant if the backend handles it.
-          // Adjust based on API requirements.
-        }),
+        body: jsonEncode(requestBody), // Use the constructed requestBody map
       );
 
       // Accept both 201 (Created) and 200 (OK) as success codes
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        // Check if the API response structure includes a 'success' flag
-        if (responseBody['success'] == true && responseBody['data'] != null) {
-          debugPrint(
-            '✅ [PostRepository] Comment added successfully (Status: ${response.statusCode}): $responseBody',
-          );
-          final commentData = responseBody['data'];
-          if (commentData is Map<String, dynamic>) {
-            final createdComment = Comment.fromJson(commentData);
-            return createdComment;
-          } else {
+        // Add logging to see the raw response body
+        debugPrint('✅ [PostRepository] Comment add successful (Status: ${response.statusCode}). Raw Body: ${response.body}');
+        try {
+          final responseBody = jsonDecode(response.body);
+          // Check if the API response structure includes a 'success' flag
+          if (responseBody['success'] == true && responseBody['data'] != null) {
             debugPrint(
-              '❌ [PostRepository] Invalid comment data format in response: $responseBody',
+              '✅ [PostRepository] API success flag is true. Data: ${responseBody['data']}',
+            );
+            final commentData = responseBody['data'];
+            if (commentData is Map<String, dynamic>) {
+              final createdComment = Comment.fromJson(commentData);
+              return createdComment;
+            } else {
+              debugPrint(
+                '❌ [PostRepository] Invalid comment data format in response: $responseBody',
+              );
+              throw Exception(
+                'Failed to parse created comment from API response.',
+              );
+            }
+          } else {
+            // Handle cases where status is 200/201 but body indicates failure
+            debugPrint(
+              '❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}',
             );
             throw Exception(
-              'Failed to parse created comment from API response.',
+              'API returned success status but indicated failure in body.',
             );
           }
-        } else {
-          // Handle cases where status is 200/201 but body indicates failure
-          debugPrint(
-            '❌ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}',
-          );
-          throw Exception(
-            'API returned success status but indicated failure in body.',
-          );
+        } catch (e) {
+           // Catch JSON decoding errors
+           debugPrint('❌ [PostRepository] Failed to decode JSON response: $e. Body: ${response.body}');
+           throw Exception('Failed to decode successful API response: $e');
         }
       } else {
         debugPrint(
