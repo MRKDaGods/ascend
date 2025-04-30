@@ -133,6 +133,8 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                     controller: _replyController,
                     focusNode: _replyFocusNode,
                     onSubmit: (text) {
+                      // Log the parentId being passed here
+                      debugPrint('📤 [CommentDetailPage] Submitting reply. Parent Comment ID: ${_currentParentComment.id}');
                       widget.onAddReply(text, _currentParentComment.id);
                       _replyController.clear();
                       setState(() {

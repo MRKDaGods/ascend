@@ -573,11 +573,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                                 userProfile.id.isNotEmpty
                                                     ? userProfile.id
                                                     : 'default_user_id',
-                                            onAddReply: (text, parentId) {
+                                            onAddReply: (text, parentId) { // parentId received from CommentDetailPage
+                                              // Log the parentId received here
+                                              debugPrint('📨 [PostDetailPage] onAddReply called. Parent ID: $parentId');
                                               context.read<PostBloc>().add(
                                                 AddCommentReply(
                                                   post.id,
-                                                  parentId,
+                                                  parentId, // Passing it to the BLoC event
                                                   text,
                                                   userProfile.id.isNotEmpty
                                                       ? userProfile.id
