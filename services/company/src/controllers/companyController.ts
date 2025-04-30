@@ -134,17 +134,18 @@ export const getCompaniesCreatedByUser = async (req : AuthenticatedRequest, res 
         return res.status(401).json({error : "unauthorized"});
     }
     try {
+        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
+        let profilePhotoURLResponse, coverPhotoURLResponse;
         const companies = (await findCompaniesCreatedByUser(user_id)).map(async (company : any) => {
             profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.profile_photo_id }, 10000);
             coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.cover_photo_id }, 10000);
 
             company.profile_photo_url = profilePhotoURLResponse.presigned_url;
             company.cover_photo_url = coverPhotoURLResponse.presigned_url;
+
+            return {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url,  ...company};
         });
 
-
-        const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-        let profilePhotoURLResponse, coverPhotoURLResponse;
 
         return res.status(200).json({
             data : {
