@@ -4,23 +4,25 @@ import '../bloc/post_bloc/post_bloc.dart';
 import '../bloc/post_bloc/post_event.dart';
 
 class ReactionManager {
-  // Static maps for reaction icons and colors
+  // Static maps for reaction icons and colors - Updated
   static const Map<String, IconData> reactionIcons = {
     'like': Icons.thumb_up,
     'love': Icons.favorite,
-    'haha': Icons.sentiment_very_satisfied,
-    'wow': Icons.emoji_emotions,
-    'sad': Icons.sentiment_dissatisfied,
-    'angry': Icons.mood_bad,
+    'support': Icons.volunteer_activism, // Example icon
+    'celebrate': Icons.celebration, // Example icon
+    'funny': Icons.sentiment_very_satisfied, // Reusing 'haha' icon
+    'curious': Icons.help_outline, // Example icon
+    'insightful': Icons.lightbulb_outline, // Example icon
   };
 
   static const Map<String, Color> reactionColors = {
     'like': Colors.blue,
     'love': Colors.red,
-    'haha': Colors.amber,
-    'wow': Colors.amber,
-    'sad': Colors.purple,
-    'angry': Colors.orange,
+    'support': Colors.purple, // Example color
+    'celebrate': Colors.green, // Example color
+    'funny': Colors.amber, // Reusing 'haha' color
+    'curious': Colors.teal, // Example color
+    'insightful': Colors.orange, // Example color
   };
 
   // Instance properties
@@ -97,7 +99,7 @@ class ReactionManager {
     return reactionColors[_currentReaction!] ?? Colors.blue;
   }
 
-  // Get current reaction label
+  // Get current reaction label - Updated
   String getCurrentReactionLabel() {
     if (!isLiked) {
       return 'Like';
@@ -108,16 +110,18 @@ class ReactionManager {
         return 'Like';
       case 'love':
         return 'Love';
-      case 'haha':
-        return 'Haha';
-      case 'wow':
-        return 'Wow';
-      case 'sad':
-        return 'Sad';
-      case 'angry':
-        return 'Angry';
+      case 'support':
+        return 'Support';
+      case 'celebrate':
+        return 'Celebrate';
+      case 'funny':
+        return 'Funny';
+      case 'curious':
+        return 'Curious';
+      case 'insightful':
+        return 'Insightful';
       default:
-        return 'Like';
+        return 'Like'; // Fallback to 'Like'
     }
   }
 }
