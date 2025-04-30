@@ -13,7 +13,7 @@ class ReactionManager {
     'sad': Icons.sentiment_dissatisfied,
     'angry': Icons.mood_bad,
   };
-  
+
   static const Map<String, Color> reactionColors = {
     'like': Colors.blue,
     'love': Colors.red,
@@ -22,62 +22,56 @@ class ReactionManager {
     'sad': Colors.purple,
     'angry': Colors.orange,
   };
-  
+
   // Instance properties
-  bool _isLiked = false;
   String? _currentReaction;
   final String? postId;
   final BuildContext? context;
-  
+
   // Getters
-  bool get isLiked => _isLiked;
+  bool get isLiked => _currentReaction != null;
   String? get currentReaction => _currentReaction;
-  
+
   // Constructor - can initialize with existing reaction state
   ReactionManager({
-    bool isLiked = false, 
     String? currentReaction,
     this.postId,
     this.context,
   }) {
-    _isLiked = isLiked;
     _currentReaction = currentReaction;
   }
-  
+
   // Toggle the default reaction with Bloc integration
   void toggleReaction() {
-    if (_isLiked) {
-      _isLiked = false;
+    if (isLiked) {
+      // If currently liked (any reaction), remove it
       _currentReaction = null;
     } else {
-      _isLiked = true;
+      // If not liked, set to default 'like'
       _currentReaction = 'like';
     }
-    
+
     // Update the Bloc if we have context and postId
     _updateBloc();
   }
-  
+
   // Update to a specific reaction
   void updateReaction(String reactionType) {
     // If selecting the same reaction that's already active, remove it
-    if (_isLiked && _currentReaction == reactionType) {
+    if (isLiked && _currentReaction == reactionType) {
       removeReaction();
-
     } else {
-      _isLiked = true;
       _currentReaction = reactionType;
       _updateBloc();
     }
   }
-  
+
   // Remove reaction
   void removeReaction() {
-    _isLiked = false;
     _currentReaction = null;
     _updateBloc();
   }
-  
+
   // Private method to update the Bloc when reactions change
   void _updateBloc() {
     if (context != null && postId != null) {
@@ -86,30 +80,30 @@ class ReactionManager {
       );
     }
   }
-  
+
   // Get current reaction icon
   IconData getCurrentReactionIcon() {
-    if (!_isLiked) {
+    if (!isLiked) {
       return Icons.thumb_up_outlined;
     }
-    return reactionIcons[_currentReaction] ?? Icons.thumb_up;
+    return reactionIcons[_currentReaction!] ?? Icons.thumb_up;
   }
-  
+
   // Get current reaction color
   Color getCurrentReactionColor() {
-    if (!_isLiked) {
+    if (!isLiked) {
       return Colors.grey;
     }
-    return reactionColors[_currentReaction] ?? Colors.blue;
+    return reactionColors[_currentReaction!] ?? Colors.blue;
   }
-  
+
   // Get current reaction label
   String getCurrentReactionLabel() {
-    if (!_isLiked) {
+    if (!isLiked) {
       return 'Like';
     }
-    
-    switch (_currentReaction) {
+
+    switch (_currentReaction!) {
       case 'like':
         return 'Like';
       case 'love':
