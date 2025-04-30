@@ -407,10 +407,10 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         // Call the repository to add the reply via API
         final newReply = await _postRepository.addComment(
           event.postId,
-                    event.text,
+          event.text,
           event.authorId,
           event.authorName,
-                    event.parentId,
+          event.parentId,
         );
         debugPrint('✅ [PostBloc] Reply added via API: ${newReply.id}, Text: ${newReply.text}');
 
