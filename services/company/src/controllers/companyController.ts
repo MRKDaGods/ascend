@@ -674,7 +674,7 @@ export const getCompanyAnnouncements = async (req : AuthenticatedRequest, res : 
     const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
     const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
     try {
-        let company_announcements;
+        let company_announcements : Array<any>;
         if(limit === -1){
             company_announcements = await findAnnouncementsByCompanyId(company_id);
         }else{
@@ -684,29 +684,30 @@ export const getCompanyAnnouncements = async (req : AuthenticatedRequest, res : 
 
         const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
 
-        company_announcements.forEach(async (announcement : any) => {
+        for (let announcement of company_announcements) {
             let image_urls = [];
             let announcementPhotoURLResponse;
-            for(const image_id of announcement.image_ids){
-                let payload : FilePresignedUrlPayload.Request = {
-                    file_id : image_id as number
-                }
+        
+            for (const image_id of announcement.image_ids) {
+                let payload: FilePresignedUrlPayload.Request = {
+                    file_id: image_id as number
+                };
                 announcementPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, payload, 10000);
                 image_urls.push(announcementPhotoURLResponse.presigned_url);
             }
-    
+        
             announcement.image_urls = image_urls;
-    
+        
             announcement.video_url = null;
-            if(announcement.video_id){
-                let url_payload : FilePresignedUrlPayload.Request = {
-                  file_id : announcement.video_id as number
+            if (announcement.video_id) {
+                let url_payload: FilePresignedUrlPayload.Request = {
+                    file_id: announcement.video_id as number
                 };
                 const announcementVideoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, url_payload, 10000);
                 announcement.video_url = announcementVideoURLResponse.presigned_url;
             }
-
-        })
+        }
+        
         return res.status(200).json({
             data : {
                 announcements : company_announcements
