@@ -1,4 +1,3 @@
-
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useMediaStore } from "./useMediaStore";
@@ -189,12 +188,17 @@ interface PostStoreState {
 
   // Report Dialog
   isReportDialogOpen: boolean;
-  selectedReportReason: string | null;  // Tracks the selected reason
-  reportDialogPostId: number | null;    // Tracks the post ID being reported
 
   openReportDialog: () => void;
   closeReportDialog: () => void;
   setReportDialogReason: (reason: string) => void;  // Sets the reason for reporting
+
+  isSubmitReportDialogOpen: boolean;
+  reportDialogPostId: number | null;
+  selectedReportReason: string | null;
+
+  openSubmitReportDialog: (postId: number, reason: string) => void;
+  closeSubmitReportDialog: () => void;
 }
 
 export const usePostStore = create<PostStoreState>()(
@@ -643,12 +647,24 @@ export const usePostStore = create<PostStoreState>()(
       repostSourcePost: null,
       setRepostSourcePost: (post) => set({ repostSourcePost: post }),
 
+      isReportDialogOpen: false,       // Whether the report dialog is open
       feedbackDialogPostId: null,
       isFeedbackDialogOpen: false,
 
-      isReportDialogOpen: false,       // Whether the report dialog is open
-      selectedReportReason: "",        // The reason selected for reporting
-      reportDialogPostId: null,        // The post ID being reported
+      isSubmitReportDialogOpen: false,
+      reportDialogPostId: null,
+      selectedReportReason: null,
+
+      openSubmitReportDialog: (postId: number, reason: string) => set({
+        isSubmitReportDialogOpen: true,
+        reportDialogPostId: postId,
+        selectedReportReason: reason,
+      }),
+      closeSubmitReportDialog: () => set({
+        isSubmitReportDialogOpen: false,
+        reportDialogPostId: null,
+        selectedReportReason: null,
+      }),      
 
       openFeedbackDialog: (postId) => set({ isFeedbackDialogOpen: true, feedbackDialogPostId: postId }),
       closeFeedbackDialog: () => set({ isFeedbackDialogOpen: false, feedbackDialogPostId: null }),

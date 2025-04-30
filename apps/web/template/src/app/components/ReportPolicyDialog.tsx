@@ -10,15 +10,26 @@ import {
   Box,
   Typography,
   IconButton,
+  useTheme,
+  Grid,
 } from "@mui/material";
-import { usePostStore } from "@/app/stores/usePostStore";
 import CloseIcon from "@mui/icons-material/Close";
 
-const ReportPolicyDialog: React.FC<{ open: boolean; onClose: () => void }> = ({
+interface ReportPolicyDialogProps {
+  open: boolean;
+  onClose: () => void;
+  postId: number;
+  onReasonSelected: (reason: string) => void; // Add the onReasonSelected prop
+}
+
+const ReportPolicyDialog: React.FC<ReportPolicyDialogProps> = ({
   open,
   onClose,
+  postId,
+  onReasonSelected, // Destructure the onReasonSelected prop
 }) => {
-  const { setReportDialogReason, reportPostFromAPI, selectedPost } = usePostStore();
+  const theme = useTheme();
+  const [selectedReason, setSelectedReason] = React.useState<string | null>(null);
 
   // Possible reasons for reporting the post
   const reasons = [
@@ -29,25 +40,20 @@ const ReportPolicyDialog: React.FC<{ open: boolean; onClose: () => void }> = ({
     { label: "Other", value: "other" },
   ];
 
-  // Handle the click event for selecting a report reason
-  const handleReasonClick = async (reason: string) => {
-    if (selectedPost?.id) { // Ensure the selectedPost is valid
-      setReportDialogReason(reason); // Store the selected reason in the state
-      try {
-        // Attempt to report the post via the API
-        await reportPostFromAPI(selectedPost.id, reason, "");
-        onClose(); // Close the dialog once the post is successfully reported
-      } catch (error) {
-        console.error("Error reporting post:", error);
-      }
+  const handleReasonClick = (reason: string) => {
+    setSelectedReason(reason); // Set the selected reason
+  };
+
+  const handleNext = () => {
+    if (selectedReason) {
+      onReasonSelected(selectedReason); // Pass the selected reason to the parent
+      onClose(); // Close the dialog
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle
-        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-      >
+      <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         Report Post
         <IconButton onClick={onClose}>
           <CloseIcon />
@@ -60,25 +66,33 @@ const ReportPolicyDialog: React.FC<{ open: boolean; onClose: () => void }> = ({
         </Typography>
 
         <Box>
-          {/* Map over the reasons array to create the buttons */}
-          {reasons.map((reason) => (
-            <Button
-              key={reason.value}
-              variant="outlined"
-              fullWidth
-              sx={{ mb: 1 }}
-              onClick={() => handleReasonClick(reason.value)} // Handle reason selection
-            >
-              {reason.label}
-            </Button>
-          ))}
+          <Grid container spacing={1}>
+            {reasons.map((reason) => (
+              <Grid item xs={6} key={reason.value}>
+                <Button
+                  variant={selectedReason === reason.value ? "contained" : "outlined"}
+                  color={selectedReason === reason.value ? "primary" : "inherit"}
+                  fullWidth
+                  sx={{
+                    mb: 1,
+                    "&:hover": { backgroundColor: theme.palette.action.hover },
+                  }}
+                  onClick={() => handleReasonClick(reason.value)}
+                >
+                  {reason.label}
+                </Button>
+              </Grid>
+            ))}
+          </Grid>
         </Box>
       </DialogContent>
 
       <DialogActions>
-        {/* Cancel button to close the dialog without taking any action */}
         <Button onClick={onClose} color="primary">
           Cancel
+        </Button>
+        <Button onClick={handleNext} color="primary" disabled={!selectedReason}>
+          Next
         </Button>
       </DialogActions>
     </Dialog>

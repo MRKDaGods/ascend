@@ -1,20 +1,28 @@
 "use client";
 
 import React from "react";
-import ReportPolicyDialog from "./ReportPolicyDialog"; // Assuming it's imported correctly
 import { usePostStore } from "../stores/usePostStore";
-import { PostType } from "../stores/usePostStore";
+import ReportPolicyDialog from "./ReportPolicyDialog";
 
-const ReportPolicyDialogWrapper = ({ post }: { post: PostType }) => {
+interface ReportPolicyDialogWrapperProps {
+  postId: number;
+  onReasonSelected: (reason: string) => void; // Ensure this prop is typed
+}
+
+const ReportPolicyDialogWrapper: React.FC<ReportPolicyDialogWrapperProps> = ({
+  postId,
+  onReasonSelected,
+}) => {
   const { isReportDialogOpen, closeReportDialog } = usePostStore();
 
-  // Only render the dialog if it's open
   if (!isReportDialogOpen) return null;
 
   return (
     <ReportPolicyDialog
       open={isReportDialogOpen}
-      onClose={closeReportDialog}  // Close the dialog when needed
+      onClose={closeReportDialog}
+      postId={postId}
+      onReasonSelected={onReasonSelected} // Pass the onReasonSelected handler
     />
   );
 };

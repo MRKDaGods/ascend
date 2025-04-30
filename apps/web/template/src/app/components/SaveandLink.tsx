@@ -14,9 +14,11 @@ import { usePostStore, PostType } from "../stores/usePostStore";
 import SavePostPopup from "./SavePostPopup";
 import UnsavePopup from "./UnsavePopup";
 import CopyPostPopup from "./CopyPostPopup";
-import FlagIcon from "@mui/icons-material/Flag"; 
-import ReportThisPostDialog from "./ReportThisPostDialog"; 
-import FeedbackDialogWrapper from "./FeedbackDialogWrapper"; // ✅ Import FeedbackDialogWrapper
+import FlagIcon from "@mui/icons-material/Flag";
+import ReportThisPostDialog from "./ReportThisPostDialog";
+import ReportPolicyDialogWrapper from "./ReportPolicyDialogWrapper";
+import SubmitReportDialogWrapper from "./SubmitReportDialogWrapper";
+import FeedbackDialogWrapper from "./FeedbackDialogWrapper";
 
 const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
@@ -27,9 +29,15 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
     savedPosts,
     toggleSavePostAPI,
     setCopyPostPopupOpen,
+    openReportDialog,
+    closeReportDialog,
+    openSubmitReportDialog,
+    closeSubmitReportDialog,
+    openFeedbackDialog,
+    closeFeedbackDialog,
   } = usePostStore();
 
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportThisPostDialogOpen, setReportThisPostDialogOpen] = useState(false);
 
   const isSaved = savedPosts.includes(post.id);
 
@@ -41,8 +49,22 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
   };
 
   const handleReportPost = () => {
-    setReportDialogOpen(true);  // Open the Report Post Dialog
+    setReportThisPostDialogOpen(true); // Open the ReportThisPostDialog
     setMenuAnchorEl(null);
+  };
+
+  const handleReasonSelected = (reason: string) => {
+    openSubmitReportDialog(post.id, reason); // Open the Submit Report Dialog with the selected reason and post ID
+    closeReportDialog(); // Close the Report Policy Dialog
+  };
+
+  const handleSubmitReportClose = () => {
+    closeSubmitReportDialog(); // Close the Submit Report Dialog
+  };
+
+  const handleFeedbackClick = () => {
+    openFeedbackDialog(post.id); // Open the Feedback Dialog
+    setReportThisPostDialogOpen(false); // Close the ReportThisPostDialog
   };
 
   return (
@@ -93,14 +115,26 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
       <SavePostPopup />
       <UnsavePopup />
       <CopyPostPopup />
-      {reportDialogOpen && (
-        <ReportThisPostDialog
-          open={reportDialogOpen}
-          onClose={() => setReportDialogOpen(false)}
-          post={post}
-        />
-      )}
-      {/* Render FeedbackDialogWrapper if the report dialog is closed */}
+
+      {/* Report This Post Dialog */}
+      <ReportThisPostDialog
+        open={reportThisPostDialogOpen}
+        onClose={() => setReportThisPostDialogOpen(false)}
+        post={post}
+        onFeedbackClick={handleFeedbackClick} // Pass the feedback handler
+        onReportContentClick={() => openReportDialog()} // Open ReportPolicyDialog
+      />
+
+      {/* Report Policy Dialog */}
+      <ReportPolicyDialogWrapper
+        postId={post.id}
+        onReasonSelected={handleReasonSelected}
+      />
+
+      {/* Submit Report Dialog */}
+      <SubmitReportDialogWrapper />
+
+      {/* Feedback Dialog */}
       <FeedbackDialogWrapper post={post} />
     </>
   );
