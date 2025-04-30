@@ -484,67 +484,115 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     return currentComment;
   }
 
-  // Handler for SavePost event
+  // Handler for SavePost event (with Optimistic Update)
   Future<void> _onSavePost(SavePost event, Emitter<PostState> emit) async {
     final currentState = state;
     if (currentState is PostsLoaded) {
+      // Store the original state before optimistic update
+      final originalState = currentState; // Keep a reference
+
+      // Optimistic UI update first
+      final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
+      if (postIndex == -1) {
+        debugPrint('⚠️ [PostBloc] Post ${event.postId} not found for saving.');
+         return; // Post not found
+      }
+
+      // Create updated post list with isSaved = true
+      final optimisticPosts = List<PostModel>.from(currentState.posts);
+      // Ensure the post exists before trying to update
+      if (postIndex < optimisticPosts.length) {
+         optimisticPosts[postIndex] = optimisticPosts[postIndex].copyWith(isSaved: true);
+      } else {
+         debugPrint('Error: Post index out of bounds during optimistic save.');
+         return; // Avoid index error
+      }
+
+
+      // Emit the optimistic state immediately
+      // Use copyWith on the original state to preserve pagination etc.
+      emit(originalState.copyWith(posts: optimisticPosts, freshLoad: false));
+      debugPrint('🔄 [PostBloc] Optimistically marked post ${event.postId} as saved.');
+
       try {
-        debugPrint('🔄 [PostBloc] Attempting to save post ${event.postId} via API');
+        // Call the repository to update the backend
+        debugPrint('📡 [PostBloc] Calling repository savePost for post ${event.postId}');
         final success = await _postRepository.savePost(event.postId);
 
         if (success) {
-          debugPrint('✅ [PostBloc] Post ${event.postId} saved successfully via API.');
-          // Update the post's state locally
-          final updatedPosts = currentState.posts.map((post) {
-            if (post.id == event.postId) {
-              return post.copyWith(isSaved: true);
-            }
-            return post;
-          }).toList();
-          // Use copyWith to preserve pagination info
-          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+          debugPrint('✅ [PostBloc] API call successful for savePost ${event.postId}. State already updated optimistically.');
+          // State is already updated optimistically. No need to emit again.
         } else {
-          debugPrint('⚠️ [PostBloc] Save API call returned false for post ${event.postId}.');
-          // Optionally emit an error or just log
+          // This case might not be reached if repository throws on failure
+          debugPrint('❌ [PostBloc] API call savePost returned false for post ${event.postId}. Reverting optimistic update.');
+          // Revert the optimistic update by emitting the original state
+          emit(originalState);
         }
       } catch (e) {
-        debugPrint('❌ [PostBloc] Failed to save post ${event.postId} via API: $e');
-        emit(PostsError("Failed to save post: ${e.toString()}"));
-        await Future.delayed(const Duration(milliseconds: 50));
-        emit(currentState); // Revert state on error
+        debugPrint('❌ [PostBloc] Error during savePost API call for post ${event.postId}: $e. Reverting optimistic update.');
+        // Revert the optimistic update on error
+        emit(originalState); // Emit the original state before the optimistic update
+        // Optionally emit a specific error state *after* reverting
+        // emit(PostsError('Failed to save post: $e'));
       }
+    } else {
+       debugPrint('⚠️ [PostBloc] SavePost event received but state is not PostsLoaded.');
     }
   }
 
-  // Handler for UnsavePost event
+  // Handler for UnsavePost event (with Optimistic Update)
   Future<void> _onUnsavePost(UnsavePost event, Emitter<PostState> emit) async {
     final currentState = state;
     if (currentState is PostsLoaded) {
+      // Store the original state before optimistic update
+      final originalState = currentState; // Keep a reference
+
+      // Optimistic UI update first
+      final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
+      if (postIndex == -1) {
+        debugPrint('⚠️ [PostBloc] Post ${event.postId} not found for unsaving.');
+         return; // Post not found
+      }
+
+      // Create updated post list with isSaved = false
+      final optimisticPosts = List<PostModel>.from(currentState.posts);
+       // Ensure the post exists before trying to update
+      if (postIndex < optimisticPosts.length) {
+         optimisticPosts[postIndex] = optimisticPosts[postIndex].copyWith(isSaved: false);
+      } else {
+         debugPrint('Error: Post index out of bounds during optimistic unsave.');
+         return; // Avoid index error
+      }
+
+
+      // Emit the optimistic state immediately
+      // Use copyWith on the original state to preserve pagination etc.
+      emit(originalState.copyWith(posts: optimisticPosts, freshLoad: false));
+      debugPrint('🔄 [PostBloc] Optimistically marked post ${event.postId} as unsaved.');
+
       try {
-        debugPrint('🔄 [PostBloc] Attempting to unsave post ${event.postId} via API');
+        // Call the repository to update the backend
+        debugPrint('📡 [PostBloc] Calling repository unsavePost for post ${event.postId}');
         final success = await _postRepository.unsavePost(event.postId);
 
         if (success) {
-          debugPrint('✅ [PostBloc] Post ${event.postId} unsaved successfully via API.');
-          // Update the post's state locally
-          final updatedPosts = currentState.posts.map((post) {
-            if (post.id == event.postId) {
-              return post.copyWith(isSaved: false);
-            }
-            return post;
-          }).toList();
-          // Use copyWith to preserve pagination info
-          emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
+          debugPrint('✅ [PostBloc] API call successful for unsavePost ${event.postId}. State already updated optimistically.');
+          // State is already updated optimistically. No need to emit again.
         } else {
-          debugPrint('⚠️ [PostBloc] Unsave API call returned false for post ${event.postId}.');
-          // Optionally emit an error or just log
+          // This case might not be reached if repository throws on failure
+          debugPrint('❌ [PostBloc] API call unsavePost returned false for post ${event.postId}. Reverting optimistic update.');
+          // Revert the optimistic update by emitting the original state
+          emit(originalState);
         }
       } catch (e) {
-        debugPrint('❌ [PostBloc] Failed to unsave post ${event.postId} via API: $e');
-        emit(PostsError("Failed to unsave post: ${e.toString()}"));
-        await Future.delayed(const Duration(milliseconds: 50));
-        emit(currentState); // Revert state on error
+        debugPrint('❌ [PostBloc] Error during unsavePost API call for post ${event.postId}: $e. Reverting optimistic update.');
+        // Revert the optimistic update on error
+        emit(originalState); // Emit the original state before the optimistic update
+        // Optionally emit a specific error state *after* reverting
+        // emit(PostsError('Failed to unsave post: $e'));
       }
+    } else {
+       debugPrint('⚠️ [PostBloc] UnsavePost event received but state is not PostsLoaded.');
     }
   }
 

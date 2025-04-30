@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/profile/bloc/user_profile_bloc.dart';
 import '../../features/profile/bloc/user_profile_state.dart';
 import '../../features/profile/models/user_profile_model.dart';
+import '../../core/routes/app_routes.dart'; // Import AppRoutes to access RouteNames
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -124,6 +125,8 @@ class AppDrawer extends StatelessWidget {
                     const Divider(),
                     // Replace TextButton with ListTile for consistent alignment
                     ListTile(
+                      leading: const Icon(Icons.bookmark_border_outlined), // Add an icon
+                      horizontalTitleGap: 5, // Adjust gap if needed
                       title: const Text(
                         'Saved Posts',
                         style: TextStyle(
@@ -135,7 +138,7 @@ class AppDrawer extends StatelessWidget {
                         Navigator.pop(context);
                         Navigator.pushNamed(
                           context,
-                          '/saved-posts',
+                          RouteNames.savedPosts, // Use the constant route name
                         ); // Navigate to saved posts
                       },
                     ),
