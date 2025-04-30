@@ -33,7 +33,7 @@ describe("Header Component", () => {
     render(<Header />);
 
     fireEvent.click(screen.getByText("Join now"));
-    expect(pushMock).toHaveBeenCalledWith("/signInWithEmail");
+    expect(pushMock).toHaveBeenCalledWith("/authen/signInWithEmail");
   });
 
   it("navigates to the correct route when 'Sign in' button is clicked", () => {
@@ -43,6 +43,6 @@ describe("Header Component", () => {
     render(<Header />);
 
     fireEvent.click(screen.getByText("Sign in"));
-    expect(pushMock).toHaveBeenCalledWith("/signup");
+    expect(pushMock).toHaveBeenCalledWith("/authen/signup");
   });
 });

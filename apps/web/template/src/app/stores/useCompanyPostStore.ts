@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import { useMediaStore } from "./useMediaStore";
+import { createCompanyAnnouncementAPI } from "@/api/company";
+import { useCompanyStore } from "./useCreateCompanyStore";
 
 export interface MediaFile {
   type: 'image' | 'video' | 'document';
   file: File;
   preview: string;
+  url?: string;     // 👈 actual backend URL
 }
 
 export interface CompanyPost {
@@ -56,14 +59,16 @@ interface CompanyPostStore {
   removeDraftMedia: (index: number) => void;
   clearDraftPost: () => void;
   addPost: () => boolean;
-  deletePost: (postId: string) => void; // Added deletePost method
+  deletePost: (postId: string) => void;
+  createAnnouncementPost: () => Promise<boolean>;
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
   setDraftText: (text: string) => void;
   resetPost: () => void;
   setEditingPost: (post: CompanyPost | null) => void;
-  
+  setCompanyAnnouncementsToPosts: () => void;
+
 }
 
 export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
@@ -151,19 +156,97 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
       createdAt: new Date(),
     };
 
-    // Add the new post to the posts array without replacing existing posts
     set({
-      posts: [...posts, newPost], // Ensure posts are appended
-      draftPost: { content: '', media: [] }, // Reset draft after post
+      posts: [...posts, newPost],
+      draftPost: { content: '', media: [] },
     });
 
     return true;
   },
   deletePost: (postId: string) => {
-    // Delete the post by filtering out the post with the matching id
     set((state) => ({
       posts: state.posts.filter((post) => post.id !== postId),
     }));
   },
+  createAnnouncementPost: async () => {
+    const { draftPost, posts } = get();
+    const companyId = useCompanyStore.getState().companyId;
+
+    if (!draftPost.content.trim() && draftPost.media.length === 0) {
+      return false;
+    }
+
+    if (!companyId) {
+      console.error("❌ No company ID available");
+      return false;
+    }
+
+    try {
+      const announcement = await createCompanyAnnouncementAPI(
+        companyId,
+        draftPost.content.trim(),
+        draftPost.media
+      );
+
+      const newPost: CompanyPost = {
+        id: announcement.announcement_id.toString(),
+        content: announcement.content,
+        media: [
+          ...announcement.image_urls.map((url: string) => ({
+            type: "image",
+            file: {} as File,
+            preview: url,
+          })),
+          ...(announcement.video_url
+            ? [{
+                type: "video",
+                file: {} as File,
+                preview: announcement.video_url,
+              }]
+            : []),
+        ],
+        createdAt: new Date(announcement.created_at),
+      };
+
+      set({
+        posts: [...posts, newPost],
+        draftPost: { content: "", media: [] },
+      });
+
+      return true;
+    } catch (error) {
+      console.error("❌ Error posting announcement:", error);
+      return false;
+    }
+  },
+
+  setCompanyAnnouncementsToPosts: () => {
+    const announcements = useCompanyStore.getState().announcements;
+  
+    const transformedPosts: CompanyPost[] = announcements.map((a: any) => ({
+      id: a.announcement_id.toString(),
+      content: a.content,
+      media: [
+        ...a.image_urls.map((url: string) => ({
+          type: "image",
+          file: {} as File,
+          preview: url, // now this is a valid remote URL
+        })),
+        ...(a.video_url
+          ? [{
+              type: "video",
+              file: {} as File,
+              preview: a.video_url,
+            }]
+          : []),
+      ],
+      createdAt: new Date(a.created_at),
+    }));
+  
+    set({ posts: transformedPosts });
+  }
+  
+  
+  
   
 }));

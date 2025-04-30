@@ -19,6 +19,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useEffect, useState, useRef } from 'react';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
+
 interface EditPageModalProps {
   open: boolean;
   onClose: () => void;
@@ -27,42 +28,33 @@ interface EditPageModalProps {
 
 const sections = ['Page info'];
 
+
 export default function EditPageModal({ open, onClose, onSave }: EditPageModalProps) {
   const {
     name,
+    domainName,
     url,
-    website,
     industry,
-    size,
-    type,
-    tagline,
     location,
     description,
     profileImage: storeProfileImage,
     coverImage: storeCoverImage,
     setCompanyInfo,
+    updateCompanyProfile, // ✅ NEW
   } = useCompanyStore();
 
   const [formData, setFormData] = useState({
     name,
-    url,
-    website,
+    domainName,
     industry,
-    size,
-    type,
-    tagline,
     location,
     description,
   });
 
   const [originalData, setOriginalData] = useState({
     name,
-    url,
-    website,
+    domainName,
     industry,
-    size,
-    type,
-    tagline,
     location,
     description,
   });
@@ -76,12 +68,8 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
   useEffect(() => {
     const data = {
       name,
-      url,
-      website,
+      domainName,
       industry,
-      size,
-      type,
-      tagline,
       location,
       description,
     };
@@ -90,7 +78,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
     setProfileImage(storeProfileImage);
     setCoverImage(storeCoverImage);
     setIsModified(false);
-  }, [name, url, website, industry, size, type, tagline, location, description, storeProfileImage, storeCoverImage, open]);
+  }, [name, domainName, url, industry, location, description, storeProfileImage, storeCoverImage, open]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'cover') => {
     const file = e.target.files?.[0];
@@ -124,12 +112,32 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
     setIsModified(false);
   };
 
-  const saveChanges = () => {
-    const updatedData = { ...formData, profileImage, coverImage };
-    setOriginalData(updatedData);
-    setCompanyInfo(updatedData);
-    onSave(updatedData);
-    setIsModified(false);
+  const saveChanges = async () => {
+    const updatedData = { ...formData };
+
+    // ✅ Only send fields that have changed
+    const changes: Partial<typeof updatedData> = {};
+    for (const key in updatedData) {
+      if (updatedData[key as keyof typeof updatedData] !== originalData[key as keyof typeof originalData]) {
+        changes[key as keyof typeof updatedData] = updatedData[key as keyof typeof updatedData];
+      }
+    }
+
+    if (Object.keys(changes).length === 0) {
+      console.log('No changes to save.');
+      return;
+    }
+
+    try {
+      await updateCompanyProfile(changes); // ✅ API call
+      setCompanyInfo(updatedData);          // ✅ Update local state
+      onSave(updatedData);
+      setOriginalData(updatedData);          // ✅ Reset original data
+      setIsModified(false);
+      console.log('Changes saved successfully!');
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+    }
   };
 
   const renderSectionContent = () => {
@@ -186,9 +194,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
                 left: 50,
                 backgroundColor: 'white',
                 border: '1px solid #ccc',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                },
+                '&:hover': { backgroundColor: '#f5f5f5' },
               }}
               size="small"
             >
@@ -203,26 +209,12 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             />
           </Box>
 
+          {/* Form Fields */}
           <TextField label="Name *" value={formData.name} onChange={handleChange('name')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="URL" value={formData.url} onChange={handleChange('url')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Website" value={formData.website} onChange={handleChange('website')} fullWidth sx={{ mb: 2 }} />
+          <TextField label="Domain name" value={formData.domainName} onChange={handleChange('domainName')} fullWidth sx={{ mb: 2 }} />
           <TextField label="Industry" value={formData.industry} onChange={handleChange('industry')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Organization Size" value={formData.size} onChange={handleChange('size')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Organization Type" value={formData.type} onChange={handleChange('type')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Tagline" value={formData.tagline} onChange={handleChange('tagline')} fullWidth sx={{ mb: 2 }} />
           <TextField label="Location" value={formData.location} onChange={handleChange('location')} fullWidth sx={{ mb: 2 }} />
           <TextField label="Description" value={formData.description} onChange={handleChange('description')} fullWidth multiline rows={3} sx={{ mb: 2 }} />
-
-          <Divider sx={{ my: 3 }} />
-
-          <Box sx={{ backgroundColor: '#fff9ec', p: 2, borderRadius: 1 }}>
-            <Typography variant="subtitle2" fontWeight={600} color="text.secondary">
-              🟨 PREMIUM
-            </Typography>
-            <Typography fontSize={14}>
-              Stand out and build credibility — Showcase client testimonials, convert more clients with a custom call-to-action, and grow your business faster.
-            </Typography>
-          </Box>
         </>
       );
     }

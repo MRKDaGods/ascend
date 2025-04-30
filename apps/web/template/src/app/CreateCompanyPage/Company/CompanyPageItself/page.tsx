@@ -8,6 +8,7 @@ import ManagePosts from '@/app/components/ManagePosts';
 import AnalyticsPage from '@/app/components/AnalyticsPage';
 import { useNavigationStore } from '@/app/stores/useNavigationStore';
 import PagePosts from '@/app/components/PagePosts';
+import CompanySettings from '@/app/components/CompanySettings';
 
 export default function Page() {
   const { activePage } = useNavigationStore();
@@ -46,6 +47,12 @@ export default function Page() {
           return (
             <Grid item xs={12}>
               <PagePosts />
+            </Grid>
+          );
+          case 'Deactivate Page':
+          return (
+            <Grid item xs={12}>
+              <CompanySettings />
             </Grid>
           );
           

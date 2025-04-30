@@ -8,6 +8,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import CreateDialog from './CreateDialog';
 import EditPageModal from './EditPageModal';
+import CompanySettings from './CompanySettings';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 import { useNavigationStore } from '@/app/stores/useNavigationStore'; // ✅ Import navigation store
 
@@ -17,7 +18,7 @@ export default function Sidebar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
-    name, tagline, url, profileImage, coverImage, setCompanyInfo,
+    name, url, profileImage, coverImage, setCompanyInfo,
   } = useCompanyStore();
 
   const { activePage, setActivePage } = useNavigationStore(); // ✅ Zustand nav store
@@ -35,7 +36,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <Box sx={{ width: 325, backgroundColor: 'white', p: 2, ml: 25, borderRadius: 2, mb: 2, mt: 2 }}>
+      <Box sx={{ width: 350, backgroundColor: 'white', p: 2, ml: 25, borderRadius: 2, mb: 2, mt: 2 }}>
         <Box
           sx={{
             position: 'relative',
@@ -90,7 +91,7 @@ export default function Sidebar() {
         <Divider sx={{ my: 2 }} />
 
         <List>
-          {['Dashboard', 'Page posts', 'Analytics', 'Feed', 'Edit page', 'Jobs'].map((item) => (
+          {['Dashboard', 'Page posts', 'Analytics', 'Feed', 'Edit page', 'Jobs', 'Deactivate Page'].map((item) => (
             <ListItem key={item} sx={{ py: 1 }}>
               <Button
                 fullWidth
