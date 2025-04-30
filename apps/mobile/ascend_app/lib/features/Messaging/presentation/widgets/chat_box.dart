@@ -199,6 +199,7 @@ class _ChatBoxState extends State<ChatBox> {
     );
   }
 
+  /*
   Widget _showSuggestedReplies() {
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -266,7 +267,7 @@ class _ChatBoxState extends State<ChatBox> {
       );
     }
   }
-
+*/
   Widget _buildMessageBubble(
     bool isSent,
     bool isReceived,
@@ -333,6 +334,9 @@ class _ChatBoxState extends State<ChatBox> {
     // Configure if chat box contains file or content
     bool hasFile = widget.fileUrl != null && widget.fileUrl!.isNotEmpty;
     bool hasContent = widget.content != null && widget.content!.isNotEmpty;
+    debugPrint(
+      '[ChatBox] Building message widget for messageId: ${widget.messageId}',
+    );
 
     // Determine if the message is sent or received
     bool isSent = widget.sentOrReceived;
@@ -408,11 +412,6 @@ class _ChatBoxState extends State<ChatBox> {
             _buildMessageBubble(isSent, isReceived, hasContent, hasFile),
             // Show read status for sent messages only
             if (isSent) ...[const SizedBox(width: 4), _buildReadStatus(isRead)],
-            // Show suggested replies only for received messages
-            if (isReceived) ...[
-              const SizedBox(height: 8),
-              _showSuggestedReplies(),
-            ],
           ],
         );
       },

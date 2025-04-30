@@ -216,6 +216,9 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
           }
 
           final conversation = conversations[index];
+          debugPrint(
+            '[MainMessagingPage] Conversation: ${conversation.conversationId}',
+          );
           return GestureDetector(
             onTap: () => _navigateToChat(conversation),
             child: Conversation(
