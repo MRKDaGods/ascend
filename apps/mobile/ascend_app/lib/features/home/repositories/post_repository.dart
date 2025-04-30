@@ -558,12 +558,12 @@ class PostRepository {
     }
   }
 
-  /// Unsaves a post via the API.
+  /// Unsaves a post via the API. (Now uses POST to toggle)
   Future<bool> unsavePost(String postId) async {
     final url = Uri.parse(
       '$baseUrl/post/$postId/save',
-    ); // Endpoint for unsaving (DELETE)
-    debugPrint('🗑️ [PostRepository] Unsaving post $postId at $url');
+    ); // Endpoint for saving/unsaving (using POST)
+    debugPrint('🔄 [PostRepository] Toggling save state (unsave) for post $postId at $url using POST');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
@@ -574,25 +574,34 @@ class PostRepository {
         throw Exception('Authentication token not found.');
       }
 
-      final response = await _client.delete(
-        // Use DELETE method
+      // --- MODIFICATION START ---
+      // Use POST method instead of DELETE
+      final response = await _client.post(
         url,
-        headers: {'Authorization': 'Bearer $authToken'},
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json; charset=UTF-8', // Keep content type if needed by API
+        },
+        // Add body if the API requires it for unsaving via POST, otherwise remove/empty it
+        // body: jsonEncode({}), // Example: Empty body
       );
+      // --- MODIFICATION END ---
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        // 204 No Content is also common for DELETE success
-        debugPrint('✅ [PostRepository] Post $postId unsaved successfully.');
+      // --- MODIFICATION START ---
+      // Adjust expected success codes if needed (200/201 are common for POST toggle)
+      if (response.statusCode == 200 || response.statusCode == 201) {
+      // --- MODIFICATION END ---
+        debugPrint('✅ [PostRepository] Post $postId unsaved successfully (toggled via POST).');
         return true;
       } else {
         debugPrint(
-          '❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}',
+          '❌ [PostRepository] Failed to unsave post $postId via POST. Status: ${response.statusCode}, Body: ${response.body}',
         );
         throw Exception('Failed to unsave post: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint(
-        '❌ [PostRepository] Exception while unsaving post $postId: $e',
+        '❌ [PostRepository] Exception while unsaving post $postId via POST: $e',
       );
       throw Exception('Error unsaving post: $e');
     }

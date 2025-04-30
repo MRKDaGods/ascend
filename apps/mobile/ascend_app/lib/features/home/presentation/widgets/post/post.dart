@@ -61,12 +61,34 @@ class _PostState extends State<Post> {
 
   // Method to show the post options bottom sheet
   void _showPostOptions(BuildContext context, PostModel post) {
-    print("Showing options sheet for post: ${post.id} from Post widget");
+    // --- MODIFICATION START ---
+    // Read the latest state from the bloc to get the most current post status
+    final postBloc = context.read<PostBloc>();
+    final currentState = postBloc.state;
+    PostModel currentPost = post; // Default to the post passed in
+
+    if (currentState is PostsLoaded) {
+      currentPost = currentState.getPostById(post.id) ?? post; // Find the latest version or use the old one
+    }
+
+    final bool isCurrentlySaved = currentPost.isSaved;
+    debugPrint("Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from Post widget");
+
+    // --- MODIFICATION START ---
+    // Explicitly check the flags being passed
+    final bool showSaveFlag = !isCurrentlySaved;
+    final bool showUnsaveFlag = isCurrentlySaved;
+    debugPrint("Sheet parameters: showSave=$showSaveFlag, showUnsave=$showUnsaveFlag");
+    // --- MODIFICATION END ---
+
+
     SheetHelpers.showPostOptionsSheet(
       context: context,
-      ownerName: post.ownerName,
-      showSave: !post.isSaved, // Show Save if not saved
-      showUnsave: post.isSaved, // Show Unsave if saved
+      ownerName: currentPost.ownerName, // Use currentPost
+      // --- MODIFICATION START ---
+      showSave: showSaveFlag, // Use the debugged flag
+      showUnsave: showUnsaveFlag, // Use the debugged flag
+      // --- MODIFICATION END ---
       showShare: true, // Control visibility as needed
       showNotInterested: true, // Control visibility as needed
       showUnfollow: true, // Control visibility as needed
@@ -74,46 +96,60 @@ class _PostState extends State<Post> {
       // Add other show flags based on your sheet implementation
 
       onSave: () {
-        print("Save selected for post ${post.id}");
-        context.read<PostBloc>().add(SavePost(post.id));
+        print("Save selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(SavePost(currentPost.id)); // Use postBloc directly
+        // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post saved'), duration: Duration(seconds: 1)),
         );
       },
       onUnsave: () {
-        print("Unsave selected for post ${post.id}");
-        context.read<PostBloc>().add(UnsavePost(post.id));
+        print("Unsave selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(UnsavePost(currentPost.id)); // Use postBloc directly
+        // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
         );
       },
       onShare: () {
-        print("Share selected for post ${post.id}");
-        context.read<PostBloc>().add(SharePost(post.id));
+        print("Share selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(SharePost(currentPost.id)); // Use postBloc directly
+        // --- MODIFICATION END ---
         // Add sharing logic or feedback
          ScaffoldMessenger.of(context).showSnackBar(
            const SnackBar(content: Text('Sharing...'), duration: Duration(seconds: 1)),
          );
       },
       onNotInterested: () {
-        print("Not interested selected for post ${post.id}");
-        context.read<PostBloc>().add(HidePost(post.id, "Not interested"));
+        print("Not interested selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(HidePost(currentPost.id, "Not interested")); // Use postBloc directly
+        // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post hidden'), duration: Duration(seconds: 1)),
         );
       },
       onUnfollow: () {
-        print("Unfollow selected for user ${post.ownerName}");
+        print("Unfollow selected for user ${currentPost.ownerName}");
         // Add unfollow logic (likely involves a different BLoC)
+        // --- MODIFICATION START ---
+        // Example: Dispatch event to FollowBloc if available
+        // context.read<FollowBloc>().add(UnfollowUser(currentPost.userId));
+        // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unfollow ${post.ownerName} (not implemented)')),
+          SnackBar(content: Text('Unfollow ${currentPost.ownerName} (not implemented)')),
         );
       },
       onReport: () {
-        print("Report selected for post ${post.id}");
+        print("Report selected for post ${currentPost.id}");
         // Show report reason dialog, then dispatch event
         // For now, just dispatch with a placeholder reason
-        context.read<PostBloc>().add(ReportPost(post.id, "Reason from dialog"));
+        // --- MODIFICATION START ---
+        postBloc.add(ReportPost(currentPost.id, "Reason from dialog")); // Use postBloc directly
+        // --- MODIFICATION END ---
          ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post reported'), duration: Duration(seconds: 1)),
         );
@@ -143,10 +179,12 @@ class _PostState extends State<Post> {
                 context.read<PostBloc>().add(ReportPost(post.id, reason));
               },
               onUndo: () {
-                // Use BLoC to hide feedback options
                 context.read<PostBloc>().add(HidePostFeedbackOptions(post.id));
+                // --- MODIFICATION START ---
+                // Add closing parenthesis
               },
             );
+            // --- MODIFICATION END ---
           }
 
           // Normal post view
@@ -312,14 +350,10 @@ class _PostState extends State<Post> {
           );
         }
 
-        // Loading state
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          child: const SizedBox(
-            height: 150,
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        );
+        // --- MODIFICATION START ---
+        // Add return statement for other states or if post is null
+        return const SizedBox.shrink(); // Or a loading indicator/error message
+        // --- MODIFICATION END ---
       },
     );
   }
