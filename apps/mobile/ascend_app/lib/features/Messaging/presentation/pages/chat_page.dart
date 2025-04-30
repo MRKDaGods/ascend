@@ -390,7 +390,7 @@ class _ChatPageState extends State<ChatPage> {
       controller: _scrollController,
       padding: EdgeInsets.all(16),
       reverse: true, // Newest at the bottom
-      itemCount: _messages.length + (_hasMoreMessages ? 1 : 0),
+      itemCount: _messages.length,
       itemBuilder: (context, index) {
         // Show loading indicator at the bottom when loading more
         if (_hasMoreMessages && index == 0) {
@@ -408,8 +408,7 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         // Adjust index for reversed list
-        final messageIndex =
-            _messages.length - 1 - (index - (_hasMoreMessages ? 1 : 0));
+        final messageIndex = _messages.length - 1 - index;
         if (messageIndex < 0 || messageIndex >= _messages.length) {
           return SizedBox.shrink();
         }

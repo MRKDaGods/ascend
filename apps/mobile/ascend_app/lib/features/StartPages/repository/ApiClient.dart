@@ -64,12 +64,10 @@ class ApiClient {
       final responseData = jsonDecode(response.body);
       await SecureStorageHelper.setAuthToken(responseData['token']);
 
-      if (responseData['user_id'] != null) {
+      if (responseData['user_id'] == null) {
         await SecureStorageHelper.setUserId('16');
-      } else {
-        print('User ID is null in the response data.');
-      }
-      //await SecureStorageHelper.setUserId(responseData['user_id']);
+      } else {}
+      await SecureStorageHelper.setUserId(responseData['user_id'].toString());
     } else {
       throw Exception(
         'Failed to login: ${response.statusCode}, ${response.body}',

@@ -7,7 +7,7 @@ class MessageModel {
   final DateTime sentAt;
   final bool isRead;
   final DateTime? readAt;
-  final String senderId;
+  final String? senderId;
 
   MessageModel({
     required this.messageId,
