@@ -1,13 +1,17 @@
 import { create } from 'zustand';
 import { useMediaStore } from "./useMediaStore";
-import { createCompanyAnnouncementAPI, deleteCompanyAnnouncementAPI } from "@/api/company";
+import {
+  createCompanyAnnouncementAPI,
+  deleteCompanyAnnouncementAPI,
+  updateCompanyAnnouncementAPI
+} from "@/api/company";
 import { useCompanyStore } from "./useCreateCompanyStore";
 
 export interface MediaFile {
   type: 'image' | 'video' | 'document';
   file: File;
   preview: string;
-  url?: string;     // 👈 actual backend URL
+  url?: string;
 }
 
 export interface CompanyPost {
@@ -59,7 +63,8 @@ interface CompanyPostStore {
   removeDraftMedia: (index: number) => void;
   clearDraftPost: () => void;
   addPost: () => boolean;
-  deletePost: (postId: string) => void;
+  deletePost: (postId: string) => Promise<void>;
+  updatePost: (postId: string, content: string) => Promise<boolean>;
   createAnnouncementPost: () => Promise<boolean>;
 
   setOpen: (open: boolean) => void;
@@ -68,7 +73,6 @@ interface CompanyPostStore {
   resetPost: () => void;
   setEditingPost: (post: CompanyPost | null) => void;
   setCompanyAnnouncementsToPosts: () => void;
-
 }
 
 export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
@@ -165,24 +169,70 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
   },
   deletePost: async (postId: string) => {
     const companyId = useCompanyStore.getState().companyId;
-  
-    if (!companyId) {
-      console.error("❌ No company ID available for deletion.");
-      return;
-    }
-  
+    if (!companyId) return;
+
     try {
       await deleteCompanyAnnouncementAPI(companyId, Number(postId));
       set((state) => ({
         posts: state.posts.filter((post) => post.id !== postId),
       }));
-      console.log(`✅ Post ${postId} deleted successfully.`);
     } catch (error) {
-      console.error(`❌ Failed to delete post ${postId}:`, error);
+      console.error("❌ Failed to delete post", error);
+    }
+  },
+
+  updatePost: async (postId: string) => {
+    const companyId = useCompanyStore.getState().companyId;
+    const { draftPost, posts } = get();
+  
+    if (!companyId) {
+      console.error("❌ No company ID available for update.");
+      return false;
+    }
+  
+    try {
+      const announcement = await updateCompanyAnnouncementAPI(
+        companyId,
+        Number(postId),
+        draftPost.content.trim(),
+        draftPost.media // send updated media
+      );
+  
+      const updatedPost: CompanyPost = {
+        id: announcement.announcement_id.toString(),
+        content: announcement.content,
+        media: [
+          ...announcement.image_urls.map((url: string) => ({
+            type: "image",
+            file: {} as File,
+            preview: url,
+          })),
+          ...(announcement.video_url
+            ? [{
+                type: "video",
+                file: {} as File,
+                preview: announcement.video_url,
+              }]
+            : []),
+        ],
+        createdAt: new Date(announcement.created_at),
+      };
+  
+      set({
+        posts: posts.map((p) => (p.id === postId ? updatedPost : p)),
+        draftPost: { content: '', media: [] },
+      });
+  
+      return true;
+    } catch (error) {
+      console.error("❌ Failed to update post", error);
+      return false;
     }
   },
   
   
+  
+
   createAnnouncementPost: async () => {
     const { draftPost, posts } = get();
     const companyId = useCompanyStore.getState().companyId;
@@ -237,7 +287,7 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
 
   setCompanyAnnouncementsToPosts: () => {
     const announcements = useCompanyStore.getState().announcements;
-  
+
     const transformedPosts: CompanyPost[] = announcements.map((a: any) => ({
       id: a.announcement_id.toString(),
       content: a.content,
@@ -245,7 +295,7 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
         ...a.image_urls.map((url: string) => ({
           type: "image",
           file: {} as File,
-          preview: url, // now this is a valid remote URL
+          preview: url,
         })),
         ...(a.video_url
           ? [{
@@ -257,11 +307,7 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
       ],
       createdAt: new Date(a.created_at),
     }));
-  
+
     set({ posts: transformedPosts });
   }
-  
-  
-  
-  
 }));

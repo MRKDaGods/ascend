@@ -26,7 +26,6 @@ export default function PagePosts() {
   const getCompanyAnnouncements = useCompanyStore((state) => state.getCompanyAnnouncements);
   const { setCompanyAnnouncementsToPosts } = useCompanyPostStore();
 
-
   useEffect(() => {
     if (companyId) {
       getCompanyAnnouncements(companyId).then(() => {
@@ -34,11 +33,10 @@ export default function PagePosts() {
       });
     }
   }, [companyId]);
-  
-
 
   const {
     createAnnouncementPost,
+    updatePost,
     addDraftMedia,
     removeDraftMedia,
     draftPost,
@@ -47,7 +45,6 @@ export default function PagePosts() {
     setDraftPostContent,
     clearDraftPost
   } = useCompanyPostStore();
-  
 
   const companyName = useCompanyStore((state) => state.name);
   const companyProfileImage = useCompanyStore((state) => state.profileImage);
@@ -65,31 +62,23 @@ export default function PagePosts() {
   };
 
   const handleSubmit = async () => {
-  if (isEditing && editingPostId) {
-    const updatedPosts = posts.map((post) =>
-      post.id === editingPostId ? {
-        ...post,
-        content: draftPost.content.trim(),
-        media: draftPost.media,
-      } : post
-    );
-    useCompanyPostStore.setState({ posts: updatedPosts });
-    setIsEditing(false);
-    setEditingPostId(null);
-  } else {
-    const success = await createAnnouncementPost();
-    if (!success) return;
-  }
+    if (isEditing && editingPostId) {
+      await updatePost(editingPostId, draftPost.content.trim());
+      setIsEditing(false);
+      setEditingPostId(null);
+    } else {
+      const success = await createAnnouncementPost();
+      if (!success) return;
+    }
 
-  setText('');
-  clearDraftPost();
-  setOpen(false);
-};
-
+    setText('');
+    clearDraftPost();
+    setOpen(false);
+  };
 
   const handleEditPost = (post: CompanyPost) => {
     setDraftPostContent(post.content);
-    clearDraftPost(); // in case there's leftover media
+    clearDraftPost();
     useCompanyPostStore.setState({ draftPost: { content: post.content, media: [...post.media] } });
     setIsEditing(true);
     setEditingPostId(post.id);
@@ -103,6 +92,7 @@ export default function PagePosts() {
     setAnchorEl(null);
     setSelectedPostId(null);
   };
+
   
 
   return (

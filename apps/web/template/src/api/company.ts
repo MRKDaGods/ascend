@@ -29,7 +29,6 @@ export const createCompanyProfileAPI = async (payload: any) => {
       JSON.stringify(payload), // Ensure correct serialization
       {
         headers: {
-
           "Content-Type": "application/json",
         },
       }
@@ -42,13 +41,11 @@ export const createCompanyProfileAPI = async (payload: any) => {
 };
 
 export const updateCompanyProfileAPI = async (companyId: number, payload: any) => {
-  const token = getAuthToken();
   const response = await API.patch(
     `${COMPANY_BASE}/companies/${companyId}`,
     payload,
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     }
@@ -57,21 +54,13 @@ export const updateCompanyProfileAPI = async (companyId: number, payload: any) =
 };
 
 export const deleteCompanyProfileAPI = async (companyId: number) => {
-  const token = getAuthToken();
   const response = await API.delete(`${COMPANY_BASE}/companies/${companyId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
   return response.data.data.msg;
 };
 
 export const getCompanyAnnouncementsAPI = async (companyId: number) => {
-  const token = getAuthToken();
   const response = await API.get(`${COMPANY_BASE}/companies/${companyId}/announcements`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
   return response.data.data.announcements;
 };
@@ -119,7 +108,6 @@ export const createCompanyAnnouncementAPI = async (
     JSON.stringify(payload),
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     }
@@ -132,16 +120,67 @@ export const deleteCompanyAnnouncementAPI = async (
   companyId: number,
   announcementId: number
 ) => {
-  const token = getAuthToken();
   const response = await API.delete(
     `${COMPANY_BASE}/companies/${companyId}/announcements/${announcementId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
   );
   return response.data.data.msg;
 };
+
+// ✅ Add this to company.ts
+
+export const updateCompanyAnnouncementAPI = async (
+  companyId: number,
+  announcementId: number,
+  content: string,
+  media: MediaFile[]
+) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No token found.");
+
+  const announcement_photos = media
+    .filter((m) => m.type === "image")
+    .map((fileObj) => {
+      const base64 = fileObj.preview.replace(/^data:.+;base64,/, "");
+      return {
+        buffer: base64,
+        file_name: fileObj.file.name,
+        file_size: fileObj.file.size,
+        mime_type: fileObj.file.type,
+      };
+    });
+
+  const announcement_video = media.find((m) => m.type === "video");
+
+  const payload: any = {
+    content,
+    announcement_photos,
+  };
+
+  if (announcement_video) {
+    const base64 = announcement_video.preview.replace(/^data:.+;base64,/, "");
+    payload.announcement_video = {
+      buffer: base64,
+      file_name: announcement_video.file.name,
+      file_size: announcement_video.file.size,
+      mime_type: announcement_video.file.type,
+    };
+  }
+
+  const response = await API.patch(
+    `${COMPANY_BASE}/companies/${companyId}/announcements/${announcementId}`,
+    JSON.stringify(payload),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data.data.announcement;
+};
+
+
+
 
 
