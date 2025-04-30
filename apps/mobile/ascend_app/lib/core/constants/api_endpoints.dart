@@ -54,7 +54,7 @@ class ApiEndpoints {
   //messaging endpoints
   static const String conversations = '$messaging/conversations';
   static const String unseenCount = '$messaging/unseen-count';
-  static const String message = '$messaging/';
+  static const String message = '$messaging';
 
   // Search endpoints
   static const String search = '/search';
