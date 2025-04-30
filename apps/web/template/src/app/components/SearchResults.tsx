@@ -28,7 +28,7 @@ const SearchResults: React.FC = () => {
         sx={{
           position: "absolute",
           top: "64px", // below navbar
-          left: "50%",
+          left: "30%",
           transform: "translateX(-50%)",
           bgcolor: "background.paper",
           border: "1px solid",
