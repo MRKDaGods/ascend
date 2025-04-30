@@ -83,7 +83,7 @@ export const register = async (req: Request, res: Response) => {
  * @returns 500 status with error message on server error
  *
  * @remarks
- * Tokens are valid for 12 hours
+ * Tokens are valid for 30 days
  */
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -107,10 +107,10 @@ export const login = async (req: Request, res: Response) => {
 
     // Check if the user is banned
     if (await isUserBanned(user.id)) {
-      return res.status(403).json({ error: "User is banned" });
+      return res.status(401).json({ error: "User is banned" });
     }
 
-    const token = generateToken({ id: user.id }, "12h"); // 12h expiration
+    const token = generateToken({ id: user.id }, "30d");
     res.json({ token, user_id: user.id });
   } catch (error) {
     console.error(error);
@@ -235,7 +235,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
     await sendEmail(
       email,
       "Reset Your Password",
-      `Click this link to reset your password: https://www.ascendx.tech/resetpwd?token=${reset_token}`
+      `Click this link to reset your password: https://www.ascendx.tech/authen/ForgetPassword/new?token=${reset_token}`
     );
 
     res.json({ message: "Password reset email sent" });
