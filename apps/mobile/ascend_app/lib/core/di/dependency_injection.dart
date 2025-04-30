@@ -123,6 +123,10 @@ class ServiceLocator {
 
     // Create it here instead of in the BlocProvider
     messagingBloc = MessagingBloc(repository: messagingRepo);
+
+    // Set flag to true after successful initialization
+    _isInitialized = true;
+    debugPrint('ServiceLocator initialized successfully.');
   }
 
   void dispatchMessagingEvent(MessagingBlocEvent event) {
@@ -139,10 +143,6 @@ class ServiceLocator {
     } catch (e) {
       debugPrint('Error dispatching SetActiveConversation: $e');
     }
-
-    // Set flag to true after successful initialization
-    _isInitialized = true;
-    debugPrint('ServiceLocator initialized successfully.');
   }
 
   /// Dispose of resources when app is closed
