@@ -73,7 +73,11 @@ const EditPost: React.FC = () => {
               </Typography>
             </Box>
           </Stack>
-          <IconButton onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
+          <IconButton
+            id="close-edit-post-dialog-button" // ✅ ID added
+            onClick={handleClose}
+            sx={{ color: theme.palette.text.primary }}
+          >
             <Close />
           </IconButton>
         </Stack>
@@ -111,12 +115,14 @@ const EditPost: React.FC = () => {
 
             <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
               <IconButton
+                id="edit-media-button" // ✅ ID added
                 sx={{ bgcolor: theme.palette.action.hover, color: theme.palette.text.primary }}
                 onClick={() => openEditor(mediaType ?? "image")}
               >
                 <Edit />
               </IconButton>
               <IconButton
+                id="delete-media-button" // ✅ ID added
                 sx={{ bgcolor: theme.palette.action.hover, color: theme.palette.text.primary }}
                 onClick={() => removeMediaFile(0)}
               >
@@ -129,6 +135,7 @@ const EditPost: React.FC = () => {
 
       <DialogActions sx={{ backgroundColor: theme.palette.background.paper, px: 3, pb: 2 }}>
         <Button
+          id="save-post-button" // ✅ ID added
           variant="contained"
           onClick={handleSave}
           disabled={!postText.trim()}

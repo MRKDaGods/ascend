@@ -65,21 +65,19 @@ const NewsletterInviteCard = () => {
         </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1}>
-        <Typography
-          variant="body2"
-          sx={{
-            color: theme.palette.text.secondary,
-            cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
-          }}
-        >
-          Ignore
-        </Typography>
-        <Button variant="outlined" size="small">
-          Accept
-        </Button>
-      </Stack>
+     <Stack direction="row" spacing={1}>
+      <Button variant="outlined" size="small" 
+      sx={{
+          color: theme.palette.text.secondary,
+          cursor: "pointer",
+          border: "0px",
+        }}>
+        Ignore
+      </Button>
+      <Button variant="outlined" size="small">
+        Accept
+      </Button>
+    </Stack>
     </Box>
   );
 };

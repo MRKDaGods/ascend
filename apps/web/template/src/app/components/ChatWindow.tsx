@@ -133,7 +133,7 @@ export default function ChatWindow() {
     {
       return (
         <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Typography variant="h6" sx={{ color: "#z" }}>
+          <Typography variant="h6" sx={{ color: "#495057" }}>
             select conversation to start chatting
           </Typography>
         </Box>

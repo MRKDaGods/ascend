@@ -1,6 +1,6 @@
 // =======================AUTH-EVENTS=======================
 
-import { FileMetadata, Profile } from "@shared/models";
+import { FileMetadata, Profile, Post } from "@shared/models";
 
 /**
  * [RPC] Represents the payload for an admin user request event
@@ -147,5 +147,24 @@ export namespace FileMetadataRequestPayload {
    */
   export interface Response {
     file_metadata: FileMetadata;
+  }
+}
+
+/**
+ * [RPC] Represents the payload for a get post event
+ */
+export namespace GetPostByIdPayload {
+  /**
+   * @property {number} post_id - The unique identifier for the post
+   */
+  export interface Request {
+    post_id: number;
+  }
+
+  /**
+   * @property {Post} post - The post object
+   */
+  export interface Response {
+    post: Post;
   }
 }

@@ -45,11 +45,95 @@ export interface GetSavedPostsResponse {
   data: Post[];
 }
 
+export interface GetCommentsResponse {
+  success: boolean;
+  data: any[]; // You can replace `any` later with your real Comment type
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
+export interface UltimateSearchResponse {
+  success: boolean;
+  data: {
+    users: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      profile_picture_id: number | null;
+      bio: string | null;
+      rank: number;
+      profile_picture_url: string | null;
+    }[];
+    posts: {
+      id: number;
+      content: string;
+      is_edited: boolean;
+      privacy: "public" | "private";
+      created_at: string;
+      updated_at: string;
+      rank: number;
+      user: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        profile_picture_url: string | null;
+      };
+      media: {
+        id: number;
+        post_id: number;
+        url: string;
+        type: string;
+        thumbnail_url: string | null;
+        title: string;
+        description: string;
+        created_at: string;
+        updated_at: string;
+      }[];
+      likes_count: number;
+      comments_count: number;
+      shares_count: number;
+    }[];
+  };
+}
+
+interface TagUserRequest {
+  contentType: "post" | "comment";
+  contentId: number;
+  tags: {
+    userId: number;
+    startIndex: number;
+    endIndex: number;
+  }[];
+}
+
+interface TagUserResponse {
+  success: boolean;
+  data: {
+    contentType: "post" | "comment";
+    contentId: number;
+    tags: {
+      id: number;
+      tagged_user_id: number;
+      tagger_user_id: number;
+      post_id: number | null;
+      comment_id: number | null;
+      start_index: number;
+      end_index: number;
+      created_at: string;
+    }[];
+  };
+}
+
+// ================================================================================================= //
+
 // ==== FETCH FEED ====
 
 export const fetchNewsFeed = async (
   page = 1,
-  limit = 15
+  limit = 25
 ): Promise<NewsFeedResponse> => {
   const response = await API.get<NewsFeedResponse>("/post/feed", {
     params: { page, limit },
@@ -72,9 +156,9 @@ export const fetchPost = async (
 };
 
 // ==== CREATE POST ====
-export const createPost = async (
+export const createPostNew = async (
   content: string,
-  mediaFile?: File,
+  mediaFiles?: File[],
   mediaType?: "image" | "video" | "file",
   fileTitle?: string,
   fileDescription?: string
@@ -83,21 +167,28 @@ export const createPost = async (
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  if (mediaFile && mediaType === "file") {
-    formData.append("media", mediaFile);
-    formData.append("type", "document");
-    formData.append("title", fileTitle ?? "Untitled Document");
-    formData.append("description", fileDescription ?? "PDF file");
-    console.log("📄 Document being uploaded:", mediaFile.name);
-  } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
-    formData.append("media", mediaFile);
-    formData.append("type", mediaType);
-    formData.append("title", "Uploaded Media");
-    formData.append("description", `${mediaType} file`);
-    console.log("🖼️ Media being uploaded:", mediaFile.name);
+  const hasMedia = mediaFiles && mediaFiles.length > 0;
+
+  if (hasMedia && mediaType) {
+    // ✅ Append all files
+    mediaFiles.forEach((file) => {
+      formData.append("media", file);
+    });
+
+    const normalizedType = mediaType === "file" ? "document" : mediaType;
+    formData.append("type", normalizedType);
+    formData.append("title", fileTitle ?? "Uploaded Media");
+    formData.append("description", fileDescription ?? `${normalizedType} file`);
+
+    console.log(`📁 Uploading ${mediaFiles.length} files as ${normalizedType}`);
   } else {
-    formData.append("title", "text only");
-    formData.append("description", "no media");
+    // For text-only post
+    formData.append("title", "Text Post");
+    formData.append("description", "No media attached");
+  
+    // ✅ Add an empty blob to "media" to satisfy the backend's expectations
+    formData.append("media", new Blob([]), "");
+  
     console.log("📝 Text-only post");
   }
 
@@ -108,7 +199,6 @@ export const createPost = async (
     },
   });
 };
-
 
 // ==== DELETE POST ====
 
@@ -185,6 +275,8 @@ export const createCommentAPI = async (
     formData.append("parentCommentId", parentCommentId.toString());
   }
 
+  // ==== GET COMMENTS ON POST ====
+
   const res = await API.post(`/post/${postId}/comments`, formData, {
     headers: {
       "x-no-parse-body": "1",
@@ -192,4 +284,59 @@ export const createCommentAPI = async (
   });
 
   return res.data;
+};
+
+  // ==== GET COMMENTS ON POST ====
+
+export const fetchCommentsForPost = async (
+  postId: number,
+  page = 1,
+  limit = 10
+): Promise<GetCommentsResponse> => {
+  const response = await API.get<GetCommentsResponse>(`/post/${postId}/comments`, {
+    params: { page, limit },
+  });
+  return response.data;
+};
+
+// ==== ULTIMATE SEARCH ====
+
+// Fetch function
+
+export const ultimateSearchAPI = async (
+  q: string,
+  limit = 5,
+  offset = 0
+): Promise<UltimateSearchResponse> => {
+  const response = await API.get<UltimateSearchResponse>(`/post/search/ultimate`, {
+    params: { q, limit, offset },
+  });
+  return response.data;
+};
+
+// ==== TAG USERS ON POST OR COMMENT ====
+
+export const tagUsersAPI = async (payload: TagUserRequest): Promise<TagUserResponse> => {
+  const response = await API.post<TagUserResponse>("/post/tags", payload);
+  return response.data;
+};
+
+export const tagUsersOnContentAPI = async (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number }[]) => {
+  const res = await API.post(`/tags`, {
+    contentType,
+    contentId,
+    tags,
+  });
+  return res.data;
+};
+
+// ==== CREATE REACTION ON POST ====
+
+export const reactToPostAPI = async (postId: number, type: string) => {
+  const response = await API.post(`/post/${postId}/react`, { type }, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
 };

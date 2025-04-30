@@ -13,7 +13,7 @@ import { usepJobStore } from "../stores/usepJobStore";
 import { useIsClient } from "../hooks/useIsClient";
 import CompanyEmailModal from "./CompanyEmailModal";
 import PostJobPopUp from "../components/PostPopUp";
-import { useJobStore as useSharedJobStore } from "@/app/shared/store/useJobStore";
+import { useJobStore as useSharedJobStore } from "@/app/stores/useJobStore";
 
 const workplaceOptions = ["On-site", "Remote", "Hybrid"];
 const jobTypeOptions = [
@@ -81,11 +81,7 @@ const JobForm = () => {
     try {
       const res = await fetch("https://api.ascendx.tech/job", {
         method: "POST",
-        headers: { "Content-Type": "application/json" , 
-        Authorization:
-        'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
-
-    },
+        headers: { "Content-Type": "application/json"},
         body: JSON.stringify(jobData),
       });
 

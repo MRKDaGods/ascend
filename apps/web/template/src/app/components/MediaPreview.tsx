@@ -29,6 +29,8 @@ const MediaPreview: React.FC = () => {
   };
 
   const handleDuplicate = () => {
+    if (mediaFiles.length >= 8) return; // ✅ Stop if already 8 media
+  
     const fileToDuplicate = mediaFiles[selectedIndex];
     if (fileToDuplicate) {
       const duplicated = new File([fileToDuplicate], fileToDuplicate.name, {
@@ -36,7 +38,7 @@ const MediaPreview: React.FC = () => {
       });
       addMediaFile(duplicated);
     }
-  };
+  };  
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -47,11 +49,17 @@ const MediaPreview: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      Array.from(files).forEach((file) => {
-        addMediaFile(file);
-      });
+      const filesArray = Array.from(files);
+  
+      if (mediaFiles.length + filesArray.length > 8) {
+        const allowedFiles = filesArray.slice(0, 8 - mediaFiles.length);
+        allowedFiles.forEach((file) => addMediaFile(file));
+      } else {
+        filesArray.forEach((file) => addMediaFile(file));
+      }
     }
   };
+  
 
   if (mediaFiles.length === 0) return null;
 

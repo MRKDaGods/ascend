@@ -92,10 +92,6 @@ export const useJobStore = create<JobStore>((set) => ({
     try {
       await fetch(`https://api.ascendx.tech/job/save/${jobId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
-        },
       });
 
       set((state) => {
@@ -120,13 +116,7 @@ export const useJobStore = create<JobStore>((set) => ({
 
   fetchSavedJobs: async () => {
     try {
-      const response = await fetch('https://api.ascendx.tech/job/save', {
-        method: 'GET',
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
-        },
-      });
+      const response = await fetch('https://api.ascendx.tech/job/save', {method: 'GET',});
       const result = await response.json();
       const updatedJobs: Job[] = result.data.map((job: any) => ({
         ...job,

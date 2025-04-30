@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,7 +17,6 @@ import {
   ListItemText,
   ListItemIcon,
   Typography,
-  Popover,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import {
@@ -36,11 +35,14 @@ import { useRouter, usePathname } from "next/navigation";
 import { useMenuStore } from "../stores/useMenuStore";
 import { useNotificationStore } from "../stores/useNotificationStore";
 import { useProfileStore } from "../stores/useProfileStore";
-import BusinessMenu from "./BusinessMenu"; // ✅ Import BusinessMenu
+import { usePostStore } from "../stores/usePostStore";
 
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SearchResults from "./SearchResults";
+import { api, refreshAuthState } from "@/api";
 
+// 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -52,6 +54,7 @@ const SearchBar = styled("div")(({ theme }) => ({
   width: "270px",
 }));
 
+// 🎯 Active nav highlight
 const NavIconButton = styled(IconButton, {
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active: boolean }>(({ theme, active }) => ({
@@ -66,9 +69,7 @@ const NavIconButton = styled(IconButton, {
   "&:hover": {
     transform: "scale(1.1)",
     backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(255, 255, 255, 0.05)"
-        : "#eaeaea",
+      theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "#eaeaea",
   },
 }));
 
@@ -77,24 +78,39 @@ const Navbar: React.FC = () => {
   const muiTheme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const { ultimateSearch } = usePostStore();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
 
-  const userData = useProfileStore((state) => state.userData);
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
-
-  // ✅ Business Menu Popover logic
-  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(null);
-  const businessMenuOpen = Boolean(businessAnchorEl);
-  
-  const handleBusinessClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setBusinessAnchorEl(event.currentTarget);
+  // Fetch user data from the profile store
+  type Profile = {
+    profile_picture_url?: string;
+    first_name: string;
+    last_name: string;
   };
 
-  const handleBusinessClose = () => {
-    setBusinessAnchorEl(null);
+  const userData = useProfileStore((state) => state.userData) as Profile | null;
+
+  // Safely derive profile picture and full name
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // Fallback to default avatar
+  const fullName = userData
+    ? `${userData.first_name} ${userData.last_name}`
+    : "User"; // Fallback to "User"
+
+  const handleLogout = () => {
+    api.auth
+      .logout()
+      .then(() => {
+        console.log("Logout successful");
+        console.log("auth tk:", localStorage.getItem("auth_token"));
+        refreshAuthState();
+        router.push("/authen");
+      })
+      .catch((error) => {
+        console.error("Logout error:", error);
+      });
   };
 
   return (
@@ -109,12 +125,35 @@ const Navbar: React.FC = () => {
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 1 }}>
         {/* LEFT */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <img src="/logoIcon.png" alt="Ascend" style={{ height: 36, borderRadius: 6 }} />
+        <Box sx={{ display: "flex", alignItems: "center", py: 1 }}>
+          <img
+            src="/logoIcon.png"
+            alt="Ascend"
+            style={{ height: 36, borderRadius: 6 }}
+          />
+          <Box
+            onClick={() => router.push("/feed")}
+            sx={{ cursor: "pointer" }} // Add pointer cursor to indicate it's clickable
+          >
+            <Typography variant="h5" color="primary" fontWeight="bold">
+              Ascend
+            </Typography>
+          </Box>
           <SearchBar>
             <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
             <InputBase
               placeholder="Search for jobs, people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === "Enter" && searchQuery.trim()) {
+                  try {
+                    await ultimateSearch(searchQuery.trim());
+                  } catch (error) {
+                    console.error("❌ Search failed:", error);
+                  }
+                }
+              }}
               sx={{
                 color: muiTheme.palette.text.primary,
                 fontSize: "0.85rem",
@@ -126,15 +165,32 @@ const Navbar: React.FC = () => {
 
         {/* CENTER */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          {[{ icon: <Home />, route: "/feed", label: "Home" }, { icon: <People />, route: "/network", label: "My Network" }, { icon: <Work />, route: "/jobs", label: "Jobs" }, { icon: <Message />, route: "/chat", label: "Messaging" }, { icon: <Notifications />, route: "/notif", label: "Notifications" }].map(({ icon, route, label }, i) => (
+          {[
+            { icon: <Home />, route: "/feed", label: "Home" },
+            { icon: <People />, route: "/network", label: "My Network" },
+            { icon: <Work />, route: "/jobs", label: "Jobs" },
+            { icon: <Message />, route: "/chat", label: "Messaging" },
+            {
+              icon: <Notifications />,
+              route: "/notif",
+              label: "Notifications",
+            },
+          ].map(({ icon, route, label }, i) => (
             <Tooltip key={i} title={label}>
-              <NavIconButton onClick={() => router.push(route)} active={pathname === route}>
+              <NavIconButton
+                onClick={() => router.push(route)}
+                active={pathname === route}
+              >
                 {label === "Notifications" && unseenCount > 0 ? (
                   <Badge badgeContent={unseenCount} color="error">
-                    {React.cloneElement(icon, { sx: { color: muiTheme.palette.text.secondary } })}
+                    {React.cloneElement(icon, {
+                      sx: { color: muiTheme.palette.text.secondary },
+                    })}
                   </Badge>
                 ) : (
-                  React.cloneElement(icon, { sx: { color: muiTheme.palette.text.secondary } })
+                  React.cloneElement(icon, {
+                    sx: { color: muiTheme.palette.text.secondary },
+                  })
                 )}
               </NavIconButton>
             </Tooltip>
@@ -143,7 +199,11 @@ const Navbar: React.FC = () => {
 
         {/* RIGHT */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Tooltip title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+          <Tooltip
+            title={
+              theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+            }
+          >
             <IconButton onClick={toggleTheme}>
               {theme === "dark" ? (
                 <LightMode sx={{ color: "#ffeb3b" }} />
@@ -185,7 +245,10 @@ const Navbar: React.FC = () => {
             transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
             <Box px={2} py={2} textAlign="center">
-              <Avatar src={profilePicture} sx={{ width: 58, height: 58, mx: "auto" }} />
+              <Avatar
+                src={profilePicture}
+                sx={{ width: 58, height: 58, mx: "auto" }}
+              />
               <Typography fontWeight={600} mt={1}>
                 {fullName}
               </Typography>
@@ -203,32 +266,54 @@ const Navbar: React.FC = () => {
             </Box>
 
             <Divider />
-            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+            <Typography
+              px={2}
+              mt={1}
+              fontSize="0.75rem"
+              fontWeight={700}
+              color="gray"
+            >
               Account
             </Typography>
-            <MenuItem><ListItemText>Try Premium</ListItemText></MenuItem>
+            <MenuItem>
+              <ListItemText>Try Premium</ListItemText>
+            </MenuItem>
             <MenuItem>
               <ListItemText onClick={() => router.push("/authen/Settings")}>
                 Settings & Privacy
               </ListItemText>
-              <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+              <ListItemIcon>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
             </MenuItem>
 
             <Divider />
-            <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+            <Typography
+              px={2}
+              mt={1}
+              fontSize="0.75rem"
+              fontWeight={700}
+              color="gray"
+            >
               Manage
             </Typography>
-            <MenuItem><ListItemText>Posts & Activity</ListItemText></MenuItem>
-            <MenuItem><ListItemText>Job Posting Account</ListItemText></MenuItem>
+            <MenuItem>
+              <ListItemText>Posts & Activity</ListItemText>
+            </MenuItem>
+            <MenuItem>
+              <ListItemText>Job Posting Account</ListItemText>
+            </MenuItem>
 
             <Divider />
             <MenuItem onClick={closeMenu}>
-              <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-              <ListItemText onClick={() => router.push("/authen")}>Sign Out</ListItemText>
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText onClick={handleLogout}>Sign Out</ListItemText>
             </MenuItem>
           </Menu>
 
-          {/* Business Button */}
+          {/* Business / Premium */}
           <Button
             sx={{
               color: muiTheme.palette.text.primary,
@@ -236,22 +321,9 @@ const Navbar: React.FC = () => {
               fontWeight: 500,
             }}
             endIcon={<ExpandMore />}
-            onClick={handleBusinessClick}
           >
             For Business
           </Button>
-
-          {/* Business Popover */}
-          <Popover
-            open={businessMenuOpen}
-            anchorEl={businessAnchorEl}
-            onClose={handleBusinessClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-            PaperProps={{ sx: { width: 700, mt: 1 } }}
-          >
-            <BusinessMenu />
-          </Popover>
 
           <Button
             variant="contained"
@@ -271,6 +343,7 @@ const Navbar: React.FC = () => {
           </Button>
         </Box>
       </Toolbar>
+      <SearchResults />
     </AppBar>
   );
 };

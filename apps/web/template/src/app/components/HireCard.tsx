@@ -56,26 +56,28 @@ export default function HireCard() {
 
   return (
     <>
+      {/* Main Card */}
       <Card
         sx={{
           maxWidth: "1200px",
           margin: "auto",
           mt: 10,
-          p: 6,
+          p: { xs: 3, md: 6 },
           display: "flex",
+          flexDirection: { xs: "column", md: "row" },
           gap: 6,
           borderRadius: "16px",
           boxShadow: 4,
+          alignItems: "center",
         }}
       >
         {/* Left Section */}
-        <Box flex={1}>
+        <Box sx={{ flex: 1, textAlign: { xs: "center", md: "left" } }}>
           <Typography variant="h3" fontWeight={700} mb={3}>
             <Box
               component="span"
               sx={{
-                background:
-                  "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
+                background: "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 fontWeight: 700,
@@ -95,7 +97,7 @@ export default function HireCard() {
             As your AI-assistant, I can help you:
           </Typography>
 
-          <Box component="ul" sx={{ pl: 3 }}>
+          <Box component="ul" sx={{ pl: 3, textAlign: "left" }}>
             <Typography component="li" mb={2}>
               Post a job faster by drafting a job description
             </Typography>
@@ -103,31 +105,36 @@ export default function HireCard() {
               Quickly presort applicants according to your criteria
             </Typography>
             <Typography component="li" mb={2}>
-              Find up to 25 qualified people on LinkedIn per day to invite to apply
+              Find up to 25 qualified people on Ascend per day to invite to apply
             </Typography>
           </Box>
         </Box>
 
         {/* Right Form */}
-        <Box
-          sx={{
-            flex: 1,
-            borderRadius: "16px",
-            p: "2px",
-            background:
-              "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
-          }}
-        >
-          <Box
-            sx={{
-              borderRadius: "14px",
-              p: 4,
-              backgroundColor: "white",
-              display: "flex",
-              flexDirection: "column",
-              gap: 3,
-            }}
-          >
+<Box
+  sx={{
+    flex: "0 0 auto", // Don't stretch the gradient
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    p: "2px",
+    background: "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
+    borderRadius: "16px",
+    width: { xs: "100%", md: "auto" }, // Full width on mobile, auto width on desktop
+  }}
+>
+  <Box
+    sx={{
+      borderRadius: "14px",
+      p: { xs: 3, md: 4 },
+      backgroundColor: "white",
+      display: "flex",
+      flexDirection: "column",
+      gap: 3,
+      width: "100%",
+      maxWidth: "400px",
+    }}
+  >
             <Typography variant="body2" fontWeight={600}>
               Job title
             </Typography>
@@ -192,16 +199,18 @@ export default function HireCard() {
         sx={{
           maxWidth: "1200px",
           margin: "40px auto 0",
-          p: 4,
+          p: { xs: 3, md: 4 },
           borderRadius: "16px",
           backgroundColor: "#f7f9fb",
           display: "flex",
+          flexDirection: { xs: "column", md: "row" },
           justifyContent: "space-between",
           alignItems: "center",
           gap: 4,
+          mt: 6,
         }}
       >
-        <Box flex={2}>
+        <Box sx={{ flex: 2, textAlign: { xs: "center", md: "left" } }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Rated #1 in increasing quality of hire
           </Typography>
@@ -212,7 +221,14 @@ export default function HireCard() {
           </Typography>
         </Box>
 
-        <Box flex={1} sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            justifyContent: { xs: "center", md: "flex-end" },
+            mt: { xs: 3, md: 0 },
+          }}
+        >
           <img
             src="https://static.licdn.com/aero-v1/sc/h/cmzppdf78bnjxcszizjuq5sz2"
             alt="Hiring illustration"

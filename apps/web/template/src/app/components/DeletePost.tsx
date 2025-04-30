@@ -12,6 +12,7 @@ const DeletePost = () => {
     <>
       {isLastPostDeleted && (
         <Box
+          id="post-deleted-message" // ✅ ID added
           sx={{
             textAlign: "center",
             mt: 5,

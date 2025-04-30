@@ -28,7 +28,7 @@ const SigninBox = () => {
           backgroundColor: "white",
         }}
       >
-        {/* User Account Box */}
+        {/* First User Account Box */}
         <Box 
           display="flex" 
           alignItems="center" 
@@ -39,9 +39,31 @@ const SigninBox = () => {
           <Box display="flex" alignItems="center">
             <Avatar src="/user.jpg" sx={{ width: 40, height: 40, mr: 2 }} />
             <Box textAlign="left">
-              <Typography fontWeight="bold" id="user-name">Mehrati Sameh</Typography>
+              <Typography sx={{ color: "text.primary" }} fontWeight="bold" id="user-name">Mehrati Sameh</Typography>
               <Typography variant="body2" color="text.secondary" id="user-email">
                 m*****@gmail.com
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton size="small">
+            <MoreVertIcon />
+          </IconButton>
+        </Box>
+
+         {/*Second User Account Box */}
+         <Box 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="space-between"
+          sx={{ cursor: "pointer", "&:hover": { bgcolor: "grey.100" } }}
+          p={2}
+        >
+          <Box display="flex" alignItems="center">
+            <Avatar src="/user.jpg" sx={{ width: 40, height: 40, mr: 2 }} />
+            <Box textAlign="left">
+              <Typography sx={{ color: "text.primary" }} fontWeight="bold" id="user-name">Habiba</Typography>
+              <Typography variant="body2" color="text.secondary" id="user-email">
+                h*****@eng-st.cu.edu.eg
               </Typography>
             </Box>
           </Box>
@@ -71,7 +93,7 @@ const SigninBox = () => {
 
       {/* Join Now Link */}
       <Typography variant="body2" color="text.secondary" mt={3}>
-        New to LinkedIn?{" "}
+        New to Ascend?{" "}
         <Typography 
           component="span" 
           color="primary" 

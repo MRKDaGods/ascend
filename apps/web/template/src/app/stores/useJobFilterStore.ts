@@ -1,91 +1,66 @@
+// src/store/useJobFilterStore.ts
 import { create } from 'zustand';
 
-export type JobType = 'Remote' | 'On-site' | 'Hybrid' | '';
-export type ExperienceLevel = 'Entry' | 'Mid' | 'Senior' | '';
-export type SalaryRange = '' | '0-5000' | '5000-10000' | '10000-20000' | '20000+';
-
-interface Job {
-  id: number;
+type Job = {
+  job_id: number;
   title: string;
-  company: string;
-  location: string;
-  type: JobType;
-  logo: string;
-  reviewTime: string;
   description: string;
-  experienceLevel?: ExperienceLevel;
-  salaryRange?: SalaryRange;
-}
-
-interface JobFilters {
-  keyword: string;
   industry: string;
-  salaryRangeMin: string;
-  salaryRangeMax: string;
-  type: JobType;
+  type: string;
+  experience_level: string;
   location: string;
+  workplace_type: string;
+  salary_min_range: number |undefined;
+  salary_max_range: number | undefined;
+  company_id: number;
+  company_name: string;
+  company_logo_url: string | null;
+  created_at: Date;
+};
+
+type JobFilters = {
+  keyword: string;
+  location: string;
+  industry: string;
+  experience_level: string[];
   company: string;
-  experienceLevel: ExperienceLevel;
-  salary: SalaryRange;
-}
-
-interface JobFilterStore {
-  filters: JobFilters;
-  setFilter: <K extends keyof JobFilters>(key: K, value: JobFilters[K]) => void;
-  resetFilters: () => void;
-
-  jobs: Job[];
-  setJobs: (jobs: Job[]) => void;
-  appendJobs: (jobs: Job[]) => void;
-
+  workplace_type: string;
+  salary_range_min: number | undefined; // Allow undefined
+  salary_range_max: number | undefined; // Allow undefined
   page: number;
-  setPage: (page: number) => void;
+};
 
-  hasMore: boolean;
-  setHasMore: (hasMore: boolean) => void;
-}
+type JobFilterStore = JobFilters & {
+  jobs: Job[];
+  setFilter: (key: keyof JobFilters, value: any) => void;
+  resetFilters: () => void;
+  setJobs: (jobs: Job[]) => void;
+};
 
 export const useJobFilterStore = create<JobFilterStore>((set) => ({
-  filters: {
-    keyword: '',
-    industry: '',
-    salaryRangeMin: '',
-    salaryRangeMax: '',
-    type: '',
-    location: '',
-    company: '',
-    experienceLevel: '',
-    salary: '',
-  },
-  setFilter: (key, value) =>
-    set((state) => ({
-      filters: {
-        ...state.filters,
-        [key]: value,
-      },
-    })),
+  keyword: '',
+  location: '',
+  industry: '',
+  experience_level: [],
+  company: '',
+  workplace_type: '',
+  salary_range_min: 0, // Default to 0
+  salary_range_max: 0, // Default to 0
+  page: 1,
+  jobs: [],
+  setFilter: (key, value) => set((state) => ({ ...state, [key]: value })),
   resetFilters: () =>
     set({
-      filters: {
-        keyword: '',
-        industry: '',
-        salaryRangeMin: '',
-        salaryRangeMax: '',
-        type: '',
-        location: '',
-        company: '',
-        experienceLevel: '',
-        salary: '',
-      },
+      keyword: '',
+      location: '',
+      industry: '',
+      experience_level: [],
+      company: '',
+      workplace_type: '',
+      salary_range_min: 0,
+      salary_range_max: 0, // Reset to 0
+      page: 1,
+      jobs: [],
     }),
-
-  jobs: [],
   setJobs: (jobs) => set({ jobs }),
-  appendJobs: (newJobs) => set((state) => ({ jobs: [...state.jobs, ...newJobs] })),
-
-  page: 1,
-  setPage: (page) => set({ page }),
-
-  hasMore: true,
-  setHasMore: (hasMore) => set({ hasMore }),
 }));
