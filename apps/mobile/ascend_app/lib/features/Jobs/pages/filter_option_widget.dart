@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/Jobs/data/dummy_company_names.dart';
 
 class FilterOptionWidget extends StatefulWidget {
   final String filterName;
   final List<String> options;
   final bool allowMultipleSelection;
-  final List<String> companyNames; // List of company names
-  final Function(List<String>)
-  onFilterChanged; // Callback to return selected filters
-  final bool isReset; // New parameter to reset filters
+  final Function(List<String>, String filterName) onFilterChanged;
+  final bool isReset;
 
   const FilterOptionWidget({
     super.key,
     required this.filterName,
     required this.options,
-    required this.allowMultipleSelection, // Default to allowing multiple selections
-    required this.companyNames,
+    required this.allowMultipleSelection,
     required this.onFilterChanged,
-    required this.isReset, // Add isReset as a required parameter
-  });
+
+    required this.isReset,
+  }) : super(key: key);
+
 
   @override
   _FilterOptionWidgetState createState() => _FilterOptionWidgetState();
@@ -25,6 +25,7 @@ class FilterOptionWidget extends StatefulWidget {
 
 class _FilterOptionWidgetState extends State<FilterOptionWidget> {
   late String selectedFilterName;
+  late RangeValues selectedSalaryRange;
   Color? chipColor;
   Set<String> selectedOptions = {};
   List<String> filteredOptions = [];
@@ -33,48 +34,71 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
   void initState() {
     super.initState();
     selectedFilterName = widget.filterName;
-    filteredOptions = widget.options;
+    filteredOptions = List<String>.from(widget.options);
+    selectedSalaryRange = const RangeValues(0, 100000);
 
     if (widget.isReset) {
-      resetFilters(); // Reset filters if isReset is true
+      resetFilters();
     }
   }
 
   void updateFilterName() {
+    if (widget.filterName.toLowerCase() == 'salary') {
+      selectedFilterName =
+          'Salary: \$${selectedSalaryRange.start.toInt()} - \$${selectedSalaryRange.end.toInt()}';
+      widget.onFilterChanged([
+        selectedSalaryRange.start.toString(),
+        selectedSalaryRange.end.toString(),
+      ], "salary"); // Notify parent about filter change
+      return;
+    }
+
     if (selectedOptions.isEmpty) {
       setState(() {
-        chipColor = null; // Allow theme to determine color
-        selectedFilterName = widget.filterName; // Reset filter name
+        chipColor = null;
+        selectedFilterName = widget.filterName;
       });
-    } else if (selectedOptions.length == 1) {
-      selectedFilterName = selectedOptions.first;
+    } else if (selectedOptions.length > 1) {
+      setState(() {
+        chipColor = Colors.green;
+        selectedFilterName = '${widget.filterName}';
+      });
     } else {
-      selectedFilterName = widget.filterName;
+      setState(() {
+        chipColor = Colors.green;
+        selectedFilterName = '${selectedOptions.join(', ')}';
+      });
     }
+
     widget.onFilterChanged(
       selectedOptions.toList(),
-    ); // Notify parent of changes
+      "salary",
+    ); // Notify parent about filter change
   }
 
+  @override
   void resetFilters() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         selectedOptions.clear();
-        chipColor = null; // Reset chip color
-        selectedFilterName = widget.filterName; // Reset filter name
-        widget.onFilterChanged([]); // Notify parent to clear filters
+        chipColor = null;
+        selectedFilterName = widget.filterName;
+        selectedSalaryRange = const RangeValues(
+          0,
+          100000,
+        ); // Reset salary range to original value
+        widget.onFilterChanged([], "Reset"); // Notify parent about reset
       });
     });
   }
 
   void _openFilterBottomSheet() {
     setState(() {
-      filteredOptions =
-          widget.options; // Initialize filteredOptions with all options
+      filteredOptions = List<String>.from(widget.options);
     });
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allow scrolling for large content
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -87,7 +111,7 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                 vertical: 10,
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Take minimum space
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -99,21 +123,179 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          setModalState(() {
-                            selectedOptions.clear();
-                            updateFilterName();
-                          });
-                          setState(() {
-                            chipColor = null; // Allow theme to determine color
-                          });
-                        },
-                        child: const Text('Reset'),
-                      ),
+                      if (widget.filterName.toLowerCase() == 'salary')
+                        TextButton(
+                          onPressed: () {
+                            setModalState(() {
+                              selectedOptions.clear();
+                              if (widget.filterName.toLowerCase() == 'salary') {
+                                selectedFilterName = "Salary";
+                                selectedSalaryRange = const RangeValues(
+                                  0,
+                                  100000,
+                                );
+                              }
+                              updateFilterName();
+                            });
+                            setState(() {
+                              if (widget.filterName.toLowerCase() == 'salary') {
+                                selectedFilterName = "Salary";
+                                selectedSalaryRange = const RangeValues(
+                                  0,
+                                  100000,
+                                );
+                                chipColor = null;
+                              }
+                            });
+                          },
+                          child: const Text('Reset'),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 10),
+                  if (widget.filterName.toLowerCase() == 'salary')
+                    Column(
+                      children: [
+                        const Text(
+                          'Select Salary Range',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Min',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (value) {
+                                  setModalState(() {
+                                    final min = double.tryParse(value) ?? 0;
+                                    if (min < 0) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Minimum value cannot be negative.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (min > selectedSalaryRange.end) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Minimum value cannot be greater than the maximum value.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    selectedSalaryRange = RangeValues(
+                                      min,
+                                      selectedSalaryRange.end,
+                                    );
+                                    updateFilterName();
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Max',
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (value) {
+                                  setModalState(() {
+                                    final max =
+                                        double.tryParse(value) ??
+                                        double.infinity;
+                                    if (max < 0) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Maximum value cannot be negative.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (max > 200000) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Maximum value cannot exceed 200,000.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (max < selectedSalaryRange.start) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Maximum value cannot be less than the minimum value.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    selectedSalaryRange = RangeValues(
+                                      selectedSalaryRange.start,
+                                      max,
+                                    );
+                                    updateFilterName();
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        RangeSlider(
+                          values: selectedSalaryRange,
+                          min: 0,
+                          max: 200000,
+                          divisions: 20,
+                          labels: RangeLabels(
+                            '\$${selectedSalaryRange.start.toInt()}',
+                            '\$${selectedSalaryRange.end.toInt()}',
+                          ),
+                          onChanged: (RangeValues values) {
+                            setModalState(() {
+                              if (values.start > values.end) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Start value cannot be greater than end value.',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              selectedSalaryRange = values;
+                              updateFilterName();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   if (widget.filterName.toLowerCase() == 'company')
                     Column(
                       children: [
@@ -132,9 +314,8 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                           ),
                           onChanged: (value) {
                             setModalState(() {
-                              // Filter the options based on user input and limit to 3
                               filteredOptions =
-                                  widget.companyNames
+                                  companySearchNames
                                       .where(
                                         (company) => company
                                             .toLowerCase()
@@ -143,13 +324,12 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                                       .take(3)
                                       .toList();
                             });
-                            const SizedBox(height: 10);
                           },
                         ),
                         const SizedBox(height: 10),
                         if (filteredOptions.isNotEmpty)
                           SizedBox(
-                            height: 200, // Set a fixed height to avoid overflow
+                            height: 200,
                             child: ListView.builder(
                               shrinkWrap: true,
                               itemCount: filteredOptions.length,
@@ -181,26 +361,17 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                           TextButton(
                             onPressed: () {
                               setModalState(() {
-                                if (!widget.companyNames.contains(
+                                if (!companySearchNames.contains(
                                   selectedFilterName,
                                 )) {
-                                  widget.companyNames.add(selectedFilterName);
-                                  filteredOptions = widget.companyNames;
+                                  companySearchNames.add(selectedFilterName);
+                                  filteredOptions = companySearchNames;
                                 }
                               });
                             },
                             child: const Text('Add New Company'),
                           ),
                       ],
-                    ),
-                  const SizedBox(height: 10),
-                  if (widget.filterName.toLowerCase() == 'company')
-                    const Text(
-                      'Choose companies from the options below:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                   const SizedBox(height: 10),
                   Flexible(
@@ -222,20 +393,31 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                           onTap: () {
                             setModalState(() {
                               if (selectedOptions.contains(option)) {
-                                selectedOptions.remove(
-                                  option,
-                                ); // Remove if already selected
+                                selectedOptions.remove(option);
+                                widget.onFilterChanged(
+                                  selectedOptions.toList(),
+                                  widget.filterName,
+                                ); // Update parent
                               } else {
                                 if (widget.allowMultipleSelection) {
-                                  selectedOptions.add(
-                                    option,
-                                  ); // Add if not selected
+                                  selectedOptions.add(option);
                                 } else {
                                   selectedOptions.clear();
                                   selectedOptions.add(option);
                                 }
+                                widget.onFilterChanged(
+                                  selectedOptions.toList(),
+                                  widget.filterName,
+                                ); // Update parent
                               }
                               updateFilterName();
+                            });
+                            setState(() {
+                              // Ensure the parent widget reflects the changes
+                              widget.onFilterChanged(
+                                selectedOptions.toList(),
+                                widget.filterName,
+                              );
                             });
                           },
                         );
@@ -245,12 +427,8 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        if (!selectedOptions.isNotEmpty) {
-                          selectedOptions.clear();
-                        }
                         chipColor =
-                            selectedOptions.isNotEmpty ? Colors.green : null;
-                        chipColor = widget.isReset ? null : chipColor;
+                            Colors.green; // Set the filter color to green
                       });
                       Navigator.pop(context);
                     },
@@ -269,7 +447,7 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
   @override
   Widget build(BuildContext context) {
     if (widget.isReset) {
-      resetFilters(); // Reset filters if isReset is true
+      resetFilters();
     }
     return GestureDetector(
       onTap: _openFilterBottomSheet,

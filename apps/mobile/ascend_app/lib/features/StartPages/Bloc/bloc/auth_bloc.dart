@@ -23,6 +23,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpRequested>(_onSignUpRequested);
     on<SignOutRequested>(_onSignOutRequested);
     on<ForgotPasswordRequested>(_onForgotPasswordRequested);
+
+    // Add this to the constructor to handle ResetPasswordRequested
+    on<ResetPasswordRequested>(_onResetPasswordRequested);
+
+    // Add this to the constructor to handle the new event
+    on<VerifyCodeSubmitted>(_onVerifyCodeSubmitted);
   }
   // Handle Sign-In
   Future<void> _onSignInRequested(
@@ -113,19 +119,61 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final response = await authRepository.forgotPassword(event.emailOrPhone);
       if (response['success'] == true) {
-        emit (
-          AuthForgetPasswordSuccess(message: response['message']),
-        );
+        emit(AuthForgetPasswordSuccess(message: response['message']));
       } else {
-        emit (
-          AuthForgetPasswordFaliure(error: response['message']),
-        );
+        emit(AuthForgetPasswordFaliure(error: response['message']));
       }
-      } catch (error) {
-        _logger.e('ForgotPassword failed: $error'); // Log the error
-        emit (
-          AuthForgetPasswordFaliure(error: error.toString()),
-        );
+    } catch (error) {
+      _logger.e('ForgotPassword failed: $error'); // Log the error
+      emit(AuthForgetPasswordFaliure(error: error.toString()));
+    }
+  }
+
+  // Add the new method to handle ResetPasswordRequested
+
+  // Add the new method to handle VerifyCodeSubmitted
+  Future<void> _onVerifyCodeSubmitted(
+    VerifyCodeSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthVerificationCodeLoading());
+    try {
+      // Call the repository method to verify the code
+      final token = await authRepository.verifyCode(
+        emailOrPhone: event.emailOrPhone,
+        verificationCode: event.verificationCode,
+      );
+      emit(
+        AuthVerificationCodeSuccess(
+          token: token,
+          message: "Code verified successfully!",
+        ),
+      );
+
+    } catch (error) {
+      _logger.e('Verification failed: $error'); // Log the error
+      emit(AuthVerificationCodeFailure(error: error.toString()));
+    }
+  }
+
+  Future<void> _onResetPasswordRequested(
+    ResetPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthResetPasswordLoading());
+    try {
+      // Call the repository method to reset the password
+      final message = await authRepository.resetPassword(
+        token: event.token,
+        newPassword: event.newPassword,
+      );
+      emit(AuthResetPasswordSuccess(message: message));
+      // Log the full response for debugging
+      _logger.i('Reset Password Response: $message');
+
+    } catch (error) {
+      _logger.e('Password reset failed: $error'); // Log the error
+      emit(AuthResetPasswordFailure(error: error.toString()));
     }
   }
 }
