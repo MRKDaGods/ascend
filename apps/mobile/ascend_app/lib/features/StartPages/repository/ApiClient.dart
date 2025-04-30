@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+import 'package:logger/logger.dart';
 
 class ApiClient {
   final String _baseUrl = 'https://api.ascendx.tech';
+  final Logger _logger = Logger(); // Logger instance
 
   // Helper method to get headers (e.g., for authentication)
   Future<Map<String, String>> _getHeaders() async {
@@ -33,40 +35,30 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? data,
   }) async {
-    final headers = {'Content-Type': 'application/json'};
+    final headers = await _getHeaders();
     final url = Uri.parse('$_baseUrl$endpoint');
     final body = jsonEncode(data);
 
     final response = await http.post(url, headers: headers, body: body);
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return response;
-    } else {
-      throw Exception(
-        'Failed to post: ${response.statusCode}, ${response.body}',
-      );
-    }
+    _handleResponse(response);
+    return response;
   }
 
   // POST request for login
   Future<http.Response> login(String email, String password) async {
     final headers = {'Content-Type': 'application/json'};
-    final url = Uri.parse(
-      '$_baseUrl/auth/login',
-    ); // Append /login to the base URL
+    final url = Uri.parse('$_baseUrl/auth/login');
     final body = jsonEncode({'email': email, 'password': password});
 
-    print('Sending POST request to $url with body: $body'); // Debugging log
-
     final response = await http.post(url, headers: headers, body: body);
-
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       await SecureStorageHelper.setAuthToken(responseData['token']);
+      _logger.i('Login successful: ${response.body}');
     } else {
+      _logger.i('Login failed: ${response.statusCode}, ${response.body}');
       throw Exception(
         'Failed to login: ${response.statusCode}, ${response.body}',
       );
@@ -75,6 +67,7 @@ class ApiClient {
     return response;
   }
 
+  // POST request for sign-up
   Future<http.Response> signUp({
     required String firstName,
     required String lastName,
@@ -92,32 +85,62 @@ class ApiClient {
 
     final response = await http.post(url, headers: headers, body: body);
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return response;
+    if (response.statusCode == 200) {
+      _logger.i('Sign-up successful: ${response.body}');
     } else {
-      throw Exception(
-        'Failed to register: ${response.statusCode}, ${response.body}',
-      );
+      _logger.i('Sign-up failed: ${response.statusCode}, ${response.body}');
     }
+
+    _handleResponse(response);
+    return response;
   }
 
   // POST request for Forgot Password
   Future<http.Response> forgotPassword(String emailOrPhone) async {
     final headers = {'Content-Type': 'application/json'};
-    final url = Uri.parse('$_baseUrl/auth/forgot-password'); // API endpoint
+    final url = Uri.parse('$_baseUrl/auth/forgot-password');
     final body = jsonEncode({'emailOrPhone': emailOrPhone});
 
     final response = await http.post(url, headers: headers, body: body);
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return response;
+    if (response.statusCode == 200) {
+      _logger.i('Forgot password request successful: ${response.body}');
     } else {
-      throw Exception(
-        'Failed to send forgot password request: ${response.statusCode}, ${response.body}',
+      _logger.i(
+        'Forgot password request failed: ${response.statusCode}, ${response.body}',
       );
     }
+
+    _handleResponse(response);
+    return response;
   }
-  
+
+  // POST request for Verify Code
+  Future<http.Response> verifyCode({
+    required String emailOrPhone,
+    required String verificationCode,
+  }) async {
+    final headers = await _getHeaders();
+    final url = Uri.parse('$_baseUrl/auth/verify-code');
+    final body = jsonEncode({
+      'emailOrPhone': emailOrPhone,
+      'verificationCode': verificationCode,
+    });
+
+    final response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      _logger.i('Verification code successful: ${response.body}');
+    } else {
+      _logger.i(
+        'Verification code failed: ${response.statusCode}, ${response.body}',
+      );
+    }
+
+    _handleResponse(response);
+    return response;
+  }
+
   // PUT request
   Future<http.Response> put(
     String endpoint, {
@@ -130,6 +153,13 @@ class ApiClient {
       headers: headers,
       body: jsonEncode(data),
     );
+
+    if (response.statusCode == 200) {
+      _logger.i('PUT request successful: ${response.body}');
+    } else {
+      _logger.i('PUT request failed: ${response.statusCode}, ${response.body}');
+    }
+
     _handleResponse(response);
     return response;
   }
@@ -139,6 +169,15 @@ class ApiClient {
     final headers = await _getHeaders();
     final url = Uri.parse('$_baseUrl$endpoint');
     final response = await http.delete(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      _logger.i('DELETE request successful: ${response.body}');
+    } else {
+      _logger.i(
+        'DELETE request failed: ${response.statusCode}, ${response.body}',
+      );
+    }
+
     _handleResponse(response);
     return response;
   }
@@ -155,6 +194,15 @@ class ApiClient {
       headers: headers,
       body: jsonEncode(data),
     );
+
+    if (response.statusCode == 200) {
+      _logger.i('PATCH request successful: ${response.body}');
+    } else {
+      _logger.i(
+        'PATCH request failed: ${response.statusCode}, ${response.body}',
+      );
+    }
+
     _handleResponse(response);
     return response;
   }
@@ -162,11 +210,11 @@ class ApiClient {
   // Handle API response
   void _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      // Success
+      _logger.i('Request successful: ${response.body}');
       return;
     } else {
-      // Handle errors
-throw Exception('Error: ${response.statusCode}, ${response.body}');
+      _logger.i('Request failed: ${response.statusCode}, ${response.body}');
+      throw Exception('Error: ${response.statusCode}, ${response.body}');
     }
   }
 }

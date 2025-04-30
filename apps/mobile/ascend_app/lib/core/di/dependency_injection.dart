@@ -4,6 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Add these imports
+import '../../features/home/repositories/post_repository.dart';
+import '../../features/home/bloc/post_bloc/post_bloc.dart';
+import '../../features/home/bloc/saved_posts_bloc/saved_posts_bloc.dart';
+
 import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../services/push_notification_service.dart';
@@ -32,6 +37,11 @@ class ServiceLocator {
   late final AuthRepository authRepository;
   late final ApiClient apiClient;
   late final AuthBloc authBloc;
+
+  // Add Post related properties
+  late final PostRepository postRepository;
+  late final PostBloc postBloc;
+  late final SavedPostsBloc savedPostsBloc;
 
   // Services
   late final PushNotificationService pushNotificationService;
@@ -65,6 +75,19 @@ class ServiceLocator {
     // Initialize AuthBloc
     authBloc = AuthBloc(authRepository: authRepository, apiClient: apiClient);
 
+    // Initialize PostRepository
+    postRepository = PostRepository(client: client); // Pass the http client
+
+    // Initialize PostBloc
+    postBloc = PostBloc(postRepository); // Pass the repository
+
+    // Initialize SavedPostsBloc
+    savedPostsBloc = SavedPostsBloc(
+      postRepository: postRepository,
+      postBloc: postBloc, // Pass the PostBloc
+    );
+
+
     // Data sources
     final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
       client: client,
@@ -97,6 +120,8 @@ class ServiceLocator {
       notificationBloc.close();
       authBloc.close();
       searchBloc.close(); // Also close SearchBloc if needed
+      postBloc.close(); // Close PostBloc
+      savedPostsBloc.close(); // Close SavedPostsBloc
       // Reset flag if you intend for it to be re-initializable (less common)
       // _isInitialized = false;
       debugPrint('ServiceLocator resources disposed.');

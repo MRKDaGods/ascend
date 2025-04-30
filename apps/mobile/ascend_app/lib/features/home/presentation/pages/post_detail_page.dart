@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart'; // Import PostEvent
 import 'package:ascend_app/features/home/presentation/utils/full_screen_image_viewer.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
@@ -35,6 +36,34 @@ class _PostDetailPageState extends State<PostDetailPage> {
   final GlobalKey _reactionButtonKey = GlobalKey();
 
   @override
+  void initState() {
+    super.initState();
+    // Dispatch LoadComments when the page initializes
+    // Use addPostFrameCallback to ensure context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) { // Check if the widget is still in the tree
+        // Check if comments are already loaded or partially loaded to avoid redundant calls (optional)
+        final currentState = context.read<PostBloc>().state;
+        bool shouldLoad = true;
+        if (currentState is PostsLoaded) {
+          final post = currentState.getPostById(widget.postId);
+          // Example: Only load if comments list is empty
+          if (post != null && post.comments.isNotEmpty) {
+             debugPrint('🔄 [PostDetailPage] Comments already present for post ${widget.postId}. Skipping initial LoadComments.');
+             shouldLoad = false;
+          }
+        }
+
+        if (shouldLoad) {
+           debugPrint('🔄 [PostDetailPage] Dispatching initial LoadComments for post ${widget.postId}');
+           // Remove page and limit parameters
+           context.read<PostBloc>().add(LoadComments(widget.postId));
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _commentController.dispose();
     _commentFocusNode.dispose();
@@ -46,37 +75,60 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final state = postBloc.state;
     PostModel? currentPost;
 
+    // Get the most up-to-date post data from the state if possible
     if (state is PostsLoaded) {
       currentPost = state.posts.firstWhere(
         (p) => p.id == post.id,
-        orElse: () => post,
+        orElse: () => post, // Fallback to the post passed in
       );
     } else {
-      currentPost = post;
+      currentPost = post; // Use the post passed in if state is not PostsLoaded
     }
 
-    final bool isCurrentlySaved = currentPost.isSaved ?? post.isSaved;
+    // Determine the current saved status reliably
+    final bool isCurrentlySaved = currentPost.isSaved; // Directly use the boolean
+    debugPrint("Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from PostDetailPage");
+
 
     SheetHelpers.showPostOptionsSheet(
       context: context,
-      ownerName: post.ownerName,
-      showSave: true,
+      ownerName: post.ownerName, // Use original post data for owner info
+      showSave: !isCurrentlySaved, // Show Save only if NOT currently saved
+      showUnsave: isCurrentlySaved, // Show Unsave only if currently saved
       showShare: true,
       showNotInterested: true,
-      showUnfollow: true,
+      showUnfollow: true, // Add logic if needed
       showReport: true,
-      showMessage: false,
+      showMessage: false, // Assuming messaging isn't direct from post detail options
       reportText: 'Report Post',
+      // --- MODIFICATION START ---
+      // onSave should only handle saving
       onSave: () {
-        if (isCurrentlySaved) {
-          postBloc.add(UnsavePost(post.id));
-          debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
-        } else {
-          postBloc.add(SavePost(post.id));
-          debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
-        }
+        // --- MODIFICATION START ---
+        Navigator.pop(context); // Close sheet first
+        // --- MODIFICATION END ---
+        postBloc.add(SavePost(post.id));
+        debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Post saved'), duration: Duration(seconds: 1)),
+         );
       },
+      // Add the required onUnsave callback
+      onUnsave: () {
+        // --- MODIFICATION START ---
+        Navigator.pop(context); // Close sheet first
+        // --- MODIFICATION END ---
+        postBloc.add(UnsavePost(post.id));
+        debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
+         );
+      },
+      // --- MODIFICATION END ---
       onShare: () {
+        // --- MODIFICATION START ---
+        Navigator.pop(context); // Close sheet first
+        // --- MODIFICATION END ---
         postBloc.add(SharePost(post.id));
         debugPrint("[PostDetailPage] Dispatching SharePost for ${post.id}");
         ScaffoldMessenger.of(
@@ -84,9 +136,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
         ).showSnackBar(const SnackBar(content: Text('Sharing post...')));
       },
       onNotInterested: () {
+        // Keep existing logic
+        Navigator.pop(context); // Close the sheet first
         _showHideConfirmationDialog(context, post.id);
       },
       onUnfollow: () {
+        // Keep existing logic
+        Navigator.pop(context); // Close the sheet first
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Unfollow ${post.ownerName} (not implemented)'),
@@ -94,8 +150,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
         );
       },
       onReport: () {
-        Navigator.of(context).pop();
+        // Keep existing logic
+        Navigator.of(context).pop(); // Close the sheet first
         _showReportReasonDialog(context, post.id);
+      },
+      // Add other required callbacks if SheetHelpers needs them, e.g.:
+      onMessage: () {
+         Navigator.pop(context);
+         // Implement message logic if needed
       },
     );
   }
@@ -282,6 +344,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: PostHeader(
                                 ownerName: post.ownerName,
+                                userId: post.userId,
                                 ownerImageUrl: post.ownerImageUrl,
                                 timePosted: post.timePosted,
                                 ownerOccupation: post.ownerOccupation,
@@ -336,8 +399,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 likesCount: post.likesCount,
                                 sharesCount: post.sharedCount,
                                 commentsCount: post.commentsCount,
-                                reactionIcon: _getReactionIcon(post),
-                                reactionColor: _getReactionColor(post),
                                 postId: post.id,
                               ),
                             ),
@@ -353,11 +414,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   ReactionButton(
                                     key: _reactionButtonKey,
                                     manager: ReactionManager(
-                                      isLiked: post.isLiked,
                                       currentReaction: post.currentReaction,
-                                      postId: post.id,
-                                      context: context,
+                                      postId: post.id, // Keep for Bloc updates
+                                      context: context, // Keep for Bloc updates
                                     ),
+                                    onTap: () {
+                                       // Determine next state based on current reaction
+                                       final nextReaction = post.currentReaction == null ? 'like' : null;
+                                       context.read<PostBloc>().add(
+                                         TogglePostReaction(post.id, nextReaction),
+                                       );
+                                    },
                                     onLongPressStart: () {
                                       final RenderBox box =
                                           _reactionButtonKey.currentContext!
@@ -551,16 +618,5 @@ class _PostDetailPageState extends State<PostDetailPage> {
         );
       },
     );
-  }
-
-  IconData _getReactionIcon(PostModel post) {
-    if (!post.isLiked) return Icons.thumb_up_outlined;
-    return ReactionManager.reactionIcons[post.currentReaction] ??
-        Icons.thumb_up;
-  }
-
-  Color _getReactionColor(PostModel post) {
-    if (!post.isLiked) return Colors.grey;
-    return ReactionManager.reactionColors[post.currentReaction] ?? Colors.blue;
   }
 }
