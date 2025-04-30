@@ -10,36 +10,56 @@ const mockSetTitle = jest.fn();
 const mockSetCompanyName = jest.fn();
 const mockSetCompanyId = jest.fn();
 
-// Mock MUI Autocomplete
+// Mock MUI Autocomplete and TextField together
 jest.mock('@mui/material/Autocomplete', () => {
   return {
     __esModule: true,
-    default: jest.fn(({ onChange }) => {
+    default: jest.fn(({ options, value, onChange, renderInput, onInputChange, freeSolo, 'data-testid': dataTestId }) => {
+      // Check which Autocomplete we're rendering based on renderInput
+      const params = {};
+      const inputElement = renderInput(params);
+      const isJobTitleInput = inputElement.props.label === 'Job title';
+      
       return (
-        <div data-testid="hire-card-company-select">
-          <input 
-            type="text" 
-            data-testid="company-input"
-          />
-          <button 
-            data-testid="select-company-1" 
-            onClick={() => onChange({}, { id: 1, company_id: 101, company_name: 'Test Company 1' })}
-          >
-            Select Test Company 1
-          </button>
-          <button 
-            data-testid="select-company-2" 
-            onClick={() => onChange({}, { id: 2, company_id: 102, company_name: 'Test Company 2' })}
-          >
-            Select Test Company 2
-          </button>
+        <div className="mock-autocomplete" data-testid={isJobTitleInput ? "hire-card-job-title-container" : "hire-card-company-select-container"}>
+          {isJobTitleInput ? (
+            // For job title autocomplete
+            <input 
+              type="text"
+              data-testid="hire-card-job-title"
+              value={value || ''}
+              onChange={(e) => onInputChange(e, e.target.value)}
+              placeholder="Add the title you are hiring for"
+            />
+          ) : (
+            // For company select autocomplete
+            <>
+              <input 
+                type="text" 
+                data-testid="company-input"
+                placeholder="Select your company"
+              />
+              <button 
+                data-testid="select-company-1" 
+                onClick={() => onChange({}, { id: 1, company_id: 101, company_name: 'Test Company 1' })}
+              >
+                Select Test Company 1
+              </button>
+              <button 
+                data-testid="select-company-2" 
+                onClick={() => onChange({}, { id: 2, company_id: 102, company_name: 'Test Company 2' })}
+              >
+                Select Test Company 2
+              </button>
+            </>
+          )}
         </div>
       );
     })
   };
 });
 
-// Mock usepJobStore - completely different approach
+// Mock usepJobStore
 jest.mock('@/app/JobPosting/store/usepJobStore', () => {
   // Create a complete mock object structure
   const mockImplementation = function() {
@@ -117,8 +137,8 @@ describe('HireCard Component', () => {
     // Check if job title input field is rendered using data-testid
     expect(screen.getByTestId('hire-card-job-title')).toBeInTheDocument();
     
-    // Check if company select is rendered using data-testid
-    expect(screen.getByTestId('hire-card-company-select')).toBeInTheDocument();
+    // Check if company select container is rendered using data-testid
+    expect(screen.getByTestId('hire-card-company-select-container')).toBeInTheDocument();
     
     // Check if buttons are rendered using data-testid
     expect(screen.getByTestId('hire-card-ai-button')).toBeInTheDocument();
@@ -158,8 +178,7 @@ describe('HireCard Component', () => {
     });
     
     // Find job title input using data-testid
-    const jobTitleInput = screen.getByTestId('hire-card-job-title').querySelector('input');
-    if (!jobTitleInput) throw new Error('Job title input not found');
+    const jobTitleInput = screen.getByTestId('hire-card-job-title');
     
     // Type into the job title input
     await user.click(jobTitleInput);
@@ -178,8 +197,8 @@ describe('HireCard Component', () => {
       expect(screen.getByText(/Hi Test User,/)).toBeInTheDocument();
     });
     
-    // Select company using our mocked button
-    await user.click(screen.getByTestId('select-company-1'));
+    // Select company using our mocked button (use the first one we find)
+    await user.click(screen.getAllByTestId('select-company-1')[0]);
   });
 
   it('shows alert when trying to navigate without selecting a company', async () => {
@@ -192,8 +211,7 @@ describe('HireCard Component', () => {
     });
     
     // Find and enter job title using data-testid
-    const jobTitleInput = screen.getByTestId('hire-card-job-title').querySelector('input');
-    if (!jobTitleInput) throw new Error('Job title input not found');
+    const jobTitleInput = screen.getByTestId('hire-card-job-title');
     await user.click(jobTitleInput);
     await user.type(jobTitleInput, 'Software Engineer');
     
@@ -222,12 +240,11 @@ describe('HireCard Component', () => {
       expect(screen.getByText(/Hi Test User,/)).toBeInTheDocument();
     });
     
-    // Select company using our mocked button
-    await user.click(screen.getByTestId('select-company-1'));
+    // Select company using our mocked button (use the first one we find)
+    await user.click(screen.getAllByTestId('select-company-1')[0]);
     
     // Set job title
-    const jobTitleInput = screen.getByTestId('hire-card-job-title').querySelector('input');
-    if (!jobTitleInput) throw new Error('Job title input not found');
+    const jobTitleInput = screen.getByTestId('hire-card-job-title');
     await user.click(jobTitleInput);
     await user.type(jobTitleInput, 'Software Engineer');
     
@@ -251,12 +268,11 @@ describe('HireCard Component', () => {
       expect(screen.getByText(/Hi Test User,/)).toBeInTheDocument();
     });
     
-    // Select company using our mocked button
-    await user.click(screen.getByTestId('select-company-2'));
+    // Select company using our mocked button (use the first one we find)
+    await user.click(screen.getAllByTestId('select-company-2')[0]);
     
     // Set job title
-    const jobTitleInput = screen.getByTestId('hire-card-job-title').querySelector('input');
-    if (!jobTitleInput) throw new Error('Job title input not found');
+    const jobTitleInput = screen.getByTestId('hire-card-job-title');
     await user.click(jobTitleInput);
     await user.type(jobTitleInput, 'Frontend Developer');
     

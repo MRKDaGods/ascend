@@ -40,6 +40,7 @@ const lookingfor = () => {
             variant="contained" 
             color="primary"
             data-testid="looking-actively-button"
+            sx={{ borderRadius: "20px" }}
           >
             Actively looking
           </Button>
@@ -48,6 +49,7 @@ const lookingfor = () => {
             variant="outlined" 
             color="primary"
             data-testid="looking-casually-button"
+            sx={{ borderRadius: "20px" }}
           >
             Casually browsing
           </Button>

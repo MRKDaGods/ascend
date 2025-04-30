@@ -12,6 +12,14 @@ import {
 } from "@mui/material";
 import { usepJobStore } from "@/app/JobPosting/store/usepJobStore";
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { Radius } from "lucide-react";
+
+// Define a constant for rounded text fields styling
+const roundedTextFieldStyle = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '20px',
+  }
+};
 
 const jobTitles = [
   "Software Engineer",
@@ -58,7 +66,7 @@ export default function HireCard() {
     fetch("https://api.ascendx.tech/company/companies", {
       method: "GET",
       headers: {
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTk1MzI2OCwiZXhwIjoxNzQ1OTk2NDY4fQ.qbls-HS1EPXglqpymZ_13YtIdzma3E4USsxgeVuNa1o`,
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw`,
       },
     })
       .then((res) => res.json())
@@ -174,15 +182,28 @@ export default function HireCard() {
               maxWidth: "400px",
             }}
           >
-            <TextField
-              label="Job title"
-              placeholder="Add the title you are hiring for"
-              variant="outlined"
-              fullWidth
+            <Autocomplete
+              freeSolo
+              options={jobTitles}
               value={selectedTitle}
-              onChange={(e) => setSelectedTitle(e.target.value)}
-              margin="normal"
-              data-testid="hire-card-job-title"
+              onChange={(event, newValue) => {
+                setSelectedTitle(newValue || "");
+              }}
+              onInputChange={(event, newInputValue) => {
+                setSelectedTitle(newInputValue);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Job title"
+                  placeholder="Add the title you are hiring for"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  data-testid="hire-card-job-title"
+                  sx={roundedTextFieldStyle}
+                />
+              )}
             />
 
             <Autocomplete
@@ -198,6 +219,7 @@ export default function HireCard() {
                   variant="outlined" 
                   margin="normal"
                   data-testid="hire-card-company-select"
+                  sx={roundedTextFieldStyle} // Apply rounded style here
                 />
               )}
             />
@@ -206,9 +228,8 @@ export default function HireCard() {
               variant="contained" 
               color="primary" 
               onClick={handleStartHiringWithAI}
-              startIcon={<AutoAwesomeIcon />}
               fullWidth
-              sx={{ marginBottom: 2 }}
+              sx={{ marginBottom: 2, borderRadius: "20px" }}
               data-testid="hire-card-ai-button"
             >
               ✨ Start hiring with AI
@@ -219,6 +240,7 @@ export default function HireCard() {
               onClick={handleStartWithDescription}
               fullWidth
               data-testid="hire-card-manual-button"
+              sx={{ borderRadius: "20px" }}
             >
               Start with my job description
             </Button>

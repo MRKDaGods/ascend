@@ -53,7 +53,7 @@ const NavIconButton = styled(IconButton, {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active: boolean }>(({ theme, active }) => ({
   padding: 10,
-  borderRadius: "12px",
+  borderRadius: "20px",
   backgroundColor: active
     ? theme.palette.mode === "dark"
       ? "rgba(255, 255, 255, 0.1)"
@@ -297,6 +297,7 @@ const JobsNavbar: React.FC = () => {
           <Button 
             variant="contained" 
             onClick={handleSearch}
+            sx={{ borderRadius: '20px' }}
             data-testid="navbar-search-button" // Add data-testid to search button
           >
             Search

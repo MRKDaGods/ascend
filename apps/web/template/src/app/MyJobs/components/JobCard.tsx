@@ -37,6 +37,30 @@ import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { useJobStore, JobStatus, ApplicationStatus } from '@/app/shared/store/useJobStore';
+import { styled } from '@mui/material/styles';
+
+// Define rounded style constants for reuse throughout the component
+const roundedButtonStyle = {
+  borderRadius: '20px',
+  textTransform: 'none',
+  fontWeight: 500
+};
+
+const roundedTextFieldStyle = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '20px',
+  }
+};
+
+const roundedSelectStyle = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '20px',
+  }
+};
+
+const roundedDialogStyle = {
+  borderRadius: '16px'
+};
 
 // Add these options for dropdowns
 const jobTypeOptions = ["Full-time", "Part-time", "Contract", "Temporary", "Volunteer", "Internship", "Other"];
@@ -224,7 +248,7 @@ const JobCard: React.FC<JobCardProps> = ({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NTk1MzI2OCwiZXhwIjoxNzQ1OTk2NDY4fQ.qbls-HS1EPXglqpymZ_13YtIdzma3E4USsxgeVuNa1o',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
         },
         body: JSON.stringify(changedFields),
       });
@@ -470,10 +494,8 @@ const JobCard: React.FC<JobCardProps> = ({
               color="primary" 
               size="small"
               sx={{ 
-                borderRadius: 20, 
+                ...roundedButtonStyle,
                 px: 2,
-                textTransform: 'none',
-                fontWeight: 500
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -490,10 +512,8 @@ const JobCard: React.FC<JobCardProps> = ({
               size="small"
               startIcon={<EditIcon fontSize="small" />}
               sx={{ 
-                borderRadius: 20,
+                ...roundedButtonStyle,
                 px: 2,
-                textTransform: 'none',
-                fontWeight: 500
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -539,9 +559,9 @@ const JobCard: React.FC<JobCardProps> = ({
         fullWidth
         PaperProps={{
           sx: { 
-            borderRadius: 3,
-            p: { xs: 0.5, sm: 1 }, // Adjust padding based on screen size
-            width: { xs: '95%', sm: '90%', md: '80%' }, // Control width more precisely
+            ...roundedDialogStyle,
+            p: { xs: 0.5, sm: 1 },
+            width: { xs: '95%', sm: '90%', md: '80%' },
             margin: 'auto'
           }
         }}
@@ -578,7 +598,11 @@ const JobCard: React.FC<JobCardProps> = ({
                   label="Job Title"
                   variant="outlined"
                   size="small"
-                  sx={{ mb: 1, minWidth: { xs: '100%', sm: '300px' } }}
+                  sx={{ 
+                    mb: 1, 
+                    minWidth: { xs: '100%', sm: '300px' },
+                    ...roundedTextFieldStyle
+                  }}
                   data-testid="job-card-edit-title"
                 />
               ) : (
@@ -607,6 +631,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 onClick={isEditMode ? saveChanges : toggleEditMode}
                 disabled={isSaving}
                 sx={{
+                  ...roundedButtonStyle,
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   py: { xs: 0.5, sm: 1 },
                   whiteSpace: 'nowrap'
@@ -654,6 +679,7 @@ const JobCard: React.FC<JobCardProps> = ({
                   value={editedJob.description}
                   onChange={(e) => handleEditChange('description', e.target.value)}
                   margin="normal"
+                  sx={roundedTextFieldStyle}
                   data-testid="job-card-edit-description"
                 />
               ) : (
@@ -683,6 +709,7 @@ const JobCard: React.FC<JobCardProps> = ({
                       value={editedJob.salary_min_range}
                       onChange={(e) => handleEditChange('salary_min_range', e.target.value)}
                       InputProps={{ inputProps: { min: 0 } }}
+                      sx={roundedTextFieldStyle}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -695,6 +722,7 @@ const JobCard: React.FC<JobCardProps> = ({
                       value={editedJob.salary_max_range}
                       onChange={(e) => handleEditChange('salary_max_range', e.target.value)}
                       InputProps={{ inputProps: { min: 0 } }}
+                      sx={roundedTextFieldStyle}
                     />
                   </Grid>
                 </Grid>
@@ -725,6 +753,7 @@ const JobCard: React.FC<JobCardProps> = ({
                         size="small"
                         value={editedJob.location}
                         onChange={(e) => handleEditChange('location', e.target.value)}
+                        sx={roundedTextFieldStyle}
                       />
                       
                       <TextField
@@ -735,6 +764,7 @@ const JobCard: React.FC<JobCardProps> = ({
                         size="small"
                         value={editedJob.type}
                         onChange={(e) => handleEditChange('type', e.target.value)}
+                        sx={roundedSelectStyle}
                       >
                         {jobTypeOptions.map(option => (
                           <MenuItem key={option} value={option}>{option}</MenuItem>
@@ -749,6 +779,7 @@ const JobCard: React.FC<JobCardProps> = ({
                         size="small"
                         value={editedJob.experience_level}
                         onChange={(e) => handleEditChange('experience_level', e.target.value)}
+                        sx={roundedSelectStyle}
                       >
                         {experienceLevelOptions.map(option => (
                           <MenuItem key={option} value={option}>{option}</MenuItem>
@@ -763,6 +794,7 @@ const JobCard: React.FC<JobCardProps> = ({
                         size="small"
                         value={editedJob.industry}
                         onChange={(e) => handleEditChange('industry', e.target.value)}
+                        sx={roundedSelectStyle}
                       >
                         {industryOptions.map(option => (
                           <MenuItem key={option} value={option}>{option}</MenuItem>
@@ -777,6 +809,7 @@ const JobCard: React.FC<JobCardProps> = ({
                         size="small"
                         value={editedJob.workplace_type}
                         onChange={(e) => handleEditChange('workplace_type', e.target.value)}
+                        sx={roundedSelectStyle}
                       >
                         {workplaceTypeOptions.map(option => (
                           <MenuItem key={option} value={option}>{option}</MenuItem>
@@ -844,7 +877,10 @@ const JobCard: React.FC<JobCardProps> = ({
               variant="contained" 
               color="primary"
               fullWidth={window.innerWidth < 600} // Responsive full-width button on mobile
-              sx={{ mb: { xs: 1, sm: 0 } }}
+              sx={{ 
+                mb: { xs: 1, sm: 0 },
+                ...roundedButtonStyle
+              }}
             >
               View Applications
             </Button>
@@ -859,6 +895,7 @@ const JobCard: React.FC<JobCardProps> = ({
             }} 
             variant="outlined"
             fullWidth={window.innerWidth < 600} // Responsive full-width button on mobile
+            sx={roundedButtonStyle}
           >
             {isEditMode ? "Cancel" : "Close"}
           </Button>
@@ -874,7 +911,7 @@ const JobCard: React.FC<JobCardProps> = ({
         onClick={(e) => e.stopPropagation()}
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            ...roundedDialogStyle,
             p: 1
           }
         }}
@@ -896,6 +933,7 @@ const JobCard: React.FC<JobCardProps> = ({
             variant="outlined"
             color="inherit"
             disabled={isDeleting}
+            sx={roundedButtonStyle}
           >
             Cancel
           </Button>
@@ -905,6 +943,7 @@ const JobCard: React.FC<JobCardProps> = ({
             color="error"
             disabled={isDeleting}
             autoFocus
+            sx={roundedButtonStyle}
           >
             {isDeleting ? 'Deleting...' : 'Delete Job'}
           </Button>
