@@ -72,14 +72,23 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       add(WebSocketMessageReceived(message));
     });
 
-    // Listen for typing status updates
     _typingSubscription = _repository.typingStatusStream.listen((typingData) {
-      add(TypingStatusUpdated(typingData));
+      // The typingData should be a Map with conversationId as the key
+      final Object conversationId =
+          typingData is Map
+              ? (typingData['conversationId']?.toString() ?? '')
+              : (typingData is String ? typingData : '');
+
+      if (conversationId.toString().isNotEmpty) {
+        add(TypingStatusUpdated(conversationId.toString()));
+      }
     });
 
     // Listen for read receipt updates
-    _readReceiptSubscription = _repository.readReceiptStream.listen((readData) {
-      add(ReadReceiptReceived(readData));
+    _readReceiptSubscription = _repository.readReceiptStream.listen((
+      conversationId,
+    ) {
+      add(ReadReceiptReceived(conversationId));
     });
   }
 
@@ -89,7 +98,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
   ) async {
     // Skip if already intialized
     if (_isIntialized && !event.forceReconnect) {
-      debugPrint('Messaging already intialized, Skipping intialization.');
+      debugPrint(
+        '[MessagingBloc] Messaging already intialized, Skipping intialization.',
+      );
       return;
     }
 
@@ -103,7 +114,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         emit(MessagingError('User ID not found in secure storage'));
         return;
       }
-      debugPrint('Inside _onInitializeMessaging: User ID: $userId');
+      debugPrint(
+        '[MessagingBloc] Inside _onInitializeMessaging: User ID: $userId',
+      );
 
       // Connect to WebSocket through repository (repository handles both WebSocketService and ApiClient)
       await _repository.connectWebSocket();
@@ -119,7 +132,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         emit(MessagingError('WebSocket failed to connect or register'));
         return;
       } else {
-        debugPrint('WebSocket connected and registered successfully!');
+        debugPrint(
+          '[MessagingBloc] WebSocket connected and registered successfully!',
+        );
         // Load initial Conversations
         add(LoadConversations());
 
@@ -132,9 +147,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       // Set initialized flag to true
       _isIntialized = true;
 
-      debugPrint('Messaging initialized successfully!');
+      debugPrint('[MessagingBloc] Messaging initialized successfully!');
     } catch (e) {
-      debugPrint('Error initializing messaging: $e');
+      debugPrint('[MessagingBloc] Error initializing messaging: $e');
       emit(MessagingError('Failed to initialize messaging: $e'));
     }
   }
@@ -162,7 +177,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         ),
       );
     } catch (e) {
-      debugPrint('Error loading conversations: $e');
+      debugPrint('[MessagingBloc] Error loading conversations: $e');
       emit(MessagingError('Failed to load conversations: $e'));
     }
   }
@@ -195,7 +210,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
           );
         }
       } catch (e) {
-        debugPrint('Error loading more conversations: $e');
+        debugPrint('[MessagingBloc] Error loading more conversations: $e');
         emit(MessagingError('Failed to load more conversations: $e'));
       }
     }
@@ -206,27 +221,36 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     Emitter<MessagingBlocState> emit,
   ) async {
     try {
+      debugPrint(
+        '[MessagingBloc] Loading messages for conversation ${event.conversationId} ,',
+      );
       // keep track of the active conversation ID
       _activeConversationId = event.conversationId;
 
       emit(MessagesLoading(event.conversationId));
 
       final messages = await _repository.getMessages(event.conversationId);
+      // Reverse the initial list to store chronologically (oldest first)
+      final chronologicalMessages = messages.reversed.toList();
 
+      debugPrint(
+        '[MessagingBloc] Loaded ${chronologicalMessages.length} messages for conversation ${event.conversationId}',
+      );
       // mark messages as read
       add(MarkMessagesasRead(event.conversationId));
 
       emit(
         MessagesLoaded(
-          messages,
+          chronologicalMessages, // Emit the reversed list
           event.conversationId,
           1,
-          messages.isEmpty || messages.length < 20,
+          messages.isEmpty ||
+              messages.length < 20, // Use original list length for check
           isTyping: _repository.isAnyoneTyping(event.conversationId),
         ),
       );
     } catch (e) {
-      debugPrint('Error loading messages: $e');
+      debugPrint('[MessagingBloc] Error loading messages: $e');
       emit(MessagingError('Failed to load messages: $e'));
     }
   }
@@ -241,6 +265,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         !currentState.hasReachedMax) {
       try {
         final nextPage = currentState.page + 1;
+        debugPrint(
+          '[MessagingBloc] Loading more messages for conversation ${currentState.conversationId}, page $nextPage',
+        );
         final moreMessages = await _repository.getMessages(
           event.conversationId,
           page: nextPage,
@@ -249,19 +276,28 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         if (moreMessages.isEmpty) {
           emit(currentState.copyWith(hasReachedMax: true));
         } else {
-          // For messages, we usually prepend older messages
+          // Reverse the newly fetched older messages to be chronological
+          final chronologicalMoreMessages = moreMessages.reversed.toList();
+          debugPrint(
+            '[MessagingBloc] Loaded ${chronologicalMoreMessages.length} more messages for conversation ${currentState.conversationId}',
+          );
+          // Prepend the older chronological messages to the existing chronological list
+          final combinedMessages = [
+            ...chronologicalMoreMessages,
+            ...currentState.messages,
+          ];
           emit(
             MessagesLoaded(
-              [...moreMessages, ...currentState.messages],
+              combinedMessages, // Emit the combined chronological list
               event.conversationId,
               nextPage,
-              moreMessages.length < 20,
+              moreMessages.length < 20, // Use original list length for check
               isTyping: currentState.isTyping,
             ),
           );
         }
       } catch (e) {
-        debugPrint('Error loading more messages: $e');
+        debugPrint('[MessagingBloc] Error loading more messages: $e');
         emit(MessagingError('Failed to load more messages: ${e.toString()}'));
       }
     }
@@ -306,12 +342,12 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       );
 
       // Attempt to send to server
-      await _repository.sendMessage(event.conversationId, event.content);
+      await _repository.sendMessage(event.receiverId, event.content);
 
       // No need to update UI again unless you get a server response with ID
     } catch (e) {
       // Handle error, possibly revert optimistic update
-      debugPrint('Error sending message: $e');
+      debugPrint('[MessagingBloc] Error sending message: $e');
     }
   }
 
@@ -334,7 +370,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     try {
       _repository.sendTypingNotification(event.conversationId);
     } catch (e) {
-      debugPrint('Error sending typing notification: $e');
+      debugPrint('[MessagingBloc] Error sending typing notification: $e');
       emit(MessagingError('Failed to send typing notification: $e'));
     }
   }
@@ -349,7 +385,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       // now Refresh the unseen count
       add(RefreshUnseenCount(0));
     } catch (e) {
-      debugPrint('Error marking messages as read: $e');
+      debugPrint('[MessagingBloc] Error marking messages as read: $e');
       emit(MessagingError('Failed to mark messages as read: $e'));
     }
   }
@@ -367,7 +403,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         emit(currentState.copyWith(unseenCount: unseenCount ?? 0));
       }
     } catch (e) {
-      debugPrint('Error refreshing unseen count: $e');
+      debugPrint('[MessagingBloc] Error refreshing unseen count: $e');
       emit(MessagingError('Failed to refresh unseen count: $e'));
     }
   }
@@ -388,7 +424,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         add(LoadMessages(_activeConversationId!));
       }
     } catch (e) {
-      debugPrint('Error connecting WebSocket: $e');
+      debugPrint('[MessagingBloc] Error connecting WebSocket: $e');
       emit(MessagingError('Failed to connect to WebSocket: $e'));
     }
   }
@@ -401,7 +437,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       // update state
       emit(MessagingDisconnected());
     } catch (e) {
-      debugPrint('Error disconnecting WebSocket: $e');
+      debugPrint('[MessagingBloc] Error disconnecting WebSocket: $e');
       emit(MessagingError('Failed to disconnect from WebSocket: $e'));
     }
   }
@@ -410,72 +446,131 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     WebSocketMessageReceived event,
     Emitter<MessagingBlocState> emit,
   ) async {
-    try {
-      // get the message from the event
-      final message = event.message;
-      final messageData = message['data'] ?? {};
-      final conversationId = messageData['conversationId'].toString() ?? '';
+    final message = event.message;
+    debugPrint(
+      '[MessagingBloc] Received WebSocket message: $message',
+    ); // Log raw message
 
-      // if you are not in the active conversation, refresh unSeen Count
-      if (_activeConversationId != conversationId) {
-        add(RefreshUnseenCount(0));
-      }
+    final currentState = state;
+    try {
+      // final message = event.message; // Already defined above
+      final messageData = message['data'] ?? {};
+      final conversationId =
+          messageData['conversationId']?.toString() ?? ''; // Safer parsing
+      debugPrint(
+        '[MessagingBloc] Parsed conversationId: $conversationId from message',
+      );
 
       // get the otherUserId from the conversationParticipants map
       final otherUserId = _conversationParticipants[conversationId] ?? '';
+      debugPrint(
+        '[MessagingBloc] Found otherUserId: $otherUserId for conversation $conversationId',
+      );
 
       // if I am in the active conversation, update the messages
       if (_activeConversationId == conversationId && state is MessagesLoaded) {
         final MessagesLoaded currentState = state as MessagesLoaded;
+        debugPrint(
+          '[MessagingBloc] Active conversation matches ($conversationId). Current state is MessagesLoaded. Processing message...',
+        );
 
         // Parse the message into a proper model
         final newMessage = MessageModel(
-          messageId: messageData['messageId'].toString() ?? '',
+          messageId:
+              messageData['messageId']?.toString() ??
+              DateTime.now().millisecondsSinceEpoch
+                  .toString(), // Safer parsing with fallback
           conversationId: conversationId,
           content: messageData['content'] ?? '',
           fileUrl: messageData['fileUrl'],
           fileType: messageData['fileType'],
-          sentAt: DateTime.parse(
-            message['sentAt'] ?? DateTime.now().toIso8601String(),
-          ),
-          isRead: message['isRead'] ?? false,
+          sentAt:
+              DateTime.tryParse(messageData['sentAt'] ?? '') ??
+              DateTime.now(), // Safer parsing with fallback
+          isRead: messageData['isRead'] ?? false,
           readAt:
-              message['readAt'] != null
-                  ? DateTime.parse(message['readAt'])
-                  : null,
-          senderId: otherUserId ?? '',
+              messageData['readAt'] != null
+                  ? DateTime.tryParse(messageData['readAt'])
+                  : null, // Safer parsing
+          senderId:
+              messageData['senderId']?.toString() ??
+              otherUserId, // Prefer senderId from message data if available
+        );
+        debugPrint(
+          '[MessagingBloc] Parsed newMessage: ID=${newMessage.messageId}, Sender=${newMessage.senderId}, Content=${newMessage.content}',
         );
 
-        // Check if this is a message we sent (based on messageId)
+        // Check if this is a message we sent (based on messageId matching an optimistic one)
+        // Note: This logic might need refinement based on how optimistic IDs are handled vs server IDs.
+        // If the server sends back the *same* ID as the optimistic one, this works.
+        // If the server assigns a *new* ID, you might need to match based on content/timestamp or have the server echo back the temp ID.
         final tempIndex = currentState.messages.indexWhere(
-          (msg) => msg.messageId == message['messageId'],
+          (msg) =>
+              msg.messageId == newMessage.messageId &&
+              msg.senderId ==
+                  SecureStorageHelper.getUserId()
+                      .toString(), // Check if it's *our* optimistic message
         );
 
+        List<MessageModel> updatedMessages;
         if (tempIndex >= 0) {
-          // Update the temporary message with server data
-          final updatedMessages = List<MessageModel>.from(
-            currentState.messages,
+          // Update the temporary message with server data (or confirm it)
+          debugPrint(
+            '[MessagingBloc] Found matching optimistic message at index $tempIndex. Updating message ID: ${newMessage.messageId}',
           );
+          updatedMessages = List<MessageModel>.from(currentState.messages);
+          // Replace the optimistic message with the confirmed one from the server
           updatedMessages[tempIndex] = newMessage;
-
-          emit(currentState.copyWith(messages: updatedMessages));
-        } else {
-          // Add new message from someone else
-          emit(
-            currentState.copyWith(
-              messages: [...currentState.messages, newMessage],
-            ),
+          debugPrint(
+            '[MessagingBloc] Updated existing optimistic message (ID: ${newMessage.messageId}). Emitting new state.',
           );
-
-          // Mark as read since we're actively viewing it
-          add(MarkMessagesasRead(conversationId));
+        } else {
+          // Add new message from someone else (or our own message confirmed with a new ID)
+          debugPrint(
+            '[MessagingBloc] Adding new message (ID: ${newMessage.messageId}) to the list.',
+          );
+          updatedMessages = [...currentState.messages, newMessage];
+          debugPrint(
+            '[MessagingBloc] Added new message (ID: ${newMessage.messageId}). Emitting new state.',
+          );
         }
 
-        // Always refresh conversations to update latest message
+        // Emit the updated message list for the active chat
+        emit(currentState.copyWith(messages: updatedMessages));
+
+        // Mark as read since we're actively viewing it and it's not ours
+        final currentUserId = await SecureStorageHelper.getUserId();
+        if (newMessage.senderId != currentUserId && tempIndex < 0) {
+          // Only mark as read if it's a new message from someone else
+          debugPrint(
+            '[MessagingBloc] Message is from other user. Marking conversation $conversationId as read.',
+          );
+          add(MarkMessagesasRead(conversationId));
+        } else {
+          debugPrint(
+            '[MessagingBloc] Message is from current user or an update to optimistic message. Not marking as read.',
+          );
+        }
+
+        // Consider if a conversation list update is still needed here,
+        // perhaps just updating the single conversation item's preview
+        // instead of reloading all. For now, we omit the full reload.
+        // add(LoadConversations()); // Removed from here
+      } else {
+        // Message is for a non-active conversation or state is not MessagesLoaded
+        debugPrint(
+          '[MessagingBloc] Message received for conversation $conversationId, but not processing for active chat view. Active: $_activeConversationId, State: ${state.runtimeType}',
+        );
+        // Refresh unseen count as the user is not seeing it immediately
+        add(RefreshUnseenCount(1));
+        // Refresh conversations list to update latest message preview and order
         add(LoadConversations());
       }
-    } catch (e) {
-      debugPrint('Error processing WebSocket message: $e');
+    } catch (e, stackTrace) {
+      // Catch stack trace
+      debugPrint(
+        '[MessagingBloc] Error processing WebSocket message: $e\n$stackTrace',
+      ); // Log stack trace
       emit(MessagingError('Failed to process WebSocket message: $e'));
     }
   }
@@ -485,11 +580,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     Emitter<MessagingBlocState> emit,
   ) async {
     try {
-      final typingData = event.typingData;
-
       // Find conversation ID and typing status
-      final String conversationId = typingData.keys.first;
-      final bool isTyping = typingData[conversationId] ?? false;
+      final String conversationId = event.conversationId;
+      final bool isTyping = true;
 
       // Only update if we are viewing conversation
       if (_activeConversationId == conversationId) {
@@ -499,7 +592,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         }
       }
     } catch (e) {
-      debugPrint('Error processing typing status: $e');
+      debugPrint('[MessagingBloc] Error processing typing status: $e');
       emit(MessagingError('Failed to process typing status: $e'));
     }
   }
@@ -524,7 +617,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         // Update the message status to read
         final updatedMessages =
             currentState.messages.map<MessageModel>((message) {
-              if (message.senderId == conversationId) {
+              if (message.conversationId == conversationId) {
                 return message.copyWith(isRead: isRead);
               }
               return message;
@@ -533,7 +626,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         emit(currentState.copyWith(messages: updatedMessages));
       }
     } catch (e) {
-      debugPrint('Error processing read receipt: $e');
+      debugPrint('[MessagingBloc] Error processing read receipt: $e');
       emit(MessagingError('Failed to process read receipt: $e'));
     }
   }

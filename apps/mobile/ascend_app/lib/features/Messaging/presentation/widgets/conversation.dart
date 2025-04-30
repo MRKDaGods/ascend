@@ -49,6 +49,7 @@ class _ConversationState extends State<Conversation>
     );
     _animation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
     _controller.forward();
+    debugPrint('Animation started for conversation: ${widget.conversationId}');
   }
 
   @override
@@ -103,6 +104,11 @@ class _ConversationState extends State<Conversation>
       widget.onTap!();
     } else {
       // Navigate to the chat screen when tapped
+
+      debugPrint(
+        'Navigating to chat page with conversationId: ${widget.conversationId} ,  otherUserId: ${widget.otherUserId} , myUserId: $myUserId',
+      );
+
       Navigator.push(
         context,
         MaterialPageRoute(

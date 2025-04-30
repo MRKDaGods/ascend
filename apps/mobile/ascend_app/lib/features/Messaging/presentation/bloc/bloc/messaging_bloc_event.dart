@@ -104,12 +104,12 @@ class WebSocketMessageReceived extends MessagingBlocEvent {
 }
 
 class TypingStatusUpdated extends MessagingBlocEvent {
-  final Map<String, bool> typingData;
+  final String conversationId;
 
-  TypingStatusUpdated(this.typingData);
+  TypingStatusUpdated(this.conversationId);
 
   @override
-  List<Object?> get props => [typingData];
+  List<Object?> get props => [conversationId];
 }
 
 class ReadReceiptReceived extends MessagingBlocEvent {

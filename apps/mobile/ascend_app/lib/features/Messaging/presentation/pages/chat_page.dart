@@ -38,10 +38,13 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
-  List<MessageModel> _messages = [];
 
+  //List<MessageModel> _messages = [];
+  int _lastKnownMessageCount = 0;
+
+  // Keep track of messages count in the UI
   // Pagination variables
-  static const int _pageSize = 10;
+  static const int _pageSize = 20;
   int _page = 0;
   bool _isLoading = false;
   bool _hasMoreMessages = true;
@@ -58,12 +61,8 @@ class _ChatPageState extends State<ChatPage> {
   Timer? _localTypingTimer;
   Timer? _remoteTypingTimer; // Auto-reset remote typing after timeout
 
-  late MessagingBloc _messagingBloc;
-  bool _hasStoredBlocReference = false;
-
   @override
   void initState() {
-    debugPrint('initState - ChatPage');
     super.initState();
 
     // Load Intial messages
@@ -80,21 +79,27 @@ class _ChatPageState extends State<ChatPage> {
     // Listen to text changes to detect typing
     _messageController.addListener(_onMessageChange);
 
-    debugPrint('initState - ChatPage - End');
+    debugPrint(
+      'DEBUG: ${widget.conversationId} - ChatPage - initState - Start',
+    );
   }
 
   void _onScroll() {
-    // Load more when reaching near the top
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+    // Load more when reaching near the top (end of the list in reverse)
+    if (_scrollController.position.pixels <=
+            _scrollController.position.minScrollExtent +
+                200 && // Check near the top
         !_isLoadingMore &&
         _hasMoreMessages) {
       _loadMoreMessages();
     }
 
-    // Show or hide scroll to bottom button
+    // Show or hide scroll to bottom button based on how far up we've scrolled
     setState(() {
-      _showScrollToBottom = _scrollController.position.pixels > 500;
+      // Show if scrolled up more than a certain amount from the bottom
+      _showScrollToBottom =
+          _scrollController.position.pixels <
+          _scrollController.position.maxScrollExtent - 500;
     });
   }
 
@@ -118,8 +123,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _loadMoreMessages() {
-    if (_isLoadingMore || !_hasMoreMessages) return;
+    if (_isLoadingMore || !_hasMoreMessages || _isLoading) return;
 
+    debugPrint('[ChatPage] Attempting to load more messages...');
     // Local flag for immediate UI feedback
     setState(() {
       _isLoadingMore = true;
@@ -167,7 +173,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _scrollToBottom({bool animate = true}) {
-    if (!_scrollController.hasClients) return;
+    if (!_scrollController.hasClients ||
+        _scrollController.position.maxScrollExtent == 0)
+      return;
 
     final position = _scrollController.position.maxScrollExtent;
     if (animate) {
@@ -186,12 +194,19 @@ class _ChatPageState extends State<ChatPage> {
     if (text.isEmpty) return;
 
     // send Message through Bloc
+    debugPrint(
+      'DEBUG: [_sendMessage] Dispatching SendMessage event. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
+    );
     context.read<MessagingBloc>().add(
       SendMessage(
         widget.conversationId,
         widget.otherUserId!,
         text,
       ), // Fixed the missing parenthesis
+    );
+
+    debugPrint(
+      'DEBUG: [_sendMessage] Message sent. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
     );
 
     // Clear input
@@ -201,17 +216,19 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _isLocalUserTyping = false;
     });
-    _sendTypingStatusToServer(false);
 
-    // Scroll to show new message
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
-    });
-  }
+    // Manually stop local typing indicator
+    _localTypingTimer?.cancel(); // Cancel any pending stop-typing timer
+    if (_isLocalUserTyping) {
+      setState(() {
+        _isLocalUserTyping = false;
+      });
 
-  void _onFocusChange() {
-    // Handle focus changes if needed
-    setState(() {});
+      // Scroll to show new message
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    }
   }
 
   @override
@@ -223,7 +240,11 @@ class _ChatPageState extends State<ChatPage> {
       _remoteTypingTimer?.cancel();
 
       // Dispose controllers
+      _scrollController.removeListener(
+        _onScroll,
+      ); // Remove listener before disposing
       _scrollController.dispose();
+      _messageController.removeListener(_onMessageChange); // Remove listener
       _messageController.dispose();
       _focusNode.dispose();
 
@@ -241,6 +262,39 @@ class _ChatPageState extends State<ChatPage> {
       debugPrint('Error in dispose: $e\n$stackTrace');
       debugPrint(stackTrace.toString());
     }
+  }
+
+  bool _shouldShowDateSeparator(int messageIndex, List<MessageModel> messages) {
+    if (messageIndex == 0) {
+      return true;
+    }
+
+    final currentDate = messages[messageIndex].sentAt;
+    final previousDate = messages[messageIndex - 1].sentAt;
+
+    return !DateVerifier.isSameDay(currentDate, previousDate);
+  }
+
+  Widget _buildDateSeparator(DateTime date) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          DateVerifier.getFormattedDateString(date),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[800],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -261,64 +315,79 @@ class _ChatPageState extends State<ChatPage> {
             // Handle state changes for message loading
             if (state is MessagesLoaded &&
                 state.conversationId == widget.conversationId) {
-              // Update messages from bloc state
-              _messages = state.messages;
-              _hasMoreMessages = !state.hasReachedMax;
-              _isLoading = false;
-              _isLoadingMore = false;
+              debugPrint(
+                '[ChatPage] Last Loaded state: ${state.messages[state.messages.length - 1].content} at ${state.messages[state.messages.length - 1].sentAt}',
+              );
+              final bool wasLoadingMore =
+                  _isLoadingMore; // Store previous state
+              setState(() {
+                _isLoading = false;
+                _isLoadingMore = false;
+                _hasMoreMessages = !state.hasReachedMax;
+                _isRemoteUserTyping =
+                    state.isTyping; // Update remote typing status
+                _lastKnownMessageCount =
+                    state.messages.length; // Update message count
+              });
 
-              // Scroll to Bottom if it is initial load
-              if (state.page == 1) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _scrollToBottom(animate: false);
-                });
-              }
+              // Auto-scroll logic
+              final bool isNearBottom =
+                  _scrollController.hasClients &&
+                  _scrollController.position.maxScrollExtent -
+                          _scrollController.position.pixels <
+                      100; // Check if user is near the bottom
 
-              // Check if there's a new message (for auto-scrolling)
-              if (_messages.isNotEmpty &&
+              if (state.messages.isNotEmpty &&
+                  state.messages.last.senderId == widget.myUserId) {
+                // New message from me, always scroll
+                _scrollToBottom();
+              } else if (isNearBottom &&
                   state.messages.isNotEmpty &&
-                  state.messages.length > _messages.length &&
-                  state.messages.last.senderId ==
-                      await SecureStorageHelper.getUserId()) {
-                // A new message was added and it's from me, scroll to bottom
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _scrollToBottom();
-                });
+                  state.messages.last.senderId != widget.otherUserId) {
+                // New message from other user, scroll only if already near bottom
+                _scrollToBottom();
+              } else if (state.page == 1 && !wasLoadingMore) {
+                // Initial load completed, jump to bottom
+                _scrollToBottom(animate: false);
               }
 
-              // Update remote typing status
-              _isRemoteUserTyping = state.isTyping;
-
-              // Reset typing timer
+              // Handle remote typing timer
+              _remoteTypingTimer?.cancel();
               if (state.isTyping) {
-                _remoteTypingTimer?.cancel();
-                _remoteTypingTimer = Timer(Duration(seconds: 3), () {
+                _remoteTypingTimer = Timer(Duration(seconds: 5), () {
+                  // Use 5 seconds as planned
                   if (mounted && _isRemoteUserTyping) {
+                    // If timer fires, assume remote user stopped typing
                     setState(() {
                       _isRemoteUserTyping = false;
                     });
+                    // Optionally, trigger an event if needed:
                   }
                 });
               }
             } else if (state is MessagesLoading &&
                 state.conversationId == widget.conversationId) {
-              if (state.isLoadingMore) {
-                setState(() {
-                  _isLoadingMore = true;
-                });
-              } else {
-                setState(() {
-                  _isLoading = true;
-                });
-              }
+              setState(() {
+                _isLoading = !state.isLoadingMore; // True only for initial load
+                _isLoadingMore = state.isLoadingMore;
+              });
+            } else if (state is MessagingError) {
+              setState(() {
+                _isLoading = false;
+                _isLoadingMore = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to load messages. Please try again.'),
+                ),
+              );
             }
           },
           builder: (context, state) {
+            List<MessageModel> currentMessages = [];
             if (state is MessagesLoaded &&
                 state.conversationId == widget.conversationId) {
-              _messages = state.messages;
-              final sortedMessages = List<MessageModel>.from(_messages);
-              sortedMessages.sort((a, b) => b.sentAt.compareTo(b.sentAt));
+              currentMessages = state.messages;
             }
             return Column(
               children: [
@@ -326,9 +395,9 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: Stack(
                     children: [
-                      _isLoading && _messages.isEmpty
+                      _isLoading && currentMessages.isEmpty
                           ? Center(child: CircularProgressIndicator())
-                          : _buildMessagesList(),
+                          : _buildMessagesList(currentMessages),
 
                       // Scroll to bottom button
                       if (_showScrollToBottom)
@@ -385,15 +454,15 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildMessagesList() {
+  Widget _buildMessagesList(List<MessageModel> messages) {
     return ListView.builder(
       controller: _scrollController,
       padding: EdgeInsets.all(16),
       reverse: true, // Newest at the bottom
-      itemCount: _messages.length,
+      itemCount: messages.length,
       itemBuilder: (context, index) {
         // Show loading indicator at the bottom when loading more
-        if (_hasMoreMessages && index == 0) {
+        if (_hasMoreMessages && index == messages.length - 1) {
           return _isLoadingMore
               ? Container(
                 padding: EdgeInsets.all(8),
@@ -408,15 +477,18 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         // Adjust index for reversed list
-        final messageIndex = _messages.length - 1 - index;
-        if (messageIndex < 0 || messageIndex >= _messages.length) {
+        final messageIndex = messages.length - 1 - index;
+        if (messageIndex < 0 || messageIndex >= messages.length) {
           return SizedBox.shrink();
         }
 
-        final message = _messages[messageIndex];
+        final message = messages[messageIndex];
 
         // Check if we should show date separator
-        final bool showDateSeparator = _shouldShowDateSeparator(messageIndex);
+        final bool showDateSeparator = _shouldShowDateSeparator(
+          messageIndex,
+          messages,
+        );
 
         return Column(
           children: [
@@ -450,39 +522,6 @@ class _ChatPageState extends State<ChatPage> {
           ],
         );
       },
-    );
-  }
-
-  bool _shouldShowDateSeparator(int messageIndex) {
-    if (messageIndex == 0) {
-      return true;
-    }
-
-    final currentDate = _messages[messageIndex].sentAt;
-    final previousDate = _messages[messageIndex - 1].sentAt;
-
-    return !DateVerifier.isSameDay(currentDate, previousDate);
-  }
-
-  Widget _buildDateSeparator(DateTime date) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 16),
-      alignment: Alignment.center,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          DateVerifier.getFormattedDateString(date),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[800],
-          ),
-        ),
-      ),
     );
   }
 }

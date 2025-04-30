@@ -52,7 +52,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
             if (dataList is List) {
               return dataList.map((item) {
                 // Print item to debug
-                debugPrint('Converting item: $item');
+                debugPrint('[MessagingRepoistoryImpl] Converting item: $item');
                 return ConversationModel.fromJson(item as Map<String, dynamic>);
               }).toList();
             }
@@ -89,13 +89,15 @@ class MessagingRepoistoryImpl implements MessagingRepository {
         }
 
         // If we reach here, the response format is unexpected
-        debugPrint('Unexpected response format: $responseData');
+        debugPrint(
+          '[MessagingRepoistoryImpl] Unexpected response format: $responseData',
+        );
         return [];
       } else {
         throw Exception('Failed to load conversations: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error getting conversations: $e');
+      debugPrint('[MessagingRepoistoryImpl] Error getting conversations: $e');
       throw Exception('Failed to load conversations: $e');
     }
   }
@@ -119,6 +121,9 @@ class MessagingRepoistoryImpl implements MessagingRepository {
     int page = 1,
   }) async {
     try {
+      debugPrint(
+        '[MessagingRepoistoryImpl] Fetching messages for conversation $conversationId, page $page',
+      );
       final response = await _apiClient.get(
         // Fix the URL format - remove the colon before conversationId
         '${ApiEndpoints.conversations}/$conversationId?page=$page',
@@ -144,8 +149,15 @@ class MessagingRepoistoryImpl implements MessagingRepository {
 
         // If no valid data found
         if (messagesList == null) {
+          debugPrint(
+            '[MessagingRepoistoryImpl] No messages found in response for conversation $conversationId, page $page',
+          );
           return [];
         }
+
+        debugPrint(
+          '[MessagingRepoistoryImpl] Processing ${messagesList.length} messages from API for conversation $conversationId, page $page',
+        );
 
         // Convert to message models and assign conversationId
         return messagesList.map((message) {
@@ -153,15 +165,22 @@ class MessagingRepoistoryImpl implements MessagingRepository {
           final messageModel = MessageModel.fromJson(
             message as Map<String, dynamic>,
           );
-
+          debugPrint(
+            '[MessagingRepoistoryImpl] Processing message ${messageModel.messageId} (Sent: ${messageModel.sentAt})',
+          ); // Log message order
           // Add the conversationId to each message
           return messageModel.copyWith(conversationId: conversationId);
         }).toList();
       } else {
+        debugPrint(
+          '[MessagingRepoistoryImpl] Failed to load messages: ${response.statusCode} for conversation $conversationId, page $page',
+        );
         throw Exception('Failed to load messages: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error getting messages: $e');
+      debugPrint(
+        '[MessagingRepoistoryImpl] Error getting messages for conversation $conversationId, page $page: $e',
+      );
       throw Exception('Failed to load messages: $e');
     }
   }
@@ -173,10 +192,22 @@ class MessagingRepoistoryImpl implements MessagingRepository {
     String contentType = 'text',
     File? file,
   }) async {
+    debugPrint(
+      '[MessagingRepoistoryImpl] Sending message: receiverId=$receiverId, content=$content, contentType=$contentType',
+    );
     final response = await _apiClient.post(
       '${ApiEndpoints.message}',
       data: {'receiverId': receiverId, 'content': content, 'file': file},
     );
+    if (response.statusCode == 200) {
+      // Handle successful message sending if needed
+      debugPrint('[MessagingRepoistoryImpl] Message sent successfully');
+    } else {
+      // Handle error response
+      debugPrint(
+        '[MessagingRepoistoryImpl] Error sending message: ${response.statusCode}',
+      );
+    }
     if (response.statusCode != 200) {
       throw Exception('Failed to send message');
     }
@@ -212,14 +243,16 @@ class MessagingRepoistoryImpl implements MessagingRepository {
       final authToken = await SecureStorageHelper.getAuthToken();
 
       if (authToken == null) {
-        debugPrint('WebSocket connection error: Auth token is null');
+        debugPrint(
+          '[MessagingRepoistoryImpl] WebSocket connection error: Auth token is null',
+        );
         return false;
       }
 
       final url = 'https://ascendx.germanywestcentral.cloudapp.azure.com/';
 
       // Debug the URL before connecting
-      debugPrint('Connecting to WebSocket URL: $url');
+      debugPrint('[MessagingRepoistoryImpl] Connecting to WebSocket URL: $url');
 
       // Try connecting with appropriate error handling
       await _webSocketService.connect(url, authToken);
@@ -228,7 +261,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
 
       return _webSocketService.isConnected && _webSocketService.isRegistered;
     } catch (e) {
-      debugPrint('WebSocket connection error: $e');
+      debugPrint('[MessagingRepoistoryImpl] WebSocket connection error: $e');
       return false;
     }
   }
