@@ -134,7 +134,7 @@ export const getCompaniesCreatedByUser = async (req : AuthenticatedRequest, res 
         return res.status(401).json({error : "unauthorized"});
     }
     try {
-        const companies = (await findCompaniesCreatedByUser(user_id)).forEach(async (company : any) => {
+        const companies = (await findCompaniesCreatedByUser(user_id)).map(async (company : any) => {
             profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.profile_photo_id }, 10000);
             coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.cover_photo_id }, 10000);
 
