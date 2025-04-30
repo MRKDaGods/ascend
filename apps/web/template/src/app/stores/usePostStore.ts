@@ -319,8 +319,6 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
 
-    
-
       createPostNewFromAPI: async (
         content: string,
         mediaFiles?: File[],
@@ -329,7 +327,15 @@ export const usePostStore = create<PostStoreState>()(
         description?: string
       ) => {
         try {
-          const response = await createPostNew(content, mediaFiles?.[0], mediaType, title, description);
+          const hasMedia = mediaFiles && mediaFiles.length > 0;
+          const response = await createPostNew(
+            content,
+            hasMedia ? mediaFiles : undefined,
+            hasMedia ? mediaType : undefined,
+            hasMedia ? title : undefined,
+            hasMedia ? description : undefined
+          );
+      
           const id = response.data?.data?.id;
       
           if (id) {
@@ -339,7 +345,7 @@ export const usePostStore = create<PostStoreState>()(
           console.error("❌ Failed to create post (new):", error?.response?.data || error.message);
           throw error;
         }
-      },
+      },      
 
       deletePostFromAPI: async (postId) => {
         await deletePostById(postId);
