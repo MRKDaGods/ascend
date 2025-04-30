@@ -342,6 +342,7 @@ class Profile {
   final int userId;
   final String firstName;
   final String lastName;
+  final String? headline;
   final String? resumeUrl;
   final int? resumeId;
   final String? coverPhotoUrl;
@@ -372,6 +373,7 @@ class Profile {
     required this.firstName,
     required this.lastName,
     this.resumeUrl,
+    this.headline,
     this.resumeId,
     this.coverPhotoUrl,
     this.coverPhotoId,
@@ -398,12 +400,67 @@ class Profile {
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
+    // Add null check for user_id
+    final userIdValue = json['user_id'];
+    if (userIdValue == null || userIdValue is! int) {
+      throw FormatException(
+        "Invalid or missing 'user_id' in Profile JSON: received $userIdValue",
+      );
+    }
+
+    // Add null checks for other required fields like first_name, last_name
+    final firstNameValue = json['first_name'];
+    if (firstNameValue == null || firstNameValue is! String) {
+      throw FormatException(
+        "Invalid or missing 'first_name' in Profile JSON: received $firstNameValue",
+      );
+    }
+    final lastNameValue = json['last_name'];
+    if (lastNameValue == null || lastNameValue is! String) {
+      throw FormatException(
+        "Invalid or missing 'last_name' in Profile JSON: received $lastNameValue",
+      );
+    }
+
+    // Add null checks for date parsing
+    DateTime? createdAtValue;
+    if (json['created_at'] != null) {
+      try {
+        createdAtValue = DateTime.parse(json['created_at']);
+      } catch (e) {
+        throw FormatException(
+          "Invalid format for 'created_at' in Profile JSON: ${json['created_at']}",
+        );
+      }
+    } else {
+       throw FormatException(
+        "Missing 'created_at' in Profile JSON",
+      );
+    }
+
+    DateTime? updatedAtValue;
+    if (json['updated_at'] != null) {
+      try {
+        updatedAtValue = DateTime.parse(json['updated_at']);
+      } catch (e) {
+        throw FormatException(
+          "Invalid format for 'updated_at' in Profile JSON: ${json['updated_at']}",
+        );
+      }
+    } else {
+       throw FormatException(
+        "Missing 'updated_at' in Profile JSON",
+      );
+    }
+
+
     return Profile(
-      userId: json['user_id'],
-      firstName: json['first_name'],
-      lastName: json['last_name'],
+      userId: userIdValue, // Use the validated value
+      firstName: firstNameValue, // Use the validated value
+      lastName: lastNameValue, // Use the validated value
       resumeUrl: json['resume_url'],
       resumeId: json['resume_id'],
+      headline: json['headline'],
       coverPhotoUrl: json['cover_photo_url'],
       coverPhotoId: json['cover_photo_id'],
       profilePictureUrl: json['profile_picture_url'],
@@ -455,8 +512,8 @@ class Profile {
           json['contact_info'] != null
               ? ContactInfo.fromJson(json['contact_info'])
               : null,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: createdAtValue, // Use the validated value
+      updatedAt: updatedAtValue, // Use the validated value
     );
   }
 
@@ -464,6 +521,7 @@ class Profile {
     return {
       'user_id': userId,
       'first_name': firstName,
+      'headline': headline,
       'last_name': lastName,
       'resume_url': resumeUrl,
       'resume_id': resumeId,

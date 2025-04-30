@@ -7,7 +7,7 @@ class InvitationState {
   final List<InvitationModel> rejected;
   final int count;
 
-  InvitationState({
+  const InvitationState({
     required this.invitations,
     required this.accepted,
     required this.rejected,

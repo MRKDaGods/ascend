@@ -27,6 +27,21 @@ impl<'a> UserService<'a> {
         utils::handle_response::<Profile>(response).await
     }
 
+    pub async fn get_user_profile(&self, id: i32) -> Result<Profile, ApiError> {
+        let url = self.client.construct_url(&format!("user/profile/{}", id));
+        let token = self.client.auth_token()?;
+
+        let response = self
+            .client
+            .http_client()
+            .get(&url)
+            .bearer_auth(token)
+            .send()
+            .await?;
+
+        utils::handle_response::<Profile>(response).await
+    }
+
     pub async fn update_local_user_profile(&self, profile: Profile) -> Result<Profile, ApiError> {
         let url = self.client.construct_url("user/profile");
         let token = self.client.auth_token()?;

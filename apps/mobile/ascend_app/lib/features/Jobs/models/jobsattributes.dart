@@ -4,7 +4,9 @@ class Jobsattributes {
     required this.company,
     required this.location,
     required this.experienceLevel,
-    required this.salary,
+    required this.salaryMinRange,
+    required this.salaryMaxRange,
+    required this.createdAt, // Date the job was created
     required this.easyapply,
 
     this.isPartTime, // Indicates if job is part-time
@@ -19,7 +21,6 @@ class Jobsattributes {
     this.applied = false,
     this.applicationStatus = "Pending", // Default status
     this.alumniCount = 0,
-    this.timePosted = "1 day ago", // Default time posted
     this.isPromoted = false,
     this.viewed = false,
     this.applicationForm,
@@ -36,48 +37,37 @@ class Jobsattributes {
   final String? companyPhoto; // URL for company logo
   final String location; // Example: "San Francisco, CA"
   final String experienceLevel; // Example: "Entry", "Mid", "Senior"
-  final int salary; // Salary in USD
+  final int salaryMinRange; // Salary in USD
+  final int salaryMaxRange; // Salary in USD
   bool isBookmarked; // Track if user has bookmarked job
   final String? jobDescription; // Detailed job description
   bool applied; // Track if user has applied to job
   String applicationStatus; // Track application status (Pending, Viewed, etc.)
   int alumniCount; // Number of alumni working at the company
-  String timePosted; // Time since job was posted
   bool isPromoted; // Promoted jobs are displayed at the top of the list
   final bool easyapply; // Indicates if job supports easy apply
   bool viewed; // Track if job has been viewed
   final String? applicationForm; // URL for application form
+  final DateTime createdAt; // Date the job was created
 
-  DateTime? get timePostedDate {
-    try {
-      final parts = timePosted.split(' ');
-      if (parts.length == 3) {
-        final value = int.parse(parts[0]);
-        final unit = parts[1].toLowerCase();
-
-        switch (unit) {
-          case 'minute':
-          case 'minutes':
-            return DateTime.now().subtract(Duration(minutes: value));
-          case 'hour':
-          case 'hours':
-            return DateTime.now().subtract(Duration(hours: value));
-          case 'day':
-          case 'days':
-            return DateTime.now().subtract(Duration(days: value));
-          case 'week':
-          case 'weeks':
-            return DateTime.now().subtract(Duration(days: value * 7));
-          case 'month':
-          case 'months':
-            return DateTime.now().subtract(Duration(days: value * 30));
-          default:
-            return null;
-        }
-      }
-    } catch (e) {
-      return null;
-    }
-    return null;
+  factory Jobsattributes.fromJson(Map<String, dynamic> json) {
+    return Jobsattributes(
+      title: json['title'] as String? ?? 'Unknown Title',
+      company: json['company_name'] as String? ?? 'Unknown Company',
+      location: json['location'] as String? ?? 'Unknown Location',
+      experienceLevel: json['experience_level'] as String? ?? 'Unknown Level',
+      salaryMinRange: json['salary_min_range'] as int? ?? 0,
+      salaryMaxRange:
+          json['salary_max_range'] as int? ?? double.infinity.toInt(),
+      easyapply: json['easyapply'] as bool? ?? true,
+      jobDescription: json['description'] as String? ?? 'No Description',
+      isPartTime: json['is_part_time'] as bool? ?? false,
+      isRemote: json['is_remote'] as bool? ?? false,
+      isHybrid: json['is_hybrid'] as bool? ?? false,
+      isConstruction: json['is_construction'] as bool? ?? false,
+      isEducation: json['is_education'] as bool? ?? false,
+      isSmallBusiness: json['is_small_business'] as bool? ?? false,
+      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+    );
   }
 }

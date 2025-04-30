@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
+
 class SignOutPage extends StatefulWidget {
   const SignOutPage({super.key});
 
@@ -24,7 +25,7 @@ class _SignOutPageState extends State<SignOutPage> {
                 await SecureStorageHelper.clearAll(); // Clear stored data
                 Navigator.pushReplacementNamed(
                   context,
-                  '/signIn',
+                  '/signIn', // Replace with your sign-in route name
                 ); // Navigate to SignIn
               },
               child: const Text('Logout'),

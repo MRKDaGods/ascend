@@ -1,51 +1,66 @@
 import 'package:ascend_app/features/Messaging/domain/repoistories/messaging_repoistory.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
+import 'package:ascend_app/features/notifications/presentation/bloc/notification_event.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import for SharedPreferences
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart'; // <-- Import AuthState
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-
 import 'core/app/app_initializer.dart';
 import 'core/di/dependency_injection.dart';
 import 'core/routes/app_routes.dart';
 import 'features/profile/bloc/user_profile_bloc.dart';
 import 'features/profile/bloc/user_profile_event.dart';
 import 'features/home/bloc/post_bloc/post_bloc.dart';
+// Import PostEvent if needed by PostBloc provider
+// import 'features/home/bloc/post_bloc/post_event.dart';
 import 'features/home/repositories/post_repository.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
-import 'features/notifications/presentation/bloc/notification_event.dart';
+// Import NotificationEvent if needed by NotificationBloc provider
+// import 'features/notifications/presentation/bloc/notification_event.dart';
 import 'theme.dart';
 import 'features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'features/Messaging/data/datasources/remote_datasource.dart';
 import 'services/web_socket_service.dart';
 
-void main() {
-  // Set up error handling
+void main() async {
+  // Ensure Flutter binding is initialized FIRST
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Set up error handling early
   AppInitializer.setupErrorHandling((error, stack) {
     debugPrint('Global error: $error');
-    // In production, you'd want to log this to a service
+    // In production, log to a service
   });
 
-  // Run app in an error zone to catch all errors
+  // Run app initialization and the app itself in an error zone
   runZonedGuarded(
     () async {
-      // Initialize all services and dependencies
-      await AppInitializer.initialize();
-
-      // Set up BLoC observer for debugging
+      // Set up BLoC observer
       AppInitializer.setupBlocObserver();
+
+      // Initialize all services, dependencies, Hive, Firebase etc.
+      await AppInitializer.initialize();
 
       // Run the app
       runApp(const MainApp());
     },
     (error, stackTrace) {
       debugPrint('Error in runZonedGuarded: $error');
-      // In production, you'd want to log this to a service
+      // In production, log to a service
     },
   );
 }
+
+// // Function to clear local storage
+// Future<void> _clearLocalStorage() async { ... }
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -56,6 +71,9 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   bool _isInitialized = false;
+  // Remove _isInitialized flag
+  bool _profileLoaded =
+      false; // Flag only for profile loading triggered from main
 
   @override
   void initState() {
@@ -87,86 +105,105 @@ class _MainAppState extends State<MainApp> {
   // Method to set up push notification handlers
   Future<void> _setupPushNotifications() async {
     try {
-      // Listen for notification taps
       sl.pushNotificationService.onNotificationTap.listen((message) {
         final notificationId = message.data['notificationId'];
         if (notificationId != null) {
-          sl.notificationBloc.add(FetchNotificationById(notificationId));
-          sl.navigatorKey.currentState?.pushNamed(RouteNames.notifications);
+          try {
+            // Assuming NotificationBloc is ready or handles missing data
+            sl.notificationBloc.add(FetchNotificationById(notificationId));
+            sl.navigatorKey.currentState?.pushNamed(RouteNames.notifications);
+          } catch (e) {
+            debugPrint('Error handling notification tap: $e');
+          }
         }
       });
     } catch (e) {
-      debugPrint('Error setting up push notifications: $e');
+      debugPrint('Error setting up push notification listener: $e');
     }
   }
 
   @override
   void dispose() {
-    sl.dispose();
+    // Consider if sl.dispose() is correct here.
+    // sl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return MaterialApp(
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        home: Scaffold(body: Center(child: CircularProgressIndicator())),
-      );
-    }
+    // Remove the check for _isInitialized and the loading indicator
 
     return MultiBlocProvider(
       providers: [
-        // Updated BlocProvider
         BlocProvider<AuthBloc>.value(value: sl.authBloc),
-
-        // Your existing providers
         BlocProvider<UserProfileBloc>(
-          create: (context) => UserProfileBloc()..add(LoadUserProfile()),
+          // Ensure no initial fetch HERE
+          create: (context) => UserProfileBloc(),
         ),
         BlocProvider<PostBloc>(
-          create: (context) {
-            try {
-              final repo = PostRepository();
-              final bloc = PostBloc(repo);
-              return bloc;
-            } catch (e) {
-              return PostBloc(PostRepository());
-            }
-          },
+          // Restore original creation logic (likely fetches immediately or handled in Home page)
+          create:
+              (context) => PostBloc(
+                PostRepository(),
+              ), // Assuming it might add LoadPosts itself or Home page does
         ),
+        BlocProvider<NotificationBloc>(
+          // Restore original creation logic (likely fetches immediately or handled elsewhere)
+          create:
+              (context) =>
+                  sl.notificationBloc, // Assuming it might add FetchNotifications itself or handled elsewhere
+        ),
+        BlocProvider<SearchBloc>.value(value: sl.searchBloc),
 
         // Add the MessagingBloc to the providers
         Provider<MessagingBloc>.value(value: sl.messagingBloc),
-
-        // Add the notification bloc
-        BlocProvider<NotificationBloc>.value(value: sl.notificationBloc),
-
-        // Add SearchBloc to the providers
-        BlocProvider<SearchBloc>.value(value: sl.searchBloc),
       ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        debugShowCheckedModeBanner: false,
-        navigatorKey: sl.navigatorKey,
-
-        // Use the routes from AppRoutes
-        initialRoute: AppRoutes.initialRoute,
-        routes: AppRoutes.getRoutes(),
-        onGenerateRoute: AppRoutes.onGenerateRoute,
-
-        builder: (context, child) {
-          return ScrollConfiguration(
-            behavior: ScrollBehavior().copyWith(
-              physics: const BouncingScrollPhysics(),
-              overscroll: false,
-            ),
-            child: child!,
-          );
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, authState) {
+          // Load profile data only on successful login and if not already loaded
+          if (authState is AuthSuccess && !authState.signUpMode) {
+            // Check !authState.signUpMode
+            print(
+              "[MainApp] AuthSuccess (Login) detected, checking profile load...",
+            );
+            if (!_profileLoaded) {
+              print("[MainApp] Loading user profile.");
+              context.read<UserProfileBloc>().add(LoadUserProfile());
+              // Update flag immediately to prevent re-dispatch
+              _profileLoaded = true;
+              // No need for setState if flag is only for dispatch control
+            }
+          } else if (authState is AuthInitial || authState is AuthLoading) {
+            // Reset only profile flag if user logs out or session starts/reloads
+            print(
+              "[MainApp] Auth state is Initial/Loading, resetting profile loaded flag.",
+            );
+            // Update flag immediately
+            _profileLoaded = false;
+            // No need for setState if flag is only for dispatch control
+          }
         },
-        home: AppRoutes.getInitialPage(),
+        child: MaterialApp(
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          debugShowCheckedModeBanner: false,
+          navigatorKey: sl.navigatorKey,
+          initialRoute:
+              AppRoutes
+                  .initialRoute, // Ensure this points to a valid route (e.g., '/welcome')
+          routes: AppRoutes.getRoutes(),
+          onGenerateRoute: AppRoutes.onGenerateRoute,
+          // Remove the home property if using initialRoute
+          builder: (context, child) {
+            return ScrollConfiguration(
+              behavior: ScrollBehavior().copyWith(
+                physics: const BouncingScrollPhysics(),
+                overscroll: false,
+              ),
+              child: child!,
+            );
+          },
+        ),
       ),
     );
   }

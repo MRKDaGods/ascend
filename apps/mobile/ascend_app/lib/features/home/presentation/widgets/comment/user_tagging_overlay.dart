@@ -7,10 +7,10 @@ class UserTaggingOverlay extends StatelessWidget {
   final Function(UserProfileModel) onUserSelected;
 
   const UserTaggingOverlay({
-    Key? key,
+    super.key,
     required this.users,
     required this.onUserSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +29,7 @@ class UserTaggingOverlay extends StatelessWidget {
           itemBuilder: (context, index) {
             final user = users[index];
             return ListTile(
-              leading: UserAvatar(
-                imageUrl: user.avatarUrl,
-                radius: 16,
-              ),
+              leading: UserAvatar(imageUrl: user.avatarUrl, radius: 16),
               title: Text(user.name),
               subtitle: Text(
                 user.position ?? '', // Show position if available

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
+import 'package:ascend_app/features/UserPage/user_page.dart'; // Import UserProfilePage
 
 class PostHeader extends StatelessWidget {
   final String ownerName;
@@ -8,8 +8,9 @@ class PostHeader extends StatelessWidget {
   final String timePosted;
   final bool isSponsored;
   final int followers;
+  final String userId; // Add userId field
   final VoidCallback? onRemove;
-  final VoidCallback? onOptionsPressed;
+  final VoidCallback? onOptionsPressed; // This callback is key
   final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
   final VoidCallback? onShowFeedbackOptions; // New callback to show feedback options
   final Function(String reason)? onHidePost; // Add this
@@ -22,6 +23,7 @@ class PostHeader extends StatelessWidget {
     required this.timePosted,
     this.isSponsored = false,
     this.followers = 0,
+    required this.userId, // Require userId in constructor
     this.onRemove,
     this.onOptionsPressed,
     this.onFeedbackSubmitted,
@@ -29,41 +31,10 @@ class PostHeader extends StatelessWidget {
     this.onHidePost,
   });
 
-  void _showOptionsBottomSheet(BuildContext context) {
-    print("Showing options sheet for: $ownerName");
-    
-    SheetHelpers.showPostOptionsSheet(
-      context: context,
-      ownerName: ownerName,
-      onSave: () {
-        print("Post saved");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post saved')),
-        );
-      },
-      onShare: () {
-        print("Post shared");
-      },
-      onNotInterested: () {
-        print("Not interested selected");
-        if (onHidePost != null) {
-          onHidePost!("Not interested");
-        }
-      },
-      onUnfollow: () {
-        print("Unfollowing: $ownerName");
-      },
-      onReport: () {
-        print("Report selected");
-        if (onFeedbackSubmitted != null) {
-          onFeedbackSubmitted!("Reported");
-        }
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    // You can now use widget.userId within the build method if needed
+    // For example: print('User ID in PostHeader: ${widget.userId}');
     return Row(
       children: [
         CircleAvatar(
@@ -77,9 +48,19 @@ class PostHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                ownerName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              GestureDetector( // Wrap ownerName with GestureDetector
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfilePage(profileId: int.tryParse(userId)), // Navigate to UserProfilePage
+                    ),
+                  );
+                },
+                child: Text(
+                  ownerName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
               if (isSponsored && followers > 0)
                 // Show followers for sponsored posts
@@ -114,11 +95,12 @@ class PostHeader extends StatelessWidget {
           icon: const Icon(Icons.more_horiz),
           splashRadius: 24,
           onPressed: () {
-            print("Options button pressed");
+            print("Options button pressed in PostHeader");
+            // Directly call the provided callback
             if (onOptionsPressed != null) {
               onOptionsPressed!();
             } else {
-              _showOptionsBottomSheet(context);
+              print("Warning: onOptionsPressed callback is null in PostHeader");
             }
           },
         ),
@@ -155,7 +137,7 @@ class PostHeader extends StatelessWidget {
       ],
     );
   }
-  
+
   // Helper method to format large numbers
   String _formatNumber(int number) {
     if (number >= 1000000) {

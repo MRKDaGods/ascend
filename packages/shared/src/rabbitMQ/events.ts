@@ -12,6 +12,7 @@ export enum Events {
   FILE_URL_RPC = "file_url_rpc",
   FILE_UPLOAD_RPC = "file_upload_rpc",
   FILE_DELETE = "file_delete",
+  FILE_METADATA_RPC = "file_metadata_rpc",
 }
 
 /**
