@@ -9,22 +9,18 @@ import BackButton from '@/app/components/BackButton';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
 const CreateCompanyPage = () => {
-  const [logo, setLogo] = useState<File | null>(null);
+  const [profileImage, setLogo] = useState<File | null>(null);
 
   const {
-    name, url, website, industry, size, location, description, type, tagline,
+    name, url, industry, location, description,
   } = useCompanyStore();
 
   const formData = {
     name,
     url,
-    website,
     industry,
-    size,
     location,
     description,
-    type,
-    tagline,
   };
 
   return (

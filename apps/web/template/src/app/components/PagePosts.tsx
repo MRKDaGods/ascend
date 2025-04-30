@@ -8,7 +8,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CreateCompanyPost from "../components/CreateCompanyPost";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCompanyPostStore, MediaFile, CompanyPost } from '@/app/stores/useCompanyPostStore';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
@@ -21,10 +21,33 @@ export default function PagePosts() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
+  const companyId = useCompanyStore((state) => state.companyId);
+  const announcements = useCompanyStore((state) => state.announcements || []);
+  const getCompanyAnnouncements = useCompanyStore((state) => state.getCompanyAnnouncements);
+  const { setCompanyAnnouncementsToPosts } = useCompanyPostStore();
+
+
+  useEffect(() => {
+    if (companyId) {
+      getCompanyAnnouncements(companyId).then(() => {
+        useCompanyPostStore.getState().setCompanyAnnouncementsToPosts();
+      });
+    }
+  }, [companyId]);
+  
+
+
   const {
-    addPost, addDraftMedia, removeDraftMedia, draftPost,
-    posts, deletePost, setDraftPostContent, clearDraftPost
+    createAnnouncementPost,
+    addDraftMedia,
+    removeDraftMedia,
+    draftPost,
+    posts,
+    deletePost,
+    setDraftPostContent,
+    clearDraftPost
   } = useCompanyPostStore();
+  
 
   const companyName = useCompanyStore((state) => state.name);
   const companyProfileImage = useCompanyStore((state) => state.profileImage);
@@ -41,26 +64,28 @@ export default function PagePosts() {
     }
   };
 
-  const handleSubmit = () => {
-    if (isEditing && editingPostId) {
-      const updatedPosts = posts.map((post) =>
-        post.id === editingPostId ? {
-          ...post,
-          content: draftPost.content.trim(),
-          media: draftPost.media,
-        } : post
-      );
-      useCompanyPostStore.setState({ posts: updatedPosts });
-      setIsEditing(false);
-      setEditingPostId(null);
-    } else {
-      if (!addPost()) return;
-    }
+  const handleSubmit = async () => {
+  if (isEditing && editingPostId) {
+    const updatedPosts = posts.map((post) =>
+      post.id === editingPostId ? {
+        ...post,
+        content: draftPost.content.trim(),
+        media: draftPost.media,
+      } : post
+    );
+    useCompanyPostStore.setState({ posts: updatedPosts });
+    setIsEditing(false);
+    setEditingPostId(null);
+  } else {
+    const success = await createAnnouncementPost();
+    if (!success) return;
+  }
 
-    setText('');
-    clearDraftPost();
-    setOpen(false);
-  };
+  setText('');
+  clearDraftPost();
+  setOpen(false);
+};
+
 
   const handleEditPost = (post: CompanyPost) => {
     setDraftPostContent(post.content);
@@ -90,9 +115,9 @@ export default function PagePosts() {
             <Tab label="Published" />
           </Tabs>
         </Paper>
-        <CreateCompanyPost />
+        {/* <CreateCompanyPost /> */}
 
-        {/* <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
           <Box display="flex" alignItems="center" gap={2}>
             <Avatar src={companyProfileImage || undefined} />
             <TextField
@@ -123,13 +148,13 @@ export default function PagePosts() {
               Video
               <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
             </Button>
-            <Button component="label" startIcon={<ArticleIcon color="error" />} sx={{ textTransform: 'none' }}>
+            {/* <Button component="label" startIcon={<ArticleIcon color="error" />} sx={{ textTransform: 'none' }}>
               Document
               <input type="file" accept="application/pdf,.doc,.docx" hidden multiple onChange={handleFileUpload('document')} />
-            </Button>
+            </Button> */}
           </Box>
-        </Paper> */}
-
+        </Paper>
+        
         {posts.map((post) => (
           <Paper key={post.id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -158,19 +183,41 @@ export default function PagePosts() {
             <Typography variant="body1" mt={2} mb={2}>{post.content}</Typography>
 
             <Grid container spacing={1}>
-              {post.media.map((media, index) => (
-                <Grid item xs={12} sm={6} key={index}>
-                  {media.type === 'image' && (
-                    <img src={media.preview} alt={media.file.name} style={{ width: '100%', borderRadius: 8 }} />
-                  )}
-                  {media.type === 'video' && (
-                    <video src={media.preview} controls style={{ width: '100%', borderRadius: 8 }} />
-                  )}
-                  {media.type === 'document' && (
-                    <Typography variant="body2">{media.file.name}</Typography>
-                  )}
-                </Grid>
-              ))}
+            {post.media.map((media, index) => (
+              <Grid item xs={12} key={index}>
+                {media.type === 'image' && (media.url || media.preview) && (
+                  <>
+                  {console.log("🔍 Image src:", media.preview)}
+                  <Box
+                    component="img"
+                    src={media.url || media.preview}
+                    alt="image"
+                    sx={{
+                      width: '100%',
+                      maxHeight: 400,
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      my: 1,
+                    }}
+                  />
+                  </>
+                )}
+                {media.type === 'video' && (media.url || media.preview) && (
+                  <Box
+                    component="video"
+                    controls
+                    src={media.url || media.preview}
+                    sx={{
+                      width: '100%',
+                      maxHeight: 500,
+                      borderRadius: 2,
+                      my: 1,
+                    }}
+                  />
+                )}
+              </Grid>
+            ))}
+
             </Grid>
 
             <Box display="flex" alignItems="center" gap={1} mt={1}>
