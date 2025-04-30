@@ -304,6 +304,9 @@ export const createAnnounementPost = async (req : AuthenticatedRequest, res : Re
 
     const company_id = parseInt(req.params.companyId, 10);
     let { content, announcement_photos, announcement_video } = req.body;
+    if(!content && !announcement_photos && !announcement_video){
+        return res.status(400).json({error : "request body can't be empty"});
+    }
     try {
         const company = await findCompanyById(company_id);
         if(!company){
