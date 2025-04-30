@@ -1,4 +1,6 @@
 import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
@@ -23,6 +25,9 @@ class RouteNames {
   static const String welcome = '/welcome';
   static const String signIn = '/signIn';
   static const String forgetPassword = '/forgotPasswordPage';
+  static const String verficationPasswordCodePage =
+      '/verficationPasswordCodePage';
+  static const String resetPasswordPage = '/resetPasswordPage';
   static const String notifications = '/notifications';
   static const String home = '/home';
   static const String profile = '/profile';
@@ -50,16 +55,29 @@ class AppRoutes {
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       // --- Add the entry for the initial route '/' ---
-      initialRoute: (context) => const SplashScreen(), // Point '/' to SplashScreen
+      initialRoute:
+          (context) => const SplashScreen(), // Point '/' to SplashScreen
       // --- End ---
-
       RouteNames.notifications: (context) => const NotificationsPage(),
-      RouteNames.welcome: (context) => const Welcome(), // Keep this for navigation from SplashScreen
+      RouteNames.welcome:
+          (context) =>
+              const Welcome(), // Keep this for navigation from SplashScreen
       RouteNames.signIn: (context) => const SignInPage(),
-      RouteNames.forgetPassword: (context) => forgotPasswordPage(),
+      RouteNames.forgetPassword: (context) => ForgotPasswordPage(),
+      RouteNames.verficationPasswordCodePage:
+          (context) => VerificationPasswordCodePage(),
+      RouteNames.resetPasswordPage: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        final token = args?['token'] ?? ''; // Extract the token from arguments
+        return ResetPasswordPage(
+          token: token,
+        ); // Pass the token to ResetPasswordPage
+      },
       RouteNames.createPost: (context) => const CreatePostPage(),
       RouteNames.settings: (context) => const SettingsMainPage(),
-      RouteNames.accountPreferences: (context) => const AccountPreferencesPage(),
+      RouteNames.accountPreferences:
+          (context) => const AccountPreferencesPage(),
       RouteNames.signInSecurity: (context) => const SignInSecurityPage(),
       RouteNames.visibility: (context) => const VisibilityPage(),
       RouteNames.dataPrivacy: (context) => const DataPrivacyPage(),

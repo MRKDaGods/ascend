@@ -33,19 +33,56 @@ class AuthRepository {
     return AuthResponse.fromJson(responseData);
   }
 
-  // register({
-  //   required String firstName,
-  //   required String lastName,
-  //   required String email,
-  //   required String password,
-  // }) {}
-
   // Forget password method
   Future<Map<String, dynamic>> forgotPassword(String emailOrPhone) async {
-  final response = await apiClient.forgotPassword(emailOrPhone);
+    final response = await apiClient.forgotPassword(emailOrPhone);
 
-  // Parse the response body and return it as a Map
-  return jsonDecode(response.body);
+    // Parse the response body and return it as a Map
+    return jsonDecode(response.body);
   }
 
+  // Verify code method
+  Future<String> verifyCode({
+    required String emailOrPhone,
+    required String verificationCode,
+  }) async {
+    final response = await apiClient.post(
+      '/verify-code',
+      data: {
+        'emailOrPhone': emailOrPhone,
+        'verificationCode': verificationCode,
+      },
+    );
+
+    // Check if the response is successful
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData['token']; // Extract and return the token
+    } else {
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['error'] ?? 'Failed to verify code');
+    }
+  }
+
+  // Reset password method
+  Future<String> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    final response = await apiClient.put(
+      '/reset-password', // Replace with your actual API endpoint
+      data: {
+        'token': token, // Include the token
+        'newPassword': newPassword,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData['message']; // Return success message
+    } else {
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['error'] ?? 'Failed to reset password');
+    }
+  }
 }
