@@ -18,3 +18,16 @@ class AscendLoginLocaters:
     FORGET_PASSWORD_EMAIL = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
     NEXT_IN_FORGET_PASSWORD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Next")')
     VERFICATION_CODE_MESSAGE = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("MESSAGE")')
+
+class AscendSignupLocators:
+    JOIN_NOW = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Join Now")')
+    JOIN_NOW2 = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("or  Join Ascend")')
+    FIRSTNAME_FIELD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(0)') #5 | 1
+    LASTNAME_FIELD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(1)')#6 | 2
+    EMAIL_FIELD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")') #1 FROM JOIN | 4
+    PASSWORD_FIELD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(1)') # 3 | 6
+    CONTINUE_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Continue")') #2 #4 #7 |3 5 7
+    INVALID_EMAIL = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Please enter a valid email or phone number")') 
+    INVALID_PASSWORD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Password should be at least 3 characters")')
+    SIGN_UP = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Sign Up")')
+    EXISTING_EMAIL = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.view.View").instance(10)')
