@@ -33,6 +33,9 @@ export namespace AuthFCMTokenPayload {
   }
 }
 
+export interface AuthUserDeletedPayload {
+  user_id: number;
+}
 // =======================USER-EVENTS=======================
 
 /**

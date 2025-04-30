@@ -2,6 +2,7 @@ export enum Events {
   // =======================AUTH-EVENTS=======================
   AUTH_GET_ADMIN_RPC = "get_admin_rpc", // Admin get user RPC request
   AUTH_FCM_TOKEN_RPC = "fcm_token_rpc", // Auth FCM token RPC request
+  AUTH_USER_DELETED = "auth_user_deleted", // User deleted event
 
   // =======================USER-EVENTS=======================
   USER_CREATED = "user_created", // A new user has been created

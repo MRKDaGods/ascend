@@ -1,5 +1,7 @@
-import { GetUserUsageMessaging, GetUserUsageConnections, GetUserUsageJobApplications, UserCreatedPayload } from  "@shared/rabbitMQ";
+import { GetUserUsageMessaging, GetUserUsageConnections, GetUserUsageJobApplications, UserCreatedPayload, AuthUserDeletedPayload } from  "@shared/rabbitMQ";
 import { getUsageByUserId, insertUsage, updateUsage } from "../services/usageService";
+import { deleteSubscription, enableOwnedFeaturesCoveredBySubscription, getSubscriptionPlanLimits, getSubscriptionsByUser } from "../services/subscriptionPaymentService";
+import { stripe } from "../controllers/paymentController";
 
 export const handleGetUserMessagingUsage = async (payload : GetUserUsageMessaging.Request) : Promise<GetUserUsageMessaging.Response | null> => {
     const user_id = payload.user_id;
@@ -87,5 +89,23 @@ export const handleUserCreated = async (payload : UserCreatedPayload) : Promise<
 
     if(user_id){
         await insertUsage(user_id, new Date());
+    }
+};
+
+export const handleUserDeleted = async (payload : AuthUserDeletedPayload) : Promise<void> => {
+    const user_id = payload.user_id;
+
+    if(user_id){
+        const subscriptions = await getSubscriptionsByUser(user_id);
+
+        for(const subscription of subscriptions){
+            if(subscription){
+                await stripe.subscriptions.cancel(subscription.subscription_id);
+                const subscription_plan_limits = (await getSubscriptionPlanLimits()).get(subscription.subscription_plan);
+                await enableOwnedFeaturesCoveredBySubscription(subscription_plan_limits, user_id);
+                await deleteSubscription(subscription.subscription_id);            
+            }
+        }
+
     }
 }

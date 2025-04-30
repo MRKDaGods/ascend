@@ -34,7 +34,7 @@ const PAYMENT_BASE_URL : string = process.env.PAYMENT_BASE_URL;
 const FRONTEND_BASE_URL : string = process.env.FRONTEND_BASE_URL;
 const STRIPE_WEBHOOK_SECRET_KEY : string = process.env.STRIPE_WEBHOOK_SECRET_KEY; 
 
-const stripe = new st(STRIPE_SECRET_KEY);
+export const stripe = new st(STRIPE_SECRET_KEY);
 
 const session_tokens = new Map<string, { customer_id : string, expires_at : number, payment_type : string, return_url : string, subscription_id : string|null, user_id : number}>();
 
