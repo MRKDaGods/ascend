@@ -11,20 +11,16 @@ import {
   MenuItem,
   Typography,
   Box,
-  CircularProgress,
   Button,
   Paper,
   InputBase,
   Badge,
   useMediaQuery,
   Divider,
-  Popper,
   List,
   ListItem,
   ListItemText,
-  ListSubheader,
-  ClickAwayListener,
-  TextField // Add TextField import
+  ListSubheader
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import { Home, Work, Chat, Notifications, Search, MoreVert, History, Bookmark } from "@mui/icons-material";
@@ -104,6 +100,16 @@ const SearchListHeader = styled(ListSubheader)(({ theme }) => ({
 }));
 
 const JobsNavbar: React.FC = () => {
+  // Static user data
+  const staticUserData: UserData = {
+    name: "Demo User",
+    profilePhoto: "https://i.pravatar.cc/300",
+    coverPhoto: "https://source.unsplash.com/random/1280x400/?gradient",
+    role: "Software Engineer",
+    entity: "Ascend",
+    location: "New York, NY"
+  };
+
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -124,22 +130,19 @@ const JobsNavbar: React.FC = () => {
   useEffect(() => {
     setIsClient(true);
 
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/user");
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const data: UserData = await response.json();
-        setUserData(data);
-        setSearchParams((prev) => ({
-          ...prev,
-          location: data.location || "",
-        }));
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
+    // BACKEND INTEGRATION NOTE:
+    // Currently using static user data for development
+    // TODO: Integrate with backend API to fetch actual user data
+    // Expected response: UserData type (name, profilePhoto, etc.)
+    // Implementation should update setUserData(data) with the actual response
+    
+    // Set static user data
+    setUserData(staticUserData);
+    setSearchParams((prev) => ({
+      ...prev,
+      location: staticUserData.location || "",
+    }));
 
-    fetchUserData();
 
     const stored = localStorage.getItem("recentJobSearches");
     if (stored) {
@@ -199,7 +202,6 @@ const JobsNavbar: React.FC = () => {
 
   const handleSearch = () => {
     addSearch({ job: searchParams.title, location: searchParams.location });
-    // Change this line to route to the search page instead of root
     router.push(`/search?keyword=${encodeURIComponent(searchParams.title)}&location=${encodeURIComponent(searchParams.location)}`);
   };
 

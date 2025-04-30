@@ -29,17 +29,20 @@ const ListCard = () => {
 
   useEffect(() => {
     if (!userData) {
-      const fetchUserData = async () => {
-        try {
-          const res = await fetch("http://localhost:5000/api/user");
-          const data = await res.json();
-          setUserData(data);
-        } catch (error) {
-          console.error("Failed to fetch user data", error);
-        }
-      };
-
-      fetchUserData();
+      // BACKEND INTEGRATION NOTE:
+      // Currently using static user data for development
+      // TODO: Integrate with backend API to fetch actual user data
+      // Expected response: { id: number, name: string, email: string, ... }
+      // Implementation should call setUserData(data) with the response
+      
+      // Set static user data instead of fetching
+      setUserData({
+        id: 1,
+        name: "Demo User",
+        email: "demo@example.com",
+        // Add any other fields your app expects
+      });
+    
     }
   }, [userData, setUserData]);
 
@@ -92,7 +95,6 @@ const ListCard = () => {
         </CardContent>
       </Card>
 
-      {/* Preferences Modal (centralized & reusable) */}
       <PreferencesModal />
     </>
   );

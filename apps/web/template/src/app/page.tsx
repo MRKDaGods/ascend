@@ -35,7 +35,7 @@ function Home() {
           }}
         >
           <Box sx={{ width: { xs: "90%", md: "100%" } }}>
-            <ProfileCard />
+           {/* <ProfileCard /> */}     // Uncomment this line to show the ProfileCard 
           </Box>
           <Box sx={{ width: { xs: "90%", md: "100%" } }}>
             <ListCard />

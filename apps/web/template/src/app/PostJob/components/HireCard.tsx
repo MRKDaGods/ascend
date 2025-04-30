@@ -42,7 +42,14 @@ type Company = {
 };
 
 export default function HireCard() {
+  // BACKEND INTEGRATION NOTE:
+  // Currently using static username "there" for development
+  // TODO: Integrate with backend API to fetch actual user name
+  // Expected response: { name: string, ... }
+  // Implementation should update the 'name' state with data.name from response
+  
   const [name, setName] = useState("there");
+  
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedTitle, setSelectedTitle] = useState("");
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -53,14 +60,6 @@ export default function HireCard() {
 
   useEffect(() => {
     setHasMounted(true);
-
-    // Fetch user name
-    fetch("http://localhost:5000/api/user")
-      .then((res) => res.json())
-      .then((data) => {
-        setName(data.name || "there");
-      })
-      .catch((err) => console.error("Failed to fetch user:", err));
 
     // Fetch companies
     fetch("https://api.ascendx.tech/company/companies", {
@@ -96,8 +95,8 @@ export default function HireCard() {
       return;
     }
     setTitle(selectedTitle);
-    setCompanyName(selectedCompany.company_name); // Fixed here too
-    usepJobStore.getState().setCompanyId(selectedCompany.id); // Added this missing line
+    setCompanyName(selectedCompany.company_name); 
+    usepJobStore.getState().setCompanyId(selectedCompany.id);
     router.push("/AIpost-job");
   };
 
@@ -219,7 +218,7 @@ export default function HireCard() {
                   variant="outlined" 
                   margin="normal"
                   data-testid="hire-card-company-select"
-                  sx={roundedTextFieldStyle} // Apply rounded style here
+                  sx={roundedTextFieldStyle}
                 />
               )}
             />
@@ -248,6 +247,7 @@ export default function HireCard() {
         </Box>
       </Card>
 
+      {/* Rest of the component remains unchanged */}
       {/* Info Section */}
       <Card
         sx={{
@@ -264,12 +264,13 @@ export default function HireCard() {
           mt: 6,
         }}
       >
+        {/* Rest of the code remains unchanged */}
         <Box sx={{ flex: 2, textAlign: { xs: "center", md: "left" } }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Rated #1 in increasing quality of hire
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Post your job on the world’s largest professional network and use
+            Post your job on the world's largest professional network and use
             simple tools to prioritize the most qualified candidates so you can
             find the people you want to interview, faster.
           </Typography>
