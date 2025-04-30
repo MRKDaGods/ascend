@@ -19,7 +19,8 @@ import {
   adminDeleteUser,
   adminGetUserReports,
   adminDeleteReport,
-  reportUser
+  reportUser,
+  emailExists,
 } from "../controllers/authController";
 
 const router = Router();
@@ -45,5 +46,7 @@ router.post("/admin-create-user", authenticateToken, adminCreateUser);
 router.post("/admin-delete-user", authenticateToken, adminDeleteUser);
 router.get("/admin-get-user-reports", authenticateToken, adminGetUserReports);
 router.post("/admin-delete-user-report", authenticateToken, adminDeleteReport);
+
+router.get("/exists/:email", emailExists);
 
 export default router;

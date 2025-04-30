@@ -662,3 +662,14 @@ export const adminDeleteReport = async (
     res.status(500).json({ error });
   }
 };
+
+export const emailExists = async (req: Request, res: Response) => {
+  const { email } = req.params;
+  try {
+    const user = await findUserByEmail(email);
+    res.json({ exists: user != null });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
