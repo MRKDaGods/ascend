@@ -1,3 +1,5 @@
+//Page: renders USERPOST to display the post
+
 "use client";
 
 import { useEffect } from "react";

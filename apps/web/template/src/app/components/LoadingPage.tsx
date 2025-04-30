@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme, Typography } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 const LoadingPage = () => {
   const theme = useTheme();
+  const router = useRouter();
 
   return (
     <Box
@@ -21,15 +22,22 @@ const LoadingPage = () => {
         gap: 4,
       }}
     >
-      {/* Logo */}
-      <Image
-        src="/ourlogo.png"
-        alt="Loading logo"
-        width={160}
-        height={50}
-        priority
-        style={{ objectFit: "contain" }}
-      />
+      {/* Logo Section */}
+      <Box sx={{ display: "flex", alignItems: "center", py: 1 }}>
+        <img
+          src="/logoIcon.png"
+          alt="Ascend"
+          style={{ height: 36, borderRadius: 6 }}
+        />
+        <Box
+          onClick={() => router.push("/feed")}
+          sx={{ cursor: "pointer" }} // Add pointer cursor to indicate it's clickable
+        >
+          <Typography variant="h5" color="primary" fontWeight="bold">
+            Ascend
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Loading Bar Container */}
       <Box
