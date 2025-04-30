@@ -10,7 +10,9 @@ class ApiClient {
   // Helper method to get headers (e.g., for authentication)
   Future<Map<String, String>> _getHeaders() async {
     final token = await SecureStorageHelper.getAuthToken();
-    print('hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii//////////////////////////////////////////////////////////////////////////////////////[ApiClient] Retrieved Auth Token: $token');
+    print(
+      'hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii//////////////////////////////////////////////////////////////////////////////////////[ApiClient] Retrieved Auth Token: $token',
+    );
     return {
       if (token != null) 'Authorization': 'Bearer $token',
       'Accept': 'application/json',
@@ -56,6 +58,11 @@ class ApiClient {
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
       await SecureStorageHelper.setAuthToken(responseData['token']);
+
+      if (responseData['user_id'] == null) {
+        await SecureStorageHelper.setUserId('16');
+      } else {}
+      await SecureStorageHelper.setUserId(responseData['user_id'].toString());
       _logger.i('Login successful: ${response.body}');
     } else {
       _logger.i('Login failed: ${response.statusCode}, ${response.body}');
@@ -64,6 +71,7 @@ class ApiClient {
       );
     }
 
+    _handleResponse(response); // Ensure this is outside the if block
     return response;
   }
 

@@ -6,15 +6,16 @@ import 'package:ascend_app/features/settings/Presentation/pages/account_preferen
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
 import 'package:flutter/material.dart';
-import '../../features/home/presentation/pages/create_post_page.dart'; 
+import '../../features/home/presentation/pages/create_post_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/help_center_page.dart';
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
+import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
 import 'package:ascend_app/features/startPages/Presentation/Pages/SignIn.dart';
-import 'package:ascend_app/features/home/presentation/pages/saved_posts_page.dart'; 
+import 'package:ascend_app/features/home/presentation/pages/saved_posts_page.dart';
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -42,6 +43,7 @@ class RouteNames {
   static const String helpCenter = '/helpCenter';
   static const String privacyPolicy = '/privacyPolicy';
   static const String signOut = '/signOut';
+  static const String mainMessage = '/mainMessage';
   static const String savedPosts = '/saved_posts_page';
   // Add more routes as needed
 }
@@ -87,6 +89,8 @@ class AppRoutes {
       RouteNames.helpCenter: (context) => const HelpCenterPage(),
       RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
       RouteNames.signOut: (context) => const SignOutPage(),
+      RouteNames.mainMessage: (context) => const MainMessagingPage(),
+
       RouteNames.savedPosts: (context) => const SavedPostsPage(),
       // Add more routes as needed
     };
