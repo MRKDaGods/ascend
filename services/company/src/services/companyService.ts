@@ -1,5 +1,5 @@
-import { Services } from "@ascend/shared";
-import db from "@ascend/shared/src/config/db";
+import { Services } from "@shared/index";
+import db from "@shared/config/db";
 import { Company } from "@shared/models/company";
 import { callRPC, Events, FileDeletePayload, FilePresignedUrlPayload, FileUploadPayload, getRPCQueueName, publishEvent } from "@shared/rabbitMQ";
 
@@ -32,7 +32,7 @@ export const createCompany = async ({
         let file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
         let profile_photo_payload : FileUploadPayload.Request = {
             user_id : created_by,
-            file_buffer : profile_photo.buffer,
+            file_buffer : profile_photo.buffer.toString('base64'),
             file_name : profile_photo.file_name,
             file_size : profile_photo.file_size,
             mime_type : profile_photo.mime_type
@@ -43,7 +43,7 @@ export const createCompany = async ({
     
         let cover_photo_payload : FileUploadPayload.Request = {
             user_id : created_by,
-            file_buffer : cover_photo.buffer,
+            file_buffer : cover_photo.buffer.toString('base64'),
             file_name : cover_photo.file_name,
             file_size : cover_photo.file_size,
             mime_type : cover_photo.mime_type
@@ -57,12 +57,8 @@ export const createCompany = async ({
         coverPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, cover_photo_payload, 10000);
         cover_photo_uploaded = true;
     
-        file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-        profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : profilePhotoResponse.file_id }, 10000);
-        coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : coverPhotoResponse.file_id }, 10000);
-    
-        const result = await db.query("INSERT INTO company_service.company (company_name, description, profile_photo_url, cover_photo_url, location, industry, created_at, created_by, profile_photo_id, cover_photo_id, company_domain_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *",
-            [company_name, description, profilePhotoURLResponse.presigned_url, coverPhotoURLResponse.presigned_url , location, industry, created_at, created_by, profilePhotoResponse.file_id, coverPhotoResponse.file_id, company_domain_name]
+        const result = await db.query("INSERT INTO company_service.company (company_name, description, location, industry, created_at, created_by, profile_photo_id, cover_photo_id, company_domain_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+            [company_name, description, location, industry, created_at, created_by, profilePhotoResponse.file_id, coverPhotoResponse.file_id, company_domain_name]
         );
         return result.rows[0];
     }catch(e : any){
@@ -96,48 +92,6 @@ export const findCompaniesCreatedByUser = async (user_id: number,  limit: number
     return result.rows;
 };
   
-
-
-export const findCompaniesByKeyword = async (keywords : {[key : string] : any}, limit : number = -1, offset : number = 0) : Promise<Array<Company>> => {
-    const {description, location, industry, company_domain_name} = keywords;
-    let counter : number = 0;
-    let db_query : string = "SELECT * FROM company_service.company WHERE ";
-    let parametrs : Array<any> = [];
-
-    if(description){
-        counter += 1;
-        db_query += `description = ${description} AND `;
-        parametrs.push(description);
-    }
-
-    if(location){
-        counter += 1;
-        db_query += `location = ${location} AND `;
-        parametrs.push(location);
-    }
-
-    if(industry){
-        counter += 1;
-        db_query += `industry = ${industry} AND `;
-        parametrs.push(industry);
-    }
-
-    if(company_domain_name){
-        counter += 1;
-        db_query += `company_domain_name = ${company_domain_name} AND `;
-        parametrs.push(company_domain_name);
-    }
-
-    db_query = limit === -1 
-    ? db_query 
-    : db_query+` LIMIT ${counter+1} OFFSET ${counter+2}`;
-
-    const params = limit === -1 ? parametrs : parametrs.concat([limit, offset * limit]);
-
-    const result = await db.query(db_query, parametrs);
-    return result.rows;
-};
-
 
 export const updateCompanyProfile = async (company_id : number, user_id : number, keywords : {[key : string] : any}) : Promise<Company | null> => {
     let new_profile_photo_uploaded = false , new_cover_photo_uploaded = false;
@@ -190,7 +144,7 @@ export const updateCompanyProfile = async (company_id : number, user_id : number
             file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC); 
             let profile_photo_payload : FileUploadPayload.Request = {
                 user_id : user_id,
-                file_buffer : profile_photo.buffer,
+                file_buffer : profile_photo.buffer.toString('base64'),
                 file_name : profile_photo.file_name,
                 file_size : profile_photo.file_size,
                 mime_type : profile_photo.mime_type
@@ -200,14 +154,9 @@ export const updateCompanyProfile = async (company_id : number, user_id : number
             }
             profilePhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, profile_photo_payload, 10000);
             new_profile_photo_uploaded = true; 
-            file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-            const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : profilePhotoResponse.file_id }, 10000);
-            counter += 1;
-            db_query += `profile_photo_url = $${counter} , `;
-            parameters.push(profilePhotoURLResponse.presigned_url);
             counter += 1;
             db_query += `profile_photo_id = $${counter}, `
-            parameters.push(profilePhotoResponse.file_id)
+            parameters.push(profilePhotoResponse.file_id);
         }
     
         if(cover_photo){
@@ -220,7 +169,7 @@ export const updateCompanyProfile = async (company_id : number, user_id : number
             file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
             let cover_photo_payload : FileUploadPayload.Request = {
                 user_id : user_id,
-                file_buffer : cover_photo.buffer,
+                file_buffer : cover_photo.buffer.toString('base64'),
                 file_name : cover_photo.file_name,
                 file_size : cover_photo.file_size,
                 mime_type : cover_photo.mime_type
@@ -230,14 +179,9 @@ export const updateCompanyProfile = async (company_id : number, user_id : number
             }
             coverPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, cover_photo_payload, 10000);
             new_cover_photo_uploaded = true;
-            file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
-            const coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : coverPhotoResponse.file_id }, 10000);
-            counter += 1;
-            db_query += `cover_photo_url = $${counter} , `;
-            parameters.push(coverPhotoURLResponse.presigned_url);
             counter += 1;
             db_query += `cover_photo_id = $${counter} , `;
-            parameters.push(coverPhotoURLResponse.file_id);
+            parameters.push(coverPhotoResponse.file_id);
         }
     
         db_query = db_query.substring(0, db_query.lastIndexOf(","));

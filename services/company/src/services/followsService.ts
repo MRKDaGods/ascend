@@ -1,4 +1,4 @@
-import db from "@ascend/shared/src/config/db";
+import db from "@shared/config/db";
 import { Follows } from "@shared/models/follows";
 
 export const findFollowersOfCompany = async (company_id : number, limit : number = -1, offset : number = 0) : Promise<Array<Follows>> => {
