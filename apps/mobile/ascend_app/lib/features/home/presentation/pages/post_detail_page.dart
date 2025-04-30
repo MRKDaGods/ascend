@@ -87,14 +87,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
     // Determine the current saved status reliably
     final bool isCurrentlySaved = currentPost.isSaved; // Directly use the boolean
+    debugPrint("Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from PostDetailPage");
+
 
     SheetHelpers.showPostOptionsSheet(
       context: context,
       ownerName: post.ownerName, // Use original post data for owner info
-      // --- MODIFICATION START ---
       showSave: !isCurrentlySaved, // Show Save only if NOT currently saved
       showUnsave: isCurrentlySaved, // Show Unsave only if currently saved
-      // --- MODIFICATION END ---
       showShare: true,
       showNotInterested: true,
       showUnfollow: true, // Add logic if needed
@@ -104,6 +104,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       // --- MODIFICATION START ---
       // onSave should only handle saving
       onSave: () {
+        // --- MODIFICATION START ---
+        Navigator.pop(context); // Close sheet first
+        // --- MODIFICATION END ---
         postBloc.add(SavePost(post.id));
         debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
          ScaffoldMessenger.of(context).showSnackBar(
@@ -112,6 +115,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       },
       // Add the required onUnsave callback
       onUnsave: () {
+        // --- MODIFICATION START ---
+        Navigator.pop(context); // Close sheet first
+        // --- MODIFICATION END ---
         postBloc.add(UnsavePost(post.id));
         debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
          ScaffoldMessenger.of(context).showSnackBar(
@@ -120,6 +126,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       },
       // --- MODIFICATION END ---
       onShare: () {
+        // --- MODIFICATION START ---
+        Navigator.pop(context); // Close sheet first
+        // --- MODIFICATION END ---
         postBloc.add(SharePost(post.id));
         debugPrint("[PostDetailPage] Dispatching SharePost for ${post.id}");
         ScaffoldMessenger.of(
