@@ -1,15 +1,18 @@
 import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart';
-import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart' as post_events; // Alias PostBloc events
-import 'package:ascend_app/features/home/bloc/saved_posts_bloc/saved_posts_bloc.dart';
-import 'package:ascend_app/features/home/bloc/saved_posts_bloc/saved_posts_event.dart';
-import 'package:ascend_app/features/home/bloc/saved_posts_bloc/saved_posts_state.dart';
-import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart'; // Import SheetHelpers
+import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart'; // Alias PostBloc events needed
+import 'package:ascend_app/features/home/bloc/post_bloc/post_state.dart';
+// Remove SavedPostsBloc imports if no longer needed
+// import 'package:ascend_app/features/home/bloc/saved_posts_bloc/saved_posts_bloc.dart';
+// import 'package:ascend_app/features/home/bloc/saved_posts_bloc/saved_posts_event.dart';
+// import 'package:ascend_app/features/home/bloc/saved_posts_bloc/saved_posts_state.dart';
+import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart'; // Keep for potential future use?
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../repositories/post_repository.dart'; // Keep this import
 import '../widgets/post/post.dart' as post_widget; // Alias Post widget
-
 import '../../models/post_model.dart'; // Import PostModel
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart'; // Import CustomSliverAppBar
+import 'package:ascend_app/shared/widgets/app_scaffold.dart'; // Import AppScaffold if needed, or just Scaffold
 
 class SavedPostsPage extends StatefulWidget {
   const SavedPostsPage({super.key});
@@ -20,12 +23,15 @@ class SavedPostsPage extends StatefulWidget {
 
 class _SavedPostsPageState extends State<SavedPostsPage> {
   final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMore = false; // Track loading state locally
 
   @override
   void initState() {
     super.initState();
-    // Setup scroll listener for pagination
     _scrollController.addListener(_onScroll);
+    // Initial load is handled by PostBloc if already loaded,
+    // otherwise, consider dispatching LoadPosts if needed specifically for saved posts.
+    // For now, assume PostBloc is already populated or will be.
   }
 
   @override
@@ -36,204 +42,164 @@ class _SavedPostsPageState extends State<SavedPostsPage> {
   }
 
   void _onScroll() {
-    // Access bloc using context.read within the listener
-    final savedPostsBloc = context.read<SavedPostsBloc>();
-    // Check if near the bottom and more pages exist
+    // Access PostBloc using context.read
+    final postBloc = context.read<PostBloc>();
+    final currentState = postBloc.state;
+
     if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 300 && // Trigger slightly earlier
-        savedPostsBloc.state is SavedPostsLoaded) {
-      final currentState = savedPostsBloc.state as SavedPostsLoaded;
-      // Check if not already loading and has more pages
-      if (currentState.hasMorePages && savedPostsBloc.state is! SavedPostsLoading) {
-         debugPrint("📜 Reached end, loading more saved posts...");
-        savedPostsBloc.add(const LoadMoreSavedPosts());
-      }
+            _scrollController.position.maxScrollExtent - 300 &&
+        !_isLoadingMore && // Use local loading flag
+        currentState is PostsLoaded &&
+        currentState.hasMorePages) {
+      debugPrint("📜 [SavedPostsPage] Reached end, loading more posts...");
+      setState(() {
+        _isLoadingMore = true; // Set local loading flag
+      });
+      postBloc.add(const LoadMorePosts()); // Dispatch event to PostBloc
     }
   }
 
-  // --- MODIFICATION START ---
-  // Function to show post options using the bottom sheet
-  void _showPostOptions(BuildContext context, PostModel post) {
-     // Access SavedPostsBloc using context.read, as this method is called from the builder context
-     final savedPostsBloc = context.read<SavedPostsBloc>();
-     // Access PostBloc similarly if needed for other actions like share/report
-     final postBloc = context.read<PostBloc>();
-
-     debugPrint("[SavedPostsPage] Showing options for post: ${post.id}");
-
-     SheetHelpers.showPostOptionsSheet(
-        context: context,
-        ownerName: post.ownerName,
-        showSave: false, // Don't show "Save" on this page
-        showUnsave: true, // Show "Unsave" on this page
-        showShare: true, // Allow sharing from saved posts
-        showNotInterested: true, // Allow hiding from saved posts
-        showUnfollow: true, // Allow unfollowing from saved posts
-        showReport: true, // Allow reporting from saved posts
-        showMessage: false, // Assuming no direct message option here
-
-        onUnsave: () {
-           debugPrint("[SavedPostsPage] Unsave selected for post ${post.id}");
-           // Dispatch event to SavedPostsBloc to handle unsaving
-           savedPostsBloc.add(UnsavePostFromSaved(post.id));
-           ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
-           );
-        },
-        onShare: () {
-           debugPrint("[SavedPostsPage] Share selected for post ${post.id}");
-           postBloc.add(post_events.SharePost(post.id));
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sharing post...')));
-        },
-        onNotInterested: () {
-           debugPrint("[SavedPostsPage] Not Interested selected for post ${post.id}");
-           postBloc.add(post_events.HidePost(post.id, "Not interested"));
-           // Also remove from saved list immediately
-           savedPostsBloc.add(UnsavePostFromSaved(post.id));
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hiding post...')));
-        },
-        onUnfollow: () {
-           debugPrint("[SavedPostsPage] Unfollow selected for user ${post.ownerName}");
-           // Add unfollow logic (likely involves a different BLoC)
-           // Example: context.read<FollowBloc>().add(UnfollowUser(post.userId));
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unfollow ${post.ownerName} (not implemented)')));
-        },
-        onReport: () {
-           debugPrint("[SavedPostsPage] Report selected for post ${post.id}");
-           postBloc.add(post_events.ReportPost(post.id, "Reason from dialog"));
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reporting post...')));
-        },
-     );
-  }
-  // --- MODIFICATION END ---
-
   @override
   Widget build(BuildContext context) {
-    // Provide the bloc instance using BlocProvider
-    return BlocProvider<SavedPostsBloc>(
-      create: (context) {
-        // Access dependencies safely within create using context.read
-        final postRepository = context.read<PostRepository>();
-        final postBloc = context.read<PostBloc>();
-        // Create and return the bloc, and load initial data
-        return SavedPostsBloc(
-          postRepository: postRepository,
-          postBloc: postBloc,
-        )..add(const LoadSavedPosts()); // Dispatch initial event here
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Saved Posts'),
-          elevation: 1, // Simple app bar
-        ),
-        // Use Builder to get a context below the BlocProvider
-        body: Builder(
-          builder: (context) {
-            // Now this context has SavedPostsBloc available
-            return BlocConsumer<SavedPostsBloc, SavedPostsState>(
-              listener: (context, state) {
-                if (state is SavedPostsError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: ${state.message}')),
-                    );
-                }
+    // No need for BlocProvider here if PostBloc is provided higher up the tree
+    return Scaffold(
+      // Use Scaffold directly or AppScaffold if it provides necessary structure
+      appBar: AppBar(
+        title: const Text('Saved Posts'),
+        elevation: 1,
+      ),
+      body: BlocConsumer<PostBloc, PostState>(
+        listener: (context, state) {
+          debugPrint('👂 [SavedPostsPage] Listener received state: ${state.runtimeType}');
+          if (state is PostsLoaded) {
+             // Reset local loading flag when loading completes
+             if (_isLoadingMore) {
+               setState(() {
+                 _isLoadingMore = false;
+               });
+             }
+             debugPrint('✅ [SavedPostsPage] Loaded state received: ${state.posts.length} total posts, HasMore: ${state.hasMorePages}');
+          } else if (state is PostsError) {
+            // Reset local loading flag on error
+            if (_isLoadingMore) {
+               setState(() {
+                 _isLoadingMore = false;
+               });
+             }
+            debugPrint('❌ [SavedPostsPage] Error state received: ${state.message}');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${state.message}')),
+            );
+          } else if (state is PostsLoading && !_isLoadingMore) {
+             // This might indicate a refresh loading, not pagination
+             debugPrint('🔄 [SavedPostsPage] Loading state (refresh?) received.');
+          }
+        },
+        builder: (context, state) {
+          debugPrint('🏗️ [SavedPostsPage] Builder rebuilding with state: ${state.runtimeType}');
+
+          if (state is PostsInitial || (state is PostsLoading && !_isLoadingMore)) {
+            // Show loading indicator for initial load or refresh
+            debugPrint('⏳ [SavedPostsPage] Showing Initial/Refresh Loading UI');
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is PostsError && state is! PostsLoaded) {
+             // Show error only if there are no posts loaded previously
+             debugPrint('📊 [SavedPostsPage] Builder showing Error state UI');
+             return Center(
+               child: Padding(
+                 padding: const EdgeInsets.all(16.0),
+                 child: Text('Failed to load posts.\n${state.message}'),
+               ),
+             );
+          }
+
+          // Handle PostsLoaded state (including when loading more)
+          if (state is PostsLoaded) {
+            // Filter posts to show only saved ones
+            final savedPosts = state.posts.where((post) => post.isSaved).toList();
+            final hasMorePages = state.hasMorePages; // Get pagination status from PostBloc state
+
+            debugPrint('📊 [SavedPostsPage] Builder using Loaded state: ${savedPosts.length} saved posts found, HasMore: $hasMorePages');
+
+            if (savedPosts.isEmpty && !_isLoadingMore) {
+              debugPrint('ℹ️ [SavedPostsPage] Showing Empty state UI');
+              return RefreshIndicator( // Allow refresh even when empty
+                 onRefresh: () async {
+                   debugPrint('🔄 [SavedPostsPage] Refresh triggered. Adding LoadPosts.');
+                   context.read<PostBloc>().add(const LoadPosts());
+                   await context.read<PostBloc>().stream.firstWhere((s) => s is! PostsLoading);
+                   debugPrint('🏁 [SavedPostsPage] Refresh completed.');
+                 },
+                 child: LayoutBuilder( // Ensure RefreshIndicator works with SingleChildScrollView
+                   builder: (context, constraints) {
+                     return SingleChildScrollView(
+                       physics: const AlwaysScrollableScrollPhysics(),
+                       child: ConstrainedBox(
+                         constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                         child: const Center(child: Text('You haven\'t saved any posts yet.')),
+                       ),
+                     );
+                   }
+                 ),
+              );
+            }
+
+            // Build the list view
+            debugPrint('🧱 [SavedPostsPage] Building RefreshIndicator and CustomScrollView...');
+            return RefreshIndicator(
+              onRefresh: () async {
+                debugPrint('🔄 [SavedPostsPage] Refresh triggered. Adding LoadPosts.');
+                context.read<PostBloc>().add(const LoadPosts());
+                // Wait for the state to settle after refresh
+                await context.read<PostBloc>().stream.firstWhere((s) => s is! PostsLoading);
+                debugPrint('🏁 [SavedPostsPage] Refresh completed.');
               },
-              builder: (context, state) {
-                // ... (Initial Loading, Error, Empty states remain the same) ...
-                if (state is SavedPostsInitial) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state is SavedPostsLoading && state.posts.isEmpty) {
-                   return const Center(child: CircularProgressIndicator());
-                }
+              child: CustomScrollView( // Use CustomScrollView like in home.dart
+                controller: _scrollController,
+                slivers: [
+                  // Add other slivers if needed (like a custom app bar)
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        // Loading indicator at the bottom
+                        if (index >= savedPosts.length) {
+                          // Show indicator if loading more OR if there are more pages potentially available
+                          if (_isLoadingMore || hasMorePages) {
+                            debugPrint('🔄 [SavedPostsPage] Displaying loading indicator at bottom.');
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          } else {
+                            debugPrint('🛑 [SavedPostsPage] Reached end, no more pages or not loading.');
+                            return const SizedBox.shrink(); // No more pages and not loading
+                          }
+                        }
 
-                List<PostModel> posts = [];
-                bool isLoadingMore = false;
-                bool hasMore = false;
-
-                if (state is SavedPostsLoaded) {
-                   posts = state.posts;
-                   hasMore = state.hasMorePages;
-                } else if (state is SavedPostsLoading) {
-                   posts = state.posts;
-                   isLoadingMore = true;
-                   hasMore = true;
-                }
-
-                if (state is SavedPostsError && posts.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text('Failed to load saved posts.\n${state.message}'),
+                        // Saved Post Item
+                        final post = savedPosts[index];
+                        // Use the standard Post widget. It will handle its own options menu.
+                        return Column(
+                          children: [
+                            post_widget.Post(postId: post.id),
+                            const Divider(height: 1, thickness: 1),
+                          ],
+                        );
+                      },
+                      // Adjust childCount based on whether loading indicator might be shown
+                      childCount: savedPosts.length + (_isLoadingMore || hasMorePages ? 1 : 0),
                     ),
-                  );
-                }
-
-                if (posts.isEmpty && !isLoadingMore) {
-                  if (state is! SavedPostsError) {
-                     return const Center(child: Text('You haven\'t saved any posts yet.'));
-                  } else {
-                     return const SizedBox.shrink();
-                  }
-                }
-
-                // Loaded State (or Loading More State)
-                return RefreshIndicator(
-                   onRefresh: () async {
-                     context.read<SavedPostsBloc>().add(const LoadSavedPosts());
-                     await context.read<SavedPostsBloc>().stream.firstWhere((s) => s is SavedPostsLoaded || s is SavedPostsError);
-                   },
-                   child: ListView.builder(
-                    controller: _scrollController,
-                    itemCount: posts.length + (hasMore ? 1 : 0), // Add 1 for loading indicator
-                    itemBuilder: (context, index) {
-                      // Loading indicator at the bottom
-                      if (index >= posts.length) {
-                        // ... (Loading indicator logic remains the same) ...
-                        return (isLoadingMore || hasMore)
-                            ? const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 20.0),
-                                child: Center(child: CircularProgressIndicator()),
-                              )
-                            : const SizedBox.shrink();
-                      }
-
-                      // Post Item
-                      final post = posts[index];
-                      // --- MODIFICATION START ---
-                      // Wrap Post in a Column and add an options button
-                      return Column(
-                        children: [
-                          Stack( // Use Stack for positioning the button
-                            children: [
-                              // Provide the specific post ID to the Post widget
-                              post_widget.Post(postId: post.id),
-                              // Position the options button at the top right
-                              Positioned(
-                                top: 8, // Adjust as needed
-                                right: 8, // Adjust as needed
-                                child: IconButton(
-                                  icon: const Icon(Icons.more_vert),
-                                  tooltip: 'More options',
-                                  onPressed: () {
-                                    // Call the method to show the bottom sheet
-                                    _showPostOptions(context, post);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 1, thickness: 1), // Keep the divider
-                        ],
-                      );
-                      // --- MODIFICATION END ---
-                    },
                   ),
-                );
-              },
+                ],
+              ),
             );
           }
-        ),
+
+          // Fallback for unexpected states
+          return const Center(child: Text('An unexpected error occurred.'));
+        },
       ),
     );
   }
