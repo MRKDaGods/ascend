@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { generateToken, verifyToken } from "@shared/utils/jwt";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
-import { sendEmail } from "../services/emailService";
+import { checkProxyEmailExists, sendEmail } from "../services/emailService";
 import { verifyGoogleToken } from "../services/googleAuthService";
 import {
   createUser,
@@ -666,6 +666,15 @@ export const adminDeleteReport = async (
 export const emailExists = async (req: Request, res: Response) => {
   const { email } = req.params;
   try {
+    // email MUST exist in our database
+    if (!await checkProxyEmailExists(email)) {
+      return res
+        .status(400)
+        .json({
+          error: "Please create an email first at www.ascendx.tech/email",
+        });
+    }
+
     const user = await findUserByEmail(email);
     res.json({ exists: user != null });
   } catch (error) {
