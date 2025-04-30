@@ -35,7 +35,7 @@ interface FetchedComment {
   replies: any[];
 }
 
-// Utility to detect and link URLs
+// Detect and convert links in content
 const renderTextWithLinks = (text: string) => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(urlRegex);
@@ -55,6 +55,26 @@ const renderTextWithLinks = (text: string) => {
     )
   );
 };
+
+// Arrow styling utility
+const arrowStyle = (side: "left" | "right") => ({
+  position: "absolute",
+  top: "50%",
+  [side]: 16,
+  transform: "translateY(-50%)",
+  bgcolor: "rgba(0,0,0,0.5)",
+  color: "white",
+  width: 32,
+  height: 32,
+  borderRadius: "50%",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  cursor: "pointer",
+  userSelect: "none",
+  fontWeight: "bold",
+  zIndex: 5,
+});
 
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
@@ -101,120 +121,86 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         action={<SaveandLink post={post} />}
       />
 
-      {/* Post Content */}
+      {/* Text Content */}
       <CardContent sx={{ pt: 0 }}>
         <Typography variant="body1" sx={{ fontSize: "1rem" }}>
           {renderTextWithLinks(post.content)}
         </Typography>
       </CardContent>
 
-      {/* Media Carousel */}
-      {post.media &&
-  post.media.length > 0 &&
-  post.media[currentMediaIndex] && (
-    <Box sx={{ position: "relative", mt: 2 }}>
-      {post.media[currentMediaIndex].type === "video" ? (
-        <video
-          src={post.media[currentMediaIndex].url}
-          controls
-          style={{
-            width: "100%",
-            objectFit: "cover",
-            borderRadius: 10,
-            maxHeight: "500px",
-          }}
-        />
-      ) : (
-        <img
-          src={post.media[currentMediaIndex].url}
-          alt={`Post media ${currentMediaIndex}`}
-          style={{
-            width: "100%",
-            objectFit: "cover",
-            borderRadius: 10,
-            maxHeight: "500px",
-          }}
-        />
-      )}
-
-      {/* Arrows */}
-      {post.media.length > 1 && (
-        <>
-          {currentMediaIndex > 0 && (
-            <Box
-              onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: 16,
-                transform: "translateY(-50%)",
-                bgcolor: "rgba(0,0,0,0.5)",
-                color: "white",
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                cursor: "pointer",
-                userSelect: "none",
-                fontWeight: "bold",
-                zIndex: 5,
+      {/* Media Section */}
+      {post.media && post.media.length > 0 && !post.file && post.media[currentMediaIndex] && (        <Box sx={{ position: "relative", mt: 2 }}>
+          {post.media[currentMediaIndex].type === "video" ? (
+            <video
+              src={post.media[currentMediaIndex].url}
+              controls
+              style={{
+                width: "100%",
+                objectFit: "cover",
+                borderRadius: 10,
+                maxHeight: "500px",
               }}
-            >
-              {"<"}
-            </Box>
+            />
+          ) : (
+            <img
+              src={post.media[currentMediaIndex].url}
+              alt={`Post media ${currentMediaIndex + 1}`}
+              style={{
+                width: "100%",
+                objectFit: "cover",
+                borderRadius: 10,
+                maxHeight: "500px",
+              }}
+            />
           )}
 
-          {currentMediaIndex < post.media.length - 1 && (
-            <Box
-              onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                right: 16,
-                transform: "translateY(-50%)",
-                bgcolor: "rgba(0,0,0,0.5)",
-                color: "white",
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                cursor: "pointer",
-                userSelect: "none",
-                fontWeight: "bold",
-                zIndex: 5,
-              }}
-            >
-              {">"}
-            </Box>
-          )}
+          {/* Arrows */}
+          {post.media.length > 1 && (
+            <>
+              {currentMediaIndex > 0 && (
+                <Box
+                  onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
+                  sx={arrowStyle("left")}
+                  role="button"
+                  aria-label="Previous media"
+                >
+                  {"<"}
+                </Box>
+              )}
+              {currentMediaIndex < post.media.length - 1 && (
+                <Box
+                  onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
+                  sx={arrowStyle("right")}
+                  role="button"
+                  aria-label="Next media"
+                >
+                  {">"}
+                </Box>
+              )}
 
-          {/* Counter */}
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: 8,
-              left: "50%",
-              transform: "translateX(-50%)",
-              bgcolor: "rgba(0,0,0,0.6)",
-              color: "white",
-              px: 1.5,
-              py: 0.5,
-              borderRadius: "16px",
-              fontSize: "0.75rem",
-              fontWeight: "bold",
-              zIndex: 5,
-            }}
-          >
-            {`${currentMediaIndex + 1}/${post.media.length}`}
-          </Box>
-        </>
+              {/* Media Counter */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 8,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  bgcolor: "rgba(0,0,0,0.6)",
+                  color: "white",
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: "16px",
+                  fontSize: "0.75rem",
+                  fontWeight: "bold",
+                  zIndex: 5,
+                }}
+              >
+                {`${currentMediaIndex + 1}/${post.media.length}`}
+              </Box>
+            </>
+          )}
+        </Box>
       )}
-    </Box>
-)}
 
       {/* PDF Document Preview */}
       {post.file && post.fileTitle && (
@@ -247,7 +233,7 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         </Box>
       )}
 
-      {/* Likes, Comments, Reposts */}
+      {/* Engagement Summary */}
       <Box sx={{ px: 2, py: 1, color: theme.palette.text.secondary, fontSize: "0.875rem" }}>
         <Typography variant="body2">
           👍 {post.likes} •{" "}
