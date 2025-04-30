@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
 import 'package:ascend_app/features/UserPage/user_page.dart'; // Import UserProfilePage
 
 class PostHeader extends StatelessWidget {
@@ -11,7 +10,7 @@ class PostHeader extends StatelessWidget {
   final int followers;
   final String userId; // Add userId field
   final VoidCallback? onRemove;
-  final VoidCallback? onOptionsPressed;
+  final VoidCallback? onOptionsPressed; // This callback is key
   final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
   final VoidCallback? onShowFeedbackOptions; // New callback to show feedback options
   final Function(String reason)? onHidePost; // Add this
@@ -31,39 +30,6 @@ class PostHeader extends StatelessWidget {
     this.onShowFeedbackOptions,
     this.onHidePost,
   });
-
-  void _showOptionsBottomSheet(BuildContext context) {
-    print("Showing options sheet for: $ownerName");
-    
-    SheetHelpers.showPostOptionsSheet(
-      context: context,
-      ownerName: ownerName,
-      onSave: () {
-        print("Post saved");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post saved')),
-        );
-      },
-      onShare: () {
-        print("Post shared");
-      },
-      onNotInterested: () {
-        print("Not interested selected");
-        if (onHidePost != null) {
-          onHidePost!("Not interested");
-        }
-      },
-      onUnfollow: () {
-        print("Unfollowing: $ownerName");
-      },
-      onReport: () {
-        print("Report selected");
-        if (onFeedbackSubmitted != null) {
-          onFeedbackSubmitted!("Reported");
-        }
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,11 +95,12 @@ class PostHeader extends StatelessWidget {
           icon: const Icon(Icons.more_horiz),
           splashRadius: 24,
           onPressed: () {
-            print("Options button pressed");
+            print("Options button pressed in PostHeader");
+            // Directly call the provided callback
             if (onOptionsPressed != null) {
               onOptionsPressed!();
             } else {
-              _showOptionsBottomSheet(context);
+              print("Warning: onOptionsPressed callback is null in PostHeader");
             }
           },
         ),
