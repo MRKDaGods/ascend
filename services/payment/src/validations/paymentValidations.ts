@@ -24,7 +24,7 @@ export const subscriptionValidation : ValidationChain[] = [
 ];
 
 export const subscriptionCancellationValidation : ValidationChain[] = [
-    body("subscription_id").exists().withMessage("'subscription_id' is required")
+    param("subscription_id").exists().withMessage("'subscription_id' is required")
     .notEmpty().withMessage("'subscription_id' can't be empty")
 ]
 
