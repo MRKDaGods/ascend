@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useState} from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,7 @@ import {
   ListItemText,
   ListItemIcon,
   Typography,
+  Popover
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import {
@@ -41,6 +42,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SearchResults from "./SearchResults";
 import { api, refreshAuthState } from "@/api";
+import BusinessMenu from "./BusinessMenu"; // ✅ Import BusinessMenu
 
 // 🔍 Glassy search bar
 const SearchBar = styled("div")(({ theme }) => ({
@@ -98,6 +100,17 @@ const Navbar: React.FC = () => {
   const fullName = userData
     ? `${userData.first_name} ${userData.last_name}`
     : "User"; // Fallback to "User"
+
+  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(null);
+          const businessMenuOpen = Boolean(businessAnchorEl);
+          
+          const handleBusinessClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+            setBusinessAnchorEl(event.currentTarget);
+          };
+
+          const handleBusinessClose = () => {
+            setBusinessAnchorEl(null);
+          };
 
   const handleLogout = () => {
     api.auth
@@ -313,7 +326,7 @@ const Navbar: React.FC = () => {
             </MenuItem>
           </Menu>
 
-          {/* Business / Premium */}
+          {/* Business Button */}
           <Button
             sx={{
               color: muiTheme.palette.text.primary,
@@ -321,10 +334,22 @@ const Navbar: React.FC = () => {
               fontWeight: 500,
             }}
             endIcon={<ExpandMore />}
+            onClick={handleBusinessClick}
           >
             For Business
           </Button>
 
+          {/* Business Popover */}
+          <Popover
+            open={businessMenuOpen}
+            anchorEl={businessAnchorEl}
+            onClose={handleBusinessClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            PaperProps={{ sx: { width: 700, mt: 1 } }}
+          >
+            <BusinessMenu />
+          </Popover>
           <Button
             variant="contained"
             sx={{
