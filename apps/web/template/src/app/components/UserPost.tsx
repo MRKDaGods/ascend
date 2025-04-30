@@ -108,7 +108,7 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
       >
         {/* Header */}
         <CardHeader
-          avatar={<Avatar src={profilePicture}>{fullName.charAt(0)}</Avatar>}
+          avatar={<Avatar src={post.profilePic} />}
           title={<Typography fontWeight="bold">{fullName}</Typography>}
           subheader={
             <Typography color="text.secondary" fontSize="0.85rem">
