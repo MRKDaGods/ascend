@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
   InputAdornment,
+  Alert,
 } from "@mui/material";
 import { api } from "@/api";
 
@@ -21,38 +22,76 @@ export default function LoginBox() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validateEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const handleResendConfirmation = async () => {
+    if (!email || !validateEmail(email)) {
+      setError("Please enter a valid email address to resend confirmation.");
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      await api.auth.resendConfirmationEmail(email);
+      setResendSuccess(true);
+      setNeedsConfirmation(false);
+      setError("");
+    } catch (error) {
+      console.error("Error resending confirmation email:", error);
+      setError("Failed to resend confirmation email. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNeedsConfirmation(false);
+    setResendSuccess(false);
 
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
       return;
     }
 
-    if (password.length < 3) { // Adjusted to 3 for demo purposes, change to 8 for production
+    if (password.length < 3) {
+      // Adjusted to 3 for demo purposes, change to 8 for production
       setError("Password must be at least 3 characters long.");
       return;
     }
 
-    // ++++
     // Call the API to sign in
-    api.auth.login(email, password)
-      .then((response: { token: string; user_id: string }) => {
+    api.auth
+      .login(email, password)
+      .then((response: { token: string; user_id: number }) => {
         console.log("Login successful:", response);
-        localStorage.setItem("access_token", response.token); //Habiba
-        alert("Logged in successfully! ID: " + response.user_id + "\nToken: " + response.token);
+        localStorage.setItem("access_token", response.token);
         router.push("/feed");
-      }).catch((error: any) => {
+      })
+      .catch((error: any) => {
         console.error("Login error:", error);
-        setError("An error occurred during login. Please try again.");
+
+        // Check if the error is a 403 Forbidden (email not confirmed)
+        if (
+          error &&
+          (error.includes("403") ||
+            error.toLowerCase().includes("confirm") ||
+            error.toLowerCase().includes("verification"))
+        ) {
+          setNeedsConfirmation(true);
+        } else {
+          setError("An error occurred during login. Please try again.");
+        }
       });
   };
 
@@ -74,11 +113,70 @@ export default function LoginBox() {
           textAlign: "center",
         }}
       >
-        <Typography variant="h5" fontWeight="bold" mb={2} sx={{ textAlign: "left", color: "text.primary" }} id="login-title">
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          mb={2}
+          sx={{ textAlign: "left", color: "text.primary" }}
+          id="login-title"
+        >
           Sign in
         </Typography>
 
-        {error && <Typography color="error" fontSize={14} mb={2}>{error}</Typography>}
+        {error && (
+          <Typography color="error" fontSize={14} mb={2}>
+            {error}
+          </Typography>
+        )}
+
+        {needsConfirmation && (
+          <Alert
+            severity="warning"
+            sx={{
+              mb: 2,
+              "& .MuiAlert-message": {
+                width: "100%",
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <Typography fontSize={14} align="center" sx={{ mb: 1 }}>
+                Your email is not confirmed yet.
+                <br />
+                Please check your inbox or:
+              </Typography>
+              <Button
+                color="primary"
+                onClick={handleResendConfirmation}
+                disabled={isResending}
+                variant="outlined"
+                size="small"
+                sx={{
+                  textTransform: "none",
+                  fontWeight: "medium",
+                  minWidth: "200px",
+                }}
+              >
+                {isResending ? "Sending..." : "Resend confirmation email"}
+              </Button>
+            </Box>
+          </Alert>
+        )}
+
+        {resendSuccess && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            <Typography fontSize={14} align="center">
+              Confirmation email sent successfully! Please check your inbox.
+            </Typography>
+          </Alert>
+        )}
 
         {/* Google Sign-in Button */}
         <Button
@@ -96,7 +194,13 @@ export default function LoginBox() {
             alignItems: "center",
           }}
         >
-          <img src="/google.jpg" alt="Google" width={20} height={20} style={{ marginRight: 8 }} />
+          <img
+            src="/google.jpg"
+            alt="Google"
+            width={20}
+            height={20}
+            style={{ marginRight: 8 }}
+          />
           Continue as User
         </Button>
 
@@ -171,7 +275,7 @@ export default function LoginBox() {
               mt: 1,
               display: "flex",
               justifyContent: "flex-start",
-              textTransform: "none"
+              textTransform: "none",
             }}
             onClick={() => router.push("/authen/ForgetPassword")}
             id="forgot-password-link"
@@ -179,12 +283,16 @@ export default function LoginBox() {
             Forgot password?
           </Button>
 
-
           {/* Keep Me Logged In (Now Below Forgot Password) */}
           <FormControlLabel
             control={<Checkbox id="keep-logged-in-checkbox" />}
             label="Keep me logged in"
-            sx={{ display: "block", textAlign: "left", mt: 1, color: "text.primary" }}
+            sx={{
+              display: "block",
+              textAlign: "left",
+              mt: 1,
+              color: "text.primary",
+            }}
           />
 
           {/* Sign In Button */}
@@ -219,7 +327,14 @@ export default function LoginBox() {
         }}
       >
         New to Ascend?{" "}
-        <Typography component="a" href="#" color="primary" sx={{ fontWeight: "bold" }} onClick={() => router.push("/authen/NewToLinkedin")} id="join-now-link">
+        <Typography
+          component="a"
+          href="#"
+          color="primary"
+          sx={{ fontWeight: "bold" }}
+          onClick={() => router.push("/authen/NewToLinkedin")}
+          id="join-now-link"
+        >
           Join now
         </Typography>
       </Typography>
