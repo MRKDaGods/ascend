@@ -209,13 +209,14 @@ class MessagingRepoistoryImpl implements MessagingRepository {
   Future<bool> connectWebSocket() async {
     try {
       // Get WebSocket URL from API client
-      String url = await _apiClient.getSocketServerUrl();
       final authToken = await SecureStorageHelper.getAuthToken();
 
       if (authToken == null) {
         debugPrint('WebSocket connection error: Auth token is null');
         return false;
       }
+
+      final url = 'https://ascendx.germanywestcentral.cloudapp.azure.com/';
 
       // Debug the URL before connecting
       debugPrint('Connecting to WebSocket URL: $url');

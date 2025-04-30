@@ -314,6 +314,12 @@ class _ChatPageState extends State<ChatPage> {
             }
           },
           builder: (context, state) {
+            if (state is MessagesLoaded &&
+                state.conversationId == widget.conversationId) {
+              _messages = state.messages;
+              final sortedMessages = List<MessageModel>.from(_messages);
+              sortedMessages.sort((a, b) => b.sentAt.compareTo(b.sentAt));
+            }
             return Column(
               children: [
                 // Messages list
@@ -432,7 +438,7 @@ class _ChatPageState extends State<ChatPage> {
               senderAvatar:
                   message.senderId == widget.otherUserId
                       ? widget.conversationAvatar
-                      : '',
+                      : 'assets/EmptyUser.png',
               sentOrReceived:
                   message.senderId == widget.myUserId ? true : false,
               sentAt: message.sentAt,

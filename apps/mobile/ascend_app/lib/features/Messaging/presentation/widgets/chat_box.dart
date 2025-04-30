@@ -96,7 +96,17 @@ class _ChatBoxState extends State<ChatBox> {
       children: [
         Row(
           children: [
-            CircleAvatar(radius: 20, backgroundImage: NetworkImage(avatarUrl)),
+            CircleAvatar(
+              radius: 20,
+              backgroundImage:
+                  !_shouldShowFallbackIcon()
+                      ? NetworkImage(widget.senderAvatar)
+                      : null, // Use NetworkImage for profile image
+              child:
+                  _shouldShowFallbackIcon()
+                      ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                      : null,
+            ),
             const SizedBox(width: 8),
             Text(
               name,
@@ -110,6 +120,13 @@ class _ChatBoxState extends State<ChatBox> {
         ),
       ],
     );
+  }
+
+  bool _shouldShowFallbackIcon() {
+    final imageUrl = widget.senderAvatar;
+    return imageUrl == null ||
+        imageUrl.isEmpty ||
+        imageUrl == 'assets/EmptyUser.png';
   }
 
   Widget _buildFileTypeIcon(String fileType) {

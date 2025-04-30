@@ -127,21 +127,7 @@ class WebSocketService {
       await disconnect();
 
       _connectionStatusController.add(ConnectionState.connecting);
-      /*
-      if (url.startsWith('https://')) {
-        url = url.replaceFirst('https://', 'http://');
-      }
 
-      debugPrint('Final Socket.IO URL: $url');
-    
-      // Check TLS info first
-      final uri = Uri.parse(url);
-      if (uri.scheme == 'https') {
-        await checkServerTlsInfo(uri.host, uri.port ?? 443);
-      }
-      */
-
-      url = 'https://ascendx.germanywestcentral.cloudapp.azure.com/';
       // Setup socket client with appropriate options
       _socketClient = IO.io(
         url,
@@ -449,7 +435,8 @@ class WebSocketService {
           // Get server URL and fresh auth token
           final authToken = await SecureStorageHelper.getAuthToken();
           final apiClient = ApiClient();
-          final serverUrl = await apiClient.getSocketServerUrl();
+          final serverUrl =
+              'https://ascendx.germanywestcentral.cloudapp.azure.com/';
 
           if (authToken != null && serverUrl.isNotEmpty) {
             // Try to reconnect with the fresh token

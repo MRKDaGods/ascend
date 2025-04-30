@@ -222,7 +222,11 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
               conversationId: conversation.conversationId,
               otherUserId: conversation.userId,
               otherUserName: conversation.otherUserName,
-              otherUserProfileImageUrl: conversation.otherUserProfileImageUrl,
+              otherUserProfileImageUrl:
+                  conversation.otherUserProfileImageUrl != null &&
+                          conversation.otherUserProfileImageUrl.isNotEmpty
+                      ? conversation.otherUserProfileImageUrl
+                      : 'assets/EmptyUser.png',
               latestMessage: conversation.latestMessage ?? 'No messages yet',
               // Use your date formatter utility here
               latestTimestamp: DateFormatter.formatMessageDate(

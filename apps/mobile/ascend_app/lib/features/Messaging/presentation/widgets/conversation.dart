@@ -85,10 +85,11 @@ class _ConversationState extends State<Conversation>
   }
 
   void _navigateToChat() async {
+    // Get and store the bloc reference before navigation
+    final messagingBloc = context.read<MessagingBloc>();
+
     // Set active conversation in bloc
-    context.read<MessagingBloc>().add(
-      SetActiveConversation(widget.conversationId),
-    );
+    messagingBloc.add(SetActiveConversation(widget.conversationId));
 
     if (widget.unseenCount > 0) {
       // Mark messages as read when opening the conversation
@@ -106,17 +107,24 @@ class _ConversationState extends State<Conversation>
         context,
         MaterialPageRoute(
           builder:
-              (context) => ChatPage(
-                conversationId: widget.conversationId,
-                converstaionName: widget.otherUserName,
-                conversationAvatar: widget.otherUserProfileImageUrl,
-                isOnline: widget.isOnline,
-                myUserId: myUserId!,
+              (context) => BlocProvider.value(
+                // Pass the existing bloc instance to the new route
+                value: messagingBloc,
+                child: ChatPage(
+                  conversationId: widget.conversationId,
+                  converstaionName: widget.otherUserName,
+                  conversationAvatar: widget.otherUserProfileImageUrl,
+                  isOnline: widget.isOnline,
+                  myUserId: myUserId!,
+                  otherUserId: widget.otherUserId,
+                ),
               ),
         ),
       ).then((_) {
         // When returning from chat, refresh conversations
-        context.read<MessagingBloc>().add(LoadConversations());
+        if (mounted) {
+          messagingBloc.add(LoadConversations());
+        }
       });
     }
   }
@@ -242,7 +250,16 @@ class _ConversationState extends State<Conversation>
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage(widget.otherUserProfileImageUrl),
+          backgroundColor:
+              Colors.grey[200], // Add background color for empty states
+          backgroundImage:
+              !_shouldShowFallbackIcon()
+                  ? NetworkImage(widget.otherUserProfileImageUrl)
+                  : null, // Use NetworkImage for profile image
+          child:
+              _shouldShowFallbackIcon()
+                  ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                  : null,
         ),
         if (widget.isOnline)
           Positioned(
@@ -260,6 +277,13 @@ class _ConversationState extends State<Conversation>
           ),
       ],
     );
+  }
+
+  bool _shouldShowFallbackIcon() {
+    final imageUrl = widget.otherUserProfileImageUrl;
+    return imageUrl == null ||
+        imageUrl.isEmpty ||
+        imageUrl == 'assets/EmptyUser.png';
   }
 
   void _showMoreOptions(BuildContext context) {
