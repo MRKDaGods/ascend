@@ -52,7 +52,7 @@ export const createCompanyProfile = async (req : AuthenticatedRequest, res : Res
                 error : null
             });
         }else{
-            return res.status(400).json({error : "company with the same name or domain name already exist"});
+            return res.status(400).json({error : "company with the same name already exist"});
         }
     }catch(e : any){
         console.log(`Internal error : ${e}`)
