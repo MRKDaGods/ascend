@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart'; // Import PostEvent
 import 'package:ascend_app/features/home/presentation/utils/full_screen_image_viewer.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
@@ -33,6 +34,33 @@ class _PostDetailPageState extends State<PostDetailPage> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   final GlobalKey _reactionButtonKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Dispatch LoadComments when the page initializes
+    // Use addPostFrameCallback to ensure context is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) { // Check if the widget is still in the tree
+        // Check if comments are already loaded or partially loaded to avoid redundant calls (optional)
+        final currentState = context.read<PostBloc>().state;
+        bool shouldLoad = true;
+        if (currentState is PostsLoaded) {
+          final post = currentState.getPostById(widget.postId);
+          // Example: Only load if comments list is empty
+          if (post != null && post.comments.isNotEmpty) {
+             debugPrint('🔄 [PostDetailPage] Comments already present for post ${widget.postId}. Skipping initial LoadComments.');
+             shouldLoad = false;
+          }
+        }
+
+        if (shouldLoad) {
+           debugPrint('🔄 [PostDetailPage] Dispatching initial LoadComments for post ${widget.postId}');
+           context.read<PostBloc>().add(LoadComments(widget.postId));
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -337,8 +365,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 likesCount: post.likesCount,
                                 sharesCount: post.sharedCount,
                                 commentsCount: post.commentsCount,
-                                reactionIcon: _getReactionIcon(post),
-                                reactionColor: _getReactionColor(post),
                                 postId: post.id,
                               ),
                             ),
@@ -354,11 +380,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   ReactionButton(
                                     key: _reactionButtonKey,
                                     manager: ReactionManager(
-                                      isLiked: post.isLiked,
                                       currentReaction: post.currentReaction,
-                                      postId: post.id,
-                                      context: context,
+                                      postId: post.id, // Keep for Bloc updates
+                                      context: context, // Keep for Bloc updates
                                     ),
+                                    onTap: () {
+                                       // Determine next state based on current reaction
+                                       final nextReaction = post.currentReaction == null ? 'like' : null;
+                                       context.read<PostBloc>().add(
+                                         TogglePostReaction(post.id, nextReaction),
+                                       );
+                                    },
                                     onLongPressStart: () {
                                       final RenderBox box =
                                           _reactionButtonKey.currentContext!
@@ -552,16 +584,5 @@ class _PostDetailPageState extends State<PostDetailPage> {
         );
       },
     );
-  }
-
-  IconData _getReactionIcon(PostModel post) {
-    if (!post.isLiked) return Icons.thumb_up_outlined;
-    return ReactionManager.reactionIcons[post.currentReaction] ??
-        Icons.thumb_up;
-  }
-
-  Color _getReactionColor(PostModel post) {
-    if (!post.isLiked) return Colors.grey;
-    return ReactionManager.reactionColors[post.currentReaction] ?? Colors.blue;
   }
 }
