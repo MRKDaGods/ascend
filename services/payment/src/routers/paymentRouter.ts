@@ -1,6 +1,7 @@
 import { Router } from "express";
+import express from 'express';
 import authMiddleware from "@shared/middleware/authMiddleware";
-import { cancelPayment, cancelSubscription, completePayment, getFeatures, getFeaturesOwnedByUser, getSubscriptionPlans, getUserSubscriptions, getUserUsageLimits, handleFeaturePayment, handleSubscriptionPayment, insertSurveyResponse } from "../controllers/paymentController";
+import { cancelPayment, cancelSubscription, completePayment, getFeatures, getFeaturesOwnedByUser, getSubscriptionPlans, getUserSubscriptions, getUserUsageLimits, handleFeaturePayment, handleSubscriptionPayment, insertSurveyResponse, stripeWebhookHandler } from "../controllers/paymentController";
 import { featurePurchaseValidation, subscriptionCancellationValidation, subscriptionValidation, surveyResponseValidation } from "../validations/paymentValidations";
 
 const paymentRoutes = Router();
@@ -22,5 +23,6 @@ paymentRoutes.get("/payments/features/purchased", authMiddleware, getFeaturesOwn
 paymentRoutes.get("/payments/subscriptions/purchased", authMiddleware, getUserSubscriptions);
 
 paymentRoutes.post("/payments/survey", authMiddleware, surveyResponseValidation, insertSurveyResponse);
+paymentRoutes.post("/webhook", express.raw({type : 'application/json'}), stripeWebhookHandler);
 
 export default paymentRoutes;
