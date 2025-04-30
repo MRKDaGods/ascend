@@ -1,3 +1,4 @@
+import db from "@shared/config/db";
 import { Events, publishEvent, SendEmailPayload } from "@shared/rabbitMQ";
 
 export const sendEmail = async (
@@ -19,3 +20,13 @@ export const sendEmail = async (
     console.error("Failed to publish email send event:", error);
   }
 };
+
+export const checkProxyEmailExists = async (
+  email: string
+): Promise<boolean> => {
+  const result = await db.query(
+    "SELECT EXISTS(SELECT 1 FROM email_service.users WHERE email = $1)",
+    [email]
+  );
+  return result.rows[0].exists;
+}
