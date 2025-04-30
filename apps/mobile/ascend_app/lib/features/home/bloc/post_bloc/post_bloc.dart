@@ -25,7 +25,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     on<UnsavePost>(_onUnsavePost);
     on<ReportPost>(_onReportPost);
     on<AddNewPost>(_onAddNewPost);
-on<LoadComments>(_onLoadComments); // Register the new handler
+    on<LoadComments>(_onLoadComments); // Register the new handler
   }
 
   Future<void> _onLoadPosts(LoadPosts event, Emitter<PostState> emit) async {
@@ -107,7 +107,7 @@ on<LoadComments>(_onLoadComments); // Register the new handler
             combinedPosts.add(newPost);
             existingPostIds.add(newPost.id);
           } else {
-             debugPrint(' [PostBloc] Duplicate post ID found and skipped: ${newPost.id}');
+            debugPrint(' [PostBloc] Duplicate post ID found and skipped: ${newPost.id}');
           }
         }
 
@@ -144,7 +144,7 @@ on<LoadComments>(_onLoadComments); // Register the new handler
       // Optimistic UI update first
       final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
       if (postIndex == -1) {
-         debugPrint('⚠️ [PostBloc] Post ${event.postId} not found for reaction toggle.');
+        debugPrint('⚠️ [PostBloc] Post ${event.postId} not found for reaction toggle.');
          return; // Post not found
       }
       final originalPost = currentState.posts[postIndex];
@@ -236,7 +236,7 @@ on<LoadComments>(_onLoadComments); // Register the new handler
         emit(currentState);
       }
     } else {
-       debugPrint('⚠️ [PostBloc] AddComment event received but state is not PostsLoaded. Current state: $state');
+      debugPrint('⚠️ [PostBloc] AddComment event received but state is not PostsLoaded. Current state: $state');
     }
   }
 
@@ -277,7 +277,7 @@ on<LoadComments>(_onLoadComments); // Register the new handler
 
         } else {
            // This case might not be reachable if repository throws on failure, but included for completeness
-           debugPrint('⚠️ [PostBloc] Share API call returned false for post ${event.postId}.');
+          debugPrint('⚠️ [PostBloc] Share API call returned false for post ${event.postId}.');
            // Optionally emit an error or just log
         }
 
@@ -290,7 +290,7 @@ on<LoadComments>(_onLoadComments); // Register the new handler
         emit(currentState);
       }
     } else {
-       debugPrint('⚠️ [PostBloc] SharePost event received but state is not PostsLoaded. Current state: $state');
+      debugPrint('⚠️ [PostBloc] SharePost event received but state is not PostsLoaded. Current state: $state');
     }
   }
 
@@ -407,10 +407,10 @@ on<LoadComments>(_onLoadComments); // Register the new handler
         // Call the repository to add the reply via API
         final newReply = await _postRepository.addComment(
           event.postId,
-          event.parentId,
-          event.text,
+                    event.text,
           event.authorId,
           event.authorName,
+                    event.parentId,
         );
         debugPrint('✅ [PostBloc] Reply added via API: ${newReply.id}, Text: ${newReply.text}');
 
@@ -453,7 +453,7 @@ on<LoadComments>(_onLoadComments); // Register the new handler
         emit(currentState);
       }
     } else {
-       debugPrint('⚠️ [PostBloc] AddCommentReply event received but state is not PostsLoaded. Current state: $state');
+      debugPrint('⚠️ [PostBloc] AddCommentReply event received but state is not PostsLoaded. Current state: $state');
     }
   }
 
@@ -565,8 +565,8 @@ on<LoadComments>(_onLoadComments); // Register the new handler
         debugPrint('⚠️ [PostBloc] Report API call returned false for post ${event.postId}.');
         // Optionally emit an error state
         if (currentState is PostsLoaded) {
-           emit(PostsError("Failed to report post (API returned false)"));
-           await Future.delayed(const Duration(milliseconds: 50));
+          emit(PostsError("Failed to report post (API returned false)"));
+          await Future.delayed(const Duration(milliseconds: 50));
            emit(currentState); // Revert
         }
       }
@@ -574,12 +574,12 @@ on<LoadComments>(_onLoadComments); // Register the new handler
       debugPrint('❌ [PostBloc] Failed to report post ${event.postId} via API: $e');
       // Emit an error state
       if (currentState is PostsLoaded) {
-         emit(PostsError("Failed to report post: ${e.toString()}"));
-         await Future.delayed(const Duration(milliseconds: 50));
+        emit(PostsError("Failed to report post: ${e.toString()}"));
+        await Future.delayed(const Duration(milliseconds: 50));
          emit(currentState); // Revert state on error
       } else {
          // If not PostsLoaded, emit a general error
-         emit(PostsError("Failed to report post: ${e.toString()}"));
+        emit(PostsError("Failed to report post: ${e.toString()}"));
       }
     }
   }
@@ -607,12 +607,10 @@ on<LoadComments>(_onLoadComments); // Register the new handler
     final currentState = state;
     if (currentState is PostsLoaded) {
       try {
-        debugPrint('🔄 [PostBloc] Attempting to load comments for post ${event.postId} (page ${event.page})');
-        // Fetch comments from the repository
+        debugPrint('🔄 [PostBloc] Attempting to load ALL comments for post ${event.postId}');
+        // Fetch ALL comments from the repository
         final comments = await _postRepository.fetchComments(
           event.postId,
-          page: event.page,
-          limit: event.limit,
         );
         debugPrint('✅ [PostBloc] Fetched ${comments.length} comments for post ${event.postId}');
 
@@ -625,23 +623,13 @@ on<LoadComments>(_onLoadComments); // Register the new handler
 
         final originalPost = currentState.posts[postIndex];
 
-        // Decide whether to replace or append comments based on page number
-        final List<Comment> updatedCommentList;
-        if (event.page == 1) {
-          // If it's the first page, replace existing comments
-          updatedCommentList = comments;
-          debugPrint('📝 [PostBloc] Replacing comments for post ${event.postId}. New count: ${updatedCommentList.length}');
-        } else {
-          // If it's a subsequent page, append new comments (avoiding duplicates)
-          final existingCommentIds = originalPost.comments.map((c) => c.id).toSet();
-          final uniqueNewComments = comments.where((c) => !existingCommentIds.contains(c.id)).toList();
-          updatedCommentList = [...originalPost.comments, ...uniqueNewComments];
-           debugPrint('📝 [PostBloc] Appending ${uniqueNewComments.length} new comments for post ${event.postId}. Total count: ${updatedCommentList.length}');
-        }
+        // Always replace the comments list with the full fetched list
+        final List<Comment> updatedCommentList = comments;
+        debugPrint('📝 [PostBloc] Replacing comments for post ${event.postId}. New count: ${updatedCommentList.length}');
+
 
         // Create the updated post
-        // Note: We update the comments list but might keep the original commentsCount from the post fetch,
-        // or update it based on the fetched list length. Let's update based on list length for consistency here.
+        // Note: We update the comments list and the commentsCount based on the fetched list length.
         final updatedPost = originalPost.copyWith(
           comments: updatedCommentList,
           commentsCount: updatedCommentList.length, // Update count based on fetched list
