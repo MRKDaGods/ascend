@@ -306,6 +306,13 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
 
         const { subscription_price_id, relative_return_url } = req.body; 
 
+        const subscription_plan : any = (await stripe.products.list({expand : ["data.default_price"], active : true})).data.find((plan : any) => {return (plan.default_price as st.Price).id === subscription_price_id;})
+        const user_subscriptions = await getSubscriptionsByUser(user_id);
+        for(const subscription of user_subscriptions){
+            if(subscription.subscription_plan === subscription_plan.name){
+                return res.status(400).json({error : "already subscribed in this plan"});
+            }
+        }
         const session = await stripe.checkout.sessions.create({
             success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}&session_token=${new_session_token}`,
             cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel&session_token=${new_session_token}`,
@@ -427,7 +434,7 @@ export const getUserSubscriptions = async (req : AuthenticatedRequest, res : Res
         })
 
         return res.status(200).json({error : null, data : {
-            features : user_subscriptions
+            subscriptions : user_subscriptions
         }});
     }catch(e){
         console.log(`Internal error : ${e}`);
