@@ -1,9 +1,10 @@
 {
   "platformName": "Android",
-  "deviceName": "Android Emulator",
-  "automationName": "UiAutomator2",
-  "app": "D:\\senior i second term\\software engineering\\Project Testing Set Up\\APK\\linkedin-6-0-125.apk",
-  "appPackage": "com.linkedin.android",
-  "appActivity": "com.linkedin.android.growth.login.LoginActivity",
-  "newCommandTimeout": 300
+  "appium:deviceName": "Android Emulator",
+  "appium:automationName": "UiAutomator2",
+  "appium:app": "C:\\Users\\DELL\\Downloads\\app-release.apk",
+  "appium:appPackage": "com.example.ascend_app",
+  "appium:appActivity": "com.example.ascend_app.MainActivity",
+  "appium:appWaitActivity": "*",
+  "appium:newCommandTimeout": 3600
 }

@@ -15,3 +15,10 @@ class SignupTestCasesData:
     TEST_INVALID_LAST_NAME = 'Mohamed!123'
     TEST_INVALID_EMAIL = 'S@MAILCOM'
     TEST_INVALID_PASSWORD = '123456'
+
+class  AscendLoginTestCasesData:
+    TEST_EMAIL = "tests@mail.com"
+    TEST_CASE_SENSTIVE_MAIL = "testS@Mail.com"
+    TEST_VALID_PASSWORD = "123456789A"
+    TEST_INVALID_PASSWORD = "123456789"
+    TEST_INVALID_EMAIL = "shehapelhadary@outlookcom"
