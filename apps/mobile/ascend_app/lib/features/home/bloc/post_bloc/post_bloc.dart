@@ -680,67 +680,28 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     final currentState = state;
     if (currentState is PostsLoaded) {
       try {
-        debugPrint('🔄 [PostBloc] Attempting to load ALL comments and replies for post ${event.postId}');
-        // Fetch ALL comments and replies from the repository
-        final List<Comment> allComments = await _postRepository.fetchComments(
+        debugPrint('🔄 [PostBloc] Attempting to load comments for post ${event.postId}');
+        // Fetch comments from the repository. Assume Comment.fromJson handles nesting.
+        final List<Comment> fetchedComments = await _postRepository.fetchComments(
           event.postId,
         );
-        debugPrint('✅ [PostBloc] Fetched ${allComments.length} total comments/replies for post ${event.postId}. Structuring...');
+        // Assuming fetchComments returns only top-level comments and Comment.fromJson populated their 'replies' lists.
+        debugPrint('✅ [PostBloc] Fetched ${fetchedComments.length} top-level comments for post ${event.postId}. Replies should be nested.');
 
-        // --- Structure comments into hierarchy ---
-        final Map<String, Comment> commentMap = {}; // For quick lookup
-        final List<Comment> topLevelComments = []; // Only comments without a parentId
+        // --- Removed manual structuring logic ---
+        // No need for commentMap or the two passes if Comment.fromJson handles nesting.
 
-        // First pass: Populate map and identify top-level comments
-        for (final comment in allComments) {
-          commentMap[comment.id] = comment.copyWith(replies: []); // Initialize replies list
-          if (comment.parentId == null || comment.parentId!.isEmpty) {
-            topLevelComments.add(commentMap[comment.id]!); // Add the mutable copy
+        // Calculate total count recursively (optional, could use API pagination total if reliable)
+        int calculateTotalCount(List<Comment> comments) {
+          int count = comments.length;
+          for (final comment in comments) {
+            count += calculateTotalCount(comment.replies);
           }
+          return count;
         }
+        final totalCommentCount = calculateTotalCount(fetchedComments);
+        debugPrint('📊 [PostBloc] Calculated total comments/replies: $totalCommentCount');
 
-        // Second pass: Assign replies to their parents
-        for (final comment in allComments) {
-          if (comment.parentId != null && comment.parentId!.isNotEmpty) {
-            final parentComment = commentMap[comment.parentId!];
-            if (parentComment != null) {
-              // Add the current comment (which is a reply) to its parent's replies list
-              // Ensure we are modifying the comment object within the map
-              final replyToAdd = commentMap[comment.id]!;
-              final updatedReplies = List<Comment>.from(parentComment.replies)..add(replyToAdd);
-               // Update the parent comment in the map with the new replies list
-              commentMap[comment.parentId!] = parentComment.copyWith(replies: updatedReplies);
-
-              // Important: If a top-level comment was initially added and later found
-              // to be a parent, we need to ensure the topLevelComments list
-              // references the *updated* parent from the map.
-              final indexInTopLevel = topLevelComments.indexWhere((c) => c.id == parentComment.id);
-              if (indexInTopLevel != -1) {
-                  topLevelComments[indexInTopLevel] = commentMap[parentComment.id]!;
-              }
-              // We also need to handle nested replies updating their parents which might not be top-level
-              // This recursive update isn't fully handled here, assuming _findAndUpdateParentComment logic handles deeper nesting if needed elsewhere.
-              // For load comments, we rebuild the structure directly.
-
-            } else {
-              debugPrint('⚠️ [PostBloc] Parent comment ${comment.parentId} not found for reply ${comment.id}. Adding as top-level.');
-              // Fallback: If parent isn't found (e.g., deleted), add as a top-level comment.
-              // This might indicate data inconsistency.
-              if (!topLevelComments.any((c) => c.id == comment.id)) {
-                 topLevelComments.add(commentMap[comment.id]!);
-              }
-            }
-          }
-        }
-        // Optional: Sort top-level comments and replies if needed (e.g., by timestamp)
-        // topLevelComments.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        // commentMap.values.forEach((comment) {
-        //   comment.replies.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        // });
-        // --- End structuring ---
-
-
-        debugPrint('✅ [PostBloc] Structured comments. Top-level: ${topLevelComments.length}');
 
         // Find the index of the post to update
         final postIndex = currentState.posts.indexWhere((p) => p.id == event.postId);
@@ -751,30 +712,27 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
         final originalPost = currentState.posts[postIndex];
 
-        // Replace the comments list with the structured top-level comments
-        final List<Comment> updatedCommentList = topLevelComments;
-        debugPrint('📝 [PostBloc] Replacing comments for post ${event.postId}. New top-level count: ${updatedCommentList.length}, Total count remains: ${allComments.length}');
-
+        // Use the fetched comments directly as the updated list
+        final List<Comment> updatedCommentList = fetchedComments;
+        debugPrint('📝 [PostBloc] Replacing comments for post ${event.postId}. New top-level count: ${updatedCommentList.length}');
 
         // Create the updated post
-        // Update the comments list with the structured list.
-        // Keep commentsCount as the total number of comments and replies fetched.
         final updatedPost = originalPost.copyWith(
-          comments: updatedCommentList, // Use the structured list
-          commentsCount: allComments.length, // Reflect total count including replies
+          comments: updatedCommentList, // Use the directly fetched & parsed list
+          commentsCount: totalCommentCount, // Update count based on calculation or API total
         );
 
         // Create a new list of posts with the updated post
         final updatedPosts = List<PostModel>.from(currentState.posts);
         updatedPosts[postIndex] = updatedPost;
 
-        debugPrint('➡️ [PostBloc] Emitting state with structured comments for post ${event.postId}.');
+        debugPrint('➡️ [PostBloc] Emitting state with updated comments for post ${event.postId}.');
         // Emit the new state, preserving pagination etc.
         emit(currentState.copyWith(posts: updatedPosts, freshLoad: false));
-        debugPrint('✅ [PostBloc] State emitted with structured comments for post ${event.postId}.');
+        debugPrint('✅ [PostBloc] State emitted with updated comments for post ${event.postId}.');
 
       } catch (e, stackTrace) { // Catch stack trace for better debugging
-        debugPrint('❌ [PostBloc] Failed to load or structure comments for post ${event.postId}: $e\n$stackTrace');
+        debugPrint('❌ [PostBloc] Failed to load or process comments for post ${event.postId}: $e\n$stackTrace');
         // Optionally emit an error state, but keep the existing posts
         emit(PostsError("Failed to load comments: ${e.toString()}"));
         await Future.delayed(const Duration(milliseconds: 50)); // Brief delay
