@@ -15,8 +15,8 @@ const imageFileValidation = (value: any, { req, location, path }: Meta) => {
 
 
     const size = parseInt(file_size);
-    if (Number.isNaN(size) || size <= 0) {
-        throw new Error(`'${path}.file_size' must be a positive integer`);
+    if (Number.isNaN(size) || size < 0) {
+        throw new Error(`'${path}.file_size' can't be negative`);
     }
 
     if (size > 5 * 1024 * 1024) {
@@ -60,12 +60,12 @@ const videoFileValidation = (value: any, { req, location, path }: Meta) => {
 
 
     const size = parseInt(file_size);
-    if (Number.isNaN(size) || size <= 0) {
-        throw new Error(`'${path}.file_size' must be a positive integer`);
+    if (Number.isNaN(size) || size < 0) {
+        throw new Error(`'${path}.file_size' can't be negative`);
     }
 
-    if (size > 5 * 1024 * 1024) {
-        throw new Error(`'${path}.file_size' maximum allowed size is 5 MB`);
+    if (size > 5 * 1024 * 1024 * 1024) {
+        throw new Error(`'${path}.file_size' maximum allowed size is 5 GB`);
     }
 
     if (file_name === "") {
@@ -108,12 +108,12 @@ const updateVideoFileValidation = (value: any, { req, location, path }: Meta) =>
 
 
     const size = parseInt(file_size);
-    if (Number.isNaN(size) || size <= 0) {
-        throw new Error(`'${path}.file_size' must be a positive integer`);
+    if (Number.isNaN(size) || size < 0) {
+        throw new Error(`'${path}.file_size' can't be negative`);
     }
 
-    if (size > 5 * 1024 * 1024) {
-        throw new Error(`'${path}.file_size' maximum allowed size is 5 MB`);
+    if (size > 5 * 1024 * 1024 * 1024) {
+        throw new Error(`'${path}.file_size' maximum allowed size is 5 GB`);
     }
 
     if (file_name === "") {
@@ -210,8 +210,8 @@ export const createAnnouncementValidation: ValidationChain[] = [
 
 
                     const size = parseInt(file_size);
-                    if (Number.isNaN(size) || size <= 0) {
-                        throw new Error(`'announcement_photo.file_size' must be a positive integer`);
+                    if (Number.isNaN(size) || size < 0) {
+                        throw new Error(`'announcement_photo.file_size' can't be negative`);
                     }
 
                     if (size > 5 * 1024 * 1024) {
@@ -267,8 +267,8 @@ export const updateAnnouncementValidation: ValidationChain[] = [
 
 
                     const size = parseInt(file_size);
-                    if (Number.isNaN(size) || size <= 0) {
-                        throw new Error(`'announcement_photo.file_size' must be a positive integer`);
+                    if (Number.isNaN(size) || size < 0) {
+                        throw new Error(`'announcement_photo.file_size' can't be negative`);
                     }
 
                     if (size > 5 * 1024 * 1024) {

@@ -5,7 +5,7 @@ import { body, validationResult } from "express-validator";
 import { randomUUID } from "crypto";
 import { changeFeatureEnabled, getFeatureLimits, getFeaturesPurchasedByUser, insertFeature } from "../services/featurePaymentService";
 import { getUsageByCustomerId, getUsageByUserId, updateUsage } from "../services/usageService";
-import { deleteSubscription, disableFeaturesCoveredBySubscription, enableFeaturesCoveredBySubscription, getSubscriptionById, getSubscriptionPlanLimits, getSubscriptionsByUser, insertSubscription } from "../services/subscriptionPaymentService";
+import { deleteSubscription, disableOwnedFeaturesCoveredBySubscription, enableOwnedFeaturesCoveredBySubscription, getSubscriptionById, getSubscriptionPlanLimits, getSubscriptionsByUser, insertSubscription } from "../services/subscriptionPaymentService";
 import { subscribe } from "diagnostics_channel";
 import { Feature } from "@shared/models/feature";
 import { Subscription } from "@shared/models/subscription";
@@ -34,7 +34,7 @@ const PAYMENT_BASE_URL : string = process.env.PAYMENT_BASE_URL;
 const FRONTEND_BASE_URL : string = process.env.FRONTEND_BASE_URL;
 const STRIPE_WEBHOOK_SECRET_KEY : string = process.env.STRIPE_WEBHOOK_SECRET_KEY; 
 
-const stripe = new st(STRIPE_SECRET_KEY);
+export const stripe = new st(STRIPE_SECRET_KEY);
 
 const session_tokens = new Map<string, { customer_id : string, expires_at : number, payment_type : string, return_url : string, subscription_id : string|null, user_id : number}>();
 
@@ -102,15 +102,17 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
     try{
         const { features, relative_return_url } = req.body;
 
-        let feature_already_purchased;
-        let line_items : Array<any> = []
-        const purchased_features : Set<any> = new Set((await getFeaturesPurchasedByUser(user_id)).map((feature_payment) => {
+        let feature_already_purchased = (await getFeaturesPurchasedByUser(user_id)).map((feature_payment) => {
             return feature_payment.feature_purchased;
-        }));
-        // don't repurchased already purchased features
+        });
+        let line_items : Array<any> = [];
+        const purchased_features : Set<any> = new Set(feature_already_purchased);
+        // don't repurchase already purchased features
         for (const feature of features){
             if(!purchased_features.has(feature)){
-                line_items.push({price : feature.price_id, quantity : 1});
+                if(!line_items.find((item) => {return item.price_id === feature.price_id;})){
+                    line_items.push({price : feature.price_id, quantity : 1});
+                }
             }else{
                 return res.status(400).json({error : `feature ${feature} already purchased`});
             }
@@ -124,7 +126,10 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
                 name :  user?.first_name + ' ' + user?.last_name , 
                 email : user?.contact_info?.email
             });
-            await updateUsage(user_id, { last_date: new Date(), stripe_customer_id : customer.id});
+            await updateUsage(user_id, {
+                stripe_customer_id: customer.id,
+                last_date: new Date(),
+            });
         }else{
             customer = await stripe.customers.retrieve(user_usage.stripe_customer_id);
         }
@@ -141,10 +146,19 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
         });
 
 
-        session_tokens.set(new_session_token, {customer_id : customer.id, expires_at : Date.now(), payment_type : "one-time", return_url : `${FRONTEND_BASE_URL}${relative_return_url}`, subscription_id : null, user_id : user_id});
+
+        session_tokens.set(new_session_token, {customer_id : customer.id, expires_at : Date.now(), payment_type : "one-time", return_url : `${FRONTEND_BASE_URL}/${relative_return_url}`, subscription_id : null, user_id : user_id});
     
-        res.redirect(session.url as string);
-    }catch(e){
+        res.json({
+            error : null,
+            data : {
+                url : session.url as string
+            }
+        });
+    }catch(e:any){
+        if(e.type === "StripeInvalidRequestError"){
+            return res.status(400).json({error : "Invalid price ID"});
+        }
         console.log(`Internal error : ${e}`);
         return res.status(500).json({error : "internal error"});
     }
@@ -153,47 +167,62 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
 export const completePayment = async (req : Request, res : Response) => {
     const { session_id , session_token} = req.query;
     const obj = session_tokens.get(session_token as string);
+    const { customer_id , expires_at , payment_type, return_url, subscription_id, user_id } = obj as {
+        customer_id: string;
+        expires_at: number;
+        payment_type: string;
+        return_url: string;
+        subscription_id: string | null;
+        user_id: number;
+    };  
     if(!obj){
-        return res.status(403).json({error : "forbidden"});    
+        return res.redirect(`${return_url}?status=failure`);    
     }
-    const { customer_id , expires_at , payment_type, return_url, subscription_id, user_id } = obj;  
     try{
         if(!session_id){
             return res.status(403).json({error : "forbidden"});
         }
         session_tokens.delete(session_token as string);
-        const session = await stripe.checkout.sessions.retrieve(session_id as string, {expand : ["line_items.data.price.product", "line_items.data.price.product.default_price"]});
-        const line_items = (await stripe.checkout.sessions.listLineItems(session_id as string)).data.map((item) => {
+        const session = await stripe.checkout.sessions.retrieve(session_id as string);
+        const line_items = (await stripe.checkout.sessions.listLineItems(session_id as string, {
+            expand: ['data.price.product', 'data.price'] // expand at listLineItems, not session.retrieve
+        })).data.map((item) => {
             return {
-                name : (item.price?.product as st.Product).name,
-                price : (((item.price?.product as st.Product).default_price as st.Price).unit_amount as number) / 1000,
-                currency : ((item.price?.product as st.Product).default_price as st.Price).currency
-            }
+                name: (item.price?.product as st.Product).name,
+                price: ((item.price?.unit_amount as number) / 100),
+                currency: (item.price?.currency)
+            };
         });
         if(payment_type === "one-time"){
             // updpate the user's usage limits
             const usage_limits = await getFeatureLimits();
+            let new_limits : any = {};
             for(const line_item of line_items){
                 const {usage_field_affected, limit} = usage_limits.get(line_item.name);
-                await updateUsage(user_id, {last_date : new Date(), [usage_field_affected] : limit});
-                await insertFeature(user_id, session_id as string, line_item.name, new Date(), line_item.price, line_item.currency);
+                new_limits[usage_field_affected] = limit;
+                await insertFeature(user_id, session_id as string, line_item.name, new Date(), line_item.price, line_item.currency as string, true);
             }
+            await updateUsage(user_id, {
+                last_date: new Date(),
+                ...new_limits, // overrides specific fields if present
+            })
         }else{
             const usage_limits = await getSubscriptionPlanLimits();
-            const subscribtion_id = req.body.subscribtion_id;
+            const subscriptionId = session.subscription as string;
             const subscription_plan_limits = usage_limits.get(line_items[0].name);
-            await updateUsage(user_id, {last_date : new Date(), ...subscription_plan_limits});
-            await insertSubscription(user_id, session_id as string, subscribtion_id, new Date(), line_items[0].price, line_items[0].currency);
-            await enableFeaturesCoveredBySubscription(subscription_plan_limits, user_id);
+            await updateUsage(user_id, {
+                last_date: new Date(),
+                ...subscription_plan_limits, // overrides specific fields if present
+            })
+            await insertSubscription(user_id, session_id as string, subscriptionId, line_items[0].name, new Date(), line_items[0].price, line_items[0].currency as string);
+            await disableOwnedFeaturesCoveredBySubscription(subscription_plan_limits, user_id);
         }
 
-        return res.redirect(`${return_url}?status=success`)
+
+        return res.redirect(`${return_url}?status=success`);
     }catch(e : any){
-        if(e.statusCode === 404){ // which is returned by stripe.checkout.sessions.retrieve function when the session is not found
-            return res.status(403).json({error : "forbidden"});
-        }
         console.log(`Internal error ${e}`);
-        return res.redirect(`${return_url}?status=internal-error`)
+        return res.redirect(`${return_url}?status=failure`);
     }
 };
 
@@ -265,7 +294,10 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
                 name :  user?.first_name + ' ' + user?.last_name , 
                 email : user?.contact_info?.email
             });
-            await updateUsage(user_id, {last_date : new Date(), stripe_customer_id : customer.id});
+            await updateUsage(user_id, {
+                stripe_customer_id: customer.id,
+                last_date: new Date()
+            })
         }else{
             customer = await stripe.customers.retrieve(user_usage.stripe_customer_id);
         }
@@ -275,8 +307,8 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
         const { subscription_price_id, relative_return_url } = req.body; 
 
         const session = await stripe.checkout.sessions.create({
-            success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel`,
+            success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}&session_token=${new_session_token}`,
+            cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel&session_token=${new_session_token}`,
             line_items :[ {
                     price : subscription_price_id,
                     quantity : 1
@@ -287,9 +319,17 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
             mode : "subscription"
         });
 
-        session_tokens.set(new_session_token, {customer_id : customer.id, expires_at : Date.now(), payment_type : "subscription", return_url : `${FRONTEND_BASE_URL}${relative_return_url}`, subscription_id : null, user_id : user_id});
-        res.redirect(session.url as string);
-    }catch(e){
+        session_tokens.set(new_session_token, {customer_id : customer.id, expires_at : Date.now(), payment_type : "subscription", return_url : `${FRONTEND_BASE_URL}/${relative_return_url}`, subscription_id : subscription_price_id, user_id : user_id});
+        res.json({
+            error : null,
+            data : {
+                url : session.url as string
+            }
+        });
+    }catch(e : any){
+        if(e.type === "StripeInvalidRequestError"){
+            return res.status(400).json({error : "Invalid price ID"});
+        }
         console.log(`Internal error : ${e}`);
         return res.status(500).json({error : "internal error"});
     }
@@ -314,14 +354,14 @@ export const cancelSubscription = async (req : AuthenticatedRequest, res : Respo
             return res.status(404).json({error : "not found"});
         }
 
-        if(subscription.user_id){
+        if(subscription.user_id !== user_id){
             return res.status(403).json({error : "forbidden"});
         }
 
         try{
             await stripe.subscriptions.cancel(subscription_id);
             const subscription_plan_limits = (await getSubscriptionPlanLimits()).get(subscription.subscription_plan);
-            await disableFeaturesCoveredBySubscription(subscription_plan_limits, user_id);
+            await enableOwnedFeaturesCoveredBySubscription(subscription_plan_limits, user_id);
             await deleteSubscription(subscription_id);
             return res.status(200).json({message : "subscription cancelled successfully", error : null});
         }catch(e : any){
@@ -345,12 +385,13 @@ export const getFeaturesOwnedByUser = async (req : AuthenticatedRequest, res : R
     }
     
     try{
-        const user_features = (await getFeaturesPurchasedByUser(user_id)).forEach((feature : Feature) => {
+        const user_features = (await getFeaturesPurchasedByUser(user_id)).map((feature : Feature) => {
             return {
                 feature_purchased : feature.feature_purchased,
                 payment_date : feature.payment_date,
                 amount_paid : feature.amount_paid,
-                currency : feature.currency
+                currency : feature.currency,
+                enabled : feature.enabled
             };
         })
 
@@ -375,7 +416,7 @@ export const getUserSubscriptions = async (req : AuthenticatedRequest, res : Res
     }
     
     try{
-        const user_subscriptions = (await getSubscriptionsByUser(user_id)).forEach((subscription : Subscription) => {
+        const user_subscriptions = (await getSubscriptionsByUser(user_id)).map((subscription : Subscription) => {
             return {
                 subscription_id : subscription.subscription_id,
                 subscription_plan : subscription.subscription_plan,
@@ -454,9 +495,10 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
         const subcription = await getSubscriptionById(cancelled_subscription_id);
         if(subcription){
             const subscription_plan_limits = (await getFeatureLimits()).get(subcription.subscription_plan);
-            await disableFeaturesCoveredBySubscription(subscription_plan_limits, subcription.user_id);
+            await enableOwnedFeaturesCoveredBySubscription(subscription_plan_limits, subcription.user_id);
             await deleteSubscription(subcription.subscription_id); 
         }
+        break;
       case 'invoice.payment_succeeded':
         const invoice = event.data.object as st.Invoice;
         const subscription_id = invoice.subscription as string;
@@ -465,9 +507,23 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
         const subscription = await getSubscriptionById(subscription_id);
         if(subscription && user_id){
             const subscription_plan_limits = (await getFeatureLimits()).get(subscription.subscription_plan);
-            await updateUsage(user_id, {stripe_customer_id : customer_id, last_date : new Date(), ...subscription_plan_limits});
+            await updateUsage(user_id, {
+                stripe_customer_id: customer_id,
+                last_date: new Date(),
+                ...subscription_plan_limits
+            });
         }
-      default:
+        break;
+    case 'customer.deleted' :
+        const customer = event.data.object as st.Customer;
+        const customerId = customer.id;
+
+        const userId = (await getUsageByCustomerId(customerId))?.user_id;
+
+        if(userId){
+            await updateUsage(userId, {stripe_customer_id : ""});
+        }
+    default:
         // Unexpected event type
         console.log(`Unhandled event type ${event.type}.`);
     };
@@ -476,7 +532,7 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
     res.send();
   };
 
-  export const insertSurveyResponse = async (req : AuthenticatedRequest, res : Response) => {
+export const insertSurveyResponse = async (req : AuthenticatedRequest, res : Response) => {
     const user_id = req.user?.id;
     if(!user_id){
         return res.status(401).json({error : "unauthorized"});
@@ -509,4 +565,4 @@ export const stripeWebhookHandler = async (req : Request , res : Response) => {
         console.log(`Internal error : ${e}`);
         return res.status(500).json({error : "internal error"});
     } 
-  };
+};

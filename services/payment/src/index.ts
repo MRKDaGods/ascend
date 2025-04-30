@@ -1,7 +1,7 @@
 import startSharedService from "@shared/sharedService";
 import paymentRoutes from "./routers/paymentRouter";
 import { consumeEvents, getRPCQueueName, setupRPCServer, Events, getQueueName } from "@shared/rabbitMQ";
-import {  handleGetUserConnectionsUsage, handleGetUserJobApplicationsUsage, handleGetUserMessagingUsage, handleUserCreated } from "./consumers/paymentConsumers";
+import {  handleGetUserConnectionsUsage, handleGetUserJobApplicationsUsage, handleGetUserMessagingUsage, handleUserCreated, handleUserDeleted } from "./consumers/paymentConsumers";
 import { Services } from "@ascend/shared";
 
 startSharedService(Services.PAYMENT, paymentRoutes, {
@@ -14,6 +14,10 @@ startSharedService(Services.PAYMENT, paymentRoutes, {
     registerConsumers : [
         async () => {
             await consumeEvents(getQueueName(Events.USER_CREATED), Events.USER_CREATED, handleUserCreated);
+        },
+
+        async () => {
+            await consumeEvents(getQueueName(Events.AUTH_USER_DELETED), Events.AUTH_USER_DELETED, handleUserDeleted );
         }
     ]
 });
