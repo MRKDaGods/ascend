@@ -242,6 +242,90 @@ class PostRepository {
     }
   }
 
+  // Fetch Saved Posts
+  Future<Map<String, dynamic>> fetchSavedPosts({int page = 1, int limit = 15}) async {
+    final uri = Uri.parse('$baseUrl/post/saved?page=$page&limit=$limit');
+    debugPrint('🔄 [PostRepository] Fetching saved posts: $uri');
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot fetch saved posts.');
+        throw Exception('Authentication token not found.');
+      }
+
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+      };
+
+      final response = await _client.get(uri, headers: headers);
+      debugPrint('✅ [PostRepository] Saved Posts API response status: ${response.statusCode}');
+      // Limit printing large bodies
+      debugPrint(
+        '📄 [PostRepository] Saved Posts API response body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body}',
+      );
+
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        final List<dynamic> apiPosts = jsonData['data'] ?? [];
+        final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
+        final int totalPosts = pagination['total'] ?? 0;
+        final int currentPage = pagination['page'] ?? page;
+        final int currentLimit = pagination['limit'] ?? limit;
+        // Calculate hasMorePages based on total, current page, and limit
+        final bool hasMorePages = (currentPage * currentLimit) < totalPosts;
+
+        debugPrint(
+          '📄 [PostRepository] Saved Posts Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages',
+        );
+
+        if (apiPosts.isEmpty) {
+           debugPrint('ℹ️ [PostRepository] API returned empty saved posts array for page $page');
+          return {
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // No more pages if current page is empty
+          };
+        }
+
+        try {
+          // Assuming saved posts might not have reaction info, fetch it separately if needed
+          // For simplicity, we'll use the standard conversion first.
+          final posts = PostModel.fromApiResponseList(apiPosts);
+          debugPrint(
+            '✅ [PostRepository] Converted ${posts.length} saved API posts to PostModel objects',
+          );
+          return {
+            'posts': posts,
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': hasMorePages,
+          };
+        } catch (e) {
+          debugPrint('❌ [PostRepository] Error converting saved API posts: $e');
+          // Return empty but with pagination info
+           return {
+            'posts': <PostModel>[],
+            'totalPosts': totalPosts,
+            'currentPage': currentPage,
+            'hasMorePages': false, // Assume false on conversion error
+          };
+        }
+      } else {
+        debugPrint(
+          '❌ [PostRepository] Failed to load saved posts. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception('Failed to load saved posts: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Exception fetching saved posts: $e');
+      throw Exception('Error fetching saved posts: $e');
+    }
+  }
+
   // Get User's Reaction for a Post via API
   Future<String?> getPostReaction(String postId) async {
     final String reactionUrl = '$baseUrl/post/$postId/reactions'; // Endpoint from user image
@@ -474,12 +558,12 @@ class PostRepository {
     }
   }
 
-  /// Unsaves a post via the API.
+  /// Unsaves a post via the API. (Now uses POST to toggle)
   Future<bool> unsavePost(String postId) async {
     final url = Uri.parse(
       '$baseUrl/post/$postId/save',
-    ); // Endpoint for unsaving (DELETE)
-    debugPrint('🗑️ [PostRepository] Unsaving post $postId at $url');
+    ); // Endpoint for saving/unsaving (using POST)
+    debugPrint('🔄 [PostRepository] Toggling save state (unsave) for post $postId at $url using POST');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
@@ -490,25 +574,34 @@ class PostRepository {
         throw Exception('Authentication token not found.');
       }
 
-      final response = await _client.delete(
-        // Use DELETE method
+      // --- MODIFICATION START ---
+      // Use POST method instead of DELETE
+      final response = await _client.post(
         url,
-        headers: {'Authorization': 'Bearer $authToken'},
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          'Content-Type': 'application/json; charset=UTF-8', // Keep content type if needed by API
+        },
+        // Add body if the API requires it for unsaving via POST, otherwise remove/empty it
+        // body: jsonEncode({}), // Example: Empty body
       );
+      // --- MODIFICATION END ---
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        // 204 No Content is also common for DELETE success
-        debugPrint('✅ [PostRepository] Post $postId unsaved successfully.');
+      // --- MODIFICATION START ---
+      // Adjust expected success codes if needed (200/201 are common for POST toggle)
+      if (response.statusCode == 200 || response.statusCode == 201) {
+      // --- MODIFICATION END ---
+        debugPrint('✅ [PostRepository] Post $postId unsaved successfully (toggled via POST).');
         return true;
       } else {
         debugPrint(
-          '❌ [PostRepository] Failed to unsave post $postId. Status: ${response.statusCode}, Body: ${response.body}',
+          '❌ [PostRepository] Failed to unsave post $postId via POST. Status: ${response.statusCode}, Body: ${response.body}',
         );
         throw Exception('Failed to unsave post: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint(
-        '❌ [PostRepository] Exception while unsaving post $postId: $e',
+        '❌ [PostRepository] Exception while unsaving post $postId via POST: $e',
       );
       throw Exception('Error unsaving post: $e');
     }
