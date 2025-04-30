@@ -47,7 +47,7 @@ export const createCompanyProfile = async (req : AuthenticatedRequest, res : Res
         if(company){
             return res.status(200).json({
                 data : {
-                    company : {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url,  ...company}
+                    company : {...company, profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url}
                 },
                 error : null
             });
@@ -136,15 +136,26 @@ export const getCompaniesCreatedByUser = async (req : AuthenticatedRequest, res 
     try {
         const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
         let profilePhotoURLResponse, coverPhotoURLResponse;
-        const companies = (await findCompaniesCreatedByUser(user_id)).map(async (company : any) => {
-            profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.profile_photo_id }, 10000);
-            coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.cover_photo_id }, 10000);
-
-            company.profile_photo_url = profilePhotoURLResponse.presigned_url;
-            company.cover_photo_url = coverPhotoURLResponse.presigned_url;
-
-            return {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url,  ...company};
-        });
+        let companyList = await findCompaniesCreatedByUser(user_id);
+        let companies = await Promise.all(
+            companyList.map(async (company: any) => {
+                const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(
+                    file_service_queue,
+                    { file_id: company.profile_photo_id },
+                    10000
+                );
+                const coverPhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(
+                    file_service_queue,
+                    { file_id: company.cover_photo_id },
+                    10000
+                );
+        
+                company.profile_photo_url = profilePhotoURLResponse.presigned_url;
+                company.cover_photo_url = coverPhotoURLResponse.presigned_url;
+                return company;
+            })
+        );
+        
 
 
         return res.status(200).json({
@@ -206,7 +217,7 @@ export const updateCompany = async (req : AuthenticatedRequest, res : Response) 
 
         return res.status(200).json({
             data : {
-                company : {profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url, updated_company}
+                company : {...updated_company, profile_photo_url : profilePhotoURLResponse.presigned_url, cover_photo_url : coverPhotoURLResponse.presigned_url}
             },
             error : null
         });
