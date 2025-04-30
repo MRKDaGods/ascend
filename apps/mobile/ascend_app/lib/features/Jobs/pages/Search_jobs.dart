@@ -3,17 +3,19 @@ import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 import 'package:ascend_app/features/Jobs/pages/filter_option_widget.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
+import 'package:ascend_app/features/Jobs/data/dummy_company_names.dart';
+import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SearchJobsPage extends StatefulWidget {
   const SearchJobsPage({
     super.key,
     required this.searchtext,
     required this.locationtext,
-    required this.companyNames,
     required this.jobs,
   });
   final List<Jobsattributes> jobs; // List of all jobs
-  final List<String> companyNames; // List of company names
   final String searchtext;
   final String locationtext;
 
@@ -22,7 +24,9 @@ class SearchJobsPage extends StatefulWidget {
 }
 
 class _SearchJobsPageState extends State<SearchJobsPage> {
-  bool showeasyapply = false;
+  final List<String> companyNames = companySearchNames; // List of company names
+
+  bool showeasyapply = true; // Flag to show easy apply option
   List<Jobsattributes> jobs = []; // List of all jobs
   List<Jobsattributes> filteredJobs = []; // List of filtered jobs
   List<Widget> filterWidgets = []; // List of filter widgets
@@ -32,99 +36,72 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
   final TextEditingController locationController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   Duration? selectedTimeFilter;
+  // Initialize filter parameters
+  String salaryMin = "";
+  String salaryMax = "";
+  List<String> experienceLevels = [];
+  List<String> originalSelectedExperienceLevels = [];
+  List<String> companies = [];
+  List<String> originalSelectedCompanies = [];
+  List<String> jobTypes = [];
+  List<String> originalSelectedJobTypes = [];
+  int originalMinSalary = 0;
+  int originalMaxSalary = 0;
+  final filterOptions = [
+    {
+      'filterName': 'Experience Level',
+      'options': ["Internship", "Entry", "Mid", "Associate", "Director"],
+      'allowMultipleSelection': true,
+    },
+    {
+      'filterName': 'Company',
+      'options': [
+        "Google",
+        "Meta",
+        "Amazon",
+        "Microsoft",
+        "Apple",
+        "Netflix",
+        "Tesla",
+        "IBM",
+        "Intel",
+        "Nvidia",
+      ],
+      'allowMultipleSelection': true,
+    },
+    {
+      'filterName': 'Salary',
+      'options': <String>[], // Explicitly define as List<String>
+      'allowMultipleSelection': false,
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    jobs = widget.jobs;
     locationController.text = widget.locationtext;
     searchController.text = widget.searchtext;
+    jobs = [];
+    filteredJobs = []; // Initialize filtered jobs as empty
 
-    // Filter jobs based on initial search, location, and remote options
-    initialFilteredJobs =
-        jobs.where((job) {
-          final matchesSearch =
-              searchController.text.isEmpty ||
-              job.title.toLowerCase().contains(
-                searchController.text.toLowerCase(),
-              ) ||
-              (job.jobDescription?.toLowerCase().contains(
-                    searchController.text.toLowerCase(),
-                  ) ??
-                  false) ||
-              job.company.toLowerCase().contains(
-                searchController.text.toLowerCase(),
-              );
-
-          final matchesLocation =
-              locationController.text.isEmpty ||
-              job.location.toLowerCase().contains(
-                locationController.text.toLowerCase(),
-              );
-
-          if ((job.isRemote == true) &&
-              (locationController.text.toLowerCase() == "remote" ||
-                  searchController.text.toLowerCase() == "remote")) {
-            return true;
-          }
-          return matchesSearch && matchesLocation;
-        }).toList();
-    filteredJobs = initialFilteredJobs; // Initialize filtered jobs
+    fetchData(); // Fetch job data from the API on initialization
+    // filteredJobs = filterDummyJobs(
+    //   jobs: jobsDummy,
+    //   keyword: searchController.text,
+    //   location: locationController.text,
+    // ); // Filter jobs based on dummy data
+    initialFilteredJobs = filteredJobs; // Store initial filtered jobs
   }
 
   List<Widget> generateFilterWidgets() {
-    final filterOptions = [
-      {
-        'filterName': 'Date Posted',
-        'options': ["Anytime", "Past 24 hours", "Past Week", "Past Month"],
-        'allowMultipleSelection': false,
-      },
-      {
-        'filterName': 'Experience Level',
-        'options': [
-          "Internship",
-          "Entry Level",
-          "Mid Level",
-          "Senior Level",
-          "Director",
-        ],
-        'allowMultipleSelection': false,
-      },
-      {
-        'filterName': 'Company',
-        'options': [
-          "Google",
-          "Meta",
-          "Amazon",
-          "Microsoft",
-          "Apple",
-          "Netflix",
-          "Tesla",
-          "IBM",
-          "Intel",
-          "Nvidia",
-        ],
-        'allowMultipleSelection': true,
-      },
-      {
-        'filterName': 'Job type',
-        'options': ["Full Time", "Part Time", "Contract", "Internship"],
-        'allowMultipleSelection': true,
-      },
-      {
-        'filterName': 'Remote',
-        'options': ["Remote", "Hybrid", "On-site"],
-        'allowMultipleSelection': true,
-      },
-    ];
-
     return filterOptions
         .map(
           (filter) => FilterOptionWidget(
-            companyNames: widget.companyNames,
             allowMultipleSelection: filter['allowMultipleSelection'] as bool,
             filterName: filter['filterName'] as String,
-            options: filter['options'] as List<String>,
+            options: List<String>.from(
+              filter['options'] as List,
+            ), // Explicitly cast to List<String>
             onFilterChanged: updateFilters,
             isReset: reset,
           ),
@@ -133,69 +110,246 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         .toList();
   }
 
-  void applyFilters() {
+  void fetchData({
+    int pageNumber = 1,
+    String experienceLevels = "",
+    String companies = "",
+    String jobTypes = "",
+    String salaryMin = "",
+    String salaryMax = "",
+  }) async {
+    // Deduplicate filter parameters
+    experienceLevels = experienceLevels.split(',').toSet().join(',');
+    companies = companies.split(',').toSet().join(',');
+    jobTypes = jobTypes.split(',').toSet().join(',');
+
+    String keyword = "";
+    String industry = "";
+
+    // Predefined lists of industries and company names
+    List<String> industries = [
+      "Technology",
+      "Finance",
+      "Healthcare",
+      "Education",
+      "Retail",
+    ];
+    List<String> companyList = companyNames;
+
+    // Convert searchInput and lists to lowercase for case-insensitive comparison
+    String searchInput = searchController.text.trim().toLowerCase();
+    if (industries.map((e) => e.toLowerCase()).contains(searchInput)) {
+      industry = searchInput;
+    } else if (companyList.map((e) => e.toLowerCase()).contains(searchInput)) {
+      if (!companies.split(',').contains(searchInput)) {
+        companies = companies.isEmpty ? searchInput : "$companies,$searchInput";
+      }
+    } else {
+      keyword = searchInput;
+    }
+
+    // Ensure salaryMin and salaryMax are valid numeric values
+    salaryMin =
+        int.tryParse(salaryMin)?.toString() ?? originalMinSalary.toString();
+    originalMinSalary = int.tryParse(salaryMin) ?? 0;
+    salaryMax =
+        int.tryParse(salaryMax)?.toString() ?? originalMaxSalary.toString();
+    originalMaxSalary = int.tryParse(salaryMax) ?? 0;
+
+    final location =
+        locationController.text.isNotEmpty ? locationController.text : '';
+
+    final url = Uri.parse(
+      'https://api.ascendx.tech/job/search?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page',
+    );
+
+    print('Fetching data from: $url');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      print('Response body: ${response.body}');
+
+      if (response.body.isNotEmpty) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse.containsKey('data')) {
+          final List<dynamic> jobData = jsonResponse['data'];
+          print('Job data received: $jobData');
+
+          if (jobData.isNotEmpty) {
+            setState(() {
+              filteredJobs =
+                  jobData
+                      .map((data) {
+                        try {
+                          return Jobsattributes.fromJson(data);
+                        } catch (e) {
+                          print('Error parsing job data: $e');
+                          return null;
+                        }
+                      })
+                      .where((job) => job != null)
+                      .cast<Jobsattributes>()
+                      .toList();
+            });
+          } else {
+            setState(() {
+              filteredJobs = [];
+            });
+          }
+        } else {
+          setState(() {
+            filteredJobs = [];
+          });
+        }
+      } else {
+        setState(() {
+          filteredJobs = [];
+        });
+      }
+    } else {
+      print('Request failed with status: ${response.statusCode}');
+    }
+  }
+
+  List<Jobsattributes> filterDummyJobs({
+    required List<Jobsattributes> jobs,
+    String keyword = "",
+    String location = "",
+    String industry = "",
+    String experienceLevels = "",
+    String companies = "",
+    String jobTypes = "",
+    String salaryMin = "",
+    String salaryMax = "",
+    bool showEasyApply = true,
+  }) {
+    // Deduplicate filter parameters
+    experienceLevels = experienceLevels
+        .split(',')
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .join(',');
+    companies = companies
+        .split(',')
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .join(',');
+    jobTypes = jobTypes.split(',').where((e) => e.isNotEmpty).toSet().join(',');
+
+    return jobs.where((job) {
+      // Filter by keyword
+      if (keyword.isNotEmpty &&
+          !job.title.toLowerCase().contains(keyword.toLowerCase()) &&
+          !(job.jobDescription?.toLowerCase().contains(keyword.toLowerCase()) ??
+              false) &&
+          !job.company.toLowerCase().contains(keyword.toLowerCase())) {
+        return false;
+      }
+
+      // Filter by location
+      if (location.isNotEmpty &&
+          !job.location.toLowerCase().contains(location.toLowerCase())) {
+        return false;
+      }
+
+      // Filter by experience levels (match any)
+      if (experienceLevels.isNotEmpty &&
+          !experienceLevels
+              .split(',')
+              .any((level) => job.experienceLevel == level)) {
+        return false;
+      }
+
+      // Filter by companies (match any)
+      if (companies.isNotEmpty &&
+          !companies
+              .split(',')
+              .any(
+                (company) => job.company.toLowerCase() == company.toLowerCase(),
+              )) {
+        return false;
+      }
+
+      // Filter by salary range
+      if (salaryMin.isNotEmpty &&
+          job.salaryMinRange < int.tryParse(salaryMin)!) {
+        return false;
+      }
+      if (salaryMax.isNotEmpty &&
+          job.salaryMaxRange > int.tryParse(salaryMax)!) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+  }
+
+  void updateFilters(List<String> selectedFilters, String filterName) {
     setState(() {
-      filteredJobs =
-          jobs.where((job) {
-            // Filter by easy apply
-            if (showeasyapply && !job.easyapply) return false;
+      // Ensure selectedFilters is not null
+      selectedFilters = selectedFilters ?? [];
 
-            // Filter by keyword from the search box
-            if (searchController.text.isNotEmpty &&
-                !job.title.toLowerCase().contains(
-                  searchController.text.toLowerCase(),
-                ) &&
-                !(job.jobDescription?.toLowerCase().contains(
-                      searchController.text.toLowerCase(),
-                    ) ??
-                    false) &&
-                !job.company.toLowerCase().contains(
-                  searchController.text.toLowerCase(),
-                )) {
-              return false;
-            }
-            if ((job.isRemote == true) &&
-                (locationController.text.toLowerCase() == "remote" ||
-                    searchController.text.toLowerCase() == "remote")) {
-              return true;
-            }
-            // Filter by location from the location search box
-            if (locationController.text.isNotEmpty &&
-                !job.location.toLowerCase().contains(
-                  locationController.text.toLowerCase(),
-                )) {
-              return false;
-            }
+      // Determine added and removed filters
+      if (filterName.toLowerCase() == 'experience level') {
+        experienceLevels = selectedFilters;
+        originalSelectedExperienceLevels = List.from(selectedFilters);
+      } else if (filterName.toLowerCase() == 'company') {
+        companies = selectedFilters;
+        originalSelectedCompanies = List.from(selectedFilters);
+      } else if (filterName.toLowerCase() == 'job type') {
+        jobTypes = selectedFilters;
+        originalSelectedJobTypes = List.from(selectedFilters);
+      } else if (filterName.toLowerCase() == 'salary') {
+        if (selectedFilters.isNotEmpty) {
+          salaryMin = selectedFilters[0];
+          salaryMax =
+              selectedFilters.length > 1 ? selectedFilters[1] : salaryMax;
+        }
+      }
 
-            // Filter by time posted (Date Posted filter)
-            if (selectedTimeFilter != null) {
-              final now = DateTime.now();
-              final timePosted = job.timePostedDate;
-              if (timePosted == null ||
-                  timePosted.isBefore(now.subtract(selectedTimeFilter!))) {
-                return false;
-              }
-            }
-
-            // Job must match all criteria
-            return true;
-          }).toList();
+      // Call fetchData immediately after updating filters
+      fetchData(
+        experienceLevels: originalSelectedExperienceLevels.join(','),
+        companies: originalSelectedCompanies.join(','),
+        jobTypes: originalSelectedJobTypes.join(','),
+        salaryMin: salaryMin,
+        salaryMax: salaryMax,
+      );
+      // setState(() {
+      //   filteredJobs = filterDummyJobs(
+      //     jobs: jobsDummy,
+      //     keyword: searchController.text,
+      //     location: locationController.text,
+      //     industry: "",
+      //     experienceLevels: originalSelectedExperienceLevels.join(','),
+      //     companies: originalSelectedCompanies.join(','),
+      //     jobTypes: originalSelectedJobTypes.join(','),
+      //     salaryMin: salaryMin,
+      //     salaryMax: salaryMax,
+      //   );
+      // });
     });
   }
 
-  void updateFilters(List<String> selectedFilters) {
+  void resetFilters() {
     setState(() {
-      // Use selectedFilters to filter jobs
-      if (selectedFilters.isEmpty) {
-        filteredJobs = initialFilteredJobs; // Reset to initial filtered jobs
-      }
-      filteredJobs =
-          filteredJobs.where((filteredJobs) {
-            // Example: Check if job matches any selected filter
-            return selectedFilters.any(
-              (filter) => filteredJobs.company.contains(filter),
-            );
-          }).toList();
+      // Reset all filter parameters
+      showeasyapply = false;
+      salaryMin = "";
+      salaryMax = "";
+      experienceLevels = [];
+      originalSelectedExperienceLevels = [];
+      companies = [];
+      originalSelectedCompanies = [];
+      jobTypes = [];
+      originalSelectedJobTypes = [];
+
+      // Reset filtered jobs to the initial state
+      filteredJobs = List.from(jobsDummy);
+
+      // Reset the reset flag
+      reset = true;
     });
   }
 
@@ -290,7 +444,11 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                     onSelected: (bool selected) {
                       setState(() {
                         showeasyapply = selected;
-                        applyFilters();
+                        if (!selected) {
+                          filteredJobs = [];
+                        } else {
+                          fetchData();
+                        }
                       });
                     },
                     selectedColor: Colors.green,
@@ -298,20 +456,6 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                   const SizedBox(width: 10),
                   ...generateFilterWidgets(),
                   const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        showeasyapply = false;
-                        reset = true; // Trigger reset for filter widgets
-
-                        // Reapply filters to reset only the filter values
-                        filteredJobs = initialFilteredJobs;
-
-                        reset = false; // Reset the flag
-                      });
-                    },
-                    child: const Text('Reset All'),
-                  ),
                 ],
               ),
             ),
@@ -333,6 +477,9 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
               child: ListView.builder(
                 itemCount: filteredJobs.length,
                 itemBuilder: (context, index) {
+                  if (index >= filteredJobs.length) {
+                    return const SizedBox(); // Prevent out-of-range access
+                  }
                   final job = filteredJobs[index];
                   return jobCard(
                     context: context,
