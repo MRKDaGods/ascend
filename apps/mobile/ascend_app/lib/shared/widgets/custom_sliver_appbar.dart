@@ -158,7 +158,10 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
               ),
             IconButton(
               icon: const Icon(Icons.message_outlined),
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to MessagingPage
+                Navigator.pushNamed(context, RouteNames.mainMessage);
+              },
             ),
           ],
         ),
