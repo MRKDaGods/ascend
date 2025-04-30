@@ -13,7 +13,7 @@ import {
   InputAdornment,
   Alert,
 } from "@mui/material";
-import { api } from "@/api";
+import { api, refreshAuthState } from "@/api";
 
 export default function LoginBox() {
   const router = useRouter();
@@ -75,7 +75,8 @@ export default function LoginBox() {
       .login(email, password)
       .then((response: { token: string; user_id: number }) => {
         console.log("Login successful:", response);
-        localStorage.setItem("access_token", response.token);
+        //localStorage.setItem("access_token", response.token);
+        refreshAuthState(); // Trigger auth state refresh
         router.push("/feed");
       })
       .catch((error: any) => {
