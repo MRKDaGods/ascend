@@ -116,7 +116,7 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
                     line_items.push({price : feature.price_id, quantity : 1});
                 }
             }else{
-                return res.status(400).json({error : `feature ${requested_feature.name} already purchased`});
+                return res.status(400).json({error : `feature ${requested_feature?.name} already purchased`});
             }
         }
         
