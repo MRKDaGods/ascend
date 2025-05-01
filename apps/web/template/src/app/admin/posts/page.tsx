@@ -7,16 +7,37 @@ import {
   getReportedPosts,
   deletePost,
   updatePostReport,
+  getPostReports,
 } from "@/app/utils/adminApi";
 
-import { Pagination,Typography,CircularProgress,Stack,Box } from "@mui/material";
+import {
+  Pagination,
+  Typography,
+  CircularProgress,
+  Stack,
+  Box,
+  MenuItem,
+  FormControl,
+  Button,
+  InputLabel,
+  Select,
+} from "@mui/material";
+
+type Status = "pending" | "reviewed" | "resolved" | "rejected";
 
 export default function ManageReportedPosts() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
+  const [openPostId, setOpenPostId] = useState<number | null>(null);
+  const [reportPages, setReportPages] = useState<{
+    [postId: number]: {
+      data: any[];
+      currentPage: number;
+      totalPages: number;
+    };
+  }>({});
   useEffect(() => {
     fetchReports();
   }, [page]);
@@ -50,9 +71,39 @@ export default function ManageReportedPosts() {
   ) => {
     try {
       await updatePostReport(reportId, newStatus);
-      fetchReports(); // refresh
+      // First find which post this report belongs to
+      const post = reports.find((report) =>
+        reportPages[report.id]?.data?.some((r) => r.id === reportId)
+      );
+      if (post) {
+        // Refresh the report details for this specific post
+        await fetchReportDetails(post.id, reportPages[post.id].currentPage);
+      }
+      // Refresh the main list
+      await fetchReports();
     } catch (err) {
       console.error("Failed to update report status", err);
+    }
+  };
+
+  const fetchReportDetails = async (postId: number, page: number = 1) => {
+    try {
+      const res = await getPostReports(postId, page);
+      const data = res.data.data;
+      const pagination = res.data.pagination;
+
+      setReportPages((prev) => ({
+        ...prev,
+        [postId]: {
+          data: data,
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+        },
+      }));
+
+      setOpenPostId(postId); //expand only selected post
+    } catch (err) {
+      console.error("Failed to fetch reports", err);
     }
   };
 
@@ -67,12 +118,74 @@ export default function ManageReportedPosts() {
       ) : Array.isArray(reports) && reports.length > 0 ? (
         <Stack spacing={3}>
           {reports.map((report) => (
-            <ReportedPosts
-              key={report.id}
-              report={report}
-              onDelete={handleDeletePost}
-              onUpdateStatus={handleUpdateStatus}
-            />
+            <Box key={report.id}>
+              <ReportedPosts
+                key={report.id}
+                report={report}
+                onDelete={handleDeletePost}
+                onUpdateStatus={handleUpdateStatus}
+                fetchReportDetails={fetchReportDetails}
+              />
+              {/* This shows report details under the card when expanded */}
+              {openPostId === report.id && (
+                <Box pl={8} mt={1}>
+                  <Typography fontWeight="bold">Reports:</Typography>
+                  {reportPages[report.id]?.data?.map((r) => (
+                    <Box
+                      key={r.id}
+                      p={2}
+                      mb={1}
+                      sx={{ border: "1px solid #ccc", borderRadius: 2 }}
+                    >
+                      <Typography variant="subtitle2">
+                        {r.reporter_full_name}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Reason:</strong> {r.reason}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {r.description}
+                      </Typography>
+                      <Stack direction="row" spacing={2} mt={2}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleDeletePost(report.id)}
+                        >
+                          Delete Post
+                        </Button>
+
+                        <FormControl size="small">
+                          <InputLabel>Status</InputLabel>
+                          <Select
+                            value={r.status}
+                            label="Status"
+                            onChange={(e) =>
+                              handleUpdateStatus(r.id, e.target.value as Status)
+                            }
+                            sx={{ minWidth: 120 }}
+                          >
+                            <MenuItem value="pending">Pending</MenuItem>
+                            <MenuItem value="reviewed">Reviewed</MenuItem>
+                            <MenuItem value="resolved">Resolved</MenuItem>
+                            <MenuItem value="rejected">Rejected</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  ))}
+                  <Pagination
+                    page={reportPages[report.id]?.currentPage || 1}
+                    count={reportPages[report.id]?.totalPages || 1}
+                    onChange={(_, newPage) =>
+                      fetchReportDetails(report.id, newPage)
+                    }
+                    size="small"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              )}
+            </Box>
           ))}
         </Stack>
       ) : (
