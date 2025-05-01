@@ -1,7 +1,6 @@
 import 'package:ascend_app/features/StartPages/Model/auth_response.dart';
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class AuthRepository {
   final ApiClient apiClient;

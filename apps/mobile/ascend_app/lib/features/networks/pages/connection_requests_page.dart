@@ -17,18 +17,11 @@ class ConnectionRequestsPage extends StatefulWidget {
     required this.receivedUsers,
   });
   @override
-  _ConnectionRequestsPageState createState() => _ConnectionRequestsPageState();
+  State<ConnectionRequestsPage> createState() => _ConnectionRequestsPageState();
 }
 
 class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
-  int _selectedIndex = 0;
   bool isReceivedSelected = true;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   void _showSettingsModal(BuildContext context) {
     showModalBottomSheet(

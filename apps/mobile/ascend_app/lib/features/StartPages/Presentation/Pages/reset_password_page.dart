@@ -1,8 +1,8 @@
-import 'package:ascend_app/features/Logo/LogoWidget.dart';
+import 'package:ascend_app/features/Logo/logo_widget.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 class ResetPasswordPage extends StatefulWidget {
   final String token; // Add token parameter
 
-  const ResetPasswordPage({Key? key, required this.token}) : super(key: key);
+  const ResetPasswordPage({super.key, required this.token});
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -39,7 +39,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final screenWidth = constraints.maxWidth;
           final screenHeight = constraints.maxHeight;
 
           return Scaffold(
@@ -209,8 +208,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       return;
     }
 
-    if (newPassword.length < 2) {
-      _showError("Password must be at least 8 characters long");
+    if (newPassword.length < 3) {
+      _showError("Password must be at least 3 characters long");
       return;
     }
 

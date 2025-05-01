@@ -1,21 +1,14 @@
 import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
-import 'package:ascend_app/features/networks/model/connection_preferences.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/connection_request_recieved_list_partial.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/pages/connection_requests_page.dart';
 import 'package:ascend_app/features/networks/pages/manage_my_network.dart';
-import 'package:ascend_app/features/networks/widgets/single_follow.dart';
 import 'package:ascend_app/features/networks/pages/recommended_to_follow.dart';
-import 'package:ascend_app/features/networks/Mock%20Data/connections_request.dart';
-import 'package:ascend_app/features/networks/managers/follow_manager.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
-import 'package:uuid/uuid.dart';
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
@@ -25,7 +18,7 @@ class Grow extends StatefulWidget {
   const Grow({super.key});
 
   @override
-  _GrowState createState() => _GrowState();
+  State<Grow> createState() => _GrowState();
 }
 
 class _GrowState extends State<Grow> {
@@ -227,7 +220,7 @@ class _GrowState extends State<Grow> {
                                 return BlocProvider.value(
                                   value: bloc,
                                   child: RecommendedToFollow(
-                                    Message:
+                                    message:
                                         'People to follow based on your activity',
                                     users: suggestedUserstoFollow,
                                     onFollow: (userId) {
@@ -294,7 +287,7 @@ class _GrowState extends State<Grow> {
                                 SendConnectionRequest(connctionId: userId),
                               );
                             },
-                            ShowAll: false,
+                            showAll: false,
                           ),
                           ListTile(
                             onTap: () {
@@ -308,7 +301,7 @@ class _GrowState extends State<Grow> {
                                     return BlocProvider.value(
                                       value: bloc,
                                       child: SuggestedConnectionsPage(
-                                        Message:
+                                        message:
                                             'People to Connect based on your activity',
                                         users: suggestedUserstoConnect,
                                         onSend: (userId) {

@@ -9,16 +9,16 @@ class FilterOptionWidget extends StatefulWidget {
   final bool isReset;
 
   const FilterOptionWidget({
-    Key? key,
+    super.key,
     required this.filterName,
     required this.options,
     required this.allowMultipleSelection,
     required this.onFilterChanged,
     required this.isReset,
-  }) : super(key: key);
+  });
 
   @override
-  _FilterOptionWidgetState createState() => _FilterOptionWidgetState();
+  State<FilterOptionWidget> createState() => _FilterOptionWidgetState();
 }
 
 class _FilterOptionWidgetState extends State<FilterOptionWidget> {
@@ -59,12 +59,12 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
     } else if (selectedOptions.length > 1) {
       setState(() {
         chipColor = Colors.green;
-        selectedFilterName = '${widget.filterName}';
+        selectedFilterName = widget.filterName;
       });
     } else {
       setState(() {
         chipColor = Colors.green;
-        selectedFilterName = '${selectedOptions.join(', ')}';
+        selectedFilterName = selectedOptions.join(', ');
       });
     }
 
@@ -74,7 +74,6 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
     ); // Notify parent about filter change
   }
 
-  @override
   void resetFilters() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -387,6 +386,7 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                                   ? const Icon(Icons.check, color: Colors.green)
                                   : null,
                           tileColor:
+                              // ignore: deprecated_member_use
                               isSelected ? Colors.green.withOpacity(0.2) : null,
                           onTap: () {
                             setModalState(() {

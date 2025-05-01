@@ -1,14 +1,16 @@
 part of 'connection_preferences_bloc.dart';
 
-@immutable
-sealed class ConnectionPreferencesState {}
+abstract class ConnectionPreferencesState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 final class ConnectionPreferencesInitial extends ConnectionPreferencesState {}
 
 final class ConnectionPreferencesLoading extends ConnectionPreferencesState {}
 
 final class ConnectionPreferencesLoaded extends ConnectionPreferencesState {
-  ConnectionPreferences connectionPreferences;
+  final ConnectionPreferences connectionPreferences;
 
   ConnectionPreferencesLoaded(this.connectionPreferences);
 }

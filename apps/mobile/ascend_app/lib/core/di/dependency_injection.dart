@@ -5,20 +5,17 @@ import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Add these imports
 import '../../features/home/repositories/post_repository.dart';
 import '../../features/home/bloc/post_bloc/post_bloc.dart';
 import '../../features/home/bloc/saved_posts_bloc/saved_posts_bloc.dart';
-
-import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../services/push_notification_service.dart';
 import '../../core/network/network_info.dart';
 import '../../features/StartPages/Bloc/bloc/auth_bloc.dart';
 import '../../features/StartPages/repository/auth_repository.dart';
-import '../../features/StartPages/repository/ApiClient.dart';
+import '../../features/StartPages/repository/api_client.dart';
 
 /// Service locator for dependency injection
 class ServiceLocator {
@@ -68,7 +65,6 @@ class ServiceLocator {
     networkInfo = NetworkInfoImpl(InternetConnectionChecker.createInstance());
 
     // External
-    final sharedPreferences = await SharedPreferences.getInstance();
     final client = http.Client();
 
     // Initialize ApiClient without parameters
@@ -90,18 +86,6 @@ class ServiceLocator {
     savedPostsBloc = SavedPostsBloc(
       postRepository: postRepository,
       postBloc: postBloc, // Pass the PostBloc
-    );
-
-    // Data sources
-    final notificationRemoteDataSource = NotificationRemoteDataSourceImpl(
-      client: client,
-      baseUrl: 'https://mock-api.example.com', // This can be any placeholder
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      useMockData:
-          true, // Add a flag to use mock data instead of real API calls
     );
 
     // Initialize push notification service

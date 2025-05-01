@@ -1,20 +1,21 @@
+import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
+import 'package:ascend_app/features/networks/pages/industry_searching.dart';
 
-Widget? printopenToSearching(
-  List<String> openToSearching,
-  void Function(String) onopenToSearchingRemoved,
+Widget? printindustrySearching(
+  List<CompanyModel> industrySearching,
+  void Function(String) onindustrySearchingRemoved,
 ) {
-  return openToSearching.isNotEmpty
+  return industrySearching.isNotEmpty
       ? Padding(
         padding: EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
-            openToSearching.length == 1
+            industrySearching.length == 1
                 ? Text(
-                  openToSearching[0],
+                  "${industrySearching[0]}",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -22,7 +23,7 @@ Widget? printopenToSearching(
                   ),
                 )
                 : Text(
-                  "${openToSearching[0]} and ${openToSearching.length - 1} more",
+                  "${industrySearching[0]} and ${industrySearching.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -34,7 +35,7 @@ Widget? printopenToSearching(
               icon: Icon(Icons.close, color: Colors.blue[600]),
               tooltip: "delete",
               onPressed: () {
-                onopenToSearchingRemoved('openTo');
+                onindustrySearchingRemoved('industry');
               },
             ),
           ],
@@ -43,14 +44,14 @@ Widget? printopenToSearching(
       : null;
 }
 
-Widget buildopenToList(
-  List<String> openToSearching,
-  void Function(String) onopenToSearchingRemoved,
+Widget buildIndustryList(
+  List<CompanyModel> industrySearching,
+  void Function(String) onindustrySearchingRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      /*Navigator.push(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder:
@@ -59,16 +60,19 @@ Widget buildopenToList(
                 child: IndustrySearching(),
               ),
         ),
-      );*/
+      );
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
-      'Open To',
+      'industry',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     ),
-    subtitle: printopenToSearching(openToSearching, onopenToSearchingRemoved),
+    subtitle: printindustrySearching(
+      industrySearching,
+      onindustrySearchingRemoved,
+    ),
     trailing: Text(
-      openToSearching.isNotEmpty ? 'Edit' : 'Any',
+      industrySearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

@@ -1,8 +1,7 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:ascend_app/features/networks/repositories/company_repository.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'company_search_event.dart';
 part 'company_search_state.dart';

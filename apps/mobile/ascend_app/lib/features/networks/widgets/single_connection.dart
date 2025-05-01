@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:ascend_app/features/networks/widgets/mutual_connection.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/messaging/bloc/messaging_bloc.dart';
 
 class SingleConnection extends StatefulWidget {
   final UserSuggestedtoConnect user;
   final Function(String) onSend;
   final Function(String) onSentMessageRequest;
-  final bool ShowAll;
+  final bool showAll;
   final bool isConnected;
   final Function(String) onHide;
 
@@ -16,19 +15,19 @@ class SingleConnection extends StatefulWidget {
     required this.user,
     required this.onSend,
     required this.onSentMessageRequest,
-    required this.ShowAll,
+    required this.showAll,
     required this.isConnected,
     required this.onHide,
   });
 
   @override
-  _SingleConnectionState createState() => _SingleConnectionState();
+  State<SingleConnection> createState() => _SingleConnectionState();
 }
 
 class _SingleConnectionState extends State<SingleConnection> {
   bool _isVisible = true;
 
-  void _HideWidget() {
+  void _hideWidget() {
     setState(() {
       _isVisible = false;
       widget.onHide(widget.user.user_id!);
@@ -63,11 +62,12 @@ class _SingleConnectionState extends State<SingleConnection> {
                   top: 8,
                   right: 8,
                   child: GestureDetector(
-                    onTap: _HideWidget,
+                    onTap: _hideWidget,
                     child: Container(
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
+                        // ignore: deprecated_member_use
                         color: Colors.black.withOpacity(0.5),
                         shape: BoxShape.circle,
                       ),

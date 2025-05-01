@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/pages/Search_jobs.dart';
+import 'package:ascend_app/features/Jobs/pages/search_jobs.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 
 void main() {

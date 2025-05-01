@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_blocked_users.dart';
+import 'package:flutter/material.dart';
 
 class MockFollowedUsers {
   // In-memory collections to maintain followers/following relationships
@@ -192,7 +193,7 @@ class MockFollowedUsers {
   static void followUser(String followerUserId, String userToFollowId) {
     // Check if the user is blocked
     if (MockBlockedUsers.isUserBlocked(userToFollowId)) {
-      print('Cannot follow blocked user: $userToFollowId');
+      debugPrint('Cannot follow blocked user: $userToFollowId');
       return;
     }
 
@@ -208,7 +209,7 @@ class MockFollowedUsers {
     }
     _followers[userToFollowId]!.add(followerUserId);
 
-    print('$followerUserId is now following $userToFollowId');
+    debugPrint('$followerUserId is now following $userToFollowId');
   }
 
   // Unfollow a user
@@ -219,7 +220,7 @@ class MockFollowedUsers {
     // Remove from followers set of the target user
     _followers[userToUnfollowId]?.remove(followerUserId);
 
-    print('$followerUserId has unfollowed $userToUnfollowId');
+    debugPrint('$followerUserId has unfollowed $userToUnfollowId');
   }
 
   // Remove a follower
@@ -233,7 +234,7 @@ class MockFollowedUsers {
     // Remove from following set of the follower
     _following[followerUserId]?.remove(userBeingFollowedId);
 
-    print('$followerUserId is no longer following $userBeingFollowedId');
+    debugPrint('$followerUserId is no longer following $userBeingFollowedId');
   }
 
   // Check if userA follows userB

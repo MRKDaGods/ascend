@@ -56,7 +56,9 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
             IconButton(
               icon: const Icon(Icons.settings), // Settings icon
               onPressed: () {
-                print('Settings icon tapped'); // Action for the settings icon
+                debugPrint(
+                  'Settings icon tapped',
+                ); // Action for the settings icon
               },
             ),
           ],

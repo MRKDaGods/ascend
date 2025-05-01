@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/choice_chips_options.dart';
 
 void showConversationModal(BuildContext context) {
   showModalBottomSheet(

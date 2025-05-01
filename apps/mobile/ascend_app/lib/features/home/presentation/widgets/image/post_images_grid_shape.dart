@@ -17,7 +17,7 @@ class ImagesGridShape extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (imageCount == 1) 
+        if (imageCount == 1)
           GestureDetector(
             onTap: () => onTap?.call(0),
             child: PostImage(image: images[0], height: 250),
@@ -46,7 +46,7 @@ class ImagesGridShape extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                flex: 2, 
+                flex: 2,
                 child: GestureDetector(
                   onTap: () => onTap?.call(0),
                   child: PostImage(image: images[0], height: 250),
@@ -75,7 +75,7 @@ class ImagesGridShape extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                flex: 2, 
+                flex: 2,
                 child: GestureDetector(
                   onTap: () => onTap?.call(0),
                   child: PostImage(image: images[0], height: 250),
@@ -109,7 +109,7 @@ class ImagesGridShape extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                flex: 2, 
+                flex: 2,
                 child: GestureDetector(
                   onTap: () => onTap?.call(0),
                   child: PostImage(image: images[0], height: 250),
@@ -138,6 +138,7 @@ class ImagesGridShape extends StatelessWidget {
                           if (imageCount > 4)
                             Positioned.fill(
                               child: Container(
+                                // ignore: deprecated_member_use
                                 color: Colors.black.withOpacity(0.5),
                                 alignment: Alignment.center,
                                 child: Text(

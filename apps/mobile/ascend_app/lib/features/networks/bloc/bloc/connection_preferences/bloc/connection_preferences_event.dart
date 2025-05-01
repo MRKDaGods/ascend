@@ -1,7 +1,9 @@
 part of 'connection_preferences_bloc.dart';
 
-@immutable
-sealed class ConnectionPreferencesEvent {}
+abstract class ConnectionPreferencesEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 final class ConnectionPreferencesLoadEvent extends ConnectionPreferencesEvent {
   ConnectionPreferencesLoadEvent();

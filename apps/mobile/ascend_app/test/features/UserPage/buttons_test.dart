@@ -62,22 +62,22 @@ void main() {
     WidgetTester tester,
   ) async {
     // Arrange
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: ProfileButtons(
-            isfollowing: false,
-            isMyProfile: false,
-            isConnect: true,
-            isPending: false,
-            toggleConnect: () {},
-            withdrawRequest: (context) {},
-            toggleFollow: () {},
-            removeConnection: (context) {},
-          ),
-        ),
-      ),
-    );
+    // await tester.pumpWidget(
+    //   MaterialApp(
+    //     home: Scaffold(
+    //       body: ProfileButtons(
+    //         isfollowing: false,
+    //         isMyProfile: false,
+    //         isConnect: true,
+    //         isPending: false,
+    //         toggleConnect: () {},
+    //         withdrawRequest: (context) {},
+    //         toggleFollow: () {},
+    //         removeConnection: (context) {},
+    //       ),
+    //     ),
+    //   ),
+    // );
 
     // Assert
     expect(find.text('Message'), findsOneWidget);

@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/connections_of_searching.dart';
 
-Widget? printConnectionsOfSearching(
-  List<String> connectionsOfSearching,
-  void Function(String) onConnectionsOfSearchingRemoved,
+Widget? printprofileLanguageSearching(
+  List<String> profileLanguageSearching,
+  void Function(String) onprofileLanguageSearchingRemoved,
 ) {
-  return connectionsOfSearching.isNotEmpty
+  return profileLanguageSearching.isNotEmpty
       ? Padding(
         padding: EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
-            connectionsOfSearching.length == 1
+            profileLanguageSearching.length == 1
                 ? Text(
-                  connectionsOfSearching[0],
+                  profileLanguageSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -23,7 +19,7 @@ Widget? printConnectionsOfSearching(
                   ),
                 )
                 : Text(
-                  "${connectionsOfSearching[0]} and ${connectionsOfSearching.length - 1} more",
+                  "${profileLanguageSearching[0]} and ${profileLanguageSearching.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -35,7 +31,7 @@ Widget? printConnectionsOfSearching(
               icon: Icon(Icons.close, color: Colors.blue[600]),
               tooltip: "delete",
               onPressed: () {
-                onConnectionsOfSearchingRemoved('ConnectionsOfSearching');
+                onprofileLanguageSearchingRemoved('profileLanguages');
               },
             ),
           ],
@@ -44,35 +40,35 @@ Widget? printConnectionsOfSearching(
       : null;
 }
 
-Widget buildConnectionsOfList(
-  List<String> connectionsOfSearching,
-  void Function(String) onConnectionsOfSearchingRemoved,
+Widget buildProfileLanguageList(
+  List<String> profileLanguageSearching,
+  void Function(String) onprofileLanguageSearchingRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      Navigator.push(
+      /*Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (_) => BlocProvider.value(
                 value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: ConnectionsOfSearching(),
+                child: IndustrySearching(),
               ),
         ),
-      );
+      );*/
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
-      'Connections of',
+      'Profile Languages',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     ),
-    subtitle: printConnectionsOfSearching(
-      connectionsOfSearching,
-      onConnectionsOfSearchingRemoved,
+    subtitle: printprofileLanguageSearching(
+      profileLanguageSearching,
+      onprofileLanguageSearchingRemoved,
     ),
     trailing: Text(
-      connectionsOfSearching.isNotEmpty ? 'Edit' : 'Any',
+      profileLanguageSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

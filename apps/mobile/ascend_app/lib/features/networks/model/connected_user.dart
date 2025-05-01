@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 class ConnectedUser {
   String? user_id;
   String? first_name;

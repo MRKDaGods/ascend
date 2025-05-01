@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class CustomTextFormField extends StatefulWidget {
   final TextEditingController controller;
@@ -22,7 +21,7 @@ class CustomTextFormField extends StatefulWidget {
   });
 
   @override
-  _CustomTextFormFieldState createState() => _CustomTextFormFieldState();
+  State<CustomTextFormField> createState() => _CustomTextFormFieldState();
 }
 
 class _CustomTextFormFieldState extends State<CustomTextFormField> {
@@ -53,7 +52,7 @@ class InputValidators {
   }
 
   static String? validatePassword(String password) {
-    if (password.length <= 3) {
+    if (password.length < 3) {
       return 'Password should be at least 3 characters';
     }
     return null;

@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 class ConnectionPreferences {
   bool? allow_connection_requests;
   String? allow_message_requests;

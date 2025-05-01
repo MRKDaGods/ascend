@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/location_search/bloc/location_search_bloc.dart';
-import 'package:ascend_app/features/networks/model/company_model.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
-import 'package:ascend_app/features/networks/utils/search_filter.dart';
 import 'package:ascend_app/features/networks/model/location_model.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/filter_modal.dart';
@@ -98,6 +95,7 @@ Widget _buildModalContent(
                     // Delay showing the filter modal to avoid animation issues
                     Future.delayed(
                       const Duration(milliseconds: 0),
+                      // ignore: use_build_context_synchronously
                       () => showFilterModal(context),
                     );
                   },
@@ -205,6 +203,7 @@ void _navigateToLocationSearch(
 
   // Small delay to ensure animations complete
   Future.delayed(const Duration(milliseconds: 100), () {
+    // ignore: use_build_context_synchronously
     Navigator.of(context).push(
       MaterialPageRoute(
         builder:

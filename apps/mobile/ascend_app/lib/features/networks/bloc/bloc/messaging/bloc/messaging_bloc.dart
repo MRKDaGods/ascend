@@ -1,8 +1,6 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/message_model.dart';
 import 'package:ascend_app/features/networks/Repositories/message_repository.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'messaging_event.dart';
 part 'messaging_state.dart';

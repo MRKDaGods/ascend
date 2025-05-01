@@ -12,7 +12,7 @@ class EditProfilePage extends StatefulWidget {
   });
 
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -41,7 +41,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _bioController = TextEditingController(text: widget.profile.bio ?? '');
     _locationController = TextEditingController(
       text: widget.profile.location ?? '',
-    );  
+    );
     _currentEducationController = TextEditingController(
       text:
           widget.profile.education?.isNotEmpty == true

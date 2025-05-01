@@ -1,7 +1,9 @@
 part of 'follow_bloc.dart';
 
-@immutable
-sealed class FollowState {}
+abstract class FollowState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 final class FollowInitial extends FollowState {}
 
