@@ -16,8 +16,7 @@ import UnsavePopup from "./UnsavePopup";
 import CopyPostPopup from "./CopyPostPopup";
 import FlagIcon from "@mui/icons-material/Flag";
 import ReportThisPostDialog from "./ReportThisPostDialog";
-import ReportPolicyDialogWrapper from "./ReportPolicyDialogWrapper";
-import SubmitReportDialogWrapper from "./SubmitReportDialogWrapper";
+import ReportPolicyDialogWrapper from "./ReportPolicyDialogWrapper"; // Use the unified wrapper
 import FeedbackDialogWrapper from "./FeedbackDialogWrapper";
 
 const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
@@ -30,15 +29,10 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
     toggleSavePostAPI,
     setCopyPostPopupOpen,
     openReportDialog,
-    closeReportDialog,
-    openSubmitReportDialog,
-    closeSubmitReportDialog,
     openFeedbackDialog,
-    closeFeedbackDialog,
   } = usePostStore();
 
   const [reportThisPostDialogOpen, setReportThisPostDialogOpen] = useState(false);
-  const [selectedReportReason, setSelectedReportReason] = useState<string | null>(null);
 
   const isSaved = savedPosts.includes(post.id);
 
@@ -52,20 +46,9 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
 
   // Handle opening report post dialog
   const handleReportPost = () => {
+    openReportDialog(post.id);
     setReportThisPostDialogOpen(true);
     setMenuAnchorEl(null);
-  };
-
-  // Handle selecting a reason for reporting the post
-  const handleReasonSelected = (reason: string) => {
-    setSelectedReportReason(reason);
-    openSubmitReportDialog(post.id, reason); // Open the submit report dialog
-    closeReportDialog();
-  };
-
-  // Handle closing the submit report dialog
-  const handleSubmitReportClose = () => {
-    closeSubmitReportDialog();
   };
 
   // Handle feedback click
@@ -129,17 +112,11 @@ const SaveandLink: React.FC<{ post: PostType }> = ({ post }) => {
         onClose={() => setReportThisPostDialogOpen(false)}
         post={post}
         onFeedbackClick={handleFeedbackClick} // Pass feedback handler
-        onReportContentClick={() => openReportDialog()} // Open ReportPolicyDialog
+        onReportContentClick={() => openReportDialog(post.id)} // Open ReportPolicyDialog
       />
 
-      {/* Report Policy Dialog (handles reason selection) */}
-      <ReportPolicyDialogWrapper
-        postId={post.id}
-        onReasonSelected={handleReasonSelected}
-      />
-
-      {/* Submit Report Dialog */}
-      <SubmitReportDialogWrapper />
+      {/* Unified Report Dialog Wrapper */}
+      <ReportPolicyDialogWrapper postId={post.id} />
 
       {/* Feedback Dialog */}
       <FeedbackDialogWrapper post={post} />
