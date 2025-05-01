@@ -94,3 +94,24 @@ export const respondToConnectionRequestAPI = async (
     });
     return res.data;
   };
+
+  // src/api/connections.ts
+
+export interface SendConnectionRequestPayload {
+  userId: number;
+  message: string;
+}
+
+export interface SendConnectionRequestResponse {
+  success: boolean;
+  data: {
+    id: number;
+    user_id: number;
+    connection_id: number;
+    status: "pending";
+    request_direction: "outgoing";
+    created_at: string;
+    updated_at: string;
+    message: string;
+  };
+}
