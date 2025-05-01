@@ -1,6 +1,8 @@
 "use client";
+
 import { Tabs, Tab, Box } from "@mui/material";
 import { useState } from "react";
+
 import AdminCreateUser from "@/app/components/AdminCreateUser";
 import BanUsers from "@/app/components/BanUsers";
 import ManageUserReports from "@/app/components/ManageUserReports";
