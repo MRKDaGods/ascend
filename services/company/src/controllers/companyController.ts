@@ -396,7 +396,7 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
 
     const company_id = parseInt(req.params.companyId, 10);
     const announcement_id = parseInt(req.params.announcementId, 10);
-    let { content, announcement_photos, announcement_video } = req.body;
+    let { content, announcement_photos, announcement_video, deleted_image_ids } = req.body;
     try {
         if(!content && !announcement_photos && (!announcement_video && announcement_video !== "")){
             return res.status(400).json({error : "no fields to update"});
@@ -413,7 +413,8 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
             return res.status(403).json({error : "forbidden"});
         }
         
-        let updated_announcement_post : any = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
+        
+        let updated_announcement_post : any = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, deleted_image_ids : deleted_image_ids , new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
         
         if(updated_announcement_post){
             let image_urls = [];
