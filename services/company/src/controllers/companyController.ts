@@ -413,6 +413,13 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
             return res.status(403).json({error : "forbidden"});
         }
         
+        if(deleted_image_ids){
+            for(const deleted_image_id of deleted_image_ids){
+                if(old_announcemnt.image_ids.indexOf(deleted_image_id) === -1){
+                    return res.status(400).json({error : `image id ${deleted_image_id} in deleted_image_ids is not in announcement original image ids`});
+                }
+            }
+        }
         
         let updated_announcement_post : any = await updateAnnouncement(announcement_id, user_id, company_id, new Date(), { content : content as string, new_announcement_photos : announcement_photos, old_image_ids : old_announcemnt.image_ids, deleted_image_ids : deleted_image_ids , new_announcement_video : announcement_video, old_video_id : old_announcemnt.video_id })
         
