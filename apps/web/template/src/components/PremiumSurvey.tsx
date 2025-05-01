@@ -71,13 +71,15 @@ const PremiumSurvey = () => {
         router.push("/premium");
       }
     } else if (step === 1) {
+      console.log(JSON.stringify(subOptions)) 
       fetch("https://api.ascendx.tech/payment/payments/survey", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NTMsImlhdCI6MTc0NTk1MzU4MiwiZXhwIjoxNzQ1OTk2NzgyfQ.h05vb40OC2MwPABUpR42XgRO-vuOQ1KU6qyJcu6aBeY",
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTYsImlhdCI6MTc0NjA5NjI3MCwiZXhwIjoxNzQ4Njg4MjcwfQ.bgHc_LDP-G2c6A0xVGhbK8cSfIjI8XZw4Oqcj3C5LpE",
         },
+
         body: JSON.stringify({
           question: "What do you hope to achieve with Premium?",
           answers: subOptions,
