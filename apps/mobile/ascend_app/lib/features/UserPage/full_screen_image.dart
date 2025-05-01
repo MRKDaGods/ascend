@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class FullScreenImage extends StatelessWidget {
   final String imageUrl;
   final bool isMyProfile;
+  final void Function()? delete;
   const FullScreenImage({
     super.key,
     required this.imageUrl,
     required this.isMyProfile,
+    this.delete,
   });
 
   @override
