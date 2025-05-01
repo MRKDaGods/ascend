@@ -186,27 +186,23 @@ interface PostStoreState {
   openFeedbackDialog: (postId: number) => void;
   closeFeedbackDialog: () => void;
 
-  // Report Dialog
-  isReportDialogOpen: boolean;
-  reportThisPostDialogOpen: boolean; // Tracks the state of the "Report This Post" dialog
+  setPostAsAcknowledged: (postId: number) => void;
+  closeReportThisPostDialog: () => void;
 
-  openReportDialog: () => void;
-  closeReportDialog: () => void;
-  setReportDialogReason: (reason: string) => void;  // Sets the reason for reporting
-
-  isSubmitReportDialogOpen: boolean;
   reportDialogPostId: number | null;
-  selectedReportReason: string | null;
-
+  isSubmitReportDialogOpen: boolean;
   openSubmitReportDialog: (postId: number, reason: string) => void;
   closeSubmitReportDialog: () => void;
 
-  // Function to delete a post
-  deletePost: (postId: number) => void;
+  // Report Dialog habiba
+  isReportDialogOpen: boolean;
+  reportThisPostDialogOpen: boolean; // Tracks the state of the "Report This Post" dialog
 
-  // Function to close all dialogs
-  closeAllDialogs: () => void;
+  openReportDialog: (postId: number) => void;
+  closeReportDialog: () => void;
+  setReportDialogReason: (reason: string) => void;  // Sets the reason for reporting
 
+  selectedReportReason: string | null;
   }
 
 export const usePostStore = create<PostStoreState>()(
@@ -655,15 +651,38 @@ export const usePostStore = create<PostStoreState>()(
       repostSourcePost: null,
       setRepostSourcePost: (post) => set({ repostSourcePost: post }),
 
-      isReportDialogOpen: false,       // Whether the report dialog is open
-      feedbackDialogPostId: null,
-      isFeedbackDialogOpen: false,
+      // =========================REPORTING======================== //report not repost
 
-      isSubmitReportDialogOpen: false,
-      reportDialogPostId: null,
+      openReportDialog: (postId: number) => set({ isReportDialogOpen: true }),
+      closeReportDialog: () => set({ isReportDialogOpen: false }),
+
+      setReportDialogReason: (reason: string) => set({ selectedReportReason: reason }),
       selectedReportReason: null,
+      isReportDialogOpen: false,
       reportThisPostDialogOpen: false,
 
+      feedbackDialogPostId: null,
+      isFeedbackDialogOpen: false,
+      openFeedbackDialog: (postId) => set({ isFeedbackDialogOpen: true, feedbackDialogPostId: postId }),
+      closeFeedbackDialog: () => set({ isFeedbackDialogOpen: false, feedbackDialogPostId: null }),
+
+      setPostAsAcknowledged: (postId: number) => {
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? { ...post, isReported: true } // Mark the post as reported
+              : post
+          ),
+          isReportDialogOpen: false,
+          isSubmitReportDialogOpen: false,
+          reportThisPostDialogOpen: false,
+        }));
+      },
+      
+      closeReportThisPostDialog: () => set({ reportThisPostDialogOpen: false }),
+      
+      reportDialogPostId: null,
+      isSubmitReportDialogOpen: false,
       openSubmitReportDialog: (postId: number, reason: string) => set({
         isSubmitReportDialogOpen: true,
         reportDialogPostId: postId,
@@ -674,31 +693,6 @@ export const usePostStore = create<PostStoreState>()(
         reportDialogPostId: null,
         selectedReportReason: null,
       }),      
-
-      openFeedbackDialog: (postId) => set({ isFeedbackDialogOpen: true, feedbackDialogPostId: postId }),
-      closeFeedbackDialog: () => set({ isFeedbackDialogOpen: false, feedbackDialogPostId: null }),
-
-      openReportDialog: () => set({ isReportDialogOpen: true }),
-      closeReportDialog: () => set({ isReportDialogOpen: false }),
-
-      setReportDialogReason: (reason: string) => set({ selectedReportReason: reason }),
-
-       // Function to delete a post
-       deletePost: (postId: number) => {
-        set((state) => ({
-          posts: state.posts.filter((post) => post.id !== postId),
-        }));
-      },
-
-      // Function to close all dialogs
-      closeAllDialogs: () => {
-        set({
-          isFeedbackDialogOpen: false,
-          isReportDialogOpen: false,
-          isSubmitReportDialogOpen: false,
-          reportThisPostDialogOpen: false, 
-        });
-      },
     }),
 
     {

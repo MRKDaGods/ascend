@@ -13,24 +13,20 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { usePostStore } from "@/app/stores/usePostStore";
+import { usePostStore } from "../stores/usePostStore";
 
-const SubmitReportDialog: React.FC<{ open: boolean; onClose: () => void; postId: number; reason: string }> = ({
-  open,
-  onClose,
-  postId,
-  reason,
-}) => {
+const SubmitReportDialog: React.FC<{
+  open: boolean;
+  onClose: () => void;
+  postId: number;
+  reason: string;
+  onSubmit: () => void; // Add onSubmit prop
+}> = ({ open, onClose, postId, reason, onSubmit }) => {
   const [receiveUpdates, setReceiveUpdates] = useState(false);
-  const { reportPostFromAPI, closeAllDialogs } = usePostStore();
 
   const handleSubmit = async () => {
     try {
-      await reportPostFromAPI(postId, "other" ,reason);
-      // closeAllDialogs();
-      onClose();
-
-      console.log("Report submitted:", { postId, reason, receiveUpdates });
+      onSubmit(); // Call the onSubmit handler to replace the post and close dialogs
     } catch (error) {
       console.error("Error submitting report:", error);
     }

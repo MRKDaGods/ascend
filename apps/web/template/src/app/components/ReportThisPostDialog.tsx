@@ -22,7 +22,7 @@ interface Props {
   onClose: () => void;
   post: PostType;
   onFeedbackClick: () => void;
-  onReportContentClick: () => void; // Add a prop for "Report content for review"
+  onReportContentClick: () => void;
 }
 
 const ReportThisPostDialog: React.FC<Props> = ({
