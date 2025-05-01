@@ -21,6 +21,7 @@ import {
   adminDeleteReport,
   reportUser,
   emailExists,
+  checkPasswordResetCode,
 } from "../controllers/authController";
 
 const router = Router();
@@ -48,5 +49,6 @@ router.get("/admin-get-user-reports", authenticateToken, adminGetUserReports);
 router.post("/admin-delete-user-report", authenticateToken, adminDeleteReport);
 
 router.get("/exists/:email", emailExists);
+router.post("/verify-code", checkPasswordResetCode);
 
 export default router;
