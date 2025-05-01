@@ -16,7 +16,10 @@ class NotificationsPage(BasePage):
     SECOND_NOTIFICATION_SETTENGS = NotificationsPageLocater.SECOND_NOTIFICATION_SETTENGS
     THIRD_NOTIFICATION_SETTENGS = NotificationsPageLocater.THIRD_NOTIFICATION_SETTENGS
     DELETE_NOTIFICATION = NotificationsPageLocater.DELETE_NOTIFICATION
-  
+    BACK_BUTTON = NotificationsPageLocater.BACK_BUTTON
+    NOTIFICATION_DELETED_MESSAGE = NotificationsPageLocater.NOTIFICATION_DELETED_MESSAGE
+    NOTIFICATION_OPTIONS = NotificationsPageLocater.NOTIFICATION_OPTIONS
+    NO_NEW_JOBS_POSTS_MENTIONS_MESSAGE = NotificationsPageLocater.NO_NEW_JOBS_POSTS_MENTIONS_MESSAGE
     
     
     def click_Filter_By_All(self):
@@ -51,4 +54,9 @@ class NotificationsPage(BasePage):
     
     def click_Delete_Notification(self):
         self.click(self.DELETE_NOTIFICATION)
+    
+    def click_Back_Button(self):
+        self.click(self.BACK_BUTTON)
         
+    def click_Notification_Options(self):
+        self.click(self.NOTIFICATION_OPTIONS)

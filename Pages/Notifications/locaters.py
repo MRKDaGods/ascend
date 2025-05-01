@@ -12,3 +12,8 @@ class NotificationsPageLocater:
     SECOND_NOTIFICATION_SETTENGS = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/notifications_card_item_swipe_layout").instance(1)')
     THIRD_NOTIFICATION_SETTENGS = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/notifications_card_item_swipe_layout").instance(2)')
     DELETE_NOTIFICATION = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().text("Delete notification")')
+    BACK_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Back")')
+    NOTIFICATION_DELETED_MESSAGE = (By.ID, 'com.linkedin.android:id/ad_banner_action_container')
+    NOTIFICATION_OPTIONS = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/notifications_card_item_swipe_layout").instance(1)')
+    NO_NEW_JOBS_POSTS_MENTIONS_MESSAGE = (By.ID, 'com.linkedin.android:id/notif_empty_card_expanded_headline')
+    

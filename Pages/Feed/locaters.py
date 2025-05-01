@@ -6,7 +6,7 @@ class HomeLocators:
     CLOSE_BUTTON = (By.ACCESSIBILITY_ID, 'Close')
     SEARCH_BAR = (By.ID, 'com.linkedin.android:id/search_bar') 
     SEARCH_BAR_SEND_TEXT = (By.ID, 'com.linkedin.android:id/search_bar_edit_text')
-    MESSAGING_BUTTON =  (By.ACCESSIBILITY_ID, 'messaging')
+    MESSAGING_BUTTON =  (By.ID, 'com.linkedin.android:id/home_messaging')
     VIEW_THE_FULL_POST = (By.ID, 'com.linkedin.android:id/feed_render_item_text') #to click on post to view all engagments 
     REACTIONS_COUNT = (By.ID , 'com.linkedin.android:id/feed_conversations_reactions_count')# you can view a;; the post and engagments via clicking on it
     LIKE_BUTTON = (By.ACCESSIBILITY_ID, 'Like') 
