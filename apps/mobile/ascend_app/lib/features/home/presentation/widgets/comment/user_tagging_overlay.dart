@@ -32,7 +32,7 @@ class UserTaggingOverlay extends StatelessWidget {
               leading: UserAvatar(imageUrl: user.avatarUrl, radius: 16),
               title: Text(user.name),
               subtitle: Text(
-                user.position ?? '', // Show position if available
+                user.position, // Show position if available
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

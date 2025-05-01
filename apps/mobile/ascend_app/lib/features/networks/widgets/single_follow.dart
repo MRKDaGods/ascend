@@ -24,7 +24,7 @@ class SingleFollow extends StatefulWidget {
   });
 
   @override
-  _FollowState createState() => _FollowState();
+  State<SingleFollow> createState() => _FollowState();
 }
 
 class _FollowState extends State<SingleFollow> {
@@ -84,6 +84,7 @@ class _FollowState extends State<SingleFollow> {
                       width: 30,
                       height: 30,
                       decoration: BoxDecoration(
+                        // ignore: deprecated_member_use
                         color: Colors.black.withOpacity(0.5),
                         shape: BoxShape.circle,
                       ),

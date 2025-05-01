@@ -1,22 +1,20 @@
-import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/industry_searching.dart';
+import 'package:ascend_app/features/networks/pages/followers_of_searching.dart';
 
-Widget? printindustrySearching(
-  List<CompanyModel> industrySearching,
-  void Function(String) onindustrySearchingRemoved,
+Widget? printfollowersOfSearching(
+  List<String> followersOfSearching,
+  void Function(String) onfollowersOfSearchingRemoved,
 ) {
-  return industrySearching.isNotEmpty
+  return followersOfSearching.isNotEmpty
       ? Padding(
         padding: EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
-            industrySearching.length == 1
+            followersOfSearching.length == 1
                 ? Text(
-                  "${industrySearching[0]}",
+                  followersOfSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -24,7 +22,7 @@ Widget? printindustrySearching(
                   ),
                 )
                 : Text(
-                  "${industrySearching[0]} and ${industrySearching.length - 1} more",
+                  "${followersOfSearching[0]} and ${followersOfSearching.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -36,7 +34,7 @@ Widget? printindustrySearching(
               icon: Icon(Icons.close, color: Colors.blue[600]),
               tooltip: "delete",
               onPressed: () {
-                onindustrySearchingRemoved('industry');
+                onfollowersOfSearchingRemoved('followersOfSearching');
               },
             ),
           ],
@@ -45,9 +43,9 @@ Widget? printindustrySearching(
       : null;
 }
 
-Widget buildIndustryList(
-  List<CompanyModel> industrySearching,
-  void Function(String) onindustrySearchingRemoved,
+Widget buildFollowersOfList(
+  List<String> followersOfSearching,
+  void Function(String) onfollowersOfSearchingRemoved,
   BuildContext context,
 ) {
   return ListTile(
@@ -58,22 +56,22 @@ Widget buildIndustryList(
           builder:
               (_) => BlocProvider.value(
                 value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: IndustrySearching(),
+                child: FollowersOfSearching(),
               ),
         ),
       );
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
-      'industry',
+      'Followers of',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     ),
-    subtitle: printindustrySearching(
-      industrySearching,
-      onindustrySearchingRemoved,
+    subtitle: printfollowersOfSearching(
+      followersOfSearching,
+      onfollowersOfSearchingRemoved,
     ),
     trailing: Text(
-      industrySearching.isNotEmpty ? 'Edit' : 'Any',
+      followersOfSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

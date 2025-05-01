@@ -1,6 +1,5 @@
 part of 'connection_request_bloc.dart';
 
-@immutable
 sealed class ConnectionRequestState {}
 
 final class ConnectionRequestInitial extends ConnectionRequestState {}

@@ -1,10 +1,8 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/Repositories/connection_request_repoistory.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:ascend_app/features/networks/model/user_pending_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'connection_request_event.dart';
 part 'connection_request_state.dart';

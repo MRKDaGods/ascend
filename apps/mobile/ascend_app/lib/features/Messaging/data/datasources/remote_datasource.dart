@@ -6,7 +6,7 @@ import 'package:ascend_app/features/Messaging/data/model/conversation_model.dart
 import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
 import 'package:ascend_app/features/Messaging/domain/repoistories/messaging_repoistory.dart'
     show MessagingRepository;
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/services/web_socket_service.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +22,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
        _apiClient = apiClient;
 
   /// REST API CALLS
+  @override
   Future<List<ConversationModel>> getConversations({int page = 1}) async {
     try {
       final response = await _apiClient.get(
@@ -104,7 +105,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
 
   @override
   Future<int> getUnseenCount() async {
-    final url = '${ApiEndpoints.unseenCount}';
+    final url = ApiEndpoints.unseenCount;
     final response = await _apiClient.get(url);
     if (response.statusCode == 200) {
       // Parse the response body and return the unseen count
@@ -196,7 +197,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
       '[MessagingRepoistoryImpl] Sending message: receiverId=$receiverId, content=$content, contentType=$contentType',
     );
     final response = await _apiClient.post(
-      '${ApiEndpoints.message}',
+      ApiEndpoints.message,
       data: {'receiverId': receiverId, 'content': content, 'file': file},
     );
     if (response.statusCode == 200) {

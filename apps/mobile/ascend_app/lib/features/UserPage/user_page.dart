@@ -28,7 +28,7 @@ class UserProfilePage extends StatefulWidget {
   final int? profileId; // Null means it's the user's profile
 
   @override
-  _UserProfilePageState createState() => _UserProfilePageState();
+  State<UserProfilePage> createState() => _UserProfilePageState();
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
@@ -45,7 +45,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     super.initState();
     _isMyProfile = widget.profileId == null;
     _fetchProfileData(widget.profileId).then((profile) {
-      print(profile.toJson());
+      //debugPrint();
       setState(() {
         _profile = profile;
         _sections = _buildSections(profile);
@@ -85,6 +85,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 } else {
+                  // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Could not open the link")),
                   );

@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/widgets/filter_modal.dart';
 
 class NetworksSearchPage extends StatefulWidget {
@@ -15,7 +12,6 @@ class _NetworksSearchPageState extends State<NetworksSearchPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _searchFocusNode = FocusNode();
-  final bool _isReset = false;
 
   @override
   void initState() {

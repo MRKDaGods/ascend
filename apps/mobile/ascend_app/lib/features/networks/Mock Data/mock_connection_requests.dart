@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_blocked_users.dart';
+import 'package:flutter/material.dart';
 
 class MockConnectionRequests {
   // In-memory storage of connection requests
@@ -128,7 +129,7 @@ class MockConnectionRequests {
     // Don't add if either user is blocked
     if (MockBlockedUsers.isUserBlocked(request.senderId) ||
         MockBlockedUsers.isUserBlocked(request.receiverId)) {
-      print('Cannot create connection request - user is blocked');
+      debugPrint('Cannot create connection request - user is blocked');
       return;
     }
 
@@ -158,7 +159,7 @@ class MockConnectionRequests {
       // Don't accept if either user is blocked
       if (MockBlockedUsers.isUserBlocked(request.senderId) ||
           MockBlockedUsers.isUserBlocked(request.receiverId)) {
-        print('Cannot accept connection request - user is blocked');
+        debugPrint('Cannot accept connection request - user is blocked');
         return false;
       }
 

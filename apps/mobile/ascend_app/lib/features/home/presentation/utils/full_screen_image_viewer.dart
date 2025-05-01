@@ -71,14 +71,14 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
   }
 
   Widget _buildImage(String imagePath) {
-    print("Building image in viewer: $imagePath");
+    debugPrint("Building image in viewer: $imagePath");
     try {
       if (imagePath.startsWith('assets/')) {
         return Image.asset(
           imagePath,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            print("Error loading image in viewer: $error");
+            debugPrint("Error loading image in viewer: $error");
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -99,7 +99,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
           imagePath,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            print("Error loading image in viewer: $error");
+            debugPrint("Error loading image in viewer: $error");
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -117,7 +117,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
         );
       }
     } catch (e) {
-      print("Exception in image viewer: $e");
+      debugPrint("Exception in image viewer: $e");
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

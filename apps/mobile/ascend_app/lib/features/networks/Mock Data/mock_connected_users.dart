@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_blocked_users.dart';
+import 'package:flutter/material.dart';
 
 class MockConnectedUsers {
   // In-memory list to maintain connections (simulating a database)
@@ -101,7 +102,7 @@ class MockConnectedUsers {
 
   static void addConnection(ConnectedUser user) {
     if (user.user_id != null && MockBlockedUsers.isUserBlocked(user.user_id!)) {
-      print('Cannot add connection - user is blocked');
+      debugPrint('Cannot add connection - user is blocked');
       return;
     }
 
@@ -110,12 +111,12 @@ class MockConnectedUsers {
 
     // Add the new connection
     _connectedUsers.add(user);
-    print('Added connection: ${user.first_name} ${user.last_name}');
+    debugPrint('Added connection: ${user.first_name} ${user.last_name}');
   }
 
   static void removeConnection(String userId) {
     _connectedUsers.removeWhere((user) => user.user_id == userId);
-    print('Removed connection: $userId');
+    debugPrint('Removed connection: $userId');
   }
 
   static bool isConnected(String userId) {

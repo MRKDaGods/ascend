@@ -90,7 +90,7 @@ List<ConnectionRequestModel> fetchAcceptedConnectionRequest(
   return acceptedConnections;
 }
 
-List<ConnectionRequestModel> ConnectionRequests() {
+List<ConnectionRequestModel> getConnectionRequests() {
   return [
     ConnectionRequestModel(
       requestId: "101",

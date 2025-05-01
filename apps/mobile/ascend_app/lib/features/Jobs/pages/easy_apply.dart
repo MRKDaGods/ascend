@@ -7,7 +7,7 @@ class EasyApplyPage extends StatefulWidget {
   const EasyApplyPage({super.key, required this.job});
 
   @override
-  _EasyApplyPageState createState() => _EasyApplyPageState();
+  State<EasyApplyPage> createState() => _EasyApplyPageState();
 }
 
 class _EasyApplyPageState extends State<EasyApplyPage> {
@@ -82,9 +82,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
               ),
               SizedBox(height: 20),
               ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement file picker for resume upload
-                },
+                onPressed: () {},
                 icon: Icon(Icons.upload_file),
                 label: Text("Upload Resume"),
               ),

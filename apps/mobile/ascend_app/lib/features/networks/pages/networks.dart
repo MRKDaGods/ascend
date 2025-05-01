@@ -5,10 +5,8 @@ import 'package:ascend_app/features/networks/widgets/catchup.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/company_search/bloc/company_search_bloc.dart';
 import '../../../shared/widgets/custom_sliver_appbar.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/messaging/bloc/messaging_bloc.dart';
 

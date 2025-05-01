@@ -1,22 +1,24 @@
-import 'package:ascend_app/features/Logo/LogoWidget.dart';
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'package:ascend_app/features/Logo/logo_widget.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/JoinAscend.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/join_ascend.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/input_widgets.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/continue_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/core/routes/app_routes.dart';
-
+import 'package:get/get.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
   @override
-  _SignInPageState createState() => _SignInPageState();
+  State<SignInPage> createState() => _SignInPageState();
 }
 
 class _SignInPageState extends State<SignInPage> {
@@ -52,15 +54,86 @@ class _SignInPageState extends State<SignInPage> {
                 // Only navigate if it was a sign-in, not a sign-up
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const MainNavigation()),
+                  MaterialPageRoute(
+                    builder: (context) => const MainNavigation(),
+                  ),
                 );
               }
               // --- END ADDED CHECK ---
             } else if (state is AuthFailure) {
               // Show an error message if login fails
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.error)));
+              if (state.error.contains("confirmed")) {
+                // Display Resend confirmation email popup yes no
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Resend Confirmation Email'),
+                      content: const Text(
+                        'Your email is not confirmed. Do you want to resend the confirmation email?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('No'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Resend confirmation email
+                            sl.apiClient
+                                .post(
+                                  "/auth/resend-confirm",
+                                  data: {"email": _emailController.text.trim()},
+                                )
+                                .then((response) {
+                                  if (response.statusCode == 200) {
+                                    ScaffoldMessenger.of(
+                                      Get.context!,
+                                    ).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Confirmation email resent successfully!',
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(
+                                      Get.context!,
+                                    ).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Failed to resend confirmation email.',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                })
+                                .catchError((error) {
+                                  ScaffoldMessenger.of(
+                                    Get.context!,
+                                  ).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'An error occurred while resending the email.',
+                                      ),
+                                    ),
+                                  );
+                                });
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Yes'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.error)));
+              }
             }
           },
           child: LayoutBuilder(
@@ -207,7 +280,10 @@ class _SignInPageState extends State<SignInPage> {
                           alignment: Alignment.centerLeft,
                           child: TextButton(
                             onPressed: () {
-                              Navigator.pushReplacementNamed(context, '/forgotPasswordPage');
+                              Navigator.pushNamed(
+                                context,
+                                '/forgotPasswordPage',
+                              );
                             },
                             style: TextButton.styleFrom(
                               animationDuration: Duration.zero,

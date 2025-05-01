@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
-
 class ConversationModel {
   final String conversationId;
   final String userId;
   final String otherUserName;
-  final String otherUserProfileImageUrl;
+  final String? otherUserProfileImageUrl;
   final bool isBlocked;
   final String latestMessage;
   final DateTime latestTimestamp;

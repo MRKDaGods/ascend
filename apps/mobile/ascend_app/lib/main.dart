@@ -1,16 +1,10 @@
-import 'package:ascend_app/features/Messaging/domain/repoistories/messaging_repoistory.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
-import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
 import 'package:ascend_app/features/notifications/presentation/bloc/notification_event.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import for SharedPreferences
-import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
-import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart'; // <-- Import AuthState
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'core/app/app_initializer.dart';
@@ -19,16 +13,10 @@ import 'core/routes/app_routes.dart';
 import 'features/profile/bloc/user_profile_bloc.dart';
 import 'features/profile/bloc/user_profile_event.dart';
 import 'features/home/bloc/post_bloc/post_bloc.dart';
-// Import PostEvent if needed by PostBloc provider
-// import 'features/home/bloc/post_bloc/post_event.dart';
 import 'features/home/repositories/post_repository.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
-// Import NotificationEvent if needed by NotificationBloc provider
-// import 'features/notifications/presentation/bloc/notification_event.dart';
 import 'theme.dart';
 import 'features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
-import 'features/Messaging/data/datasources/remote_datasource.dart';
-import 'services/web_socket_service.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized FIRST
@@ -70,8 +58,6 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  bool _isInitialized = false;
-  // Remove _isInitialized flag
   bool _profileLoaded =
       false; // Flag only for profile loading triggered from main
 
@@ -80,9 +66,6 @@ class _MainAppState extends State<MainApp> {
     super.initState();
     _setupPushNotifications();
     _setupAuthListener();
-    setState(() {
-      _isInitialized = true;
-    });
   }
 
   // Add this method to initialize MessagingBloc on successful authentication
@@ -163,11 +146,11 @@ class _MainAppState extends State<MainApp> {
           // Load profile data only on successful login and if not already loaded
           if (authState is AuthSuccess && !authState.signUpMode) {
             // Check !authState.signUpMode
-            print(
+            debugPrint(
               "[MainApp] AuthSuccess (Login) detected, checking profile load...",
             );
             if (!_profileLoaded) {
-              print("[MainApp] Loading user profile.");
+              debugPrint("[MainApp] Loading user profile.");
               context.read<UserProfileBloc>().add(LoadUserProfile());
               // Update flag immediately to prevent re-dispatch
               _profileLoaded = true;
@@ -175,7 +158,7 @@ class _MainAppState extends State<MainApp> {
             }
           } else if (authState is AuthInitial || authState is AuthLoading) {
             // Reset only profile flag if user logs out or session starts/reloads
-            print(
+            debugPrint(
               "[MainApp] Auth state is Initial/Loading, resetting profile loaded flag.",
             );
             // Update flag immediately
@@ -183,7 +166,7 @@ class _MainAppState extends State<MainApp> {
             // No need for setState if flag is only for dispatch control
           }
         },
-        child: MaterialApp(
+        child: GetMaterialApp(
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           debugShowCheckedModeBanner: false,

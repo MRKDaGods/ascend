@@ -1,21 +1,19 @@
+import 'package:ascend_app/features/networks/model/location_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/schools_searching.dart';
+import 'package:ascend_app/features/networks/widgets/location_modal.dart';
 
-Widget? printschoolsSearching(
-  List<String> schoolsSearching,
-  void Function(String) onschoolsSearchingRemoved,
+Widget? printLocations(
+  List<LocationModel> locations,
+  void Function(String) onLocationsRemoved,
 ) {
-  return schoolsSearching.isNotEmpty
+  return locations.isNotEmpty
       ? Padding(
         padding: EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
-            schoolsSearching.length == 1
+            locations.length == 1
                 ? Text(
-                  schoolsSearching[0],
+                  "${locations[0]}",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -23,7 +21,7 @@ Widget? printschoolsSearching(
                   ),
                 )
                 : Text(
-                  "${schoolsSearching[0]} and ${schoolsSearching.length - 1} more",
+                  "${locations[0]} and ${locations.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -35,7 +33,7 @@ Widget? printschoolsSearching(
               icon: Icon(Icons.close, color: Colors.blue[600]),
               tooltip: "delete",
               onPressed: () {
-                onschoolsSearchingRemoved('schoolsSearching');
+                onLocationsRemoved('locations');
               },
             ),
           ],
@@ -44,35 +42,25 @@ Widget? printschoolsSearching(
       : null;
 }
 
-Widget buildSchoolsList(
-  List<String> schoolsSearching,
-  void Function(String) onschoolsSearchingRemoved,
+Widget buildLocationList(
+  List<LocationModel> locations,
+  void Function(String) onLocationsRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (_) => BlocProvider.value(
-                value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: SchoolsSearching(),
-              ),
-        ),
-      );
+      // Close the current modal
+      Navigator.pop(context);
+      showLocationModal(context);
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
-      'Schools',
+      'Locations',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     ),
-    subtitle: printschoolsSearching(
-      schoolsSearching,
-      onschoolsSearchingRemoved,
-    ),
+    subtitle: printLocations(locations, onLocationsRemoved),
     trailing: Text(
-      schoolsSearching.isNotEmpty ? 'Edit' : 'Any',
+      locations.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

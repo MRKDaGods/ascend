@@ -9,7 +9,7 @@ class JobDetailsPage extends StatefulWidget {
   const JobDetailsPage({super.key, required this.job});
 
   @override
-  _JobDetailsPageState createState() => _JobDetailsPageState();
+  State<JobDetailsPage> createState() => _JobDetailsPageState();
 }
 
 class _JobDetailsPageState extends State<JobDetailsPage> {
@@ -32,6 +32,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
         await launch(url);
       } else {
         // Show error if the link is invalid
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Could not open the application link.")),
         );

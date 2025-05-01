@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_state.dart';
 import 'package:ascend_app/features/home/models/comment_model.dart';
-import 'package:ascend_app/features/home/models/post_model.dart'; // Import PostModel
 import 'package:ascend_app/features/home/presentation/widgets/comment/comment_form.dart';
 import 'package:ascend_app/features/home/presentation/widgets/comment/comment_item.dart'; // Ensure CommentItem is imported
 
@@ -79,20 +78,28 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
           final post = state.getPostById(widget.postId); // Use extension method
           if (post != null) {
             // Find the comment using the recursive helper and the ID from the initial widget data
-            currentParentCommentData = findCommentByIdRecursive(post.comments, widget.parentComment.id);
-            debugPrint('🔄 [CommentDetailPage] Found parent comment ${currentParentCommentData?.id} in Bloc state. Replies count: ${currentParentCommentData?.replies.length}');
+            currentParentCommentData = findCommentByIdRecursive(
+              post.comments,
+              widget.parentComment.id,
+            );
+            debugPrint(
+              '🔄 [CommentDetailPage] Found parent comment ${currentParentCommentData?.id} in Bloc state. Replies count: ${currentParentCommentData?.replies.length}',
+            );
           } else {
-             debugPrint('⚠️ [CommentDetailPage] Post ${widget.postId} not found in Bloc state.');
+            debugPrint(
+              '⚠️ [CommentDetailPage] Post ${widget.postId} not found in Bloc state.',
+            );
           }
         }
 
         // Fallback to the initially passed comment if not found or state is wrong type
         currentParentCommentData ??= widget.parentComment;
-        debugPrint('🔄 [CommentDetailPage] Using parent comment ${currentParentCommentData.id} for build. Replies count: ${currentParentCommentData.replies.length}');
+        debugPrint(
+          '🔄 [CommentDetailPage] Using parent comment ${currentParentCommentData.id} for build. Replies count: ${currentParentCommentData.replies.length}',
+        );
 
         // Ensure we have a non-null comment to work with for the rest of the build
         final finalParentComment = currentParentCommentData;
-
 
         return Scaffold(
           appBar: AppBar(
@@ -114,20 +121,21 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                       // Set showReplies based on whether you want the "View Replies" text
                       // For this page, we always show replies below, so maybe false?
                       showReplies: false,
-                      isCurrentUser: finalParentComment.authorId == widget.currentUserId,
+                      isCurrentUser:
+                          finalParentComment.authorId == widget.currentUserId,
                       onReaction: widget.onReaction,
                       // Disable reply navigation from the parent on this page
                       onReply: null,
                       // Add other necessary parameters if CommentItem requires them
                     ),
                     const Divider(height: 24), // Add space before replies
-
                     // Display the Replies
                     if (finalParentComment.replies.isNotEmpty)
                       // Use ListView.separated for replies with dividers
                       ListView.separated(
                         shrinkWrap: true, // Crucial inside another scrollable
-                        physics: const NeverScrollableScrollPhysics(), // Disable inner scrolling
+                        physics:
+                            const NeverScrollableScrollPhysics(), // Disable inner scrolling
                         itemCount: finalParentComment.replies.length,
                         itemBuilder: (context, index) {
                           final reply = finalParentComment.replies[index];
@@ -138,12 +146,14 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                               comment: reply,
                               // Replies themselves don't show nested replies on this page
                               showReplies: false,
-                              isCurrentUser: reply.authorId == widget.currentUserId,
+                              isCurrentUser:
+                                  reply.authorId == widget.currentUserId,
                               onReaction: widget.onReaction,
                               // Allow tapping reply on a reply to update the input hint
                               onReply: (commentId) {
                                 setState(() {
-                                  _replyingTo = reply; // Set the specific reply being replied to
+                                  _replyingTo =
+                                      reply; // Set the specific reply being replied to
                                 });
                                 _replyFocusNode.requestFocus();
                               },
@@ -151,7 +161,10 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                             ),
                           );
                         },
-                        separatorBuilder: (context, index) => const SizedBox(height: 16), // Space between replies
+                        separatorBuilder:
+                            (context, index) => const SizedBox(
+                              height: 16,
+                            ), // Space between replies
                       )
                     else
                       // Message if no replies exist yet
@@ -166,11 +179,16 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
               ),
 
               // Reply Input Form Area
-              Container( // Wrap form in a container for styling
+              Container(
+                // Wrap form in a container for styling
                 decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor, // Match background
+                  color:
+                      Theme.of(
+                        context,
+                      ).scaffoldBackgroundColor, // Match background
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.1),
                       spreadRadius: 0,
                       blurRadius: 4,
@@ -191,7 +209,9 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                   onSubmit: (text) {
                     // Always submit reply to the main parent comment of this page
                     final parentIdToSubmit = finalParentComment.id;
-                    debugPrint('📤 [CommentDetailPage] Submitting reply. Parent Comment ID: $parentIdToSubmit');
+                    debugPrint(
+                      '📤 [CommentDetailPage] Submitting reply. Parent Comment ID: $parentIdToSubmit',
+                    );
                     widget.onAddReply(text, parentIdToSubmit);
                     _replyController.clear();
                     setState(() {
@@ -200,9 +220,10 @@ class _CommentDetailPageState extends State<CommentDetailPage> {
                     _replyFocusNode.unfocus(); // Hide keyboard
                   },
                   // Update hint text based on whether replying to the main comment or a specific reply
-                  hintText: _replyingTo != null
-                      ? "Reply to ${_replyingTo!.authorId == widget.currentUserId ? 'yourself' : _replyingTo!.authorName}"
-                      : "Reply to ${finalParentComment.authorId == widget.currentUserId ? 'yourself' : finalParentComment.authorName}",
+                  hintText:
+                      _replyingTo != null
+                          ? "Reply to ${_replyingTo!.authorId == widget.currentUserId ? 'yourself' : _replyingTo!.authorName}"
+                          : "Reply to ${finalParentComment.authorId == widget.currentUserId ? 'yourself' : finalParentComment.authorName}",
                 ),
               ),
             ],

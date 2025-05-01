@@ -1,13 +1,13 @@
-import 'package:ascend_app/features/Logo/LogoWidget.dart';
+import 'package:ascend_app/features/Logo/logo_widget.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/input_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({Key? key}) : super(key: key);
+  const ForgotPasswordPage({super.key});
 
   @override
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
@@ -54,20 +54,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   Widget _buildLogo() {
-    return Row(
-      children: const [
-        LogoWidget(height: 40, fontSize: 28),
-      ],
-    );
+    return Row(children: const [LogoWidget(height: 40, fontSize: 28)]);
   }
 
   Widget _buildTitle() {
     return const Text(
       "Forgot password",
-      style: TextStyle(
-        fontSize: 34,
-        fontWeight: FontWeight.bold,
-      ),
+      style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
     );
   }
 
@@ -130,12 +123,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     context.read<AuthBloc>().add(
       ForgotPasswordRequested(emailOrPhone: emailOrPhone),
     );
-
-    Navigator.pushReplacementNamed(
-      context,
-      '/verficationPasswordCodePage',
-      arguments: emailOrPhone,
-    );
   }
 
   void _showLoadingDialog(BuildContext context) {
@@ -148,8 +135,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   void _handleSuccess(BuildContext context, String message) {
     Navigator.pop(context); // Close the loading dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+
+    Navigator.pushReplacementNamed(
+      context,
+      '/verficationPasswordCodePage',
+      arguments: _emailPhoneController.text.trim(),
     );
   }
 

@@ -45,6 +45,7 @@ class _CurrentCompaniesSearchingState extends State<CurrentCompaniesSearching> {
           onPressed: () {
             Navigator.pop(context);
             Future.delayed(const Duration(milliseconds: 0), () {
+              // ignore: use_build_context_synchronously
               showCurrentCompanyModal(context);
             });
           },
@@ -188,6 +189,7 @@ class _CurrentCompaniesSearchingState extends State<CurrentCompaniesSearching> {
                 );
                 Navigator.pop(context);
                 Future.delayed(const Duration(milliseconds: 0), () {
+                  // ignore: use_build_context_synchronously
                   showCurrentCompanyModal(context);
                 });
               } catch (e) {

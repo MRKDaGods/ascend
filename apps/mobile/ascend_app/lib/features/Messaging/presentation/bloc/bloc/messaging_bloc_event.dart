@@ -1,7 +1,9 @@
 part of 'messaging_bloc_bloc.dart';
 
-@immutable
-sealed class MessagingBlocEvent {}
+abstract class MessagingBlocEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class IntializeMessaging extends MessagingBlocEvent {
   final bool forceReconnect;

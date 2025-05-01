@@ -4,7 +4,7 @@ class NetworkInvitesSettingsPage extends StatefulWidget {
   const NetworkInvitesSettingsPage({super.key});
 
   @override
-  _NetworkInvitesSettingsPageState createState() =>
+  State<NetworkInvitesSettingsPage> createState() =>
       _NetworkInvitesSettingsPageState();
 }
 

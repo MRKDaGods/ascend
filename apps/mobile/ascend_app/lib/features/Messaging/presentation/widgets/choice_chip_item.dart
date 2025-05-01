@@ -8,13 +8,13 @@ class ChoiceChipItem extends StatelessWidget {
   final IconData? icon;
 
   const ChoiceChipItem({
-    Key? key,
+    super.key,
     required this.item,
     required this.isSelected,
     required this.onSelected,
     required this.selectedColor,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

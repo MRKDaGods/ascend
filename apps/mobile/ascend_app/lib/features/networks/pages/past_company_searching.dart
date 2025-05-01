@@ -44,6 +44,7 @@ class _CompaniesSearchingState extends State<PastCompaniesSearching> {
           onPressed: () {
             Navigator.pop(context);
             Future.delayed(const Duration(milliseconds: 0), () {
+              // ignore: use_build_context_synchronously
               showpastCompanyModal(context);
             });
           },
@@ -187,6 +188,7 @@ class _CompaniesSearchingState extends State<PastCompaniesSearching> {
                 );
                 Navigator.pop(context);
                 Future.delayed(const Duration(milliseconds: 0), () {
+                  // ignore: use_build_context_synchronously
                   showpastCompanyModal(context);
                 });
               } catch (e) {

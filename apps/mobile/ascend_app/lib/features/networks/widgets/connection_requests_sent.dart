@@ -11,7 +11,7 @@ class ConnectionRequestsSent extends StatefulWidget {
   const ConnectionRequestsSent({super.key, required this.onRemove});
 
   @override
-  _ConnectionRequestsSentState createState() => _ConnectionRequestsSentState();
+  State<ConnectionRequestsSent> createState() => _ConnectionRequestsSentState();
 }
 
 class _ConnectionRequestsSentState extends State<ConnectionRequestsSent>
@@ -86,19 +86,19 @@ class _ConnectionRequestsSentState extends State<ConnectionRequestsSent>
                 buildSent(
                   state.pendingRequestsSent,
                   widget.onRemove,
-                  ConnectionRequestSentFilterMode.People,
+                  ConnectionRequestSentFilterMode.people,
                 ),
               ] else if (isSelectedList[1]) ...[
                 buildSent(
                   state.pendingRequestsSent,
                   widget.onRemove,
-                  ConnectionRequestSentFilterMode.Pages,
+                  ConnectionRequestSentFilterMode.pages,
                 ),
               ] else if (isSelectedList[2]) ...[
                 buildSent(
                   state.pendingRequestsSent,
                   widget.onRemove,
-                  ConnectionRequestSentFilterMode.Events,
+                  ConnectionRequestSentFilterMode.events,
                 ),
               ],
             ],

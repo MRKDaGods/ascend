@@ -54,37 +54,23 @@ class CompanyPage extends StatefulWidget {
   final List<String> badges;
 
   @override
-  _CompanyPageState createState() => _CompanyPageState();
+  State<CompanyPage> createState() => _CompanyPageState();
 }
 
 class _CompanyPageState extends State<CompanyPage> {
   late bool _isConnect;
   late bool _isFollow;
   late bool _isPending;
-  late List<ProfileSection> _sections;
 
   @override
   void initState() {
     super.initState();
     _isConnect = widget.isconnect;
-    _sections = List.from(widget.sections);
     if (_isConnect) {
       _isPending = false;
     }
     _isFollow = widget.isfollow;
     _isPending = widget.isPending;
-  }
-
-  void _updateSection(ProfileSection updatedSection) {
-    setState(() {
-      // Find the index of the section to update
-      final int index = _sections.indexWhere(
-        (section) => section.title == updatedSection.title,
-      );
-      if (index != -1) {
-        _sections[index] = updatedSection; // Update the section
-      }
-    });
   }
 
   void _toggleConnect() {
@@ -147,11 +133,6 @@ class _CompanyPageState extends State<CompanyPage> {
   Future<void> _onRefresh() async {
     // Simulate a network call or data refresh
     await Future.delayed(Duration(seconds: 2));
-    // Update the state or data as needed
-    setState(() {
-      // Example: Refresh the sections or any other data
-      _sections = List.from(widget.sections);
-    });
   }
 
   @override

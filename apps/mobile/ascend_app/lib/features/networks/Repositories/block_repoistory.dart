@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
@@ -39,9 +40,9 @@ class BlockRepository {
         throw Exception('Failed to unblock user: ${response.body}');
       }
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      print('Error: $e');
+      debugPrint('Error: $e');
     }
   }
 
@@ -62,9 +63,9 @@ class BlockRepository {
         throw Exception('Failed to unblock user: ${response.body}');
       }
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      print('Error: $e');
+      debugPrint('Error: $e');
     }
   }
 
@@ -96,9 +97,9 @@ class BlockRepository {
         throw Exception('Failed to fetch blocked users: ${response.body}');
       }
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      print('Error: $e');
+      debugPrint('Error: $e');
       return [];
     }
   }

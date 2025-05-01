@@ -11,7 +11,7 @@ Widget buildReceived(
   Function(String) onDecline,
 ) {
   switch (selection) {
-    case ConnectionRequestReceivedFilterMode.All:
+    case ConnectionRequestReceivedFilterMode.all:
       return Expanded(
         child: ListView.builder(
           itemCount: pendingRequestsReceived.length,
@@ -87,8 +87,8 @@ Widget buildReceived(
           },
         ),
       );
-      break;
-    case ConnectionRequestReceivedFilterMode.Newsletter:
+
+    case ConnectionRequestReceivedFilterMode.newsletter:
       return Center(
         child: Text(
           'No Newsletters',
@@ -99,9 +99,8 @@ Widget buildReceived(
           ),
         ),
       );
-      break;
 
-    case ConnectionRequestReceivedFilterMode.People:
+    case ConnectionRequestReceivedFilterMode.people:
       return Expanded(
         child: ListView.builder(
           itemCount: pendingRequestsReceived.length,
@@ -177,8 +176,5 @@ Widget buildReceived(
           },
         ),
       );
-      break;
-    default:
-      return SizedBox.shrink();
   }
 }

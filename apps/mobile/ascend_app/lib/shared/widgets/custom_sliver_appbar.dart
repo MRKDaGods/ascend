@@ -36,7 +36,7 @@ class CustomSliverAppBar extends StatefulWidget {
   });
 
   @override
-  _CustomSliverAppBarState createState() => _CustomSliverAppBarState();
+  State<CustomSliverAppBar> createState() => _CustomSliverAppBarState();
 }
 
 class _CustomSliverAppBarState extends State<CustomSliverAppBar> {

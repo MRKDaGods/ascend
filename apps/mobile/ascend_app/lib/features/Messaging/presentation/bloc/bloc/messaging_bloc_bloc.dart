@@ -1,17 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 import 'package:ascend_app/features/Messaging/data/model/conversation_model.dart';
 import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
 import 'package:ascend_app/features/Messaging/data/datasources/remote_datasource.dart';
 import 'package:ascend_app/services/web_socket_service.dart' as custom_ws;
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'messaging_bloc_event.dart';
 part 'messaging_bloc_state.dart';
@@ -75,9 +74,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     _typingSubscription = _repository.typingStatusStream.listen((typingData) {
       // The typingData should be a Map with conversationId as the key
       final Object conversationId =
-          typingData is Map
-              ? (typingData['conversationId']?.toString() ?? '')
-              : (typingData is String ? typingData : '');
+          typingData['conversationId']?.toString() ?? '';
 
       if (conversationId.toString().isNotEmpty) {
         add(TypingStatusUpdated(conversationId.toString()));
@@ -141,7 +138,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         // Get Unseen Count
         final unseenCount = await _repository.getUnseenCount();
 
-        emit(MessagingIntialized(unseenCount ?? 0));
+        emit(MessagingIntialized(unseenCount));
       }
 
       // Set initialized flag to true
@@ -171,7 +168,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       emit(
         ConversationLoaded(
           conversations,
-          unseenCount ?? 0,
+          unseenCount,
           1,
           conversations.isEmpty || conversations.length < 20,
         ),
@@ -359,7 +356,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
 
     // If conversation ID is not null, mark messages as read
     if (event.conversationId != '') {
-      add(MarkMessagesasRead(event.conversationId!));
+      add(MarkMessagesasRead(event.conversationId));
     }
   }
 
@@ -398,9 +395,9 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       final unseenCount = await _repository.getUnseenCount();
       final currentState = state;
       if (currentState is ConversationLoaded) {
-        emit(currentState.copyWith(unseenCount: unseenCount ?? 0));
+        emit(currentState.copyWith(unseenCount: unseenCount));
       } else if (currentState is MessagingIntialized) {
-        emit(currentState.copyWith(unseenCount: unseenCount ?? 0));
+        emit(currentState.copyWith(unseenCount: unseenCount));
       }
     } catch (e) {
       debugPrint('[MessagingBloc] Error refreshing unseen count: $e');
@@ -451,7 +448,6 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       '[MessagingBloc] Received WebSocket message: $message',
     ); // Log raw message
 
-    final currentState = state;
     try {
       // final message = event.message; // Already defined above
       final messageData = message['data'] ?? {};

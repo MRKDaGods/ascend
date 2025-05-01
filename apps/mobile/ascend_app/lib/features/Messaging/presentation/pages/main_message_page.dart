@@ -6,10 +6,10 @@ import 'package:ascend_app/features/Messaging/data/model/conversation_model.dart
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/conversation.dart';
 import 'package:ascend_app/features/Messaging/presentation/pages/chat_page.dart';
-import 'package:ascend_app/features/Messaging/utils/date_formatter.dart'; // Import your date formatter
+import 'package:ascend_app/features/Messaging/utils/date_formatter.dart';
 
 class MainMessagingPage extends StatefulWidget {
-  const MainMessagingPage({Key? key}) : super(key: key);
+  const MainMessagingPage({super.key});
 
   @override
   State<MainMessagingPage> createState() => _MainMessagingPageState();
@@ -89,6 +89,7 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
 
     // Navigate to chat screen with BlocProvider
     Navigator.push(
+      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(
         builder:
@@ -227,15 +228,15 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
               otherUserName: conversation.otherUserName,
               otherUserProfileImageUrl:
                   conversation.otherUserProfileImageUrl != null &&
-                          conversation.otherUserProfileImageUrl.isNotEmpty
-                      ? conversation.otherUserProfileImageUrl
+                          conversation.otherUserProfileImageUrl!.isNotEmpty
+                      ? conversation.otherUserProfileImageUrl!
                       : 'assets/EmptyUser.png',
-              latestMessage: conversation.latestMessage ?? 'No messages yet',
+              latestMessage: conversation.latestMessage,
               // Use your date formatter utility here
               latestTimestamp: DateFormatter.formatMessageDate(
                 conversation.latestTimestamp,
               ),
-              unseenCount: conversation.unseenCount ?? 0,
+              unseenCount: conversation.unseenCount,
               isOnline: false,
             ),
           );

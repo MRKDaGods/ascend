@@ -6,18 +6,18 @@ class ConnectionSuggestions extends StatefulWidget {
   final List<UserSuggestedtoConnect> suggestedUsers;
   final Function(String) onSentMessageRequest;
   final Function(String) onSend;
-  final bool ShowAll;
+  final bool showAll;
 
   const ConnectionSuggestions({
     super.key,
     required this.suggestedUsers,
     required this.onSentMessageRequest,
     required this.onSend,
-    required this.ShowAll,
+    required this.showAll,
   });
 
   @override
-  _ConnectionSuggestionsState createState() => _ConnectionSuggestionsState();
+  State<ConnectionSuggestions> createState() => _ConnectionSuggestionsState();
 }
 
 class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
@@ -51,16 +51,15 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
 
     final int crossAxisCount =
         screenWidth > 600 ? 4 : 2; // Adjust columns for larger screens
-    final double childAspectRatio = screenWidth > 600 ? 0.9 : 0.8;
 
     final int itemCount =
         screenWidth > 600
-            ? !widget.ShowAll
+            ? !widget.showAll
                 ? localsuggestedUsers.length > 8
                     ? 8
                     : localsuggestedUsers.length
                 : localsuggestedUsers.length
-            : !widget.ShowAll
+            : !widget.showAll
             ? localsuggestedUsers.length > 4
                 ? 4
                 : localsuggestedUsers.length
@@ -85,7 +84,7 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
           user: user,
           onSend: _handleConnect,
           onSentMessageRequest: widget.onSentMessageRequest,
-          ShowAll: widget.ShowAll,
+          showAll: widget.showAll,
           isConnected: isConnected,
           onHide: (userId) {
             setState(() {

@@ -144,6 +144,7 @@ class LocationSearching extends StatelessWidget {
           Navigator.pop(context);
           Future.delayed(
             const Duration(milliseconds: 0),
+            // ignore: use_build_context_synchronously
             () => showLocationModal(context),
           );
         },

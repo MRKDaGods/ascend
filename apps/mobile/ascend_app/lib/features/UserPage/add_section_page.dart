@@ -14,7 +14,7 @@ class AddSectionPage extends StatefulWidget {
   const AddSectionPage({super.key, required this.onSectionAdded});
 
   @override
-  _AddSectionPageState createState() => _AddSectionPageState();
+  State<AddSectionPage> createState() => _AddSectionPageState();
 }
 
 class _AddSectionPageState extends State<AddSectionPage> {
@@ -134,9 +134,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
             style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 12),
-          ...items
-              .map((item) => _buildListItem(item["label"], item["action"]))
-              .toList(),
+          ...items.map((item) => _buildListItem(item["label"], item["action"])),
         ],
       ],
     );
