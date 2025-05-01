@@ -22,7 +22,8 @@ import {
   TextField,
 } from '@mui/material';
 import ReportIcon from '@mui/icons-material/Report';
-import Jobsnavbar from '@/app/components/Jobsnavbar';
+// import Jobsnavbar from '@/app/components/Jobsnavbar';
+import MergeJobsNavbar from '@/app/components/MergeJobsNavbar';
 
 interface Job {
   job_id: number;
@@ -140,7 +141,9 @@ const SearchResultsPage = () => {
 
   return (
     <>
-      <Jobsnavbar />
+      {/* <Jobsnavbar /> */}
+      <MergeJobsNavbar />
+
       <Box
         sx={{
           pt: { xs: 10, sm: 12 },

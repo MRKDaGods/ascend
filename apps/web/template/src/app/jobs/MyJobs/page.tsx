@@ -19,16 +19,16 @@ import {
 import JobTabs from '@/app/components/JobTabs';
 import JobCard from '@/app/components/JobCard';
 import { useJobStore } from '@/app/stores/useJobStore';
-import Jobsnavbar from '@/app/components/Jobsnavbar';   // add the navbar without the 2 searches when integrating with the deployed version
+import MergeJobsNavbar from '@/app/components/MergeJobsNavbar';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 
 const MyJobsPage = () => {
-  const theme = useTheme();
+  const theme = useTheme(); // Access the current theme
   const { activeTab, jobs, fetchSavedJobs, fetchAppliedJobs, deleteJob, fetchPostedJobs } = useJobStore();
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
-  
+
   useEffect(() => {
     setHasMounted(true);
     fetchSavedJobs();
@@ -41,7 +41,7 @@ const MyJobsPage = () => {
     console.log('Active tab changed to:', activeTab);
     console.log('Jobs for this tab:', jobs.filter(job => job.status === activeTab));
   }, [activeTab, jobs]);
-  
+
   // Reset the company filter when tab changes
   useEffect(() => {
     setSelectedCompanyId('');
@@ -59,16 +59,16 @@ const MyJobsPage = () => {
   };
 
   const uniqueCompanies = getUniqueCompanies();
-  
+
   // Filter jobs by tab AND company (if on Posted tab and company selected)
   const filteredJobs = jobs.filter((job) => {
     const matchesTab = job.status === activeTab;
-    
+
     // Apply company filter only when in Posted tab and a company is selected
     if (activeTab === 'Posted' && selectedCompanyId) {
       return matchesTab && job.company_id.toString() === selectedCompanyId;
     }
-    
+
     return matchesTab;
   });
 
@@ -79,11 +79,12 @@ const MyJobsPage = () => {
 
   return (
     <>
-      <Jobsnavbar />
+      <MergeJobsNavbar />
 
       <Box
         sx={{
-          background: 'linear-gradient(to bottom, #f4f6f8, #ffffff)',
+          bgcolor: theme.palette.background.default,
+          color: theme.palette.text.primary,
           minHeight: '100vh',
           pt: { xs: 10, sm: 12 },
           pb: 6,
@@ -99,6 +100,7 @@ const MyJobsPage = () => {
               mb: 5,
               textAlign: 'center',
               background: theme.palette.background.paper,
+              color: theme.palette.text.primary,
             }}
           >
             <Typography
@@ -124,16 +126,16 @@ const MyJobsPage = () => {
               position: 'sticky',
               top: { xs: 56, sm: 64 },
               zIndex: 10,
-              backgroundColor: '#f9fafb',
+              backgroundColor: theme.palette.background.default,
               mb: 4,
-              borderBottom: '1px solid #e0e0e0',
+              borderBottom: `1px solid ${theme.palette.divider}`,
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               borderRadius: 2,
             }}
           >
             <JobTabs />
           </Box>
-          
+
           {/* Company Filter - Only show in Posted tab */}
           {activeTab === 'Posted' && uniqueCompanies.length > 0 && (
             <Paper 
@@ -142,7 +144,7 @@ const MyJobsPage = () => {
                 p: 2, 
                 mb: 3, 
                 borderRadius: 2,
-                backgroundColor: '#fff',
+                backgroundColor: theme.palette.background.paper,
                 display: 'flex',
                 alignItems: 'center',
                 flexDirection: { xs: 'column', sm: 'row' },
@@ -231,11 +233,12 @@ const MyJobsPage = () => {
                   px: 4,
                   textAlign: 'center',
                   borderRadius: 4,
-                  backgroundColor: '#fff',
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.secondary,
                 }}
               >
                 <WorkOutlineIcon
-                  sx={{ fontSize: 56, mb: 2, color: 'primary.light' }}
+                  sx={{ fontSize: 56, mb: 2, color: theme.palette.primary.light }}
                 />
                 <Typography variant="h6" gutterBottom>
                   No jobs found in this tab
