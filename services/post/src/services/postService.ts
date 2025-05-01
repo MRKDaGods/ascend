@@ -261,6 +261,7 @@ export class PostService {
     return comment;
   }
 
+ 
   async getCommentById(commentId: number): Promise<Comment | null> {
     const result = await db.query(
       `SELECT c.*,
@@ -275,13 +276,55 @@ export class PostService {
        WHERE c.id = $1`,
       [commentId]
     );
-
+  
     if (result.rows.length === 0) return null;
-
+  
     const comment = result.rows[0];
+    
+    // Add reaction counts to the comment object
+    const engagementResult = await db.query(
+      `SELECT * FROM post_service.comment_engagement WHERE comment_id = $1`,
+      [commentId]
+    );
+    
+    if (engagementResult.rows.length > 0) {
+      const engagement = engagementResult.rows[0];
+      comment.reactions = {
+        like_count: engagement.like_count,
+        love_count: engagement.love_count,
+        support_count: engagement.support_count,
+        celebrate_count: engagement.celebrate_count,
+        funny_count: engagement.funny_count,
+        curious_count: engagement.curious_count,
+        insightful_count: engagement.insightful_count,
+        total_reactions_count: engagement.total_reactions_count
+      };
+    } else {
+      comment.reactions = {
+        like_count: 0,
+        love_count: 0,
+        support_count: 0, 
+        celebrate_count: 0,
+        funny_count: 0,
+        curious_count: 0,
+        insightful_count: 0,
+        total_reactions_count: 0
+      };
+    }
+    
+    // Get replies
     comment.replies = await this.getCommentReplies(commentId);
+    
+    // Process user profile picture
+    if (comment.user && comment.user.profile_picture_id) {
+      comment.user.profile_picture_url = await this.getFileUrl(
+        comment.user.profile_picture_id
+      );
+    }
+    
     return comment;
   }
+
 
   async getPostComments(
     postId: number,
@@ -796,7 +839,206 @@ export class PostService {
       ]
     );
   }
+  // Comments Reactions
 
+  /**
+   * React to a comment with a specific reaction type
+   * @param userId User ID
+   * @param commentId Comment ID
+   * @param reactionType Reaction type
+   * @returns Object indicating whether the comment was reacted to and the reaction type
+   */
+  async reactToComment(
+    userId: number, 
+    commentId: number, 
+    reactionType: string
+  ): Promise<{ reacted: boolean; type: string }> {
+    try {
+      // Check if comment exists
+      const comment = await this.getCommentById(commentId);
+      if (!comment) {
+        throw new Error("Comment not found");
+      }
+  
+      // Check if user already reacted to this comment
+      const existingReaction = await db.query(
+        "SELECT reaction_type FROM post_service.comment_reactions WHERE user_id = $1 AND comment_id = $2",
+        [userId, commentId]
+      );
+      
+      const hasExistingReaction = existingReaction.rows.length > 0;
+      const currentReactionType = hasExistingReaction ? existingReaction.rows[0].reaction_type : null;
+      
+      // If same reaction type exists, remove it (toggle off)
+      if (hasExistingReaction && currentReactionType === reactionType) {
+        await db.query(
+          "DELETE FROM post_service.comment_reactions WHERE user_id = $1 AND comment_id = $2",
+          [userId, commentId]
+        );
+        
+        return { reacted: false, type: reactionType };
+      } 
+      // If different reaction or no reaction exists, add/update the reaction
+      else {
+        if (hasExistingReaction) {
+          // Update existing reaction
+          await db.query(
+            `UPDATE post_service.comment_reactions 
+             SET reaction_type = $1, updated_at = NOW()
+             WHERE user_id = $2 AND comment_id = $3`,
+            [reactionType, userId, commentId]
+          );
+        } else {
+          // Add new reaction
+          await db.query(
+            `INSERT INTO post_service.comment_reactions (user_id, comment_id, reaction_type, created_at, updated_at)
+             VALUES ($1, $2, $3, NOW(), NOW())`,
+            [userId, commentId, reactionType]
+          );
+        }
+        
+        return { reacted: true, type: reactionType };
+      }
+    } catch (error) {
+      console.error("Error reacting to comment:", error);
+      throw new Error("Failed to react to comment");
+    }
+  }
+  
+  /**
+   * Get all users who reacted to a comment with their reaction types
+   * @param commentId Comment ID
+   * @param reactionType Optional filter by reaction type
+   * @param limit Maximum number of reactions to return
+   * @param offset Pagination offset
+   * @returns List of users with their reaction information
+   */
+  async getCommentReactions(
+    commentId: number,
+    reactionType?: string,
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<any[]> {
+    try {
+      // Check if comment exists
+      const comment = await this.getCommentById(commentId);
+      if (!comment) {
+        throw new Error("Comment not found");
+      }
+  
+      // Build query based on whether a reaction type filter is provided
+      let query = `
+        SELECT 
+          r.user_id,
+          r.reaction_type,
+          r.created_at,
+          r.updated_at,
+          json_build_object(
+            'id', u.user_id,
+            'first_name', u.first_name,
+            'last_name', u.last_name,
+            'profile_picture_id', u.profile_picture_id
+          ) as user
+        FROM post_service.comment_reactions r
+        JOIN user_service.profiles u ON r.user_id = u.user_id
+        WHERE r.comment_id = $1
+      `;
+      
+      const queryParams: any[] = [commentId];
+      
+      if (reactionType) {
+        query += ` AND r.reaction_type = $2`;
+        queryParams.push(reactionType);
+      }
+      
+      // Add ordering and pagination
+      query += ` ORDER BY r.created_at DESC
+                 LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+      queryParams.push(limit, offset);
+      
+      const result = await db.query(query, queryParams);
+      
+      // Process results to include profile pictures
+      const reactions = await Promise.all(
+        result.rows.map(async (reaction) => {
+          if (reaction.user && reaction.user.profile_picture_id) {
+            reaction.user.profile_picture_url = await this.getFileUrl(
+              reaction.user.profile_picture_id
+            );
+          }
+          return reaction;
+        })
+      );
+      
+      return reactions;
+    } catch (error) {
+      console.error("Error getting comment reactions:", error);
+      throw new Error("Failed to get comment reactions");
+    }
+  }
+  
+  /**
+   * Get reaction counts for a specific comment
+   * @param commentId Comment ID
+   * @returns Object containing counts for each reaction type
+   */
+  async getCommentReactionCounts(commentId: number): Promise<Record<string, number>> {
+    try {
+      const result = await db.query(
+        `SELECT * FROM post_service.comment_engagement WHERE comment_id = $1`,
+        [commentId]
+      );
+      
+      if (result.rows.length === 0) {
+        return {
+          like_count: 0,
+          love_count: 0,
+          support_count: 0,
+          celebrate_count: 0,
+          funny_count: 0,
+          curious_count: 0,
+          insightful_count: 0,
+          total_reactions_count: 0,
+          replies_count: 0
+        };
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error getting comment reaction counts:", error);
+      throw new Error("Failed to get comment reaction counts");
+    }
+  }
+  
+  /**
+   * Check if user has reacted to a comment and get the reaction type
+   * @param commentId Comment ID
+   * @param userId User ID
+   * @returns Object containing whether user reacted and the reaction type
+   */
+  async getUserCommentReaction(
+    commentId: number, 
+    userId: number
+  ): Promise<{ hasReacted: boolean; reactionType: string | null }> {
+    try {
+      const result = await db.query(
+        `SELECT reaction_type FROM post_service.comment_reactions 
+         WHERE user_id = $1 AND comment_id = $2`,
+        [userId, commentId]
+      );
+      
+      if (result.rows.length === 0) {
+        return { hasReacted: false, reactionType: null };
+      }
+      
+      return { hasReacted: true, reactionType: result.rows[0].reaction_type };
+    } catch (error) {
+      console.error("Error getting user reaction to comment:", error);
+      throw new Error("Failed to get user reaction to comment");
+    }
+  }
+  
+ 
   // Tag users in post or comment
   async tagUsers(params: {
     contentType: "post" | "comment";

@@ -26,7 +26,10 @@ import {
   getSavedArticles,
 ultimateSearch,
   reactToPost,
-  getPostReactions
+  getPostReactions,
+  reactToComment,
+  getCommentReactions,
+  getCommentReactionCounts,
 } from "../controllers/postController";
 
 const upload = multer({
@@ -62,6 +65,10 @@ router.post("/:postId/comments", authenticateToken,  upload.none(), createCommen
 router.patch("/:postId/comments/:commentId", authenticateToken, updateComment);
 router.delete("/:postId/comments/:commentId", authenticateToken, deleteComment);
 
+// Comment reaction routes
+router.post("/comments/:commentId/react", authenticateToken, reactToComment);
+router.get("/comments/:commentId/reactions", authenticateToken, getCommentReactions);
+router.get("/comments/:commentId/reaction-counts", authenticateToken, getCommentReactionCounts);
 // Share routes
 router.post("/:postId/share", authenticateToken,upload.none(),  sharePost);
 

@@ -385,6 +385,116 @@ export const deleteComment = async (
   }
 };
 
+
+/**
+ * React to a comment with a specific reaction type
+ * @route POST /comments/:commentId/react
+ * @param {string} commentId - The ID of the comment to react to
+ * @param {string} type - Reaction type ('like', 'love', 'support', 'celebrate', 'funny', 'curious', 'insightful')
+ * @returns {object} Success message with reaction info
+ */
+export const reactToComment = async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.user!.id;
+  const commentId = parseInt(req.params.commentId);
+  const { type } = req.body;
+  
+  // Validate reaction type
+  const validReactions = ['like', 'love', 'support', 'celebrate', 'funny', 'curious', 'insightful'];
+  
+  if (!validReactions.includes(type)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid reaction type. Must be one of: ${validReactions.join(', ')}`
+    });
+  }
+  
+  try {
+    const result = await postService.reactToComment(userId, commentId, type);
+    res.json({
+      success: true,
+      data: {
+        reacted: result.reacted,
+        type: result.type,
+        message: result.reacted 
+          ? `Added "${result.type}" reaction to comment`
+          : `Removed "${result.type}" reaction from comment`
+      }
+    });
+  } catch (error) {
+    console.error("Error reacting to comment:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
+ * Get all users who reacted to a comment with their reaction types
+ * @route GET /comments/:commentId/reactions
+ * @param {string} commentId - The ID of the comment to get reactions for
+ * @param {string} type - Optional filter by reaction type
+ * @param {number} limit - Number of reactions to return (default: 20)
+ * @param {number} offset - Pagination offset (default: 0)
+ * @returns {object} List of users with their reaction types
+ */
+export const getCommentReactions = async (req: AuthenticatedRequest, res: Response) => {
+  const commentId = parseInt(req.params.commentId);
+  const type = req.query.type as string;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = parseInt(req.query.offset as string) || 0;
+  
+  // Validate reaction type if provided
+  const validReactions = ['like', 'love', 'support', 'celebrate', 'funny', 'curious', 'insightful'];
+  
+  if (type && !validReactions.includes(type)) {
+    return res.status(400).json({
+      success: false,
+      error: `Invalid reaction type filter. Must be one of: ${validReactions.join(', ')}`
+    });
+  }
+  
+  try {
+    const reactions = await postService.getCommentReactions(
+      commentId,
+      type as any,
+      limit,
+      offset
+    );
+    
+    res.json({
+      success: true,
+      data: reactions,
+      pagination: {
+        limit,
+        offset
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching comment reactions:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
+ * Get reaction metrics for a comment
+ * @route GET /comments/:commentId/reaction-counts
+ * @param {string} commentId - The ID of the comment to get reaction counts for
+ * @returns {object} Counts for each reaction type
+ */
+export const getCommentReactionCounts = async (req: AuthenticatedRequest, res: Response) => {
+  const commentId = parseInt(req.params.commentId);
+  
+  try {
+    const counts = await postService.getCommentReactionCounts(commentId);
+    res.json({
+      success: true,
+      data: counts
+    });
+  } catch (error) {
+    console.error("Error fetching comment reaction counts:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+
 /**
  * Share a post
  * @route POST /posts/:postId/share
