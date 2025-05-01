@@ -10,7 +10,7 @@ import {
   Box,
   Autocomplete,
 } from "@mui/material";
-import { usepJobStore } from "@/app/JobPosting/store/usepJobStore";
+import { usepJobStore } from "../stores/usepJobStore";
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { Radius } from "lucide-react";
 

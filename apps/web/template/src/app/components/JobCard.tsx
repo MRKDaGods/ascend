@@ -36,7 +36,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
-import { useJobStore, JobStatus, ApplicationStatus } from '@/app/shared/store/useJobStore';
+import { useJobStore, JobStatus, ApplicationStatus } from '../stores/useJobStore';
 import { styled } from '@mui/material/styles';
 
 // Define rounded style constants for reuse throughout the component

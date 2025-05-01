@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ApplicationCard from '../job/[jobId]/applications/components/ApplicationCard';
+import ApplicationCard from '../components/ApplicationCard';
 
 describe('ApplicationCard Component', () => {
   const mockOnUpdateStatus = jest.fn();
