@@ -92,7 +92,7 @@ const JobDetails = () => {
 
     setSavedJobPopupOpen(true);
     setTimeout(() => {
-      router.push('/MyJobs');
+      router.push('/jobs/MyJobs');
     }, 1000);
   };
 

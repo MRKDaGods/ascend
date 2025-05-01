@@ -248,7 +248,6 @@ const JobCard: React.FC<JobCardProps> = ({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
         },
         body: JSON.stringify(changedFields),
       });
@@ -323,13 +322,13 @@ const JobCard: React.FC<JobCardProps> = ({
         about: '',
         requirements: '',
       });
-      router.push(`/apply?${queryParams.toString()}`);
+      router.push(`/jobs/apply?${queryParams.toString()}`);
     }
   };
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push(`/JobPosting/edit/${job_id}`);
+    router.push(`/jobs/JobPosting/edit/${job_id}`);
   };
 
   const getApplicationStatusColor = (status: ApplicationStatus) => {

@@ -21,6 +21,7 @@ import { usePostStore } from "../stores/usePostStore";
 import { useProfileStore } from "../stores/useProfileStore";
 
 import {api} from "@/api/";
+import SidebarPreview from "../components/SidebarPreview";
 
 const Feed: React.FC = () => {
   const theme = useTheme();
@@ -76,7 +77,7 @@ const Feed: React.FC = () => {
         >
           {userData ? (
             <>
-              <ProfileCard />
+              <ProfileCard  />
               <TryPremCard />
               <CompanyCard />
               </>

@@ -89,7 +89,7 @@ const SearchResultsPage = () => {
       type: job.type || 'Full-time',
       id: job.job_id.toString(),
     });
-    router.push(`/apply?${params.toString()}`);
+    router.push(`/jobs/apply?${params.toString()}`);
   };
 
   const openReportDialog = (job: Job) => {

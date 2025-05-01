@@ -51,7 +51,7 @@ const JobItem = ({
       queryParams.append('requirements', requirements.join(','));
     }
     
-    router.push(`/apply?${queryParams.toString()}`);
+    router.push(`/jobs/apply?${queryParams.toString()}`);
   };
 
   return (
