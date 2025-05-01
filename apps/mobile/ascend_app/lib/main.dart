@@ -1,3 +1,6 @@
+import 'package:ascend_app/features/Messaging/domain/repoistories/messaging_repoistory.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
@@ -8,6 +11,7 @@ import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart'; // <-
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import 'core/app/app_initializer.dart';
 import 'core/di/dependency_injection.dart';
@@ -22,6 +26,9 @@ import 'features/notifications/presentation/bloc/notification_bloc.dart';
 // Import NotificationEvent if needed by NotificationBloc provider
 // import 'features/notifications/presentation/bloc/notification_event.dart';
 import 'theme.dart';
+import 'features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
+import 'features/Messaging/data/datasources/remote_datasource.dart';
+import 'services/web_socket_service.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized FIRST
@@ -63,14 +70,36 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+  bool _isInitialized = false;
   // Remove _isInitialized flag
-  bool _profileLoaded = false; // Flag only for profile loading triggered from main
+  bool _profileLoaded =
+      false; // Flag only for profile loading triggered from main
 
   @override
   void initState() {
     super.initState();
     _setupPushNotifications();
-    // Remove setState for _isInitialized
+    _setupAuthListener();
+    setState(() {
+      _isInitialized = true;
+    });
+  }
+
+  // Add this method to initialize MessagingBloc on successful authentication
+  void _setupAuthListener() {
+    sl.authBloc.stream.listen((state) {
+      if (state is AuthSuccess) {
+        // Find the MessagingBloc and initialize it
+        final messagingBloc = BlocProvider.of<MessagingBloc>(
+          sl.navigatorKey.currentContext!,
+        );
+        // Check if the MessagingBloc is already initialized
+        if (!messagingBloc.isIntialized) {
+          // Initialize the MessagingBloc
+          messagingBloc.add(IntializeMessaging(forceReconnect: true));
+        }
+      }
+    });
   }
 
   // Method to set up push notification handlers
@@ -113,19 +142,30 @@ class _MainAppState extends State<MainApp> {
         ),
         BlocProvider<PostBloc>(
           // Restore original creation logic (likely fetches immediately or handled in Home page)
-          create: (context) => PostBloc(PostRepository()), // Assuming it might add LoadPosts itself or Home page does
+          create:
+              (context) => PostBloc(
+                PostRepository(),
+              ), // Assuming it might add LoadPosts itself or Home page does
         ),
         BlocProvider<NotificationBloc>(
-           // Restore original creation logic (likely fetches immediately or handled elsewhere)
-          create: (context) => sl.notificationBloc, // Assuming it might add FetchNotifications itself or handled elsewhere
+          // Restore original creation logic (likely fetches immediately or handled elsewhere)
+          create:
+              (context) =>
+                  sl.notificationBloc, // Assuming it might add FetchNotifications itself or handled elsewhere
         ),
         BlocProvider<SearchBloc>.value(value: sl.searchBloc),
+
+        // Add the MessagingBloc to the providers
+        Provider<MessagingBloc>.value(value: sl.messagingBloc),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, authState) {
           // Load profile data only on successful login and if not already loaded
-          if (authState is AuthSuccess && !authState.signUpMode) { // Check !authState.signUpMode
-            print("[MainApp] AuthSuccess (Login) detected, checking profile load...");
+          if (authState is AuthSuccess && !authState.signUpMode) {
+            // Check !authState.signUpMode
+            print(
+              "[MainApp] AuthSuccess (Login) detected, checking profile load...",
+            );
             if (!_profileLoaded) {
               print("[MainApp] Loading user profile.");
               context.read<UserProfileBloc>().add(LoadUserProfile());
@@ -135,10 +175,12 @@ class _MainAppState extends State<MainApp> {
             }
           } else if (authState is AuthInitial || authState is AuthLoading) {
             // Reset only profile flag if user logs out or session starts/reloads
-            print("[MainApp] Auth state is Initial/Loading, resetting profile loaded flag.");
+            print(
+              "[MainApp] Auth state is Initial/Loading, resetting profile loaded flag.",
+            );
             // Update flag immediately
             _profileLoaded = false;
-             // No need for setState if flag is only for dispatch control
+            // No need for setState if flag is only for dispatch control
           }
         },
         child: MaterialApp(
@@ -146,7 +188,9 @@ class _MainAppState extends State<MainApp> {
           darkTheme: AppTheme.dark,
           debugShowCheckedModeBanner: false,
           navigatorKey: sl.navigatorKey,
-          initialRoute: AppRoutes.initialRoute, // Ensure this points to a valid route (e.g., '/welcome')
+          initialRoute:
+              AppRoutes
+                  .initialRoute, // Ensure this points to a valid route (e.g., '/welcome')
           routes: AppRoutes.getRoutes(),
           onGenerateRoute: AppRoutes.onGenerateRoute,
           // Remove the home property if using initialRoute

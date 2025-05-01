@@ -58,7 +58,6 @@ class _SavedPostsPageState extends State<SavedPostsPage> {
       postBloc.add(const LoadMorePosts()); // Dispatch event to PostBloc
     }
   }
-
   @override
   Widget build(BuildContext context) {
     // No need for BlocProvider here if PostBloc is provided higher up the tree
