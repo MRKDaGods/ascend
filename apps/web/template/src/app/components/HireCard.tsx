@@ -64,9 +64,6 @@ export default function HireCard() {
     // Fetch companies
     fetch("https://api.ascendx.tech/company/companies", {
       method: "GET",
-      headers: {
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw`,
-      },
     })
       .then((res) => res.json())
       .then((data) => {
@@ -86,7 +83,7 @@ export default function HireCard() {
     setTitle(selectedTitle);
     setCompanyName(selectedCompany.company_name);
     usepJobStore.getState().setCompanyId(selectedCompany.company_id);
-    router.push("/JobPosting");
+    router.push("/jobs/JobPosting");
   };
 
   const handleStartHiringWithAI = () => {

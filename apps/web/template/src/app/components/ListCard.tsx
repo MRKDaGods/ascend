@@ -36,12 +36,12 @@ const ListCard = () => {
       // Implementation should call setUserData(data) with the response
       
       // Set static user data instead of fetching
-      setUserData({
-        id: 1,
-        name: "Demo User",
-        email: "demo@example.com",
-        // Add any other fields your app expects
-      });
+      // setUserData({
+      //   id: 1,
+      //   name: "Demo User",
+      //   email: "demo@example.com",
+      //   // Add any other fields your app expects
+      // });
     
     }
   }, [userData, setUserData]);
@@ -61,7 +61,7 @@ const ListCard = () => {
             </ListItem>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push("/MyJobs")}>
+              <ListItemButton onClick={() => router.push("/jobs/MyJobs")}>
                 <ListItemIcon>
                   <BookmarkIcon sx={{ color: "black" }} />
                 </ListItemIcon>
@@ -81,7 +81,7 @@ const ListCard = () => {
             <Divider sx={{ my: 1 }} />
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push("/PostJob")}>
+              <ListItemButton onClick={() => router.push("/jobs/PostJob")}>
                 <ListItemIcon>
                   <PostAddIcon sx={{ color: "#0A66C2" }} />
                 </ListItemIcon>

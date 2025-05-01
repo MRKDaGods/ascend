@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import Recommends from '../components/recommends';
+import Recommends from '../components/Recommends';
 import { useRouter } from 'next/navigation';
 import { useSearchStore } from '../store/useSearchStore';
 

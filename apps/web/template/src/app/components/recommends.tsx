@@ -28,7 +28,7 @@ const Recommends = () => {
   const handleSelectSearch = (job: string) => {
     const search = { job, location: "" };
     addSearch(search);
-    router.push(`/search?keyword=${encodeURIComponent(job)}&location=&industry=&experience_level=&company=&salary_range_min=&salary_range_max=&page=1`);
+    router.push(`/jobs/search?keyword=${encodeURIComponent(job)}&location=&industry=&experience_level=&company=&salary_range_min=&salary_range_max=&page=1`);
   };
 
   return (

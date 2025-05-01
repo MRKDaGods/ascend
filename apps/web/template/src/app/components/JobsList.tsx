@@ -9,7 +9,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import ReportIcon from "@mui/icons-material/Report";
-// import { fetchJobs } from "@/api/jobs"
+import { fetchJobs } from "@/api/jobs"
 import { useDeletedJobsStore } from "../stores/useDeletedJobsStore";
 
 interface JobType {
@@ -42,21 +42,21 @@ const JobList = () => {
     loadDeletedJobs();
   }, []);
   
-  // useEffect(() => {
-  //   loadJobs();
-  // }, [deletedJobIds]);
+  useEffect(() => {
+    loadJobs();
+  }, [deletedJobIds]);
 
-  // const loadJobs = async () => {
-  //   try {
-  //     const result = await fetchJobs(1, 3); // Only fetch 3 jobs
-  //     const filteredJobs = result.data.filter(
-  //       (job: JobType) => !deletedJobIds.includes(job.job_id)
-  //     );
-  //     setJobs(filteredJobs);
-  //   } catch (error) {
-  //     console.error("Error fetching jobs:", error);
-  //   }
-  // };
+  const loadJobs = async () => {
+    try {
+      const result = await fetchJobs(1, 3); // Only fetch 3 jobs
+      const filteredJobs = result.data.filter(
+        (job: JobType) => !deletedJobIds.includes(job.job_id)
+      );
+      setJobs(filteredJobs);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
 
   const handleNavigate = (job: JobType) => {
     const params = new URLSearchParams({
@@ -74,15 +74,15 @@ const JobList = () => {
     });
     
     // If you have about and requirements properties, add them too
-    if (job.about) {
-      params.append('about', job.about);
-    }
+    // if (job.about) {
+    //   params.append('about', job.about);
+    // }
     
-    if (job.requirements && Array.isArray(job.requirements)) {
-      params.append('requirements', job.requirements.join(','));
-    }
+    // if (job.requirements && Array.isArray(job.requirements)) {
+    //   params.append('requirements', job.requirements.join(','));
+    // }
     
-    router.push(`/apply?${params.toString()}`);
+    router.push(`/jobs/apply?${params.toString()}`);
   };
 
   const handleDelete = (id: number) => {
@@ -215,7 +215,7 @@ const JobList = () => {
         <Typography
           variant="body2"
           sx={{ mt: 2, textAlign: "center", cursor: "pointer", fontWeight: "bold" }}
-          onClick={() => router.push("/alljobs")}
+          onClick={() => router.push("/jobs/alljobs")}
         >
           Show more →
         </Typography>

@@ -89,7 +89,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
       const result = await response.json();
       applyJob({ ...job, status: 'Applied' });
       alert(result.message);
-      router.push('/MyJobs');
+      router.push('/jobs/MyJobs');
     } catch (error) {
       alert(`Application failed: ${(error as Error).message}`);
     }

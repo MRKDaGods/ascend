@@ -7,7 +7,7 @@ import ProfileCard from "../components/ProfileCard";
 import ListCard from "../components/ListCard";
 import JobPreferences from "../components/lookingfor";
 import JobList from "../components/JobsList";
-import Recommends from "../components/recommends";
+import Recommends from "../components/Recommends";
 import { useTheme } from "@mui/material/styles";  
 
 function JobsPage() {

@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import API from '@/api/api'; // Adjust the import path as necessary
+import { AxiosResponse } from 'axios';
 
 export type JobStatus = 'Saved' | 'Applied' | 'Posted';
 export type ApplicationStatus = 'Pending' | 'Viewed' | 'Rejected' | 'Accepted';
@@ -102,7 +104,7 @@ export const useJobStore = create<JobStore>((set) => ({
 
   deleteJob: async (jobId) => {
     try {
-      await fetch(`https://api.ascendx.tech/job/saved/${jobId}`, {
+      await API.get(`/job/saved/${jobId}`, {
         method: 'DELETE',
       });
 
@@ -116,18 +118,14 @@ export const useJobStore = create<JobStore>((set) => ({
     }
   },
 
-  deletePostedJob: async (jobId) => {
+  deletePostedJob: async (jobId) => { 
     try {
       // Using the endpoint specified: /:jobId (DELETE)
-      const response = await fetch(`https://api.ascendx.tech/job/${jobId}`, {
+      const response = await API.get(`job/${jobId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
-        },
       });
 
-      if (!response.ok) {
+      if (!response.data) {
         console.error(`Failed to delete posted job. Status: ${response.status}`);
         return false;
       }
@@ -159,7 +157,7 @@ export const useJobStore = create<JobStore>((set) => ({
 
   fetchSavedJobs: async (page : number = 1) => {
     try {
-      const response = await fetch('https://api.ascendx.tech/job/save', {method: 'GET',});
+      const response = await fetch('/job/save', {method: 'GET',});
       const result = await response.json();
       console.log('API response (saved jobs):', result);
       const updatedJobs: Job[] = result.data.map((job: any) => ({
@@ -181,23 +179,29 @@ export const useJobStore = create<JobStore>((set) => ({
     }
   },
 
+  // export const fetchNewsFeed = async (
+  //   page = 1,
+  //   limit = 25
+  // ): Promise<NewsFeedResponse> => {
+  //   const response = await API.get<NewsFeedResponse>("/post/feed", {
+  //     params: { page, limit },
+  //   });
+  //   return response.data;
+  // };
+
   fetchPostedJobs: async (page: number = 1) => {
     try {
       // First, fetch all companies that belong to the current user
-      const companiesResponse = await fetch('https://api.ascendx.tech/company/companies', {
+      const companiesResponse = await API.get('/company/companies', {
         method: 'GET',
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
-        },
       });
       
-      if (!companiesResponse.ok) {
+      if (!companiesResponse.data) {
         console.error(`Failed to fetch companies. Status: ${companiesResponse.status}`);
         return;
       }
-      
-      const companiesResult = await companiesResponse.json();
+
+      const companiesResult = await companiesResponse.data;
       console.log('User companies:', companiesResult);
       
       if (!companiesResult.data || !companiesResult.data.companies || !Array.isArray(companiesResult.data.companies)) {
@@ -221,12 +225,8 @@ export const useJobStore = create<JobStore>((set) => ({
       
       // Fetch jobs for all companies in parallel - add type annotation for companyId
       const jobPromises = companyIds.map((companyId: number) => 
-        fetch(`https://api.ascendx.tech/job/company/${companyId}?page=${page}`, {
+        API.get(`job/company/${companyId}?page=${page}`, {
           method: 'GET',
-          headers: {
-            Authorization:
-              'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
-          },
         })
       );
       
@@ -286,20 +286,17 @@ export const useJobStore = create<JobStore>((set) => ({
   // New function to fetch applied jobs
   fetchAppliedJobs: async (page: number = 1) => {
     try {
-      const response = await fetch(`https://api.ascendx.tech/job/applications?page=${page}`, {
+      const response = await API.get(`/job/applications?page=${page}`, {
         method: 'GET',
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw',
-        },
       });
 
-      if (!response.ok) {
-        console.error(`Failed to fetch applied jobs. Status: ${response.status}`);
-        return;
-      }
+      // if (!response.ok) {
+      //   console.error(`Failed to fetch applied jobs. Status: ${response.status}`);
+      //   return;
+      // }
+      if (!response.data) throw new Error(`Failed to fetch applied jobs. Status: ${response.status}`);
 
-      const result = await response.json();
+      const result = await response.data;
       console.log('API response (applied jobs):', result);
       
       if (!result.data || !Array.isArray(result.data)) {
