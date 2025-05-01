@@ -228,16 +228,6 @@ export const completePayment = async (req : Request, res : Response) => {
     }
 };
 
-export const cancelPayment = async (req : Request, res : Response) => {
-    const { session_token } = req.query;
-    const obj = session_tokens.get(session_token as string);
-    if(!obj){
-        return res.status(403).json({error : "forbidden"});    
-    }
-    const { customer_id , expires_at , payment_type, return_url, subscription_id, user_id } = obj;
-    session_tokens.delete(session_token as string);
-    return res.redirect(`${return_url}?status=failure`);
-};
 
 
 export const getSubscriptionPlans = async (req : AuthenticatedRequest , res : Response) => {
