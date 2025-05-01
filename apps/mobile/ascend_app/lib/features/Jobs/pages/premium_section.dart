@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/Jobs/pages/premium_apply_page.dart';
 
 class PremiumSection extends StatelessWidget {
   final bool isDarkMode;
@@ -107,7 +108,12 @@ class PremiumSection extends StatelessWidget {
           ),
           SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PremiumApplyPage()),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               shape: RoundedRectangleBorder(
