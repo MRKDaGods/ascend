@@ -8,6 +8,9 @@ from Pages.Navigation.searchbar_page import SearchBarPage
 from Test_Cases_Data.Authentication import LoginTestCasesData as TC
 from logger import logger
 import time
+from Pages.Jobs.jobs_page import JobPage
+from appium import webdriver
+from appium.webdriver.extensions.android.nativekey import AndroidKey
 
 class UtilityFunctions:
     def __init__(self, appium_driver):
@@ -17,7 +20,8 @@ class UtilityFunctions:
         self.login_page = LoginPage(appium_driver)
         self.landing_page = LandingPage(appium_driver)
         self.search_bar_page = SearchBarPage(appium_driver)
-        self.profile_page = ProfiePage(appium_driver)  # if needed
+        self.profile_page = ProfiePage(appium_driver)# if needed
+        self.job_page = JobPage(appium_driver)
 
     def signout(self):
         self.home_page.click_sidebar()
@@ -87,3 +91,11 @@ class UtilityFunctions:
                     self.driver.swipe(583, 1900, 583, 50, 1000)
                     self.driver.swipe(583, 1000, 583, 400, 1000)
                 click()
+
+    def search_jobs(self, job_title):
+        self.search_bar_page.click_Search_Bar()
+        time.sleep(2)
+        self.job_page.enter_Search_By_Company_Industry_Text_Box(job_title)
+        time.sleep(1)
+        self.driver.press_keycode(AndroidKey.ENTER)
+        time.sleep(3)

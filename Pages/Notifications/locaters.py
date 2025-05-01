@@ -16,4 +16,4 @@ class NotificationsPageLocater:
     NOTIFICATION_DELETED_MESSAGE = (By.ID, 'com.linkedin.android:id/ad_banner_action_container')
     NOTIFICATION_OPTIONS = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.linkedin.android:id/notifications_card_item_swipe_layout").instance(1)')
     NO_NEW_JOBS_POSTS_MENTIONS_MESSAGE = (By.ID, 'com.linkedin.android:id/notif_empty_card_expanded_headline')
-    
+    UNSEEN_NOTIFICATION_COUNT = (By.ID, 'com.linkedin.android:id/slim_notification_badge_determinate_text_view_next') #NOT TESTED YET
