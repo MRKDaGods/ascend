@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:ascend_app/features/StartPages/Model/auth_response.dart';
 import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:bloc/bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
@@ -143,13 +144,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emailOrPhone: event.emailOrPhone,
         verificationCode: event.verificationCode,
       );
+      debugPrint('Token retrieved: $token');
       emit(
         AuthVerificationCodeSuccess(
           token: token,
           message: "Code verified successfully!",
         ),
       );
-
+      debugPrint('AuthBloc transitioned to AuthVerificationCodeSuccess state.');
     } catch (error) {
       _logger.e('Verification failed: $error'); // Log the error
       emit(AuthVerificationCodeFailure(error: error.toString()));
@@ -170,7 +172,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthResetPasswordSuccess(message: message));
       // Log the full response for debugging
       _logger.i('Reset Password Response: $message');
-
     } catch (error) {
       _logger.e('Password reset failed: $error'); // Log the error
       emit(AuthResetPasswordFailure(error: error.toString()));

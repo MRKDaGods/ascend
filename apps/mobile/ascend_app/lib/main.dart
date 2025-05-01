@@ -2,7 +2,6 @@ import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordP
 import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
 import 'package:ascend_app/features/notifications/presentation/bloc/notification_event.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import for SharedPreferences
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart'; // <-- Import AuthState
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
