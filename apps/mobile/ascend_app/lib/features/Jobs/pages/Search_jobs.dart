@@ -160,7 +160,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         locationController.text.isNotEmpty ? locationController.text : '';
 
     final url = Uri.parse(
-      'https://api.ascendx.tech/job/search?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
+      'https://api.ascendx.tech/job?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
     );
 
     print('Fetching data from: $url');

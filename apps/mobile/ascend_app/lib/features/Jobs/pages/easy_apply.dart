@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 
@@ -44,35 +44,35 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     }
   }
 
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
+  // Future<void> _pickFile() async {
+  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
+  //     type: FileType.custom,
+  //     allowedExtensions: ['pdf'],
+  //   );
 
-    if (result != null) {
-      if (kIsWeb) {
-        setState(() {
-          _selectedFileBytes = result.files.single.bytes;
-        });
-      } else {
-        String filePath = result.files.single.path!;
-        if (filePath.endsWith('.pdf')) {
-          setState(() {
-            _selectedFile = File(filePath);
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Please select a valid PDF file.')),
-          );
-        }
-      }
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('No file selected')));
-    }
-  }
+  //   if (result != null) {
+  //     if (kIsWeb) {
+  //       setState(() {
+  //         _selectedFileBytes = result.files.single.bytes;
+  //       });
+  //     } else {
+  //       String filePath = result.files.single.path!;
+  //       if (filePath.endsWith('.pdf')) {
+  //         setState(() {
+  //           _selectedFile = File(filePath);
+  //         });
+  //       } else {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Please select a valid PDF file.')),
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('No file selected')));
+  //   }
+  // }
 
   Future<void> _uploadFile() async {
     if (_selectedFile == null) return;
@@ -196,7 +196,8 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
             ),
           ),
         ElevatedButton.icon(
-          onPressed: _pickFile,
+          // onPressed: _pickFile,
+          onPressed: () {},
           icon: Icon(Icons.upload_file),
           label: Text("Pick File"),
         ),

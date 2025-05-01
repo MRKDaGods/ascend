@@ -1,8 +1,11 @@
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/easy_apply.dart';
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher package
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:http/http.dart' as http; // Import http package
+import 'dart:convert';
 
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
@@ -43,6 +46,87 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
           SnackBar(content: Text("Could not open the application link.")),
         );
       }
+    }
+  }
+
+  Future<void> saveJob(int jobId) async {
+    final String baseUrl = 'https://api.ascendx.tech';
+    final String endpoint = '/job/saved';
+
+    try {
+      final token = await SecureStorageHelper.getAuthToken();
+      final headers = {
+        if (token != null) 'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+
+      final url = Uri.parse('$baseUrl$endpoint/$jobId');
+
+      print("whole url is $url");
+      final response = await http.post(url, headers: headers);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        widget.job.isBookmarked = true; // Update the job's bookmark status
+        setState(() {
+          widget.job.isBookmarked = true;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Job saved successfully!')));
+      } else {
+        print("response is ${response.body}");
+        if (response.body == '{"error":"Job already saved"}') {
+          setState(() {
+            widget.job.isBookmarked = true;
+          });
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Job already saved!')));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save the job: ${response.body}')),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+    }
+  }
+
+  Future<void> deleteJob(int jobId) async {
+    final String baseUrl = 'https://api.ascendx.tech';
+    final String endpoint = '/job/saved';
+
+    try {
+      final token = await SecureStorageHelper.getAuthToken();
+      final headers = {
+        if (token != null) 'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+
+      final url = Uri.parse('$baseUrl$endpoint/$jobId');
+
+      final response = await http.delete(url, headers: headers);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        widget.job.isBookmarked = false; // Update the job's bookmark status
+        setState(() {}); // Refresh the UI
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Job unsaved successfully!')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to unsave the job: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
     }
   }
 
@@ -162,22 +246,19 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                 OutlinedButton(
                   onPressed: () {
                     setState(() {
-                      widget.job.isBookmarked = !widget.job.isBookmarked;
+                      if (!widget.job.isBookmarked) {
+                        saveJob(widget.job.jobID!);
+                      } else {
+                        deleteJob(widget.job.jobID!);
+                      }
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          widget.job.isBookmarked
-                              ? "Job saved!"
-                              : "Job unsaved!",
-                        ),
-                      ),
-                    );
                   },
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   ),
-                  child: Text(widget.job.isBookmarked ? "Unsave" : "Save Job"),
+                  child: Text(
+                    widget.job.isBookmarked ? "Unsave Job" : "Save Job",
+                  ),
                 ),
               ],
             ),
