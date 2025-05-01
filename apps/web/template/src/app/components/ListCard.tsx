@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -26,6 +26,25 @@ const ListCard = () => {
   const router = useRouter();
   const { userData, setUserData } = useProfileStore();
   const { openModal } = usePreferencesModal();
+
+  useEffect(() => {
+    if (!userData) {
+      // BACKEND INTEGRATION NOTE:
+      // Currently using static user data for development
+      // TODO: Integrate with backend API to fetch actual user data
+      // Expected response: { id: number, name: string, email: string, ... }
+      // Implementation should call setUserData(data) with the response
+      
+      // Set static user data instead of fetching
+      setUserData({
+        id: 1,
+        name: "Demo User",
+        email: "demo@example.com",
+        // Add any other fields your app expects
+      });
+    
+    }
+  }, [userData, setUserData]);
 
   return (
     <>
@@ -76,7 +95,6 @@ const ListCard = () => {
         </CardContent>
       </Card>
 
-      {/* Preferences Modal (centralized & reusable) */}
       <PreferencesModal />
     </>
   );

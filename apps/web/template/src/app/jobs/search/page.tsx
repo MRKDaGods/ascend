@@ -57,7 +57,7 @@ const SearchResultsPage = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch(`https://api.ascendx.tech/job/search`);
+        const response = await fetch(`https://api.ascendx.tech/job`);
         if (!response.ok) throw new Error('Failed to fetch results');
         const data = await response.json();
         const safeJobs = Array.isArray(data.data) ? data.data : [];

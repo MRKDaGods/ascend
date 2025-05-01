@@ -36,30 +36,20 @@ const lookingfor = () => {
 
         {/* Rounded Buttons */}
         <Box display="flex" gap={1}>
-          <Button
-            variant="contained"
+          <Button 
+            variant="contained" 
             color="primary"
-            sx={{
-              borderRadius: "20px",
-              px: 2.5,
-              py: 1,
-              fontWeight: 600,
-              textTransform: "none",
-            }}
+            data-testid="looking-actively-button"
+            sx={{ borderRadius: "20px" }}
           >
             Actively looking
           </Button>
-          <Button
-            variant="outlined"
+
+          <Button 
+            variant="outlined" 
             color="primary"
-            sx={{
-              borderRadius: "20px",
-              px: 2,
-              py: 0.25,
-              fontWeight: 600,
-              textTransform: "none",
-              borderWidth: "2px",
-            }}
+            data-testid="looking-casually-button"
+            sx={{ borderRadius: "20px" }}
           >
             Casually browsing
           </Button>
@@ -74,7 +64,10 @@ const lookingfor = () => {
       )}
 
       {/* Close Button */}
-      <IconButton onClick={() => setIsVisible(false)}>
+      <IconButton 
+        onClick={() => setIsVisible(false)}
+        data-testid="looking-close-button"
+      >
         <CloseIcon />
       </IconButton>
     </Card>

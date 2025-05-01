@@ -33,19 +33,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
   const router = useRouter();
   const applyJob = useJobStore((state) => state.applyJob);
 
-  useEffect(() => {
-    if (open) {
-      fetch('http://localhost:5000/api/user')
-        .then((res) => res.json())
-        .then((data) => {
-          setUserData((prev) => ({
-            ...prev,
-            email: data.email || '',
-            fullPhone: '',
-          }));
-        });
-    }
-  }, [open]);
+
 
   useEffect(() => {
     return () => {
@@ -85,7 +73,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
       formData.append('phone', userData.fullPhone.trim());
       console.log('************');
       console.log('FormData:', userData.fullPhone.trim()); // Debugging line
-      const response = await fetch(`https://api.ascendx.tech/job/apply/${job.id}`, {
+      const response = await fetch(`https://api.ascendx.tech/job/${job.id}/applications`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -103,7 +91,6 @@ export default function ApplyModal({ job, open, onClose }: any) {
       alert(result.message);
       router.push('/MyJobs');
     } catch (error) {
-      console.error('Application error:', error);
       alert(`Application failed: ${(error as Error).message}`);
     }
   };
@@ -130,6 +117,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           margin="normal"
           error={!isEmailValid}
           helperText={!isEmailValid ? 'Invalid email format.' : ''}
+          data-testid="apply-email-input"
         />
 
         <TextField
@@ -145,6 +133,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           margin="normal"
           error={!isPhoneValid}
           helperText={!isPhoneValid ? 'Use format +201234567890 (10–15 digits).' : ''}
+          data-testid="apply-phone-input"
         />
 
         <Box mt={4}>
@@ -172,18 +161,19 @@ export default function ApplyModal({ job, open, onClose }: any) {
               <Button
                 variant="outlined"
                 startIcon={<UploadCloud size={18} />}
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, borderRadius: '20px' }}
                 onClick={() => fileInputRef.current?.click()}
               >
                 Upload resume
               </Button>
               <input
-                ref={fileInputRef}
                 type="file"
                 accept=".pdf,.doc,.docx"
-                id="resumeInput"
-                style={{ display: 'none' }}
                 onChange={handleFileUpload}
+                style={{ display: 'none' }}
+                ref={fileInputRef}  // Add the ref here
+                id="resume-file"
+                data-testid="apply-resume-upload"
               />
             </Box>
           )}
@@ -191,9 +181,18 @@ export default function ApplyModal({ job, open, onClose }: any) {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} variant="outlined">Back</Button>
+        <Button 
+          variant="outlined" 
+          onClick={onClose}
+          data-testid="apply-back-button"
+          sx={{ borderRadius: '20px' }} // Make button rounded
+        >
+          Back
+        </Button>
         <Button
           variant="contained"
+          color="primary"
+          type="submit"
           disabled={
             !userData.email ||
             !userData.fullPhone ||
@@ -202,6 +201,11 @@ export default function ApplyModal({ job, open, onClose }: any) {
             !isPhoneValid
           }
           onClick={handleSubmit}
+          data-testid="apply-submit-button"
+          sx={{ 
+            borderRadius: '20px',  // Make button rounded 
+            border: '2px solid #4caf50', // Green border
+          }}
         >
           Submit application
         </Button>

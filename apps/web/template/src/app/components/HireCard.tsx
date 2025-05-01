@@ -10,7 +10,16 @@ import {
   Box,
   Autocomplete,
 } from "@mui/material";
-import { usepJobStore } from "@/app/stores/usepJobStore";
+import { usepJobStore } from "@/app/JobPosting/store/usepJobStore";
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { Radius } from "lucide-react";
+
+// Define a constant for rounded text fields styling
+const roundedTextFieldStyle = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '20px',
+  }
+};
 
 const jobTitles = [
   "Software Engineer",
@@ -26,32 +35,69 @@ const jobTitles = [
   "DevOps Engineer",
 ];
 
+type Company = {
+  id: number;
+  company_id: number;
+  company_name: string;
+};
+
 export default function HireCard() {
+  // BACKEND INTEGRATION NOTE:
+  // Currently using static username "there" for development
+  // TODO: Integrate with backend API to fetch actual user name
+  // Expected response: { name: string, ... }
+  // Implementation should update the 'name' state with data.name from response
+  
   const [name, setName] = useState("there");
+  
   const [hasMounted, setHasMounted] = useState(false);
   const [selectedTitle, setSelectedTitle] = useState("");
-  const [companyInput, setCompanyInput] = useState("");
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   const router = useRouter();
-
   const { setTitle, setCompanyName } = usepJobStore();
 
   useEffect(() => {
     setHasMounted(true);
-    fetch("http://localhost:5000/api/user")
+
+    // Fetch companies
+    fetch("https://api.ascendx.tech/company/companies", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTQsImlhdCI6MTc0NjAxMzA4NywiZXhwIjoxNzQ4NjA1MDg3fQ.akLwhWyUzS-iXA1D51EmVxY8k6I_SrPRpemJSKUAUOw`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
-        setName(data.name || "there");
+        const companiesData = data?.data?.companies || [];
+        setCompanies(companiesData);
       })
-      .catch((err) => console.error("Failed to fetch user:", err));
+      .catch((err) => console.error("Failed to fetch companies:", err));
   }, []);
 
   if (!hasMounted) return null;
 
   const handleStartWithDescription = () => {
+    if (!selectedCompany) {
+      alert("Please select a company before proceeding.");
+      return;
+    }
     setTitle(selectedTitle);
-    setCompanyName(companyInput);
+    setCompanyName(selectedCompany.company_name);
+    usepJobStore.getState().setCompanyId(selectedCompany.company_id);
     router.push("/JobPosting");
+  };
+
+  const handleStartHiringWithAI = () => {
+    if (!selectedCompany) {
+      alert("Please select a company before proceeding.");
+      return;
+    }
+    setTitle(selectedTitle);
+    setCompanyName(selectedCompany.company_name); 
+    usepJobStore.getState().setCompanyId(selectedCompany.id);
+    router.push("/AIpost-job");
   };
 
   return (
@@ -111,82 +157,89 @@ export default function HireCard() {
         </Box>
 
         {/* Right Form */}
-<Box
-  sx={{
-    flex: "0 0 auto", // Don't stretch the gradient
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    p: "2px",
-    background: "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
-    borderRadius: "16px",
-    width: { xs: "100%", md: "auto" }, // Full width on mobile, auto width on desktop
-  }}
->
-  <Box
-    sx={{
-      borderRadius: "14px",
-      p: { xs: 3, md: 4 },
-      backgroundColor: "white",
-      display: "flex",
-      flexDirection: "column",
-      gap: 3,
-      width: "100%",
-      maxWidth: "400px",
-    }}
-  >
-            <Typography variant="body2" fontWeight={600}>
-              Job title
-            </Typography>
+        <Box
+          sx={{
+            flex: "0 0 auto",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            p: "2px",
+            background: "linear-gradient(90deg, rgb(98, 175, 253), #4b55c1 50%, #6a0dad)",
+            borderRadius: "16px",
+            width: { xs: "100%", md: "auto" },
+          }}
+        >
+          <Box
+            sx={{
+              borderRadius: "14px",
+              p: { xs: 3, md: 4 },
+              backgroundColor: "white",
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              width: "100%",
+              maxWidth: "400px",
+            }}
+          >
             <Autocomplete
               freeSolo
               options={jobTitles}
-              inputValue={selectedTitle}
-              onInputChange={(e, newValue) => setSelectedTitle(newValue)}
+              value={selectedTitle}
+              onChange={(event, newValue) => {
+                setSelectedTitle(newValue || "");
+              }}
+              onInputChange={(event, newInputValue) => {
+                setSelectedTitle(newInputValue);
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
+                  label="Job title"
                   placeholder="Add the title you are hiring for"
-                  size="small"
+                  variant="outlined"
                   fullWidth
+                  margin="normal"
+                  data-testid="hire-card-job-title"
+                  sx={roundedTextFieldStyle}
                 />
               )}
             />
 
-            <Typography variant="body2" fontWeight={600}>
-              Company
-            </Typography>
-            <TextField
-              value={companyInput}
-              onChange={(e) => setCompanyInput(e.target.value)}
-              placeholder="Enter company name"
-              size="small"
-              fullWidth
+            <Autocomplete
+              options={companies}
+              getOptionLabel={(option) => option.company_name}
+              value={selectedCompany}
+              onChange={(e, newValue) => setSelectedCompany(newValue)}
+              renderInput={(params) => (
+                <TextField 
+                  {...params} 
+                  label="Company" 
+                  placeholder="Select your company"
+                  variant="outlined" 
+                  margin="normal"
+                  data-testid="hire-card-company-select"
+                  sx={roundedTextFieldStyle}
+                />
+              )}
             />
 
-            <Button
-              variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#0a66c2",
-                color: "#fff",
-                textTransform: "none",
-                mt: 4,
-              }}
-              onClick={() => {
-                setTitle(selectedTitle);
-                setCompanyName(companyInput);
-                router.push("/AIpost-job");
-              }}
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={handleStartHiringWithAI}
+              fullWidth
+              sx={{ marginBottom: 2, borderRadius: "20px" }}
+              data-testid="hire-card-ai-button"
             >
               ✨ Start hiring with AI
             </Button>
 
-            <Button
-              variant="outlined"
-              size="large"
-              sx={{ textTransform: "none" }}
+            <Button 
+              variant="outlined" 
               onClick={handleStartWithDescription}
+              fullWidth
+              data-testid="hire-card-manual-button"
+              sx={{ borderRadius: "20px" }}
             >
               Start with my job description
             </Button>
@@ -194,6 +247,7 @@ export default function HireCard() {
         </Box>
       </Card>
 
+      {/* Rest of the component remains unchanged */}
       {/* Info Section */}
       <Card
         sx={{
@@ -210,12 +264,13 @@ export default function HireCard() {
           mt: 6,
         }}
       >
+        {/* Rest of the code remains unchanged */}
         <Box sx={{ flex: 2, textAlign: { xs: "center", md: "left" } }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Rated #1 in increasing quality of hire
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Post your job on the world’s largest professional network and use
+            Post your job on the world's largest professional network and use
             simple tools to prioritize the most qualified candidates so you can
             find the people you want to interview, faster.
           </Typography>

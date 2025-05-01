@@ -60,12 +60,28 @@ const JobList = () => {
 
   const handleNavigate = (job: JobType) => {
     const params = new URLSearchParams({
+      id: job.job_id.toString(),
       title: job.title,
       company: job.company_name,
       location: job.location,
       type: job.type,
-      id: job.job_id.toString(),
+      description: job.description,
+      industry: job.industry || '',
+      experience_level: job.experience_level || '',
+      workplace_type: job.workplace_type || '',
+      ...(job.salary_min_range && { salary_min_range: job.salary_min_range.toString() }),
+      ...(job.salary_max_range && { salary_max_range: job.salary_max_range.toString() })
     });
+    
+    // If you have about and requirements properties, add them too
+    if (job.about) {
+      params.append('about', job.about);
+    }
+    
+    if (job.requirements && Array.isArray(job.requirements)) {
+      params.append('requirements', job.requirements.join(','));
+    }
+    
     router.push(`/apply?${params.toString()}`);
   };
 
@@ -82,27 +98,38 @@ const JobList = () => {
     }
 
     try {
+      // Get token from localStorage instead of hardcoding it
+      const token = localStorage.getItem('token') || '';
+      
       const response = await fetch(`https://api.ascendx.tech/job/${id}/report`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ reason: reportReason }),
+        body: JSON.stringify({ 
+          reason: reportReason,
+          job_id: id
+        }),
       });
 
+      // Check if the response is OK without trying to parse it as JSON first
       if (!response.ok) {
-        let errorMessage = "Unknown error";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || "Unknown error";
-        } catch (e) {
-          console.error("No JSON body in failed report response.");
-        }
-        console.error("Report failed:", errorMessage);
-        alert(`Failed to submit the report: ${errorMessage}`);
+        const errorText = await response.text();
+        console.error("Report failed:", errorText);
+        alert(`Failed to submit the report: ${response.status} ${response.statusText}`);
         return;
       }
 
+      // Try to parse as JSON only if needed (or skip if you know it's just a text response)
+      let responseData;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+      }
+
+      console.log("Report successful:", responseData);
       setReportDialogOpen(false);
       setReportReason("");
       setJobToReport(null);
@@ -167,7 +194,16 @@ const JobList = () => {
                 <IconButton onClick={() => handleDelete(job.job_id)}>
                   <CloseIcon fontSize="small" />
                 </IconButton>
-                <IconButton onClick={() => openReportDialog(job)}>
+                <IconButton 
+                  onClick={() => openReportDialog(job)}
+                  sx={{ 
+                    borderRadius: '50%', 
+                    backgroundColor: 'rgba(255, 0, 0, 0.1)', 
+                    '&:hover': { 
+                      backgroundColor: 'rgba(255, 0, 0, 0.2)' 
+                    }
+                  }}
+                >
                   <ReportIcon fontSize="small" sx={{ color: "red" }} />
                 </IconButton>
               </ListItem>
@@ -200,12 +236,26 @@ const JobList = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeReportDialog} color="secondary">
+          <Button 
+            onClick={closeReportDialog} 
+            color="secondary"
+            sx={{ 
+              borderRadius: '20px', 
+              paddingX: '16px',
+              textTransform: 'none' 
+            }}
+          >
             Cancel
           </Button>
           <Button
             onClick={() => jobToReport && handleReport(jobToReport.job_id)}
             color="primary"
+            variant="contained"
+            sx={{ 
+              borderRadius: '20px', 
+              paddingX: '16px',
+              textTransform: 'none' 
+            }}
           >
             Submit
           </Button>

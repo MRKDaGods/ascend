@@ -7,6 +7,9 @@ import {
   TextField,
   MenuItem,
   Grid,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@mui/material";
 import { useState } from "react";
 import { usepJobStore } from "../stores/usepJobStore";
@@ -25,7 +28,7 @@ const jobTypeOptions = [
   "Internship",
   "Other",
 ];
-const experienceOptions = ["Internship", "Entry", "Associate", "MID", "Director"];
+const experienceOptions = ["Internship", "Entry", "Associate", "Mid", "Director"];
 
 const JobForm = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -34,6 +37,7 @@ const JobForm = () => {
   const {
     title,
     companyName,
+    companyId,
     location,
     description,
     workplaceType,
@@ -70,9 +74,9 @@ const JobForm = () => {
       workplace_type: workplaceType,
       salary_min_range: salaryMin ? Number(salaryMin) : null,
       salary_max_range: salaryMax ? Number(salaryMax) : null,
-      company_id: 1,
       email: verifiedEmail,
       company: companyName,
+      company_id: companyId,
       logo: "",
       about: "",
       requirements: [],
@@ -99,7 +103,6 @@ const JobForm = () => {
       setSavedJobPopupOpen(true);
       setOpenModal(false);
     } catch (err) {
-      console.error("❌ Error posting job:", err);
       alert("Failed to post job.");
     }
   };
@@ -116,73 +119,156 @@ const JobForm = () => {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Job title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <TextField
+              label="Job title"
+              fullWidth
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              margin="normal"
+              data-testid="job-form-title"
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Company" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+            <TextField
+              label="Company"
+              fullWidth
+              value={companyName}
+              disabled={true} // Add this line to disable editing
+              margin="normal"
+              data-testid="job-form-company"
+              // Optional styling to make it look less "disabled"
+              sx={{
+                "& .MuiInputBase-input.Mui-disabled": {
+                  WebkitTextFillColor: "#000000",
+                  opacity: 0.8,
+                },
+                "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(0, 0, 0, 0.23)", // Keep normal border color
+                }
+              }}
+              helperText="Company name cannot be edited" // Optional explanation
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Industry" value={industry} onChange={(e) => setIndustry(e.target.value)} />
+            <TextField
+              label="Industry"
+              fullWidth
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              margin="normal"
+              data-testid="job-form-industry"
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField select fullWidth label="Experience Level" value={experienceLevel} onChange={(e) => setExperienceLevel(e.target.value)}>
-              {experienceOptions.map((level) => (
-                <MenuItem key={level} value={level}>{level}</MenuItem>
-              ))}
-            </TextField>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Experience Level</InputLabel>
+              <Select
+                value={experienceLevel}
+                onChange={(e) => setExperienceLevel(e.target.value)}
+                label="Experience Level"
+                data-testid="job-form-experience-level"
+              >
+                {experienceOptions.map((level) => (
+                  <MenuItem key={level} value={level}>{level}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField select fullWidth label="Workplace type" value={workplaceType} onChange={(e) => setWorkplaceType(e.target.value)}>
-              {workplaceOptions.map((option) => (
-                <MenuItem key={option} value={option}>{option}</MenuItem>
-              ))}
-            </TextField>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Workplace type</InputLabel>
+              <Select
+                value={workplaceType}
+                onChange={(e) => setWorkplaceType(e.target.value)}
+                label="Workplace Type"
+                data-testid="job-form-workplace-type"
+              >
+                {workplaceOptions.map((option) => (
+                  <MenuItem key={option} value={option}>{option}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Job location" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <TextField
+              label="Job location"
+              fullWidth
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              margin="normal"
+              data-testid="job-form-location"
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField select fullWidth label="Job type" value={jobType} onChange={(e) => setJobType(e.target.value)}>
-              {jobTypeOptions.map((option) => (
-                <MenuItem key={option} value={option}>{option}</MenuItem>
-              ))}
-            </TextField>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Job Type</InputLabel>
+              <Select
+                value={jobType}
+                onChange={(e) => setJobType(e.target.value)}
+                label="Job Type"
+                data-testid="job-form-job-type"
+              >
+                {jobTypeOptions.map((option) => (
+                  <MenuItem key={option} value={option}>{option}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={6} sm={3}>
-            <TextField fullWidth type="number" label="Min Salary" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} />
+            <TextField
+              label="Min Salary"
+              type="number"
+              fullWidth
+              value={salaryMin}
+              onChange={(e) => setSalaryMin(e.target.value)}
+              margin="normal"
+              data-testid="job-form-salary-min"
+            />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <TextField fullWidth type="number" label="Max Salary" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} />
+            <TextField
+              label="Max Salary"
+              type="number"
+              fullWidth
+              value={salaryMax}
+              onChange={(e) => setSalaryMax(e.target.value)}
+              margin="normal"
+              data-testid="job-form-salary-max"
+            />
           </Grid>
         </Grid>
 
         <Box mt={5}>
           <Typography variant="h6" gutterBottom>Job description</Typography>
           <TextField
-            fullWidth
+            label="Description"
             multiline
-            rows={10}
+            rows={10}  // Increased from 6 to 10 rows
+            fullWidth
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add your responsibilities, requirements, and details..."
-            sx={{ mt: 2 }}
+            margin="normal"
+            data-testid="job-form-description"
+            sx={{
+              '& .MuiInputBase-root': {
+                minHeight: '250px', 
+              },
+              '& .MuiOutlinedInput-input': {
+                fontSize: '1rem',    
+                lineHeight: '1.6', 
+              }
+            }}
           />
           <Typography variant="caption" color="text.secondary">{description.length}/10,000</Typography>
         </Box>
 
         <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              if (!title || !companyName || !description) {
-                alert("Title, company name, and description are required.");
-              } else if (!verifiedEmail) {
-                setOpenModal(true);
-              } else {
-                postJob();
-              }
-            }}
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => setOpenModal(true)} 
+            data-testid="job-form-post-button"
           >
             Post
           </Button>

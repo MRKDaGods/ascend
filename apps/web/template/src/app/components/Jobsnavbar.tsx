@@ -1,6 +1,7 @@
+// Updated JobsNavbar.tsx
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   AppBar,
   Toolbar,
@@ -10,21 +11,20 @@ import {
   MenuItem,
   Typography,
   Box,
-  CircularProgress,
-  TextField,
   Button,
-  List,
-  ListItem,
-  ListItemText,
   Paper,
   InputBase,
   Badge,
-  Tooltip,
-  useMediaQuery
+  useMediaQuery,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import { Home, Work, Chat, Notifications, Search } from "@mui/icons-material";
-import { useSearchStore } from "../stores/useSearchStore";
+import { Home, Work, Chat, Notifications, Search, MoreVert, History, Bookmark } from "@mui/icons-material";
+import { useSearchStore } from "../store/useSearchStore";
 import { useRouter, usePathname } from "next/navigation";
 import { useProfileStore } from "../stores/useProfileStore";
 
@@ -34,15 +34,14 @@ const SearchContainer = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: '30px',
-  padding: '6px 14px',
-  width: '270px',
+  padding: '4px 10px',
 }));
 
 const NavIconButton = styled(IconButton, {
   shouldForwardProp: (prop) => prop !== 'active',
 })<{ active: boolean }>(({ theme, active }) => ({
   padding: 10,
-  borderRadius: "12px",
+  borderRadius: "20px",
   backgroundColor: active
     ? theme.palette.mode === "dark"
       ? "rgba(255, 255, 255, 0.1)"
@@ -67,37 +66,75 @@ const jobTitles = [
   "Web Developer", "Mobile Developer"
 ];
 
-const Jobsnavbar: React.FC = () => {
+const SearchDropdown = styled(Paper)(({ theme }) => ({
+  width: '300px',
+  maxHeight: '400px',
+  overflow: 'auto',
+  marginTop: '5px',
+  borderRadius: '8px',
+  boxShadow: theme.shadows[3],
+}));
+
+const SearchListItem = styled(ListItem)(({ theme }) => ({
+  padding: '8px 16px',
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    cursor: 'pointer',
+  },
+}));
+
+const SearchListHeader = styled(ListSubheader)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.secondary,
+  fontWeight: 600,
+  padding: '8px 16px',
+  lineHeight: '32px',
+}));
+
+const JobsNavbar: React.FC = () => {
+  // Static user data
+  const staticUserData: UserData = {
+    name: "Demo User",
+    profilePhoto: "https://i.pravatar.cc/300",
+    coverPhoto: "https://source.unsplash.com/random/1280x400/?gradient",
+    role: "Software Engineer",
+    entity: "Ascend",
+    location: "New York, NY"
+  };
+
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [moreAnchorEl, setMoreAnchorEl] = useState<null | HTMLElement>(null);
   const [searchParams, setSearchParams] = useState({ title: "", location: "" });
-  const [isTitleFocused, setIsTitleFocused] = useState(false);
   const [filteredTitles, setFilteredTitles] = useState<string[]>([]);
+  const [showTitleDropdown, setShowTitleDropdown] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { recentSearches, addSearch, setRecentSearches } = useSearchStore();
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
   const open = Boolean(anchorEl);
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md')); // Detect small screens
-
-   // Fetch user data from the profile store
-     type Profile = {
-       profile_picture_url?: string;
-       first_name: string;
-       last_name: string;
-     };
-   
-     const userData = useProfileStore((state) => state.userData) as Profile | null;
-   
-     // Safely derive profile picture and full name
-     const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // Fallback to default avatar
-     const fullName = userData
-       ? `${userData.first_name} ${userData.last_name}`
-       : "User"; // Fallback to "User"
-   
+  const openMore = Boolean(moreAnchorEl);
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     setIsClient(true);
+
+    // BACKEND INTEGRATION NOTE:
+    // Currently using static user data for development
+    // TODO: Integrate with backend API to fetch actual user data
+    // Expected response: UserData type (name, profilePhoto, etc.)
+    // Implementation should update setUserData(data) with the actual response
+    
+    // Set static user data
+    setUserData(staticUserData);
+    setSearchParams((prev) => ({
+      ...prev,
+      location: staticUserData.location || "",
+    }));
+
 
     const stored = localStorage.getItem("recentJobSearches");
     if (stored) {
@@ -113,6 +150,35 @@ const Jobsnavbar: React.FC = () => {
     setAnchorEl(null);
   };
 
+  const handleMoreOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMoreAnchorEl(event.currentTarget);
+  };
+
+  const handleMoreClose = () => {
+    setMoreAnchorEl(null);
+  };
+
+  // Filter for recommended titles
+  const getRecommendedTitles = (): string[] => {
+    if (!searchParams.title) {
+      return jobTitles.slice(0, 5); // Show top 5 job titles when empty
+    }
+    return filteredTitles.slice(0, 5); // Show top 5 filtered results
+  };
+
+  // Get recent job title searches
+  const getRecentTitleSearches = (): string[] => {
+    return recentSearches
+      .map(search => search.job)
+      .filter((job, index, self) => job && self.indexOf(job) === index)
+      .slice(0, 5); // Only show the 5 most recent unique job searches
+  };
+
+  const handleTitleClick = (title: string) => {
+    setSearchParams(prev => ({ ...prev, title }));
+    setShowTitleDropdown(false);
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({ ...prev, [name]: value }));
@@ -122,241 +188,149 @@ const Jobsnavbar: React.FC = () => {
         title.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredTitles(filtered);
+      setShowTitleDropdown(true); // Show dropdown when typing
     }
   };
 
   const handleSearch = () => {
     addSearch({ job: searchParams.title, location: searchParams.location });
-    router.push(
-      `/search?keyword=${searchParams.title}&location=${searchParams.location}&industry=&experience_level=&company=&salary_range_min=&salary_range_max=&page=1`
-    );
+    router.push(`/search?keyword=${encodeURIComponent(searchParams.title)}&location=${encodeURIComponent(searchParams.location)}`);
   };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+        setShowTitleDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef, searchInputRef]);
 
   if (!isClient) return null;
 
   return (
-    <AppBar
-      elevation={0}
-      sx={{
-        backgroundColor: theme.palette.background.paper,
-        color: theme.palette.text.primary,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        position: "sticky",
-        margin: 0,
-        padding: 0,
-        mb: 0,
-      }}
-    >
-      <Toolbar
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          py: 0.25,
-          flexDirection: isSmallScreen ? 'column' : 'row', // Stack elements vertically on small screens
-          alignItems: isSmallScreen ? 'center' : 'initial', // Center the items on small screens
-        }}
-      >
+    <AppBar elevation={0} sx={{ backgroundColor: theme.palette.background.paper, color: theme.palette.text.primary, borderBottom: `1px solid ${theme.palette.divider}`, position: "sticky" }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", flexDirection: isSmallScreen ? 'column' : 'row', alignItems: isSmallScreen ? 'center' : 'initial' }}>
+
         {/* LEFT */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexGrow: 1 }}>
-          <img
-            src="/logoIcon.png"
-            alt="Ascend"
-            style={{ height: 36, borderRadius: 6 }}
-          />
-          <Typography
-            variant="h5"
-            color="primary"
-            fontWeight="bold"
-            sx={{ cursor: "pointer" }}
-            onClick={() => router.push("/feed")}
-          >
+          <Typography variant="h5" color="primary" fontWeight="bold" sx={{ cursor: "pointer" }} onClick={() => router.push("/feed")}>
             Ascend
           </Typography>
         </Box>
 
-        {/* CENTER - Search fields */}
-        <Box
-  sx={{
-    display: "flex",
-    alignItems: isSmallScreen ? 'center' : 'flex-start', // Center on small screens, align left on larger screens
-    gap: 2,
-    flexGrow: 1,
-    maxWidth: 700,
-    marginX: 2,
-    marginY: 1,
-    flexDirection: isSmallScreen ? 'column' : 'row', // Stack search fields on small screens
-  }}
->
-  {/* Job Title Search Bar */}
-  <SearchContainer>
-    <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-    <InputBase
-      name="title"
-      placeholder="Job title or skill"
-      value={searchParams.title}
-      onChange={handleSearchChange}
-      onFocus={() => setIsTitleFocused(true)}
-      onBlur={() => setTimeout(() => setIsTitleFocused(false), 200)}
-      sx={{ fontSize: "0.85rem", width: "100%" }}
-    />
-  </SearchContainer>
-
-  {/* Only show Location Search Bar on larger screens */}
-  {!isSmallScreen && (
-    <SearchContainer>
-      <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-      <InputBase
-        name="location"
-        placeholder="Location"
-        value={searchParams.location}
-        onChange={handleSearchChange}
-        sx={{ fontSize: "0.85rem", width: "100%" }}
-      />
-    </SearchContainer>
-  )}
-
-  <Button
-    variant="contained"
-    onClick={handleSearch}
-    sx={{
-      borderRadius: "30px",
-      textTransform: "none",
-      px: 3,
-      py: 1,
-      fontWeight: 500,
-      fontSize: "0.85rem",
-      backgroundColor: "#0a66c2",
-      ":hover": { backgroundColor: "#004182" },
-    }}
-  >
-    Search
-  </Button>
-
-  {isTitleFocused && (recentSearches.length > 0 || filteredTitles.length > 0) && (
-    <Paper
-      sx={{
-        position: "absolute",
-        top: "56px",
-        left: "30%",
-        transform: "translateX(-50%)",
-        zIndex: 10,
-        width: 400,
-        maxHeight: 300,
-        overflowY: "auto",
-        mt: 1,
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-      }}
-    >
-      <List>
-        {filteredTitles.length > 0 && (
-          <>
-            <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Suggested Titles</Typography>
-            {filteredTitles.map((title, index) => (
-              <ListItem
-                key={index}
-                onClick={() => {
-                  setSearchParams((prev) => ({ ...prev, title })); 
-                  setIsTitleFocused(false);
-                }}
-                sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
-              >
-                <ListItemText primary={title} />
-              </ListItem>
-            ))}
-          </>
-        )}
-        {recentSearches.length > 0 && (
-          <>
-            <Typography sx={{ px: 2, py: 1, fontWeight: 'bold' }}>Recent Searches</Typography>
-            {recentSearches.map((search, index) => (
-              <ListItem
-                key={index}
-                onClick={() => {
-                  setSearchParams({ title: search.job, location: search.location });
-                  setIsTitleFocused(false);
-                }}
-                sx={{ cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}
-              >
-                <ListItemText primary={search.job} secondary={search.location} />
-              </ListItem>
-            ))}
-          </>
-        )}
-      </List>
-    </Paper>
-  )}
-</Box>
-
-
-        {/* RIGHT - Icons and User Profile */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Button
-            variant="text"
-            sx={{
-              textTransform: "none",
-              fontWeight: 600,
-             fontSize: isSmallScreen ? "0.65rem" : "0.875rem",
-              color: theme.palette.text.primary,
-              ":hover": {
-                backgroundColor: theme.palette.action.hover,
-                borderRadius: "8px",
-                px: isSmallScreen ? 0.5 : 2.5,  
-                py: isSmallScreen ? 0.25 : 1,
-              },
-            }}
-            onClick={() => router.push("/for-business")}
+        {/* CENTER */}
+        <Box sx={{ display: "flex", alignItems: "center", flexGrow: 2, gap: 1, marginY: 1, flexDirection: isSmallScreen ? 'column' : 'row' }}>
+          <Box sx={{ position: 'relative', width: isSmallScreen ? '130px' : '300px' }}>
+            <SearchContainer>
+              <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
+              <InputBase 
+                name="title" 
+                placeholder="Job title" 
+                value={searchParams.title} 
+                onChange={handleSearchChange}
+                onFocus={() => setShowTitleDropdown(true)}
+                inputRef={searchInputRef}
+                sx={{ fontSize: "0.85rem", width: "100%" }} 
+                data-testid="navbar-job-title-input" // Add data-testid to job title input
+              />
+            </SearchContainer>
+            
+            {showTitleDropdown && (
+              <Box sx={{ position: 'absolute', width: '100%', zIndex: 1000 }} ref={dropdownRef}>
+                <SearchDropdown>
+                  {getRecentTitleSearches().length > 0 && (
+                    <>
+                      <SearchListHeader>
+                        Recent Searches
+                      </SearchListHeader>
+                      <List disablePadding>
+                        {getRecentTitleSearches().map((title, index) => (
+                          <SearchListItem key={`recent-${index}`} onClick={() => handleTitleClick(title)}>
+                            <History fontSize="small" color="action" sx={{ marginRight: 1 }} />
+                            <ListItemText primary={title} />
+                          </SearchListItem>
+                        ))}
+                      </List>
+                    </>
+                  )}
+                  
+                  <SearchListHeader>
+                    Recommended
+                  </SearchListHeader>
+                  <List disablePadding>
+                    {getRecommendedTitles().map((title, index) => (
+                      <SearchListItem key={`recommended-${index}`} onClick={() => handleTitleClick(title)}>
+                        <Bookmark fontSize="small" color="primary" sx={{ marginRight: 1 }} />
+                        <ListItemText primary={title} />
+                      </SearchListItem>
+                    ))}
+                  </List>
+                </SearchDropdown>
+              </Box>
+            )}
+          </Box>
+          
+          <SearchContainer sx={{ width: isSmallScreen ? '130px' : '300px' }}>
+            <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
+            <InputBase 
+              name="location" 
+              placeholder="Location" 
+              value={searchParams.location} 
+              onChange={handleSearchChange} 
+              sx={{ fontSize: "0.85rem", width: "100%" }} 
+              data-testid="navbar-location-input" // Add data-testid to location input
+            />
+          </SearchContainer>
+          <Button 
+            variant="contained" 
+            onClick={handleSearch}
+            sx={{ borderRadius: '20px' }}
+            data-testid="navbar-search-button" // Add data-testid to search button
           >
-            For Business
+            Search
           </Button>
+        </Box>
 
-          <Button
-  variant="contained"
-  sx={{
-    backgroundColor: "#FFC107",
-    color: "#000",
-    textTransform: "none",
-    borderRadius: "999px",
-    fontWeight: 600,
-    px: isSmallScreen ? 1 : 2.5,  // Reduced padding for small screens
-    py: isSmallScreen ? 0.25 : 1,   // Reduced vertical padding for small screens
-    fontSize: isSmallScreen ? "0.65rem" : "0.875rem",  // Smaller font size on small screens
-    "&:hover": {
-      backgroundColor: "#D4AF37",
-    },
-    gap: 1,
-  }}
->
-  Try Premium 
-</Button>
+        {/* RIGHT */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {isSmallScreen ? (
+            <>
+              <IconButton onClick={handleMoreOpen}><MoreVert /></IconButton>
+              <Menu anchorEl={moreAnchorEl} open={openMore} onClose={handleMoreClose}>
+                <MenuItem onClick={() => router.push("/for-business")} data-testid="navbar-business-button">For Business</MenuItem>
+                <Divider />
+                <MenuItem onClick={() => alert('Premium Coming Soon')}>Try Premium</MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <>
+              <Button variant="text" onClick={() => router.push("/for-business")} sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.875rem", color: theme.palette.text.primary }} data-testid="navbar-business-button">
+                For Business
+              </Button>
+              <Button variant="contained" sx={{ backgroundColor: "#FFC107", color: "#000", textTransform: "none", borderRadius: 999, fontWeight: 600, px: 2.5, py: 1, fontSize: "0.875rem" }}>
+                Try Premium
+              </Button>
+            </>
+          )}
 
-
-          <NavIconButton active={pathname === "/feed"} onClick={() => router.push("/feed")}>
-            <Home />
-          </NavIconButton>
-          <NavIconButton active={pathname === "/jobs"} onClick={() => router.push("/jobs")}>
-            <Work />
-          </NavIconButton>
-          <NavIconButton active={pathname === "/messages"} onClick={() => router.push("/messages")}>
-            <Chat />
-          </NavIconButton>
+          <NavIconButton active={pathname === "/feed"} onClick={() => router.push("/feed")}><Home /></NavIconButton>
+          <NavIconButton active={pathname === "/jobs"} onClick={() => router.push("/jobs")}><Work /></NavIconButton>
+          <NavIconButton active={pathname === "/messages"} onClick={() => router.push("/messages")}><Chat /></NavIconButton>
           <NavIconButton active={pathname === "/notifications"} onClick={() => router.push("/notifications")}>
-            <Badge badgeContent={4} color="error">
+            <Badge badgeContent={3} color="error">
               <Notifications />
             </Badge>
           </NavIconButton>
-
-           {/* User Avatar */}
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-            <Avatar
-              src={profilePicture}
-              alt={fullName}
-              sx={{
-                transition: "0.3s",
-                "&:hover": { transform: "scale(1.1)" },
-              }}
-            />
-          </IconButton>
+          <Avatar sx={{ width: 30, height: 30 }} src={userData?.profilePhoto} alt={userData?.name} onClick={handleMenuOpen} />
         </Box>
+
       </Toolbar>
     </AppBar>
   );
