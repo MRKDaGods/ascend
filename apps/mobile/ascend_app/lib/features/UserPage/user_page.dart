@@ -282,17 +282,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Resume deleted successfully.")),
       );
+      await _onRefresh(); // Refresh the profile data
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to delete resume: ${json['message']}")),
       );
     }
-    setState(() {
-      // Remove the resume URL from the profile
-      _sections.removeWhere(
-        (section) => section.title == "Featured",
-      ); // Remove the Featured section
-    });
   }
 
   void _deleteProfilePic() async {
@@ -303,6 +298,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile Picture deleted successfully.")),
       );
+      await _onRefresh(); // Refresh the profile data
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -310,11 +306,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       );
     }
-    setState(() {
-      _profile = _profile!.copyWith(
-        profilePictureUrl: null,
-      ); // Remove the profile picture URL from the profile
-    });
   }
 
   void _deleteCover() async {
@@ -325,6 +316,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Cover Picture deleted successfully.")),
       );
+      await _onRefresh(); // Refresh the profile data
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -332,11 +324,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       );
     }
-    setState(() {
-      _profile = _profile!.copyWith(
-        coverPhotoUrl: null,
-      ); // Remove the profile picture URL from the profile
-    });
   }
 
   void _updateBe(String title) async {
@@ -642,449 +629,435 @@ class _UserProfilePageState extends State<UserProfilePage> {
       body:
           _profile == null
               ? LoadingIndicator()
-              : CustomScrollView(
-                slivers: [
-                  CustomSliverAppBar(
-                    pinned: true,
-                    floating: true,
-                    showTabBar: false,
-                    addpost: false,
-                    settings: true,
-                    jobs: false,
-                    showProfileAvatar: false,
-                    contextin: context,
-                  ),
-                  SliverToBoxAdapter(
-                    child: RefreshIndicator(
-                      onRefresh: _onRefresh,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            ProfileMainImages(
-                              profilePic:
-                                  _profile?.profilePictureUrl ??
-                                  'https://picsum.photos/500',
-                              coverPic:
-                                  _profile?.coverPhotoUrl ??
-                                  'https://picsum.photos/1500/500',
-                              isMyProfile: _isMyProfile,
-                              deleteCover: _isMyProfile ? _deleteCover : null,
-                              deleteProfile:
-                                  _isMyProfile ? _deleteProfilePic : null,
-                            ),
-                            if (_isMyProfile)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => EditProfilePage(
-                                                profile: _profile!,
-                                                onSave: (updatedProfile) {
-                                                  setState(() {
-                                                    _profile =
-                                                        updatedProfile; // Update the profile
-                                                    _sections = _buildSections(
-                                                      updatedProfile,
-                                                    ); // Refresh sections
-                                                  });
-                                                },
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    icon: Icon(Icons.edit_outlined),
-                                  ),
-                                ],
-                              ),
-                            SizedBox(height: _isMyProfile ? 5 : 50),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ProfileHeader(
-                                    name:
-                                        "${_profile?.firstName} ${_profile?.additionalName != null && _profile!.additionalName!.isNotEmpty ? "(${_profile!.additionalName})" : ""}${_profile?.lastName}",
-                                    bio:
-                                        _profile?.headline ??
-                                        "Computer & communications engineering student at Cairo University",
-                                    location:
-                                        _profile?.location ?? 'Cairo, Egypt',
-                                    showSchool: _profile?.showSchool ?? true,
-                                    showCurrentCompany:
-                                        _profile?.showCurrentCompany ?? true,
-                                    latestEducation:
-                                        _profile?.education?.isNotEmpty == true
-                                            ? _profile!.education!.first.school
-                                            : 'Cairo University',
-                                    connections: 15, // Dummy data
-                                    isconnect: _isConnect,
-                                    isPending: _isPending,
-                                    currentPosition:
-                                        _profile?.experience?.isNotEmpty == true
-                                            ? _profile!
-                                                .experience!
-                                                .first
-                                                .company
-                                            : 'Google',
-                                    mutualConnections: [
-                                      "Ahmed Hassan",
-                                      "Sarah Ali",
-                                    ], // Dummy data
-                                    links:
-                                        _profile?.website != null
-                                            ? [
-                                              {
-                                                "title": "My Website",
-                                                "url": _profile!.website!,
+              : RefreshIndicator(
+                onRefresh: _onRefresh,
+                child: CustomScrollView(
+                  slivers: [
+                    CustomSliverAppBar(
+                      pinned: true,
+                      floating: true,
+                      showTabBar: false,
+                      addpost: false,
+                      settings: true,
+                      jobs: false,
+                      showProfileAvatar: false,
+                      contextin: context,
+                    ),
+                    SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          ProfileMainImages(
+                            profilePic:
+                                _profile?.profilePictureUrl ??
+                                'https://picsum.photos/500',
+                            coverPic:
+                                _profile?.coverPhotoUrl ??
+                                'https://picsum.photos/1500/500',
+                            isMyProfile: _isMyProfile,
+                            deleteCover: _isMyProfile ? _deleteCover : null,
+                            deleteProfile:
+                                _isMyProfile ? _deleteProfilePic : null,
+                          ),
+                          if (_isMyProfile)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => EditProfilePage(
+                                              profile: _profile!,
+                                              onSave: (updatedProfile) {
+                                                setState(() {
+                                                  _profile =
+                                                      updatedProfile; // Update the profile
+                                                  _sections = _buildSections(
+                                                    updatedProfile,
+                                                  ); // Refresh sections
+                                                });
                                               },
-                                            ]
-                                            : [
-                                              {
-                                                "title": "My Portfolio",
-                                                "url":
-                                                    "https://dartcode.org/docs/settings/",
-                                              },
-                                              {
-                                                "title": "GitHub",
-                                                "url":
-                                                    "https://github.com/MagedWadi",
-                                              },
-                                            ], // Dummy data
-
-                                    verified: true, // Dummy data
-                                    degree: _degree,
-                                    isMyProfile: _isMyProfile,
-                                    namePronunciation:
-                                        _profile?.namePronunciation != null,
-                                  ),
-                                  SizedBox(height: 15),
-                                  ProfileButtons(
-                                    isfollowing: _isFollow,
-                                    isMyProfile: _isMyProfile,
-                                    isConnect: _isConnect,
-                                    isPending: _isPending,
-                                    toggleConnect: _toggleConnect,
-                                    withdrawRequest:
-                                        _showWarningDialogForPending,
-                                    toggleFollow: _toggleFollow,
-                                    removeConnection:
-                                        _showWarningDialogForRemovingConnection,
-                                    addOrUpdateSection: _addOrUpdateSection,
-                                    profile: _profile,
-                                  ),
-                                  SizedBox(height: 30),
-                                ],
-                              ),
-                            ),
-                            if (_sections.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Text(
-                                  "No sections available.",
-                                  style: TextStyle(fontSize: 18),
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(Icons.edit_outlined),
                                 ),
-                              )
-                            else
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(height: 10),
-                                  for (var section in _sections)
-                                    SectionBuilder(
-                                      section: section,
-                                      isMyProfile: _isMyProfile,
-                                      onUpdateSection: _updateSection,
-                                      onAddEntry: () {
-                                        if (section.title == "Education") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AddEducationPage(
-                                                    onSave: (education) {
-                                                      setState(() {
-                                                        _profile?.education
-                                                            ?.add(education);
-                                                        _sections =
-                                                            _buildSections(
-                                                              _profile!,
-                                                            );
-                                                      });
-                                                    },
-                                                  ),
-                                            ),
-                                          );
-                                        } else if (section.title ==
-                                            "Experience") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) =>
-                                                      AddExperiencePage(
-                                                        onSave: (experience) {
-                                                          setState(() {
-                                                            _profile?.experience
-                                                                ?.add(
-                                                                  experience,
-                                                                );
-                                                            _sections =
-                                                                _buildSections(
-                                                                  _profile!,
-                                                                );
-                                                          });
-                                                        },
-                                                      ),
-                                            ),
-                                          );
-                                        } else if (section.title == "Skills") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AddSkillPage(
-                                                    onSave: (skill) {
-                                                      setState(() {
-                                                        _profile?.skills?.add(
-                                                          skill,
+                              ],
+                            ),
+                          SizedBox(height: _isMyProfile ? 5 : 50),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ProfileHeader(
+                                  name:
+                                      "${_profile?.firstName} ${_profile?.additionalName != null && _profile!.additionalName!.isNotEmpty ? "(${_profile!.additionalName})" : ""}${_profile?.lastName}",
+                                  bio:
+                                      _profile?.headline ??
+                                      "Computer & communications engineering student at Cairo University",
+                                  location:
+                                      _profile?.location ?? 'Cairo, Egypt',
+                                  showSchool: _profile?.showSchool ?? true,
+                                  showCurrentCompany:
+                                      _profile?.showCurrentCompany ?? true,
+                                  latestEducation:
+                                      _profile?.education?.isNotEmpty == true
+                                          ? _profile!.education!.first.school
+                                          : 'Cairo University',
+                                  connections: 15, // Dummy data
+                                  isconnect: _isConnect,
+                                  isPending: _isPending,
+                                  currentPosition:
+                                      _profile?.experience?.isNotEmpty == true
+                                          ? _profile!.experience!.first.company
+                                          : 'Google',
+                                  mutualConnections: [
+                                    "Ahmed Hassan",
+                                    "Sarah Ali",
+                                  ], // Dummy data
+                                  links:
+                                      _profile?.website != null
+                                          ? [
+                                            {
+                                              "title": "My Website",
+                                              "url": _profile!.website!,
+                                            },
+                                          ]
+                                          : [
+                                            {
+                                              "title": "My Portfolio",
+                                              "url":
+                                                  "https://dartcode.org/docs/settings/",
+                                            },
+                                            {
+                                              "title": "GitHub",
+                                              "url":
+                                                  "https://github.com/MagedWadi",
+                                            },
+                                          ], // Dummy data
+
+                                  verified: true, // Dummy data
+                                  degree: _degree,
+                                  isMyProfile: _isMyProfile,
+                                  namePronunciation:
+                                      _profile?.namePronunciation != null,
+                                ),
+                                SizedBox(height: 15),
+                                ProfileButtons(
+                                  isfollowing: _isFollow,
+                                  isMyProfile: _isMyProfile,
+                                  isConnect: _isConnect,
+                                  isPending: _isPending,
+                                  toggleConnect: _toggleConnect,
+                                  withdrawRequest: _showWarningDialogForPending,
+                                  toggleFollow: _toggleFollow,
+                                  removeConnection:
+                                      _showWarningDialogForRemovingConnection,
+                                  addOrUpdateSection: _addOrUpdateSection,
+                                  profile: _profile,
+                                ),
+                                SizedBox(height: 30),
+                              ],
+                            ),
+                          ),
+                          if (_sections.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Text(
+                                "No sections available.",
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            )
+                          else
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 10),
+                                for (var section in _sections)
+                                  SectionBuilder(
+                                    section: section,
+                                    isMyProfile: _isMyProfile,
+                                    onUpdateSection: _updateSection,
+                                    onAddEntry: () {
+                                      if (section.title == "Education") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddEducationPage(
+                                                  onSave: (education) {
+                                                    setState(() {
+                                                      _profile?.education?.add(
+                                                        education,
+                                                      );
+                                                      _sections =
+                                                          _buildSections(
+                                                            _profile!,
+                                                          );
+                                                    });
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      } else if (section.title ==
+                                          "Experience") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddExperiencePage(
+                                                  onSave: (experience) {
+                                                    setState(() {
+                                                      _profile?.experience?.add(
+                                                        experience,
+                                                      );
+                                                      _sections =
+                                                          _buildSections(
+                                                            _profile!,
+                                                          );
+                                                    });
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      } else if (section.title == "Skills") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddSkillPage(
+                                                  onSave: (skill) {
+                                                    setState(() {
+                                                      _profile?.skills?.add(
+                                                        skill,
+                                                      );
+                                                      _sections =
+                                                          _buildSections(
+                                                            _profile!,
+                                                          );
+                                                    });
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      } else if (section.title == "Courses") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddCoursePage(
+                                                  onSave: (course) {
+                                                    final newEntry = ProfileEntryWidget(
+                                                      title: course.name,
+                                                      subtitle: course.provider,
+                                                      description:
+                                                          course.completionDate !=
+                                                                  null
+                                                              ? "Completed on ${course.completionDate!.toLocal()}"
+                                                              : null,
+                                                    );
+                                                    _addOrUpdateSection(
+                                                      "Courses",
+                                                      newEntry,
+                                                    );
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      } else if (section.title == "Projects") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddProjectPage(
+                                                  onSave: (project) {
+                                                    final newEntry =
+                                                        ProfileEntryWidget(
+                                                          title: project.name,
+                                                          description:
+                                                              project
+                                                                  .description,
                                                         );
-                                                        _sections =
-                                                            _buildSections(
-                                                              _profile!,
-                                                            );
-                                                      });
-                                                    },
-                                                  ),
-                                            ),
-                                          );
-                                        } else if (section.title == "Courses") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AddCoursePage(
-                                                    onSave: (course) {
-                                                      final newEntry =
-                                                          ProfileEntryWidget(
-                                                            title: course.name,
-                                                            subtitle:
-                                                                course.provider,
-                                                            description:
-                                                                course.completionDate !=
-                                                                        null
-                                                                    ? "Completed on ${course.completionDate!.toLocal()}"
-                                                                    : null,
-                                                          );
-                                                      _addOrUpdateSection(
-                                                        "Courses",
-                                                        newEntry,
-                                                      );
-                                                    },
-                                                  ),
-                                            ),
-                                          );
-                                        } else if (section.title ==
-                                            "Projects") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AddProjectPage(
-                                                    onSave: (project) {
-                                                      final newEntry =
-                                                          ProfileEntryWidget(
-                                                            title: project.name,
-                                                            description:
-                                                                project
-                                                                    .description,
-                                                          );
-                                                      _addOrUpdateSection(
-                                                        "Projects",
-                                                        newEntry,
-                                                      );
-                                                    },
-                                                  ),
-                                            ),
-                                          );
-                                        } else if (section.title ==
-                                            "Interests") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AddInterestPage(
-                                                    onSave: (interest) {
-                                                      final newEntry =
-                                                          ProfileEntryWidget(
-                                                            title:
-                                                                interest.name,
-                                                          );
-                                                      _addOrUpdateSection(
-                                                        "Interests",
-                                                        newEntry,
-                                                      );
-                                                    },
-                                                  ),
-                                            ),
-                                          );
-                                        } else if (section.title ==
-                                            "Featured") {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (context) => AddFeaturedPage(
-                                                    onSave: (resumeUrl) {
-                                                      final Uri resumeUri =
-                                                          Uri.parse(resumeUrl);
-                                                      final String fileName =
-                                                          resumeUri
-                                                              .pathSegments
-                                                              .last;
-                                                      final String fileFormat =
-                                                          fileName
-                                                              .split('.')
-                                                              .last
-                                                              .toUpperCase();
-                                                      final newWidget = GestureDetector(
-                                                        onTap: () async {
-                                                          if (await canLaunchUrl(
+                                                    _addOrUpdateSection(
+                                                      "Projects",
+                                                      newEntry,
+                                                    );
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      } else if (section.title == "Interests") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddInterestPage(
+                                                  onSave: (interest) {
+                                                    final newEntry =
+                                                        ProfileEntryWidget(
+                                                          title: interest.name,
+                                                        );
+                                                    _addOrUpdateSection(
+                                                      "Interests",
+                                                      newEntry,
+                                                    );
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      } else if (section.title == "Featured") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => AddFeaturedPage(
+                                                  onSave: (resumeUrl) {
+                                                    final Uri resumeUri =
+                                                        Uri.parse(resumeUrl);
+                                                    final String fileName =
+                                                        resumeUri
+                                                            .pathSegments
+                                                            .last;
+                                                    final String fileFormat =
+                                                        fileName
+                                                            .split('.')
+                                                            .last
+                                                            .toUpperCase();
+                                                    final newWidget = GestureDetector(
+                                                      onTap: () async {
+                                                        if (await canLaunchUrl(
+                                                          resumeUri,
+                                                        )) {
+                                                          await launchUrl(
                                                             resumeUri,
-                                                          )) {
-                                                            await launchUrl(
-                                                              resumeUri,
-                                                              mode:
-                                                                  LaunchMode
-                                                                      .externalApplication,
-                                                            );
-                                                          } else {
-                                                            ScaffoldMessenger.of(
-                                                              context,
-                                                            ).showSnackBar(
-                                                              const SnackBar(
-                                                                content: Text(
-                                                                  "Could not open the link",
-                                                                ),
+                                                            mode:
+                                                                LaunchMode
+                                                                    .externalApplication,
+                                                          );
+                                                        } else {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text(
+                                                                "Could not open the link",
                                                               ),
-                                                            );
-                                                          }
-                                                        },
-                                                        child: Container(
-                                                          decoration: BoxDecoration(
-                                                            border: Border.all(
+                                                            ),
+                                                          );
+                                                        }
+                                                      },
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                            color: Colors.grey,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            // Non-scrollable PDF preview
+                                                            Container(
+                                                              height:
+                                                                  200, // Fixed height for the preview
+                                                              child: SfPdfViewer.network(
+                                                                resumeUrl,
+                                                                canShowScrollHead:
+                                                                    false,
+                                                                canShowScrollStatus:
+                                                                    false,
+                                                                enableDoubleTapZooming:
+                                                                    false,
+                                                              ),
+                                                            ),
+                                                            const Divider(
                                                               color:
                                                                   Colors.grey,
                                                             ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  8,
-                                                                ),
-                                                          ),
-                                                          child: Column(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .start,
-                                                            children: [
-                                                              // Non-scrollable PDF preview
-                                                              Container(
-                                                                height:
-                                                                    200, // Fixed height for the preview
-                                                                child: SfPdfViewer.network(
-                                                                  resumeUrl,
-                                                                  canShowScrollHead:
-                                                                      false,
-                                                                  canShowScrollStatus:
-                                                                      false,
-                                                                  enableDoubleTapZooming:
-                                                                      false,
-                                                                ),
-                                                              ),
-                                                              const Divider(
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                              Padding(
-                                                                padding:
-                                                                    const EdgeInsets.all(
-                                                                      8.0,
-                                                                    ),
-                                                                child: Row(
-                                                                  children: [
-                                                                    const Icon(
-                                                                      Icons
-                                                                          .description,
-                                                                      size: 28,
-                                                                    ),
-                                                                    const SizedBox(
-                                                                      width: 8,
-                                                                    ),
-                                                                    Expanded(
-                                                                      child: Column(
-                                                                        crossAxisAlignment:
-                                                                            CrossAxisAlignment.start,
-                                                                        children: [
-                                                                          Text(
-                                                                            fileName,
-                                                                            style: const TextStyle(
-                                                                              fontSize:
-                                                                                  14,
-                                                                              fontWeight:
-                                                                                  FontWeight.bold,
-                                                                              color:
-                                                                                  Colors.black,
-                                                                            ),
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.all(
+                                                                    8.0,
+                                                                  ),
+                                                              child: Row(
+                                                                children: [
+                                                                  const Icon(
+                                                                    Icons
+                                                                        .description,
+                                                                    size: 28,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 8,
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Text(
+                                                                          fileName,
+                                                                          style: const TextStyle(
+                                                                            fontSize:
+                                                                                14,
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            color:
+                                                                                Colors.black,
                                                                           ),
-                                                                          Text(
-                                                                            fileFormat,
-                                                                            style: const TextStyle(
-                                                                              fontSize:
-                                                                                  12,
-                                                                              color:
-                                                                                  Colors.grey,
-                                                                            ),
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                        ),
+                                                                        Text(
+                                                                          fileFormat,
+                                                                          style: const TextStyle(
+                                                                            fontSize:
+                                                                                12,
+                                                                            color:
+                                                                                Colors.grey,
                                                                           ),
-                                                                        ],
-                                                                      ),
+                                                                        ),
+                                                                      ],
                                                                     ),
-                                                                  ],
-                                                                ),
+                                                                  ),
+                                                                ],
                                                               ),
-                                                            ],
-                                                          ),
+                                                            ),
+                                                          ],
                                                         ),
-                                                      );
+                                                      ),
+                                                    );
 
-                                                      _addOrUpdateSection(
-                                                        "Featured",
-                                                        null,
-                                                        contentWidget:
-                                                            newWidget,
-                                                        resumeUrl: resumeUrl,
-                                                      );
-                                                    },
-                                                  ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      deleteResume: _deleteResumeEntry,
-                                    ),
-                                ],
-                              ),
-                          ],
-                        ),
+                                                    _addOrUpdateSection(
+                                                      "Featured",
+                                                      null,
+                                                      contentWidget: newWidget,
+                                                      resumeUrl: resumeUrl,
+                                                    );
+                                                  },
+                                                ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    deleteResume: _deleteResumeEntry,
+                                  ),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
     );
   }
