@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
-  const JobDetailsPage({super.key, required this.job});
+  const JobDetailsPage({Key? key, required this.job}) : super(key: key);
 
   @override
   _JobDetailsPageState createState() => _JobDetailsPageState();
@@ -14,6 +14,13 @@ class JobDetailsPage extends StatefulWidget {
 
 class _JobDetailsPageState extends State<JobDetailsPage> {
   void applyForJob() async {
+    if (widget.job.applied) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("You have already applied for this job.")),
+      );
+      return;
+    }
+
     if (widget.job.easyapply) {
       // Navigate to Easy Apply Page
       Navigator.push(

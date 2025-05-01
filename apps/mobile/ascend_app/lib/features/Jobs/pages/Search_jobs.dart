@@ -46,7 +46,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
   List<String> jobTypes = [];
   List<String> originalSelectedJobTypes = [];
   int originalMinSalary = 0;
-  int originalMaxSalary = 0;
+  int originalMaxSalary = 200000;
   final filterOptions = [
     {
       'filterName': 'Experience Level',
@@ -160,7 +160,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         locationController.text.isNotEmpty ? locationController.text : '';
 
     final url = Uri.parse(
-      'https://api.ascendx.tech/job/search?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page',
+      'https://api.ascendx.tech/job/search?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
     );
 
     print('Fetching data from: $url');
@@ -209,6 +209,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       }
     } else {
       print('Request failed with status: ${response.statusCode}');
+      filteredJobs = []; // Reset filtered jobs on error
     }
   }
 
