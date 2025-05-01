@@ -3,7 +3,6 @@
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Stack,
   Button,
@@ -11,76 +10,66 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  Box
+  CardMedia,
 } from "@mui/material";
 
 type Status = "pending" | "reviewed" | "resolved" | "rejected";
 
-export default function ReportedPostCard({
+export default function ReportedJobCard({
   report,
   onDelete,
   onUpdateStatus,
-  fetchReportDetails
 }: {
   report: any;
-  onDelete: (postId: number) => void;
+  onDelete: (jobId: number) => void;
   onUpdateStatus: (reportId: number, status: Status) => void;
-  fetchReportDetails: (postId: number) => void;
 }) {
   return (
-    <Box position="relative">
     <Card sx={{ display: "flex", p: 2 }}>
-    <Button
-      onClick={() => fetchReportDetails(report.id)}
-      sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
-      size="small"
-      variant="outlined"
-    >
-      View Reports
-    </Button>
-
-      {/*post Media */}
-      {report.media.length > 0 && (
+      {/*company logo*/}
+      {report.job.company_logo_url && (
         <CardMedia
           component="img"
-          sx={{ width: 160, height: 160, borderRadius: 2 }}
-          image={report.media[0].url}
-          // alt={report.media[0].title}
+          image={report.job.company_logo_url}
+          alt={report.job.company_name || "Company logo"}
+          sx={{ width: 60, height: 60, borderRadius: 2 }}
         />
       )}
 
+      {/*report info*/}
       <CardContent sx={{ flex: 1 }}>
         <Typography variant="h6" gutterBottom>
-          {report.user.first_name} {report.user.last_name}
+          {report.job.title} - {report.job.company_name}
         </Typography>
         <Typography variant="body1" gutterBottom>
-          <strong>Post:</strong> {report.content}
+          {report.job.location} | {report.job.type} |{" "}
+          {report.job.experience_level}
         </Typography>
-        {/* <Typography variant="body2">
+        <Typography variant="body2" gutterBottom>
+          {report.job.salary_min_range} - {report.job.salary_max_range} $
+        </Typography>
+        <Typography variant="body2">
           <strong>Reason:</strong> {report.reason}
-        </Typography> */}
-        {/* <Typography variant="body2" mb={1}>
-          <strong>Description:</strong> {report.description}
-        </Typography> */}
+        </Typography>
 
-        {/* <Stack direction="row" spacing={2} mt={2}>
+        {/*report controls*/}
+        <Stack direction="row" spacing={2} mt={2}>
           <Button
             variant="outlined"
             color="error"
-            onClick={() => onDelete(report.post.id)}
+            onClick={() => onDelete(report.job.job_id)}
           >
-            Delete Post
+            Delete Job
           </Button>
 
-          <FormControl size="small">
+          <FormControl>
             <InputLabel>Status</InputLabel>
             <Select
               value={report.status}
               label="Status"
               onChange={(e) =>
-              onUpdateStatus(report.id, e.target.value as Status)
+                onUpdateStatus(report.id, e.target.value as Status)
               }
-              sx={{ minWidth: 120 }}
             >
               <MenuItem value="pending">Pending</MenuItem>
               <MenuItem value="reviewed">Reviewed</MenuItem>
@@ -88,9 +77,8 @@ export default function ReportedPostCard({
               <MenuItem value="rejected">Rejected</MenuItem>
             </Select>
           </FormControl>
-        </Stack> */}
+        </Stack>
       </CardContent>
     </Card>
-    </Box>
   );
 }

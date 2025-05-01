@@ -1,6 +1,8 @@
 "use client";
-
-export default function ManageJobs() {
-    return <h1>Manage Reported Jobs</h1>;
+import ManageJobReports from "@/app/components/ManageJobReports";
+export default function Page() {
+    return(
+      <ManageJobReports />
+    );
   }
   
