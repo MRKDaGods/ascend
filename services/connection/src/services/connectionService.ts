@@ -623,6 +623,7 @@ class ConnectionService {
     visible_to_public?: boolean;
     visible_to_connections?: boolean;
     visible_to_network?: boolean;
+    show_followers?: boolean;
   }) {
     console.log("Raw params:", params);
     console.log("Object.keys(params):", Object.keys(params));
@@ -654,6 +655,10 @@ class ConnectionService {
     if (params.visible_to_network !== undefined) {
       fields.push(`visible_to_network = $${paramIndex++}`);
       values.push(params.visible_to_network);
+    }
+    if (params.show_followers !== undefined) {
+      fields.push(`show_followers = $${paramIndex++}`);
+      values.push(params.show_followers);
     }
 
     if (fields.length === 0) {
