@@ -252,6 +252,29 @@ export const forgetPassword = async (req: Request, res: Response) => {
   }
 };
 
+export const checkPasswordResetCode = async (req: Request, res: Response) => {
+  const { code, xemail } = req.body;
+  try {
+    if (code.toString().length !== 6) {
+      return res.status(400).json({ error: "Invalid verification code" });
+    }
+
+    const user = await findUserByEmail(xemail);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.reset_token !== code.toString()) {
+      return res.status(400).json({ error: "Invalid verification code" });
+    }
+
+    res.json({ message: "Verification code is valid" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 /**
  * Resets the user's password
  *
@@ -263,7 +286,7 @@ export const forgetPassword = async (req: Request, res: Response) => {
  * - 500 if server error occurs
  */
 export const resetPassword = async (req: Request, res: Response) => {
-  const { token, code, new_password } = req.body;
+  const { token, code, xemail, new_password } = req.body;
 
   try {
     if (code) {
@@ -271,7 +294,11 @@ export const resetPassword = async (req: Request, res: Response) => {
         return res.status(400).json({ error: "Invalid verification code" });
       }
 
-      const u2 = await resetUserPassword2(code.toString(), new_password);
+      const u2 = await resetUserPassword2(
+        code.toString(),
+        xemail,
+        new_password
+      );
       if (!u2) {
         return res.status(400).json({ error: "Invalid or expired token" });
       }
