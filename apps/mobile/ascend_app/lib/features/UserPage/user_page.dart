@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:ascend_app/features/UserPage/Data/dummy_profile_sections.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'package:ascend_app/features/UserPage/add_featured_page.dart';
 import 'package:ascend_app/features/settings/Presentation/widgets/loading_indicator.dart';
 import 'package:ascend_app/shared/models/profile.dart';
 import 'package:flutter/material.dart';
@@ -74,6 +75,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     // Add featured section if resumeUrl exists
     if (profile.resumeUrl != null && profile.resumeUrl!.isNotEmpty) {
+      final Uri resumeUri = Uri.parse(profile.resumeUrl!);
+      final String fileName = resumeUri.pathSegments.last;
+      final String fileFormat = fileName.split('.').last.toUpperCase();
+
       sections.add(
         ProfileSection(
           title: "Featured",
@@ -81,9 +86,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
           contentWidgets: [
             GestureDetector(
               onTap: () async {
-                final Uri url = Uri.parse(profile.resumeUrl!);
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                if (await canLaunchUrl(resumeUri)) {
+                  await launchUrl(
+                    resumeUri,
+                    mode: LaunchMode.externalApplication,
+                  );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Could not open the link")),
@@ -91,16 +98,57 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 }
               },
               child: Container(
-                height: 300, // Adjust height for the preview
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: SfPdfViewer.network(
-                  profile.resumeUrl!,
-                  canShowScrollHead: false,
-                  canShowScrollStatus: false,
-                  enableDoubleTapZooming: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Non-scrollable PDF preview
+                    Container(
+                      height: 200, // Fixed height for the preview
+                      child: SfPdfViewer.network(
+                        profile.resumeUrl!,
+                        canShowScrollHead: false,
+                        canShowScrollStatus: false,
+                        enableDoubleTapZooming: false,
+                      ),
+                    ),
+                    const Divider(color: Colors.grey),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.description, size: 28),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fileName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  fileFormat,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -203,6 +251,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       );
     }
+    if (profile.skills != null && profile.skills!.isNotEmpty) {
+      sections.add(
+        ProfileSection(
+          title: "Skills",
+          content:
+              profile.skills!
+                  .map((s) => ProfileEntryWidget(title: s.name))
+                  .toList(),
+        ),
+      );
+    }
 
     return sections;
   }
@@ -215,31 +274,292 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Profile.fromJson(json);
   }
 
-  void _updateSection(ProfileSection updatedSection) {
+  void _deleteResumeEntry() async {
+    final endpoint = "/user/profile/resume";
+    final Response = await ServiceLocator().apiClient.delete(endpoint);
+    final json = jsonDecode(Response.body);
+    if (Response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Resume deleted successfully.")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete resume: ${json['message']}")),
+      );
+    }
+    setState(() {
+      // Remove the resume URL from the profile
+      _sections.removeWhere(
+        (section) => section.title == "Featured",
+      ); // Remove the Featured section
+    });
+  }
+
+  void _deleteProfilePic() async {
+    final endpoint = "/user/profile/picture";
+    final Response = await ServiceLocator().apiClient.delete(endpoint);
+    final json = jsonDecode(Response.body);
+    if (Response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile Picture deleted successfully.")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to delete Profile Picture: ${json['message']}"),
+        ),
+      );
+    }
+    setState(() {
+      _profile = _profile!.copyWith(
+        profilePictureUrl: null,
+      ); // Remove the profile picture URL from the profile
+    });
+  }
+
+  void _deleteCover() async {
+    final endpoint = "/user/profile/cover";
+    final Response = await ServiceLocator().apiClient.delete(endpoint);
+    final json = jsonDecode(Response.body);
+    if (Response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cover Picture deleted successfully.")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to delete Cover Picture: ${json['message']}"),
+        ),
+      );
+    }
+    setState(() {
+      _profile = _profile!.copyWith(
+        coverPhotoUrl: null,
+      ); // Remove the profile picture URL from the profile
+    });
+  }
+
+  void _updateBe(String title) async {
+    final existingSectionIndex = _sections.indexWhere(
+      (section) => section.title == title,
+    );
+    if (existingSectionIndex == -1) return; // Section not found
+    if (title == "Featured") {
+      // Save the updated profile to the backend
+      try {
+        final endpoint = "/user/profile/resume"; // Replace with actual endpoint
+        final response = await ServiceLocator().apiClient.post(
+          endpoint,
+          data: _profile!.toJson(),
+        );
+        if (response.statusCode != 200) {
+          throw Exception("Failed to update profile");
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error saving resume: $e")));
+      }
+      return;
+    }
+    try {
+      // Update the corresponding field in the Profile model
+      if (_profile != null) {
+        switch (title) {
+          case "Education":
+            _profile = _profile!.copyWith(
+              education:
+                  _sections[existingSectionIndex].content.map((entry) {
+                    return Education(
+                      id: 0, // Replace with actual ID if available
+                      userId: _profile!.userId,
+                      school: entry.title ?? "",
+                      degree: entry.subtitle ?? "",
+                      fieldOfStudy: entry.description ?? "",
+                      startDate:
+                          DateTime.now(), // Replace with actual date if available
+                      endDate:
+                          null, // Replace with actual end date if available
+                    );
+                  }).toList(),
+            );
+            break;
+          case "Experience":
+            _profile = _profile!.copyWith(
+              experience:
+                  _sections[existingSectionIndex].content.map((entry) {
+                    return Experience(
+                      id: 0, // Replace with actual ID if available
+                      userId: _profile!.userId,
+                      company: entry.subtitle ?? "",
+                      position: entry.title ?? "",
+                      startDate:
+                          DateTime.now(), // Replace with actual date if available
+                      endDate:
+                          null, // Replace with actual end date if available
+                      description: entry.description,
+                    );
+                  }).toList(),
+            );
+            break;
+          case "Projects":
+            _profile = _profile!.copyWith(
+              projects:
+                  _sections[existingSectionIndex].content.map((entry) {
+                    return Project(
+                      id: 0, // Replace with actual ID if available
+                      userId: _profile!.userId,
+                      name: entry.title ?? "",
+                      description: entry.description ?? "",
+                      startDate:
+                          DateTime.now(), // Replace with actual date if available
+                      endDate:
+                          null, // Replace with actual end date if available
+                    );
+                  }).toList(),
+            );
+            break;
+          case "Skills":
+            _profile = _profile!.copyWith(
+              skills:
+                  _sections[existingSectionIndex].content.map((entry) {
+                    return Skill(
+                      id: 0, // Replace with actual ID if available
+                      name: entry.title ?? "",
+                    );
+                  }).toList(),
+            );
+            break;
+          case "Interests":
+            _profile = _profile!.copyWith(
+              interests:
+                  _sections[existingSectionIndex].content.map((entry) {
+                    return Interest(
+                      id: 0, // Replace with actual ID if available
+                      name: entry.title ?? "",
+                    );
+                  }).toList(),
+            );
+            break;
+          case "Courses":
+            _profile = _profile!.copyWith(
+              courses:
+                  _sections[existingSectionIndex].content.map((entry) {
+                    return Course(
+                      id: 0, // Replace with actual ID if available
+                      userId: _profile!.userId,
+                      name: entry.title ?? "",
+                      provider: entry.subtitle ?? "",
+                      completionDate:
+                          DateTime.now(), // Replace with actual date if available
+                    );
+                  }).toList(),
+            );
+            break;
+        }
+      }
+      print(_profile!.toJson());
+
+      // Make the API call to update the section on the backend
+      final endpoint = "/user/profile";
+      final response = await ServiceLocator().apiClient.put(
+        endpoint,
+        data: _profile!.toJson(),
+      );
+      print(response.body);
+      print(response.statusCode);
+      print(response);
+      final json = jsonDecode(response.body);
+      print(json);
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Section updated successfully.")),
+        );
+      } else {
+        throw Exception("Failed to update section");
+      }
+    } catch (e) {
+      // Handle errors gracefully
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error updating section: $e")));
+    }
+  }
+
+  void _updateSection(ProfileSection updatedSection) async {
     setState(() {
       // Find the index of the section to update
       final int index = _sections.indexWhere(
         (section) => section.title == updatedSection.title,
       );
       if (index != -1) {
-        _sections[index] = updatedSection; // Update the section
+        _sections[index] = updatedSection; // Update the section locally
       }
+      _updateBe(updatedSection.title); // Call the update function
     });
   }
 
-  void _addOrUpdateSection(String title, ProfileEntryWidget newEntry) {
+  void _addOrUpdateSection(
+    String title,
+    ProfileEntryWidget? newEntry, {
+    Widget? contentWidget,
+    String? resumeUrl, // Add optional resumeUrl parameter
+  }) async {
     final existingSectionIndex = _sections.indexWhere(
       (section) => section.title == title,
     );
+
     if (existingSectionIndex != -1) {
       setState(() {
-        _sections[existingSectionIndex].content.add(newEntry);
+        if (title == "Featured") {
+          // Update contentWidgets for "Featured"
+          print("contentWidget: $contentWidget");
+          _sections[existingSectionIndex].contentWidgets.clear();
+          _sections[existingSectionIndex].contentWidgets.add(contentWidget!);
+
+          // Update the profile's resumeUrl
+          if (resumeUrl != null) {
+            _profile = _profile!.copyWith(resumeUrl: resumeUrl);
+          }
+        } else if (newEntry != null) {
+          // Update content for other sections
+          print("updating content: $newEntry");
+          _sections[existingSectionIndex].content.add(newEntry);
+        }
       });
     } else {
       setState(() {
-        _sections.add(ProfileSection(title: title, content: [newEntry]));
+        final newSection =
+            title == "Featured"
+                ? ProfileSection(
+                  title: title,
+                  content: [],
+                  contentWidgets: contentWidget != null ? [contentWidget] : [],
+                )
+                : ProfileSection(
+                  title: title,
+                  content: newEntry != null ? [newEntry] : [],
+                );
+
+        if (title == "Featured") {
+          // Place "Featured" section after "About" section
+          final aboutIndex = _sections.indexWhere((s) => s.title == "About");
+          if (aboutIndex != -1) {
+            _sections.insert(aboutIndex + 1, newSection);
+          } else {
+            _sections.add(newSection);
+          }
+
+          // Update the profile's resumeUrl
+          if (resumeUrl != null) {
+            _profile = _profile!.copyWith(resumeUrl: resumeUrl);
+          }
+        } else {
+          _sections.add(newSection);
+        }
       });
     }
+    _updateBe(title); // Call the update function
   }
 
   void _toggleConnect() {
@@ -301,13 +621,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   // Function to handle refresh
   Future<void> _onRefresh() async {
-    // Simulate a network call or data refresh
-    await Future.delayed(Duration(seconds: 2));
-    // Update the state or data as needed
-    setState(() {
-      // Example: Refresh the sections or any other data
-      _sections = List.from(_sections);
-    });
+    try {
+      // Fetch the latest profile data
+      final Profile updatedProfile = await _fetchProfileData(widget.profileId);
+      setState(() {
+        _profile = updatedProfile;
+        _sections = _buildSections(updatedProfile); // Rebuild sections
+      });
+    } catch (e) {
+      // Handle errors gracefully
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to refresh: $e")));
+    }
   }
 
   @override
@@ -342,6 +668,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   _profile?.coverPhotoUrl ??
                                   'https://picsum.photos/1500/500',
                               isMyProfile: _isMyProfile,
+                              deleteCover: _isMyProfile ? _deleteCover : null,
+                              deleteProfile:
+                                  _isMyProfile ? _deleteProfilePic : null,
                             ),
                             if (_isMyProfile)
                               Row(
@@ -382,7 +711,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     name:
                                         "${_profile?.firstName} ${_profile?.additionalName != null && _profile!.additionalName!.isNotEmpty ? "(${_profile!.additionalName})" : ""}${_profile?.lastName}",
                                     bio:
-                                        _profile?.bio ??
+                                        _profile?.headline ??
                                         "Computer & communications engineering student at Cairo University",
                                     location:
                                         _profile?.location ?? 'Cairo, Egypt',
@@ -407,17 +736,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                       "Ahmed Hassan",
                                       "Sarah Ali",
                                     ], // Dummy data
-                                    links: [
-                                      {
-                                        "title": "My Portfolio",
-                                        "url":
-                                            "https://dartcode.org/docs/settings/",
-                                      },
-                                      {
-                                        "title": "GitHub",
-                                        "url": "https://github.com/MagedWadi",
-                                      },
-                                    ],
+                                    links:
+                                        _profile?.website != null
+                                            ? [
+                                              {
+                                                "title": "My Website",
+                                                "url": _profile!.website!,
+                                              },
+                                            ]
+                                            : [
+                                              {
+                                                "title": "My Portfolio",
+                                                "url":
+                                                    "https://dartcode.org/docs/settings/",
+                                              },
+                                              {
+                                                "title": "GitHub",
+                                                "url":
+                                                    "https://github.com/MagedWadi",
+                                              },
+                                            ], // Dummy data
+
                                     verified: true, // Dummy data
                                     degree: _degree,
                                     isMyProfile: _isMyProfile,
@@ -594,8 +933,149 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                   ),
                                             ),
                                           );
+                                        } else if (section.title ==
+                                            "Featured") {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => AddFeaturedPage(
+                                                    onSave: (resumeUrl) {
+                                                      final Uri resumeUri =
+                                                          Uri.parse(resumeUrl);
+                                                      final String fileName =
+                                                          resumeUri
+                                                              .pathSegments
+                                                              .last;
+                                                      final String fileFormat =
+                                                          fileName
+                                                              .split('.')
+                                                              .last
+                                                              .toUpperCase();
+                                                      final newWidget = GestureDetector(
+                                                        onTap: () async {
+                                                          if (await canLaunchUrl(
+                                                            resumeUri,
+                                                          )) {
+                                                            await launchUrl(
+                                                              resumeUri,
+                                                              mode:
+                                                                  LaunchMode
+                                                                      .externalApplication,
+                                                            );
+                                                          } else {
+                                                            ScaffoldMessenger.of(
+                                                              context,
+                                                            ).showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text(
+                                                                  "Could not open the link",
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }
+                                                        },
+                                                        child: Container(
+                                                          decoration: BoxDecoration(
+                                                            border: Border.all(
+                                                              color:
+                                                                  Colors.grey,
+                                                            ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  8,
+                                                                ),
+                                                          ),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              // Non-scrollable PDF preview
+                                                              Container(
+                                                                height:
+                                                                    200, // Fixed height for the preview
+                                                                child: SfPdfViewer.network(
+                                                                  resumeUrl,
+                                                                  canShowScrollHead:
+                                                                      false,
+                                                                  canShowScrollStatus:
+                                                                      false,
+                                                                  enableDoubleTapZooming:
+                                                                      false,
+                                                                ),
+                                                              ),
+                                                              const Divider(
+                                                                color:
+                                                                    Colors.grey,
+                                                              ),
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets.all(
+                                                                      8.0,
+                                                                    ),
+                                                                child: Row(
+                                                                  children: [
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .description,
+                                                                      size: 28,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 8,
+                                                                    ),
+                                                                    Expanded(
+                                                                      child: Column(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.start,
+                                                                        children: [
+                                                                          Text(
+                                                                            fileName,
+                                                                            style: const TextStyle(
+                                                                              fontSize:
+                                                                                  14,
+                                                                              fontWeight:
+                                                                                  FontWeight.bold,
+                                                                              color:
+                                                                                  Colors.black,
+                                                                            ),
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                          ),
+                                                                          Text(
+                                                                            fileFormat,
+                                                                            style: const TextStyle(
+                                                                              fontSize:
+                                                                                  12,
+                                                                              color:
+                                                                                  Colors.grey,
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      );
+
+                                                      _addOrUpdateSection(
+                                                        "Featured",
+                                                        null,
+                                                        contentWidget:
+                                                            newWidget,
+                                                        resumeUrl: resumeUrl,
+                                                      );
+                                                    },
+                                                  ),
+                                            ),
+                                          );
                                         }
                                       },
+                                      deleteResume: _deleteResumeEntry,
                                     ),
                                 ],
                               ),

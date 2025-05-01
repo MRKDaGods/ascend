@@ -38,10 +38,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _additionalNmae = TextEditingController(
       text: widget.profile.additionalName ?? '',
     );
-    _bioController = TextEditingController(text: widget.profile.bio ?? '');
+    _bioController = TextEditingController(text: widget.profile.headline ?? '');
     _locationController = TextEditingController(
       text: widget.profile.location ?? '',
-    );  
+    );
     _currentEducationController = TextEditingController(
       text:
           widget.profile.education?.isNotEmpty == true
@@ -237,7 +237,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         userId: widget.profile.userId,
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
-        bio: _bioController.text,
+        headline: _bioController.text,
         location: _locationController.text,
         profilePictureUrl: widget.profile.profilePictureUrl,
         coverPhotoUrl: widget.profile.coverPhotoUrl,

@@ -3,6 +3,7 @@ import 'models/profile_section.dart';
 import 'expanded_section_page.dart';
 import 'edit_entry_page.dart';
 import 'profile_entry.dart';
+import 'custom_alert_dialog.dart';
 
 class SectionBuilder extends StatefulWidget {
   final ProfileSection section;
@@ -10,6 +11,7 @@ class SectionBuilder extends StatefulWidget {
   final bool isExpanded;
   final bool inEditMode;
   final void Function(ProfileSection)? onUpdateSection;
+  final void Function()? deleteResume; // Callback for deleting resume
   final VoidCallback? onAddEntry; // New callback for adding entries
 
   const SectionBuilder({
@@ -20,6 +22,7 @@ class SectionBuilder extends StatefulWidget {
     this.inEditMode = false,
     this.onUpdateSection,
     this.onAddEntry, // Pass the callback
+    this.deleteResume,
   });
 
   @override
@@ -50,6 +53,25 @@ class _SectionBuilderState extends State<SectionBuilder> {
       editedItem = null; // Reset the edited item
       // Notify the parent
     });
+  }
+
+  void _showWarningDialogForRemovingResumee(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomAlertDialog(
+          title: "Do you want to delete this item?",
+          description: "This cannot be undone.",
+          confirmText: "Delete",
+          onConfirm: () {
+            Navigator.pop(context); // Close the dialog
+            print(widget.deleteResume?.toString());
+            if (widget.deleteResume != null)
+              widget.deleteResume!(); // Safely call the deleteResume callback
+          },
+        );
+      },
+    );
   }
 
   void _editEntry(BuildContext context, ProfileEntryWidget entry) {
@@ -135,6 +157,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
                                     (context) => ExpandedSectionPage(
                                       section: widget.section,
                                       isMyProfile: widget.isMyProfile,
+                                      deleteResume: widget.deleteResume,
                                     ),
                               ),
                             );
@@ -154,8 +177,49 @@ class _SectionBuilderState extends State<SectionBuilder> {
                   ],
                 ),
               const SizedBox(height: 5),
-              if (widget.section.title == "Featured")
-                widget.section.contentWidgets[0],
+              if (widget.section.title == "Featured" &&
+                  widget.section.contentWidgets.isNotEmpty &&
+                  !widget.isExpanded)
+                widget.section.contentWidgets[0]
+              else if (widget.section.title == "Featured" && widget.isExpanded)
+                Column(
+                  children: [
+                    widget.section.contentWidgets[0],
+                    const SizedBox(height: 5),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        OutlinedButton.icon(
+                          icon: Icon(Icons.edit_outlined),
+                          onPressed: () {},
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 10,
+                            ),
+                          ),
+                          label: Text("Edit"),
+                        ),
+                        const SizedBox(width: 10),
+                        OutlinedButton.icon(
+                          icon: Icon(Icons.delete_outline),
+                          onPressed:
+                              () =>
+                                  _showWarningDialogForRemovingResumee(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 10,
+                            ),
+                          ),
+                          label: Text("Delete"),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
               // Section Content with Dividers
               for (var item in displayedContent) ...[
                 if (item != displayedContent.first || !widget.isExpanded)
