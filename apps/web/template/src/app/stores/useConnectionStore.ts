@@ -8,8 +8,7 @@ import {
     getReceivedInvitationsAPI,
     respondToConnectionRequestAPI,
     getConnectionsAPI,
-    Connection,
-    
+    Connection,    
   } from "@/api/connections";
 
 interface ConnectionStore {

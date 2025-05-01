@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Avatar,
@@ -11,23 +11,55 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Button,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
+import { useRouter } from "next/navigation";
+import { useConnectionStore } from "../stores/useConnectionStore";
+import ConnectDialog from "./ConnectDialog";
 
 const SearchResults: React.FC = () => {
   const { searchResults, setSearchResults } = usePostStore();
+  const { sendConnectionRequest } = useConnectionStore();
+  const router = useRouter();
+
+  const [selectedUser, setSelectedUser] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   if (!searchResults) return null;
 
   const { users, posts } = searchResults;
+
+  const handleOpenDialog = (user: any) => {
+    setSelectedUser({
+      id: user.id,
+      name: `${user.first_name} ${user.last_name}`,
+    });
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedUser(null);
+  };
+
+  const handleSendRequest = async (message: string) => {
+    if (selectedUser) {
+      await sendConnectionRequest({
+        userId: selectedUser.id,
+        message,
+      });
+      setSelectedUser(null);
+    }
+  };
 
   return (
     <ClickAwayListener onClickAway={() => setSearchResults(null)}>
       <Box
         sx={{
           position: "absolute",
-          top: "64px", // below navbar
+          top: "64px",
           left: "30%",
           transform: "translateX(-50%)",
           bgcolor: "background.paper",
@@ -52,41 +84,65 @@ const SearchResults: React.FC = () => {
         {/* USERS */}
         {users.length > 0 && (
           <>
-            <Typography variant="h6" mb={1}>Users</Typography>
+            <Typography variant="h6" mb={1}>
+              Users
+            </Typography>
             {users.map((user) => (
               <Box
                 key={user.id}
                 sx={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "space-between",
                   gap: 2,
                   mb: 2,
                   p: 1,
                   borderRadius: 2,
                   "&:hover": {
                     backgroundColor: "action.hover",
-                    cursor: "pointer",
                   },
                 }}
               >
-                <Avatar
-                src={
-                    typeof user.profile_picture_url === "string" &&
-                    user.profile_picture_url.startsWith("http")
-                    ? user.profile_picture_url
-                    : undefined
-                }
-                />
-                <Box>
-                  <Typography fontWeight="bold">
-                    {user.first_name} {user.last_name}
-                  </Typography>
-                  {user.bio && (
-                    <Typography variant="body2" color="text.secondary">
-                      {user.bio}
+                {/* Left: avatar + name (clickable) */}
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1, cursor: "pointer" }}
+                  onClick={() => {
+                    router.push(`/profile?id=${user.id}`);
+                    setSearchResults(null);
+                  }}
+                >
+                  <Avatar
+                    src={
+                      typeof user.profile_picture_url === "string" &&
+                      user.profile_picture_url.startsWith("http")
+                        ? user.profile_picture_url
+                        : undefined
+                    }
+                  />
+                  <Box>
+                    <Typography fontWeight="bold">
+                      {user.first_name} {user.last_name}
                     </Typography>
-                  )}
+                    {user.bio && (
+                      <Typography variant="body2" color="text.secondary">
+                        {user.bio}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
+
+                {/* Right: Connect button */}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: "none", fontWeight: 500 }}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent nav
+                    handleOpenDialog(user);
+                  }}
+                >
+                  Connect
+                </Button>
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
@@ -96,7 +152,9 @@ const SearchResults: React.FC = () => {
         {/* POSTS */}
         {posts.length > 0 && (
           <>
-            <Typography variant="h6" mb={1}>Posts</Typography>
+            <Typography variant="h6" mb={1}>
+              Posts
+            </Typography>
             {posts.map((post) => (
               <Card
                 key={post.id}
@@ -111,13 +169,13 @@ const SearchResults: React.FC = () => {
                 <CardHeader
                   avatar={
                     <Avatar
-                    src={
-                      typeof post.profilePic === "string" &&
-                      post.profilePic.startsWith("http")
-                        ? post.profilePic
-                        : undefined
-                    }
-                  />
+                      src={
+                        typeof post.profilePic === "string" &&
+                        post.profilePic.startsWith("http")
+                          ? post.profilePic
+                          : undefined
+                      }
+                    />
                   }
                   title={<Typography fontWeight="bold">{post.username}</Typography>}
                   subheader={
@@ -141,6 +199,15 @@ const SearchResults: React.FC = () => {
           <Typography textAlign="center" color="text.secondary" py={2}>
             No results found.
           </Typography>
+        )}
+
+        {/* CONNECT DIALOG */}
+        {selectedUser && (
+          <ConnectDialog
+            open={true}
+            onClose={handleCloseDialog}
+            onSend={handleSendRequest}
+          />
         )}
       </Box>
     </ClickAwayListener>
