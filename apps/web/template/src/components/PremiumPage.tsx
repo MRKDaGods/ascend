@@ -109,7 +109,7 @@ const PremiumPage = () => {
       .then((body) => {
         if (body.error) {
           alert(body.error);
-        } else {
+        } else { console.log(body.data.url); // Log the URL for debugging
           window.location = body.data.url;
         }
       })
