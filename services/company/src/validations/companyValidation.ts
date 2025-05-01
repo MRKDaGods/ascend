@@ -192,7 +192,20 @@ export const createAnnouncementValidation: ValidationChain[] = [
 
     body("announcement_video").optional().custom(videoFileValidation),
 
+    body("deleted_image_ids").optional().isArray().withMessage("'deleted_image_ids' must be an array")
+    .bail()
+    .custom((value) => {
+      const allPositiveIntegers = value.every(
+        (id : any) => Number.isInteger(id) && id > 0
+      );
+      if (!allPositiveIntegers) {
+        throw new Error("all elements of 'deleted_image_ids' must be positive integers");
+      }
+      return true;
+    }),
+
     body("announcement_photos").optional().isArray().withMessage("'announcement_photos' must be an array")
+        .bail()
         .custom((items: Array<any>) => {
             {
                 for (const item of items) {
@@ -250,7 +263,7 @@ export const updateAnnouncementValidation: ValidationChain[] = [
     body("announcement_video").optional().custom(updateVideoFileValidation),
 
     body("announcement_photos").optional().isArray().withMessage("'announcement_photos' must be an array")
-        .custom((items: any) => {
+    .bail().custom((items: any) => {
             {
                 for (const item of items) {
                     const { buffer, file_name, file_size, mime_type, context } = item;

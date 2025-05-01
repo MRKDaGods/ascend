@@ -143,7 +143,7 @@ export const deleteAnnouncement = async (id : number, image_ids : Array<number> 
   return result.rows.length > 0;
 };
 
-export const updateAnnouncement = async (id : number, user_id : number, company_id : number, updated_at : Date, {content, new_announcement_photos, old_image_ids , new_announcement_video, old_video_id} : { content : string|undefined , new_announcement_photos : Array<any>|undefined , old_image_ids : Array<number>, new_announcement_video : any|undefined , old_video_id : number|undefined }) : Promise<Announcement|null> => {
+export const updateAnnouncement = async (id : number, user_id : number, company_id : number, updated_at : Date, {content, new_announcement_photos, old_image_ids, deleted_image_ids , new_announcement_video, old_video_id} : { content : string|undefined , new_announcement_photos : Array<any>|undefined , old_image_ids : Array<number> , deleted_image_ids : Array<number>|undefined, new_announcement_video : any|undefined , old_video_id : number|undefined }) : Promise<Announcement|null> => {
     let result;
     let file_service_queue;
   
@@ -156,17 +156,24 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
       updated_at : updated_at,
       posted_by : user_id
     };
-    let new_image_ids : Array<number> = [];
+    let new_image_ids : Array<number> = old_image_ids;
     let new_video_id;
   
     if(new_announcement_photos || (Array.isArray(new_announcement_photos))){
       let announcementPhotoResponse, delete_payload : FileDeletePayload;
-      if(old_image_ids){
-          for(const old_image_id of old_image_ids){
+      if(deleted_image_ids){
+          for(const deleted_image_id of deleted_image_ids){
               delete_payload = {
-                file_id : old_image_id
+                file_id : deleted_image_id
               };
               await publishEvent(Events.FILE_DELETE, delete_payload);
+          }
+          let index;
+          for(const image_id of new_image_ids){
+            index = deleted_image_ids.indexOf(image_id);
+            if(index !== -1){
+              new_image_ids.splice(index, 1);
+            }
           }
       }
       let announcement_photo_payload : FileUploadPayload.Request;
@@ -187,7 +194,6 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
           new_image_ids.push(announcementPhotoResponse.file_id);
       }
     
-
       counter += 1;
       db_query += `image_ids = $${counter}, `;
       parameters.push(new_image_ids);
