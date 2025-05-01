@@ -27,7 +27,7 @@ const Feed: React.FC = () => {
   const theme = useTheme();
   const posts = usePostStore((state) => state.posts);
   const fetchNewsFeed = usePostStore((state) => state.fetchNewsFeedFromAPI);
-  const { userData, setUserData,  } = useProfileStore();
+  const { userData, setUserData } = useProfileStore();
 
   const visiblePosts = posts.filter((post) => post.isUserPost !== true);
 

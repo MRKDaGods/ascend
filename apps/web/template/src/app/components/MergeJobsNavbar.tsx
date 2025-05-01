@@ -396,6 +396,21 @@ const MergeJobsNavbar: React.FC = () => {
               />
             </IconButton>
           </Tooltip>
+          <Tooltip
+            title={
+              appTheme === "dark"
+                ? "Switch to Light Mode"
+                : "Switch to Dark Mode"
+            }
+          >
+            <IconButton onClick={toggleTheme}>
+              {appTheme === "dark" ? (
+                <LightMode sx={{ color: "#ffeb3b" }} />
+              ) : (
+                <DarkMode sx={{ color: "#333" }} />
+              )}
+            </IconButton>
+          </Tooltip>
 
           {/* Business Button */}
           <Button
@@ -426,21 +441,6 @@ const MergeJobsNavbar: React.FC = () => {
           >
             Try Premium Free
           </Button>
-          <Tooltip
-            title={
-              appTheme === "dark"
-                ? "Switch to Light Mode"
-                : "Switch to Dark Mode"
-            }
-          >
-            <IconButton onClick={toggleTheme}>
-              {appTheme === "dark" ? (
-                <LightMode sx={{ color: "#ffeb3b" }} />
-              ) : (
-                <DarkMode sx={{ color: "#333" }} />
-              )}
-            </IconButton>
-          </Tooltip>
         </Box>
       </Toolbar>
     </AppBar>
