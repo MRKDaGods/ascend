@@ -8,9 +8,39 @@ export const findCompanyById = async (id : number) : Promise<Company | null> => 
     return result.rows.length > 0 ? result.rows[0] : null;
 };
 
-export const findCompanyByName = async (name : string) : Promise<Company | null> => {
-    const result = await db.query("SELECT * FROM company_service.company WHERE company_name=$1", [name]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+export const getAllCompanies = async (limit: number = -1, offset: number = 0): Promise<Array<Company>> => {
+    const query =
+      limit === -1
+        ? "SELECT * FROM company_service.company WHERE 1=1"
+        : "SELECT * FROM company_service.company WHERE 1=1 LIMIT $1 OFFSET $2";
+        
+    const params =
+      limit === -1
+        ? []
+        : [limit, offset * limit];
+  
+    const result = await db.query(query, params);
+    return result.rows;
+  };
+  
+
+export const findCompanyByName = async (
+    name: string,
+    limit: number = -1,
+    offset: number = 0
+  ): Promise<Array<Company>> => {
+    const query =
+      limit === -1
+        ? "SELECT * FROM company_service.company WHERE company_name ILIKE $1"
+        : "SELECT * FROM company_service.company WHERE company_name ILIKE $1 LIMIT $2 OFFSET $3";
+    
+    const params =
+      limit === -1
+        ? [`%${name}%`]
+        : [`%${name}%`, limit, offset * limit];
+  
+    const result = await db.query(query, params);
+    return result.rows;
 };
 
 export const createCompany = async ({

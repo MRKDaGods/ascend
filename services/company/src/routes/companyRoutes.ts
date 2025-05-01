@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createAnnounementPost, createCompanyProfile, deleteAnnouncementPost, deleteCompanyProfile, followCompany, getAnnouncement, getCompaniesCreatedByUser, getCompanyAnalytics, getCompanyAnnouncements, getCompanyFollowers, getCompanyProfile, unfollowCompany, updateAnnounementPost, updateCompany} from "../controllers/companyController";
+import { createAnnounementPost, createCompanyProfile, deleteAnnouncementPost, deleteCompanyProfile, findCompaniesPagesFollowedByUser, followCompany, getAnnouncement, getCompaniesCreatedByUser, getCompanyAnalytics, getCompanyAnnouncements, getCompanyFollowers, getCompanyProfile, searchForCompany, unfollowCompany, updateAnnounementPost, updateCompany} from "../controllers/companyController";
 import authenticateToken from "@shared/middleware/authMiddleware";
 import { announcementIdValidation, companyIdValidation, createAnnouncementValidation, createCompanyValidation,  limitAndPageValidation, updateAnnouncementValidation, updateCompanyValidation } from "../validations/companyValidation";
 const companyRoutes = Router();
@@ -21,6 +21,10 @@ companyRoutes.get("/companies/:companyId/followers", authenticateToken, companyI
 
 companyRoutes.post("/companies/:companyId/follow", authenticateToken, companyIdValidation, followCompany);
 companyRoutes.delete("/companies/:companyId/unfollow", authenticateToken, companyIdValidation, unfollowCompany);
+
+companyRoutes.get("/companies/user/followed", authenticateToken, limitAndPageValidation, findCompaniesPagesFollowedByUser);
+
+companyRoutes.get("/companies/data/search", authenticateToken, limitAndPageValidation, searchForCompany);
 
 companyRoutes.get("/companies/:companyId/analytics", authenticateToken, companyIdValidation, getCompanyAnalytics);
 

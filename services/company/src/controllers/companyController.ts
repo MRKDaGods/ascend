@@ -1,7 +1,7 @@
 import { AuthenticatedRequest } from "@shared/middleware/authMiddleware";
 import { Response } from "express";
-import { createCompany, deleteCompany, findCompaniesCreatedByUser, findCompanyById, updateCompanyProfile } from "../services/companyService";
-import { createFollowRelationShip, deleteFollowRelationShip, findFollowersOfCompany, findNumberOfFollowersOfCompany } from "../services/followsService";
+import { createCompany, deleteCompany, findCompaniesCreatedByUser, findCompanyById, findCompanyByName, getAllCompanies, updateCompanyProfile } from "../services/companyService";
+import { createFollowRelationShip, deleteFollowRelationShip, findCompaniesFollowedByUser, findFollowersOfCompany, findNumberOfFollowersOfCompany } from "../services/followsService";
 import { createAnnouncement, deleteAnnouncement, findAnnouncementById, findAnnouncementsByCompanyId, findNumberOfAnnouncements, updateAnnouncement } from "../services/announcementService";
 import { Company } from "@shared/models/company";
 import { validationResult } from "express-validator";
@@ -256,9 +256,6 @@ export const getCompanyProfile = async (req : AuthenticatedRequest, res : Respon
         if(!company){
             return res.status(404).json({error : "company not found"});
         }
-        if(company?.created_by !== user_id){
-            return res.status(401).json({error : "unauthorized"});
-        }
 
         const file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_URL_RPC);
         const profilePhotoURLResponse = await callRPC<FilePresignedUrlPayload.Response>(file_service_queue, { file_id : company.profile_photo_id }, 10000);
@@ -398,7 +395,7 @@ export const updateAnnounementPost = async (req : AuthenticatedRequest, res : Re
     const announcement_id = parseInt(req.params.announcementId, 10);
     let { content, announcement_photos, announcement_video, deleted_image_ids } = req.body;
     try {
-        if(!content && !announcement_photos && (!announcement_video && announcement_video !== "")){
+        if(!content && !announcement_photos && (!announcement_video && announcement_video !== "") && !deleted_image_ids){
             return res.status(400).json({error : "no fields to update"});
         }
         const company = await findCompanyById(company_id);
@@ -886,4 +883,86 @@ export const unfollowCompany = async (req : AuthenticatedRequest, res : Response
         console.log(`Internal error : ${e}`)
         return res.status(500).json({error : "Internal error : "});
     }
-}
+};
+
+export const findCompaniesPagesFollowedByUser = async (req : AuthenticatedRequest, res : Response) => {
+    const user_id = req.user?.id;
+    if(!user_id){
+        return res.status(401).json({error : "unauthorized"});
+    }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }   
+
+    const company_id = parseInt(req.params.companyId, 10);
+    const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
+    const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
+    try{
+        let companies : Array<any>;
+        if(limit === -1){
+            companies = await findCompaniesFollowedByUser(user_id);
+        }else{
+            companies = await findCompaniesFollowedByUser(company_id, limit, page-1);
+        } 
+
+        return res.status(200).json({
+            error : null,
+            data : {
+                companies : companies
+            }
+        });
+    }catch(e){
+        console.log(`Internal error : ${e}`)
+        return res.status(500).json({error : "Internal error : "});
+    }
+};
+
+export const searchForCompany = async (req : AuthenticatedRequest, res : Response) => {
+    const user_id = req.user?.id;
+    if(!user_id){
+        return res.status(401).json({error : "unauthorized"});
+    }
+
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(400).json({error : errors.array()});
+    }
+    
+    const { search, value } = req.query;
+    const limit : number = req.query.limit ? parseInt(req.query.limit as string) : -1;
+    const page : number = req.query.page ? parseInt(req.query.page as string) : 0;
+    try{
+        if((search && (!value || value === ''))){
+            return res.status(400).json({
+                error : "'search' and 'value' query parameters are required'"
+            });
+        }
+
+        let companies : Array<any>;
+        if(search === 'name'){
+            if(limit === -1){
+                companies = await findCompanyByName(value as string);
+            }else{
+                companies = await findCompanyByName(value as string, limit, page-1);
+            } 
+        }else{
+            if(limit === -1){
+                companies = await getAllCompanies();
+            }else{
+                companies = await getAllCompanies(limit, page-1);
+            }
+        }
+
+        return res.status(200).json({
+            error : null,
+            data : {
+                companies : companies
+            }
+        });
+    }catch(e){
+        console.log(`Internal error : ${e}`)
+        return res.status(500).json({error : "Internal error : "});
+    }
+};

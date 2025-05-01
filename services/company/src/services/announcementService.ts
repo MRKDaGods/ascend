@@ -144,120 +144,120 @@ export const deleteAnnouncement = async (id : number, image_ids : Array<number> 
 };
 
 export const updateAnnouncement = async (id : number, user_id : number, company_id : number, updated_at : Date, {content, new_announcement_photos, old_image_ids, deleted_image_ids , new_announcement_video, old_video_id} : { content : string|undefined , new_announcement_photos : Array<any>|undefined , old_image_ids : Array<number> , deleted_image_ids : Array<number>|undefined, new_announcement_video : any|undefined , old_video_id : number|undefined }) : Promise<Announcement|null> => {
-    let result;
-    let file_service_queue;
-  
-    let counter : number = 0;
-    let db_query : string = "UPDATE company_service.announcement SET ";
-    let parameters : Array<any> = [];
-    let updateAnnouncementPayload : any = {
-      announcement_id : id,
-      company_id : company_id,
-      updated_at : updated_at,
-      posted_by : user_id
-    };
-    let new_image_ids : Array<number> = old_image_ids;
-    let new_video_id;
-  
-    let  delete_payload : FileDeletePayload;
-    if(deleted_image_ids){
-      for(const deleted_image_id of deleted_image_ids){
-          delete_payload = {
-            file_id : deleted_image_id
-          };
-          await publishEvent(Events.FILE_DELETE, delete_payload);
-      }
-      let index;
-      for(const image_id of new_image_ids){
-        index = deleted_image_ids.indexOf(image_id);
-        if(index !== -1){
-          new_image_ids.splice(index, 1);
+  let result;
+  let file_service_queue;
+
+  let counter : number = 0;
+  let db_query : string = "UPDATE company_service.announcement SET ";
+  let parameters : Array<any> = [];
+  let updateAnnouncementPayload : any = {
+    announcement_id : id,
+    company_id : company_id,
+    updated_at : updated_at,
+    posted_by : user_id
+  };
+  let new_image_ids : Array<number> = old_image_ids;
+  let new_video_id;
+
+  let  delete_payload : FileDeletePayload;
+  if(deleted_image_ids){
+    for(const deleted_image_id of deleted_image_ids){
+        delete_payload = {
+          file_id : deleted_image_id
+        };
+        await publishEvent(Events.FILE_DELETE, delete_payload);
+    }
+    new_image_ids = new_image_ids.filter(
+      image_id => !deleted_image_ids.includes(image_id)
+    );
+    
+  }
+  if(new_announcement_photos){
+    let announcementPhotoResponse;
+    let announcement_photo_payload : FileUploadPayload.Request;
+    for(const announcement_photo of new_announcement_photos){
+        announcement_photo_payload  = {
+            user_id : user_id,
+            file_buffer : announcement_photo.buffer,
+            file_name : announcement_photo.file_name,
+            file_size : announcement_photo.file_size,
+            mime_type : announcement_photo.mime_type
+        };
+        if(announcement_photo.context){
+            announcement_photo_payload['context'] = announcement_photo.context;
         }
-      }
+    
+        file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+        announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);
+        new_image_ids.push(announcementPhotoResponse.file_id);
     }
-    
-    if(new_announcement_photos || (Array.isArray(new_announcement_photos))){
-      let announcementPhotoResponse;
-      let announcement_photo_payload : FileUploadPayload.Request;
-      for(const announcement_photo of new_announcement_photos){
-          announcement_photo_payload  = {
-              user_id : user_id,
-              file_buffer : announcement_photo.buffer,
-              file_name : announcement_photo.file_name,
-              file_size : announcement_photo.file_size,
-              mime_type : announcement_photo.mime_type
-          };
-          if(announcement_photo.context){
-              announcement_photo_payload['context'] = announcement_photo.context;
-          }
-      
-          file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
-          announcementPhotoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, announcement_photo_payload, 10000);
-          new_image_ids.push(announcementPhotoResponse.file_id);
-      }
-    
-      counter += 1;
-      db_query += `image_ids = $${counter}, `;
-      parameters.push(new_image_ids);
-    }
+  
+  }
 
-    if(new_announcement_video){
-      if(old_video_id && old_video_id !== -1){
-          const delete_payload : FileDeletePayload = {
-            file_id : old_video_id
-          };
-          await publishEvent(Events.FILE_DELETE, delete_payload);
-      }
-      
+  if(deleted_image_ids || new_announcement_photos){
+    counter += 1;
+    db_query += `image_ids = $${counter}, `;
+    parameters.push(new_image_ids);
+  }
 
-      let new_announcement_video_payload : FileUploadPayload.Request  = {
-        user_id : user_id,
-        file_buffer : new_announcement_video.buffer,
-        file_name : new_announcement_video.file_name,
-        file_size : new_announcement_video.file_size,
-        mime_type : new_announcement_video.mime_type
-      };
-      if(new_announcement_video.context){
-          new_announcement_video_payload['context'] = new_announcement_video.context;
-      }
-    
-      file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
-      const announcementVideoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, new_announcement_video_payload, 10000);    
-      new_video_id = announcementVideoResponse.file_id;
-
-      counter += 1;
-      db_query += `video_id = $${counter}, `;
-      parameters.push(new_video_id);
-    }else if(new_announcement_video === ""){
-      if(old_video_id){
+  if(new_announcement_video){
+    if(old_video_id && old_video_id !== -1){
         const delete_payload : FileDeletePayload = {
           file_id : old_video_id
         };
         await publishEvent(Events.FILE_DELETE, delete_payload);
-      }
-
-      counter += 1;
-      db_query += `video_id = $${counter}, `;
-      parameters.push(null);
     }
     
-    if(content){
-      counter += 1;
-      db_query += `content = $${counter}, `;
-      parameters.push(content);
-      updateAnnouncementPayload.new_content = content;
+
+    let new_announcement_video_payload : FileUploadPayload.Request  = {
+      user_id : user_id,
+      file_buffer : new_announcement_video.buffer,
+      file_name : new_announcement_video.file_name,
+      file_size : new_announcement_video.file_size,
+      mime_type : new_announcement_video.mime_type
+    };
+    if(new_announcement_video.context){
+        new_announcement_video_payload['context'] = new_announcement_video.context;
     }
-
-
-    db_query = db_query.substring(0, db_query.lastIndexOf(","));
+  
+    file_service_queue = getRPCQueueName(Services.FILE, Events.FILE_UPLOAD_RPC);
+    const announcementVideoResponse = await callRPC<FileUploadPayload.Response>(file_service_queue, new_announcement_video_payload, 10000);    
+    new_video_id = announcementVideoResponse.file_id;
 
     counter += 1;
-    db_query += ` WHERE announcement_id = $${counter} RETURNING *`;
-    parameters.push(id);
+    db_query += `video_id = $${counter}, `;
+    parameters.push(new_video_id);
+  }else if(new_announcement_video === ""){
+    if(old_video_id){
+      const delete_payload : FileDeletePayload = {
+        file_id : old_video_id
+      };
+      await publishEvent(Events.FILE_DELETE, delete_payload);
+    }
 
-    result = await db.query(db_query, parameters);
+    counter += 1;
+    db_query += `video_id = $${counter}, `;
+    parameters.push(null);
+  }
+  
+  if(content){
+    counter += 1;
+    db_query += `content = $${counter}, `;
+    parameters.push(content);
+    updateAnnouncementPayload.new_content = content;
+  }
 
-    await publishEvent(Events.COMPANY_ANNOUNCEMENT_UPDATED, updateAnnouncementPayload);
-    console.log(`from update service ${result.rows[0]}`);
-    return result.rows.length > 0 ? result.rows[0] : null;
+
+  db_query = db_query.substring(0, db_query.lastIndexOf(","));
+
+  counter += 1;
+  db_query += ` WHERE announcement_id = $${counter} RETURNING *`;
+  parameters.push(id);
+
+  console.log(db_query);
+  result = await db.query(db_query, parameters);
+
+  await publishEvent(Events.COMPANY_ANNOUNCEMENT_UPDATED, updateAnnouncementPayload);
+  console.log(`from update service ${result.rows[0]}`);
+  return result.rows.length > 0 ? result.rows[0] : null;
 };
