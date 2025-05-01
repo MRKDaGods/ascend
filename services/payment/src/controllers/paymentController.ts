@@ -140,7 +140,7 @@ export const handleFeaturePayment = async (req : AuthenticatedRequest, res : Res
         
         const session = await stripe.checkout.sessions.create({
             success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}&session_token=${new_session_token}`,
-            cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel?session_token=${new_session_token}`,
+            cancel_url : `${FRONTEND_BASE_URL}/${relative_return_url}`,
             line_items : line_items,
             customer : customer.id,
             payment_method_types : ["card"],
@@ -317,7 +317,7 @@ export const handleSubscriptionPayment = async (req : AuthenticatedRequest, res 
         }
         const session = await stripe.checkout.sessions.create({
             success_url : `${PAYMENT_BASE_URL}/payments/process/complete?session_id={CHECKOUT_SESSION_ID}&session_token=${new_session_token}`,
-            cancel_url : `${PAYMENT_BASE_URL}/payments/process/cancel&session_token=${new_session_token}`,
+            cancel_url : `${FRONTEND_BASE_URL}/${relative_return_url}`,
             line_items :[ {
                     price : subscription_price_id,
                     quantity : 1
