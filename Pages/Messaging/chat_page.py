@@ -1,5 +1,6 @@
 from Pages.Messaging.locaters import ChatPageLocaters
 from Pages.base_page import BasePage  # Import BasePage
+from appium.webdriver.common.appiumby import AppiumBy as By  # Import AppiumBy
 
 
 class ChatPage(BasePage):
@@ -15,8 +16,23 @@ class ChatPage(BasePage):
     MUTE_CHAT = ChatPageLocaters.MUTE_CHAT
     BLOCK_CHAT = ChatPageLocaters.BLOCK_CHAT
     DELETE_CHAT = ChatPageLocaters.DELETE_CHAT
+    POPUP_NOTIFICATIONS_AFTER_SEND = ChatPageLocaters.POPUP_NOTIFICATIONS_AFTER_SEND
+    SENT_MESSAGE = None
+    VALID_IMAGE = ChatPageLocaters.VALID_IMAGE
+    CORRUPTED_IMAGE = ChatPageLocaters.CORRUPTED_IMAGE
+    DOCUMENT = ChatPageLocaters.DOCUMENT
+    NEXT_BUTTON = ChatPageLocaters.NEXT_BUTTON
+    MESSAGE = ChatPageLocaters.MESSAGE
+    UNSEEN_COUNT = ChatPageLocaters.UNSEEN_COUNT
     
+
     
+    def update_message_locater(self, message):
+        self.SENT_MESSAGE = (
+            By.XPATH,
+            '//android.widget.TextView[@resource-id="com.linkedin.android:id/body" and @text="{}"]'.format(message) #//android.widget.TextView[@resource-id="com.linkedin.android:id/body" and @text="Asdsda"]
+        )
+
     def enter_Message_Text_Box(self, text):
         self.send_keys(self.MESSAGE_TEXT_BOX, text)
     
@@ -47,5 +63,17 @@ class ChatPage(BasePage):
     def click_Delete_Chat(self):
         self.click(self.DELETE_CHAT)
     
+    def click_Popup_Notifications_After_Send(self):
+        self.click(self.POPUP_NOTIFICATIONS_AFTER_SEND)
     
+    def click_Valid_Image(self):
+        self.click(self.VALID_IMAGE)
     
+    def click_Corrupted_Image(self):
+        self.click(self.CORRUPTED_IMAGE)
+    
+    def click_Document(self):
+        self.click(self.DOCUMENT)
+    
+    def click_Next_Button(self):
+        self.click(self.NEXT_BUTTON)
