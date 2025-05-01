@@ -9,13 +9,36 @@ import {
   IconButton,
 } from "@mui/material";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { useState } from "react";
-import NewsletterInviteCard from "./NewsletterInviteCard";
+import { useEffect, useState } from "react";
+import ReceivedInviteCard from "./ReceivedInviteCard";
+import SentInviteCard from "./SentInviteCard";
+import { useConnectionStore } from "../stores/useConnectionStore";
+
+// Utility: Format "x days ago"
+function formatTimeAgo(dateString: string): string {
+  const diff = Date.now() - new Date(dateString).getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
 
 const ManageInvitationsCard = () => {
   const theme = useTheme();
   const [tab, setTab] = useState(0);
-  const [filter, setFilter] = useState("all");
+
+  const {
+    fetchReceivedInvitations,
+    fetchSentInvitations,
+    receivedInvitations,
+    sentInvitations,
+    respondToConnectionRequest
+  } = useConnectionStore();
+
+  useEffect(() => {
+    if (tab === 0) fetchReceivedInvitations();
+    if (tab === 1) fetchSentInvitations();
+  }, [tab]);
 
   return (
     <Box
@@ -27,7 +50,7 @@ const ManageInvitationsCard = () => {
         width: "100%",
       }}
     >
-      {/* Header Row */}
+      {/* Header */}
       <Box
         sx={{
           display: "flex",
@@ -54,18 +77,52 @@ const ManageInvitationsCard = () => {
         <Tab label="Sent" />
       </Tabs>
 
-      {/* Filter Pills */}
+      {/* Tab: Received */}
       {tab === 0 && (
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-        </Box>
+        <>
+          {receivedInvitations.map((invite) => (
+            <Box key={invite.id} mb={2}>
+              <ReceivedInviteCard
+                fullName={`${invite.first_name} ${invite.last_name}`}
+                message={invite.message}
+                time={formatTimeAgo(invite.created_at)}
+                profilePicture={
+                  invite.profile_picture_id
+                    ? `https://api.ascendx.tech/files/${invite.profile_picture_id}`
+                    : undefined
+                }
+                onAccept={() => respondToConnectionRequest(invite.id, true)}
+                onIgnore={() => respondToConnectionRequest(invite.id, false)}
+              />
+            </Box>
+          ))}
+        </>
       )}
 
-      {/* Content */}
-      {tab === 0 && <NewsletterInviteCard />}
+      {/* Tab: Sent */}
       {tab === 1 && (
-        <Typography variant="body2" color="text.secondary">
-          No sent invitations yet.
-        </Typography>
+        <>
+          {sentInvitations.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No sent invitations yet.
+            </Typography>
+          ) : (
+            sentInvitations.map((invite) => (
+              <Box key={invite.id} mb={2}>
+                <SentInviteCard
+                  fullName={`${invite.first_name} ${invite.last_name}`}
+                  message={invite.message}
+                  time={formatTimeAgo(invite.created_at)}
+                  profilePicture={
+                    invite.profile_picture_id
+                      ? `https://api.ascendx.tech/files/${invite.profile_picture_id}`
+                      : undefined
+                  }
+                />
+              </Box>
+            ))
+          )}
+        </>
       )}
     </Box>
   );

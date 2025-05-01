@@ -17,6 +17,7 @@ import {
   createPostNew,
   reportPostAPI
 } from "@/api/posts";
+import InvitationWithdrawnPopup from "../components/InvitationWithdrawnPopup";
 
 
 export type ReactionType =

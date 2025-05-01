@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useEffect} from "react";
 import {
   AppBar,
   Toolbar,
@@ -78,20 +78,13 @@ const Navbar: React.FC = () => {
   const muiTheme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const { userData, setUserData } = useProfileStore();
+  
   const [searchQuery, setSearchQuery] = React.useState("");
   const { ultimateSearch } = usePostStore();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
-
-  // Fetch user data from the profile store
-  type Profile = {
-    profile_picture_url?: string;
-    first_name: string;
-    last_name: string;
-  };
-
-  const userData = useProfileStore((state) => state.userData) as Profile | null;
 
   // Safely derive profile picture and full name
   const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // Fallback to default avatar
@@ -112,6 +105,14 @@ const Navbar: React.FC = () => {
         console.error("Logout error:", error);
       });
   };
+
+    useEffect(() => {
+    
+      if (!userData) {
+        api.user.getLocalUserProfile().then(setUserData).catch(console.error);
+      }
+    }, []);
+  
 
   return (
     <AppBar
@@ -199,20 +200,6 @@ const Navbar: React.FC = () => {
 
         {/* RIGHT */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Tooltip
-            title={
-              theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
-            }
-          >
-            <IconButton onClick={toggleTheme}>
-              {theme === "dark" ? (
-                <LightMode sx={{ color: "#ffeb3b" }} />
-              ) : (
-                <DarkMode sx={{ color: "#333" }} />
-              )}
-            </IconButton>
-          </Tooltip>
-
           {/* User Avatar */}
           <Tooltip title="Me">
             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
@@ -312,6 +299,19 @@ const Navbar: React.FC = () => {
               <ListItemText onClick={handleLogout}>Sign Out</ListItemText>
             </MenuItem>
           </Menu>
+          <Tooltip
+            title={
+              theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+            }
+          >
+            <IconButton onClick={toggleTheme}>
+              {theme === "dark" ? (
+                <LightMode sx={{ color: "#ffeb3b" }} />
+              ) : (
+                <DarkMode sx={{ color: "#333" }} />
+              )}
+            </IconButton>
+          </Tooltip>
 
           {/* Business / Premium */}
           <Button
