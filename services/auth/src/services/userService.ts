@@ -146,6 +146,20 @@ export const resetUserPassword = async (
   return result.rows.length > 0 ? result.rows[0] : null;
 };
 
+export const resetUserPassword2 = async (
+  code: string,
+  newPassword: string
+): Promise<User | null> => {
+  const password_hash = await bcrypt.hash(newPassword, 10);
+
+  const result = await db.query(
+    "UPDATE auth_service.users SET password_hash = $1, reset_token = NULL WHERE reset_token = $2 RETURNING *",
+    [password_hash, code]
+  );
+
+  return result.rows.length > 0 ? result.rows[0] : null;
+};
+
 /**
  * Updates a user's password in the database.
  *

@@ -20,6 +20,7 @@ import {
   getAllUserReports,
   deleteUserReport,
   reportUser as reportUserService,
+  resetUserPassword2,
 } from "../services/userService";
 import { UserRole } from "@shared/models";
 import {
@@ -221,7 +222,7 @@ export const resendConfirmEmail = async (req: Request, res: Response) => {
  * Reset email is valid for 1 hour
  */
 export const forgetPassword = async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email, send_code } = req.body;
 
   try {
     const user = await findUserByEmail(email);
@@ -229,14 +230,20 @@ export const forgetPassword = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const reset_token = generateToken({ email }, "1h");
-    await updateUserResetToken(email, reset_token);
+    // Do we need to create a verficiation code for the user?
+    let reset_token;
+    let reset_msg;
+    if (send_code === true) {
+      const verification_code = Math.floor(100000 + Math.random() * 900000);
+      reset_token = verification_code.toString();
+      reset_msg = `Your password verification code is: ${verification_code}`;
+    } else {
+      reset_token = generateToken({ email }, "1h");
+      reset_msg = `Click this link to reset your password: https://www.ascendx.tech/authen/ForgetPassword/new?token=${reset_token}`;
+    }
 
-    await sendEmail(
-      email,
-      "Reset Your Password",
-      `Click this link to reset your password: https://www.ascendx.tech/authen/ForgetPassword/new?token=${reset_token}`
-    );
+    await updateUserResetToken(email, reset_token);
+    await sendEmail(email, "Reset Your Password", reset_msg);
 
     res.json({ message: "Password reset email sent" });
   } catch (error) {
@@ -256,11 +263,24 @@ export const forgetPassword = async (req: Request, res: Response) => {
  * - 500 if server error occurs
  */
 export const resetPassword = async (req: Request, res: Response) => {
-  const { token, new_password } = req.body;
+  const { token, code, new_password } = req.body;
 
   try {
-    const { email } = verifyToken(token);
+    if (code) {
+      if (code.toString().length !== 6) {
+        return res.status(400).json({ error: "Invalid verification code" });
+      }
 
+      const u2 = await resetUserPassword2(code.toString(), new_password);
+      if (!u2) {
+        return res.status(400).json({ error: "Invalid or expired token" });
+      }
+
+      res.json({ message: "Password reset successfully" });
+      return;
+    }
+
+    const { email } = verifyToken(token);
     const user = await resetUserPassword(email, token, new_password);
     if (!user) {
       return res.status(400).json({ error: "Invalid or expired token" });
@@ -667,12 +687,10 @@ export const emailExists = async (req: Request, res: Response) => {
   const { email } = req.params;
   try {
     // email MUST exist in our database
-    if (!await checkProxyEmailExists(email)) {
-      return res
-        .status(400)
-        .json({
-          error: "Please create an email first at www.ascendx.tech/email",
-        });
+    if (!(await checkProxyEmailExists(email))) {
+      return res.status(400).json({
+        error: "Please create an email first at www.ascendx.tech/email",
+      });
     }
 
     const user = await findUserByEmail(email);
