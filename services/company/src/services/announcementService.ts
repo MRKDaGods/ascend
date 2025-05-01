@@ -159,23 +159,25 @@ export const updateAnnouncement = async (id : number, user_id : number, company_
     let new_image_ids : Array<number> = old_image_ids;
     let new_video_id;
   
-    if(new_announcement_photos || (Array.isArray(new_announcement_photos))){
-      let announcementPhotoResponse, delete_payload : FileDeletePayload;
-      if(deleted_image_ids){
-          for(const deleted_image_id of deleted_image_ids){
-              delete_payload = {
-                file_id : deleted_image_id
-              };
-              await publishEvent(Events.FILE_DELETE, delete_payload);
-          }
-          let index;
-          for(const image_id of new_image_ids){
-            index = deleted_image_ids.indexOf(image_id);
-            if(index !== -1){
-              new_image_ids.splice(index, 1);
-            }
-          }
+    let  delete_payload : FileDeletePayload;
+    if(deleted_image_ids){
+      for(const deleted_image_id of deleted_image_ids){
+          delete_payload = {
+            file_id : deleted_image_id
+          };
+          await publishEvent(Events.FILE_DELETE, delete_payload);
       }
+      let index;
+      for(const image_id of new_image_ids){
+        index = deleted_image_ids.indexOf(image_id);
+        if(index !== -1){
+          new_image_ids.splice(index, 1);
+        }
+      }
+    }
+    
+    if(new_announcement_photos || (Array.isArray(new_announcement_photos))){
+      let announcementPhotoResponse;
       let announcement_photo_payload : FileUploadPayload.Request;
       for(const announcement_photo of new_announcement_photos){
           announcement_photo_payload  = {
