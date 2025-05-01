@@ -148,13 +148,14 @@ export const resetUserPassword = async (
 
 export const resetUserPassword2 = async (
   code: string,
+  xemail: string,
   newPassword: string
 ): Promise<User | null> => {
   const password_hash = await bcrypt.hash(newPassword, 10);
 
   const result = await db.query(
-    "UPDATE auth_service.users SET password_hash = $1, reset_token = NULL WHERE reset_token = $2 RETURNING *",
-    [password_hash, code]
+    "UPDATE auth_service.users SET password_hash = $1, reset_token = NULL WHERE email = $2 AND reset_token = $3 RETURNING *",
+    [password_hash, xemail, code]
   );
 
   return result.rows.length > 0 ? result.rows[0] : null;
