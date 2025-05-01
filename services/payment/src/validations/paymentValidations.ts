@@ -33,7 +33,7 @@ export const surveyResponseValidation : ValidationChain[] = [
     .notEmpty().withMessage("'question' can't be empty"),
 
     body("answers").exists().withMessage("'answers' is required").isArray().withMessage(" 'answers' must be an array")
-    .custom((arr : Array<any>) => { arr.length > 0 }).withMessage("'answers' can't be an empty array"),
+    .custom((arr : Array<any>) => { return arr.length > 0 }).withMessage("'answers' can't be an empty array"),
     
     body("user_choice").exists().withMessage("'user_choice' can't be empty").isInt({min : 0})
     .withMessage("'user_choice' can only be a nonnegative integer")
