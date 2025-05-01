@@ -91,7 +91,8 @@ class FullScreenImage extends StatelessWidget {
                           icon: Icons.delete,
                           label: "Delete",
                           onTap: () {
-                            // Add delete functionality here
+                            delete?.call();
+                            Navigator.pop(context);
                           },
                         ),
                       ],
