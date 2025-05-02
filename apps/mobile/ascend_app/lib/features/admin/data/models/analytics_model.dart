@@ -70,3 +70,67 @@ class AnalyticsData extends Equatable {
     reportedPosts,
   ];
 }
+
+/// Represents a reported post in the admin dashboard.
+class ReportedPost extends Equatable {
+  /// Unique identifier for the reported post.
+  final String id;
+
+  /// Name of the author of the post.
+  final String authorName;
+
+  /// Content of the reported post.
+  final String content;
+
+  /// Reason for reporting the post.
+  final String reason;
+
+  /// Description of the report.
+  final String description;
+
+  /// Optional URL of the image associated with the post.
+  final String? imageUrl;
+
+  const ReportedPost({
+    required this.id,
+    required this.authorName,
+    required this.content,
+    required this.reason,
+    required this.description,
+    this.imageUrl,
+  });
+
+  /// Creates an instance of [ReportedPost] from a JSON object.
+  factory ReportedPost.fromJson(Map<String, dynamic> json) {
+    return ReportedPost(
+      id: json['id'] ?? '',
+      authorName: json['authorName'] ?? '',
+      content: json['content'] ?? '',
+      reason: json['reason'] ?? '',
+      description: json['description'] ?? '',
+      imageUrl: json['imageUrl'],
+    );
+  }
+
+  /// Converts an instance of [ReportedPost] to a JSON object.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'authorName': authorName,
+      'content': content,
+      'reason': reason,
+      'description': description,
+      'imageUrl': imageUrl,
+    };
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    authorName,
+    content,
+    reason,
+    description,
+    imageUrl,
+  ];
+}
