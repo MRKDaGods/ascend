@@ -37,16 +37,13 @@ abstract class MessagingRepository {
   // getting streams
   Stream<Map<String, dynamic>> get messageStream;
   Stream<ConnectionState> get connectionStatusStream;
-  Stream<Map<String, bool>> get typingStatusStream;
+  Stream<Map<String, dynamic>> get typingStatusStream;
   Stream<Map<String, bool>> get readReceiptStream;
   bool isConnected();
   bool isRegistered();
 
   // send Typing notification
   void sendTypingNotification(String conversationId);
-
-  // mark Message as Seen
-  Future<void> markMessageAsSeen(String conversationId);
 
   // isAnyOne Typing
   bool isAnyoneTyping(String conversationId);

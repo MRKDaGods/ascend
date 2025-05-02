@@ -43,11 +43,13 @@ class ConversationLoaded extends MessagingBlocState {
   final int unseenCount;
   final int page;
   final bool hasReachedMax;
+  final Map<String, bool> typingStatus;
   ConversationLoaded(
     this.conversations,
     this.unseenCount,
     this.page,
     this.hasReachedMax,
+    this.typingStatus,
   );
 
   ConversationLoaded copyWith({
@@ -55,17 +57,25 @@ class ConversationLoaded extends MessagingBlocState {
     int? unseenCount,
     int? page,
     bool? hasReachedMax,
+    Map<String, bool>? typingStatus,
   }) {
     return ConversationLoaded(
       conversations ?? this.conversations,
       unseenCount ?? this.unseenCount,
       page ?? this.page,
       hasReachedMax ?? this.hasReachedMax,
+      typingStatus ?? this.typingStatus,
     );
   }
 
   @override
-  List<Object?> get props => [conversations];
+  List<Object?> get props => [
+    conversations,
+    unseenCount,
+    page,
+    hasReachedMax,
+    typingStatus,
+  ];
 }
 
 // Messages States
@@ -84,6 +94,8 @@ class MessagesLoaded extends MessagingBlocState {
   final int page;
   final bool hasReachedMax;
   final bool isTyping;
+  final bool isNewMessage;
+  final DateTime? typingUpdatedAt; // For typing status
 
   MessagesLoaded(
     this.messages,
@@ -91,6 +103,8 @@ class MessagesLoaded extends MessagingBlocState {
     this.page,
     this.hasReachedMax, {
     this.isTyping = false,
+    this.isNewMessage = false,
+    this.typingUpdatedAt,
   });
 
   MessagesLoaded copyWith({
@@ -99,6 +113,8 @@ class MessagesLoaded extends MessagingBlocState {
     int? page,
     bool? hasReachedMax,
     bool? isTyping,
+    bool? isNewMessage,
+    DateTime? typingUpdatedAt,
   }) {
     return MessagesLoaded(
       messages ?? this.messages,
@@ -106,9 +122,19 @@ class MessagesLoaded extends MessagingBlocState {
       page ?? this.page,
       hasReachedMax ?? this.hasReachedMax,
       isTyping: isTyping ?? this.isTyping,
+      isNewMessage: isNewMessage ?? this.isNewMessage,
+      typingUpdatedAt: typingUpdatedAt ?? this.typingUpdatedAt,
     );
   }
 
   @override
-  List<Object?> get props => [messages, conversationId];
+  List<Object?> get props => [
+    messages,
+    conversationId,
+    page,
+    hasReachedMax,
+    isTyping,
+    isNewMessage,
+    typingUpdatedAt,
+  ];
 }

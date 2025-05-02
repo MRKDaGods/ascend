@@ -92,6 +92,14 @@ class MarkMessagesasRead extends MessagingBlocEvent {
   List<Object?> get props => [conversationId];
 }
 
+class MarkasUnRead extends MessagingBlocEvent {
+  final String conversationId;
+  MarkasUnRead(this.conversationId);
+
+  @override
+  List<Object?> get props => [conversationId];
+}
+
 // WebSocket events
 class ConnectWebSocket extends MessagingBlocEvent {}
 
@@ -107,11 +115,12 @@ class WebSocketMessageReceived extends MessagingBlocEvent {
 
 class TypingStatusUpdated extends MessagingBlocEvent {
   final String conversationId;
+  final bool isTyping;
 
-  TypingStatusUpdated(this.conversationId);
+  TypingStatusUpdated(this.conversationId, this.isTyping);
 
   @override
-  List<Object?> get props => [conversationId];
+  List<Object?> get props => [conversationId, isTyping];
 }
 
 class ReadReceiptReceived extends MessagingBlocEvent {
