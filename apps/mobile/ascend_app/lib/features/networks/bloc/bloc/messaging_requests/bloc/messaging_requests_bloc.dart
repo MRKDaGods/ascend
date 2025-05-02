@@ -1,13 +1,15 @@
 import 'package:ascend_app/features/networks/model/message_model.dart';
-import 'package:ascend_app/features/networks/Repositories/message_repository.dart';
+import 'package:ascend_app/features/networks/Repositories/messaging_requests_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-part 'messaging_event.dart';
-part 'messaging_state.dart';
+part 'messaging_requets_event.dart';
+part 'messaging_requests_state.dart';
 
-class MessagingBloc extends Bloc<MessagingEvent, MessagingState> {
-  final MessageRequestRepository _repository = MessageRequestRepository();
-  MessagingBloc() : super(MessagingInitial()) {
+class MessagingRequestsBloc extends Bloc<MessagingEvent, MessagingState> {
+  final MessageRequestRepository _repository;
+  MessagingRequestsBloc({required MessageRequestRepository repoistory})
+    : _repository = repoistory,
+      super(MessagingInitial()) {
     on<SendMessageRequest>(_sendMessageRequest);
     on<AcceptMessageRequest>(_acceptMessageRequest);
     on<DeclineMessageRequest>(_declineMessageRequest);

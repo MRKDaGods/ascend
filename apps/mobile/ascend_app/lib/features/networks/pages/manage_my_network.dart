@@ -5,7 +5,6 @@ import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/c
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'package:ascend_app/features/networks/pages/blocked_page.dart';
@@ -48,11 +47,6 @@ class ManageMyNetwork extends StatelessWidget {
                           providers: [
                             BlocProvider.value(
                               value: BlocProvider.of<ConnectionRequestBloc>(
-                                context,
-                              ),
-                            ),
-                            BlocProvider.value(
-                              value: BlocProvider.of<SearchFiltersBloc>(
                                 context,
                               ),
                             ),

@@ -1,4 +1,4 @@
-part of 'messaging_bloc.dart';
+part of 'messaging_requests_bloc.dart';
 
 sealed class MessagingEvent {}
 

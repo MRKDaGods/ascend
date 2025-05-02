@@ -11,9 +11,8 @@ final class FollowLoading extends FollowState {}
 
 final class FollowSuccess extends FollowState {
   final List<FollowedUser> following;
-  final List<UserSuggestedtoFollow> suggestedUsers;
 
-  FollowSuccess({required this.following, required this.suggestedUsers});
+  FollowSuccess({required this.following});
 }
 
 final class FollowFailure extends FollowState {

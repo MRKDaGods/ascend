@@ -7,7 +7,6 @@ class ConnectedUser {
   String? profile_image_id;
   String? bio;
   DateTime? connectedAt;
-  String? request_id;
 
   ConnectedUser({
     required this.user_id,
@@ -16,7 +15,6 @@ class ConnectedUser {
     required this.profile_image_id,
     required this.bio,
     required this.connectedAt,
-    required this.request_id,
   });
 
   ConnectedUser.fromJson(Map<String, dynamic> json) {
@@ -26,7 +24,6 @@ class ConnectedUser {
     profile_image_id = json['profile_image_id'];
     bio = json['bio'];
     connectedAt = DateTime.parse(json['connectedAt']);
-    request_id = json['request_id'];
   }
 
   ConnectedUser copyWith({
@@ -45,7 +42,6 @@ class ConnectedUser {
       profile_image_id: profile_image_id ?? this.profile_image_id,
       bio: bio ?? this.bio,
       connectedAt: connectedAt ?? this.connectedAt,
-      request_id: request_id ?? this.request_id,
     );
   }
 
@@ -56,6 +52,5 @@ class ConnectedUser {
     "profilePictureUrl": profile_image_id,
     "bio": bio,
     "connectedAt": ConnectedUser,
-    "request_id": request_id,
   };
 }

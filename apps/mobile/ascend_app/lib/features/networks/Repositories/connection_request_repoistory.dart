@@ -1,116 +1,87 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
-import 'package:ascend_app/features/networks/Mock Data/connections_request.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 //import 'package:ascend_app/core/services/auth_service.dart';
 
 class ConnectionRequestRepository {
-  final http.Client _client;
-  //final AuthService _authService;
-  final String baseUrl;
-  final Map<String, String> headers;
-  final bool useMockData;
+  final ApiClient _client;
 
-  // Keep the mock data for development
-  final List<ConnectionRequestModel> connectionRequests =
-      getConnectionRequests();
-
-  ConnectionRequestRepository({
-    this.baseUrl = 'https://api.ascendx.tech',
-    this.headers = const {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    this.useMockData = false,
-  }) : _client = http.Client() {
-    // _authService = authService ?? AuthService();
-  }
+  ConnectionRequestRepository({required ApiClient client}) : _client = client;
 
   /// Send a connection request to another user
   Future<void> sendConnectionRequest(String connectionId) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here'; // Replace with actual token retrieval
-
-      // Create request body with user_id and message
-      final requestBody = {
-        'user_id': connectionId,
-        'message': "hi ,  let's connect",
-      };
-
       final response = await _client.post(
-        Uri.parse('$baseUrl${ApiEndpoints.sendconnectionRequest}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+        '$ApiEndpoints.sendconnectionRequest',
+        data: {
+          'userId': connectionId,
+          'message': "Hi, I'd like to connect with you.",
         },
-        body: json.encode(requestBody),
       );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send connection request: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final Map<String, dynamic> data = responseData['data'];
+        debugPrint(
+          'Connection request sent successfully from: ${data["senderId"]} to: ${data["receiverId"]} with Status: ${data["status"]}',
+        );
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Failed to send connection request: ${data["success"]} with error: ${data["error"]}',
+        );
       }
     } catch (e) {
-      // For development, use mock implementation
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      //addConnectionRequest(connectionRequests, connectionRequest);
+      debugPrint('Error: $e');
     }
   }
 
   /// Accept a connection request by its ID
   Future<void> acceptConnectionRequest(String requestId) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.put(
-        Uri.parse('$baseUrl${ApiEndpoints.acceptConnectionRequest}/$requestId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode({'accept': 'true'}),
+        '${ApiEndpoints.respondConnectionRequest}/:$requestId',
+        data: {'accept': true},
       );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-          'Failed to accept connection request: ${response.body}',
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('Connection Request accepted Successfully');
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Failed to accept connection request: ${data["success"]} with error: ${data["error"]}',
         );
       }
     } catch (e) {
-      // For development, use mock implementation
+      // For development, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      //acceptConnectionRequest(requestId);
+      debugPrint('Error accepting connection request: $e');
     }
   }
 
   /// Decline a connection request by its ID
   Future<void> declineConnectionRequest(String requestId) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.put(
-        Uri.parse('$baseUrl${ApiEndpoints.rejectConnectionRequest}/$requestId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode({'accept': 'false'}),
+        '${ApiEndpoints.respondConnectionRequest}/:$requestId',
+        data: {'accept': false},
       );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-          'Failed to accept connection request: ${response.body}',
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('Connection Request declined Successfully');
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Failed to decline connection request: ${data["success"]} with error: ${data["error"]}',
         );
       }
     } catch (e) {
-      // For development, use mock implementation
+      // For development, debugPrint error
       await Future.delayed(const Duration(milliseconds: 500));
-      acceptConnectionRequest(requestId);
+      debugPrint('Error declining connection request: $e');
     }
   }
 
@@ -120,34 +91,26 @@ class ConnectionRequestRepository {
     int limit = 10,
   }) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here';
       final response = await _client.get(
-        Uri.parse('$baseUrl${ApiEndpoints.connectionPending}').replace(
-          queryParameters: {
-            'direction': 'outgoing',
-            'page': page.toString(),
-            'limit': limit.toString(),
-          },
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.connectionPending}?direction=outgoing',
       );
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => UserPendingModel.fromJson(json)).toList();
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> responseData = data['data'];
+        debugPrint('Response data: $responseData');
+        debugPrint('Response data length: ${responseData.length}');
+        return responseData
+            .map((json) => UserPendingModel.fromJson(json))
+            .toList();
       } else {
-        throw Exception(
+        debugPrint(
           'Failed to fetch sent connection requests: ${response.body}',
         );
+        return [];
       }
     } catch (e) {
-      // For development, use mock implementation
-      await Future.delayed(const Duration(milliseconds: 500));
-      return []; // Return an empty list or mock data
+      debugPrint('Error fetching sent requests: $e');
+      return []; //
     }
   }
 
@@ -157,35 +120,26 @@ class ConnectionRequestRepository {
     int limit = 10,
   }) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here';
       final response = await _client.get(
-        Uri.parse('$baseUrl${ApiEndpoints.connectionPending}').replace(
-          queryParameters: {
-            'direction': 'incoming',
-            'page': page.toString(),
-            'limit': limit.toString(),
-          },
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.connectionPending}?direction=incoming',
       );
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => UserPendingModel.fromJson(json)).toList();
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> responseData = data['data'];
+        debugPrint('Response data: $responseData');
+        debugPrint('Response data length: ${responseData.length}');
+        return responseData
+            .map((json) => UserPendingModel.fromJson(json))
+            .toList();
       } else {
-        throw Exception(
-          'Failed to fetch received connection requests: ${response.body}',
+        debugPrint(
+          'Failed to fetch sent connection requests: ${response.body}',
         );
+        return [];
       }
     } catch (e) {
-      // For development, debugPrint error
-      await Future.delayed(const Duration(milliseconds: 500));
-      debugPrint('Error fetching pending requests: $e');
-      return []; // Return an empty list or mock data
+      debugPrint('Error fetching sent requests: $e');
+      return []; //
     }
   }
 
@@ -196,36 +150,28 @@ class ConnectionRequestRepository {
     int limit = 10,
   }) async {
     try {
-      final token = 'your_token_here';
       final response = await _client.get(
-        Uri.parse('$baseUrl${ApiEndpoints.fetchConnections}').replace(
-          queryParameters: {
-            'search': search,
-            'page': page.toString(),
-            'limit': limit.toString(),
-          },
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.fetchconnections}?search=$search&page&limit',
       );
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => ConnectedUser.fromJson(json)).toList();
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        debugPrint('Response data: $responseData');
+        debugPrint('Response data length: ${responseData.length}');
+        return responseData['data']
+            .map((json) => ConnectedUser.fromJson(json))
+            .toList();
       } else {
-        throw Exception(
-          'Failed to fetch accepted connections: ${response.body}',
-        );
+        debugPrint('Failed to fetch accepted connections: ${response.body}');
+        return [];
       }
     } catch (e) {
-      // For development, use emptyList
-      await Future.delayed(const Duration(milliseconds: 500));
-      return []; // Return an empty list or mock data
+      debugPrint('Error fetching accepted connections: $e');
+      return []; //
     }
   }
 
+  /*/
   /// Cancel a pending connection request by its ID
   Future<void> cancelConnectionRequest(String requestId) async {
     try {
@@ -249,26 +195,27 @@ class ConnectionRequestRepository {
       removeConnectionRequest(connectionRequests, requestId);
     }
   }
+*/
 
   /// Remove an existing connection by its ID
   Future<void> removeConnection(String connectionId) async {
     try {
-      final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.delete(
-        Uri.parse('$baseUrl$connectionId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.connections}/:$connectionId',
       );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to remove connection: ${response.body}');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint('Connection removed successfully: ${data["message"]}');
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Failed to remove connection: ${data["success"]} with error: ${data["success"]}',
+        );
       }
     } catch (e) {
-      // For development, use mock implementation
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      removeConnectionRequest(connectionRequests, connectionId);
+      debugPrint('Error removing connection: $e');
     }
   }
 
@@ -283,58 +230,51 @@ class ConnectionRequestRepository {
   }
 
   //Get users for connection recommendations
-  Future<List<UserSuggestedtoConnect>> getConnectionRecommendations() async {
+  Future<List<UserSuggestedtoConnect>> getConnectionRecommendations({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
-      final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.get(
-        Uri.parse('$baseUrl${ApiEndpoints.fetchConnectionRecommendations}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.fetchConnectionRecommendations}?page=$page&limit=$limit',
       );
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        return responseData['data']
             .map((json) => UserSuggestedtoConnect.fromJson(json))
             .toList();
       } else {
-        throw Exception(
+        debugPrint(
           'Failed to fetch connection recommendations: ${response.body}',
         );
+        return [];
       }
     } catch (e) {
-      // Return mock data for development
-      await Future.delayed(const Duration(milliseconds: 500));
-      return []; // Return an empty list or mock data
+      debugPrint('Error fetching connection recommendations: $e');
+      return []; //
     }
   }
 
   /// Fetch mutual connections for a given user ID
   Future<List<ConnectedUser>> fetchMutualConnections(String userId) async {
     try {
-      final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.get(
-        Uri.parse('$baseUrl${ApiEndpoints.fetchMutualConnections}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.fetchMutualConnections}/:$userId',
       );
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => ConnectedUser.fromJson(json)).toList();
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        return responseData['data']
+            .map((json) => ConnectedUser.fromJson(json))
+            .toList();
       } else {
-        throw Exception(
-          'Failed to fetch connection recommendations: ${response.body}',
-        );
+        debugPrint('Failed to fetch mutual connections: ${response.body}');
+        return [];
       }
     } catch (e) {
-      // Return mock data for development
-      await Future.delayed(const Duration(milliseconds: 500));
-      return []; // Return an empty list or mock data
+      debugPrint('Error fetching mutual connections: $e');
+      return []; //
     }
   }
 }

@@ -1,52 +1,45 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/connection_preferences.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+import 'package:flutter/material.dart';
 
 class ConnectionPreferencesRepository {
-  final http.Client _client;
-  final String baseUrl;
-  final Map<String, String> headers;
-  final bool useMockData;
+  final ApiClient _client;
   //final AuthService _authService;
 
   ConnectionPreferencesRepository({
-    this.baseUrl = 'https://api.ascendx.tech',
-    this.headers = const {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    this.useMockData = false,
-  }) : _client = http.Client();
-  // _authService = authService ?? AuthService();
+    required ApiClient client,
+    //required AuthService authService,
+  }) : _client = client;
 
   /// Fetch connection preferences from the server
   Future<ConnectionPreferences> fetchConnectionPreferences() async {
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.preferences}');
-      final response = await _client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await _client.get(ApiEndpoints.preferences);
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to unblock user: ${response.body}');
+      if (response.statusCode == 200) {
+        // Successfully fetched the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        return ConnectionPreferences.fromJson(data);
+      } else {
+        debugPrint(
+          'Failed to fetch connection preferences: ${response.statusCode}',
+        );
+        return ConnectionPreferences(
+          allow_connection_requests: true,
+          allow_messages_from: 'all',
+          visible_to_public: true,
+          visible_to_connections: true,
+          visible_to_network: true,
+          show_followers: true,
+        );
       }
-      return ConnectionPreferences.fromJson(jsonDecode(response.body));
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      return ConnectionPreferences(
-        allow_connection_requests: true,
-        allow_message_requests: 'all',
-        visible_to_public: true,
-        visible_to_connections: true,
-        visible_to_network: true,
-      );
+      print('Error: $e');
+      rethrow; // Rethrow the error for further handling if needed
     }
   }
 
@@ -54,23 +47,28 @@ class ConnectionPreferencesRepository {
     ConnectionPreferences connectionPreference,
   ) async {
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.preferences}');
       final response = await _client.put(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(connectionPreference.toJson()),
+        ApiEndpoints.preferences,
+        data: connectionPreference.toJson(),
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to unblock user: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Successfully updated the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> updatedData = data['data'];
+        debugPrint(
+          'Updated connection preferences for user : $updatedData["user_id"] with preferences: $updatedData',
+        );
+      } else {
+        throw Exception(
+          'Failed to update connection preferences: ${response.body}',
+        );
       }
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      rethrow; // Rethrow the error for further handling if needed
     }
   }
 }
