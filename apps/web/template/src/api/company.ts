@@ -34,13 +34,8 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export const getCompanyProfileAPI = async (companyId: number) => {
-  const token = localStorage.getItem("token"); // ✅ get token
-  if (!token) throw new Error("No token found. Please login.");
 
   const response = await API.get(`${COMPANY_BASE}/companies/${companyId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`, // ✅ send it
-    },
   });
 
   return response.data.data.company;
@@ -58,26 +53,39 @@ export const getCompanyFollowersAPI = async (companyId: number) => {
 };
 
 export const followCompanyAPI = async (companyId: number) => {
-  const token = getAuthToken();
-  const response = await API.post(
-    `${COMPANY_BASE}/companies/${companyId}/follow`,
-    undefined, // ✅ no body
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return response.data.data;
+
+  try {
+    const response = await API.post(
+      `${COMPANY_BASE}/companies/${companyId}/follow`,
+      {}, // ✅ REQUIRED: JSON empty body
+      {
+        headers: {
+          "Content-Type": "application/json", // ✅ force proper content type
+        },
+      }
+    );
+    return response.data.data;
+  } catch (err: any) {
+    console.error("❌ Failed to follow company:", err?.response?.data || err);
+    throw err;
+  }
 };
 
+
+
 export const unfollowCompanyAPI = async (companyId: number) => {
-  const token = getAuthToken();
-  const response = await API.delete(`${COMPANY_BASE}/companies/${companyId}/unfollow`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data.data;
+
+  try {
+    const response = await API.delete(
+      `${COMPANY_BASE}/companies/${companyId}/unfollow`,
+    );
+    return response.data.data;
+  } catch (err: any) {
+    console.error("❌ Failed to unfollow company:", err?.response?.data || err);
+    throw err;
+  }
 };
+
 
 export const createCompanyProfileAPI = async (payload: any) => {
   try {
@@ -194,8 +202,6 @@ export const updateCompanyAnnouncementAPI = async (
   media: MediaFile[],
   deletedImageIds: number[] = []
 ) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found.");
 
   const announcement_photos = media
     .filter((m) => m.type === "image" && m.file && m.file.name && m.preview)
@@ -242,3 +248,16 @@ export const updateCompanyAnnouncementAPI = async (
 
   return response.data.data.announcement;
 };
+
+export const searchForCompaniesAPI = async () => {
+  try {
+    // Explicitly fetch page 1 with a very high limit to get all companies
+    const url = `${COMPANY_BASE}/companies/data/search?limit=1000&page=1`;
+    const response = await API.get(url);
+    return response.data.data.companies;
+  } catch (err: any) {
+    console.error("❌ Failed to fetch all companies via searchForCompaniesAPI:", err?.response?.data || err);
+    throw err;
+  }
+};
+

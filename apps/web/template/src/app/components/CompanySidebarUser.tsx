@@ -1,6 +1,7 @@
+// CompanySidebarUser.tsx
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box, Button, Divider, Typography, List, ListItem,
   Avatar, IconButton
@@ -8,28 +9,34 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import CreateDialog from './CreateDialog';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
-import { useNavigationStore } from '@/app/stores/useNavigationStore'; // ✅ Import navigation store
+import { useNavigationStore } from '@/app/stores/useNavigationStore';
+import Cookies from "js-cookie";
 
 export default function CompanySidebarUser() {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
-    name, profileImage, coverImage, setCompanyInfo,
+    name,
+    profileImage,
+    coverImage,
+    setCompanyInfo,
+    followerCounts,
+    followingStatus,
+    toggleFollowCompany,
+    fetchCompanyFollowers,
   } = useCompanyStore();
 
-  const { activePage, setActivePage } = useNavigationStore(); // ✅ Zustand nav store
+  const userId = Cookies.get("linkup_user_id");
+  const companyId = Number(localStorage.getItem("companyId"));
 
-  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCompanyInfo({ coverImage: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+  useEffect(() => {
+    if (companyId && userId) {
+      fetchCompanyFollowers(companyId, Number(userId));
     }
-  };
+  }, [companyId, userId]);
+
+  const { activePage, setActivePage } = useNavigationStore();
 
   return (
     <>
@@ -45,8 +52,7 @@ export default function CompanySidebarUser() {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
-        >
-        </Box>
+        ></Box>
 
         <Box sx={{ position: 'relative', mt: -7, mb: 2, zIndex: 3 }}>
           <Avatar
@@ -56,11 +62,19 @@ export default function CompanySidebarUser() {
         </Box>
 
         <Typography fontWeight="600" fontSize={25}>{name || 'Company Name'}</Typography>
-        <Typography variant="body2" color="text.secondary">0 followers</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {followerCounts[companyId] ?? 0} followers
+        </Typography>
 
-        <Button variant="contained" size="small" sx={{ mt: 1 }}>
-          + Follow
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => toggleFollowCompany(companyId, Number(userId))}
+          sx={{ mt: 1 }}
+        >
+          {followingStatus[companyId] ? "Unfollow" : "Follow"}
         </Button>
+
         <Divider sx={{ my: 2 }} />
 
         <List>
@@ -69,9 +83,7 @@ export default function CompanySidebarUser() {
               <Button
                 fullWidth
                 variant={activePage === item ? 'contained' : 'text'}
-                onClick={() => {
-                  setActivePage(item);
-                }}
+                onClick={() => setActivePage(item)}
                 sx={{
                   textAlign: 'left',
                   justifyContent: 'flex-start',
