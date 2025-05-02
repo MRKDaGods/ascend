@@ -46,7 +46,10 @@ export default function ManageReportedPosts() {
     setLoading(true);
     try {
       const response = await getReportedPosts(page);
-      setReports(response.data.data);
+       // Filter out nulls early
+    const cleaned = response.data.data.filter((r: any) => r && r.id != null);
+
+    setReports(cleaned);
       setTotalPages(response.data.pagination.totalPages);
     } catch (error) {
       console.error("Error fetching reported posts:", error);
@@ -117,10 +120,13 @@ export default function ManageReportedPosts() {
         <CircularProgress />
       ) : Array.isArray(reports) && reports.length > 0 ? (
         <Stack spacing={3}>
-          {reports.map((report) => (
+          
+          {reports
+          //  .filter((r) => r && r.id != null)
+          .map((report) => (
             <Box key={report.id}>
               <ReportedPosts
-                key={report.id}
+                
                 report={report}
                 onDelete={handleDeletePost}
                 onUpdateStatus={handleUpdateStatus}

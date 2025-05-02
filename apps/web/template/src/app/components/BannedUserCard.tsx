@@ -47,6 +47,8 @@ export default function BannedUserCard({
         >
           Unban User
         </Button>
+
+        
       </CardContent>
     </Card>
   );
