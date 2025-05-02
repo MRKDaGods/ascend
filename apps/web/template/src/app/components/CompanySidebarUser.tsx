@@ -40,8 +40,9 @@ export default function CompanySidebarUser() {
 
   return (
     <>
-      <Box sx={{ width: 350, backgroundColor: 'white', p: 2, ml: 25, borderRadius: 2, mb: 2, mt: 2 }}>
+      <Box id="company-sidebar-user" sx={{ width: 350, backgroundColor: 'white', p: 2, ml: 25, borderRadius: 2, mb: 2, mt: 2 }}>
         <Box
+          id="company-sidebar-user-cover"
           sx={{
             position: 'relative',
             height: 100,
@@ -54,19 +55,21 @@ export default function CompanySidebarUser() {
           }}
         ></Box>
 
-        <Box sx={{ position: 'relative', mt: -7, mb: 2, zIndex: 3 }}>
+        <Box id="company-sidebar-user-avatar" sx={{ position: 'relative', mt: -7, mb: 2, zIndex: 3 }}>
           <Avatar
+            id="company-avatar"
             src={profileImage || undefined}
             sx={{ width: 64, height: 64, border: '2px solid white', backgroundColor: '#ddd' }}
           />
         </Box>
 
-        <Typography fontWeight="600" fontSize={25}>{name || 'Company Name'}</Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography id="company-name" fontWeight="600" fontSize={25}>{name || 'Company Name'}</Typography>
+        <Typography id="company-followers" variant="body2" color="text.secondary">
           {followerCounts[companyId] ?? 0} followers
         </Typography>
 
         <Button
+          id="follow-button"
           variant="contained"
           size="small"
           onClick={() => toggleFollowCompany(companyId, Number(userId))}
@@ -75,12 +78,13 @@ export default function CompanySidebarUser() {
           {followingStatus[companyId] ? "Unfollow" : "Follow"}
         </Button>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider id="sidebar-divider" sx={{ my: 2 }} />
 
-        <List>
+        <List id="sidebar-navigation">
           {['Feed', 'Analytics'].map((item) => (
-            <ListItem key={item} sx={{ py: 1 }}>
+            <ListItem key={item} id={`sidebar-item-${item.toLowerCase()}`} sx={{ py: 1 }}>
               <Button
+                id={`sidebar-button-${item.toLowerCase()}`}
                 fullWidth
                 variant={activePage === item ? 'contained' : 'text'}
                 onClick={() => setActivePage(item)}

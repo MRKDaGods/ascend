@@ -172,6 +172,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
       return (
         <>
           <Box
+            id="edit-page-cover-image"
             sx={{
               height: 200,
               width: '50%',
@@ -184,6 +185,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             }}
           >
             <IconButton
+              id="edit-cover-image-button"
               onClick={() => coverInputRef.current?.click()}
               sx={{
                 position: 'absolute',
@@ -198,6 +200,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
               <EditIcon fontSize="small" />
             </IconButton>
             <input
+              id="cover-image-input"
               type="file"
               accept="image/*"
               ref={coverInputRef}
@@ -206,12 +209,14 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             />
           </Box>
 
-          <Box display="flex" alignItems="center" mb={3} position="relative">
+          <Box id="edit-page-profile-image" display="flex" alignItems="center" mb={3} position="relative">
             <Avatar
+              id="profile-avatar"
               src={profileImage || undefined}
               sx={{ width: 72, height: 72, mr: 2 }}
             />
             <IconButton
+              id="edit-profile-image-button"
               onClick={() => profileInputRef.current?.click()}
               sx={{
                 position: 'absolute',
@@ -226,6 +231,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
               <EditIcon fontSize="small" />
             </IconButton>
             <input
+              id="profile-image-input"
               type="file"
               accept="image/*"
               ref={profileInputRef}
@@ -234,21 +240,22 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             />
           </Box>
 
-          <TextField label="Name *" value={formData.name} onChange={handleChange('name')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Domain name" value={formData.domainName} onChange={handleChange('domainName')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Industry" value={formData.industry} onChange={handleChange('industry')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Location" value={formData.location} onChange={handleChange('location')} fullWidth sx={{ mb: 2 }} />
-          <TextField label="Description" value={formData.description} onChange={handleChange('description')} fullWidth multiline rows={3} sx={{ mb: 2 }} />
+          <TextField id="edit-name-input" label="Name *" value={formData.name} onChange={handleChange('name')} fullWidth sx={{ mb: 2 }} />
+          <TextField id="edit-domain-name-input" label="Domain name" value={formData.domainName} onChange={handleChange('domainName')} fullWidth sx={{ mb: 2 }} />
+          <TextField id="edit-industry-input" label="Industry" value={formData.industry} onChange={handleChange('industry')} fullWidth sx={{ mb: 2 }} />
+          <TextField id="edit-location-input" label="Location" value={formData.location} onChange={handleChange('location')} fullWidth sx={{ mb: 2 }} />
+          <TextField id="edit-description-input" label="Description" value={formData.description} onChange={handleChange('description')} fullWidth multiline rows={3} sx={{ mb: 2 }} />
         </>
       );
     }
 
-    return <Typography fontSize={14}>{activeSection} content goes here.</Typography>;
+    return <Typography id="edit-section-content" fontSize={14}>{activeSection} content goes here.</Typography>;
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog id="edit-page-modal" open={open} onClose={onClose} maxWidth="md" fullWidth>
       <Box
+        id="edit-page-header"
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -258,28 +265,29 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
           borderBottom: '1px solid #ddd',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: '600' }}>
+        <Typography id="edit-page-title" variant="h6" sx={{ fontWeight: '600' }}>
           Edit
         </Typography>
-        <Box display="flex" gap={1}>
+        <Box id="edit-page-actions" display="flex" gap={1}>
           {isModified && (
             <>
-              <Button size="small" onClick={discardChanges} variant="outlined">
+              <Button id="discard-changes-button" size="small" onClick={discardChanges} variant="outlined">
                 Discard Changes
               </Button>
-              <Button size="small" onClick={saveChanges} variant="contained">
+              <Button id="save-changes-button" size="small" onClick={saveChanges} variant="contained">
                 Save
               </Button>
             </>
           )}
-          <IconButton onClick={onClose}>
+          <IconButton id="close-modal-button" onClick={onClose}>
             <CloseIcon />
           </IconButton>
         </Box>
       </Box>
 
-      <DialogContent sx={{ p: 0, display: 'flex', height: '80vh' }}>
+      <DialogContent id="edit-page-content" sx={{ p: 0, display: 'flex', height: '80vh' }}>
         <Box
+          id="edit-page-sidebar"
           sx={{
             width: 200,
             backgroundColor: 'white',
@@ -289,9 +297,10 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             p: 2,
           }}
         >
-          <List>
+          <List id="edit-page-sections">
             {sections.map((section) => (
               <ListItem
+                id={`edit-section-${section.toLowerCase().replace(/\s+/g, '-')}`}
                 key={section}
                 disablePadding
                 onClick={() => setActiveSection(section)}
@@ -303,6 +312,7 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
                 }}
               >
                 <ListItemText
+                  id={`edit-section-text-${section.toLowerCase().replace(/\s+/g, '-')}`}
                   primary={section}
                   primaryTypographyProps={{
                     fontSize: '0.9rem',
@@ -316,9 +326,9 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
           </List>
         </Box>
 
-        <Box sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6" fontWeight="600">{activeSection}</Typography>
+        <Box id="edit-page-main-content" sx={{ flex: 1, p: 3, overflowY: 'auto' }}>
+          <Box id="edit-page-section-header" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography id="edit-section-title" variant="h6" fontWeight="600">{activeSection}</Typography>
           </Box>
           {renderSectionContent()}
         </Box>

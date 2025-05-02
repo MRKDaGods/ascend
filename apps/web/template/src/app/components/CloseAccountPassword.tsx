@@ -11,8 +11,12 @@ export default function CloseAccountPassword() {
   const router = useRouter();
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: -10, ml: 25 }}>
+    <Box
+      id="close-account-password-page"
+      sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: -10, ml: 25 }}
+    >
       <Paper
+        id="close-account-password-container"
         elevation={3}
         sx={{
           maxWidth: "55%",
@@ -23,15 +27,15 @@ export default function CloseAccountPassword() {
       >
         <BackButton />
 
-        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
+        <Typography id="close-account-password-title" variant="h6" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
           Close account
         </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography id="close-account-password-message" variant="body1" sx={{ mb: 2 }}>
           Enter your password to close this account
         </Typography>
 
         <TextField
-          id="password-input"
+          id="close-account-password-input"
           label="Password"
           InputLabelProps={{
             style: { display: "none" },
@@ -47,13 +51,20 @@ export default function CloseAccountPassword() {
         />
 
         <FormControlLabel
-          control={<Checkbox id="unsubscribe-checkbox" checked={unsubscribe} onChange={(e) => setUnsubscribe(e.target.checked)} />}
+          id="close-account-unsubscribe-checkbox"
+          control={
+            <Checkbox
+              id="unsubscribe-checkbox"
+              checked={unsubscribe}
+              onChange={(e) => setUnsubscribe(e.target.checked)}
+            />
+          }
           label="Unsubscribe me from Ascend email communications, including invitations."
         />
 
-        <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
+        <Box id="close-account-password-actions" sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
           <Button
-            id="done-button"
+            id="close-account-done-button"
             variant="contained"
             color="primary"
             disabled={!password}

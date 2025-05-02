@@ -12,12 +12,11 @@ const CreateCompanyPage = () => {
   const [profileImage, setLogo] = useState<File | null>(null);
 
   const {
-    name, url, industry, location, description,
+    name, industry, location, description,
   } = useCompanyStore();
 
   const formData = {
     name,
-    url,
     industry,
     location,
     description,

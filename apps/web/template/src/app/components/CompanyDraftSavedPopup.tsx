@@ -15,16 +15,23 @@ const CompanyDraftSavedPopup = () => {
 
   return (
     <Snackbar
+      id="company-draft-saved-popup"
       open={draftSavedPopupOpen}
       anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       onClose={handleClose}
     >
       <Alert
+        id="popup-container"
         severity="success"
         sx={{ display: "flex", alignItems: "center", gap: 1 }}
         action={
           <>
-            <IconButton onClick={handleClose} size="small" color="inherit">
+            <IconButton
+              id="popup-close-button"
+              onClick={handleClose}
+              size="small"
+              color="inherit"
+            >
               <CloseIcon fontSize="small" />
             </IconButton>
           </>

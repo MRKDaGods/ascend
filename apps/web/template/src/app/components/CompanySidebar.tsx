@@ -18,7 +18,7 @@ export default function Sidebar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
-    name, url, profileImage, coverImage, setCompanyInfo,
+    name, profileImage, coverImage, setCompanyInfo,
   } = useCompanyStore();
 
   const { activePage, setActivePage } = useNavigationStore(); // ✅ Zustand nav store
@@ -36,8 +36,9 @@ export default function Sidebar() {
 
   return (
     <>
-      <Box sx={{ width: 350, backgroundColor: 'white', p: 2, ml: 25, borderRadius: 2, mb: 2, mt: 2 }}>
+      <Box id="company-sidebar" sx={{ width: 350, backgroundColor: 'white', p: 2, ml: 25, borderRadius: 2, mb: 2, mt: 2 }}>
         <Box
+          id="company-sidebar-cover"
           sx={{
             position: 'relative',
             height: 100,
@@ -50,6 +51,7 @@ export default function Sidebar() {
           }}
         >
           <IconButton
+            id="edit-cover-button"
             size="small"
             onClick={() => fileInputRef.current?.click()}
             sx={{
@@ -64,6 +66,7 @@ export default function Sidebar() {
             <EditIcon fontSize="small" />
           </IconButton>
           <input
+            id="cover-image-input"
             ref={fileInputRef}
             type="file"
             accept="image/*"
@@ -72,28 +75,38 @@ export default function Sidebar() {
           />
         </Box>
 
-        <Box sx={{ position: 'relative', mt: -7, mb: 2, zIndex: 3 }}>
+        <Box id="company-sidebar-avatar" sx={{ position: 'relative', mt: -7, mb: 2, zIndex: 3 }}>
           <Avatar
+            id="company-avatar"
             src={profileImage || undefined}
             sx={{ width: 64, height: 64, border: '2px solid white', backgroundColor: '#ddd' }}
           />
         </Box>
 
-        <Typography fontWeight="600" fontSize={25}>{name || 'Company Name'}</Typography>
-        <Typography variant="body2" color="text.secondary">0 followers</Typography>
+        <Typography id="company-name" fontWeight="600" fontSize={25}>{name || 'Company Name'}</Typography>
+        <Typography id="company-followers" variant="body2" color="text.secondary">0 followers</Typography>
 
-        <Button variant="contained" size="small" sx={{ mt: 1 }} onClick={() => setOpenCreateDialog(true)}>
+        <Button
+          id="create-button"
+          variant="contained"
+          size="small"
+          sx={{ mt: 1 }}
+          onClick={() => setOpenCreateDialog(true)}
+        >
           + Create
         </Button>
 
-        <Button variant="outlined" size="small" sx={{ mt: 1 }}>View as member</Button>
+        <Button id="view-as-member-button" variant="outlined" size="small" sx={{ mt: 1 }}>
+          View as member
+        </Button>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider id="sidebar-divider" sx={{ my: 2 }} />
 
-        <List>
+        <List id="sidebar-navigation">
           {['Dashboard', 'Page posts', 'Analytics', 'Feed', 'Edit page', 'Jobs', 'Deactivate Page'].map((item) => (
-            <ListItem key={item} sx={{ py: 1 }}>
+            <ListItem key={item} id={`sidebar-item-${item.toLowerCase().replace(/\s+/g, '-')}`} sx={{ py: 1 }}>
               <Button
+                id={`sidebar-button-${item.toLowerCase().replace(/\s+/g, '-')}`}
                 fullWidth
                 variant={activePage === item ? 'contained' : 'text'}
                 onClick={() => {

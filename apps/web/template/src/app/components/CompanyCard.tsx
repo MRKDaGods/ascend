@@ -16,6 +16,7 @@ const CompanyCard = () => {
 
   return (
     <Card
+      id="company-card"
       sx={{
         maxWidth: 360,
         borderRadius: 3,
@@ -27,11 +28,12 @@ const CompanyCard = () => {
       }}
     >
       <CardActionArea
-        id="company-card-button" // ✅ ID added
+        id="company-card-action"
         onClick={handleClick}
       >
-        <Box sx={{ position: "relative", width: "100%", height: 200 }}>
+        <Box id="company-card-image-container" sx={{ position: "relative", width: "100%", height: 200 }}>
           <Image
+            id="company-card-image"
             src="/mycompany.jpeg"
             alt="Company Image"
             layout="fill"
@@ -40,6 +42,7 @@ const CompanyCard = () => {
           />
         </Box>
         <CardContent
+          id="company-card-content"
           sx={{
             backgroundColor:
               theme.palette.mode === "dark"
@@ -49,7 +52,7 @@ const CompanyCard = () => {
             borderRadius: 1,
           }}
         >
-          <Typography variant="h6" fontWeight="bold">
+          <Typography id="company-card-title" variant="h6" fontWeight="bold">
             Company Name Here
           </Typography>
         </CardContent>
