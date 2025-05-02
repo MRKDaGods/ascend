@@ -17,6 +17,7 @@ import {
   handleGetPostReportsCount,
   handleGetJobReports,
   handleGetPostReports,
+  handleGetSubscriptionsCount,
 } from "../controllers/adminController";
 
 const router = Router();
@@ -29,6 +30,7 @@ router.get("/users/count", handleGetUsersCount);
 router.get("/posts/count", handleGetPostsCount);
 router.get("/follows/count", handleGetFollowsCount);
 router.get("/connections/count", handleGetConnectionsCount);
+router.get("/subscriptions/count", handleGetSubscriptionsCount);
 router.get("/jobs/reports/count", handleGetJobReportsCount);
 router.get("/posts/reports/count", handleGetPostReportsCount);
 

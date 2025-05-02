@@ -19,6 +19,7 @@ import {
  * Handles sending a new message
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with the created message data or error
  */
 export const handleSendMessage = [
   ...messageValidationRules,
@@ -92,9 +93,10 @@ export const handleSendMessage = [
 ];
 
 /**
- * Handles retrieving the count of unseen messages
+ * Handles retrieving the count of unseen messages for the authenticated user
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with the count of unseen messages or error
  */
 export const handleGetUnseenCount = async (
   req: AuthenticatedRequest,
@@ -111,9 +113,10 @@ export const handleGetUnseenCount = async (
 };
 
 /**
- * Handles retrieving user's conversations
+ * Handles retrieving user's conversations with pagination
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with paginated conversations data or error
  */
 export const handleGetConversations = async (
   req: AuthenticatedRequest,
@@ -134,9 +137,11 @@ export const handleGetConversations = async (
 };
 
 /**
- * Handles retrieving messages for a specific conversation
+ * Handles retrieving messages for a specific conversation with pagination
+ * Also marks messages as read and notifies the other user via WebSocket
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with paginated messages data or error
  */
 export const handleGetMessages = async (
   req: AuthenticatedRequest,

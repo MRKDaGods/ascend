@@ -5,6 +5,10 @@ import { getPresignedUrl } from "@shared/utils/files";
 import { Job } from "@shared/models/job";
 import { Post } from "@shared/models";
 
+/**
+ * Interface for paginated response data
+ * @template T - Type of data being paginated
+ */
 interface PaginatedResponse<T> {
   data: T[];
   pagination: {
@@ -16,6 +20,12 @@ interface PaginatedResponse<T> {
   };
 }
 
+/**
+ * Checks if a user has admin privileges
+ * @param userId - The ID of the user to check
+ * @returns A promise that resolves to a boolean indicating if the user is an admin
+ * @throws Error if the database query fails
+ */
 export const isAdmin = async (userId: number): Promise<boolean> => {
   try {
     const query = `
@@ -33,6 +43,12 @@ export const isAdmin = async (userId: number): Promise<boolean> => {
   }
 };
 
+/**
+ * Verifies if a job report with the specified ID exists
+ * @param reportId - The ID of the job report to check
+ * @returns A promise that resolves to a boolean indicating if the report exists
+ * @throws Error if the database query fails
+ */
 export const isThereJobReportWithId = async (
   reportId: number
 ): Promise<boolean> => {
@@ -52,6 +68,12 @@ export const isThereJobReportWithId = async (
   }
 };
 
+/**
+ * Verifies if a job with the specified ID exists
+ * @param jobId - The ID of the job to check
+ * @returns A promise that resolves to a boolean indicating if the job exists
+ * @throws Error if the database query fails
+ */
 export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
   try {
     const query = `
@@ -69,6 +91,12 @@ export const isThereJobWithId = async (jobId: number): Promise<boolean> => {
   }
 };
 
+/**
+ * Verifies if a post report with the specified ID exists
+ * @param reportId - The ID of the post report to check
+ * @returns A promise that resolves to a boolean indicating if the report exists
+ * @throws Error if the database query fails
+ */
 export const isTherePostReportWithId = async (
   reportId: number
 ): Promise<boolean> => {
@@ -88,6 +116,12 @@ export const isTherePostReportWithId = async (
   }
 };
 
+/**
+ * Verifies if a post with the specified ID exists
+ * @param postId - The ID of the post to check
+ * @returns A promise that resolves to a boolean indicating if the post exists
+ * @throws Error if the database query fails
+ */
 export const isTherePostWithId = async (postId: number): Promise<boolean> => {
   try {
     const query = `
@@ -105,6 +139,12 @@ export const isTherePostWithId = async (postId: number): Promise<boolean> => {
   }
 };
 
+/**
+ * Retrieves a paginated list of jobs that have been reported
+ * @param pageNumber - The page number for pagination
+ * @returns A promise that resolves to a paginated response containing reported jobs
+ * @throws Error if the database query fails
+ */
 export const getReportedJobs = async (
   pageNumber: number
 ): Promise<PaginatedResponse<Job>> => {
@@ -176,6 +216,13 @@ export const getReportedJobs = async (
   }
 };
 
+/**
+ * Retrieves a paginated list of reports for a specific job
+ * @param jobId - The ID of the job to get reports for
+ * @param pageNumber - The page number for pagination
+ * @returns A promise that resolves to a paginated response containing job reports
+ * @throws Error if the database query fails
+ */
 export const getJobReports = async (
   jobId: number,
   pageNumber: number
@@ -247,6 +294,13 @@ export const getJobReports = async (
   }
 };
 
+/**
+ * Updates the status of a job report
+ * @param reportId - The ID of the report to update
+ * @param status - The new status to set
+ * @returns A promise that resolves to a boolean indicating if the update was successful
+ * @throws Error if the database query fails
+ */
 export const updateJobReportStatus = async (
   reportId: number,
   status: string
@@ -267,6 +321,12 @@ export const updateJobReportStatus = async (
   }
 };
 
+/**
+ * Deletes a job from the database
+ * @param jobId - The ID of the job to delete
+ * @returns A promise that resolves to a boolean indicating if the deletion was successful
+ * @throws Error if the database query fails
+ */
 export const deleteJob = async (jobId: number): Promise<boolean> => {
   try {
     const query = `
@@ -283,6 +343,12 @@ export const deleteJob = async (jobId: number): Promise<boolean> => {
   }
 };
 
+/**
+ * Gets the count of job reports, optionally filtered by date
+ * @param startDate - Optional date to filter reports created on or after this date
+ * @returns A promise that resolves to the number of job reports
+ * @throws Error if the database query fails
+ */
 export const getJobReportsCount = async (startDate?: Date): Promise<number> => {
   try {
     let query = `
@@ -308,6 +374,12 @@ export const getJobReportsCount = async (startDate?: Date): Promise<number> => {
   }
 };
 
+/**
+ * Gets the count of jobs, optionally filtered by date
+ * @param startDate - Optional date to filter jobs created on or after this date
+ * @returns A promise that resolves to the number of jobs
+ * @throws Error if the database query fails
+ */
 export const getJobsCount = async (startDate?: Date): Promise<number> => {
   try {
     let query = `
@@ -333,6 +405,12 @@ export const getJobsCount = async (startDate?: Date): Promise<number> => {
   }
 };
 
+/**
+ * Gets the count of users, optionally filtered by date
+ * @param startDate - Optional date to filter users created on or after this date
+ * @returns A promise that resolves to the number of users
+ * @throws Error if the database query fails
+ */
 export const getUsersCount = async (startDate?: Date): Promise<number> => {
   try {
     let query = `
@@ -358,6 +436,12 @@ export const getUsersCount = async (startDate?: Date): Promise<number> => {
   }
 };
 
+/**
+ * Gets the count of posts, optionally filtered by date
+ * @param startDate - Optional date to filter posts created on or after this date
+ * @returns A promise that resolves to the number of posts
+ * @throws Error if the database query fails
+ */
 export const getPostsCount = async (startDate?: Date): Promise<number> => {
   try {
     let query = `
@@ -383,6 +467,12 @@ export const getPostsCount = async (startDate?: Date): Promise<number> => {
   }
 };
 
+/**
+ * Gets the count of connections, optionally filtered by date
+ * @param startDate - Optional date to filter connections created on or after this date
+ * @returns A promise that resolves to the number of connections
+ * @throws Error if the database query fails
+ */
 export const getConnectionsCount = async (
   startDate?: Date
 ): Promise<number> => {
@@ -410,6 +500,12 @@ export const getConnectionsCount = async (
   }
 };
 
+/**
+ * Gets the count of follows, optionally filtered by date
+ * @param startDate - Optional date to filter follows created on or after this date
+ * @returns A promise that resolves to the number of follows
+ * @throws Error if the database query fails
+ */
 export const getFollowsCount = async (startDate?: Date): Promise<number> => {
   try {
     let query = `
@@ -435,6 +531,12 @@ export const getFollowsCount = async (startDate?: Date): Promise<number> => {
   }
 };
 
+/**
+ * Retrieves a paginated list of posts that have been reported
+ * @param pageNumber - The page number for pagination
+ * @returns A promise that resolves to a paginated response containing reported posts
+ * @throws Error if the database query fails
+ */
 export const getReportedPosts = async (
   pageNumber: number
 ): Promise<PaginatedResponse<Post>> => {
@@ -486,6 +588,13 @@ export const getReportedPosts = async (
   }
 };
 
+/**
+ * Retrieves a paginated list of reports for a specific post
+ * @param postId - The ID of the post to get reports for
+ * @param pageNumber - The page number for pagination
+ * @returns A promise that resolves to a paginated response containing post reports
+ * @throws Error if the database query fails
+ */
 export const getPostReports = async (
   postId: number,
   pageNumber: number
@@ -555,6 +664,14 @@ export const getPostReports = async (
   }
 };
 
+/**
+ * Updates the status of a post report and adds an optional admin comment
+ * @param reportId - The ID of the report to update
+ * @param status - The new status to set
+ * @param comment - Optional comment from admin explaining the decision
+ * @returns A promise that resolves to a boolean indicating if the update was successful
+ * @throws Error if the database query fails
+ */
 export const updatePostReportStatus = async (
   reportId: number,
   status: string,
@@ -576,6 +693,12 @@ export const updatePostReportStatus = async (
   }
 };
 
+/**
+ * Deletes a post from the database
+ * @param postId - The ID of the post to delete
+ * @returns A promise that resolves to a boolean indicating if the deletion was successful
+ * @throws Error if the database query fails
+ */
 export const deletePost = async (postId: number): Promise<boolean> => {
   try {
     const query = `
@@ -592,6 +715,12 @@ export const deletePost = async (postId: number): Promise<boolean> => {
   }
 };
 
+/**
+ * Gets the count of post reports, optionally filtered by date
+ * @param startDate - Optional date to filter reports created on or after this date
+ * @returns A promise that resolves to the number of post reports
+ * @throws Error if the database query fails
+ */
 export const getPostReportsCount = async (
   startDate?: Date
 ): Promise<number> => {
@@ -615,6 +744,39 @@ export const getPostReportsCount = async (
     return parseInt(result.rows[0].count);
   } catch (error) {
     console.error("Error in getPostReportsCount:", error);
+    throw new Error("Database query failed");
+  }
+};
+
+/**
+ * Gets the count of subscriptions, optionally filtered by date
+ * @param startDate - Optional date to filter subscriptions created on or after this date
+ * @returns A promise that resolves to the number of subscriptions
+ * @throws Error if the database query fails
+ */
+export const getSubscriptionsCount = async (
+  startDate?: Date
+): Promise<number> => {
+  try {
+    let query = `
+      SELECT COUNT(*) AS count
+      FROM payment_service.subscription_payment
+    `;
+
+    const values: Date[] = [];
+
+    // If startDate is provided, add WHERE clause to filter by date
+    if (startDate) {
+      query += `
+        WHERE first_payment_date >= $1
+      `;
+      values.push(startDate);
+    }
+
+    const result = await db.query(query, values);
+    return parseInt(result.rows[0].count);
+  } catch (error) {
+    console.error("Error in getSubscriptionsCount:", error);
     throw new Error("Database query failed");
   }
 };
