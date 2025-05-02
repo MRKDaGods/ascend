@@ -7,7 +7,7 @@ import 'profile_entry.dart';
 import 'package:ascend_app/shared/models/profile.dart';
 
 class ProfileButtons extends StatelessWidget {
-  ProfileButtons({
+  const ProfileButtons({
     required this.isConnect,
     required this.isfollowing,
     required this.isPending,
@@ -29,7 +29,12 @@ class ProfileButtons extends StatelessWidget {
   final void Function(BuildContext) withdrawRequest; // Function to show dialog
   final void Function(BuildContext) removeConnection; // Function to show dialog
   final bool isMyProfile;
-  final void Function(String title, ProfileEntryWidget newEntry)
+  final void Function(
+    String title,
+    ProfileEntryWidget? newEntry, {
+    Widget? contentWidget,
+    String? resumeUrl, // Add optional resumeUrl parameter
+  }) // Function to add or update section
   addOrUpdateSection;
   final Profile? profile;
 
@@ -49,10 +54,16 @@ class ProfileButtons extends StatelessWidget {
                           action: withdrawRequest,
                           icon: Icons.access_time,
                         )
-                        : BlueButton(
+                        : isfollowing
+                        ? BlueButton(
                           text: "Connect",
                           action: toggleConnect,
                           icon: Icons.person_add,
+                        )
+                        : BlueButton(
+                          text: "Follow",
+                          action: toggleFollow,
+                          icon: Icons.add,
                         ),
               ),
               const SizedBox(width: 8),
@@ -109,8 +120,24 @@ class ProfileButtons extends StatelessWidget {
                           builder:
                               (context) => AddSectionPage(
                                 onSectionAdded: (newSection) {
-                                  for (var entry in newSection.content) {
-                                    addOrUpdateSection(newSection.title, entry);
+                                  if (newSection.title != "Featured") {
+                                    for (var entry in newSection.content) {
+                                      print("in buttons $entry");
+                                      addOrUpdateSection(
+                                        newSection.title,
+                                        entry,
+                                      );
+                                    }
+                                  } else {
+                                    for (var entry
+                                        in newSection.contentWidgets) {
+                                      print("in buttons $entry");
+                                      addOrUpdateSection(
+                                        newSection.title,
+                                        null,
+                                        contentWidget: entry,
+                                      );
+                                    }
                                   }
                                 },
                               ),

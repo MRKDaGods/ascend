@@ -5,8 +5,11 @@ import 'add_skill_page.dart';
 import 'add_course_page.dart';
 import 'add_project_page.dart';
 import 'add_interest_page.dart';
+import 'add_featured_page.dart';
 import 'models/profile_section.dart';
 import 'profile_entry.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class AddSectionPage extends StatefulWidget {
   final void Function(ProfileSection) onSectionAdded;
@@ -14,7 +17,7 @@ class AddSectionPage extends StatefulWidget {
   const AddSectionPage({super.key, required this.onSectionAdded});
 
   @override
-  _AddSectionPageState createState() => _AddSectionPageState();
+  State<AddSectionPage> createState() => _AddSectionPageState();
 }
 
 class _AddSectionPageState extends State<AddSectionPage> {
@@ -66,7 +69,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
               isExpanded: _isRecommendedExpanded,
               onToggle: () => _toggleSection("Recommended"),
               items: [
-                {"label": "Add featured", "action": null},
+                {"label": "Add featured", "action": _navigateToAddFeatured},
                 {"label": "Add licenses & certifications", "action": null},
                 {"label": "Add projects", "action": _navigateToAddProject},
                 {"label": "Add courses", "action": _navigateToAddCourse},
@@ -134,9 +137,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
             style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 12),
-          ...items
-              .map((item) => _buildListItem(item["label"], item["action"]))
-              .toList(),
+          ...items.map((item) => _buildListItem(item["label"], item["action"])),
         ],
       ],
     );
@@ -175,6 +176,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
                   title: "Education",
                   content: [
                     ProfileEntryWidget(
+                      imageUrl: "assets/company_placeholder.png",
                       title: education.school,
                       subtitle:
                           "${education.degree} in ${education.fieldOfStudy}",
@@ -201,6 +203,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
                   title: "Experience",
                   content: [
                     ProfileEntryWidget(
+                      imageUrl: "assets/company_placeholder.png",
                       title: experience.position,
                       subtitle: experience.company,
                       description:
@@ -295,6 +298,104 @@ class _AddSectionPageState extends State<AddSectionPage> {
                   content: [ProfileEntryWidget(title: interest.name)],
                 );
                 widget.onSectionAdded(section);
+              },
+            ),
+      ),
+    );
+  }
+
+  void _navigateToAddFeatured() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => AddFeaturedPage(
+              onSave: (featuredUrl) {
+                final Uri resumeUri = Uri.parse(featuredUrl);
+                final String fileName = resumeUri.pathSegments.last;
+                final String fileFormat =
+                    fileName.split('.').last.toUpperCase();
+                print("featuredUrl : $featuredUrl");
+                final contentWidget = GestureDetector(
+                  onTap: () async {
+                    if (await canLaunchUrl(resumeUri)) {
+                      await launchUrl(
+                        resumeUri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Could not open the link"),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Non-scrollable PDF preview
+                        Container(
+                          height: 200, // Fixed height for the preview
+                          child: SfPdfViewer.network(
+                            featuredUrl,
+                            canShowScrollHead: false,
+                            canShowScrollStatus: false,
+                            enableDoubleTapZooming: false,
+                          ),
+                        ),
+                        const Divider(color: Colors.grey),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.description, size: 28),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      fileName,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      fileFormat,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+
+                // Update or add the "Featured" section
+                print("objects: $contentWidget");
+                widget.onSectionAdded(
+                  ProfileSection(
+                    title: "Featured",
+                    content: [],
+                    contentWidgets: [contentWidget],
+                  ),
+                );
               },
             ),
       ),

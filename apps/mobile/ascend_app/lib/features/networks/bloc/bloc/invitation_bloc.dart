@@ -1,6 +1,5 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/invitation_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'invitation_event.dart';
 part 'invitation_state.dart';

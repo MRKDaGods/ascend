@@ -2,7 +2,8 @@ import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_state.dart';
 import 'package:ascend_app/features/home/models/comment_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post.dart' as post_widget;
+import 'package:ascend_app/features/home/presentation/widgets/post/post.dart'
+    as post_widget;
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 import 'package:ascend_app/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,7 @@ class _HomeState extends State<Home> {
         _loadMoreItems();
       } else if (currentState is PostsLoaded && !currentState.hasMorePages) {
         // Optional: Log that we reached the end
-        print("Reached end of feed, no more pages.");
+        debugPrint("Reached end of feed, no more pages.");
       }
     }
   }
@@ -63,17 +64,21 @@ class _HomeState extends State<Home> {
     final currentState = context.read<PostBloc>().state;
     // Only dispatch if state is PostsLoaded AND hasMorePages is true
     if (currentState is! PostsLoaded || !currentState.hasMorePages) {
-      print("LoadMoreItems called but no more pages or not in loaded state.");
+      debugPrint(
+        "LoadMoreItems called but no more pages or not in loaded state.",
+      );
       return; // Don't dispatch if no more pages or not loaded
     }
 
     setState(() {
       _isLoading = true;
     });
-    print("Dispatching LoadMorePosts event..."); // Debug print
+    debugPrint("Dispatching LoadMorePosts event..."); // Debug debugPrint
 
     // Load more posts through BLoC
-    context.read<PostBloc>().add(const LoadMorePosts(count: 15)); // Use consistent limit
+    context.read<PostBloc>().add(
+      const LoadMorePosts(count: 15),
+    ); // Use consistent limit
   }
 
   void _resetSponsoredCounter() {
@@ -132,9 +137,11 @@ class _HomeState extends State<Home> {
                             // Check hasMorePages from state as well
                             return _isLoading && state.hasMorePages
                                 ? const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Center(child: CircularProgressIndicator()),
-                                  )
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
                                 : const SizedBox.shrink(); // Show nothing if not loading or no more pages
                           }
 
@@ -142,7 +149,9 @@ class _HomeState extends State<Home> {
                           Comment? previewComment;
 
                           // Check if this position should show a sponsored post
-                          if (index == 2 || index == 8 || (index > 10 && (index - 10) % 7 == 0)) {
+                          if (index == 2 ||
+                              index == 8 ||
+                              (index > 10 && (index - 10) % 7 == 0)) {
                             // Get sponsored post ID
                             int sponsoredIndex = ++_sponsoredPostCounter;
                             if (sponsoredIndex > 5) {
@@ -152,7 +161,9 @@ class _HomeState extends State<Home> {
                             postId = 'sponsored_$sponsoredIndex';
                           } else {
                             // Calculate the actual post index, accounting for sponsored posts
-                            int actualPostIndex = _calculateActualPostIndex(index);
+                            int actualPostIndex = _calculateActualPostIndex(
+                              index,
+                            );
 
                             if (actualPostIndex >= posts.length) {
                               return const SizedBox.shrink();
@@ -176,7 +187,9 @@ class _HomeState extends State<Home> {
                           );
                         },
                         // Adjust childCount based on whether loading indicator might be shown
-                        childCount: _getDisplayItemCount(posts.length) + (state.hasMorePages ? 1 : 0),
+                        childCount:
+                            _getDisplayItemCount(posts.length) +
+                            (state.hasMorePages ? 1 : 0),
                       ),
                     ),
                   ],

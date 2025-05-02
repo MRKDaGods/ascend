@@ -11,16 +11,11 @@ class ExploreScreen extends StatefulWidget {
   ExploreScreen({super.key, required this.isDarkMode, required this.jobs});
 
   @override
-  _ExploreScreenState createState() => _ExploreScreenState();
+  State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
   String selectedTab = "Easy Apply"; // Default to Easy Apply
-  void _returbtofilter(String tab) {
-    setState(() {
-      selectedTab = tab;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

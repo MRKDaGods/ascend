@@ -105,92 +105,83 @@ class SavedPage extends StatelessWidget {
                         // Company Logo
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4.0),
-                          child: Container(
-                            // color:
-                            //     firstSavedJob.companyPhoto != null
-                            //         ? (Theme.of(context).brightness ==
-                            //                 Brightness.dark
-                            //             ? Colors.white
-                            //             : Colors
-                            //                 .white) // Contrasting background color
-                            //         : Colors.transparent,
-                            child: SizedBox(
-                              width: 50,
-                              height: 50,
+                          child: SizedBox(
+                            width: 50,
+                            height: 50,
 
-                              child:
-                                  firstSavedJob.companyPhoto != null &&
-                                          firstSavedJob.companyPhoto!.isNotEmpty
-                                      ? (Uri.tryParse(
-                                                firstSavedJob.companyPhoto!,
-                                              )?.hasAbsolutePath ??
-                                              false
-                                          ? (firstSavedJob.companyPhoto!
-                                                  .endsWith('.svg')
-                                              ? SvgPicture.network(
-                                                firstSavedJob.companyPhoto!,
-                                                //width: 50,
-                                                //height: 50,
-                                                fit:
-                                                    BoxFit
-                                                        .contain, // Ensure the image fits properly
-                                                placeholderBuilder:
-                                                    (context) => Icon(
-                                                      Icons.image_not_supported,
-                                                      size: 50,
-                                                      //color: Colors.grey,
-                                                    ),
-                                              )
-                                              : Image.network(
-                                                firstSavedJob.companyPhoto!,
-                                                headers: {
-                                                  'User-Agent': 'Mozilla/5.0',
-                                                },
-                                                fit:
-                                                    BoxFit
-                                                        .cover, // Ensure the image fits properly
-                                                width: 50,
-                                                height: 50,
-                                                errorBuilder: (
-                                                  context,
-                                                  error,
-                                                  stackTrace,
-                                                ) {
-                                                  print(
-                                                    "Image failed to load: ${firstSavedJob.companyPhoto}",
-                                                  );
-                                                  return Icon(
+                            child:
+                                firstSavedJob.companyPhoto != null &&
+                                        firstSavedJob.companyPhoto!.isNotEmpty
+                                    ? (Uri.tryParse(
+                                              firstSavedJob.companyPhoto!,
+                                            )?.hasAbsolutePath ??
+                                            false
+                                        ? (firstSavedJob.companyPhoto!.endsWith(
+                                              '.svg',
+                                            )
+                                            ? SvgPicture.network(
+                                              firstSavedJob.companyPhoto!,
+                                              //width: 50,
+                                              //height: 50,
+                                              fit:
+                                                  BoxFit
+                                                      .contain, // Ensure the image fits properly
+                                              placeholderBuilder:
+                                                  (context) => Icon(
                                                     Icons.image_not_supported,
                                                     size: 50,
                                                     //color: Colors.grey,
-                                                  );
-                                                },
-                                              ))
-                                          : Image.asset(
-                                            firstSavedJob.companyPhoto!,
-                                            fit:
-                                                BoxFit
-                                                    .cover, // Ensure the image fits properly
-                                            width: 50,
-                                            height: 50,
-                                            errorBuilder: (
-                                              context,
-                                              error,
-                                              stackTrace,
-                                            ) {
-                                              return Icon(
-                                                Icons.image_not_supported,
-                                                size: 50,
-                                                //color: Colors.grey,
-                                              );
-                                            },
-                                          ))
-                                      : Icon(
-                                        Icons.image_not_supported,
-                                        size: 50,
-                                        //color: Colors.grey,
-                                      ),
-                            ),
+                                                  ),
+                                            )
+                                            : Image.network(
+                                              firstSavedJob.companyPhoto!,
+                                              headers: {
+                                                'User-Agent': 'Mozilla/5.0',
+                                              },
+                                              fit:
+                                                  BoxFit
+                                                      .cover, // Ensure the image fits properly
+                                              width: 50,
+                                              height: 50,
+                                              errorBuilder: (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) {
+                                                debugPrint(
+                                                  "Image failed to load: ${firstSavedJob.companyPhoto}",
+                                                );
+                                                return Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 50,
+                                                  //color: Colors.grey,
+                                                );
+                                              },
+                                            ))
+                                        : Image.asset(
+                                          firstSavedJob.companyPhoto!,
+                                          fit:
+                                              BoxFit
+                                                  .cover, // Ensure the image fits properly
+                                          width: 50,
+                                          height: 50,
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return Icon(
+                                              Icons.image_not_supported,
+                                              size: 50,
+                                              //color: Colors.grey,
+                                            );
+                                          },
+                                        ))
+                                    : Icon(
+                                      Icons.image_not_supported,
+                                      size: 50,
+                                      //color: Colors.grey,
+                                    ),
                           ),
                         ),
                         const SizedBox(
@@ -278,6 +269,7 @@ class SavedPage extends StatelessWidget {
                               mode: LaunchMode.externalApplication,
                             );
                           } else {
+                            // ignore: use_build_context_synchronously
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(

@@ -8,7 +8,7 @@ class AddEducationPage extends StatefulWidget {
   const AddEducationPage({super.key, required this.onSave});
 
   @override
-  _AddEducationPageState createState() => _AddEducationPageState();
+  State<AddEducationPage> createState() => _AddEducationPageState();
 }
 
 class _AddEducationPageState extends State<AddEducationPage> {
