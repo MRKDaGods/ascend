@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/networks/Mock%20Data/company.dart'
+import 'package:ascend_app/features/networks/Mock Data/company.dart'
     as company_data;
 import 'package:ascend_app/features/networks/model/company_model.dart';
 

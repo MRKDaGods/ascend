@@ -17,6 +17,11 @@ import 'features/home/repositories/post_repository.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'theme.dart';
 import 'features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
+import 'features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import 'features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
+import 'features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized FIRST
@@ -139,7 +144,20 @@ class _MainAppState extends State<MainApp> {
         BlocProvider<SearchBloc>.value(value: sl.searchBloc),
 
         // Add the MessagingBloc to the providers
-        Provider<MessagingBloc>.value(value: sl.messagingBloc),
+        BlocProvider<MessagingBloc>.value(value: sl.messagingBloc),
+
+        // Add other Blocs as needed
+        BlocProvider<MessagingRequestsBloc>.value(
+          value: sl.messagingRequestsBloc,
+        ),
+        BlocProvider<ConnectionRequestBloc>.value(
+          value: sl.connectionRequestBloc,
+        ),
+        BlocProvider<FollowBloc>.value(value: sl.followBloc),
+        BlocProvider<BlockBloc>.value(value: sl.blockBloc),
+        BlocProvider<ConnectionPreferencesBloc>.value(
+          value: sl.connectionPreferencesBloc,
+        ),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, authState) {
@@ -149,12 +167,40 @@ class _MainAppState extends State<MainApp> {
             debugPrint(
               "[MainApp] AuthSuccess (Login) detected, checking profile load...",
             );
+            debugPrint("[MainApp] Intializing ConnectionRequestBloc...");
+            // Initialize ConnectionRequestBloc if not already initialized
             if (!_profileLoaded) {
               debugPrint("[MainApp] Loading user profile.");
               context.read<UserProfileBloc>().add(LoadUserProfile());
               // Update flag immediately to prevent re-dispatch
               _profileLoaded = true;
               // No need for setState if flag is only for dispatch control
+
+              // Initialize ConnectionRequestBloc
+              context.read<ConnectionRequestBloc>().add(
+                FetchConnectionRequests(),
+              );
+              debugPrint("[MainApp] Initialized ConnectionRequestBloc");
+
+              // Initialize FollowBloc
+              context.read<FollowBloc>().add(FetchFollowing());
+              debugPrint("[MainApp] Initialized FollowBloc");
+
+              // Initialize BlockBloc
+              context.read<BlockBloc>().add(FetchBlockedUsersEvent());
+              debugPrint("[MainApp] Initialized BlockBloc");
+
+              // Initialize ConnectionPreferencesBloc
+              context.read<ConnectionPreferencesBloc>().add(
+                ConnectionPreferencesLoadEvent(),
+              );
+              debugPrint("[MainApp] Initialized ConnectionPreferencesBloc");
+
+              // Initialize MessagingRequestsBloc
+              context.read<MessagingRequestsBloc>().add(
+                FetchReceivedMessagingRequests(),
+              );
+              debugPrint("[MainApp] Initialized MessagingRequestsBloc");
             }
           } else if (authState is AuthInitial || authState is AuthLoading) {
             // Reset only profile flag if user logs out or session starts/reloads

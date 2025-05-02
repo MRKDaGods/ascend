@@ -213,13 +213,7 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
                       ),
                     )
                 : state.pendingRequestsSent.isNotEmpty
-                ? ConnectionRequestsSent(
-                  onRemove: (requestId) {
-                    context.read<ConnectionRequestBloc>().add(
-                      CancelConnectionRequest(requestId: requestId),
-                    );
-                  },
-                )
+                ? ConnectionRequestsSent(onRemove: (requestId) {})
                 : Center(
                   child: Text(
                     'No Sent Invitations',

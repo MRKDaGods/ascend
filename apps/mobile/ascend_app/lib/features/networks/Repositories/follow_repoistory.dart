@@ -1,140 +1,109 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:flutter/material.dart';
 
 class FollowRepoistory {
-  final http.Client _client;
-  final String baseUrl;
-  final Map<String, String> headers;
-  final bool useMockData;
-  //final AuthService _authService;
+  final ApiClient _client;
 
-  // Keep the mock data for development
-  /*
-  final List<FollowedUser> followedUsers = MockFollowedUsers.getFollowing('10');
-  final List<UserSuggestedtoFollow> suggestedUsers =
-      MockSuggestedToFollow.getSuggestedToFollow();
-  */
+  FollowRepoistory({required ApiClient client}) : _client = client;
 
-  FollowRepoistory({
-    this.baseUrl = 'https://api.ascendx.tech',
-    this.headers = const {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    this.useMockData = false,
-  }) : _client = http.Client();
-
-  //_authService = authService ?? AuthService();
-  Future<void> addFollowingRepoistory(String userId) async {
+  /// Follow a user by their ID
+  Future<void> followUser(String userId) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here'; // Replace with actual token retrieval
-      final response = await _client.post(
-        Uri.parse('$baseUrl${ApiEndpoints.follow}/:$userId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(userId),
-      );
+      final response = await _client.post('${ApiEndpoints.follow}/:$userId');
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send connection request: ${response.body}');
+      if (response.statusCode == 200) {
+        // Successfully followed the user
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint('$data["message"]');
+      } else {
+        throw Exception('Failed to follow user: ${response.body}');
       }
     } catch (e) {
-      // For development, use mock implementation
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      //addFollowing(Follows, followModel.followingId);
+      debugPrint('Error: $e');
     }
   }
 
-  Future<void> deleteFollowingRepoistory(String userId) async {
+  /// Unfollow a user by their ID
+  Future<void> unfollowUser(String userId) async {
     try {
-      //final token = await _authService.getToken();
-      final token = 'your_token_here'; // Replace with actual token retrieval
       final response = await _client.delete(
-        Uri.parse('$baseUrl${ApiEndpoints.follow}/:$userId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(userId),
-      );
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to send connection request: ${response.body}');
-      }
-    } catch (e) {
-      // For development, use mock implementation
-      await Future.delayed(const Duration(milliseconds: 500));
-      //addFollowing(Follows, followModel.followingId);
-    }
-  }
-
-  Future<List<FollowedUser>> fetchFollowersRepoistory({
-    int page = 1,
-    int limit = 10,
-  }) async {
-    try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.follow}').replace(
-        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
-      );
-
-      final response = await _client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.unfollow}/:$userId',
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => FollowedUser.fromJson(json)).toList();
+        // Successfully unfollowed the user
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint('$data["message"]');
       } else {
-        throw Exception('Failed to fetch blocked users: ${response.body}');
+        throw Exception('Failed to unfollow user: ${response.body}');
       }
     } catch (e) {
-      // For now, return mock data for development
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      return [];
+      debugPrint('Error: $e');
     }
   }
 
-  Future<List<UserSuggestedtoFollow>> fetchSuggestedUsersRepoistory({
+  Future<List<FollowedUser>> fetchFollowedUsers({
+    String userId = '',
     int page = 1,
     int limit = 10,
   }) async {
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.follow}').replace(
-        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
-      );
-
       final response = await _client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.followed}?userId=$userId?page=$page&limit=$limit',
       );
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        return responseData['data']
+            .map<FollowedUser>((json) => FollowedUser.fromJson(json))
+            .toList()
+            .cast<FollowedUser>();
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Failed to fetch followed users: ${data["success"]} with error: ${data["message"]}',
+        );
+        return [];
+      }
+    } catch (e) {
+      // For now, debugdebugPrint the error
+      await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      return []; // Return an empty list in case of an error
+    }
+  }
+
+  /// Get users for follow recommendations
+  Future<List<UserSuggestedtoFollow>> getFollowRecommendations({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    try {
+      final response = await _client.get(
+        '${ApiEndpoints.followedRecommendations}?page=$page&limit=$limit',
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        return responseData['data']
             .map((json) => UserSuggestedtoFollow.fromJson(json))
-            .toList();
+            .toList()
+            .cast<UserSuggestedtoFollow>();
       } else {
-        throw Exception('Failed to fetch blocked users: ${response.body}');
+        debugPrint('Failed to fetch follow recommendations: ${response.body}');
+        return [];
       }
     } catch (e) {
-      // For now, return mock data for development
-      await Future.delayed(const Duration(milliseconds: 500));
-      return [];
+      debugPrint('Error fetching follow recommendations: $e');
+      return []; // Return an empty list in case of an error
     }
   }
 }

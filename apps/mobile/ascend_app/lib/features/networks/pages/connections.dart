@@ -2,8 +2,6 @@ import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
-import 'package:ascend_app/features/networks/pages/Networks_search_page.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 
 class Connections extends StatelessWidget {
   final List<ConnectedUser> connections;
@@ -51,20 +49,7 @@ class Connections extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.search),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => BlocProvider.value(
-                                    value: BlocProvider.of<SearchFiltersBloc>(
-                                      context,
-                                    ),
-                                    child: NetworksSearchPage(),
-                                  ),
-                            ),
-                          );
-                        },
+                        onPressed: () {},
                       ),
                       IconButton(
                         icon: const Icon(Icons.filter_list),
@@ -146,9 +131,7 @@ class Connections extends StatelessWidget {
                                 onPressed:
                                     () => _showOptionsModal(
                                       context,
-                                      state
-                                          .acceptedConnections[index]
-                                          .request_id!,
+                                      state.acceptedConnections[index].user_id!,
                                     ), // Three-dot icon
                               ),
                             ],
