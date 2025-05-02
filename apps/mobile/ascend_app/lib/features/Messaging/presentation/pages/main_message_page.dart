@@ -80,7 +80,10 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
     });
   }
 
-  void _navigateToChat(ConversationModel conversation) async {
+  void _navigateToChat(
+    ConversationModel conversation,
+    Map<String, bool> typingStatus,
+  ) async {
     // Set active conversation in bloc
     final messagingBloc = context.read<MessagingBloc>();
     messagingBloc.add(SetActiveConversation(conversation.conversationId));
@@ -102,13 +105,12 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
                 conversationAvatar: conversation.otherUserProfileImageUrl,
                 isOnline: false,
                 myUserId: userId!,
+                otherUserId: conversation.userId,
+                isTyping: typingStatus[conversation.conversationId] ?? false,
               ),
             ),
       ),
-    ).then((_) {
-      // When returning from chat, refresh conversations
-      messagingBloc.add(LoadConversations());
-    });
+    );
   }
 
   void _startNewConversation() {
@@ -174,13 +176,21 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
 
   Widget _buildConversationsContent() {
     return BlocBuilder<MessagingBloc, MessagingBlocState>(
+      buildWhen: (previous, current) {
+        // Always rebuild for ConversationLoaded states
+        return current is ConversationLoaded;
+      },
       builder: (context, state) {
         if (state is ConversationLoading) {
           return Center(child: CircularProgressIndicator());
         } else if (state is ConversationLoaded) {
+          debugPrint(
+            '[ConversationsList] Rebuilding with ${state.conversations.length} conversations',
+          );
           return _buildConversationsList(
             state.conversations,
             state.hasReachedMax,
+            state.typingStatus,
           );
         } else if (state is MessagingError) {
           return _buildErrorState(state.errorMessage);
@@ -194,6 +204,7 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
   Widget _buildConversationsList(
     List<ConversationModel> conversations,
     bool hasReachedMax,
+    Map<String, bool> typingStatus,
   ) {
     if (conversations.isEmpty) {
       return _buildEmptyState();
@@ -221,7 +232,7 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
             '[MainMessagingPage] Conversation: ${conversation.conversationId}',
           );
           return GestureDetector(
-            onTap: () => _navigateToChat(conversation),
+            onTap: () => _navigateToChat(conversation, typingStatus),
             child: Conversation(
               conversationId: conversation.conversationId,
               otherUserId: conversation.userId,
@@ -237,6 +248,7 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
                 conversation.latestTimestamp,
               ),
               unseenCount: conversation.unseenCount,
+              isTyping: typingStatus[conversation.conversationId] ?? false,
               isOnline: false,
             ),
           );
