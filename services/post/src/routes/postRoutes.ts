@@ -24,12 +24,13 @@ import {
   reportPost, 
   deleteReport,
   getSavedArticles,
-ultimateSearch,
+  ultimateSearch,
   reactToPost,
   getPostReactions,
   reactToComment,
   getCommentReactions,
   getCommentReactionCounts,
+  getUserPosts,
 } from "../controllers/postController";
 
 const upload = multer({
@@ -47,6 +48,9 @@ router.get('/articles', authenticateToken, getSavedArticles);
 
 // New ultimate search route that combines users and posts
 router.get("/search/ultimate", authenticateToken, ultimateSearch);
+
+// User posts route
+router.get("/user/:userId", authenticateToken, getUserPosts);
 
 // Post CRUD routes 
 router.post("/", authenticateToken, upload.array("media"), createPost);

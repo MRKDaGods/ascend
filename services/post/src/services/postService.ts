@@ -491,6 +491,11 @@ export class PostService {
       item.likes_count = await this.getPostLikesCount(item.id);
       item.comments_count = await this.getPostCommentsCount(item.id);
       item.shares_count = await this.getPostSharesCount(item.id);
+      
+      // Add user-specific engagement attributes
+      item.isLiked = await this.isPostLikedByUser(item.id, userId);
+      item.isSaved = await this.isPostSavedByUser(item.id, userId);
+      item.isShared = await this.isPostSharedByUser(item.id, userId);
 
       // Process media URLs
       if (item.media && item.media.length > 0) {
@@ -514,6 +519,9 @@ export class PostService {
         );
       }
     }
+
+    // Sort posts by creation date (newest first)
+    feed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return feed;
   }
@@ -802,6 +810,15 @@ export class PostService {
   async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
     const result = await db.query(
       "SELECT EXISTS(SELECT 1 FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2)",
+      [postId, userId]
+    );
+    return result.rows[0].exists;
+  }
+
+  // Check if post is shared by user
+  async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
+    const result = await db.query(
+      "SELECT EXISTS(SELECT 1 FROM post_service.shares WHERE post_id = $1 AND user_id = $2)",
       [postId, userId]
     );
     return result.rows[0].exists;
@@ -1494,6 +1511,79 @@ export class PostService {
     } catch (error) {
       console.error("Error getting post reactions:", error);
       throw new Error("Failed to get post reactions");
+    }
+  }
+
+  /**
+   * Get all posts from a specific user in chronological order
+   * @param userId The ID of the user whose posts to retrieve
+   * @param limit Maximum number of posts to return
+   * @param offset Pagination offset
+   * @param order Sort order ('desc' for newest first, 'asc' for oldest first)
+   * @returns Array of user's posts
+   */
+  async getUserPosts(
+    userId: number,
+    limit: number = 20,
+    offset: number = 0,
+    order: 'desc' | 'asc' = 'desc'
+  ): Promise<Post[]> {
+    try {
+      const result = await db.query(
+        `SELECT p.*,
+          json_build_object(
+            'id', u.user_id,
+            'first_name', u.first_name,
+            'last_name', u.last_name,
+            'profile_picture_id', u.profile_picture_id
+          ) as user
+         FROM post_service.posts p
+         JOIN user_service.profiles u ON p.user_id = u.user_id
+         WHERE p.user_id = $1
+         ORDER BY p.created_at ${order === 'desc' ? 'DESC' : 'ASC'}
+         LIMIT $2 OFFSET $3`,
+        [userId, limit, offset]
+      );
+  
+      const posts = result.rows;
+  
+      // Enhance posts with additional data
+      for (const post of posts) {
+        post.media = await this.getPostMedia(post.id);
+        
+        // Get engagement metrics
+        post.likes_count = await this.getPostLikesCount(post.id);
+        post.comments_count = await this.getPostCommentsCount(post.id);
+        post.shares_count = await this.getPostSharesCount(post.id);
+  
+        // Process user profile picture
+        if (post.user && post.user.profile_picture_id) {
+          post.user.profile_picture_url = await this.getFileUrl(
+            post.user.profile_picture_id
+          );
+        }
+      }
+  
+      return posts;
+    } catch (error) {
+      console.error("Error getting user posts:", error);
+      throw new Error("Failed to get user posts");
+    }
+  }
+  
+  // Helper method to get the total count of a user's posts
+  async getUserPostsCount(userId: number): Promise<number> {
+    try {
+      const result = await db.query(
+        `SELECT COUNT(*) as count
+         FROM post_service.posts
+         WHERE user_id = $1`,
+        [userId]
+      );
+      return parseInt(result.rows[0].count, 10);
+    } catch (error) {
+      console.error("Error getting user posts count:", error);
+      throw new Error("Failed to get user posts count");
     }
   }
 }

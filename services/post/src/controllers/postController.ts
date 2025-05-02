@@ -1026,6 +1026,49 @@ export const getPostReactions = async (req: AuthenticatedRequest, res: Response)
 };
 
 /**
+ * Get all posts from a specific user in chronological order
+ * @route GET /posts/user/:userId
+ * @param {string} userId - The ID of the user whose posts to retrieve
+ * @param {number} limit - Number of posts per page (default: 20)
+ * @param {number} offset - Pagination offset (default: 0) 
+ * @param {string} order - Sort order ('desc' for newest first, 'asc' for oldest first)
+ * @returns {object} Array of user's posts with pagination info
+ */
+export const getUserPosts = async (req: AuthenticatedRequest, res: Response) => {
+  const targetUserId = parseInt(req.params.userId);
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = parseInt(req.query.offset as string) || 0;
+  const order = (req.query.order as string === 'asc') ? 'asc' : 'desc';
+
+  try {
+    // Get the posts
+    const posts = await postService.getUserPosts(
+      targetUserId,
+      limit,
+      offset,
+      order as 'desc' | 'asc'
+    );
+
+    // Get total count for pagination
+    const total = await postService.getUserPostsCount(targetUserId);
+
+    res.json({
+      success: true,
+      data: posts,
+      pagination: {
+        total,
+        limit,
+        offset,
+        order
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+/**
  * Uploads a file to the file service using RPC
  * @param file - The file to upload
  * @param userId - The user ID
