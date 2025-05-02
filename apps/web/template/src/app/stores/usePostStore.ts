@@ -274,7 +274,7 @@ export const usePostStore = create<PostStoreState>()(
       fetchNewsFeedFromAPI: async () => {
         const response = await fetchNewsFeed();
         
-        const posts = (response.data ?? []).reverse().map((post) => ({
+        const posts = (response.data ?? []).map((post) => ({
           id: post.id,
           username: `${post.user.first_name} ${post.user.last_name}`,
           profilePic: post.user.profile_picture_url ?? "",
