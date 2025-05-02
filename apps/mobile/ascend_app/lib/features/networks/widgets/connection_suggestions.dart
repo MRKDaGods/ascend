@@ -1,68 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:ascend_app/features/networks/widgets/single_connection.dart';
-import 'package:ascend_app/features/networks/managers/connection_manager.dart';
 
 class ConnectionSuggestions extends StatefulWidget {
-  final List<UserModel> suggestedUsers;
-  final Map<String, List<UserModel>> connectionsMap;
+  final List<UserSuggestedtoConnect> suggestedUsers;
+  final Function(String) onSentMessageRequest;
   final Function(String) onSend;
-  final bool ShowAll;
+  final bool showAll;
 
   const ConnectionSuggestions({
     super.key,
     required this.suggestedUsers,
-    required this.connectionsMap,
+    required this.onSentMessageRequest,
     required this.onSend,
-    required this.ShowAll,
+    required this.showAll,
   });
 
   @override
-  _ConnectionSuggestionsState createState() => _ConnectionSuggestionsState();
+  State<ConnectionSuggestions> createState() => _ConnectionSuggestionsState();
 }
 
 class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
-  final Set<String> connectedUsers = {}; // Track connected users by their IDs
-  late List<UserModel> localsuggestedUsers;
+  List<UserSuggestedtoConnect> localsuggestedUsers = [];
+  final Set<String> connectedUsers = {};
 
   @override
   void initState() {
     super.initState();
-    localsuggestedUsers = List.from(widget.suggestedUsers);
   }
 
   void _handleConnect(String userId) {
     setState(() {
-      connectedUsers.add(userId); // Mark the user as connected
+      connectedUsers.add(userId);
+      localsuggestedUsers.removeWhere((user) => user.user_id == userId);
     });
     widget.onSend(userId); // Trigger the onSend callback
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    localsuggestedUsers = widget.suggestedUsers;
     final double screenWidth = MediaQuery.of(context).size.width;
     final double mainAxisExtent =
         screenWidth > 600 ? 400 : 320; // Adjust dynamically
 
     final int crossAxisCount =
         screenWidth > 600 ? 4 : 2; // Adjust columns for larger screens
-    final double childAspectRatio = screenWidth > 600 ? 0.9 : 0.8;
 
     final int itemCount =
         screenWidth > 600
-            ? !widget.ShowAll
+            ? !widget.showAll
                 ? localsuggestedUsers.length > 8
                     ? 8
                     : localsuggestedUsers.length
                 : localsuggestedUsers.length
-            : !widget.ShowAll
+            : !widget.showAll
             ? localsuggestedUsers.length > 4
                 ? 4
                 : localsuggestedUsers.length
             : localsuggestedUsers.length;
 
-    final Map<String, List<UserModel>> MutualConnectionsMap =
-        getMutualConnectionsforeachUser("1", widget.connectionsMap);
     return GridView.builder(
       shrinkWrap: true, // Prevents infinite height issues
       physics: NeverScrollableScrollPhysics(), // Disables GridView's scrolling
@@ -76,21 +78,17 @@ class _ConnectionSuggestionsState extends State<ConnectionSuggestions> {
       itemCount: itemCount,
       itemBuilder: (context, index) {
         final user = localsuggestedUsers[index];
-        final bool isConnected = connectedUsers.contains(user.id);
-        print(
-          "User Name: ${user.name},User Id : ${user.id} ,index: $index, isConnected: $isConnected",
-        );
+        final bool isConnected = connectedUsers.contains(user.user_id!);
         return SingleConnection(
-          key: ValueKey(user.id),
+          key: ValueKey(user.user_id!),
           user: user,
           onSend: _handleConnect,
-          ShowAll: widget.ShowAll,
+          onSentMessageRequest: widget.onSentMessageRequest,
+          showAll: widget.showAll,
           isConnected: isConnected,
-          mutualUsers: MutualConnectionsMap[user.id] ?? [],
-          acceptedConnections: widget.connectionsMap[user.id] ?? [],
           onHide: (userId) {
             setState(() {
-              localsuggestedUsers.removeWhere((user) => user.id == userId);
+              localsuggestedUsers.removeWhere((user) => user.user_id == userId);
             });
           },
         );

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class FullScreenImage extends StatelessWidget {
   final String imageUrl;
   final bool isMyProfile;
+  final void Function()? delete;
   const FullScreenImage({
     super.key,
     required this.imageUrl,
     required this.isMyProfile,
+    this.delete,
   });
 
   @override
@@ -89,7 +91,8 @@ class FullScreenImage extends StatelessWidget {
                           icon: Icons.delete,
                           label: "Delete",
                           onTap: () {
-                            // Add delete functionality here
+                            delete?.call();
+                            Navigator.pop(context);
                           },
                         ),
                       ],

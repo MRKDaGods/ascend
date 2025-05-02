@@ -28,7 +28,7 @@ class ProfileOptionsSheet extends StatelessWidget {
   final void Function()? toggleFollow;
   final void Function(BuildContext)? withdrawRequest;
   final void Function(BuildContext)? removeConnection;
-  final void Function(BuildContext, String)? showImage;
+  final void Function(BuildContext, String, bool)? showImage;
   final String? imageType; // 'profile' or 'cover'
   final String? imageUrl;
   final Profile? profile; // Profile object to fetch data
@@ -42,7 +42,7 @@ class ProfileOptionsSheet extends StatelessWidget {
         Stack(
           children: [
 
-            Container(width: double.infinity, height: 35),
+            SizedBox(width: double.infinity, height: 35),
 
             SizedBox(
               width: double.infinity, // Full width background
@@ -207,8 +207,8 @@ class ProfileOptionsSheet extends StatelessWidget {
         if (onTap != null) {
           if (onTap is Function(BuildContext)) {
             onTap(context);
-          } else if (onTap is Function(BuildContext, String)) {
-            onTap(context, imageUrl!);
+          } else if (onTap is Function(BuildContext, String, bool)) {
+            onTap(context, imageUrl!, imageType == 'profile');
           } else if (onTap is Function(BuildContext, IconData)) {
             onTap(context, icon);
           } else {
@@ -225,7 +225,7 @@ class ProfileOptionsSheet extends StatelessWidget {
 
   void _showAboutProfileDialog(BuildContext context) {
     if (profile == null) {
-      print("profile is null");
+      debugPrint("profile is null");
       return;
     }
     showModalBottomSheet(
@@ -241,7 +241,7 @@ class ProfileOptionsSheet extends StatelessWidget {
             // Custom Drag Handle
             Stack(
               children: [
-                Container(width: double.infinity, height: 35),
+                SizedBox(width: double.infinity, height: 35),
                 Center(
                   child: Container(
                     width: 54,

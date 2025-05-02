@@ -19,6 +19,9 @@ void main() {
             withdrawRequest: (context) {},
             toggleFollow: () {},
             removeConnection: (context) {},
+            addOrUpdateSection:
+                (title, newEntry, {contentWidget, resumeUrl}) {},
+            profile: null,
           ),
         ),
       ),
@@ -44,6 +47,9 @@ void main() {
               withdrawRequest: (context) {},
               toggleFollow: () {},
               removeConnection: (context) {},
+              addOrUpdateSection:
+                  (title, newEntry, {contentWidget, resumeUrl}) {},
+              profile: null,
             ),
           ),
         ),
@@ -58,10 +64,12 @@ void main() {
     WidgetTester tester,
   ) async {
     // Arrange
+
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: ProfileButtons(
+            profile: null,
             isfollowing: false,
             isMyProfile: false,
             isConnect: true,
@@ -70,6 +78,8 @@ void main() {
             withdrawRequest: (context) {},
             toggleFollow: () {},
             removeConnection: (context) {},
+            addOrUpdateSection:
+                (title, newEntry, {contentWidget, resumeUrl}) {},
           ),
         ),
       ),

@@ -1,8 +1,8 @@
-import 'package:ascend_app/features/StartPages/Presentation/Pages/JoinAscend.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/join_ascend.dart';
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/sign_in.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/continue_button.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart'; // Import SecureStorageHelper
 
 class Welcome extends StatefulWidget {
@@ -27,6 +27,7 @@ class _WelcomeState extends State<Welcome> {
     if (authToken != null && authToken.isNotEmpty && rememberMe) {
       // Navigate to Home if the user is authenticated and "Remember Me" is enabled
       Navigator.pushReplacement(
+        // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(
           builder:
@@ -40,6 +41,7 @@ class _WelcomeState extends State<Welcome> {
     } else {
       // Navigate to Sign In if not a first-time user
       Navigator.pushReplacement(
+        // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(builder: (context) => const SignInPage()),
       );
@@ -95,6 +97,7 @@ class _WelcomeState extends State<Welcome> {
                         false,
                       ); // Mark as not first-time user
                       Navigator.push(
+                        // ignore: use_build_context_synchronously
                         context,
                         MaterialPageRoute(
                           builder: (context) {
@@ -137,6 +140,7 @@ class _WelcomeState extends State<Welcome> {
                           false,
                         ); // Mark as not first-time user
                         Navigator.push(
+                          // ignore: use_build_context_synchronously
                           context,
                           MaterialPageRoute(
                             builder: (context) {
