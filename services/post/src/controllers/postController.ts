@@ -299,12 +299,14 @@ export const getPostComments = async (
   const postId = parseInt(req.params.postId);
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
+  const userId = req.user!.id; // Get current user ID
 
   try {
     const comments = await postService.getPostComments(
       postId,
       limit,
-      (page - 1) * limit
+      (page - 1) * limit,
+      userId // Pass userId to check reactions
     );
     const total = await postService.getPostCommentsCount(postId);
 
