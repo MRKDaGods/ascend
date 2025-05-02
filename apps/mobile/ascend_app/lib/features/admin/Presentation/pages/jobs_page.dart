@@ -1,15 +1,30 @@
 import 'package:flutter/material.dart';
+import '../../data/models/jobs_model.dart';
+import '../widgets/reported_job_card.dart';
 
-class JobsPage extends StatefulWidget {
-  const JobsPage({super.key});
+class JobsPage extends StatelessWidget {
+  final List<ReportedJob> jobs;
+  final Map<int, List<JobReport>> jobReports;
 
-  @override
-  State<JobsPage> createState() => _JobsPageState();
-}
+  const JobsPage({Key? key, required this.jobs, required this.jobReports})
+    : super(key: key);
 
-class _JobsPageState extends State<JobsPage> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Reported Jobs'),
+        automaticallyImplyLeading: false,
+      ),
+
+      body: ListView.builder(
+        itemCount: jobs.length,
+        itemBuilder: (context, index) {
+          final job = jobs[index];
+          final reports = jobReports[job.jobId] ?? [];
+          return ReportedJobCard(job: job, reports: reports);
+        },
+      ),
+    );
   }
 }

@@ -1,8 +1,9 @@
+import 'package:ascend_app/features/admin/data/models/posts_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class ReportedPostCard extends StatelessWidget {
-  final Map<String, dynamic> post;
+  final ReportedPost post;
   final bool isExpanded;
   final VoidCallback onToggleExpand;
 
@@ -15,14 +16,10 @@ class ReportedPostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = post['user'];
-    final fullName = user != null
-        ? '${user['first_name'] ?? 'Unknown'} ${user['last_name'] ?? 'User'}'
-        : 'Unknown User';
-    final createdAt = DateFormat('yyyy-MM-dd – kk:mm').format(DateTime.parse(post['created_at']));
-    final media = post['media'] as List;
-    final hasImage = media.isNotEmpty;
-    final imageUrl = hasImage ? media[0]['url'] : null;
+    final fullName = post.authorFullName;
+    final createdAt = DateFormat('yyyy-MM-dd – kk:mm').format(post.createdAt);
+    final hasImage = post.mediaUrls.isNotEmpty;
+    final imageUrl = hasImage ? post.mediaUrls.first : null;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 12),
@@ -53,7 +50,7 @@ class ReportedPostCard extends StatelessWidget {
             const SizedBox(height: 8),
 
             /// Post content
-            Text(post['content'], style: const TextStyle(fontSize: 15)),
+            Text(post.content, style: const TextStyle(fontSize: 15)),
             const SizedBox(height: 10),
 
             /// Optional image
@@ -61,7 +58,7 @@ class ReportedPostCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  imageUrl,
+                  imageUrl!,
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -72,13 +69,13 @@ class ReportedPostCard extends StatelessWidget {
             /// Metadata row
             Row(
               children: [
-                _metaIcon(Icons.visibility, post['privacy']),
+                _metaIcon(Icons.visibility, post.privacy),
                 const SizedBox(width: 12),
-                _metaIcon(Icons.thumb_up, post['likes_count'].toString()),
+                _metaIcon(Icons.thumb_up, post.likesCount.toString()),
                 const SizedBox(width: 12),
-                _metaIcon(Icons.comment, post['comments_count'].toString()),
+                _metaIcon(Icons.comment, post.commentsCount.toString()),
                 const SizedBox(width: 12),
-                _metaIcon(Icons.share, post['shares_count'].toString()),
+                _metaIcon(Icons.share, post.sharesCount.toString()),
               ],
             ),
             const SizedBox(height: 16),
@@ -102,10 +99,8 @@ class ReportedPostCard extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              if (post['reports'] != null &&
-                  post['reports'] is List &&
-                  post['reports'].isNotEmpty)
-                ...post['reports'].map<Widget>((report) {
+              if (post.reports.isNotEmpty)
+                ...post.reports.map<Widget>((report) {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     shape: RoundedRectangleBorder(
@@ -118,7 +113,7 @@ class ReportedPostCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            report['reporter'] ?? 'Unknown',
+                            report.reporterId as String,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
@@ -131,7 +126,7 @@ class ReportedPostCard extends StatelessWidget {
                               ),
                               children: [
                                 TextSpan(
-                                  text: report['reason'] ?? 'N/A',
+                                  text: report.reason,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.normal,
                                   ),
@@ -140,16 +135,27 @@ class ReportedPostCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(report['description'] ?? ''),
+                          Text(report.description),
                           const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               DropdownButton<String>(
                                 value: 'pending',
-                                items: ['pending', 'reviewed', 'resolved', 'rejected']
-                                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                                    .toList(),
+                                items:
+                                    [
+                                          'pending',
+                                          'reviewed',
+                                          'resolved',
+                                          'rejected',
+                                        ]
+                                        .map(
+                                          (e) => DropdownMenuItem(
+                                            value: e,
+                                            child: Text(e),
+                                          ),
+                                        )
+                                        .toList(),
                                 onChanged: (val) {},
                               ),
                               const SizedBox(width: 12),
@@ -158,7 +164,10 @@ class ReportedPostCard extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                 ),
-                                child: const Text('DELETE POST'),
+                                child: const Text(
+                                  'DELETE POST',
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
