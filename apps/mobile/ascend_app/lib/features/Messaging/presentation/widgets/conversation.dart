@@ -429,7 +429,7 @@ class _ConversationState extends State<Conversation>
       context: context,
       builder: (context) {
         return SizedBox(
-          height: 300,
+          height: 400,
           child: Column(
             children: [
               ListTile(

@@ -2,26 +2,30 @@ class DateFormatter {
   /// Formats a date for conversation listings
   static String formatMessageDate(DateTime? time) {
     final localTime = time?.toLocal();
-    if (time == null) return '';
+    if (localTime == null) return '';
 
     final now = DateTime.now().toLocal();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(Duration(days: 1));
-    final messageDate = DateTime(time.year, time.month, time.day);
+    final messageDate = DateTime(
+      localTime.year,
+      localTime.month,
+      localTime.day,
+    );
 
     if (messageDate == today) {
       // Today, return time
-      return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+      return '${localTime.hour}:${localTime.minute.toString().padLeft(2, '0')}';
     } else if (messageDate == yesterday) {
       // Yesterday
       return 'Yesterday';
     } else if (now.difference(messageDate).inDays < 7) {
       // This week, return day name
       final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      return dayNames[time.weekday - 1];
+      return dayNames[localTime.weekday - 1];
     } else {
       // Older, return date
-      return '${time.day}/${time.month}';
+      return '${localTime.day}/${localTime.month}';
     }
   }
 
@@ -32,15 +36,16 @@ class DateFormatter {
 
   /// Formats a date header for chat
   static String formatChatDateHeader(DateTime date) {
-    final now = DateTime.now();
+    final localData = date.toLocal();
+    final now = DateTime.now().toLocal();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(Duration(days: 1));
 
-    if (date == today) {
+    if (localData == today) {
       return 'Today';
-    } else if (date == yesterday) {
+    } else if (localData == yesterday) {
       return 'Yesterday';
-    } else if (now.difference(date).inDays < 7) {
+    } else if (now.difference(localData).inDays < 7) {
       final dayNames = [
         'Monday',
         'Tuesday',
@@ -50,16 +55,16 @@ class DateFormatter {
         'Saturday',
         'Sunday',
       ];
-      return dayNames[date.weekday - 1];
+      return dayNames[localData.weekday - 1];
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return '${localData.day}/${localData.month}/${localData.year}';
     }
   }
 
   /// Formats a timestamp for detailed views
   static String formatDetailedTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final now = DateTime.now().toLocal();
+    final difference = now.difference(timestamp.toLocal());
 
     if (difference.inSeconds < 60) {
       return 'Just now';
