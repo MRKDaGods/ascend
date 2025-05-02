@@ -289,13 +289,15 @@ export const searchJobs = async ({
     }
 
     if (location && location.length > 0) {
-      conditions.push(`j.location = ILIKE ANY($${values.length + 1}::text[])`);
-      values.push(location);
+      conditions.push(`j.location ILIKE ANY($${values.length + 1}::text[])`);
+      const locationSearchTerms = location.map((loc) => `%${loc}%`);
+      values.push(locationSearchTerms);
     }
 
     if (industry && industry.length > 0) {
-      conditions.push(`j.industry = ILIKE ANY($${values.length + 1}::text[])`);
-      values.push(industry);
+      conditions.push(`j.industry ILIKE ANY($${values.length + 1}::text[])`);
+      const industrySearchTerms = industry.map((ind) => `%${ind}%`);
+      values.push(industrySearchTerms);
     }
 
     if (experience_level && experience_level.length > 0) {
