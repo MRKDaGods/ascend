@@ -192,7 +192,7 @@ export const hasUserExceededApplicationLimit = async (
     const query = `
       SELECT job_applications_per_month, job_applications_limit
       FROM payment_service.usage
-      WHERE user_id = $1'
+      WHERE user_id = $1
     `;
     const values = [userId];
     const result = await db.query(query, values);
