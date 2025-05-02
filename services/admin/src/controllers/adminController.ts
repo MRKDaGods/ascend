@@ -13,6 +13,7 @@ import {
   getPostsCount,
   getReportedJobs,
   getReportedPosts,
+  getSubscriptionsCount,
   getUsersCount,
   isThereJobReportWithId,
   isThereJobWithId,
@@ -22,6 +23,17 @@ import {
   updatePostReportStatus,
 } from "../services/adminService";
 
+/**
+ * Retrieves reported jobs with pagination
+ *
+ * @param req - The authenticated request object with page query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with paginated reported jobs or error
+ *
+ * @throws 404 - When no reported jobs are found
+ * @throws 500 - When server error occurs
+ */
 export const handleGetReportedJobs = async (
   req: AuthenticatedRequest,
   res: Response
@@ -41,6 +53,17 @@ export const handleGetReportedJobs = async (
   }
 };
 
+/**
+ * Retrieves reports for a specific job with pagination
+ *
+ * @param req - The authenticated request object with jobId param and page query
+ * @param res - The response object
+ *
+ * @returns JSON response with paginated job reports or error
+ *
+ * @throws 404 - When no reports are found for the job
+ * @throws 500 - When server error occurs
+ */
 export const handleGetJobReports = async (
   req: AuthenticatedRequest,
   res: Response
@@ -62,6 +85,18 @@ export const handleGetJobReports = async (
   }
 };
 
+/**
+ * Updates the status of a job report
+ *
+ * @param req - The authenticated request with reportId param and status in body
+ * @param res - The response object
+ *
+ * @returns 200 status on success or error response
+ *
+ * @throws 400 - When invalid status value is provided
+ * @throws 404 - When report is not found
+ * @throws 500 - When server error occurs or update fails
+ */
 export const handleUpdateJobReport = async (
   req: AuthenticatedRequest,
   res: Response
@@ -95,6 +130,18 @@ export const handleUpdateJobReport = async (
   }
 };
 
+/**
+ * Deletes a job by ID
+ *
+ * @param req - The authenticated request with jobId parameter
+ * @param res - The response object
+ *
+ * @returns 200 status on success or error response
+ *
+ * @throws 400 - When invalid job ID is provided
+ * @throws 404 - When job is not found
+ * @throws 500 - When server error occurs or deletion fails
+ */
 export const handleDeleteJob = async (
   req: AuthenticatedRequest,
   res: Response
@@ -127,6 +174,17 @@ export const handleDeleteJob = async (
   }
 };
 
+/**
+ * Gets the count of job reports with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with job reports count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetJobReportsCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -168,6 +226,17 @@ export const handleGetJobReportsCount = async (
   }
 };
 
+/**
+ * Gets the count of jobs with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with jobs count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetJobsCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -209,6 +278,17 @@ export const handleGetJobsCount = async (
   }
 };
 
+/**
+ * Gets the count of users with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with users count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetUsersCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -250,6 +330,17 @@ export const handleGetUsersCount = async (
   }
 };
 
+/**
+ * Gets the count of posts with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with posts count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetPostsCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -291,6 +382,17 @@ export const handleGetPostsCount = async (
   }
 };
 
+/**
+ * Gets the count of connections with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with connections count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetConnectionsCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -332,6 +434,17 @@ export const handleGetConnectionsCount = async (
   }
 };
 
+/**
+ * Gets the count of follows with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with follows count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetFollowsCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -373,6 +486,17 @@ export const handleGetFollowsCount = async (
   }
 };
 
+/**
+ * Retrieves reported posts with pagination
+ *
+ * @param req - The authenticated request object with page query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with paginated reported posts or error
+ *
+ * @throws 404 - When no reported posts are found
+ * @throws 500 - When server error occurs
+ */
 export const handleGetReportedPosts = async (
   req: AuthenticatedRequest,
   res: Response
@@ -392,6 +516,17 @@ export const handleGetReportedPosts = async (
   }
 };
 
+/**
+ * Retrieves reports for a specific post with pagination
+ *
+ * @param req - The authenticated request with postId param and page query
+ * @param res - The response object
+ *
+ * @returns JSON response with paginated post reports or error
+ *
+ * @throws 404 - When no reports are found for the post
+ * @throws 500 - When server error occurs
+ */
 export const handleGetPostReports = async (
   req: AuthenticatedRequest,
   res: Response
@@ -410,6 +545,18 @@ export const handleGetPostReports = async (
   }
 };
 
+/**
+ * Updates the status and optional comment of a post report
+ *
+ * @param req - The authenticated request with reportId param and status/comment in body
+ * @param res - The response object
+ *
+ * @returns 200 status on success or error response
+ *
+ * @throws 400 - When invalid status or comment is provided
+ * @throws 404 - When report is not found
+ * @throws 500 - When server error occurs or update fails
+ */
 export const handleUpdatePostReport = async (
   req: AuthenticatedRequest,
   res: Response
@@ -454,6 +601,18 @@ export const handleUpdatePostReport = async (
   }
 };
 
+/**
+ * Deletes a post by ID
+ *
+ * @param req - The authenticated request with postId parameter
+ * @param res - The response object
+ *
+ * @returns 200 status on success or error response
+ *
+ * @throws 400 - When invalid post ID is provided
+ * @throws 404 - When post is not found
+ * @throws 500 - When server error occurs or deletion fails
+ */
 export const handleDeletePost = async (
   req: AuthenticatedRequest,
   res: Response
@@ -486,6 +645,17 @@ export const handleDeletePost = async (
   }
 };
 
+/**
+ * Gets the count of post reports with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with post reports count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
 export const handleGetPostReportsCount = async (
   req: AuthenticatedRequest,
   res: Response
@@ -523,6 +693,58 @@ export const handleGetPostReportsCount = async (
     res.json({ count });
   } catch (error) {
     console.error("Error in handleGetPostReportsCount:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+/**
+ * Gets the count of subscriptions with optional time filtering
+ *
+ * @param req - The authenticated request with optional duration query parameter
+ * @param res - The response object
+ *
+ * @returns JSON response with subscription count or error
+ *
+ * @throws 400 - When invalid duration parameter is provided
+ * @throws 500 - When server error occurs
+ */
+export const handleGetSubscriptionsCount = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const duration = req.query.duration as string;
+    let startDate: Date | undefined = undefined;
+
+    // Handle duration parameter if provided
+    if (duration) {
+      const now = new Date();
+
+      switch (duration) {
+        case "day":
+          startDate = new Date(now.setDate(now.getDate() - 1));
+          break;
+        case "week":
+          startDate = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case "month":
+          startDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case "year":
+          startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        default:
+          return res.status(400).json({
+            error:
+              "Invalid duration parameter. Use 'day', 'week', 'month', or 'year'.",
+          });
+      }
+    }
+
+    const count = await getSubscriptionsCount(startDate);
+    res.json({ count });
+  } catch (error) {
+    console.error("Error in handleGetSubscriptionsCount:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
