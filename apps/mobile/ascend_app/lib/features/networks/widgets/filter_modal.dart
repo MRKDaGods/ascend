@@ -1,19 +1,17 @@
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/location_searching.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/widgets/connection_options_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/locations_filter_listTile.dart';
+import 'package:ascend_app/features/networks/widgets/connection_options_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/locations_filter_list_tile.dart';
 import 'package:ascend_app/features/networks/utils/search_filter.dart';
-import 'package:ascend_app/features/networks/widgets/current_company_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/connectionsOf_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/followers_of_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/past_companies_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/school_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/industry_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/profile_language_ListTile.dart';
-import 'package:ascend_app/features/networks/widgets/open_to_ListTile.dart';
+import 'package:ascend_app/features/networks/widgets/current_company_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/connections_of_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/followers_of_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/past_companies_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/school_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/industry_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/profile_language_list_tile.dart';
+import 'package:ascend_app/features/networks/widgets/open_to_list_tile.dart';
 import 'package:ascend_app/features/networks/widgets/services_categories.dart';
 
 void showFilterModal(BuildContext context) {

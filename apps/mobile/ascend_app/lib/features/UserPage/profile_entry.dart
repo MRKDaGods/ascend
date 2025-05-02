@@ -8,7 +8,7 @@ class ProfileEntryWidget extends StatefulWidget {
   final Icon? icon;
   final List<Widget>? extraContent;
 
-  ProfileEntryWidget({
+  const ProfileEntryWidget({
     super.key,
     this.title,
     this.subtitle,
@@ -19,7 +19,7 @@ class ProfileEntryWidget extends StatefulWidget {
   });
 
   @override
-  _ProfileEntryWidgetState createState() => _ProfileEntryWidgetState();
+  State<ProfileEntryWidget> createState() => _ProfileEntryWidgetState();
 }
 
 class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {

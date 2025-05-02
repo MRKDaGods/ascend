@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MessageInput extends StatefulWidget {
@@ -17,7 +15,7 @@ class MessageInput extends StatefulWidget {
   final String conversationId;
 
   const MessageInput({
-    Key? key,
+    super.key,
     required this.messageController,
     required this.focusNode,
     required this.onSendMessage,
@@ -26,7 +24,7 @@ class MessageInput extends StatefulWidget {
     required this.onEmojiPressed,
     required this.onTypingStatusChanged,
     required this.conversationId,
-  }) : super(key: key);
+  });
 
   @override
   State<MessageInput> createState() => _MessageInputState();
@@ -136,6 +134,7 @@ class _MessageInputState extends State<MessageInput>
             color: Colors.white,
             boxShadow: [
               BoxShadow(
+                // ignore: deprecated_member_use
                 color: Colors.black.withOpacity(0.05),
                 blurRadius: 3,
                 offset: Offset(0, -1),
@@ -285,6 +284,7 @@ class _MessageInputState extends State<MessageInput>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: color.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),

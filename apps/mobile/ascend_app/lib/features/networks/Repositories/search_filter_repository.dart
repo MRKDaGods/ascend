@@ -1,6 +1,7 @@
 import 'package:ascend_app/features/networks/model/company_model.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/model/location_model.dart';
+import 'package:flutter/material.dart';
 
 abstract class SearchFilterRepository {
   // Get current filters
@@ -61,7 +62,7 @@ class MemorySearchFilterRepository implements SearchFilterRepository {
 
       return _filters;
     } catch (e) {
-      print('Error adding company: $e');
+      debugPrint('Error adding company: $e');
       return _filters;
     }
   }
@@ -80,7 +81,7 @@ class MemorySearchFilterRepository implements SearchFilterRepository {
 
       return _filters;
     } catch (e) {
-      print('Error removing company: $e');
+      debugPrint('Error removing company: $e');
       return _filters;
     }
   }
@@ -140,13 +141,13 @@ class MemorySearchFilterRepository implements SearchFilterRepository {
           break;
         // Handle all other fields
         default:
-          print('Warning: Filter key "$key" not recognized');
+          debugPrint('Warning: Filter key "$key" not recognized');
           break;
       }
 
       return _filters;
     } catch (e) {
-      print('Error clearing filter: $e');
+      debugPrint('Error clearing filter: $e');
       return _filters;
     }
   }
@@ -271,7 +272,7 @@ class MemorySearchFilterRepository implements SearchFilterRepository {
 
       return _filters;
     } catch (e) {
-      print('Error updating filter: $e');
+      debugPrint('Error updating filter: $e');
       return _filters;
     }
   }
@@ -364,7 +365,7 @@ class MemorySearchFilterRepository implements SearchFilterRepository {
 
       return _filters;
     } catch (e) {
-      print('Error removing filter: $e');
+      debugPrint('Error removing filter: $e');
       return _filters;
     }
   }

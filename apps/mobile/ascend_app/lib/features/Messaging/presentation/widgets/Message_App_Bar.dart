@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/choice_chips_options.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/Focused_Dropdown.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/conversation.dart';
+import 'package:ascend_app/features/Messaging/presentation/widgets/focused_dropdown.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/show_conversation_modal.dart';
 
 class MessageAppBar extends StatefulWidget {
@@ -10,11 +9,11 @@ class MessageAppBar extends StatefulWidget {
   final Function(String)? onSelected;
 
   const MessageAppBar({
-    Key? key,
+    super.key,
     this.onFilterChanged,
     required this.selectedValue,
     this.onSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<MessageAppBar> createState() => _MessageAppBarState();
@@ -24,8 +23,8 @@ class _MessageAppBarState extends State<MessageAppBar> {
   final TextEditingController textEditingController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
   final ScrollController scrollController = ScrollController();
-  List<String> _displayOptions = ['Jobs', 'Unread', 'Drafts', 'InMail'];
-  String _currentDropDownFilter = '';
+  final List<String> _displayOptions = ['Jobs', 'Unread', 'Drafts', 'InMail'];
+  final String _currentDropDownFilter = '';
   // Local state to track the selected filter
   String _currentFilter = '';
 
@@ -82,6 +81,7 @@ class _MessageAppBarState extends State<MessageAppBar> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
+                  // ignore: deprecated_member_use
                   color: Colors.grey.withOpacity(0.2),
                   spreadRadius: 1,
                   blurRadius: 5,

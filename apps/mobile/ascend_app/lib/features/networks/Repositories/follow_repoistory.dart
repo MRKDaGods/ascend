@@ -2,9 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
-import 'package:ascend_app/features/networks/model/connected_user.dart';
-import 'package:ascend_app/features/networks/Mock Data/mock_followed_users.dart';
-import 'package:ascend_app/features/networks/Mock Data/mock_suggested_to_follow.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
 
 class FollowRepoistory {

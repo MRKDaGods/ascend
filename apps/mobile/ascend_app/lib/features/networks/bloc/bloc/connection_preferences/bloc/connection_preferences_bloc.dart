@@ -1,7 +1,7 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/connection_preferences.dart';
 import 'package:ascend_app/features/networks/Repositories/connection_preferences_repoistory.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'connection_preferences_event.dart';
 part 'connection_preferences_state.dart';
@@ -9,27 +9,27 @@ part 'connection_preferences_state.dart';
 class ConnectionPreferencesBloc
     extends Bloc<ConnectionPreferencesEvent, ConnectionPreferencesState> {
   ConnectionPreferencesBloc() : super(ConnectionPreferencesInitial()) {
-    on<ConnectionPreferencesLoadEvent>(_ConnectionPreferencesLoadEvent);
-    on<ConnectionPreferencesUpdateEvent>(_ConnectionPreferencesUpdateEvent);
+    on<ConnectionPreferencesLoadEvent>(_connectionPreferencesLoadEvent);
+    on<ConnectionPreferencesUpdateEvent>(_connectionPreferencesUpdateEvent);
   }
   final ConnectionPreferencesRepository _connectionPreferencesRepository =
       ConnectionPreferencesRepository();
 
-  Future<void> _ConnectionPreferencesLoadEvent(
+  Future<void> _connectionPreferencesLoadEvent(
     ConnectionPreferencesLoadEvent event,
     Emitter<ConnectionPreferencesState> emit,
   ) async {
     emit(ConnectionPreferencesLoading());
     try {
-      final LoadedConnectionPreferences =
+      final loadedConnectionPreferences =
           await _connectionPreferencesRepository.fetchConnectionPreferences();
-      emit(ConnectionPreferencesLoaded(LoadedConnectionPreferences));
+      emit(ConnectionPreferencesLoaded(loadedConnectionPreferences));
     } catch (e) {
       emit(ConnectionPreferencesError(e.toString()));
     }
   }
 
-  Future<void> _ConnectionPreferencesUpdateEvent(
+  Future<void> _connectionPreferencesUpdateEvent(
     ConnectionPreferencesUpdateEvent event,
     Emitter<ConnectionPreferencesState> emit,
   ) async {

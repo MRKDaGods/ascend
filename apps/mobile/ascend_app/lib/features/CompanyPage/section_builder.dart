@@ -21,7 +21,7 @@ class SectionBuilder extends StatefulWidget {
   });
 
   @override
-  _SectionBuilderState createState() => _SectionBuilderState();
+  State<SectionBuilder> createState() => _SectionBuilderState();
 }
 
 class _SectionBuilderState extends State<SectionBuilder> {
@@ -61,7 +61,7 @@ class _SectionBuilderState extends State<SectionBuilder> {
               (context) => EditEntryPage(entry: entry, saveEntry: saveEntry),
         ),
       );
-      print(entry.title);
+      debugPrint(entry.title);
     });
   }
 

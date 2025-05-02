@@ -7,7 +7,7 @@ class AddProjectPage extends StatefulWidget {
   const AddProjectPage({super.key, required this.onSave});
 
   @override
-  _AddProjectPageState createState() => _AddProjectPageState();
+  State<AddProjectPage> createState() => _AddProjectPageState();
 }
 
 class _AddProjectPageState extends State<AddProjectPage> {

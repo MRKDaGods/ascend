@@ -1,6 +1,5 @@
 part of 'connection_request_bloc.dart';
 
-@immutable
 sealed class ConnectionRequestEvent {}
 
 class SendConnectionRequest extends ConnectionRequestEvent {

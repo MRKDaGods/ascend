@@ -16,7 +16,7 @@ class ConnectionRequestsReceivedListFull extends StatefulWidget {
   });
 
   @override
-  _ConnectionRequestsReceivedListFullState createState() =>
+  State<ConnectionRequestsReceivedListFull> createState() =>
       _ConnectionRequestsReceivedListFullState();
 }
 
@@ -96,21 +96,21 @@ class _ConnectionRequestsReceivedListFullState
               if (isSelectedList[0]) ...[
                 buildReceived(
                   state.pendingRequestsReceived,
-                  ConnectionRequestReceivedFilterMode.All,
+                  ConnectionRequestReceivedFilterMode.all,
                   widget.onAccept,
                   widget.onDecline,
                 ),
               ] else if (isSelectedList[1]) ...[
                 buildReceived(
                   state.pendingRequestsReceived,
-                  ConnectionRequestReceivedFilterMode.Newsletter,
+                  ConnectionRequestReceivedFilterMode.newsletter,
                   widget.onAccept,
                   widget.onDecline,
                 ),
               ] else if (isSelectedList[2]) ...[
                 buildReceived(
                   state.pendingRequestsReceived,
-                  ConnectionRequestReceivedFilterMode.People,
+                  ConnectionRequestReceivedFilterMode.people,
                   widget.onAccept,
                   widget.onDecline,
                 ),

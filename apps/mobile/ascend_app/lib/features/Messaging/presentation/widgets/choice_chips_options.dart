@@ -1,6 +1,5 @@
 import 'package:ascend_app/features/Messaging/presentation/widgets/choice_chip_item.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/Focused_Dropdown.dart';
 
 class ChoiceChipSet extends StatefulWidget {
   final List<String> options;
@@ -11,14 +10,14 @@ class ChoiceChipSet extends StatefulWidget {
   final VoidCallback? onAllFiltersPressed;
 
   const ChoiceChipSet({
-    Key? key,
+    super.key,
     required this.options,
     required this.selectedValue,
     required this.onSelected,
     this.onItemAdded,
     this.selectedColor = Colors.green,
     this.onAllFiltersPressed,
-  }) : super(key: key);
+  });
 
   @override
   State<ChoiceChipSet> createState() => _ChoiceChipSetState();
@@ -165,7 +164,7 @@ class _ChoiceChipSetState extends State<ChoiceChipSet> {
                     Navigator.pop(context);
                   },
                 );
-              }).toList(),
+              }),
             ],
           ),
         );
@@ -190,7 +189,7 @@ class _ChoiceChipSetState extends State<ChoiceChipSet> {
                   selectedColor: widget.selectedColor,
                 ),
               );
-            }).toList(),
+            }),
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: TextButton(

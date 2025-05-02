@@ -5,10 +5,10 @@ class FocusedDropDown extends StatefulWidget {
   final Function(String) onSelected;
 
   const FocusedDropDown({
-    Key? key,
+    super.key,
     required this.selectedValue,
     required this.onSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<FocusedDropDown> createState() => _FocusedDropDownState();
@@ -90,7 +90,7 @@ class _FocusedDropDownState extends State<FocusedDropDown> {
                     }
                   },
                 );
-              }).toList(),
+              }),
             ],
           ),
         );

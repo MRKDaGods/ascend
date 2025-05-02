@@ -1,7 +1,7 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ascend_app/features/networks/model/search_model.dart';
 import 'package:ascend_app/features/networks/repositories/search_filter_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'search_filters_event.dart';
 part 'search_filters_state.dart';

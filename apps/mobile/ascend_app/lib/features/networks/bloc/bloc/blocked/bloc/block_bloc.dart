@@ -1,7 +1,7 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:ascend_app/features/networks/Repositories/block_repoistory.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'block_event.dart';
 part 'block_state.dart';
@@ -20,7 +20,7 @@ class BlockBloc extends Bloc<BlockEvent, BlockState> {
   ) async {
     emit(BlockLoading());
     try {
-      await _repository.blockUser(event.BlockedId); // Block the user
+      await _repository.blockUser(event.blockedId); // Block the user
       add(FetchBlockedUsersEvent());
     } catch (e) {
       emit(BlockedUserError(e.toString()));
@@ -33,7 +33,7 @@ class BlockBloc extends Bloc<BlockEvent, BlockState> {
   ) async {
     emit(BlockLoading());
     try {
-      await _repository.unblockUser(event.BlockedId); // Unblock the user
+      await _repository.unblockUser(event.blockedId); // Unblock the user
       add(FetchBlockedUsersEvent());
     } catch (e) {
       emit(BlockedUserError(e.toString()));

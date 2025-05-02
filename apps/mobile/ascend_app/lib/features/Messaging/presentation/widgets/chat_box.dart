@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
@@ -11,7 +8,7 @@ class ChatBox extends StatefulWidget {
   final String messageId;
   final String receiverId;
   final String senderName;
-  final String senderAvatar;
+  final String? senderAvatar;
   final bool sentOrReceived;
   final DateTime sentAt;
   final DateTime receivedAt;
@@ -21,7 +18,7 @@ class ChatBox extends StatefulWidget {
   final String conversationId;
 
   const ChatBox({
-    Key? key,
+    super.key,
     required this.messageId,
     required this.receiverId,
     required this.senderName,
@@ -33,10 +30,10 @@ class ChatBox extends StatefulWidget {
     this.content,
     this.fileUrl,
     this.fileType,
-  }) : super(key: key);
+  });
 
   @override
-  _ChatBoxState createState() => _ChatBoxState();
+  State<ChatBox> createState() => _ChatBoxState();
 }
 
 class _ChatBoxState extends State<ChatBox> {
@@ -58,8 +55,7 @@ class _ChatBoxState extends State<ChatBox> {
 
   bool _isMessageRead() {
     // Use DateVerifier to check if the message has been read
-    return widget.receivedAt != null &&
-        DateVerifier.isMessageRead(widget.receivedAt, widget.sentAt);
+    return DateVerifier.isMessageRead(widget.receivedAt, widget.sentAt);
   }
 
   Widget _buildDateSeperator(DateTime date) {
@@ -89,7 +85,7 @@ class _ChatBoxState extends State<ChatBox> {
   Widget _buildNameandTimeSection(
     String name,
     DateTime date,
-    String avatarUrl,
+    String? avatarUrl,
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -100,7 +96,7 @@ class _ChatBoxState extends State<ChatBox> {
               radius: 20,
               backgroundImage:
                   !_shouldShowFallbackIcon()
-                      ? NetworkImage(widget.senderAvatar)
+                      ? NetworkImage(widget.senderAvatar!)
                       : null, // Use NetworkImage for profile image
               child:
                   _shouldShowFallbackIcon()
@@ -380,7 +376,7 @@ class _ChatBoxState extends State<ChatBox> {
 
             if (message.messageId.isNotEmpty && isSent) {
               isRead = message.isRead;
-            } else if (isSent && widget.receivedAt != null) {
+            } else if (isSent) {
               // Fall back to the widget's data if message is not found in state
               isRead = DateVerifier.isMessageRead(
                 widget.receivedAt,
@@ -391,7 +387,7 @@ class _ChatBoxState extends State<ChatBox> {
             // Handle any potential errors when searching for the message
             debugPrint('Error finding message in state: $e');
           }
-        } else if (isSent && widget.receivedAt != null) {
+        } else if (isSent) {
           // Fall back to the widget's data if no valid state
           isRead = DateVerifier.isMessageRead(widget.receivedAt, widget.sentAt);
         }

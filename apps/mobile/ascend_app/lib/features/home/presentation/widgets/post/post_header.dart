@@ -12,7 +12,8 @@ class PostHeader extends StatelessWidget {
   final VoidCallback? onRemove;
   final VoidCallback? onOptionsPressed; // This callback is key
   final Function(String)? onFeedbackSubmitted; // Callback for removal feedback
-  final VoidCallback? onShowFeedbackOptions; // New callback to show feedback options
+  final VoidCallback?
+  onShowFeedbackOptions; // New callback to show feedback options
   final Function(String reason)? onHidePost; // Add this
 
   const PostHeader({
@@ -34,13 +35,15 @@ class PostHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // You can now use widget.userId within the build method if needed
-    // For example: print('User ID in PostHeader: ${widget.userId}');
+    // For example: debugPrint('User ID in PostHeader: ${widget.userId}');
     return Row(
       children: [
         CircleAvatar(
-          backgroundImage: ownerImageUrl.startsWith('http') || ownerImageUrl.startsWith('https')
-            ? NetworkImage(ownerImageUrl) as ImageProvider
-            : AssetImage(ownerImageUrl),
+          backgroundImage:
+              ownerImageUrl.startsWith('http') ||
+                      ownerImageUrl.startsWith('https')
+                  ? NetworkImage(ownerImageUrl) as ImageProvider
+                  : AssetImage(ownerImageUrl),
           radius: 20,
         ),
         const SizedBox(width: 8),
@@ -48,12 +51,16 @@ class PostHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector( // Wrap ownerName with GestureDetector
+              GestureDetector(
+                // Wrap ownerName with GestureDetector
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => UserProfilePage(profileId: int.tryParse(userId)), // Navigate to UserProfilePage
+                      builder:
+                          (context) => UserProfilePage(
+                            profileId: int.tryParse(userId),
+                          ), // Navigate to UserProfilePage
                     ),
                   );
                 },
@@ -66,26 +73,17 @@ class PostHeader extends StatelessWidget {
                 // Show followers for sponsored posts
                 Text(
                   '${_formatNumber(followers)} followers',
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
                 )
               else if (ownerOccupation.isNotEmpty)
                 // Show occupation for regular posts
                 Text(
                   ownerOccupation,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               Text(
                 timePosted,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),
@@ -95,12 +93,14 @@ class PostHeader extends StatelessWidget {
           icon: const Icon(Icons.more_horiz),
           splashRadius: 24,
           onPressed: () {
-            print("Options button pressed in PostHeader");
+            debugPrint("Options button pressed in PostHeader");
             // Directly call the provided callback
             if (onOptionsPressed != null) {
               onOptionsPressed!();
             } else {
-              print("Warning: onOptionsPressed callback is null in PostHeader");
+              debugPrint(
+                "Warning: onOptionsPressed callback is null in PostHeader",
+              );
             }
           },
         ),
@@ -110,11 +110,11 @@ class PostHeader extends StatelessWidget {
             icon: const Icon(Icons.close),
             splashRadius: 24,
             onPressed: () {
-              print("X button pressed");
+              debugPrint("X button pressed");
               if (onShowFeedbackOptions != null) {
                 onShowFeedbackOptions!();
               } else {
-                print("Warning: onShowFeedbackOptions callback is null");
+                debugPrint("Warning: onShowFeedbackOptions callback is null");
                 // No fallback - don't show dialog
               }
             },
@@ -128,10 +128,7 @@ class PostHeader extends StatelessWidget {
             ),
             child: const Text(
               'Sponsored',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ),
       ],
@@ -149,4 +146,3 @@ class PostHeader extends StatelessWidget {
     }
   }
 }
-

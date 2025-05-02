@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
 import 'package:ascend_app/features/profile/models/user_profile_model.dart';
 import 'package:ascend_app/features/home/presentation/widgets/comment/user_tagging_overlay.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/shared/data/mock_users.dart'; // Import the mock user data source
 
 class CommentForm extends StatefulWidget {
   final TextEditingController controller;
@@ -37,7 +35,6 @@ class _CommentFormState extends State<CommentForm> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   List<UserProfileModel> _suggestedUsers = [];
-  String _currentTagQuery = '';
   bool _showTaggingOverlay = false;
   int _tagStartIndex = -1;
 
@@ -132,7 +129,6 @@ class _CommentFormState extends State<CommentForm> {
       if (potentialTagStart != -1) {
         final query = text.substring(potentialTagStart + 1, cursorPosition);
         _tagStartIndex = potentialTagStart;
-        _currentTagQuery = query;
         _fetchUserSuggestions(query);
         _showUserSuggestions();
       } else {
@@ -189,7 +185,6 @@ class _CommentFormState extends State<CommentForm> {
       setState(() {
         _showTaggingOverlay = false;
         _suggestedUsers = [];
-        _currentTagQuery = '';
         _tagStartIndex = -1;
       });
     }
@@ -263,10 +258,6 @@ class _CommentFormState extends State<CommentForm> {
 
   @override
   Widget build(BuildContext context) {
-    final String displayName = widget.userName ?? 'You';
-    final bool hasAvatar =
-        widget.userAvatarUrl != null && widget.userAvatarUrl!.isNotEmpty;
-
     return CompositedTransformTarget(
       link: _layerLink,
       child: Padding(
