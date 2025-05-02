@@ -19,7 +19,7 @@ import { useJobFilterStore } from '../stores/useJobFilterStore';
 // Constants for dropdown options
 const experienceLevels = ['Internship', 'Entry', 'Associate', 'Mid', 'Director'];
 const industries = ['Technology', 'Finance', 'Healthcare', 'Education', 'Retail', 'Creative'];
-const locations = ['New York', 'San Francisco', 'London'];
+const locations = ['New York', 'San Francisco', 'London', 'Egypt'];
 const workplaceTypes = ['Remote', 'On-site', 'Hybrid'];
 
 // Enhanced style for text fields to make them rounded and compact
@@ -89,21 +89,13 @@ export default function JobFilter() {
 
         {/* Location */}
         <Grid item xs={12} sm={6} md={4}>
-          <Autocomplete
-            options={locations}
-            value={location}
-            onChange={(e, newValue) => setFilter('location', newValue || '')}
-            renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="Location" 
-                margin="dense" 
-                sx={textFieldStyle}
-                size="small"
-              />
-            )}
-            data-testid="job-filter-location"
+          <TextField 
+            label="Location" 
+            fullWidth
+            margin="dense" 
+            sx={textFieldStyle}
             size="small"
+            data-testid="job-filter-location"
           />
         </Grid>
 
@@ -159,7 +151,6 @@ export default function JobFilter() {
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Minimum Salary"
-            type="number"
             value={salary_range_min || ''}
             onChange={(e) => setFilter('salary_range_min', e.target.value === '' ? 0 : parseInt(e.target.value))}
             fullWidth
@@ -174,7 +165,6 @@ export default function JobFilter() {
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Maximum Salary"
-            type="number"
             value={salary_range_max || ''}
             onChange={(e) => setFilter('salary_range_max', e.target.value === '' ? 0 : parseInt(e.target.value))}
             fullWidth

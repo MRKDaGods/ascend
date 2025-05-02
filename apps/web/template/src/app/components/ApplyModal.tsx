@@ -1,5 +1,5 @@
 'use client';
-
+import API from '@/api/api';
 import {
   Dialog,
   DialogTitle,
@@ -73,7 +73,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
       formData.append('phone', userData.fullPhone.trim());
       console.log('************');
       console.log('FormData:', userData.fullPhone.trim()); // Debugging line
-      const response = await fetch(`https://api.ascendx.tech/job/${job.id}/applications`, {
+      const response = await API.post(`/job/${job.id}/applications`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -81,12 +81,11 @@ export default function ApplyModal({ job, open, onClose }: any) {
         },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`(${response.status}) ${errorText}`);
+      if (!response.data) {
+        throw new Error(`Failed to submit application (${response.status})`);
       }
 
-      const result = await response.json();
+      const result = await response.data;
       applyJob({ ...job, status: 'Applied' });
       alert(result.message);
       router.push('/jobs/MyJobs');

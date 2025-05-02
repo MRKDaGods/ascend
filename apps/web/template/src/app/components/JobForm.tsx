@@ -16,7 +16,9 @@ import { usepJobStore } from "../stores/usepJobStore";
 import { useIsClient } from "../hooks/useIsClient";
 import CompanyEmailModal from "./CompanyEmailModal";
 import PostJobPopUp from "../components/PostPopUp";
-import { useJobStore as useSharedJobStore } from "@/app/stores/useJobStore";
+import { useJobStore as useSharedJobStore } from "../stores/useJobStore";
+import { Job } from "../stores/useJobStore";
+import API from "@/api/api";
 
 const workplaceOptions = ["On-site", "Remote", "Hybrid"];
 const jobTypeOptions = [
@@ -30,9 +32,23 @@ const jobTypeOptions = [
 ];
 const experienceOptions = ["Internship", "Entry", "Associate", "Mid", "Director"];
 
+// Add type for API error
+interface APIError {
+  response?: {
+    status: number;
+    data?: {
+      error?: string;
+      message?: string;
+    };
+  };
+  message?: string;
+}
+
 const JobForm = () => {
   const [openModal, setOpenModal] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const {
     title,
@@ -64,6 +80,18 @@ const JobForm = () => {
   const { postJob: addPostedJobToSharedStore } = useSharedJobStore();
 
   const postJob = async () => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    setErrorMessage("");
+    
+    // Ensure company_id is not null
+    if (!companyId) {
+      setErrorMessage("Company ID is required");
+      setIsSubmitting(false);
+      return;
+    }
+    
     const jobData = {
       title,
       description,
@@ -72,38 +100,73 @@ const JobForm = () => {
       experience_level: experienceLevel,
       location,
       workplace_type: workplaceType,
-      salary_min_range: salaryMin ? Number(salaryMin) : null,
-      salary_max_range: salaryMax ? Number(salaryMax) : null,
+      salary_min_range: salaryMin ? Number(salaryMin) : undefined, // Changed from null to undefined
+      salary_max_range: salaryMax ? Number(salaryMax) : undefined, // Changed from null to undefined
       email: verifiedEmail,
       company: companyName,
-      company_id: companyId,
+      company_id: companyId, // Now guaranteed to be a number
       logo: "",
       about: "",
-      requirements: [],
+      requirements: [] as string[], // Explicitly type the array
     };
 
     try {
-      const res = await fetch("https://api.ascendx.tech/job", {
-        method: "POST",
-        headers: { "Content-Type": "application/json"},
-        body: JSON.stringify(jobData),
-      });
+      const response = await API.post("/job", jobData);
+      
+      if (!response.data) {
+        throw new Error("Failed to post job - no data returned");
+      }
 
-      if (!res.ok) throw new Error("Failed to post job");
-
-      const data = await res.json();
-      const fullJob = {
+      const data = response.data;
+      const fullJob: Job = { // Explicitly type as Job
         ...jobData,
-        id: data.id,
+        job_id: data.id || data.job_id,
         status: "Posted" as const,
+        saved_at: new Date(),
+        company_name: companyName,
+        company_logo_url: "",
+        company_id: companyId, // Guaranteed to be a number
+        // Convert undefined to null for salary ranges
+        salary_min_range: salaryMin ? Number(salaryMin) : null,
+        salary_max_range: salaryMax ? Number(salaryMax) : null,
+        // Add missing required properties from Job interface
+        title: jobData.title,
+        description: jobData.description,
+        industry: jobData.industry,
+        type: jobData.type,
+        experience_level: jobData.experience_level,
+        location: jobData.location,
+        workplace_type: jobData.workplace_type,
       };
 
+      // Update local job posting store
       setPostedJob(fullJob);
-      setPostedJobId(data.id);
+      setPostedJobId(data.id || data.job_id);
       setSavedJobPopupOpen(true);
+      
+      // Also add to the shared job store
+      addPostedJobToSharedStore(fullJob);
+      
       setOpenModal(false);
-    } catch (err) {
-      alert("Failed to post job.");
+    } catch (error: unknown) { // Explicitly type the error
+      console.error("Failed to post job:", error);
+      
+      let message = "Failed to post job.";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as APIError;
+        message = `Error (${apiError.response?.status}): ${
+          apiError.response?.data?.error || 
+          apiError.response?.data?.message || 
+          message
+        }`;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+      
+      setErrorMessage(message);
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -117,6 +180,12 @@ const JobForm = () => {
           <Typography variant="h5">Job details</Typography>
         </Box>
 
+        {errorMessage && (
+          <Typography color="error" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Typography>
+        )}
+
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
             <TextField
@@ -126,6 +195,7 @@ const JobForm = () => {
               onChange={(e) => setTitle(e.target.value)}
               margin="normal"
               data-testid="job-form-title"
+              required
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -133,20 +203,19 @@ const JobForm = () => {
               label="Company"
               fullWidth
               value={companyName}
-              disabled={true} // Add this line to disable editing
+              disabled={true}
               margin="normal"
               data-testid="job-form-company"
-              // Optional styling to make it look less "disabled"
               sx={{
                 "& .MuiInputBase-input.Mui-disabled": {
                   WebkitTextFillColor: "#000000",
                   opacity: 0.8,
                 },
                 "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(0, 0, 0, 0.23)", // Keep normal border color
+                  borderColor: "rgba(0, 0, 0, 0.23)",
                 }
               }}
-              helperText="Company name cannot be edited" // Optional explanation
+              helperText="Company name cannot be edited"
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -157,10 +226,11 @@ const JobForm = () => {
               onChange={(e) => setIndustry(e.target.value)}
               margin="normal"
               data-testid="job-form-industry"
+              required
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin="normal" required>
               <InputLabel>Experience Level</InputLabel>
               <Select
                 value={experienceLevel}
@@ -175,7 +245,7 @@ const JobForm = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin="normal" required>
               <InputLabel>Workplace type</InputLabel>
               <Select
                 value={workplaceType}
@@ -197,10 +267,11 @@ const JobForm = () => {
               onChange={(e) => setLocation(e.target.value)}
               margin="normal"
               data-testid="job-form-location"
+              required
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="normal">
+            <FormControl fullWidth margin="normal" required>
               <InputLabel>Job Type</InputLabel>
               <Select
                 value={jobType}
@@ -243,13 +314,14 @@ const JobForm = () => {
           <TextField
             label="Description"
             multiline
-            rows={10}  // Increased from 6 to 10 rows
+            rows={10}
             fullWidth
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add your responsibilities, requirements, and details..."
             margin="normal"
             data-testid="job-form-description"
+            required
             sx={{
               '& .MuiInputBase-root': {
                 minHeight: '250px', 
@@ -269,8 +341,9 @@ const JobForm = () => {
             color="primary" 
             onClick={() => setOpenModal(true)} 
             data-testid="job-form-post-button"
+            disabled={isSubmitting}
           >
-            Post
+            {isSubmitting ? "Posting..." : "Post"}
           </Button>
         </Box>
       </Paper>
