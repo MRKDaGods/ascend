@@ -7,10 +7,12 @@ import {
   preferencesValidationRules,
 } from "../validations/connectionValidation";
 import validate from "@shared/middleware/validationMiddleware";
+import { ConnectionStatus } from "../__tests__/models";
 import { GetUserUsageConnections } from "@shared/rabbitMQ/payloads";
 import { callRPC } from "@shared/rabbitMQ/mq";
 import { Events, getRPCQueueName } from "@shared/rabbitMQ";
 import { Services } from "@shared/index";
+
 
 /**
  * Search for users by name, email, or other criteria
@@ -498,6 +500,7 @@ export const respondToMessageRequest = [
     }
   },
 ];
+
 /**
  * Get mutual connections between current user and another user
  * @route GET /connections/mutual/:userId
@@ -539,6 +542,7 @@ export const getMutualConnections = async (
     });
   }
 };
+
 /**
  * Update connection privacy preferences
  * @route PUT /preferences
@@ -612,6 +616,198 @@ export const getConnectionsOfConnections = async (
     res.status(500).json({
       success: false,
       message: "Failed to get network connections",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Get connection preferences for a specific user
+ * @route GET /preferences/:userId?
+ * @param {string} userId - Optional ID of the user to get preferences for (defaults to current user)
+ * @returns {object} User's connection preferences
+ */
+export const getUserPreferences = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    // Target user ID (if provided) or current user ID
+    const targetUserId = req.params.userId 
+      ? Number(req.params.userId)
+      : req.user.id;
+    
+    
+    const preferences = await connectionService.getUserPreferences(targetUserId);
+    
+    if (!preferences) {
+      return res.status(404).json({
+        success: false,
+        message: "User preferences not found",
+      });
+    }
+    
+    res.json({ success: true, data: preferences });
+  } catch (error) {
+    console.error("Error in getUserPreferences:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get user preferences",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Get message requests for the current user
+ * @route GET /messages/requests
+ * @param {string} direction - Filter by 'incoming' or 'outgoing' requests
+ * @param {string} status - Filter by request status (pending, accepted, declined)
+ * @returns {object} List of message requests
+ */
+export const getMessagingRequests = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    const direction = req.query.direction as "incoming" | "outgoing" | undefined;
+    const status = req.query.status as ConnectionStatus | undefined;
+    
+    const requests = await connectionService.getMessagingRequests(
+      req.user.id,
+      direction,
+      status
+    );
+    
+    res.json({ success: true, data: requests });
+  } catch (error) {
+    console.error("Error in getMessagingRequests:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get message requests",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Delete a connection request
+ * @route DELETE /request/:requestId
+ * @param {string} requestId - ID of the connection request to delete
+ * @returns {object} Success message
+ */
+export const deleteConnectionRequest = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    await connectionService.deleteConnectionRequest({
+      requestId: Number(req.params.requestId),
+      userId: req.user.id,
+    });
+    
+    res.json({ 
+      success: true, 
+      message: "Connection request deleted successfully" 
+    });
+  } catch (error) {
+    console.error("Error in deleteConnectionRequest:", error);
+    res.status(400).json({
+      success: false,
+      message: "Failed to delete connection request",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Get status of connection between current user and another user
+ * @route GET /connections/status/:userId
+ * @param {string} userId - ID of the user to check connection status with
+ * @returns {object} Connection status (connected, pending, or notConnected)
+ */
+export const getConnectionStatus = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    const targetUserId = Number(req.params.userId);
+    
+    const status = await connectionService.getConnectionStatus(
+      req.user.id,
+      targetUserId
+    );
+    
+    res.json({ success: true, data: status });
+  } catch (error) {
+    console.error("Error in getConnectionStatus:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get connection status",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+/**
+ * Get follow status between current user and another user
+ * @route GET /follows/status/:userId
+ * @param {string} userId - ID of the user to check follow status with
+ * @returns {object} Follow status (isFollowing: true/false)
+ */
+export const getFollowStatus = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+    
+    const targetUserId = Number(req.params.userId);
+    
+    const status = await connectionService.getFollowStatus(
+      req.user.id,
+      targetUserId
+    );
+    
+    res.json({ success: true, data: status });
+  } catch (error) {
+    console.error("Error in getFollowStatus:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get follow status",
       error: error instanceof Error ? error.message : String(error),
     });
   }

@@ -111,6 +111,83 @@ class ConnectionService {
   }
 
   /**
+   * Get connection status between two users
+   * @param userId - Current user ID
+   * @param targetUserId - Target user ID
+   * @returns Connection status (connected, pending, notConnected)
+   */
+  async getConnectionStatus(userId: number, targetUserId: number): Promise<{ status: string, direction?: string }> {
+    // Check if users are blocked
+    const isBlocked = await db.query(
+      `SELECT 1 FROM connection_service.blocked_users
+       WHERE (user_id = $1 AND blocked_user_id = $2)
+          OR (user_id = $2 AND blocked_user_id = $1)`,
+      [userId, targetUserId]
+    );
+
+    if (isBlocked.rows.length > 0) {
+      return { status: 'notConnected' };
+    }
+
+    // Check connection status
+    const connection = await db.query(
+      `SELECT status, request_direction 
+       FROM connection_service.connections
+       WHERE user_id = $1 AND connection_id = $2`,
+      [userId, targetUserId]
+    );
+
+    if (connection.rows.length > 0) {
+      const { status, request_direction } = connection.rows[0];
+      if (status === 'accepted') {
+        return { status: 'connected' };
+      } else if (status === 'pending') {
+        return { 
+          status: 'pending', 
+          direction: request_direction 
+        };
+      } else {
+        return { status: 'notConnected' };
+      }
+    }
+
+    return { status: 'notConnected' };
+  }
+
+  /**
+   * Check if a user follows another user
+   * @param followerId - Current user ID (potential follower)
+   * @param followingId - Target user ID (potential being followed)
+   * @returns Whether the follower follows the following user
+   */
+  async getFollowStatus(followerId: number, followingId: number): Promise<{ isFollowing: boolean }> {
+    const result = await db.query(
+      `SELECT 1 FROM connection_service.follows
+       WHERE follower_id = $1 AND following_id = $2`,
+      [followerId, followingId]
+    );
+
+    return { isFollowing: result.rows.length > 0 };
+  }
+
+  /**
+   * Get user preferences for a specific user
+   * @param userId - ID of the user to get preferences for
+   * @returns User's connection preferences
+   */
+  async getUserPreferences(userId: number): Promise<UserPreferences | null> {
+    const result = await db.query<UserPreferences>(
+      `
+      SELECT * FROM connection_service.user_preferences
+      WHERE user_id = $1
+      `,
+      [userId]
+    );
+
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
+  /**
    * Get mutual connections between two users
    * @param userId - Current user ID
    * @param targetUserId - Target user ID to find mutual connections with
@@ -197,6 +274,89 @@ class ConnectionService {
         limit,
       },
     };
+  }
+
+  /**
+   * Get messaging requests for a user
+   * @param userId - ID of the user to get messaging requests for
+   * @param direction - Filter by 'incoming' or 'outgoing' requests (optional)
+   * @param status - Filter by request status (optional)
+   * @returns List of messaging requests
+   */
+  async getMessagingRequests(
+    userId: number,
+    direction?: "incoming" | "outgoing",
+    status?: ConnectionStatus
+  ) {
+    let query = `
+      SELECT 
+        mr.id, mr.message, mr.created_at, mr.status,
+        u.user_id as user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio
+      FROM connection_service.messaging_requests mr
+    `;
+
+    const params: any[] = [userId];
+
+    if (direction === "incoming") {
+      query += ` JOIN user_service.profiles u ON mr.sender_id = u.user_id
+                 WHERE mr.recipient_id = $1`;
+    } else if (direction === "outgoing") {
+      query += ` JOIN user_service.profiles u ON mr.recipient_id = u.user_id
+                 WHERE mr.sender_id = $1`;
+    } else {
+      query += ` JOIN user_service.profiles u ON 
+                   (mr.sender_id = u.user_id AND mr.recipient_id = $1) OR
+                   (mr.recipient_id = u.user_id AND mr.sender_id = $1)
+                 WHERE mr.sender_id = $1 OR mr.recipient_id = $1`;
+    }
+
+    if (status) {
+      query += ` AND mr.status = $${params.length + 1}`;
+      params.push(status);
+    }
+
+    query += ` ORDER BY mr.created_at DESC`;
+
+    const result = await db.query(query, params);
+    return result.rows;
+  }
+
+  /**
+   * Delete a connection request
+   * @param params - Object containing the request ID and the user ID
+   * @returns true if successful
+   */
+  async deleteConnectionRequest(params: {
+    requestId: number;
+    userId: number;
+  }): Promise<boolean> {
+    // First check if the request exists and belongs to this user
+    const request = await db.query<Connection>(
+      `
+      SELECT * FROM connection_service.connections
+      WHERE id = $1 AND user_id = $2 AND status = 'pending'
+      FOR UPDATE
+      `,
+      [params.requestId, params.userId]
+    );
+
+    if (request.rows.length === 0) {
+      throw new Error("Connection request not found or not in pending state");
+    }
+
+    const connection = request.rows[0];
+
+    // Delete both connection records in a transaction
+    await db.query(
+      `
+      DELETE FROM connection_service.connections
+      WHERE (user_id = $1 AND connection_id = $2) OR
+            (user_id = $2 AND connection_id = $1)
+      `,
+      [params.userId, connection.connection_id]
+    );
+
+    return true;
   }
 
   // Connection management
@@ -705,13 +865,16 @@ class ConnectionService {
    * @param targetUserId - ID of the user whose followers are being viewed
    * @returns Whether the viewer can see the target's followers
    */
-  async canViewFollowers(viewerId: number, targetUserId: number): Promise<boolean> {
+  async canViewFollowers(
+    viewerId: number,
+    targetUserId: number
+  ): Promise<boolean> {
     // Get the target user's preferences
     const preferences = await db.query<{ show_followers: boolean }>(
       `SELECT show_followers FROM connection_service.user_preferences WHERE user_id = $1`,
       [targetUserId]
     );
-    
+
     // If no preferences or followers are hidden
     if (preferences.rows.length === 0 || !preferences.rows[0].show_followers) {
       // Check if they're connected (connections can see each other's followers)
@@ -720,11 +883,11 @@ class ConnectionService {
          WHERE user_id = $1 AND connection_id = $2 AND status = 'accepted'`,
         [targetUserId, viewerId]
       );
-      
+
       // Only connections can view
       return isConnected.rows.length > 0;
     }
-    
+
     // If show_followers is true, anyone can view (except blocked users)
     const isBlocked = await db.query(
       `SELECT 1 FROM connection_service.blocked_users
@@ -732,10 +895,10 @@ class ConnectionService {
           OR (user_id = $2 AND blocked_user_id = $1)`,
       [targetUserId, viewerId]
     );
-    
+
     return isBlocked.rows.length === 0;
   }
-  
+
   /**
    * Get a user's followers
    * @param userId - ID of the user to get followers for
@@ -749,7 +912,7 @@ class ConnectionService {
     limit: number = 10
   ) {
     const offset = (page - 1) * limit;
-    
+
     // Get followers
     const result = await db.query(
       `SELECT 
@@ -762,20 +925,20 @@ class ConnectionService {
       LIMIT $2 OFFSET $3`,
       [userId, limit, offset]
     );
-    
+
     // Count total
     const countResult = await db.query(
       `SELECT COUNT(*) FROM connection_service.follows WHERE following_id = $1`,
       [userId]
     );
-    
+
     return {
       data: result.rows,
       pagination: {
         total: parseInt(countResult.rows[0].count),
         page,
         limit,
-      }
+      },
     };
   }
 
