@@ -10,8 +10,7 @@ class AdminApiClient {
 
   /// Makes a GET request to the specified endpoint.
   Future<Map<String, dynamic>> get(String endpoint) async {
-    final token =
-        await SecureStorageHelper.getAuthToken(); // Use SecureStorageHelper to get the token
+    final token = await SecureStorageHelper.getAuthToken();
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token is missing.');
     }
@@ -25,17 +24,62 @@ class AdminApiClient {
     );
 
     debugPrint('Request URL: $baseUrl$endpoint');
-    debugPrint(
-      'Request Headers: ${{'Authorization': 'Bearer $token', 'Content-Type': 'application/json'}}',
-    );
     debugPrint('Response Status Code: ${response.statusCode}');
     debugPrint('Response Body: ${response.body}');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return json.decode(response.body);
     } else {
-      debugPrint('Error: ${response.statusCode} - ${response.body}');
       throw Exception('GET $endpoint failed with ${response.statusCode}');
+    }
+  }
+
+  /// Makes a DELETE request to the specified endpoint.
+  Future<void> delete(String endpoint) async {
+    final token = await SecureStorageHelper.getAuthToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token is missing.');
+    }
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    debugPrint('Request URL: $baseUrl$endpoint');
+    debugPrint('Response Status Code: ${response.statusCode}');
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('DELETE $endpoint failed with ${response.statusCode}');
+    }
+  }
+
+  /// Makes a PATCH request to the specified endpoint with a JSON body.
+  Future<void> patch(String endpoint, Map<String, dynamic> body) async {
+    final token = await SecureStorageHelper.getAuthToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token is missing.');
+    }
+
+    final response = await http.patch(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body),
+    );
+
+    debugPrint('Request URL: $baseUrl$endpoint');
+    debugPrint('Request Body: $body');
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('PATCH $endpoint failed with ${response.statusCode}');
     }
   }
 
@@ -79,5 +123,25 @@ class AdminApiClient {
   Future<int> getReportedPostsCount(String duration) async {
     final response = await get('/posts/reports/count?duration=$duration');
     return response['count'] ?? 0;
+  }
+
+  /// Fetches reported posts with pagination.
+  Future<Map<String, dynamic>> getReportedPosts(int page) async {
+    return await get('/posts/reported?page=$page');
+  }
+
+  /// Fetches reports for a specific post with pagination.
+  Future<Map<String, dynamic>> getPostReports(String postId, int page) async {
+    return await get('/posts/$postId/reports?page=$page');
+  }
+
+  /// Deletes a specific post by its ID.
+  Future<void> deletePost(String postId) async {
+    await delete('/posts/$postId');
+  }
+
+  /// Updates a specific report by its ID.
+  Future<void> updateReport(String reportId, Map<String, dynamic> data) async {
+    await patch('/posts/reports/$reportId', data);
   }
 }

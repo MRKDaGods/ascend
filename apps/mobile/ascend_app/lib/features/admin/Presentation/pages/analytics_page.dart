@@ -144,15 +144,32 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             child: CircularProgressIndicator(),
                           );
                         } else if (state is AnalyticsLoaded) {
-                          final analyticsData = state.analyticsData;
+                          final analyticsData =
+                              state.analyticsData.entries.toList();
+                          final colors = [
+                            Colors.blue,
+                            Colors.red,
+                            Colors.green,
+                            Colors.orange,
+                            Colors.purple,
+                            Colors.teal,
+                            Colors.yellow,
+                          ]; // Define a list of colors
+
                           return GridView.count(
                             crossAxisCount: 2,
                             children:
-                                analyticsData.entries.map((entry) {
+                                analyticsData.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final data = entry.value;
+                                  final color =
+                                      colors[index %
+                                          colors
+                                              .length]; // Cycle through colors
                                   return buildStatCard(
-                                    entry.key,
-                                    entry.value,
-                                    Colors.blue,
+                                    data.key,
+                                    data.value,
+                                    color,
                                   );
                                 }).toList(),
                           );
