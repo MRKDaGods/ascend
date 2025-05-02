@@ -15,7 +15,7 @@ export default function CompanySidebarUser() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
-    name, url, profileImage, coverImage, setCompanyInfo,
+    name, profileImage, coverImage, setCompanyInfo,
   } = useCompanyStore();
 
   const { activePage, setActivePage } = useNavigationStore(); // ✅ Zustand nav store

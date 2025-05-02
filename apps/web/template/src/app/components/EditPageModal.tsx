@@ -19,7 +19,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useEffect, useState, useRef } from 'react';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
-
 interface EditPageModalProps {
   open: boolean;
   onClose: () => void;
@@ -28,19 +27,17 @@ interface EditPageModalProps {
 
 const sections = ['Page info'];
 
-
 export default function EditPageModal({ open, onClose, onSave }: EditPageModalProps) {
   const {
     name,
     domainName,
-    url,
     industry,
     location,
     description,
     profileImage: storeProfileImage,
     coverImage: storeCoverImage,
     setCompanyInfo,
-    updateCompanyProfile, // ✅ NEW
+    updateCompanyProfile,
   } = useCompanyStore();
 
   const [formData, setFormData] = useState({
@@ -62,6 +59,8 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
   const [isModified, setIsModified] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(storeProfileImage);
   const [coverImage, setCoverImage] = useState<string | null>(storeCoverImage);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,10 +76,15 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
     setOriginalData(data);
     setProfileImage(storeProfileImage);
     setCoverImage(storeCoverImage);
+    setLogoFile(null);
+    setCoverFile(null);
     setIsModified(false);
-  }, [name, domainName, url, industry, location, description, storeProfileImage, storeCoverImage, open]);
+  }, [name, domainName, industry, location, description, storeProfileImage, storeCoverImage, open]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'cover') => {
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'profile' | 'cover'
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -88,8 +92,10 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
         const newImage = reader.result as string;
         if (type === 'profile') {
           setProfileImage(newImage);
+          setLogoFile(file);
         } else {
           setCoverImage(newImage);
+          setCoverFile(file);
         }
         setIsModified(true);
       };
@@ -109,13 +115,14 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
     setFormData(originalData);
     setProfileImage(storeProfileImage);
     setCoverImage(storeCoverImage);
+    setLogoFile(null);
+    setCoverFile(null);
     setIsModified(false);
   };
 
   const saveChanges = async () => {
     const updatedData = { ...formData };
 
-    // ✅ Only send fields that have changed
     const changes: Partial<typeof updatedData> = {};
     for (const key in updatedData) {
       if (updatedData[key as keyof typeof updatedData] !== originalData[key as keyof typeof originalData]) {
@@ -123,16 +130,34 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
       }
     }
 
-    if (Object.keys(changes).length === 0) {
+    const fieldsToUpdate: any = { ...changes };
+
+    if (logoFile) {
+      fieldsToUpdate.logoFile = logoFile;
+    }
+
+    if (coverFile) {
+      fieldsToUpdate.coverFile = coverFile;
+    }
+
+    if (Object.keys(fieldsToUpdate).length === 0) {
       console.log('No changes to save.');
       return;
     }
 
     try {
-      await updateCompanyProfile(changes); // ✅ API call
-      setCompanyInfo(updatedData);          // ✅ Update local state
-      onSave(updatedData);
-      setOriginalData(updatedData);          // ✅ Reset original data
+      await updateCompanyProfile(fieldsToUpdate);
+      setCompanyInfo({
+        ...formData,
+        profileImage,
+        coverImage,
+        ...(logoFile && { logoFile }),
+        ...(coverFile && { coverFile }),
+      });
+      onSave({ ...formData, profileImage, coverImage });
+      setOriginalData(formData);
+      setLogoFile(null);
+      setCoverFile(null);
       setIsModified(false);
       console.log('Changes saved successfully!');
     } catch (error) {
@@ -140,11 +165,12 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
     }
   };
 
+  const [activeSection, setActiveSection] = useState('Page info');
+
   const renderSectionContent = () => {
     if (activeSection === 'Page info') {
       return (
         <>
-          {/* Cover Photo */}
           <Box
             sx={{
               height: 200,
@@ -180,7 +206,6 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             />
           </Box>
 
-          {/* Profile Avatar */}
           <Box display="flex" alignItems="center" mb={3} position="relative">
             <Avatar
               src={profileImage || undefined}
@@ -209,7 +234,6 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
             />
           </Box>
 
-          {/* Form Fields */}
           <TextField label="Name *" value={formData.name} onChange={handleChange('name')} fullWidth sx={{ mb: 2 }} />
           <TextField label="Domain name" value={formData.domainName} onChange={handleChange('domainName')} fullWidth sx={{ mb: 2 }} />
           <TextField label="Industry" value={formData.industry} onChange={handleChange('industry')} fullWidth sx={{ mb: 2 }} />
@@ -218,10 +242,9 @@ export default function EditPageModal({ open, onClose, onSave }: EditPageModalPr
         </>
       );
     }
+
     return <Typography fontSize={14}>{activeSection} content goes here.</Typography>;
   };
-
-  const [activeSection, setActiveSection] = useState('Page info');
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

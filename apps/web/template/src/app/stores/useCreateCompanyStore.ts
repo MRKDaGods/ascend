@@ -256,11 +256,12 @@ export const useCompanyStore = create<CompanyState>()(
           if (!companyId) throw new Error("No company ID available.");
 
           const payload: any = {};
-          if (fieldsToUpdate.name) payload.name = fieldsToUpdate.name;
-          if (fieldsToUpdate.description) payload.description = fieldsToUpdate.description;
+          if (fieldsToUpdate.name) payload.company_name = fieldsToUpdate.name;
+          if (fieldsToUpdate.domainName) payload.company_domain_name = fieldsToUpdate.domainName;
           if (fieldsToUpdate.industry) payload.industry = fieldsToUpdate.industry;
           if (fieldsToUpdate.location) payload.location = fieldsToUpdate.location;
-          if (fieldsToUpdate.domainName) payload.company_domain_name = fieldsToUpdate.domainName;
+          if (fieldsToUpdate.description) payload.description = fieldsToUpdate.description;
+
 
           if (fieldsToUpdate.logoFile instanceof File) {
             const base64 = await fileToBase64(fieldsToUpdate.logoFile);
@@ -281,6 +282,7 @@ export const useCompanyStore = create<CompanyState>()(
               mime_type: fieldsToUpdate.coverFile.type,
             };
           }
+          console.log("Updating with payload:", JSON.stringify(payload, null, 2));
 
           const updatedCompany = await updateCompanyProfileAPI(companyId, payload);
 
