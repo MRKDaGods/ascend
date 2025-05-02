@@ -24,9 +24,13 @@ import {
   reportPost, 
   deleteReport,
   getSavedArticles,
-ultimateSearch,
+  ultimateSearch,
   reactToPost,
-  getPostReactions
+  getPostReactions,
+  reactToComment,
+  getCommentReactions,
+  getCommentReactionCounts,
+  getUserPosts,
 } from "../controllers/postController";
 
 const upload = multer({
@@ -45,6 +49,9 @@ router.get('/articles', authenticateToken, getSavedArticles);
 // New ultimate search route that combines users and posts
 router.get("/search/ultimate", authenticateToken, ultimateSearch);
 
+// User posts route
+router.get("/user/:userId", authenticateToken, getUserPosts);
+
 // Post CRUD routes 
 router.post("/", authenticateToken, upload.array("media"), createPost);
 router.get("/:postId", authenticateToken, getPostById);
@@ -62,6 +69,10 @@ router.post("/:postId/comments", authenticateToken,  upload.none(), createCommen
 router.patch("/:postId/comments/:commentId", authenticateToken, updateComment);
 router.delete("/:postId/comments/:commentId", authenticateToken, deleteComment);
 
+// Comment reaction routes
+router.post("/comments/:commentId/react", authenticateToken, reactToComment);
+router.get("/comments/:commentId/reactions", authenticateToken, getCommentReactions);
+router.get("/comments/:commentId/reaction-counts", authenticateToken, getCommentReactionCounts);
 // Share routes
 router.post("/:postId/share", authenticateToken,upload.none(),  sharePost);
 
