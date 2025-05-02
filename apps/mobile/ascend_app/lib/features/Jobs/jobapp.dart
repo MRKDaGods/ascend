@@ -34,8 +34,6 @@ class _JobAppState extends State<JobApp> {
   Widget build(BuildContext context) {
     final isDarkTheme =
         widget.isDarkMode || Theme.of(context).brightness == Brightness.dark;
-    final List<String> companyNames =
-        jobsDummy.map((job) => job.company).toSet().toList();
 
     Widget? activescreen;
     if (screen == "job-home") {

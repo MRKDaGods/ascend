@@ -8,19 +8,19 @@ class ExploreScreen extends StatefulWidget {
   final bool isDarkMode;
   final List<Jobsattributes> jobs;
 
-  ExploreScreen({super.key, required this.isDarkMode, required this.jobs});
+  const ExploreScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.jobs,
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _ExploreScreenState createState() => _ExploreScreenState();
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
   String selectedTab = "Easy Apply"; // Default to Easy Apply
-  void _returbtofilter(String tab) {
-    setState(() {
-      selectedTab = tab;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
