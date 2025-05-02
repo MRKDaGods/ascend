@@ -20,6 +20,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
   bool get isIntialized => _isIntialized;
   final MessagingRepoistoryImpl _repository;
   final Map<String, String> _conversationParticipants = {};
+  final Map<String, Timer> _typingTimers = {}; // Keep track of typing timers
 
   // Stream subscriptions to be canceled in the close method
   StreamSubscription? _messageSubscription;
@@ -49,6 +50,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     on<WebSocketMessageReceived>(_onWebSocketMessageReceived);
     on<TypingStatusUpdated>(_onTypingStatusUpdated);
     on<ReadReceiptReceived>(_onReadReceiptReceived);
+    on<MarkasUnRead>(_onMarkasUnRead);
 
     // Setup WebSocket listeners
     _setupWebSocketListeners();
@@ -72,12 +74,34 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     });
 
     _typingSubscription = _repository.typingStatusStream.listen((typingData) {
-      // The typingData should be a Map with conversationId as the key
-      final Object conversationId =
-          typingData['conversationId']?.toString() ?? '';
+      try {
+        debugPrint('[MessagingBloc] Received typing data: $typingData');
 
-      if (conversationId.toString().isNotEmpty) {
-        add(TypingStatusUpdated(conversationId.toString()));
+        String? conversationId;
+
+        // Extract from standard format
+        if (typingData.containsKey('conversationId')) {
+          conversationId = typingData['conversationId']?.toString();
+        }
+        // Fallback for {10: 10} format
+        else if (typingData.keys.isNotEmpty) {
+          conversationId = typingData.keys.first.toString();
+        }
+        // Direct value
+        else {
+          conversationId = typingData.toString();
+        }
+
+        if (conversationId != null && conversationId.isNotEmpty) {
+          debugPrint(
+            '[MessagingBloc] Extracted conversationId: $conversationId',
+          );
+          add(TypingStatusUpdated(conversationId, true));
+        }
+      } catch (e, stackTrace) {
+        debugPrint(
+          '[MessagingBloc] Error processing typing data: $e\n$stackTrace',
+        );
       }
     });
 
@@ -160,6 +184,18 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       final conversations = await _repository.getConversations();
       final unseenCount = await _repository.getUnseenCount();
 
+      debugPrint(
+        '[MessagingBloc] Loaded ${conversations.length} conversations',
+      );
+
+      // update the Typing status map
+      final typingStatus = <String, bool>{};
+      for (var conversation in conversations) {
+        typingStatus[conversation.conversationId] = _repository.isAnyoneTyping(
+          conversation.conversationId,
+        );
+      }
+
       // Store the other user IDs for each conversation
       for (var conversation in conversations) {
         _conversationParticipants[conversation.conversationId] =
@@ -171,6 +207,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
           unseenCount,
           1,
           conversations.isEmpty || conversations.length < 20,
+          typingStatus,
         ),
       );
     } catch (e) {
@@ -203,6 +240,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
               currentState.unseenCount,
               event.page,
               moreConversations.length < 20,
+              currentState.typingStatus,
             ),
           );
         }
@@ -530,9 +568,12 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
             '[MessagingBloc] Added new message (ID: ${newMessage.messageId}). Emitting new state.',
           );
         }
+        // cancel timers
+        _typingTimers[conversationId]?.cancel();
+        _typingTimers.remove(conversationId);
 
         // Emit the updated message list for the active chat
-        emit(currentState.copyWith(messages: updatedMessages));
+        emit(currentState.copyWith(messages: updatedMessages, isTyping: false));
 
         // Mark as read since we're actively viewing it and it's not ours
         final currentUserId = await SecureStorageHelper.getUserId();
@@ -547,20 +588,35 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
             '[MessagingBloc] Message is from current user or an update to optimistic message. Not marking as read.',
           );
         }
+      } else if (state is ConversationLoaded) {
+        final currentState = state as ConversationLoaded;
 
-        // Consider if a conversation list update is still needed here,
-        // perhaps just updating the single conversation item's preview
-        // instead of reloading all. For now, we omit the full reload.
-        // add(LoadConversations()); // Removed from here
-      } else {
-        // Message is for a non-active conversation or state is not MessagesLoaded
-        debugPrint(
-          '[MessagingBloc] Message received for conversation $conversationId, but not processing for active chat view. Active: $_activeConversationId, State: ${state.runtimeType}',
-        );
-        // Refresh unseen count as the user is not seeing it immediately
-        add(RefreshUnseenCount(1));
-        // Refresh conversations list to update latest message preview and order
-        add(LoadConversations());
+        // Reset typing status for this conversation
+        if (currentState.typingStatus.containsKey(conversationId) &&
+            currentState.typingStatus[conversationId] == true) {
+          final updatedTypingStatus = Map<String, bool>.from(
+            currentState.typingStatus,
+          );
+          updatedTypingStatus[conversationId] = false;
+
+          // We'll refresh conversations, but include the updated typing status
+          add(RefreshUnseenCount(1));
+
+          // Emit updated typing status immediately
+          emit(currentState.copyWith(typingStatus: updatedTypingStatus));
+
+          // Refresh conversations list after typing status update
+          add(LoadConversations());
+        } else {
+          // Message is for a non-active conversation or state is not MessagesLoaded
+          debugPrint(
+            '[MessagingBloc] Message received for conversation $conversationId, but not processing for active chat view. Active: $_activeConversationId, State: ${state.runtimeType}',
+          );
+          // Refresh unseen count as the user is not seeing it immediately
+          add(RefreshUnseenCount(1));
+          // Refresh conversations list to update latest message preview and order
+          add(LoadConversations());
+        }
       }
     } catch (e, stackTrace) {
       // Catch stack trace
@@ -576,20 +632,67 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     Emitter<MessagingBlocState> emit,
   ) async {
     try {
-      // Find conversation ID and typing status
       final String conversationId = event.conversationId;
-      final bool isTyping = true;
+      final bool isTyping = event.isTyping;
 
-      // Only update if we are viewing conversation
+      debugPrint(
+        '[MessagingBloc] Typing status updated for conversation $conversationId: $isTyping',
+      );
+
+      // Cancel existing timer if any
+      _typingTimers[conversationId]?.cancel();
+
+      // Update for active conversation (chat view)
       if (_activeConversationId == conversationId) {
         final currentState = state;
         if (currentState is MessagesLoaded) {
-          emit(currentState.copyWith(isTyping: isTyping));
+          debugPrint(
+            '[MessagingBloc] Updating MessagesLoaded typing status: $isTyping',
+          );
+
+          // Only emit if status actually changed
+          if (currentState.isTyping != isTyping) {
+            emit(
+              currentState.copyWith(
+                isTyping: isTyping,
+                typingUpdatedAt: DateTime.now(), // Force state change
+              ),
+            );
+          }
         }
       }
+
+      // Update for conversation list
+      if (state is ConversationLoaded) {
+        final conversationState = state as ConversationLoaded;
+
+        // Only update if the status is different
+        if (conversationState.typingStatus[conversationId] != isTyping) {
+          final updatedTypingStatus = Map<String, bool>.from(
+            conversationState.typingStatus,
+          );
+          updatedTypingStatus[conversationId] = isTyping;
+
+          debugPrint(
+            '[MessagingBloc] Updating ConversationLoaded typing status for $conversationId: $isTyping',
+          );
+          emit(conversationState.copyWith(typingStatus: updatedTypingStatus));
+        }
+      }
+
+      // If typing is true, set a timer to reset it
+      if (isTyping) {
+        _typingTimers[conversationId] = Timer(Duration(milliseconds: 1000), () {
+          debugPrint(
+            '[MessagingBloc] Typing timer expired for conversation: $conversationId',
+          );
+          add(TypingStatusUpdated(conversationId, false));
+          _typingTimers.remove(conversationId);
+        });
+      }
     } catch (e) {
-      debugPrint('[MessagingBloc] Error processing typing status: $e');
-      emit(MessagingError('Failed to process typing status: $e'));
+      debugPrint('[MessagingBloc] Error updating typing status: $e');
+      emit(MessagingError('Failed to update typing status: $e'));
     }
   }
 
@@ -627,12 +730,61 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     }
   }
 
+  void _onMarkasUnRead(
+    MarkasUnRead event,
+    Emitter<MessagingBlocState> emit,
+  ) async {
+    try {
+      // Only proceed if we have a loaded state
+      if (state is ConversationLoaded) {
+        final currentState = state as ConversationLoaded;
+
+        // Update conversations list - only mark as unread if unseenCount is 0
+        final updatedConversations =
+            currentState.conversations.map((conversation) {
+              if (conversation.conversationId == event.conversationId &&
+                  (conversation.unseenCount == 0)) {
+                // Set unseen count to 1 and mark as not seen
+                return conversation.copyWith(unseenCount: 1);
+              }
+              return conversation;
+            }).toList();
+
+        // Calculate new total unseen count
+        final newUnseenCount = updatedConversations.fold<int>(
+          0,
+          (sum, conv) => sum + conv.unseenCount,
+        );
+
+        // Emit updated state
+        emit(
+          ConversationLoaded(
+            updatedConversations,
+            newUnseenCount,
+            currentState.page,
+            currentState.hasReachedMax,
+            currentState.typingStatus,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[MessagingBloc] Error marking as unread: $e');
+    }
+  }
+
   @override
   Future<void> close() {
     _messageSubscription?.cancel();
     _connectionSubscription?.cancel();
     _typingSubscription?.cancel();
     _readReceiptSubscription?.cancel();
+
+    // Cancel all typing timers
+    for (var timer in _typingTimers.values) {
+      timer.cancel();
+    }
+    _typingTimers.clear();
+
     return super.close();
   }
 }

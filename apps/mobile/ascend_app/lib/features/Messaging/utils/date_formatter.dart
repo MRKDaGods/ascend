@@ -1,9 +1,10 @@
 class DateFormatter {
   /// Formats a date for conversation listings
   static String formatMessageDate(DateTime? time) {
+    final localTime = time?.toLocal();
     if (time == null) return '';
 
-    final now = DateTime.now();
+    final now = DateTime.now().toLocal();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(Duration(days: 1));
     final messageDate = DateTime(time.year, time.month, time.day);
