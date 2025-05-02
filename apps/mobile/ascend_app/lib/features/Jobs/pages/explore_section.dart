@@ -8,11 +8,7 @@ class ExploreScreen extends StatefulWidget {
   final bool isDarkMode;
   final List<Jobsattributes> jobs;
 
-  const ExploreScreen({
-    super.key,
-    required this.isDarkMode,
-    required this.jobs,
-  });
+  ExploreScreen({super.key, required this.isDarkMode, required this.jobs});
 
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();

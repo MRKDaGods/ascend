@@ -9,13 +9,15 @@ class FilterOptionWidget extends StatefulWidget {
   final bool isReset;
 
   const FilterOptionWidget({
-    super.key,
+    Key? key,
     required this.filterName,
     required this.options,
     required this.allowMultipleSelection,
     required this.onFilterChanged,
     required this.isReset,
-  });
+  }) : super(key: key);
+
+
 
   @override
   State<FilterOptionWidget> createState() => _FilterOptionWidgetState();
