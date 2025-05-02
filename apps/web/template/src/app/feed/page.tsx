@@ -13,7 +13,6 @@ import FeedbackAcknowledgement from "../components/FeedbackAcknowledgement";
 import ProfileCard from "../components/ProfileCard";
 import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
-import CompanyCard from "../components/CompanyCard";
 import TryPremCard from "../components/TryPremCard";
 import ManageFeedCard from "../components/ManageFeedCard";
 
@@ -79,7 +78,6 @@ const Feed: React.FC = () => {
             <>
               <ProfileCard  />
               <TryPremCard />
-              <CompanyCard />
               </>
           ) : (
             <CircularProgress />

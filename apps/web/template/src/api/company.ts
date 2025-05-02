@@ -17,13 +17,6 @@ export interface CompanyResponse {
   location: string;
 }
 
-const getAuthToken = (): string => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No token found. Please login.");
-  }
-  return token;
-};
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -140,8 +133,6 @@ export const createCompanyAnnouncementAPI = async (
   content: string,
   media: MediaFile[]
 ) => {
-  const token = getAuthToken();
-
   const announcement_photos = media
     .filter((m) => m.type === "image" && m.file && m.file.name)
     .map((fileObj) => {
@@ -260,4 +251,3 @@ export const searchForCompaniesAPI = async () => {
     throw err;
   }
 };
-

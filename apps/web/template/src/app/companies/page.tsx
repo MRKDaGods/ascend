@@ -4,6 +4,7 @@
 import React from 'react';
 import { Container, Typography, Box } from '@mui/material';
 import PageTypeCard from '@/app/components/PageTypeCard';
+import Navbar from '@/app/components/Navbar';
 import { useRouter } from 'next/navigation';
 
 type PageType = {
@@ -26,6 +27,8 @@ export default function CreateLinkedInPage() {
   const router = useRouter();
 
   return (
+    <>
+    <Navbar />
     <Container maxWidth="md" sx={{ py: 8 }}>
       <Typography variant="h4" align="center" gutterBottom>
         Create an Ascend Page
@@ -45,5 +48,6 @@ export default function CreateLinkedInPage() {
         ))}
       </Box>
     </Container>
+    </>
   );
 }

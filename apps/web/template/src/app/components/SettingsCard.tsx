@@ -21,7 +21,7 @@ export default function SettingsCard() {
         <Typography variant="body1" fontWeight="bold" gutterBottom>
           Manage your notifications
         </Typography>
-        <Link href="#" variant="body2" color="primary" onClick={() => router.push("/authen/Settings")}>
+        <Link href="#" variant="body2" color="primary" onClick={() => router.push("/Settings")}>
           View settings
         </Link>
       </CardContent>

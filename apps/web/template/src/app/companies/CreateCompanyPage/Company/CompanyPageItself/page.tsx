@@ -9,6 +9,7 @@ import AnalyticsPage from '@/app/components/AnalyticsPage';
 import { useNavigationStore } from '@/app/stores/useNavigationStore';
 import PagePosts from '@/app/components/PagePosts';
 import CompanySettings from '@/app/components/CompanySettings';
+import Navbar from '@/app/components/Navbar';
 
 export default function Page() {
   const { activePage } = useNavigationStore();
@@ -66,11 +67,14 @@ export default function Page() {
   };
 
   return (
+    <>
+    <Navbar />
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
       <Sidebar />
       <Grid container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
         {renderContent()}
       </Grid>
     </Box>
+    </>
   );
 }

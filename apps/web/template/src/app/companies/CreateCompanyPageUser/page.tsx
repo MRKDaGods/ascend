@@ -5,9 +5,10 @@ import { Box, Grid } from '@mui/material';
 import { useEffect } from 'react';
 import CompanySidebarUser from '@/app/components/CompanySidebarUser';
 import AnalyticsPage from '@/app/components/AnalyticsPage';
-import PagePostsUserCompany from '../components/PagePostsUserCompany';
+import PagePostsUserCompany from '../../components/PagePostsUserCompany';
 import { useNavigationStore } from '@/app/stores/useNavigationStore';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
+import Navbar from '@/app/components/Navbar';
 
 export default function Page() {
   const { activePage } = useNavigationStore();
@@ -46,11 +47,14 @@ export default function Page() {
   };
 
   return (
+    <>
+    <Navbar />
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
       <CompanySidebarUser />
       <Grid container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
         {renderContent()}
       </Grid>
     </Box>
+    </>
   );
 }
