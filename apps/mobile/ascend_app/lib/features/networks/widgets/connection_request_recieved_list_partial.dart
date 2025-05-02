@@ -43,14 +43,12 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                 CircleAvatar(
                                   radius: 24,
                                   backgroundImage:
-                                      invitation.profile_image_id!.startsWith(
-                                            'http',
-                                          )
+                                      invitation.profile_image_id != null
                                           ? NetworkImage(
                                             invitation.profile_image_id!,
                                           )
-                                          : AssetImage(
-                                                invitation.profile_image_id!,
+                                          : const AssetImage(
+                                                'assets/EmptyUser.png',
                                               )
                                               as ImageProvider,
                                 ),
@@ -72,7 +70,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        invitation.bio!,
+                                        invitation.bio ?? 'No bio available',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
@@ -82,7 +80,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        timeDifference(invitation.requestedAt!),
+                                        timeDifference(invitation.created_at!),
                                         style: const TextStyle(
                                           color: Colors.grey,
                                           fontSize: 10,

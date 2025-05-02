@@ -6,7 +6,7 @@ class ConnectedUser {
   String? last_name;
   String? profile_image_id;
   String? bio;
-  DateTime? connectedAt;
+  DateTime? connected_at;
 
   ConnectedUser({
     required this.user_id,
@@ -14,16 +14,16 @@ class ConnectedUser {
     required this.last_name,
     required this.profile_image_id,
     required this.bio,
-    required this.connectedAt,
+    required this.connected_at,
   });
 
   ConnectedUser.fromJson(Map<String, dynamic> json) {
-    user_id = json['user_id'];
+    user_id = json['user_id'].toString();
     first_name = json['first_name'];
     last_name = json['last_name'];
     profile_image_id = json['profile_image_id'];
     bio = json['bio'];
-    connectedAt = DateTime.parse(json['connectedAt']);
+    connected_at = DateTime.parse(json['connected_at']);
   }
 
   ConnectedUser copyWith({
@@ -32,7 +32,7 @@ class ConnectedUser {
     String? last_name,
     String? profile_image_id,
     String? bio,
-    DateTime? connectedAt,
+    DateTime? connected_at,
     String? request_id,
   }) {
     return ConnectedUser(
@@ -41,7 +41,7 @@ class ConnectedUser {
       last_name: last_name ?? this.last_name,
       profile_image_id: profile_image_id ?? this.profile_image_id,
       bio: bio ?? this.bio,
-      connectedAt: connectedAt ?? this.connectedAt,
+      connected_at: connected_at ?? this.connected_at,
     );
   }
 
@@ -51,6 +51,6 @@ class ConnectedUser {
     "last_name": last_name,
     "profilePictureUrl": profile_image_id,
     "bio": bio,
-    "connectedAt": ConnectedUser,
+    "connected_at": connected_at?.toIso8601String(),
   };
 }

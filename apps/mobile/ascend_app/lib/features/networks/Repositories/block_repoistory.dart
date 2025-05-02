@@ -32,7 +32,10 @@ class BlockRepository {
   /// Unblock a user by their ID
   Future<void> unblockUser(String userId) async {
     try {
-      final response = await _client.delete('${ApiEndpoints.unblock}/:$userId');
+      final int userIdInt = int.parse(userId);
+      final response = await _client.delete(
+        '${ApiEndpoints.unblock}/$userIdInt',
+      );
 
       if (response.statusCode == 200) {
         // Successfully unblocked the user

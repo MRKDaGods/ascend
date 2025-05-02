@@ -44,8 +44,9 @@ class ConnectionRequestRepository {
   /// Accept a connection request by its ID
   Future<void> acceptConnectionRequest(String requestId) async {
     try {
+      final int id = int.parse(requestId);
       final response = await _client.put(
-        '${ApiEndpoints.respondConnectionRequest}/:$requestId',
+        '${ApiEndpoints.respondConnectionRequest}/$id',
         data: {'accept': true},
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -66,8 +67,9 @@ class ConnectionRequestRepository {
   /// Decline a connection request by its ID
   Future<void> declineConnectionRequest(String requestId) async {
     try {
+      final int id = int.parse(requestId);
       final response = await _client.put(
-        '${ApiEndpoints.respondConnectionRequest}/:$requestId',
+        '${ApiEndpoints.respondConnectionRequest}/$id',
         data: {'accept': false},
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -150,24 +152,52 @@ class ConnectionRequestRepository {
     int limit = 10,
   }) async {
     try {
+      // Fix the query parameters
       final response = await _client.get(
-        '${ApiEndpoints.fetchconnections}?search=$search&page&limit',
+        '${ApiEndpoints.fetchconnections}?search=$search&page=$page&limit=$limit',
       );
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        final Map<String, dynamic> responseData = data['data'];
-        debugPrint('Response data: $responseData');
-        debugPrint('Response data length: ${responseData.length}');
-        return responseData['data']
-            .map((json) => ConnectedUser.fromJson(json))
-            .toList();
+        debugPrint('Raw response: ${response.body}');
+
+        // Check if data is directly a List
+        if (data['data'] is List) {
+          final List<dynamic> connections = data['data'];
+          debugPrint(
+            'Connection data is a direct list with ${connections.length} items',
+          );
+
+          return connections
+              .map((json) => ConnectedUser.fromJson(json))
+              .toList();
+        }
+        // Check if data is a Map containing a 'data' List
+        else if (data['data'] is Map && data['data']['data'] is List) {
+          final List<dynamic> connections = data['data']['data'];
+          debugPrint(
+            'Connection data is nested with ${connections.length} items',
+          );
+
+          return connections
+              .map((json) => ConnectedUser.fromJson(json))
+              .toList();
+        }
+        // If no suitable data is found
+        else {
+          debugPrint(
+            'No accepted connections found or unexpected data structure: ${data['data']}',
+          );
+          return [];
+        }
       } else {
         debugPrint('Failed to fetch accepted connections: ${response.body}');
         return [];
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error fetching accepted connections: $e');
-      return []; //
+      debugPrint('Stack trace: $stackTrace');
+      return [];
     }
   }
 
@@ -200,9 +230,8 @@ class ConnectionRequestRepository {
   /// Remove an existing connection by its ID
   Future<void> removeConnection(String connectionId) async {
     try {
-      final response = await _client.delete(
-        '${ApiEndpoints.connections}/:$connectionId',
-      );
+      final int id = int.parse(connectionId);
+      final response = await _client.delete('${ApiEndpoints.connections}/$id');
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         debugPrint('Connection removed successfully: ${data["message"]}');

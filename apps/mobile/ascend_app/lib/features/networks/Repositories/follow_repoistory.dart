@@ -13,7 +13,8 @@ class FollowRepoistory {
   /// Follow a user by their ID
   Future<void> followUser(String userId) async {
     try {
-      final response = await _client.post('${ApiEndpoints.follow}/:$userId');
+      final int userIdInt = int.parse(userId);
+      final response = await _client.post('${ApiEndpoints.follow}/$userIdInt');
 
       if (response.statusCode == 200) {
         // Successfully followed the user
