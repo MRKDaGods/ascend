@@ -9,9 +9,9 @@ const BackButton = () => {
   const router = useRouter();
 
   return (
-    <IconButton onClick={() => router.back()} sx={{ mr: 2 }}>
-      <ArrowBackIcon />
-      <Typography variant="h6" component="span" sx={{ ml: 1 }}>
+    <IconButton id="back-button" onClick={() => router.back()} sx={{ mr: 2 }}>
+      <ArrowBackIcon id="back-button-icon" />
+      <Typography id="back-button-text" variant="h6" component="span" sx={{ ml: 1 }}>
         Back
       </Typography>
     </IconButton>

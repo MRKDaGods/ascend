@@ -30,45 +30,74 @@ export default function PagePostsUserCompany() {
   }, [companyId]);
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={8}>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-          <Typography variant="h5" fontWeight={600} mb={0.5}>Page posts</Typography>
-          <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tab label="Published" />
+    <Grid container spacing={3} id="page-posts-user-company-container">
+      <Grid item xs={12} md={8} id="page-posts-user-company-main">
+        <Paper id="page-posts-header" variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Typography id="page-posts-title" variant="h5" fontWeight={600} mb={0.5}>
+            Page posts
+          </Typography>
+          <Tabs
+            id="page-posts-tabs"
+            value={tabIndex}
+            onChange={(_, newValue) => setTabIndex(newValue)}
+            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+          >
+            <Tab id="page-posts-tab-published" label="Published" />
           </Tabs>
         </Paper>
 
         {announcements.map((announcement) => (
-          <Paper key={announcement.announcement_id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Box display="flex" alignItems="center" gap={1}>
-                {companyProfileImage && <Avatar src={companyProfileImage} sx={{ width: 28, height: 28 }} />}
-                <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">{companyName}</Typography>
+          <Paper id={`announcement-${announcement.announcement_id}`} key={announcement.announcement_id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
+            <Box id={`announcement-header-${announcement.announcement_id}`} display="flex" justifyContent="space-between" alignItems="center">
+              <Box id={`announcement-header-info-${announcement.announcement_id}`} display="flex" alignItems="center" gap={1}>
+                {companyProfileImage && (
+                  <Avatar
+                    id={`announcement-avatar-${announcement.announcement_id}`}
+                    src={companyProfileImage}
+                    sx={{ width: 28, height: 28 }}
+                  />
+                )}
+                <Typography
+                  id={`announcement-company-name-${announcement.announcement_id}`}
+                  variant="subtitle2"
+                  fontWeight="bold"
+                  color="text.secondary"
+                >
+                  {companyName}
+                </Typography>
               </Box>
               <IconButton
+                id={`announcement-menu-button-${announcement.announcement_id}`}
                 onClick={(e) => {
-                  setSelectedPostId((prev) => (prev === announcement.announcement_id.toString() ? null : announcement.announcement_id.toString()));
+                  setSelectedPostId((prev) =>
+                    prev === announcement.announcement_id.toString() ? null : announcement.announcement_id.toString()
+                  );
                   setAnchorEl(e.currentTarget);
                 }}
               >
                 <MoreVertIcon />
               </IconButton>
               <Menu
+                id={`announcement-menu-${announcement.announcement_id}`}
                 anchorEl={anchorEl}
                 open={selectedPostId === announcement.announcement_id.toString()}
                 onClose={() => setSelectedPostId(null)}
               >
-                <MenuItem onClick={() => setSelectedPostId(null)}>Report</MenuItem>
+                <MenuItem id={`announcement-report-button-${announcement.announcement_id}`} onClick={() => setSelectedPostId(null)}>
+                  Report
+                </MenuItem>
               </Menu>
             </Box>
 
-            <Typography variant="body1" mt={2} mb={2}>{announcement.content}</Typography>
+            <Typography id={`announcement-content-${announcement.announcement_id}`} variant="body1" mt={2} mb={2}>
+              {announcement.content}
+            </Typography>
 
-            <Grid container spacing={1}>
+            <Grid id={`announcement-media-${announcement.announcement_id}`} container spacing={1}>
               {announcement.image_urls?.map((url: string, index: number) => (
                 <Grid item xs={12} key={index}>
                   <Box
+                    id={`announcement-image-${announcement.announcement_id}-${index}`}
                     component="img"
                     src={url}
                     alt="Announcement Image"
@@ -85,6 +114,7 @@ export default function PagePostsUserCompany() {
               {announcement.video_url && (
                 <Grid item xs={12}>
                   <Box
+                    id={`announcement-video-${announcement.announcement_id}`}
                     component="video"
                     controls
                     src={announcement.video_url}
@@ -99,18 +129,20 @@ export default function PagePostsUserCompany() {
               )}
             </Grid>
 
-            <Box display="flex" alignItems="center" gap={1} mt={1}>
+            <Box id={`announcement-reactions-${announcement.announcement_id}`} display="flex" alignItems="center" gap={1} mt={1}>
               {['🧠', '🌿', '❤️'].map((emoji) => {
                 const selected = selectedReactions[announcement.announcement_id] === emoji;
                 return (
                   <Button
+                    id={`announcement-reaction-${announcement.announcement_id}-${emoji}`}
                     key={emoji}
                     size="small"
                     variant={selected ? 'contained' : 'text'}
-                    onClick={() => setSelectedReactions((prev) => ({
-                      ...prev,
-                      [announcement.announcement_id]: prev[announcement.announcement_id] === emoji ? null : emoji,
-                    }))}
+                    onClick={() =>
+                      setSelectedReactions((prev) => ({
+                        ...prev,
+                        [announcement.announcement_id]: prev[announcement.announcement_id] === emoji ? null : emoji,
+                      }))                    }
                     sx={{
                       minWidth: '32px',
                       px: 1,
@@ -127,24 +159,34 @@ export default function PagePostsUserCompany() {
         ))}
 
         {announcements.length === 0 && (
-          <Paper elevation={0} sx={{ textAlign: 'center', py: 5, px: 2, mt: 4 }}>
-            <img src="/NoPostsyet.png" alt="No posts" width={200} style={{ marginBottom: 16 }} />
-            <Typography variant="h6" fontWeight={600}>Page doesn’t have any posts yet</Typography>
-            <Typography variant="body2" color="text.secondary" mt={1}>
+          <Paper id="no-announcements-section" elevation={0} sx={{ textAlign: 'center', py: 5, px: 2, mt: 4 }}>
+            <img id="no-announcements-image" src="/NoPostsyet.png" alt="No posts" width={200} style={{ marginBottom: 16 }} />
+            <Typography id="no-announcements-title" variant="h6" fontWeight={600}>
+              Page doesn’t have any posts yet
+            </Typography>
+            <Typography id="no-announcements-subtitle" variant="body2" color="text.secondary" mt={1}>
               Pages that post 2x a week grow 5x faster
             </Typography>
           </Paper>
         )}
       </Grid>
 
-      <Grid item xs={12} md={4}>
-        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-          <Typography variant="subtitle1" fontWeight={600}>Post highlights</Typography>
-          <Typography variant="body2" color="text.secondary" mb={2}>In the last 30 days</Typography>
-          <Box textAlign="center">
-            <img src="/highlights.png" alt="No highlights" width={200} style={{ marginBottom: 16 }} />
-            <Typography fontWeight={600}>No highlights</Typography>
-            <Typography variant="body2" color="text.secondary">No recent post to highlight.</Typography>
+      <Grid item xs={12} md={4} id="post-highlights-section">
+        <Paper id="post-highlights-container" variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+          <Typography id="post-highlights-title" variant="subtitle1" fontWeight={600}>
+            Post highlights
+          </Typography>
+          <Typography id="post-highlights-subtitle" variant="body2" color="text.secondary" mb={2}>
+            In the last 30 days
+          </Typography>
+          <Box id="post-highlights-content" textAlign="center">
+            <img id="post-highlights-image" src="/highlights.png" alt="No highlights" width={200} style={{ marginBottom: 16 }} />
+            <Typography id="post-highlights-no-highlights" fontWeight={600}>
+              No highlights
+            </Typography>
+            <Typography id="post-highlights-description" variant="body2" color="text.secondary">
+              No recent post to highlight.
+            </Typography>
           </Box>
         </Paper>
       </Grid>

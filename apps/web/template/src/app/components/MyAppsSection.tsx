@@ -18,18 +18,22 @@ const items = [
 
 export default function MyAppsSection() {
   return (
-    <Box minWidth={200}>
+    <Box id="my-apps-section" minWidth={200}>
       {items.map((item, index) => (
-        <Box key={index}>
+        <Box id={`my-apps-item-${index}`} key={index}>
           {item.category && (
-            <Typography variant="caption" sx={{ mt: 2, fontWeight: 'bold', color: 'gray' }}>
+            <Typography
+              id={`my-apps-category-${index}`}
+              variant="caption"
+              sx={{ mt: 2, fontWeight: 'bold', color: 'gray' }}
+            >
               {item.category}
             </Typography>
           )}
-          <List>
-            <ListItem component="li">
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+          <List id={`my-apps-list-${index}`}>
+            <ListItem id={`my-apps-list-item-${index}`} component="li">
+              <ListItemIcon id={`my-apps-icon-${index}`}>{item.icon}</ListItemIcon>
+              <ListItemText id={`my-apps-text-${index}`} primary={item.label} />
             </ListItem>
           </List>
         </Box>

@@ -18,57 +18,58 @@ export default function Page() {
       case 'Dashboard':
         return (
           <>
-            <Grid item xs={12}>
+            <Grid id="dashboard-actions-grid" item xs={12}>
               <DashboardActions />
             </Grid>
-            <Grid item xs={12}>
+            <Grid id="manage-posts-grid" item xs={12}>
               <ManagePosts />
             </Grid>
           </>
         );
       case 'Analytics':
         return (
-          <Grid item xs={12}>
+          <Grid id="analytics-page-grid" item xs={12}>
             <AnalyticsPage />
           </Grid>
         );
       case 'Edit page':
         return (
           <>
-            <Grid item xs={12}>
+            <Grid id="edit-page-dashboard-actions-grid" item xs={12}>
               <DashboardActions />
             </Grid>
-            <Grid item xs={12}>
+            <Grid id="edit-page-manage-posts-grid" item xs={12}>
               <ManagePosts />
             </Grid>
           </>
         );
-        case 'Page posts':
-          return (
-            <Grid item xs={12}>
-              <PagePosts />
-            </Grid>
-          );
-          case 'Deactivate Page':
-          return (
-            <Grid item xs={12}>
-              <CompanySettings />
-            </Grid>
-          );
-          
+      case 'Page posts':
+        return (
+          <Grid id="page-posts-grid" item xs={12}>
+            <PagePosts />
+          </Grid>
+        );
+      case 'Deactivate Page':
+        return (
+          <Grid id="deactivate-page-grid" item xs={12}>
+            <CompanySettings />
+          </Grid>
+        );
       default:
         return (
-          <Grid item xs={12}>
-            <Box sx={{ p: 2 }}>No content available for "{activePage}" yet.</Box>
+          <Grid id="default-content-grid" item xs={12}>
+            <Box id="default-content-box" sx={{ p: 2 }}>
+              No content available for "{activePage}" yet.
+            </Box>
           </Grid>
         );
     }
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
+    <Box id="company-page-container" sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
       <Sidebar />
-      <Grid container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
+      <Grid id="company-page-content-grid" container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
         {renderContent()}
       </Grid>
     </Box>

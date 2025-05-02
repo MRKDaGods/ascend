@@ -5,6 +5,7 @@ import { Box } from "@mui/material";
 const Illustration = () => {
   return (
     <Box
+      id="illustration-container"
       sx={{
         width: { xs: "100%", md: "50%" },
         height: { md: "85vh" },
