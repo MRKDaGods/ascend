@@ -211,15 +211,15 @@ export class PostService {
       if (isLiked) {
         // Unlike
         await db.query(
-          "DELETE FROM post_service.post_engagement WHERE user_id = $1 AND post_id = $2",
+          "DELETE FROM post_service.reactions WHERE user_id = $1 AND post_id = $2",
           [userId, postId]
         );
         return { liked: false };
       } else {
         // Like
         await db.query(
-          `INSERT INTO post_service.post_engagement (user_id, post_id, created_at)
-           VALUES ($1, $2, NOW())`,
+          `INSERT INTO post_service.reactions (user_id, post_id, reaction_type, created_at, updated_at)
+           VALUES ($1, $2, 'like', NOW(), NOW())`,
           [userId, postId]
         );
         return { liked: true };
@@ -800,7 +800,7 @@ export class PostService {
   // Check if post is liked by user
   async isPostLikedByUser(postId: number, userId: number): Promise<boolean> {
     const result = await db.query(
-      "SELECT EXISTS(SELECT 1 FROM post_service.post_engagement WHERE post_id = $1 AND user_id = $2)",
+      "SELECT EXISTS(SELECT 1 FROM post_service.reactions WHERE post_id = $1 AND user_id = $2)",
       [postId, userId]
     );
     return result.rows[0].exists;
