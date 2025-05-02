@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
@@ -10,9 +9,10 @@ import 'dart:io';
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
 
-  const EasyApplyPage({Key? key, required this.job}) : super(key: key);
+  const EasyApplyPage({super.key, required this.job});
 
   @override
+  // ignore: library_private_types_in_public_api
   _EasyApplyPageState createState() => _EasyApplyPageState();
 }
 
@@ -182,7 +182,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     );
   }
 
-  @override
   Widget _buildStepTwo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
