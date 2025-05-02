@@ -12,7 +12,7 @@ import { useSearchStore } from "../stores/useSearchStore";
 
 const jobSearches = ["marketing manager", "hr", "legal", "sales", "amazon", "google", "analyst","manager"];
 
-const Recommends = () => {
+const FinalRecommends = () => {
   const router = useRouter();
   const { recentSearches, addSearch, clearSearches, setRecentSearches } = useSearchStore();
   const [showRecommends, setShowRecommends] = useState(true);
@@ -138,4 +138,4 @@ const Recommends = () => {
   );
 };
 
-export default Recommends;
+export default FinalRecommends;
