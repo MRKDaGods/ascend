@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import API from '@/api/api';
 import { 
   Card, 
   Box, 
@@ -211,7 +212,7 @@ const JobCard: React.FC<JobCardProps> = ({
     setIsSaving(true);
     
     try {
-      // Create an object to track only changed fields with proper type
+      // Create an object to track only changed fields
       const changedFields: Record<string, any> = {};
       
       // Compare each field with the original values
@@ -243,21 +244,16 @@ const JobCard: React.FC<JobCardProps> = ({
         setIsSaving(false);
         return;
       }
+
+      // Changed from API.get to API.patch
+      const response = await API.patch(`/job/${job_id}`, changedFields);
       
-      const response = await fetch(`https://api.ascendx.tech/job/${job_id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(changedFields),
-      });
-      
-      if (!response.ok) {
+      if (!response.data) {
         throw new Error(`Failed to update job: ${response.status}`);
       }
       
       // Parse the response to get the updated job data
-      const updatedJobData = await response.json();
+      const updatedJobData = response.data;
       
       // Update the display values with the response
       setDisplayValues({
@@ -272,30 +268,12 @@ const JobCard: React.FC<JobCardProps> = ({
         salary_max_range: updatedJobData.salary_max_range ?? salary_max_range
       });
       
-      // Update the edited job values to match the new display values
-      setEditedJob({
-        title: updatedJobData.title || title,
-        description: updatedJobData.description || description,
-        industry: updatedJobData.industry || industry,
-        type: updatedJobData.type || type,
-        experience_level: updatedJobData.experience_level || experience_level,
-        location: updatedJobData.location || location,
-        workplace_type: updatedJobData.workplace_type || workplace_type,
-        salary_min_range: (updatedJobData.salary_min_range !== null) ? updatedJobData.salary_min_range : '',
-        salary_max_range: (updatedJobData.salary_max_range !== null) ? updatedJobData.salary_max_range : ''
-      });
-      
       // Show success message
       setSuccessMessage('Job details updated successfully!');
       setShowSuccess(true);
       
       // Exit edit mode
       setIsEditMode(false);
-      
-      // Close the modal after a short delay to show success message
-      setTimeout(() => {
-        setDetailsModalOpen(false);
-      }, 1500);
       
     } catch (error) {
       console.error('Error updating job:', error);
@@ -499,7 +477,7 @@ const JobCard: React.FC<JobCardProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 // Pass the title and company as query parameters
-                router.push(`/job/${job_id}/applications?title=${encodeURIComponent(displayValues.title)}&company=${encodeURIComponent(company_name)}&location=${encodeURIComponent(displayValues.location || '')}`);
+                router.push(`/jobs/job/${job_id}`);
               }}
               data-testid="job-card-view-applications"
             >

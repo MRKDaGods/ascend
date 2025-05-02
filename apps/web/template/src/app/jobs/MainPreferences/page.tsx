@@ -15,7 +15,6 @@ import { useProfileStore } from "@/app/stores/useProfileStore";
 const MainPreferencesPage = () => {
   const { setView } = usePreferencesModal();
   const { userData } = useProfileStore();
-  const openToWork = userData?.opentowork;
  
   return (
     <List>
@@ -25,35 +24,10 @@ const MainPreferencesPage = () => {
 
       <ListItem
         component="div"
-        onClick={() => setView("openToWork")}
         sx={{ cursor: "pointer" }}
         aria-label="Open to work preferences"
         secondaryAction={<ArrowForwardIosIcon sx={{ fontSize: 16 }} />}
       >
-        <ListItemText
-          primary={
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              Open to work
-              <Box
-                sx={{
-                  padding: "2px 8px",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  borderRadius: "10px",
-                  backgroundColor: openToWork ? "#d2f2df" : "#e0e0e0",
-                  color: openToWork ? "#1a7f37" : "#616161",
-                }}
-              >
-                {openToWork ? "On" : "Off"}
-              </Box>
-            </Box>
-          }
-          secondary={
-            openToWork
-              ? "Job preferences visible to all LinkedIn members"
-              : "Job preferences are hidden"
-          }
-        />
       </ListItem>
 
       <ListItem

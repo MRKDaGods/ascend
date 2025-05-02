@@ -1,4 +1,5 @@
 "use client";
+import API from "@/api/api"; 
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,10 +63,10 @@ export default function HireCard() {
     setHasMounted(true);
 
     // Fetch companies
-    fetch("https://api.ascendx.tech/company/companies", {
+    API.get("/company/companies", {
       method: "GET",
     })
-      .then((res) => res.json())
+      .then((res) => res.data)
       .then((data) => {
         const companiesData = data?.data?.companies || [];
         setCompanies(companiesData);

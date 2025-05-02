@@ -1,5 +1,7 @@
 'use client';
 
+import API from "@/api/api";
+
 import { useSearchParams } from 'next/navigation';
 import { Typography, Box, Paper, Button, Chip, Grid, Divider, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
@@ -79,11 +81,11 @@ const JobDetails = () => {
     };
 
     try {
-      const response = await fetch(`https://api.ascendx.tech/job/saved/${job.id}`, {
+      const response = await API.post(`/job/saved/${job.id}`, {
         method: 'POST',
       });
 
-      if (!response.ok) {
+      if (!response.data) {
         throw new Error(`Failed to save job: ${response.status}`);
       }
     } catch (error) {
