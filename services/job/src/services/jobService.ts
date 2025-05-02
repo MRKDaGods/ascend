@@ -185,6 +185,27 @@ export const hasUserSavedJob = async (
   }
 };
 
+export const hasUserExceededApplicationLimit = async (
+  userId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT job_applications_per_month, job_applications_limit
+      FROM payment_service.usage
+      WHERE user_id = $1
+    `;
+    const values = [userId];
+    const result = await db.query(query, values);
+    return (
+      result.rows[0].job_applications_per_month >=
+      result.rows[0].job_applications_limit
+    );
+  } catch (error) {
+    console.error("Error checking if user exceeded application limit:", error);
+    throw new Error("Database query failed");
+  }
+};
+
 /**
  * Checks if a user has applied to a specific job
  * @param userId - ID of the user
@@ -552,20 +573,34 @@ export const updateJob = async (
 ): Promise<Job> => {
   try {
     // If only one salary range is provided, fetch the existing job to validate against the other range
-    if ((salary_min_range !== undefined && salary_max_range === undefined) ||
-        (salary_min_range === undefined && salary_max_range !== undefined)) {
+    if (
+      (salary_min_range !== undefined && salary_max_range === undefined) ||
+      (salary_min_range === undefined && salary_max_range !== undefined)
+    ) {
       const existingJobQuery = `SELECT salary_min_range, salary_max_range FROM job_service.jobs WHERE job_id = $1`;
       const existingJobResult = await db.query(existingJobQuery, [jobId]);
 
       const existingJob = existingJobResult.rows[0];
 
       // get the effective min and max range (if one of them is not provided, use the existing one)
-      const effectiveMinRange = (salary_min_range !== undefined) ? salary_min_range : existingJob.salary_min_range;
-      const effectiveMaxRange = (salary_max_range !== undefined) ? salary_max_range : existingJob.salary_max_range;
+      const effectiveMinRange =
+        salary_min_range !== undefined
+          ? salary_min_range
+          : existingJob.salary_min_range;
+      const effectiveMaxRange =
+        salary_max_range !== undefined
+          ? salary_max_range
+          : existingJob.salary_max_range;
 
       // Only validate if both ranges exist (not null)
-      if (effectiveMinRange !== null && effectiveMaxRange !== null && effectiveMinRange > effectiveMaxRange) {
-        throw new Error("Salary minimum range must be less than or equal to salary maximum range");
+      if (
+        effectiveMinRange !== null &&
+        effectiveMaxRange !== null &&
+        effectiveMinRange > effectiveMaxRange
+      ) {
+        throw new Error(
+          "Salary minimum range must be less than or equal to salary maximum range"
+        );
       }
     }
 
@@ -818,6 +853,16 @@ export const submitJobApplication = async (
     // Execute the query to insert the new application
     const result = await db.query(query, values);
 
+    // Increment the job application count for the user
+    const updateQuery = `
+      UPDATE payment_service.usage
+      SET job_applications_per_month = job_applications_per_month + 1
+      WHERE user_id = $1
+    `;
+    const updateValues = [userId];
+    await db.query(updateQuery, updateValues);
+
+    // Return the created application
     return {
       application_id: result.rows[0].application_id,
       user_id: result.rows[0].user_id,

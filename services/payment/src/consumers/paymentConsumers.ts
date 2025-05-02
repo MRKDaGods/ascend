@@ -28,7 +28,7 @@ export const handleGetUserMessagingUsage = async (payload : GetUserUsageMessagin
 
 
     if(payload.update_usage){
-        if(user_usage.messages_per_day < user_usage.messages_per_day_limit){
+        if(user_usage.messages_per_day_limit === -1 || user_usage.messages_per_day < user_usage.messages_per_day_limit){
             await updateUsage(user_id, {messages_per_day : user_usage.messages_per_day + 1});
         }
     }
@@ -53,7 +53,7 @@ export const handleGetUserConnectionsUsage = async (payload : GetUserUsageConnec
     };
 
     if(payload.update_usage){
-        if(user_usage.connections < user_usage.conenctions_limit){
+        if(user_usage.conenctions_limit === -1 || user_usage.connections < user_usage.conenctions_limit){
             await updateUsage(user_id, {connections : user_usage.connections + 1});
         }
     }
@@ -77,7 +77,7 @@ export const handleGetUserJobApplicationsUsage = async (payload : GetUserUsageJo
     };
 
     if(payload.update_usage){
-        if(user_usage.job_applications_per_month < user_usage.job_applications_limit){
+        if(user_usage.job_applications_limit === -1 || user_usage.job_applications_per_month < user_usage.job_applications_limit){
             await updateUsage(user_id, {job_applications_per_month : user_usage.job_applications_per_month + 1})
         }
     }

@@ -32,6 +32,7 @@ import {
   getJobsByCompanyId,
   getJobIdByApplicationId,
   getJobApplicationsByUserId,
+  hasUserExceededApplicationLimit,
 } from "../services/jobService";
 
 /**
@@ -413,6 +414,15 @@ export const handleJobApplication = [
         return res.status(409).json({ error: "Already applied to this job" });
       }
 
+      // Check if the user has exceeded their application limit
+      const hasExceededLimit = await hasUserExceededApplicationLimit(userId);
+      if (hasExceededLimit) {
+        return res.status(403).json({
+          error:
+            "Monthly application limit exceeded for your subscription plan",
+        });
+      }
+
       // Submit the job application
       const jobApplication = await submitJobApplication(
         userId,
@@ -579,7 +589,6 @@ export const handleReportJob = [
       const userId = req.user!.id;
       const jobId = Number(req.params.jobId);
       const reason = req.body.reason;
-
 
       // Check if the job exists
       const jobExists = await isThereJobWithId(jobId);

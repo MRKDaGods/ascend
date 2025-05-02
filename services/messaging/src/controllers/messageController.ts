@@ -11,12 +11,15 @@ import {
   getOtherUserId,
   validateUserInConversation,
   markMessagesAsRead,
+  canSendMessage,
+  isMessageLimitReached,
 } from "../services/messageService";
 
 /**
  * Handles sending a new message
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with the created message data or error
  */
 export const handleSendMessage = [
   ...messageValidationRules,
@@ -38,6 +41,21 @@ export const handleSendMessage = [
         return res.status(400).json({ error: "Message is empty" });
       }
 
+      // Check if the sender can send a message to the receiver
+      const canSend = await canSendMessage(senderId, receiverId);
+      if (!canSend) {
+        return res.status(403).json({ error: "Cannot send message" });
+      }
+
+      // Check if the user has reached the message limit
+      const messageLimitIsReached = await isMessageLimitReached(senderId);
+      if (messageLimitIsReached) {
+        return res.status(403).json({
+          error: "Message limit reached",
+        });
+      }
+
+      // Send the message to the database
       const messageResult = await sendMessage(
         senderId,
         receiverId,
@@ -75,9 +93,10 @@ export const handleSendMessage = [
 ];
 
 /**
- * Handles retrieving the count of unseen messages
+ * Handles retrieving the count of unseen messages for the authenticated user
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with the count of unseen messages or error
  */
 export const handleGetUnseenCount = async (
   req: AuthenticatedRequest,
@@ -94,9 +113,10 @@ export const handleGetUnseenCount = async (
 };
 
 /**
- * Handles retrieving user's conversations
+ * Handles retrieving user's conversations with pagination
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with paginated conversations data or error
  */
 export const handleGetConversations = async (
   req: AuthenticatedRequest,
@@ -117,9 +137,11 @@ export const handleGetConversations = async (
 };
 
 /**
- * Handles retrieving messages for a specific conversation
+ * Handles retrieving messages for a specific conversation with pagination
+ * Also marks messages as read and notifies the other user via WebSocket
  * @param {AuthenticatedRequest} req - The authenticated request object
  * @param {Response} res - The response object
+ * @returns {Promise<Response>} Response with paginated messages data or error
  */
 export const handleGetMessages = async (
   req: AuthenticatedRequest,
