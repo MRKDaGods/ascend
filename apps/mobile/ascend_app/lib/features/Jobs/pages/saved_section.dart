@@ -239,6 +239,17 @@ class SavedPage extends StatelessWidget {
                     GestureDetector(
                       onTap: () async {
                         // Handle Apply button press
+                        if (firstSavedJob.applied) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "You have already applied for this job.",
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
                         if (firstSavedJob.easyapply) {
                           Navigator.push(
                             context,

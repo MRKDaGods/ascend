@@ -9,6 +9,7 @@ class Jobsattributes {
     required this.createdAt, // Date the job was created
     required this.easyapply,
 
+    this.jobID,
     this.isPartTime, // Indicates if job is part-time
     this.isRemote, // Indicates if job is remote
     this.isHybrid, // Indicates if job is hybrid
@@ -19,13 +20,13 @@ class Jobsattributes {
     this.isBookmarked = false,
     this.jobDescription,
     this.applied = false,
-    this.applicationStatus = "Pending", // Default status
+    this.applicationStatus = "", // Default status
     this.alumniCount = 0,
     this.isPromoted = false,
     this.viewed = false,
     this.applicationForm,
   });
-
+  final int? jobID; // Unique identifier for the job
   final bool? isHybrid; // Indicates if job is hybrid
   final bool? isConstruction; // Indicates if job is in construction
   final bool? isEducation; // Indicates if job is in education
@@ -68,6 +69,7 @@ class Jobsattributes {
       isEducation: json['is_education'] as bool? ?? false,
       isSmallBusiness: json['is_small_business'] as bool? ?? false,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      jobID: json['job_id'] as int?,
     );
   }
 }
