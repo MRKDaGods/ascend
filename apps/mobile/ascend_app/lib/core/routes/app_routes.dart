@@ -16,6 +16,8 @@ import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.
 import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
 import 'package:ascend_app/features/startPages/Presentation/Pages/sign_in.dart';
 import 'package:ascend_app/features/home/presentation/pages/saved_posts_page.dart';
+import 'package:ascend_app/shared/navigation/main_navigation.dart'; // Add this import
+
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -90,7 +92,7 @@ class AppRoutes {
       RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
       RouteNames.signOut: (context) => const SignOutPage(),
       RouteNames.mainMessage: (context) => const MainMessagingPage(),
-
+      RouteNames.home: (context) => const MainNavigation(), // Add this line
       RouteNames.savedPosts: (context) => const SavedPostsPage(),
       // Add more routes as needed
     };
