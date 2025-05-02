@@ -16,6 +16,7 @@ class ChatPage extends StatefulWidget {
   final bool isOnline;
   final String myUserId;
   final String? otherUserId;
+  final bool isTyping;
 
   const ChatPage({
     super.key,
@@ -25,6 +26,7 @@ class ChatPage extends StatefulWidget {
     required this.isOnline,
     required this.myUserId,
     this.otherUserId,
+    required this.isTyping,
   });
 
   @override
@@ -58,6 +60,8 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+
+    _updateTypingStatus(widget.isTyping);
 
     // Load Intial messages
     context.read<MessagingBloc>().add(LoadMessages(widget.conversationId));
@@ -110,6 +114,31 @@ class _ChatPageState extends State<ChatPage> {
     context.read<MessagingBloc>().add(LoadMoreMessages(widget.conversationId));
   }
 
+  void _updateTypingStatus(bool isTyping) {
+    if (_isRemoteUserTyping != isTyping) {
+      setState(() {
+        _isRemoteUserTyping = isTyping;
+      });
+
+      debugPrint('[ChatPage] Updated typing status to: $isTyping');
+
+      // Optional: Cancel any existing typing timeout timer
+      _remoteTypingTimer?.cancel();
+
+      // Only set a new timer if typing is true
+      if (isTyping) {
+        _remoteTypingTimer = Timer(Duration(seconds: 3), () {
+          if (mounted) {
+            setState(() {
+              _isRemoteUserTyping = false;
+            });
+            debugPrint('[ChatPage] Typing timeout - reset to false');
+          }
+        });
+      }
+    }
+  }
+
   void _onMessageChange() {
     final isTyping = _messageController.text.isNotEmpty;
 
@@ -148,23 +177,32 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _scrollToBottom({bool animate = true}) {
-    if (!_scrollController.hasClients ||
-        _scrollController.position.maxScrollExtent == 0) {
-      return;
-    }
+    if (!_scrollController.hasClients) return;
 
-    final position = _scrollController.position.maxScrollExtent;
-    if (animate) {
-      _scrollController.animateTo(
-        position,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    } else {
-      _scrollController.jumpTo(position);
-    }
+    // ensure that UI is fully built before scrolling
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients || !mounted) return;
+
+      try {
+        final position = 0.0;
+
+        if (animate) {
+          _scrollController.animateTo(
+            position,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scrollController.jumpTo(position);
+        }
+        debugPrint('[ChatPage] Scrolled to bottom of message list');
+      } catch (e) {
+        debugPrint('[ChatPage] Error scrolling to bottom: $e');
+      }
+    });
   }
 
+  // Send message when the send button is pressed
   void _sendMessage() {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
@@ -241,14 +279,22 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   bool _shouldShowDateSeparator(int messageIndex, List<MessageModel> messages) {
-    if (messageIndex == 0) {
+    // For the first message in display order (oldest), always show date
+    if (messageIndex == messages.length - 1) {
       return true;
     }
 
-    final currentDate = messages[messageIndex].sentAt;
-    final previousDate = messages[messageIndex - 1].sentAt;
+    // For others, compare with previous message
+    if (messageIndex < messages.length - 1) {
+      final currentDate =
+          messages[messageIndex].sentAt.toLocal(); // Convert to local time
+      final nextDate =
+          messages[messageIndex + 1].sentAt.toLocal(); // Convert to local time
 
-    return !DateVerifier.isSameDay(currentDate, previousDate);
+      return !DateVerifier.isSameDay(currentDate, nextDate);
+    }
+
+    return false;
   }
 
   Widget _buildDateSeparator(DateTime date) {
@@ -275,18 +321,40 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+      'DEBUG: [ChatPage] Building ChatPage with conversationId: ${widget.conversationId}',
+    );
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: ChatAppBar(
           userName: widget.converstaionName,
           isOnline: widget.isOnline,
+          isTyping: _isRemoteUserTyping,
           conversationId:
               widget.conversationId, // Pass conversation ID for bloc
+          onBackPressed: () {
+            debugPrint(
+              'Back button pressed , navigating back... and refreshing',
+            );
+            // Clear active conversation
+            sl.dispatchSetActiveConversation('');
+            context.read<MessagingBloc>().add(LoadConversations());
+          },
         ),
       ),
       body: SafeArea(
         child: BlocConsumer<MessagingBloc, MessagingBlocState>(
+          listenWhen: (previous, current) {
+            // Always listen for typing changes for this conversation
+            if (previous is MessagesLoaded &&
+                current is MessagesLoaded &&
+                current.conversationId == widget.conversationId) {
+              return previous.isTyping != current.isTyping ||
+                  previous.messages != current.messages;
+            }
+            return true;
+          },
           listener: (context, state) async {
             // Handle state changes for message loading
             if (state is MessagesLoaded &&
@@ -300,15 +368,15 @@ class _ChatPageState extends State<ChatPage> {
                 _isLoading = false;
                 _isLoadingMore = false;
                 _hasMoreMessages = !state.hasReachedMax;
-                _isRemoteUserTyping =
-                    state.isTyping; // Update remote typing status
               });
 
-              // Auto-scroll logic
+              debugPrint(
+                '[ChatPage] Loaded messages: ${state.messages.length}',
+              );
+
               final bool isNearBottom =
                   _scrollController.hasClients &&
-                  _scrollController.position.maxScrollExtent -
-                          _scrollController.position.pixels <
+                  _scrollController.position.pixels <
                       100; // Check if user is near the bottom
 
               if (state.messages.isNotEmpty &&
@@ -325,20 +393,8 @@ class _ChatPageState extends State<ChatPage> {
                 _scrollToBottom(animate: false);
               }
 
-              // Handle remote typing timer
-              _remoteTypingTimer?.cancel();
-              if (state.isTyping) {
-                _remoteTypingTimer = Timer(Duration(seconds: 5), () {
-                  // Use 5 seconds as planned
-                  if (mounted && _isRemoteUserTyping) {
-                    // If timer fires, assume remote user stopped typing
-                    setState(() {
-                      _isRemoteUserTyping = false;
-                    });
-                    // Optionally, trigger an event if needed:
-                  }
-                });
-              }
+              // Use your method instead
+              _updateTypingStatus(state.isTyping);
             } else if (state is MessagesLoading &&
                 state.conversationId == widget.conversationId) {
               setState(() {
@@ -363,6 +419,7 @@ class _ChatPageState extends State<ChatPage> {
                 state.conversationId == widget.conversationId) {
               currentMessages = state.messages;
             }
+
             return Column(
               children: [
                 // Messages list
@@ -416,9 +473,7 @@ class _ChatPageState extends State<ChatPage> {
                   onCameraPressed: () {
                     debugPrint('Camera button pressed');
                   },
-                  conversationId:
-                      widget
-                          .conversationId, // Pass conversationId to MessageInput
+                  conversationId: widget.conversationId,
                 ),
               ],
             );
@@ -428,43 +483,49 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  // Fix _buildMessagesList to correctly handle reversed ListView
   Widget _buildMessagesList(List<MessageModel> messages) {
     return ListView.builder(
       controller: _scrollController,
       padding: EdgeInsets.all(16),
-      reverse: true, // Newest at the bottom
-      itemCount: messages.length,
+      reverse: true, // Change to false - newest should be at the bottom
+      itemCount: messages.length + (_isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        // Show loading indicator at the bottom when loading more
-        if (_hasMoreMessages && index == messages.length - 1) {
-          return _isLoadingMore
-              ? Container(
-                padding: EdgeInsets.all(8),
-                alignment: Alignment.center,
-                child: SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-              : SizedBox.shrink();
+        // Loading indicator should be at the beginning (top) when loading more
+        if (_isLoadingMore && index == 0) {
+          return Container(
+            padding: EdgeInsets.all(8),
+            alignment: Alignment.center,
+            child: SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
         }
 
-        // Adjust index for reversed list
-        final messageIndex = messages.length - 1 - index;
-        if (messageIndex < 0 || messageIndex >= messages.length) {
+        // Adjust index for loading indicator if present
+        final actualIndex = _isLoadingMore ? index - 1 : index;
+
+        if (actualIndex < 0 || actualIndex >= messages.length) {
           return SizedBox.shrink();
         }
 
-        final message = messages[messageIndex];
+        // We need to reverse the order of the messages list so newest is at the bottom
+        final reversedIndex = messages.length - 1 - actualIndex;
+        final message = messages[reversedIndex];
 
         // Check if we should show date separator
         final bool showDateSeparator = _shouldShowDateSeparator(
-          messageIndex,
+          reversedIndex,
           messages,
         );
 
         return Column(
+          crossAxisAlignment:
+              message.senderId == widget.myUserId
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
           children: [
             // Date separator if needed
             if (showDateSeparator) _buildDateSeparator(message.sentAt),
@@ -482,10 +543,9 @@ class _ChatPageState extends State<ChatPage> {
                       : widget.myUserId,
               senderAvatar:
                   message.senderId == widget.otherUserId
-                      ? widget.conversationAvatar
+                      ? widget.conversationAvatar ?? 'assets/EmptyUser.png'
                       : 'assets/EmptyUser.png',
-              sentOrReceived:
-                  message.senderId == widget.myUserId ? true : false,
+              sentOrReceived: message.senderId == widget.myUserId,
               sentAt: message.sentAt,
               receivedAt: message.sentAt,
               content: message.content,

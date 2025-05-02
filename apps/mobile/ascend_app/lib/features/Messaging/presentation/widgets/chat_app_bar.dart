@@ -1,12 +1,11 @@
-import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatAppBar extends StatefulWidget {
   final String userName;
   final bool isOnline;
   final bool isTyping;
   final String? conversationId;
+  final VoidCallback? onBackPressed;
 
   const ChatAppBar({
     super.key,
@@ -14,6 +13,7 @@ class ChatAppBar extends StatefulWidget {
     this.isOnline = false,
     this.isTyping = false,
     this.conversationId,
+    this.onBackPressed,
   });
 
   @override
@@ -44,6 +44,27 @@ class _ChatAppBarState extends State<ChatAppBar>
     _typingAnimationController.dispose();
     // Call super.dispose() last
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(ChatAppBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if typing status has changed
+    if (oldWidget.isTyping != widget.isTyping) {
+      debugPrint('[ChatAppBar] Typing status changed: ${widget.isTyping}');
+
+      if (widget.isTyping) {
+        // Start or continue animation
+        if (!_typingAnimationController.isAnimating) {
+          _typingAnimationController.repeat();
+        }
+      } else {
+        // Stop animation
+        _typingAnimationController.stop();
+        _typingAnimationController.reset();
+      }
+    }
   }
 
   void _toggleStar() {
@@ -202,87 +223,66 @@ class _ChatAppBarState extends State<ChatAppBar>
 
   @override
   Widget build(BuildContext context) {
-    // check if conversation is active and someone's typing using Bloc
-    bool isRemoteTyping = widget.isTyping;
+    // Remove this local variable and use widget.isTyping directly
+    // bool isRemoteTyping = widget.isTyping;
+    debugPrint('[ChatAppBar] Building with isTyping=${widget.isTyping}');
 
-    return BlocBuilder<MessagingBloc, MessagingBlocState>(
-      buildWhen: (previous, current) {
-        // Only rebuild when this conversation's typing status changes
-        if (widget.conversationId != null &&
-            current is MessagesLoaded &&
-            current.conversationId == widget.conversationId) {
-          return true;
-        }
-        return false;
-      },
-      builder: (context, state) {
-        // Update typing status if available in state
-        if (mounted &&
-            widget.conversationId != null && // Add mounted check
-            state is MessagesLoaded &&
-            state.conversationId == widget.conversationId) {
-          isRemoteTyping = state.isTyping;
-        }
-
-        return AppBar(
-          elevation: 1,
-          leadingWidth: 32,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.black87,
-              size: 20,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: Row(
+    return AppBar(
+      elevation: 1,
+      leadingWidth: 32,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
+        onPressed: () {
+          if (widget.onBackPressed != null) {
+            widget.onBackPressed!();
+          }
+          Navigator.pop(context);
+        },
+      ),
+      title: Row(
+        children: [
+          // User name and status
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User name and status
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.userName,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-
-                  // Status text - typing or online
-                  isRemoteTyping
-                      ? _buildTypingIndicator()
-                      : widget.isOnline
-                      ? Text(
-                        'Active now',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      )
-                      : const SizedBox.shrink(),
-                ],
+              Text(
+                widget.userName,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
+
+              // Status text - typing or online
+              widget.isTyping
+                  ? _buildTypingIndicator()
+                  : widget.isOnline
+                  ? Text(
+                    'Active now',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  )
+                  : const SizedBox.shrink(),
             ],
           ),
-          centerTitle: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.more_horiz, color: Colors.black87),
-              onPressed: () {
-                showOptionsModal(context);
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.star,
-                color: starClicked ? const Color(0xFFD4AF37) : Colors.grey,
-              ),
-              onPressed: _toggleStar,
-            ),
-          ],
-        );
-      },
+        ],
+      ),
+      centerTitle: false,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.more_horiz, color: Colors.black87),
+          onPressed: () {
+            showOptionsModal(context);
+          },
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.star,
+            color: starClicked ? const Color(0xFFD4AF37) : Colors.grey,
+          ),
+          onPressed: _toggleStar,
+        ),
+      ],
     );
   }
 

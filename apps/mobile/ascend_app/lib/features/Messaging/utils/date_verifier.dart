@@ -1,3 +1,5 @@
+import 'package:flutter/widgets.dart';
+
 class DateVerifier {
   /// Checks if a date is today
   static bool isToday(DateTime date) {
@@ -17,9 +19,10 @@ class DateVerifier {
 
   /// Gets a formatted string for a date based on how recent it is
   static String getFormattedDateString(DateTime date) {
-    if (isToday(date)) {
+    final localDate = date.toLocal();
+    if (isToday(localDate)) {
       return 'TODAY';
-    } else if (isYesterday(date)) {
+    } else if (isYesterday(localDate)) {
       return 'YESTERDAY';
     } else {
       // Format for other dates (e.g., "APR 25")
@@ -37,17 +40,19 @@ class DateVerifier {
         'NOV',
         'DEC',
       ];
-      return '${months[date.month - 1]} ${date.day}';
+      return '${months[date.month - 1]} ${localDate.day}';
     }
   }
 
   /// Formats time in 12-hour format (e.g., "5:20am")
   static String formatTime(DateTime time) {
-    final hour =
-        time.hour > 12 ? time.hour - 12 : (time.hour == 0 ? 12 : time.hour);
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.hour >= 12 ? 'pm' : 'am';
-    return '$hour:$minute$period';
+    // Convert to local time zone before formatting
+    final localDate = time.toLocal();
+
+    // Debug logging to see the time conversion
+    debugPrint('Original UTC time: $time');
+    // Format using local time
+    return '${localDate.hour % 12}:${localDate.minute.toString().padLeft(2, '0')}${localDate.hour >= 12 ? 'pm' : 'am'}';
   }
 
   /// Checks if a message has been read

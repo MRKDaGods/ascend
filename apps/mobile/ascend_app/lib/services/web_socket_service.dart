@@ -40,9 +40,9 @@ class WebSocketService {
       _connectionStatusController.stream;
 
   // Stream Controller for typing events
-  final StreamController<Map<String, bool>> _typingStatusController =
+  final StreamController<Map<String, String>> _typingStatusController =
       StreamController.broadcast();
-  Stream<Map<String, bool>> get typingStatusStream =>
+  Stream<Map<String, String>> get typingStatusStream =>
       _typingStatusController.stream;
 
   // Stream controller for read receipts
@@ -288,44 +288,54 @@ class WebSocketService {
   // Handle typing events
   void _handleTypingEvent(dynamic data) {
     try {
+      debugPrint(
+        '[WebSocket] Received typing event raw data: $data (${data.runtimeType})',
+      );
       String? conversationId;
 
-      // Handle different data formats
-      if (data is Map<String, dynamic>) {
-        conversationId = data['conversationId']?.toString();
-      } else if (data is Map) {
-        conversationId = data['conversationId']?.toString();
+      // Extract conversationId from various formats
+      if (data is Map) {
+        if (data.containsKey('conversationId')) {
+          conversationId = data['conversationId']?.toString();
+        } else if (data.keys.isNotEmpty) {
+          // For format like {10: 10} or {10: null}
+          conversationId = data.keys.first.toString();
+        }
       } else if (data is String) {
         // Try to parse as JSON
         try {
           final parsed = jsonDecode(data);
-          conversationId = parsed['conversationId']?.toString();
+          if (parsed is Map) {
+            if (parsed.containsKey('conversationId')) {
+              conversationId = parsed['conversationId']?.toString();
+            } else if (parsed.keys.isNotEmpty) {
+              conversationId = parsed.keys.first.toString();
+            }
+          } else {
+            // Direct value
+            conversationId = data;
+          }
         } catch (_) {
+          // Use as-is if not valid JSON
           conversationId = data;
         }
+      } else if (data != null) {
+        // Fallback for any other type
+        conversationId = data.toString();
       }
 
       if (conversationId == null || conversationId.isEmpty) {
-        debugPrint('Invalid typing event data: $data');
+        debugPrint('[WebSocket] Invalid typing event data: $data');
         return;
       }
 
-      final DateTime now = DateTime.now();
-      _typingUsers[conversationId] = now;
-
-      // Auto-expire typing indicator after 3 seconds
-      Future.delayed(Duration(seconds: 3), () {
-        final lastTypingTime = _typingUsers[conversationId];
-        if (lastTypingTime != null && lastTypingTime == now) {
-          _typingUsers.remove(conversationId);
-          _typingStatusController.add({'conversationId': false});
-        }
-      });
-
-      // Broadcast typing event locally
-      _typingStatusController.add({conversationId: true});
-    } catch (e) {
-      debugPrint('Error handling typing event: $e');
+      _typingStatusController.add({'conversationId': conversationId});
+      debugPrint(
+        '[WebSocket] Broadcasting typing event for conversation: $conversationId',
+      );
+    } catch (e, stack) {
+      debugPrint('[WebSocket] Error handling typing event: $e');
+      debugPrint(stack.toString());
     }
   }
 
