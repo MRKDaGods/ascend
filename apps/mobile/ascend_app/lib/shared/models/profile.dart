@@ -573,6 +573,7 @@ class Profile {
     ContactInfo? contactInfo,
   }) {
     return Profile(
+      // ignore: unnecessary_this
       userId: userId ?? this.userId,
       additionalName: additionalName ?? this.additionalName,
       resumeUrl: resumeUrl ?? this.resumeUrl,
