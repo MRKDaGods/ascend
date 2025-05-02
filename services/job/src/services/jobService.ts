@@ -325,6 +325,7 @@ export const searchJobs = async ({
 
     if (conditions.length > 0) {
       query += " AND " + conditions.join(" AND ");
+      countQuery += " AND " + conditions.join(" AND ");
     }
 
     // Execute count query to get total records
