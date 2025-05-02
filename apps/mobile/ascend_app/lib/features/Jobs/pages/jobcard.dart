@@ -3,6 +3,8 @@ import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 
+import 'package:ascend_app/features/Jobs/pages/report_page.dart';
+
 Widget jobCard({
   required BuildContext context, // Added BuildContext parameter
   required Jobsattributes job,
@@ -202,13 +204,23 @@ Widget jobCard({
               ),
             ),
 
-            // Close Button
+            // Replace the "x" button with a "Feedback" button
             GestureDetector(
-              onTap:
-                  () => onRemove(
-                    job,
-                  ), // Trigger the callback when the "x" button is pressed
-              child: Icon(Icons.close),
+              onTap: () {
+                if (job.jobID != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReportPage(jobId: job.jobID!),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Job ID is not available.')),
+                  );
+                }
+              },
+              child: Icon(Icons.report, color: Colors.red),
             ),
           ],
         ),
