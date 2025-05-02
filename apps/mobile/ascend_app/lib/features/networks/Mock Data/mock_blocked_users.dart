@@ -12,32 +12,28 @@ class MockBlockedUsers {
       first_name: 'Chris',
       last_name: 'Evans',
       profile_image_id: 'assets/EmptyUser.png',
-      bio: 'Actor and Producer',
-      blockedAt: DateTime.now().subtract(const Duration(days: 60)),
+      blocked_at: DateTime.now().subtract(const Duration(days: 60)),
     ),
     BlockedUser(
       user_id: '32',
       first_name: 'Scarlett',
       last_name: 'Johansson',
       profile_image_id: 'assets/EmptyUser.png',
-      bio: 'Engineer at Google',
-      blockedAt: DateTime.now().subtract(const Duration(days: 45)),
+      blocked_at: DateTime.now().subtract(const Duration(days: 45)),
     ),
     BlockedUser(
       user_id: '33',
       first_name: 'Robert',
       last_name: 'Downey Jr.',
       profile_image_id: 'assets/EmptyUser.png',
-      bio: 'Software Engineer at Microsoft',
-      blockedAt: DateTime.now().subtract(const Duration(days: 30)),
+      blocked_at: DateTime.now().subtract(const Duration(days: 30)),
     ),
     BlockedUser(
       user_id: '34',
       first_name: 'Chris',
       last_name: 'Hemsworth',
       profile_image_id: 'assets/EmptyUser.png',
-      bio: 'Data Scientist at Amazon',
-      blockedAt: DateTime.now().subtract(const Duration(days: 20)),
+      blocked_at: DateTime.now().subtract(const Duration(days: 20)),
     ),
   ];
 
@@ -79,8 +75,7 @@ class MockBlockedUsers {
         first_name: firstName,
         last_name: lastName,
         profile_image_id: profileImageId,
-        bio: bio,
-        blockedAt: DateTime.now(),
+        blocked_at: DateTime.now(),
       ),
     );
 

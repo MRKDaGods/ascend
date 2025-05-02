@@ -73,9 +73,13 @@ class Connections extends StatelessWidget {
 
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage(
-                              connection.profile_image_id!,
-                            ),
+                            backgroundImage:
+                                connection.profile_image_id != null
+                                    ? NetworkImage(connection.profile_image_id!)
+                                    : const AssetImage(
+                                          'assets/images/default_profile.png',
+                                        )
+                                        as ImageProvider,
                           ),
                           title: Text(
                             '${connection.first_name} ${connection.last_name}',
@@ -94,7 +98,7 @@ class Connections extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'connected on ${connection.connectedAt}',
+                                'connected on ${connection.connected_at}',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
@@ -173,7 +177,10 @@ class Connections extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             onTap: () {
-              Navigator.pop(context); // Close the modal
+              Future.delayed(Duration.zero, () {
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+              });
               onRemove(requestId); // Call the remove function
             },
           ),
