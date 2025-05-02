@@ -1,5 +1,6 @@
 import 'dart:convert'; // Import for jsonDecode
 import 'dart:io'; // Import for File
+import 'package:ascend_app/core/routes/app_routes.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart'; // Import PostBloc
 import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart'; // Import PostEvent
 import 'package:ascend_app/features/home/models/post_model.dart'; // Import PostModel
@@ -605,7 +606,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(context).pushReplacementNamed(RouteNames.home),
         ),
         title: BlocBuilder<UserProfileBloc, UserProfileState>(
           builder: (context, state) {
