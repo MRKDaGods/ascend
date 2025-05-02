@@ -1,7 +1,7 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ascend_app/features/networks/model/location_model.dart';
 import 'package:ascend_app/features/networks/repositories/location_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'location_search_event.dart';
 part 'location_search_state.dart';

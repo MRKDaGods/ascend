@@ -3,7 +3,7 @@ import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 
 class RecommendedToFollow extends StatefulWidget {
-  final String Message;
+  final String message;
   final List<UserSuggestedtoFollow> users;
   final Function(String) onSentMessageRequest;
   final Function(String) onFollow;
@@ -12,7 +12,7 @@ class RecommendedToFollow extends StatefulWidget {
 
   const RecommendedToFollow({
     super.key,
-    required this.Message,
+    required this.message,
     required this.users,
     required this.onSentMessageRequest,
     required this.onFollow,
@@ -21,7 +21,7 @@ class RecommendedToFollow extends StatefulWidget {
   });
 
   @override
-  _RecommendedToFollowState createState() => _RecommendedToFollowState();
+  State<RecommendedToFollow> createState() => _RecommendedToFollowState();
 }
 
 class _RecommendedToFollowState extends State<RecommendedToFollow> {

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/utils/search_filter.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/company_search/bloc/company_search_bloc.dart';
 import 'package:ascend_app/features/networks/pages/current_company_searching.dart';
 import 'package:ascend_app/features/networks/widgets/filter_modal.dart';
 import 'package:ascend_app/features/networks/model/company_model.dart';
-import 'package:ascend_app/features/networks/Repositories/company_repository.dart';
 
 class CompanyButtonsWidget extends StatefulWidget {
   final List<CompanyModel> companies;
@@ -202,6 +200,7 @@ Widget _buildModalContent(
                     // Delay showing the filter modal to avoid animation issues
                     Future.delayed(
                       const Duration(milliseconds: 0),
+                      // ignore: use_build_context_synchronously
                       () => showFilterModal(context),
                     );
                   },
@@ -309,6 +308,7 @@ void _navigateToCompanySearch(
 
   // Small delay to ensure the animation completes
   Future.delayed(const Duration(milliseconds: 100), () {
+    // ignore: use_build_context_synchronously
     Navigator.of(context).push(
       MaterialPageRoute(
         builder:

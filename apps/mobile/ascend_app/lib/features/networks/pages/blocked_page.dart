@@ -1,5 +1,4 @@
 import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
 import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +14,6 @@ class _BlockedPageState extends State<BlockedPage> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   int _currentPage = 1;
-  final int _pageSize = 10;
 
   @override
   void initState() {

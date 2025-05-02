@@ -19,7 +19,7 @@ class PeopleToFollow extends StatefulWidget {
     required this.showAll,
   });
   @override
-  _PeopleToFollowState createState() => _PeopleToFollowState();
+  State<PeopleToFollow> createState() => _PeopleToFollowState();
 }
 
 class _PeopleToFollowState extends State<PeopleToFollow> {

@@ -1,34 +1,31 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/ChatAppBar.dart';
+import 'package:ascend_app/features/Messaging/presentation/widgets/chat_app_bar.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/chat_box.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/Messages_Input.dart';
+import 'package:ascend_app/features/Messaging/presentation/widgets/messages_input.dart';
 import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
 import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
-import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
-import 'package:provider/provider.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
   final String converstaionName;
-  final String conversationAvatar;
+  final String? conversationAvatar;
   final bool isOnline;
   final String myUserId;
   final String? otherUserId;
 
   const ChatPage({
-    Key? key,
+    super.key,
     required this.conversationId,
     required this.converstaionName,
     required this.conversationAvatar,
     required this.isOnline,
     required this.myUserId,
     this.otherUserId,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -40,12 +37,9 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
 
   //List<MessageModel> _messages = [];
-  int _lastKnownMessageCount = 0;
 
   // Keep track of messages count in the UI
   // Pagination variables
-  static const int _pageSize = 20;
-  int _page = 0;
   bool _isLoading = false;
   bool _hasMoreMessages = true;
   bool _isLoadingMore = false;
@@ -103,25 +97,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _handleRemoteTypingStatusChanged(bool isTyping) {
-    // Update UI when server notifies that remote user is typing
-    setState(() {
-      _isRemoteUserTyping = isTyping;
-    });
-
-    // Auto-reset typing indicator after timeout if no updates received
-    if (isTyping) {
-      _remoteTypingTimer?.cancel();
-      _remoteTypingTimer = Timer(Duration(seconds: 5), () {
-        if (mounted) {
-          setState(() {
-            _isRemoteUserTyping = false;
-          });
-        }
-      });
-    }
-  }
-
   void _loadMoreMessages() {
     if (_isLoadingMore || !_hasMoreMessages || _isLoading) return;
 
@@ -174,8 +149,9 @@ class _ChatPageState extends State<ChatPage> {
 
   void _scrollToBottom({bool animate = true}) {
     if (!_scrollController.hasClients ||
-        _scrollController.position.maxScrollExtent == 0)
+        _scrollController.position.maxScrollExtent == 0) {
       return;
+    }
 
     final position = _scrollController.position.maxScrollExtent;
     if (animate) {
@@ -326,8 +302,6 @@ class _ChatPageState extends State<ChatPage> {
                 _hasMoreMessages = !state.hasReachedMax;
                 _isRemoteUserTyping =
                     state.isTyping; // Update remote typing status
-                _lastKnownMessageCount =
-                    state.messages.length; // Update message count
               });
 
               // Auto-scroll logic

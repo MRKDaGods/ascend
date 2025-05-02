@@ -1,3 +1,3 @@
-enum ConnectionRequestReceivedFilterMode { All, Newsletter, People }
+enum ConnectionRequestReceivedFilterMode { all, newsletter, people }
 
-enum ConnectionRequestSentFilterMode { People, Pages, Events }
+enum ConnectionRequestSentFilterMode { people, pages, events }

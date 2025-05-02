@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
-import 'package:ascend_app/features/networks/pages/followers_of_searching.dart';
 
-Widget? printfollowersOfSearching(
-  List<String> followersOfSearching,
-  void Function(String) onfollowersOfSearchingRemoved,
+Widget? printopenToSearching(
+  List<String> openToSearching,
+  void Function(String) onopenToSearchingRemoved,
 ) {
-  return followersOfSearching.isNotEmpty
+  return openToSearching.isNotEmpty
       ? Padding(
         padding: EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
-            followersOfSearching.length == 1
+            openToSearching.length == 1
                 ? Text(
-                  followersOfSearching[0],
+                  openToSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -23,7 +19,7 @@ Widget? printfollowersOfSearching(
                   ),
                 )
                 : Text(
-                  "${followersOfSearching[0]} and ${followersOfSearching.length - 1} more",
+                  "${openToSearching[0]} and ${openToSearching.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -35,7 +31,7 @@ Widget? printfollowersOfSearching(
               icon: Icon(Icons.close, color: Colors.blue[600]),
               tooltip: "delete",
               onPressed: () {
-                onfollowersOfSearchingRemoved('followersOfSearching');
+                onopenToSearchingRemoved('openTo');
               },
             ),
           ],
@@ -44,35 +40,32 @@ Widget? printfollowersOfSearching(
       : null;
 }
 
-Widget buildFollowersOfList(
-  List<String> followersOfSearching,
-  void Function(String) onfollowersOfSearchingRemoved,
+Widget buildopenToList(
+  List<String> openToSearching,
+  void Function(String) onopenToSearchingRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      Navigator.push(
+      /*Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (_) => BlocProvider.value(
                 value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: FollowersOfSearching(),
+                child: IndustrySearching(),
               ),
         ),
-      );
+      );*/
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
-      'Followers of',
+      'Open To',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     ),
-    subtitle: printfollowersOfSearching(
-      followersOfSearching,
-      onfollowersOfSearchingRemoved,
-    ),
+    subtitle: printopenToSearching(openToSearching, onopenToSearchingRemoved),
     trailing: Text(
-      followersOfSearching.isNotEmpty ? 'Edit' : 'Any',
+      openToSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

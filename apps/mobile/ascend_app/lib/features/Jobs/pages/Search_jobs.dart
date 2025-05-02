@@ -20,7 +20,7 @@ class SearchJobsPage extends StatefulWidget {
   final String locationtext;
 
   @override
-  _SearchJobsPageState createState() => _SearchJobsPageState();
+  State<SearchJobsPage> createState() => _SearchJobsPageState();
 }
 
 class _SearchJobsPageState extends State<SearchJobsPage> {
@@ -163,18 +163,18 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       'https://api.ascendx.tech/job/search?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page',
     );
 
-    print('Fetching data from: $url');
+    debugPrint('Fetching data from: $url');
 
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      print('Response body: ${response.body}');
+      debugPrint('Response body: ${response.body}');
 
       if (response.body.isNotEmpty) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         if (jsonResponse.containsKey('data')) {
           final List<dynamic> jobData = jsonResponse['data'];
-          print('Job data received: $jobData');
+          debugPrint('Job data received: $jobData');
 
           if (jobData.isNotEmpty) {
             setState(() {
@@ -184,7 +184,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                         try {
                           return Jobsattributes.fromJson(data);
                         } catch (e) {
-                          print('Error parsing job data: $e');
+                          debugPrint('Error parsing job data: $e');
                           return null;
                         }
                       })
@@ -208,7 +208,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         });
       }
     } else {
-      print('Request failed with status: ${response.statusCode}');
+      debugPrint('Request failed with status: ${response.statusCode}');
     }
   }
 
@@ -287,9 +287,6 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
 
   void updateFilters(List<String> selectedFilters, String filterName) {
     setState(() {
-      // Ensure selectedFilters is not null
-      selectedFilters = selectedFilters ?? [];
-
       // Determine added and removed filters
       if (filterName.toLowerCase() == 'experience level') {
         experienceLevels = selectedFilters;

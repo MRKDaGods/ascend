@@ -1,6 +1,6 @@
-import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/forget_password.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/reset_password_page.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/verification_password_code_page.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
@@ -14,7 +14,7 @@ import 'package:ascend_app/features/notifications/presentation/pages/notificatio
 import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
 import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
-import 'package:ascend_app/features/startPages/Presentation/Pages/SignIn.dart';
+import 'package:ascend_app/features/startPages/Presentation/Pages/sign_in.dart';
 import 'package:ascend_app/features/home/presentation/pages/saved_posts_page.dart';
 // Import other page files as needed
 

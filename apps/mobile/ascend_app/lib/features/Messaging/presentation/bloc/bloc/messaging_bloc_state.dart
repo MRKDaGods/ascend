@@ -1,9 +1,11 @@
 part of 'messaging_bloc_bloc.dart';
 
-@immutable
-sealed class MessagingBlocState {}
+abstract class MessagingBlocState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
-final class MessagingBlocInitial extends MessagingBlocState {}
+class MessagingBlocInitial extends MessagingBlocState {}
 
 class MessagingLoading extends MessagingBlocState {}
 

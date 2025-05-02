@@ -7,7 +7,7 @@ import 'profile_entry.dart';
 import 'package:ascend_app/shared/models/profile.dart';
 
 class ProfileButtons extends StatelessWidget {
-  ProfileButtons({
+  const ProfileButtons({
     required this.isConnect,
     required this.isfollowing,
     required this.isPending,

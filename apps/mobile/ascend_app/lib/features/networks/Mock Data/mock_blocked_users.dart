@@ -2,6 +2,7 @@ import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_connected_users.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_followed_users.dart';
 import 'package:ascend_app/features/networks/Mock Data/mock_connection_requests.dart';
+import 'package:flutter/material.dart';
 
 class MockBlockedUsers {
   // In-memory list to maintain blocked users (simulating a database)
@@ -96,12 +97,12 @@ class MockBlockedUsers {
       userId,
     );
 
-    print('User $userId ($firstName $lastName) has been blocked');
+    debugPrint('User $userId ($firstName $lastName) has been blocked');
   }
 
   static void unblockUser(String userId) {
     _blockedUsers.removeWhere((user) => user.user_id == userId);
-    print('User $userId has been unblocked');
+    debugPrint('User $userId has been unblocked');
   }
 
   // For testing: get direct access to the list

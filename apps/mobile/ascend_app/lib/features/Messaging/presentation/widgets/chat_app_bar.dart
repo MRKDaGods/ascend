@@ -1,7 +1,5 @@
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatAppBar extends StatefulWidget {
@@ -11,38 +9,21 @@ class ChatAppBar extends StatefulWidget {
   final String? conversationId;
 
   const ChatAppBar({
-    Key? key,
+    super.key,
     required this.userName,
     this.isOnline = false,
     this.isTyping = false,
     this.conversationId,
-  }) : super(key: key);
+  });
 
   @override
-  _ChatAppBarState createState() => _ChatAppBarState();
+  State<ChatAppBar> createState() => _ChatAppBarState();
 }
 
 class _ChatAppBarState extends State<ChatAppBar>
     with SingleTickerProviderStateMixin {
   late AnimationController _typingAnimationController;
-  late Animation<double> _typingAnimation;
   bool starClicked = false;
-
-  // Add this to cache the bloc
-  MessagingBloc? _cachedBloc;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Cache the bloc early
-    if (mounted) {
-      try {
-        _cachedBloc = BlocProvider.of<MessagingBloc>(context);
-      } catch (e) {
-        debugPrint('Error getting bloc in ChatAppBar: $e');
-      }
-    }
-  }
 
   @override
   void initState() {
@@ -53,11 +34,6 @@ class _ChatAppBarState extends State<ChatAppBar>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     )..repeat();
-
-    _typingAnimation = CurvedAnimation(
-      parent: _typingAnimationController,
-      curve: Curves.easeInOut,
-    );
   }
 
   @override
@@ -204,95 +180,6 @@ class _ChatAppBarState extends State<ChatAppBar>
     );
   }
 
-  void _showReportBlockDialog(BuildContext context) {
-    if (!mounted) return; // Add mounted check
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Report or Block User'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.report),
-                title: Text('Report inappropriate content'),
-                onTap: () {
-                  Navigator.pop(context);
-                  if (widget.conversationId != null) {
-                    /*
-                    context.read<MessagingBloc>().add(
-                      ReportUser(widget.conversationId!)
-                    );
-                    */
-                  }
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.block),
-                title: Text('Block user'),
-                onTap: () {
-                  Navigator.pop(context);
-                  /*
-                  if (widget.conversationId != null) {
-                    context.read<MessagingBloc>().add(
-                      BlockUser(widget.conversationId!)
-                    );
-                  }*/
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showDeleteConfirmation(BuildContext context) {
-    if (!mounted) return; // Add mounted check
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Conversation'),
-          content: Text(
-            'Are you sure you want to delete this conversation? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            TextButton(
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.pop(context);
-                /*if (widget.conversationId != null) {
-                  context.read<MessagingBloc>().add(
-                    DeleteConversation(widget.conversationId!)
-                  );
-                  Navigator.pop(context); // Return to conversation list
-                }*/
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildModalOption({
     required IconData icon,
     required String label,
@@ -320,9 +207,6 @@ class _ChatAppBarState extends State<ChatAppBar>
 
     return BlocBuilder<MessagingBloc, MessagingBlocState>(
       buildWhen: (previous, current) {
-        if (!mounted)
-          return false; // Add this line to prevent rebuilds after unmounting
-
         // Only rebuild when this conversation's typing status changes
         if (widget.conversationId != null &&
             current is MessagesLoaded &&

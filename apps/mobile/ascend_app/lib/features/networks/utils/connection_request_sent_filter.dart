@@ -9,7 +9,7 @@ Widget buildSent(
   ConnectionRequestSentFilterMode filterMode,
 ) {
   switch (filterMode) {
-    case ConnectionRequestSentFilterMode.People:
+    case ConnectionRequestSentFilterMode.people:
       return Expanded(
         child: ListView.builder(
           itemCount: pendingConnectionRequests.length,
@@ -60,7 +60,7 @@ Widget buildSent(
           },
         ),
       );
-    case ConnectionRequestSentFilterMode.Pages:
+    case ConnectionRequestSentFilterMode.pages:
       return Center(
         child: Text(
           'No Invitations Sent',
@@ -71,7 +71,7 @@ Widget buildSent(
           ),
         ),
       );
-    case ConnectionRequestSentFilterMode.Events:
+    case ConnectionRequestSentFilterMode.events:
       return Center(
         child: Text(
           'No Invitations Sent',
@@ -82,8 +82,5 @@ Widget buildSent(
           ),
         ),
       );
-
-    default:
-      return const SizedBox.shrink();
   }
 }

@@ -6,7 +6,6 @@ import 'package:ascend_app/features/profile/models/user_profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/post_bloc/post_bloc.dart';
-import '../../bloc/post_bloc/post_event.dart';
 import '../../bloc/post_bloc/post_state.dart';
 import '../../models/post_model.dart';
 import 'package:ascend_app/features/home/managers/reaction_manager.dart';
@@ -41,7 +40,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     // Dispatch LoadComments when the page initializes
     // Use addPostFrameCallback to ensure context is available
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) { // Check if the widget is still in the tree
+      if (mounted) {
+        // Check if the widget is still in the tree
         // Check if comments are already loaded or partially loaded to avoid redundant calls (optional)
         final currentState = context.read<PostBloc>().state;
         bool shouldLoad = true;
@@ -49,15 +49,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
           final post = currentState.getPostById(widget.postId);
           // Example: Only load if comments list is empty
           if (post != null && post.comments.isNotEmpty) {
-             debugPrint('🔄 [PostDetailPage] Comments already present for post ${widget.postId}. Skipping initial LoadComments.');
-             shouldLoad = false;
+            debugPrint(
+              '🔄 [PostDetailPage] Comments already present for post ${widget.postId}. Skipping initial LoadComments.',
+            );
+            shouldLoad = false;
           }
         }
 
         if (shouldLoad) {
-           debugPrint('🔄 [PostDetailPage] Dispatching initial LoadComments for post ${widget.postId}');
-           // Remove page and limit parameters
-           context.read<PostBloc>().add(LoadComments(widget.postId));
+          debugPrint(
+            '🔄 [PostDetailPage] Dispatching initial LoadComments for post ${widget.postId}',
+          );
+          // Remove page and limit parameters
+          context.read<PostBloc>().add(LoadComments(widget.postId));
         }
       }
     });
@@ -86,9 +90,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
 
     // Determine the current saved status reliably
-    final bool isCurrentlySaved = currentPost.isSaved; // Directly use the boolean
-    debugPrint("Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from PostDetailPage");
-
+    final bool isCurrentlySaved =
+        currentPost.isSaved; // Directly use the boolean
+    debugPrint(
+      "Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from PostDetailPage",
+    );
 
     SheetHelpers.showPostOptionsSheet(
       context: context,
@@ -99,7 +105,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
       showNotInterested: true,
       showUnfollow: true, // Add logic if needed
       showReport: false, // --- MODIFICATION: Hide report option ---
-      showMessage: false, // Assuming messaging isn't direct from post detail options
+      showMessage:
+          false, // Assuming messaging isn't direct from post detail options
       reportText: 'Report Post',
       // --- MODIFICATION START ---
       // onSave should only handle saving
@@ -109,9 +116,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
         // --- MODIFICATION END ---
         postBloc.add(SavePost(post.id));
         debugPrint("[PostDetailPage] Dispatching SavePost for ${post.id}");
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Post saved'), duration: Duration(seconds: 1)),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post saved'),
+            duration: Duration(seconds: 1),
+          ),
+        );
       },
       // Add the required onUnsave callback
       onUnsave: () {
@@ -120,9 +130,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
         // --- MODIFICATION END ---
         postBloc.add(UnsavePost(post.id));
         debugPrint("[PostDetailPage] Dispatching UnsavePost for ${post.id}");
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post unsaved'),
+            duration: Duration(seconds: 1),
+          ),
+        );
       },
       // --- MODIFICATION END ---
       onShare: () {
@@ -153,153 +166,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
       // onReport: () { ... },
       // Add other required callbacks if SheetHelpers needs them, e.g.:
       onMessage: () {
-         Navigator.pop(context);
-         // Implement message logic if needed
-      },
-    );
-  }
-
-  void _showReportReasonDialog(BuildContext context, String postId) {
-    String selectedReason = 'other'; // Default to 'other'
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        // Use StatefulBuilder to manage the state within the dialog
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Report Post'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Text('Please select a reason for reporting:'),
-                  ListTile(
-                    title: const Text('Harassment'),
-                    leading: Radio<String>(
-                      value: 'harassment', // Use backend value
-                      groupValue: selectedReason,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedReason = value;
-                          });
-                        }
-                      },
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedReason = 'harassment'; // Use backend value
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Violence'),
-                    leading: Radio<String>(
-                      value: 'violence', // Use backend value
-                      groupValue: selectedReason,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedReason = value;
-                          });
-                        }
-                      },
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedReason = 'violence'; // Use backend value
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Hate Speech'),
-                    leading: Radio<String>(
-                      value: 'hate_speech', // Use backend value
-                      groupValue: selectedReason,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedReason = value;
-                          });
-                        }
-                      },
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedReason = 'hate_speech'; // Use backend value
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Misinformation'),
-                    leading: Radio<String>(
-                      value: 'misinformation', // Use backend value
-                      groupValue: selectedReason,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedReason = value;
-                          });
-                        }
-                      },
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedReason = 'misinformation'; // Use backend value
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Other'),
-                    leading: Radio<String>(
-                      value: 'other', // Use backend value
-                      groupValue: selectedReason,
-                      onChanged: (String? value) {
-                        if (value != null) {
-                          setState(() {
-                            selectedReason = value;
-                          });
-                        }
-                      },
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedReason = 'other'; // Use backend value
-                      });
-                    },
-                  ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                ),
-                TextButton(
-                  child: const Text('Submit Report'),
-                  onPressed: () {
-                    // Dispatch the event with the selected backend-valid reason
-                    BlocProvider.of<PostBloc>(
-                      context,
-                    ).add(ReportPost(postId, selectedReason));
-                    debugPrint(
-                      "[PostDetailPage] Dispatching ReportPost for $postId with reason: $selectedReason",
-                    );
-                    Navigator.of(dialogContext).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Post reported. Thank you.'),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
-        );
+        Navigator.pop(context);
+        // Implement message logic if needed
       },
     );
   }
@@ -468,11 +336,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       context: context, // Keep for Bloc updates
                                     ),
                                     onTap: () {
-                                       // Determine next state based on current reaction
-                                       final nextReaction = post.currentReaction == null ? 'like' : null;
-                                       context.read<PostBloc>().add(
-                                         TogglePostReaction(post.id, nextReaction),
-                                       );
+                                      // Determine next state based on current reaction
+                                      final nextReaction =
+                                          post.currentReaction == null
+                                              ? 'like'
+                                              : null;
+                                      context.read<PostBloc>().add(
+                                        TogglePostReaction(
+                                          post.id,
+                                          nextReaction,
+                                        ),
+                                      );
                                     },
                                     onLongPressStart: () {
                                       final RenderBox box =
@@ -573,9 +447,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                                 userProfile.id.isNotEmpty
                                                     ? userProfile.id
                                                     : 'default_user_id',
-                                            onAddReply: (text, parentId) { // parentId received from CommentDetailPage
+                                            onAddReply: (text, parentId) {
+                                              // parentId received from CommentDetailPage
                                               // Log the parentId received here
-                                              debugPrint('📨 [PostDetailPage] onAddReply called. Parent ID: $parentId');
+                                              debugPrint(
+                                                '📨 [PostDetailPage] onAddReply called. Parent ID: $parentId',
+                                              );
                                               context.read<PostBloc>().add(
                                                 AddCommentReply(
                                                   post.id,

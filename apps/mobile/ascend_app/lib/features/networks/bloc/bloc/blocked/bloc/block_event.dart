@@ -1,20 +1,28 @@
 part of 'block_bloc.dart';
 
-@immutable
-sealed class BlockEvent {
+abstract class BlockEvent extends Equatable {
   const BlockEvent();
+
+  @override
+  List<Object?> get props => [];
 }
 
 class BlockUserEvent extends BlockEvent {
-  final String BlockedId;
+  final String blockedId;
 
-  const BlockUserEvent(this.BlockedId);
+  const BlockUserEvent(this.blockedId);
+
+  @override
+  List<Object?> get props => [blockedId];
 }
 
 class UnblockUserEvent extends BlockEvent {
-  final String BlockedId;
+  final String blockedId;
 
-  const UnblockUserEvent(this.BlockedId);
+  const UnblockUserEvent(this.blockedId);
+
+  @override
+  List<Object?> get props => [blockedId];
 }
 
 class FetchBlockedUsersEvent extends BlockEvent {}

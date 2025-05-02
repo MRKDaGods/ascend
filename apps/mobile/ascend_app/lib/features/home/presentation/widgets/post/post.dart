@@ -17,7 +17,7 @@ import '../post/post_engagement_stats.dart';
 import '../reaction/reaction_button.dart';
 import '../comment/comment_preview.dart';
 import '../../utils/full_screen_image_viewer.dart';
-import '../../utils/sheet_helpers.dart'; 
+import '../../utils/sheet_helpers.dart';
 
 class Post extends StatefulWidget {
   final String postId;
@@ -45,7 +45,7 @@ class _PostState extends State<Post> {
     PostModel post,
     int imageIndex,
   ) {
-    print("Navigating to image viewer: index=$imageIndex");
+    debugPrint("Navigating to image viewer: index=$imageIndex");
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -68,19 +68,24 @@ class _PostState extends State<Post> {
     PostModel currentPost = post; // Default to the post passed in
 
     if (currentState is PostsLoaded) {
-      currentPost = currentState.getPostById(post.id) ?? post; // Find the latest version or use the old one
+      currentPost =
+          currentState.getPostById(post.id) ??
+          post; // Find the latest version or use the old one
     }
 
     final bool isCurrentlySaved = currentPost.isSaved;
-    debugPrint("Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from Post widget");
+    debugPrint(
+      "Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from Post widget",
+    );
 
     // --- MODIFICATION START ---
     // Explicitly check the flags being passed
     final bool showSaveFlag = !isCurrentlySaved;
     final bool showUnsaveFlag = isCurrentlySaved;
-    debugPrint("Sheet parameters: showSave=$showSaveFlag, showUnsave=$showUnsaveFlag");
+    debugPrint(
+      "Sheet parameters: showSave=$showSaveFlag, showUnsave=$showUnsaveFlag",
+    );
     // --- MODIFICATION END ---
-
 
     SheetHelpers.showPostOptionsSheet(
       context: context,
@@ -94,70 +99,91 @@ class _PostState extends State<Post> {
       showUnfollow: true, // Control visibility as needed
       showReport: false, // Control visibility as needed
       // Add other show flags based on your sheet implementation
-
       onSave: () {
-        print("Save selected for post ${currentPost.id}");
+        debugPrint("Save selected for post ${currentPost.id}");
         // --- MODIFICATION START ---
         postBloc.add(SavePost(currentPost.id)); // Use postBloc directly
         // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post saved'), duration: Duration(seconds: 1)),
+          const SnackBar(
+            content: Text('Post saved'),
+            duration: Duration(seconds: 1),
+          ),
         );
       },
       onUnsave: () {
-        print("Unsave selected for post ${currentPost.id}");
+        debugPrint("Unsave selected for post ${currentPost.id}");
         // --- MODIFICATION START ---
         postBloc.add(UnsavePost(currentPost.id)); // Use postBloc directly
         // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post unsaved'), duration: Duration(seconds: 1)),
+          const SnackBar(
+            content: Text('Post unsaved'),
+            duration: Duration(seconds: 1),
+          ),
         );
       },
       onShare: () {
-        print("Share selected for post ${currentPost.id}");
+        debugPrint("Share selected for post ${currentPost.id}");
         // --- MODIFICATION START ---
         postBloc.add(SharePost(currentPost.id)); // Use postBloc directly
         // --- MODIFICATION END ---
         // Add sharing logic or feedback
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Sharing...'), duration: Duration(seconds: 1)),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sharing...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
       },
       onNotInterested: () {
-        print("Not interested selected for post ${currentPost.id}");
+        debugPrint("Not interested selected for post ${currentPost.id}");
         // --- MODIFICATION START ---
-        postBloc.add(HidePost(currentPost.id, "Not interested")); // Use postBloc directly
+        postBloc.add(
+          HidePost(currentPost.id, "Not interested"),
+        ); // Use postBloc directly
         // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post hidden'), duration: Duration(seconds: 1)),
+          const SnackBar(
+            content: Text('Post hidden'),
+            duration: Duration(seconds: 1),
+          ),
         );
       },
       onUnfollow: () {
-        print("Unfollow selected for user ${currentPost.ownerName}");
+        debugPrint("Unfollow selected for user ${currentPost.ownerName}");
         // Add unfollow logic (likely involves a different BLoC)
         // --- MODIFICATION START ---
         // Example: Dispatch event to FollowBloc if available
         // context.read<FollowBloc>().add(UnfollowUser(currentPost.userId));
         // --- MODIFICATION END ---
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unfollow ${currentPost.ownerName} (not implemented)')),
+          SnackBar(
+            content: Text(
+              'Unfollow ${currentPost.ownerName} (not implemented)',
+            ),
+          ),
         );
       },
       onReport: () {
-        print("Report selected for post ${currentPost.id}");
+        debugPrint("Report selected for post ${currentPost.id}");
         // Show report reason dialog, then dispatch event
         // For now, just dispatch with a placeholder reason
         // --- MODIFICATION START ---
-        postBloc.add(ReportPost(currentPost.id, "Reason from dialog")); // Use postBloc directly
+        postBloc.add(
+          ReportPost(currentPost.id, "Reason from dialog"),
+        ); // Use postBloc directly
         // --- MODIFICATION END ---
-         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post reported'), duration: Duration(seconds: 1)),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post reported'),
+            duration: Duration(seconds: 1),
+          ),
         );
       },
       // Add other callbacks corresponding to your sheet options
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +234,11 @@ class _PostState extends State<Post> {
                     isSponsored: post.isSponsored,
                     followers: post.followers,
                     userId: post.userId, // Pass the userId here
-                    onOptionsPressed: () => _showPostOptions(context, post), // Use the new method
+                    onOptionsPressed:
+                        () => _showPostOptions(
+                          context,
+                          post,
+                        ), // Use the new method
                     onShowFeedbackOptions: () {
                       // Use BLoC event instead of setState
                       context.read<PostBloc>().add(
@@ -247,7 +277,7 @@ class _PostState extends State<Post> {
                       isSponsored: post.isSponsored, // Add this parameter
                       // Send index to open the specific image in full screen
                       onTapImage: (index) {
-                        print("Image tapped at index: $index");
+                        debugPrint("Image tapped at index: $index");
                         _navigateToImageViewer(context, post, index);
                       },
                     ),
@@ -298,11 +328,12 @@ class _PostState extends State<Post> {
                           // context: context,
                         ),
                         onTap: () {
-                           // Determine next state based on current reaction
-                           final nextReaction = post.currentReaction == null ? 'like' : null;
-                           context.read<PostBloc>().add(
-                             TogglePostReaction(post.id, nextReaction),
-                           );
+                          // Determine next state based on current reaction
+                          final nextReaction =
+                              post.currentReaction == null ? 'like' : null;
+                          context.read<PostBloc>().add(
+                            TogglePostReaction(post.id, nextReaction),
+                          );
                         },
                         onLongPressStart: () {
                           final RenderBox box =
@@ -356,31 +387,5 @@ class _PostState extends State<Post> {
         // --- MODIFICATION END ---
       },
     );
-  }
-
-  IconData _getReactionIcon(PostModel post) {
-    if (!post.isLiked) {
-      return Icons.thumb_up_outlined;
-    }
-
-    if (post.currentReaction != null &&
-        ReactionManager.reactionIcons.containsKey(post.currentReaction)) {
-      return ReactionManager.reactionIcons[post.currentReaction]!;
-    }
-
-    return Icons.thumb_up;
-  }
-
-  Color _getReactionColor(PostModel post) {
-    if (!post.isLiked) {
-      return Colors.grey;
-    }
-
-    if (post.currentReaction != null &&
-        ReactionManager.reactionColors.containsKey(post.currentReaction)) {
-      return ReactionManager.reactionColors[post.currentReaction]!;
-    }
-
-    return Colors.blue;
   }
 }

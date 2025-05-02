@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/connection_request_model.dart';
 import 'package:ascend_app/features/networks/Mock Data/connections_request.dart';
@@ -16,7 +17,8 @@ class ConnectionRequestRepository {
   final bool useMockData;
 
   // Keep the mock data for development
-  final List<ConnectionRequestModel> connectionRequests = ConnectionRequests();
+  final List<ConnectionRequestModel> connectionRequests =
+      getConnectionRequests();
 
   ConnectionRequestRepository({
     this.baseUrl = 'https://api.ascendx.tech',
@@ -180,9 +182,9 @@ class ConnectionRequestRepository {
         );
       }
     } catch (e) {
-      // For development, print error
+      // For development, debugPrint error
       await Future.delayed(const Duration(milliseconds: 500));
-      print('Error fetching pending requests: $e');
+      debugPrint('Error fetching pending requests: $e');
       return []; // Return an empty list or mock data
     }
   }

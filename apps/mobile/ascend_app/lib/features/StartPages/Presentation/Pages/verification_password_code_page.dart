@@ -2,12 +2,13 @@ import 'package:ascend_app/core/routes/app_routes.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Logo/LogoWidget.dart';
+import 'package:ascend_app/features/Logo/logo_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class VerificationPasswordCodePage extends StatefulWidget {
+  const VerificationPasswordCodePage({super.key});
+
   @override
   State<VerificationPasswordCodePage> createState() =>
       _VerificationPasswordCodePageState();
@@ -16,6 +17,7 @@ class VerificationPasswordCodePage extends StatefulWidget {
 class _VerificationPasswordCodePageState
     extends State<VerificationPasswordCodePage> {
   late String maskedEmail;
+  late String actualEmail;
   final TextEditingController _verificationCodeController =
       TextEditingController();
 
@@ -32,6 +34,8 @@ class _VerificationPasswordCodePageState
       // Mask the email for display
       maskedEmail = _maskEmail(email);
     }
+
+    actualEmail = email ?? '';
   }
 
   String _maskEmail(String email) {
@@ -80,7 +84,6 @@ class _VerificationPasswordCodePageState
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final screenWidth = constraints.maxWidth;
           final screenHeight = constraints.maxHeight;
 
           return Scaffold(
@@ -165,7 +168,7 @@ class _VerificationPasswordCodePageState
                       child: TextButton(
                         onPressed: () {
                           context.read<AuthBloc>().add(
-                            ForgotPasswordRequested(emailOrPhone: maskedEmail),
+                            ForgotPasswordRequested(emailOrPhone: actualEmail),
                           );
                         },
                         child: Text(
@@ -189,7 +192,7 @@ class _VerificationPasswordCodePageState
                           if (verificationCode.isNotEmpty) {
                             context.read<AuthBloc>().add(
                               VerifyCodeSubmitted(
-                                emailOrPhone: maskedEmail,
+                                emailOrPhone: actualEmail,
                                 verificationCode: verificationCode,
                               ),
                             );
@@ -227,9 +230,7 @@ class _VerificationPasswordCodePageState
                     ),
                     SizedBox(height: screenHeight * 0.02),
                     GestureDetector(
-                      onTap: () {
-                        // TODO: Implement Can't access email action
-                      },
+                      onTap: () {},
                       child: Text(
                         "Can’t access this email?",
                         style: TextStyle(

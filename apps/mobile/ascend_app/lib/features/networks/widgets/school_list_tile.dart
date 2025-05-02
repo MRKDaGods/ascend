@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
-import 'package:ascend_app/features/networks/model/search_model.dart';
+import 'package:ascend_app/features/networks/pages/schools_searching.dart';
 
-Widget? printprofileLanguageSearching(
-  List<String> profileLanguageSearching,
-  void Function(String) onprofileLanguageSearchingRemoved,
+Widget? printschoolsSearching(
+  List<String> schoolsSearching,
+  void Function(String) onschoolsSearchingRemoved,
 ) {
-  return profileLanguageSearching.isNotEmpty
+  return schoolsSearching.isNotEmpty
       ? Padding(
         padding: EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
-            profileLanguageSearching.length == 1
+            schoolsSearching.length == 1
                 ? Text(
-                  profileLanguageSearching[0],
+                  schoolsSearching[0],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -22,7 +22,7 @@ Widget? printprofileLanguageSearching(
                   ),
                 )
                 : Text(
-                  "${profileLanguageSearching[0]} and ${profileLanguageSearching.length - 1} more",
+                  "${schoolsSearching[0]} and ${schoolsSearching.length - 1} more",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -34,7 +34,7 @@ Widget? printprofileLanguageSearching(
               icon: Icon(Icons.close, color: Colors.blue[600]),
               tooltip: "delete",
               onPressed: () {
-                onprofileLanguageSearchingRemoved('profileLanguages');
+                onschoolsSearchingRemoved('schoolsSearching');
               },
             ),
           ],
@@ -43,35 +43,35 @@ Widget? printprofileLanguageSearching(
       : null;
 }
 
-Widget buildProfileLanguageList(
-  List<String> profileLanguageSearching,
-  void Function(String) onprofileLanguageSearchingRemoved,
+Widget buildSchoolsList(
+  List<String> schoolsSearching,
+  void Function(String) onschoolsSearchingRemoved,
   BuildContext context,
 ) {
   return ListTile(
     onTap: () {
-      /*Navigator.push(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder:
               (_) => BlocProvider.value(
                 value: BlocProvider.of<SearchFiltersBloc>(context),
-                child: IndustrySearching(),
+                child: SchoolsSearching(),
               ),
         ),
-      );*/
+      );
     },
     contentPadding: EdgeInsets.zero,
     title: const Text(
-      'Profile Languages',
+      'Schools',
       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
     ),
-    subtitle: printprofileLanguageSearching(
-      profileLanguageSearching,
-      onprofileLanguageSearchingRemoved,
+    subtitle: printschoolsSearching(
+      schoolsSearching,
+      onschoolsSearchingRemoved,
     ),
     trailing: Text(
-      profileLanguageSearching.isNotEmpty ? 'Edit' : 'Any',
+      schoolsSearching.isNotEmpty ? 'Edit' : 'Any',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 16,

@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 
 class UserSuggestedtoFollow {

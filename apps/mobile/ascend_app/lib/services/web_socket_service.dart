@@ -1,14 +1,10 @@
 import "dart:async";
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/io.dart';
 import 'dart:convert';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
 import "package:flutter/foundation.dart";
-import "package:socket_io_client/socket_io_client.dart" as IO;
-import 'package:logging/logging.dart';
+import "package:socket_io_client/socket_io_client.dart" as io;
 
 enum ConnectionState {
   disconnected,
@@ -24,7 +20,7 @@ class WebSocketService {
   WebSocketService._internal();
 
   // Socket.io client
-  IO.Socket? _socketClient;
+  io.Socket? _socketClient;
 
   // Connection status
   bool _isConnected = false;
@@ -58,8 +54,8 @@ class WebSocketService {
   //Reconnection attempts
   bool _reconnectEnabled = true;
   int _reconnectAttempts = 0;
-  int _maxReconnectAttempts = 5;
-  static Duration _reconnectDelay = const Duration(seconds: 3);
+  final int _maxReconnectAttempts = 5;
+  static final Duration _reconnectDelay = const Duration(seconds: 3);
   Timer? _reconnectTimer;
   Timer? _registrationTimer;
 
@@ -129,9 +125,9 @@ class WebSocketService {
       _connectionStatusController.add(ConnectionState.connecting);
 
       // Setup socket client with appropriate options
-      _socketClient = IO.io(
+      _socketClient = io.io(
         url,
-        IO.OptionBuilder()
+        io.OptionBuilder()
             .setTransports(['websocket', 'polling']) // Use WebSocket transport
             .enableForceNew()
             .disableAutoConnect()
@@ -434,7 +430,6 @@ class WebSocketService {
 
           // Get server URL and fresh auth token
           final authToken = await SecureStorageHelper.getAuthToken();
-          final apiClient = ApiClient();
           final serverUrl =
               'https://ascendx.germanywestcentral.cloudapp.azure.com/';
 

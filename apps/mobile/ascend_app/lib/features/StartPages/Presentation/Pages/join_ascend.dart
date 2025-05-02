@@ -1,15 +1,17 @@
+import 'dart:convert';
+
+import 'package:ascend_app/core/di/dependency_injection.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/SignIn.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Widget/ContinueButton.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Widget/InputWidgets.dart';
-import 'package:ascend_app/shared/navigation/main_navigation.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/sign_in.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/continue_button.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Widget/input_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:ascend_app/core/routes/app_routes.dart';
-
 
 class JoinAscend extends StatefulWidget {
   const JoinAscend({super.key});
@@ -100,54 +102,75 @@ class _JoinAscendState extends State<JoinAscend>
     }
   }
 
-  void handleContinue() {
+  void handleContinue() async {
     final authBloc = context.read<AuthBloc>();
-    setState(() {
-      if (currentStep == 1) {
-        _validateEmail();
-        if (emailError.isEmpty) {
-          currentStep = 2;
-          showPasswordField = true;
-          progress = _passwordProgress;
-        }
-      } else if (currentStep == 2) {
-        _validatePassword();
-        if (passwordError.isEmpty) {
-          currentStep = 3;
-          showNameFields = true;
-          progress = _nameProgress;
-        }
-      } else if (currentStep == 3) {
-        _validateNameFields();
-        if (firstNameError.isEmpty && lastNameError.isEmpty) {
-          final email = emailController.text.trim();
-          final password = passwordController.text.trim();
-          final firstName = firstNameController.text.trim();
-          final lastName = lastNameController.text.trim();
 
-          // Log the event dispatch
-          _logger.i(
-            'Dispatching SignUpRequested event with: '
-            'email=$email, firstName=$firstName, lastName=$lastName',
-          );
-
-          // Dispatch SignUpRequested event to AuthBloc
-          authBloc.add(
-            SignUpRequested(
-              email: email,
-              password: password,
-              firstName: firstName,
-              lastName: lastName,
-            ),
-          );
-        }
+    if (currentStep == 1) {
+      await _validateEmail();
+      if (emailError.isEmpty) {
+        currentStep = 2;
+        showPasswordField = true;
+        progress = _passwordProgress;
       }
+    } else if (currentStep == 2) {
+      _validatePassword();
+      if (passwordError.isEmpty) {
+        currentStep = 3;
+        showNameFields = true;
+        progress = _nameProgress;
+      }
+    } else if (currentStep == 3) {
+      _validateNameFields();
+      if (firstNameError.isEmpty && lastNameError.isEmpty) {
+        final email = emailController.text.trim();
+        final password = passwordController.text.trim();
+        final firstName = firstNameController.text.trim();
+        final lastName = lastNameController.text.trim();
+
+        // Log the event dispatch
+        _logger.i(
+          'Dispatching SignUpRequested event with: '
+          'email=$email, firstName=$firstName, lastName=$lastName',
+        );
+
+        // Dispatch SignUpRequested event to AuthBloc
+        authBloc.add(
+          SignUpRequested(
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+          ),
+        );
+      }
+    }
+
+    setState(() {
+      /* re-render */
     });
   }
 
-  void _validateEmail() {
+  Future<void> _validateEmail() async {
     final email = emailController.text;
     if (InputValidators.isValidEmailOrPhone(email)) {
+      // Validate email wkda
+      try {
+        final res = await sl.apiClient.get("/auth/exists/$email");
+        final json = jsonDecode(res.body);
+        if (json['exists'] == true) {
+          emailError = 'Email or phone number already exists';
+          return;
+        }
+      } catch (e) {
+        final msg =
+            e.toString().contains("Please")
+                ? "Please create an email first at www.ascendx.tech/email"
+                : e.toString();
+        _logger.e('Error checking email existence: $msg');
+        emailError = msg;
+        return;
+      }
+
       emailError = '';
       showPasswordField = true;
       progress = _passwordProgress;
@@ -226,13 +249,35 @@ class _JoinAscendState extends State<JoinAscend>
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         _logger.i('BlocListener triggered with state: $state');
-        final authBloc = context.read<AuthBloc>();
         if (state is AuthSuccess) {
           _logger.i('AuthSuccess detected: signUpMode=${state.signUpMode}');
           if (state.signUpMode) {
             _logger.i('Navigating to SignInPage after successful sign-up');
+
+            // Display a success message, and tell em to confirm email
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Account created successfully! Please check your email to confirm your account.',
+                  style: TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.green[700],
+                duration: const Duration(seconds: 5),
+                action: SnackBarAction(
+                  label: 'OK',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
+                  },
+                ),
+              ),
+            );
+
             // Use the correct route name for SignInPage
-            Navigator.pushReplacementNamed(context, RouteNames.signIn); // <-- Change this line
+            Navigator.pushReplacementNamed(
+              context,
+              RouteNames.signIn,
+            ); // <-- Change this line
           } else {
             _logger.i('Navigating to HomePage after successful sign-in');
             // Assuming '/welcome' eventually leads to home or checks auth state
@@ -240,11 +285,14 @@ class _JoinAscendState extends State<JoinAscend>
           }
         } else if (state is AuthFailure) {
           _logger.e('Authentication failed: ${state.error}');
-          ScaffoldMessenger.of(context,).showSnackBar(
-            SnackBar(content: Text('Error: ${state.error}')), // Ensure context is available
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${state.error}'),
+            ), // Ensure context is available
           );
         }
       },
+      // ignore: deprecated_member_use
       child: WillPopScope(
         onWillPop: handleBackPress,
         child: Scaffold(

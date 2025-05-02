@@ -1,7 +1,6 @@
-import 'package:ascend_app/features/networks/bloc/bloc/messaging/bloc/messaging_bloc.dart';
 import 'package:ascend_app/features/networks/model/message_model.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -38,7 +37,7 @@ class MessageRequestRepository {
         throw Exception('Failed to send message request: ${response.body}');
       }
     } catch (e) {
-      print('Error sending message request: $e');
+      debugPrint('Error sending message request: $e');
     }
   }
 
@@ -57,7 +56,7 @@ class MessageRequestRepository {
         throw Exception('Failed to accept message request: ${response.body}');
       }
     } catch (e) {
-      print('Error accepting message request: $e');
+      debugPrint('Error accepting message request: $e');
     }
   }
 
@@ -76,7 +75,7 @@ class MessageRequestRepository {
         throw Exception('Failed to reject message request: ${response.body}');
       }
     } catch (e) {
-      print('Error rejecting message request: $e');
+      debugPrint('Error rejecting message request: $e');
     }
   }
 

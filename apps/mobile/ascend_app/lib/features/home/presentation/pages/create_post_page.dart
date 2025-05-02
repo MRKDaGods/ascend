@@ -46,7 +46,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   List<UserProfileModel> _suggestedUsers = [];
-  String _currentTagQuery = '';
   bool _showTaggingOverlay = false;
   int _tagStartIndex = -1;
 
@@ -101,7 +100,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
         // Basic check to prevent tags with spaces
         if (!query.contains(RegExp(r'\s'))) {
           _tagStartIndex = potentialTagStart;
-          _currentTagQuery = query;
           _fetchUserSuggestions(query); // Fetch suggestions
         } else {
           _hideUserSuggestions(); // Hide if query contains space
@@ -151,7 +149,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       request.headers['Accept'] = 'application/json';
       // Always add x-no-parse-body as requested
       request.headers['x-no-parse-body'] = '1';
-      print(
+      debugPrint(
         '[SubmitPost] Header added: x-no-parse-body: 1',
       ); // Log header addition
 
@@ -171,13 +169,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
       // Conditionally add type and media files
       if (_selectedImages.isNotEmpty) {
         request.fields['type'] = 'image'; // Only add type if images exist
-        print(
+        debugPrint(
           '[SubmitPost] Adding ${_selectedImages.length} image(s) to field "media".',
         );
         for (var i = 0; i < _selectedImages.length; i++) {
           var file = _selectedImages[i];
           final filename = path.basename(file.path);
-          print(
+          debugPrint(
             '[SubmitPost] Processing file ${i + 1}: Path=${file.path}, Filename=$filename',
           );
 
@@ -194,12 +192,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   ? MediaType.parse(mimeType)
                   : MediaType('application', 'octet-stream'); // Fallback
 
-          print(
+          debugPrint(
             '[SubmitPost] File ${i + 1} details: Length=$fileLength bytes, ContentType=${contentType.toString()}',
           );
 
           // Try using MultipartFile.fromPath
-          print('[SubmitPost] Attaching file ${i + 1} using fromPath...');
+          debugPrint('[SubmitPost] Attaching file ${i + 1} using fromPath...');
           final multipartFile = await http.MultipartFile.fromPath(
             'media', // Correct field name
             file.path, // Pass the file path
@@ -208,30 +206,30 @@ class _CreatePostPageState extends State<CreatePostPage> {
             contentType: contentType, // Explicitly set Content-Type
           );
           request.files.add(multipartFile);
-          print('[SubmitPost] File ${i + 1} attached to request.files.');
+          debugPrint('[SubmitPost] File ${i + 1} attached to request.files.');
         }
       } else {
-        print('[SubmitPost] No images selected. Sending text-only post.');
+        debugPrint('[SubmitPost] No images selected. Sending text-only post.');
       }
 
-      print('--- Sending Request ---');
-      print('URL: ${request.url}');
-      print('Method: ${request.method}');
-      print('Headers: ${request.headers}');
-      print('Fields: ${request.fields}');
-      print('Files attached: ${request.files.length}');
+      debugPrint('--- Sending Request ---');
+      debugPrint('URL: ${request.url}');
+      debugPrint('Method: ${request.method}');
+      debugPrint('Headers: ${request.headers}');
+      debugPrint('Fields: ${request.fields}');
+      debugPrint('Files attached: ${request.files.length}');
       for (var file in request.files) {
-        print(
+        debugPrint(
           '  - File field: ${file.field}, Filename: ${file.filename}, Length: ${file.length}, ContentType: ${file.contentType}',
         );
       }
-      print('-----------------------');
+      debugPrint('-----------------------');
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('Create Post Response status: ${response.statusCode}');
-      print('Create Post Response body: ${response.body}');
+      debugPrint('Create Post Response status: ${response.statusCode}');
+      debugPrint('Create Post Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Success
@@ -278,7 +276,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         );
       }
     } catch (e) {
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -384,7 +382,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         _selectedImages.addAll(imagesFromGrid);
         _updateCanPost();
       });
-      print('${imagesFromGrid.length} images selected from grid.');
+      debugPrint('${imagesFromGrid.length} images selected from grid.');
     }
   }
 
@@ -397,17 +395,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
           _selectedImages.addAll(images);
           _updateCanPost();
         });
-        print('${images.length} images picked directly.');
+        debugPrint('${images.length} images picked directly.');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${images.length} image(s) selected.')),
           );
         }
       } else {
-        print('Image picking cancelled or no images selected.');
+        debugPrint('Image picking cancelled or no images selected.');
       }
     } catch (e) {
-      print('Error picking images: $e');
+      debugPrint('Error picking images: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -452,7 +450,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         }
       }
     } catch (e) {
-      print("Error fetching user suggestions: $e");
+      debugPrint("Error fetching user suggestions: $e");
       if (mounted) {
         setState(() {
           _suggestedUsers = [];
@@ -463,29 +461,29 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   void _showUserSuggestions() {
-    print(
+    debugPrint(
       '[Tagging] Attempting to show suggestions. Overlay exists: ${_overlayEntry != null}, Users: ${_suggestedUsers.length}',
     ); // Debugging
     if (!mounted) {
-      print('[Tagging] Widget not mounted, aborting show suggestions.');
+      debugPrint('[Tagging] Widget not mounted, aborting show suggestions.');
       return;
     }
 
     if (_overlayEntry == null && _suggestedUsers.isNotEmpty) {
-      print('[Tagging] Creating and inserting overlay.'); // Debugging
+      debugPrint('[Tagging] Creating and inserting overlay.'); // Debugging
       _overlayEntry = _createOverlayEntry();
       // Ensure Overlay.of(context) is not null before inserting
       final overlay = Overlay.of(context);
       overlay.insert(_overlayEntry!);
-      print('[Tagging] Overlay inserted.'); // Debugging
+      debugPrint('[Tagging] Overlay inserted.'); // Debugging
       setState(() {
         _showTaggingOverlay = true;
       });
     } else if (_overlayEntry != null && _suggestedUsers.isEmpty) {
-      print('[Tagging] Hiding overlay because no users.'); // Debugging
+      debugPrint('[Tagging] Hiding overlay because no users.'); // Debugging
       _hideUserSuggestions(); // Hide if no users match
     } else if (_overlayEntry != null) {
-      print('[Tagging] Overlay exists, marking for rebuild.'); // Debugging
+      debugPrint('[Tagging] Overlay exists, marking for rebuild.'); // Debugging
       // If overlay exists, just rebuild it with new suggestions
       _overlayEntry?.markNeedsBuild();
       if (!_showTaggingOverlay) {
@@ -497,25 +495,24 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   void _hideUserSuggestions() {
-    print(
+    debugPrint(
       '[Tagging] Attempting to hide suggestions. Overlay exists: ${_overlayEntry != null}, Show flag: $_showTaggingOverlay',
     ); // Debugging
     if (_overlayEntry != null) {
-      print('[Tagging] Removing overlay.'); // Debugging
+      debugPrint('[Tagging] Removing overlay.'); // Debugging
       _removeOverlay();
     }
     // Use mounted check before setState
     if (mounted && _showTaggingOverlay) {
-      print('[Tagging] Resetting tagging state.'); // Debugging
+      debugPrint('[Tagging] Resetting tagging state.'); // Debugging
       setState(() {
         _showTaggingOverlay = false;
         _suggestedUsers = [];
-        _currentTagQuery = '';
         _tagStartIndex = -1;
       });
     } else if (_tagStartIndex != -1) {
       // Ensure tagStartIndex is reset even if overlay wasn't shown yet
-      print(
+      debugPrint(
         '[Tagging] Resetting tagStartIndex as overlay was not shown.',
       ); // Debugging
       _tagStartIndex = -1;
@@ -527,7 +524,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     try {
       _overlayEntry?.remove();
     } catch (e) {
-      print("[Tagging] Error removing overlay: $e");
+      debugPrint("[Tagging] Error removing overlay: $e");
     }
     _overlayEntry = null;
   }
@@ -535,11 +532,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
   OverlayEntry _createOverlayEntry() {
     // Simplified positioning: Directly below the TextField using the LayerLink offset.
     // The CompositedTransformFollower handles the positioning relative to the Target.
-    print('[Tagging] Creating OverlayEntry definition.'); // Debugging
+    debugPrint('[Tagging] Creating OverlayEntry definition.'); // Debugging
     return OverlayEntry(
       builder: (overlayContext) {
         // Use a different name to avoid confusion with state's context
-        print('[Tagging] Building OverlayEntry content.'); // Debugging
+        debugPrint('[Tagging] Building OverlayEntry content.'); // Debugging
         // Get RenderBox using the State's context, which is associated with the CompositedTransformTarget
         final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
         final size =
@@ -769,9 +766,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 IconButton(
                   icon: const Icon(Icons.calendar_today_outlined),
                   tooltip: 'Create event',
-                  onPressed: () {
-                    // TODO: Implement add event functionality
-                  },
+                  onPressed: () {},
                 ),
                 IconButton(
                   icon: const Icon(Icons.more_horiz_rounded),
@@ -814,6 +809,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 onTap: () => _removeImage(index),
                 child: Container(
                   decoration: BoxDecoration(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.6),
                     shape: BoxShape.circle,
                   ),

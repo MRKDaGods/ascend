@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
 
 class SuggestedConnectionsPage extends StatefulWidget {
-  final String Message;
+  final String message;
   final List<UserSuggestedtoConnect> users;
   final Function(String) onSend;
   final bool showAll;
 
   const SuggestedConnectionsPage({
     super.key,
-    required this.Message,
+    required this.message,
     required this.users,
     required this.onSend,
     required this.showAll,
   });
 
   @override
-  _SuggestedConnectionsPageState createState() =>
+  State<SuggestedConnectionsPage> createState() =>
       _SuggestedConnectionsPageState();
 }
 
@@ -52,7 +52,7 @@ class _SuggestedConnectionsPageState extends State<SuggestedConnectionsPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
-                  widget.Message,
+                  widget.message,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -64,7 +64,7 @@ class _SuggestedConnectionsPageState extends State<SuggestedConnectionsPage> {
                 suggestedUsers: widget.users,
                 onSend: widget.onSend,
                 onSentMessageRequest: widget.onSend,
-                ShowAll: widget.showAll,
+                showAll: widget.showAll,
               ),
             ],
           ),

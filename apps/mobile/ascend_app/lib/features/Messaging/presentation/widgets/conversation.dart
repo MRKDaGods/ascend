@@ -1,8 +1,5 @@
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
-import 'package:ascend_app/features/networks/widgets/filter_modal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/Messaging/presentation/pages/chat_page.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
@@ -11,7 +8,7 @@ class Conversation extends StatefulWidget {
   final String conversationId;
   final String otherUserId;
   final String otherUserName;
-  final String otherUserProfileImageUrl;
+  final String? otherUserProfileImageUrl;
   final String latestMessage;
   final String latestTimestamp;
   final bool isOnline;
@@ -19,7 +16,7 @@ class Conversation extends StatefulWidget {
   final Function()? onTap;
 
   const Conversation({
-    Key? key,
+    super.key,
     required this.conversationId,
     required this.otherUserId,
     required this.otherUserName,
@@ -29,10 +26,10 @@ class Conversation extends StatefulWidget {
     required this.isOnline,
     required this.unseenCount,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
-  _ConversationState createState() => _ConversationState();
+  State<Conversation> createState() => _ConversationState();
 }
 
 class _ConversationState extends State<Conversation>
@@ -110,6 +107,7 @@ class _ConversationState extends State<Conversation>
       );
 
       Navigator.push(
+        // ignore: use_build_context_synchronously
         context,
         MaterialPageRoute(
           builder:
@@ -260,7 +258,7 @@ class _ConversationState extends State<Conversation>
               Colors.grey[200], // Add background color for empty states
           backgroundImage:
               !_shouldShowFallbackIcon()
-                  ? NetworkImage(widget.otherUserProfileImageUrl)
+                  ? NetworkImage(widget.otherUserProfileImageUrl!)
                   : null, // Use NetworkImage for profile image
           child:
               _shouldShowFallbackIcon()
@@ -296,7 +294,7 @@ class _ConversationState extends State<Conversation>
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Container(
+        return SizedBox(
           height: 300,
           child: Column(
             children: [
@@ -439,7 +437,7 @@ class _ConversationState extends State<Conversation>
     VoidCallback onPressed,
   ) {
     // Make each button narrower
-    return Container(
+    return SizedBox(
       width: 80, // Fixed width instead of Expanded
       child: InkWell(
         onTap: onPressed,
@@ -466,20 +464,6 @@ class _ConversationState extends State<Conversation>
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSwipeBackground(bool isLeft) {
-    // We're not using this anymore since we have a custom background with buttons
-    return Container(
-      color: isLeft ? Colors.blue.shade100 : Colors.red.shade100,
-      alignment: isLeft ? Alignment.centerLeft : Alignment.centerRight,
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Icon(
-        isLeft ? Icons.archive : Icons.delete,
-        color: isLeft ? Colors.blue : Colors.red,
-        size: 30,
       ),
     );
   }
