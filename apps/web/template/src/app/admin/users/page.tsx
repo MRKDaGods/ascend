@@ -17,7 +17,7 @@ export default function ManageUsers() {
       <h1>Manage Users</h1>
       <Tabs value={tabIndex} onChange={handleTabChange} variant="fullWidth">
         <Tab label="Create User" />
-        <Tab label="Ban Users" />
+        <Tab label="Banned Users" />
         <Tab label="Manage User Reports" />
       </Tabs>
       <Box p={2}>

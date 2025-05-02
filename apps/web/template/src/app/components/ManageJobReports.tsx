@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import ReportedJobCard from "./ReportedJobCard";
-
 import {
   getReportedJobs,
   updateJobReport,
   deleteJob,
+  getJobReports,
 } from "@/app/utils/adminApi";
 
 import {
@@ -15,13 +15,28 @@ import {
   CircularProgress,
   Stack,
   Box,
+  MenuItem,
+  FormControl,
+  Button,
+  InputLabel,
+  Select,
 } from "@mui/material";
 
-export default function () {
+type Status = "pending" | "reviewed" | "resolved" | "rejected";
+
+export default function ManageReportedJobs() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [openJobId, setOpenJobId] = useState<number | null>(null);
+  const [reportPages, setReportPages] = useState<{
+    [jobId: number]: {
+      data: any[];
+      currentPage: number;
+      totalPages: number;
+    };
+  }>({});
 
   useEffect(() => {
     fetchReports();
@@ -31,34 +46,66 @@ export default function () {
     setLoading(true);
     try {
       const response = await getReportedJobs(page);
-      setReports(response.data.data);
+      const cleaned = response.data.data.filter((r: any) => r && r.job_id != null);
+      setReports(cleaned);
       setTotalPages(response.data.pagination.totalPages);
     } catch (error) {
-      console.error("Error fetching reported posts:", error);
+      console.error("Error fetching reported jobs:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteJob = async (jobId: number) => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    if (!confirm("Are you sure you want to delete this job?")) return;
     try {
       await deleteJob(jobId);
-      fetchReports(); // refresh
+      fetchReports();
     } catch (err) {
-      console.error("Failed to delete post", err);
+      console.error("Failed to delete job", err);
     }
   };
 
   const handleUpdateStatus = async (
     reportId: number,
-    newStatus: "pending" | "reviewed" | "resolved" | "rejected"
+    newStatus: Status
   ) => {
     try {
       await updateJobReport(reportId, newStatus);
-      fetchReports(); // refresh
+
+      const job = reports.find((report) =>
+        reportPages[report.job_id]?.data?.some((r) => r.id === reportId)
+      );
+      if (job) {
+        await fetchReportDetails(job.job_id, reportPages[job.job_id].currentPage);
+      }
+      else {
+        await fetchReports();
+      }
+      
     } catch (err) {
       console.error("Failed to update report status", err);
+    }
+  };
+
+  const fetchReportDetails = async (jobId: number, page: number = 1) => {
+    try {
+      const res = await getJobReports(jobId, page);
+      const data = res.data.data;
+      const pagination = res.data.pagination;
+
+      setReportPages((prev) => ({
+        ...prev,
+        [jobId]: {
+          data: data,
+          currentPage: pagination.currentPage,
+          totalPages: pagination.totalPages,
+        },
+      }));
+
+      setOpenJobId(jobId);
+    } catch (err) {
+      console.error("Failed to fetch reports", err);
     }
   };
 
@@ -67,23 +114,87 @@ export default function () {
       <Typography variant="h4" fontWeight="bold" mb={4}>
         Manage Reported Jobs
       </Typography>
+
       {loading ? (
         <CircularProgress />
-      ) : Array.isArray(reports) && reports.length > 0 ? (
+      ) : reports.length > 0 ? (
         <Stack spacing={3}>
           {reports.map((report) => (
-            <ReportedJobCard
-              key={report.id}
-              report={report}
-              onDelete={handleDeleteJob}
-              onUpdateStatus={handleUpdateStatus}
-            />
+            <Box key={report.job_id}>
+              <ReportedJobCard
+                report={report}
+                onDelete={handleDeleteJob}
+                onUpdateStatus={handleUpdateStatus}
+                fetchReportDetails={fetchReportDetails}
+              />
+
+              {openJobId === report.job_id && (
+                <Box pl={8} mt={1}>
+                  <Typography fontWeight="bold">Reports:</Typography>
+                  {reportPages[report.job_id]?.data?.map((r) => (
+                    <Box
+                      key={r.id}
+                      p={2}
+                      mb={1}
+                      sx={{ border: "1px solid #ccc", borderRadius: 2 }}
+                    >
+                      <Typography variant="subtitle2">
+                        {r.reporter_full_name}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Reason:</strong> {r.reason}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {r.description}
+                      </Typography>
+
+                      <Stack direction="row" spacing={2} mt={2}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleDeleteJob(report.job_id)}
+                        >
+                          Delete Job
+                        </Button>
+
+                        <FormControl size="small">
+                          <InputLabel>Status</InputLabel>
+                          <Select
+                            value={r.status}
+                            label="Status"
+                            onChange={(e) =>
+                              handleUpdateStatus(r.id, e.target.value as Status)
+                            }
+                            sx={{ minWidth: 120 }}
+                          >
+                            <MenuItem value="pending">Pending</MenuItem>
+                            <MenuItem value="reviewed">Reviewed</MenuItem>
+                            <MenuItem value="resolved">Resolved</MenuItem>
+                            <MenuItem value="rejected">Rejected</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  ))}
+
+                  <Pagination
+                    page={reportPages[report.job_id]?.currentPage || 1}
+                    count={reportPages[report.job_id]?.totalPages || 1}
+                    onChange={(_, newPage) =>
+                      fetchReportDetails(report.job_id, newPage)
+                    }
+                    size="small"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              )}
+            </Box>
           ))}
         </Stack>
       ) : (
         <Typography>No reported jobs found.</Typography>
       )}
-      {/* Pagination */}
+
       <Box display="flex" justifyContent="center" mt={4}>
         <Pagination
           count={totalPages}

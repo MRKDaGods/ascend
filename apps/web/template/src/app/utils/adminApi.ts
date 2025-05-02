@@ -1,5 +1,12 @@
 import { extApi } from "@/api";
 
+type createAdminProps = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+   
+}
 export const getUsersCount = (duration = "day")=>{
     return extApi.get("/admin/users/count", {params: {duration}})
 }
@@ -49,7 +56,7 @@ export const updatePostReport = (
 }
 
 export const getReportedJobs = (page: number =1) => {
-    return extApi.get("/admin/jobs/reports", {params: {page}})
+    return extApi.get("/admin/jobs/reported", {params: {page}})
 }
 
     export const updateJobReport = (
@@ -65,4 +72,44 @@ export const getReportedJobs = (page: number =1) => {
 
     export const getPostReports = (postId:number,page:number=1)=>{
         return extApi.get(`/admin/posts/${postId}/reports`,{params: {page}})
+    }
+
+    export const getBannedUsers = () => {
+        return extApi.get("/auth/banned")
+    }
+
+    export const deleteUser = (userId: number) => {
+        console.log(userId);
+        return extApi.post("/auth/admin-delete-user",  { user_id: userId } )
+        
+    }
+
+    export const unbanUser = (userId: number) => {
+        return extApi.post("/auth/unban-user",  { user_id: userId } )
+    }
+
+    export const getUserReports = ()=>{
+        return extApi.get("/auth/admin-get-user-reports");
+    }
+
+    export const banUser = (userId:number)=>{
+        return extApi.post("/auth/ban-user",  { user_id: userId } );
+    }
+
+    export const deleteReport = (reportId:number)=>{
+        return extApi.post("/auth/admin-delete-user-report",  { report_id: reportId } )
+
+    }
+
+    export const getJobReports = (JobId:number,page:number=1)=>{
+        return extApi.get(`/admin/jobs/${JobId}/reports`,{params: {page}})
+    }
+
+    export const createAdminUser = ({firstName,lastName,email,password}:createAdminProps) => {
+        return extApi.post("/auth/admin-create-user", {
+            first_name: firstName,
+            last_name: lastName,
+            email:email,
+            password:password,
+        });
     }
