@@ -2,6 +2,7 @@ import 'package:ascend_app/features/StartPages/Presentation/Pages/forget_passwor
 import 'package:ascend_app/features/StartPages/Presentation/Pages/reset_password_page.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/verification_password_code_page.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
+import 'package:ascend_app/features/admin/Presentation/pages/admin_home_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
@@ -47,6 +48,7 @@ class RouteNames {
   static const String signOut = '/signOut';
   static const String mainMessage = '/mainMessage';
   static const String savedPosts = '/saved_posts_page';
+  static const String adminHome = '/admin_home';
   // Add more routes as needed
 }
 
@@ -94,6 +96,7 @@ class AppRoutes {
       RouteNames.mainMessage: (context) => const MainMessagingPage(),
       RouteNames.home: (context) => const MainNavigation(), // Add this line
       RouteNames.savedPosts: (context) => const SavedPostsPage(),
+      RouteNames.adminHome: (context) => AdminHomePage(),
       // Add more routes as needed
     };
   }
