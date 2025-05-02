@@ -74,7 +74,7 @@ const CompanyForm = () => {
         profileImage: createdCompany.profile_photo_url,
         coverImage: createdCompany.cover_photo_url,
       });
-      router.push("/CreateCompanyPage/Company/CompanyPageItself");
+      router.push("/companies/CreateCompanyPage/Company/CompanyPageItself");
     } catch (err) {
       console.error('Submission Error:', err);
       alert('Failed to create company profile.');
@@ -82,14 +82,6 @@ const CompanyForm = () => {
       setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (name) {
-      const generatedDomain = name.trim().toLowerCase().replace(/\s+/g, '');
-      const generatedUrl = `Ascend.com/company/${generatedDomain}`;
-      setCompanyInfo({ domainName: generatedDomain });
-    }
-  }, [name, setCompanyInfo]);
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', maxWidth: '100%' }}>

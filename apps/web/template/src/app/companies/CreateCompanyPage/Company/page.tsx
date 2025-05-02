@@ -7,23 +7,25 @@ import CompanyForm from '@/app/components/CompanyForm';
 import CompanyPreview from '@/app/components/CompanyPreview';
 import BackButton from '@/app/components/BackButton';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
+import Navbar from '@/app/components/Navbar';
 
 const CreateCompanyPage = () => {
   const [profileImage, setLogo] = useState<File | null>(null);
 
   const {
-    name, url, industry, location, description,
+    name, industry, location, description,
   } = useCompanyStore();
 
   const formData = {
     name,
-    url,
     industry,
     location,
     description,
   };
 
   return (
+    <>
+    <Navbar />
     <Box p={4} sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>
       <Box
         display="flex"
@@ -57,6 +59,7 @@ const CreateCompanyPage = () => {
         </Grid>
       </Grid>
     </Box>
+    </>
   );
 };
 

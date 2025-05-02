@@ -18,7 +18,7 @@ export default function DeactivatePageModal() {
 
     try {
       await deleteCompanyProfile(); // ✅ Calls the real API
-      router.push("/CreateCompanyPage/Company"); // ✅ Redirects after deletion
+      router.push("/companies/CreateCompanyPage/Company"); // ✅ Redirects after deletion
     } catch (err) {
       console.error("❌ Failed to delete company:", err);
       alert("An error occurred while deleting the company.");

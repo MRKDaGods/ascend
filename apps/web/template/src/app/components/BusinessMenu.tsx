@@ -18,10 +18,10 @@ export default function BusinessMenu() {
       </Box>
       <Divider />
       <Box p={2}>
-        <Link href="#" underline="hover" variant="subtitle1" onClick={() => router.push("/CreateCompanyPage")}>
+        <Link href="#" underline="hover" variant="subtitle1" onClick={() => router.push("/companies/CreateCompanyPage")}>
           Create a Company Page +
         </Link>
-        <Link href="#" underline="hover" variant="subtitle1" sx={{ml:12}} onClick={() => router.push("/ExploreCompanies")}>
+        <Link href="#" underline="hover" variant="subtitle1" sx={{ml:12}} onClick={() => router.push("/companies/ExploreCompanies")}>
           Explore Companies
         </Link>
       </Box>

@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
+import Navbar from '@/app/components/Navbar';
 
 function getLoggedInUserId(): number | null {
   const token = localStorage.getItem('token');
@@ -66,9 +67,9 @@ export default function ExploreCompaniesPage() {
   const handleNavigateToCompany = async (companyId: number) => {
     await fetchCompanyProfile(companyId);
     if (tab === 0) {
-      router.push('/CreateCompanyPage/Company/CompanyPageItself');
+      router.push('/companies/CreateCompanyPage/Company/CompanyPageItself');
     } else {
-      router.push('/CreateCompanyPageUser');
+      router.push('/companies/CreateCompanyPageUser');
     }
   };
 
@@ -118,6 +119,8 @@ export default function ExploreCompaniesPage() {
   };
 
   return (
+    <>
+    <Navbar />
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Tabs value={tab} onChange={(_, newVal) => setTab(newVal)} centered>
         <Tab label="My Companies" />
@@ -131,5 +134,6 @@ export default function ExploreCompaniesPage() {
       {tab === 0 && renderCompanyCards(companies)}
       {tab === 1 && renderCompanyCards(exploreCompanies)}
     </Container>
+    </>
   );
 }
