@@ -6,11 +6,9 @@ import Footer from "../components/Footer";
 describe("Footer Component", () => {
   it("renders the LinkedIn copyright text", () => {
     render(<Footer />);
-    expect(
-      screen.getByRole("contentinfo", {
-        name: "Linked © 2025", // Match the aria-label
-      })
-    ).toBeInTheDocument();
+    const footerElement = document.querySelector("footer span");
+    expect(footerElement).toHaveTextContent("Ascend");
+    expect(footerElement).toHaveTextContent("© 2025");
   });
 
   it("renders all footer links", () => {

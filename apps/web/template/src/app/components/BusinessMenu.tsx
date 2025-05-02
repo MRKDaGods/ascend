@@ -21,6 +21,9 @@ export default function BusinessMenu() {
         <Link href="#" underline="hover" variant="subtitle1" onClick={() => router.push("/CreateCompanyPage")}>
           Create a Company Page +
         </Link>
+        <Link href="#" underline="hover" variant="subtitle1" sx={{ml:12}} onClick={() => router.push("/ExploreCompanies")}>
+          Explore Companies
+        </Link>
       </Box>
     </Box>
   );

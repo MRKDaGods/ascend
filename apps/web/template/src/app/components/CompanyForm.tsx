@@ -1,42 +1,95 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
-  Box,
-  TextField,
-  Typography,
-  MenuItem,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Card,
-  CardContent,
+  Box, TextField, Typography, Button,
+  Checkbox, FormControlLabel, Card, CardContent,
 } from '@mui/material';
+import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 
-type Props = {
-  formData: any;
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
-  setLogo: (file: File | null) => void;
-};
+const CompanyForm = () => {
+  const [isChecked, setIsChecked] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
-const sizes = ['1-10', '11-50', '51-200', '201-500', '500+'];
-const types = ['Public', 'Private', 'Non-profit'];
+  const {
+    companyId,
+    fetchCompanyProfile,
+    createCompanyProfile,
+    name, industry, location, description, domainName,
+    profileImage, coverImage, logoFile, coverFile,
+    setCompanyInfo,
+  } = useCompanyStore();
 
-const CompanyForm = ({ formData, setFormData, setLogo }: Props) => {
-  const [isChecked, setIsChecked] = useState(false); // Track checkbox state
+  useEffect(() => {
+    if (companyId) {
+      fetchCompanyProfile(companyId);
+    }
+  }, [companyId, fetchCompanyProfile]);
 
-  // Function to check if all required fields are filled and the checkbox is checked
-  const isFormValid = () => {
-    return (
-      formData.name !== '' &&
-      formData.url !== '' &&
-      formData.industry !== '' &&
-      formData.size !== '' &&
-      formData.type !== '' &&
-      formData.tagline !== '' && // Optional: check if tagline is filled too
-      isChecked // Ensure the checkbox is checked
-    );
+  const isFormValid = () =>
+    name && domainName && industry && location && description && logoFile && coverFile && isChecked;
+
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      convertToBase64(file).then((base64) => {
+        setCompanyInfo({
+          profileImage: base64,
+          logoFile: file,
+        });
+      }).catch((error) => console.error("Error converting logo to base64:", error));
+    }
+  };
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      convertToBase64(file).then((base64) => {
+        setCompanyInfo({
+          coverImage: base64,
+          coverFile: file,
+        });
+      }).catch((error) => console.error("Error converting cover to base64:", error));
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!logoFile || !coverFile) return;
+    setIsSubmitting(true);
+
+    try {
+      const createdCompany = await createCompanyProfile();
+      setCompanyInfo({
+        profileImage: createdCompany.profile_photo_url,
+        coverImage: createdCompany.cover_photo_url,
+      });
+      router.push("/CreateCompanyPage/Company/CompanyPageItself");
+    } catch (err) {
+      console.error('Submission Error:', err);
+      alert('Failed to create company profile.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (name) {
+      const generatedDomain = name.trim().toLowerCase().replace(/\s+/g, '');
+      const generatedUrl = `Ascend.com/company/${generatedDomain}`;
+      setCompanyInfo({ domainName: generatedDomain });
+    }
+  }, [name, setCompanyInfo]);
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', maxWidth: '100%' }}>
@@ -51,27 +104,17 @@ const CompanyForm = ({ formData, setFormData, setLogo }: Props) => {
             required
             fullWidth
             margin="normal"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={name}
+            onChange={(e) => setCompanyInfo({ name: e.target.value })}
           />
+
           <TextField
-            label="linkedin.com/company/"
+            label="Domain Name"
             required
             fullWidth
             margin="normal"
-            value={formData.url}
-            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-          />
-          <Typography sx={{ mb: 2, mt: 1 }} color="primary">
-            Learn more about the Page Public URL
-          </Typography>
-
-          <TextField
-            label="Website"
-            fullWidth
-            margin="normal"
-            value={formData.website}
-            onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+            value={domainName}
+            onChange={(e) => setCompanyInfo({ domainName: e.target.value })}
           />
 
           <TextField
@@ -79,96 +122,82 @@ const CompanyForm = ({ formData, setFormData, setLogo }: Props) => {
             required
             fullWidth
             margin="normal"
-            value={formData.industry}
-            onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+            value={industry}
+            onChange={(e) => setCompanyInfo({ industry: e.target.value })}
           />
 
           <TextField
-            select
-            label="Organization size"
-            fullWidth
+            label="Location"
             required
+            fullWidth
             margin="normal"
-            value={formData.size}
-            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-          >
-            {sizes.map((size) => (
-              <MenuItem key={size} value={size}>
-                {size}
-              </MenuItem>
-            ))}
-          </TextField>
+            value={location}
+            onChange={(e) => setCompanyInfo({ location: e.target.value.slice(0, 50) })}
+            inputProps={{ maxLength: 50 }}
+            sx={{ mb: 3 }}
+          />
 
           <TextField
-            select
-            label="Organization type"
-            fullWidth
+            label="Description"
             required
-            margin="normal"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-          >
-            {types.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </TextField>
+            fullWidth
+            multiline
+            maxRows={4}
+            value={description}
+            onChange={(e) => setCompanyInfo({ description: e.target.value })}
+            inputProps={{ maxLength: 200 }}
+            helperText="Briefly describe your organization."
+          />
 
-          <Box
-            sx={{
-              border: '1px dashed #ccc',
-              p: 3,
-              textAlign: 'center',
-              my: 2,
-              cursor: 'pointer',
-            }}
-          >
+          <Box sx={{ border: '1px dashed #ccc', p: 3, textAlign: 'center', my: 2 }}>
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setLogo(e.target.files?.[0] || null)}
+              onChange={handleLogoChange}
               style={{ display: 'none' }}
               id="logo-upload"
             />
             <label htmlFor="logo-upload">
-              <Button variant="outlined" component="span">
-                Choose file
-              </Button>
+              <Button variant="outlined" component="span">Choose Profile Image</Button>
             </label>
-            <Typography variant="body2" mt={1}>
-              Upload to see preview
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              300x300px recommended. JPGs, JPEGs, and PNGs supported.
-            </Typography>
+            {profileImage && (
+              <Box mt={2}>
+                <img src={profileImage} alt="Profile preview" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }} />
+              </Box>
+            )}
           </Box>
 
-          <TextField
-            label="Tagline"
-            fullWidth
-            multiline
-            maxRows={4}
-            value={formData.tagline}
-            onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-            inputProps={{ maxLength: 120 }}
-            helperText="Use your tagline to briefly describe what your organization does."
-          />
+          <Box sx={{ border: '1px dashed #ccc', p: 3, textAlign: 'center', my: 2 }}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleCoverChange}
+              style={{ display: 'none' }}
+              id="cover-upload"
+            />
+            <label htmlFor="cover-upload">
+              <Button variant="outlined" component="span">Choose Cover Image</Button>
+            </label>
+            {coverImage && (
+              <Box mt={2}>
+                <img src={coverImage} alt="Cover preview" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }} />
+              </Box>
+            )}
+          </Box>
 
-          {/* Checkbox to verify the authorization */}
           <FormControlLabel
             control={<Checkbox checked={isChecked} onChange={() => setIsChecked(!isChecked)} />}
-            label="I verify that I am an authorized representative of this organization and agree to the additional terms."
+            label="I verify I am an authorized representative."
             sx={{ mt: 2 }}
           />
 
-          {/* Button is enabled only when the form is valid and checkbox is checked */}
           <Button
             variant="contained"
-            disabled={!isFormValid()} // Disable button if form is not valid or checkbox is not checked
+            disabled={!isFormValid() || isSubmitting}
             sx={{ mt: 2 }}
+            onClick={handleSubmit}
           >
-            Create Page
+            {isSubmitting ? 'Submitting...' : 'Create Page'}
           </Button>
         </CardContent>
       </Card>

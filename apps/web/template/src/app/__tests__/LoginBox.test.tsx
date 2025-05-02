@@ -9,6 +9,12 @@ jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock("@ascend/api-client/mrk", () => ({
+  ApiClient: jest.fn(() => ({
+    login: jest.fn(),
+  })),
+}));
+
 describe("LoginBox Component", () => {
   it("renders the login form", () => {
     render(<LoginBox />);

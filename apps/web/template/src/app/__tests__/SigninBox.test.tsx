@@ -10,6 +10,16 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("SigninBox Component", () => {
+  const pushMock = jest.fn();
+
+  beforeEach(() => {
+    (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("renders the welcome text", () => {
     render(<SigninBox />);
     expect(screen.getByText("Welcome Back")).toBeInTheDocument();
@@ -36,22 +46,14 @@ describe("SigninBox Component", () => {
   });
 
   it("navigates to the signup page when 'Sign in using another account' is clicked", () => {
-    const pushMock = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
-
     render(<SigninBox />);
     fireEvent.click(screen.getByText("Sign in using another account"));
-
-    expect(pushMock).toHaveBeenCalledWith("/signup");
+    expect(pushMock).toHaveBeenCalledWith("/authen/signup");
   });
 
   it("navigates to the 'New to LinkedIn' page when 'Join now' is clicked", () => {
-    const pushMock = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
-
     render(<SigninBox />);
     fireEvent.click(screen.getByText("Join now"));
-
-    expect(pushMock).toHaveBeenCalledWith("/NewToLinkedin");
+    expect(pushMock).toHaveBeenCalledWith("/authen/NewToLinkedin");
   });
 });
