@@ -82,6 +82,25 @@ export const getOtherUserId = async (
   }
 };
 
+export const isBlockedBetweenUsers = async (
+  userId1: number,
+  userId2: number
+): Promise<boolean> => {
+  try {
+    const query = `
+      SELECT COUNT(*)
+      FROM connection_service.blocked_users
+      WHERE (user_id = $1 AND blocked_user_id = $2) OR (user_id = $2 AND blocked_user_id = $1)
+    `;
+
+    const result = await database.query(query, [userId1, userId2]);
+    return parseInt(result.rows[0].count) > 0;
+  } catch (error) {
+    console.error("Error checking if users are blocked:", error);
+    throw new Error("Failed to check blocked status between users");
+  }
+};
+
 /**
  * Marks unread messages from a sender in a conversation as read
  * @param {number} conversationId - The conversation ID
@@ -104,6 +123,73 @@ export const markMessagesAsRead = async (
   } catch (error) {
     console.error("Error marking messages as read:", error);
     throw new Error("Failed to mark messages as read");
+  }
+};
+
+export const canSendMessage = async (
+  senderId: number,
+  receiverId: number
+): Promise<boolean> => {
+  try {
+    // Check either sender blocked receiver or receiver blocked sender
+    const isBlocked = await isBlockedBetweenUsers(senderId, receiverId);
+    if (isBlocked) {
+      return false;
+    }
+
+    // Check if there is an accepted connection between the two users
+    const connectionQuery = `
+      SELECT COUNT(*)
+      FROM connection_service.connections
+      WHERE (user_id = $1 AND connection_id = $2) OR (user_id = $2 AND connection_id = $1)
+      AND status = 'accepted'
+    `;
+
+    const connectionResult = await database.query(connectionQuery, [
+      senderId,
+      receiverId,
+    ]);
+
+    // If the count is 0, it means there is no accepted connection
+    const hasConnection = parseInt(connectionResult.rows[0].count) > 0;
+    if (!hasConnection) {
+      return false;
+    }
+
+    // If both checks pass, the user can send a message
+    return true;
+  } catch (error) {
+    console.error("Error checking if user can send message:", error);
+    throw new Error("Failed to check if user can send message");
+  }
+};
+
+export const isMessageLimitReached = async (
+  userId: number
+): Promise<boolean> => {
+  try {
+    const query = `
+    SELECT messages_per_day, messages_per_day_limit, last_date
+    FROM payment_service.usage
+    WHERE user_id = $1
+    `;
+
+    const result = await database.query(query, [userId]);
+
+    const lastDate = new Date(result.rows[0].last_date);
+    const now = new Date();
+    const diffInHours = Math.abs(now.getTime() - lastDate.getTime()) / 36e5;
+    const messagesPerDay = parseInt(result.rows[0].messages_per_day);
+    const messagesPerDayLimit = parseInt(result.rows[0].messages_per_day_limit);
+
+    if (messagesPerDay >= messagesPerDayLimit && diffInHours <= 24) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error checking message limit:", error);
+    throw new Error("Failed to check message limit");
   }
 };
 
@@ -192,6 +278,27 @@ export const sendMessage = async (
       `UPDATE messaging_service.conversations SET last_message_id = $1 WHERE conversation_id = $2`,
       [messageInsertResult.rows[0].message_id, conversationId]
     );
+
+    // Update the usage for the sender
+    const lastDateResult = await database.query(
+      `SELECT last_date FROM payment_service.usage WHERE user_id = $1`,
+      [senderId]
+    );
+    const lastDate = new Date(lastDateResult.rows[0].last_date);
+    const now = new Date();
+    const diffInHours = Math.abs(now.getTime() - lastDate.getTime()) / 36e5;
+
+    if (diffInHours >= 24) {
+      await database.query(
+        `UPDATE payment_service.usage SET messages_per_day = 1, last_date = NOW() WHERE user_id = $1`,
+        [senderId]
+      );
+    } else {
+      await database.query(
+        `UPDATE payment_service.usage SET messages_per_day = messages_per_day + 1, last_date = NOW() WHERE user_id = $1`,
+        [senderId]
+      );
+    }
 
     return {
       conversationId: conversationId,
@@ -291,25 +398,41 @@ export const getConversations = async (
     // Map the results to a more usable format
     const conversationList = await Promise.all(
       conversationsQueryResult.rows.map(async (row) => {
-        const conversation = {
+        // Check if the user is blocked by the other user
+        // or if the user has blocked the other user
+        const isBlocked = await isBlockedBetweenUsers(
+          userId,
+          parseInt(row.connected_user_id)
+        );
+
+        // Fetch the full name of the other user
+        const otherUserFullName = await getUserFullName(
+          parseInt(row.connected_user_id)
+        );
+
+        // Fetch the profile picture URL of the other user
+        // If the user is blocked, set the profile picture URL to empty string
+        let otherUserProfilePictureUrl = "";
+        if (!isBlocked) {
+          const url = await getUserProfilePictureUrl(
+            parseInt(row.connected_user_id)
+          );
+
+          if (url) {
+            otherUserProfilePictureUrl = url;
+          }
+        }
+
+        return {
           conversationId: row.conversation_id,
           otherUserId: row.connected_user_id,
-          otherUserFullName: "",
-          otherUserProfilePictureUrl: null as string | null,
-          isBlocked: false,
+          otherUserFullName,
+          otherUserProfilePictureUrl,
+          isBlocked,
           lastMessageContent: row.last_message_content,
           lastMessageTimestamp: row.last_message_timestamp,
           unseenMessageCount: parseInt(row.unseen_count),
         };
-
-        conversation.otherUserFullName = await getUserFullName(
-          conversation.otherUserId
-        );
-
-        conversation.otherUserProfilePictureUrl =
-          await getUserProfilePictureUrl(conversation.otherUserId);
-
-        return conversation;
       })
     );
 
