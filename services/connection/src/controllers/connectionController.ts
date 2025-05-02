@@ -8,6 +8,11 @@ import {
 } from "../validations/connectionValidation";
 import validate from "@shared/middleware/validationMiddleware";
 import { ConnectionStatus } from "../__tests__/models";
+import { GetUserUsageConnections } from "@shared/rabbitMQ/payloads";
+import { callRPC } from "@shared/rabbitMQ/mq";
+import { Events, getRPCQueueName } from "@shared/rabbitMQ";
+import { Services } from "@shared/index";
+
 
 /**
  * Search for users by name, email, or other criteria
@@ -64,11 +69,27 @@ export const sendConnectionRequest = [
           message: "User not authenticated",
         });
       }
+      let connection_payload : GetUserUsageConnections.Request = {
+        user_id : req.user.id,
+        update_usage : false
+      }
+
+      let payment_service_queue = getRPCQueueName(Services.PAYMENT , Events.FILE_UPLOAD_RPC);
+      const connection_check_response : GetUserUsageConnections.Response = await callRPC<GetUserUsageConnections.Response>(payment_service_queue, connection_payload, 7000);
+      if(connection_check_response && connection_check_response.connections_limit >= 0 && connection_check_response.connections >= connection_check_response.connections_limit){
+        return res.status(403).json({
+          success : false,
+          message : "Connections limit exceeded"
+        });
+      }
       const request = await connectionService.sendConnectionRequest({
         senderId: req.user.id,
         recipientId: req.body.userId,
         message: req.body.message,
       });
+
+      connection_payload.update_usage = true;
+      await callRPC<GetUserUsageConnections.Response>(payment_service_queue, connection_payload, 7000);
       res.status(201).json({ success: true, data: request });
     } catch (error: any) {
       return res.status(404).json({
@@ -78,6 +99,7 @@ export const sendConnectionRequest = [
     }
   },
 ];
+
 
 /**
  * Accept or reject a received connection request
