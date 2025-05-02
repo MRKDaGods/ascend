@@ -12,10 +12,12 @@ import 'add_interest_page.dart';
 class ExpandedSectionPage extends StatefulWidget {
   final ProfileSection section;
   final bool isMyProfile;
+  final void Function()? deleteResume;
   const ExpandedSectionPage({
     super.key,
     required this.section,
     required this.isMyProfile,
+    this.deleteResume,
   });
 
   @override
@@ -74,6 +76,8 @@ class _ExpandedSectionPageState extends State<ExpandedSectionPage> {
                                 (context) => AddEducationPage(
                                   onSave: (education) {
                                     final newEntry = ProfileEntryWidget(
+                                      imageUrl:
+                                          "assets/company_placeholder.png",
                                       title: education.school,
                                       subtitle:
                                           "${education.degree} in ${education.fieldOfStudy}",
@@ -93,6 +97,8 @@ class _ExpandedSectionPageState extends State<ExpandedSectionPage> {
                                 (context) => AddExperiencePage(
                                   onSave: (experience) {
                                     final newEntry = ProfileEntryWidget(
+                                      imageUrl:
+                                          "assets/company_placeholder.png",
                                       title: experience.position,
                                       subtitle: experience.company,
                                       description:
@@ -183,6 +189,7 @@ class _ExpandedSectionPageState extends State<ExpandedSectionPage> {
             isMyProfile: false,
             isExpanded: true,
             inEditMode: widget.isMyProfile,
+            deleteResume: widget.deleteResume,
           ),
         ),
       ),
