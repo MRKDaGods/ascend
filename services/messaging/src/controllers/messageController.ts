@@ -11,6 +11,8 @@ import {
   getOtherUserId,
   validateUserInConversation,
   markMessagesAsRead,
+  canSendMessage,
+  isMessageLimitReached,
 } from "../services/messageService";
 
 /**
@@ -38,6 +40,21 @@ export const handleSendMessage = [
         return res.status(400).json({ error: "Message is empty" });
       }
 
+      // Check if the sender can send a message to the receiver
+      const canSend = await canSendMessage(senderId, receiverId);
+      if (!canSend) {
+        return res.status(403).json({ error: "Cannot send message" });
+      }
+
+      // Check if the user has reached the message limit
+      const messageLimitIsReached = await isMessageLimitReached(senderId);
+      if (messageLimitIsReached) {
+        return res.status(403).json({
+          error: "Message limit reached",
+        });
+      }
+
+      // Send the message to the database
       const messageResult = await sendMessage(
         senderId,
         receiverId,
