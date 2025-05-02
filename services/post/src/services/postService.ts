@@ -81,12 +81,11 @@ export class PostService {
       }
     }
 
-    // Process user profile picture
-    if (post.user && post.user.profile_picture_id) {
-      post.user.profile_picture_url = await this.getFileUrl(
-        post.user.profile_picture_id
-      );
-    }
+  // Process user profile picture 
+  if (post.user && post.user.profile_picture_id) {
+    post.user.original_profile_picture_id = post.user.profile_picture_id;
+    post.user.profile_picture_url = await this.getFileUrl(post.user.profile_picture_id);
+  }
 
     return post;
   }
