@@ -3,7 +3,7 @@ import { useMediaStore } from "./useMediaStore";
 import {
   createCompanyAnnouncementAPI,
   deleteCompanyAnnouncementAPI,
-  updateCompanyAnnouncementAPI
+  updateCompanyAnnouncementAPI,
 } from "@/api/company";
 import { useCompanyStore } from "./useCreateCompanyStore";
 
@@ -12,6 +12,7 @@ export interface MediaFile {
   file: File;
   preview: string;
   url?: string;
+  id?: number; // <- Add ID to track image_ids
 }
 
 export interface CompanyPost {
@@ -30,6 +31,7 @@ interface CompanyPostStore {
     content: string;
     media: MediaFile[];
   };
+  removedImageIds: number[];
   open: boolean;
   postText: string;
   draftText: string;
@@ -64,14 +66,14 @@ interface CompanyPostStore {
   clearDraftPost: () => void;
   addPost: () => boolean;
   deletePost: (postId: string) => Promise<void>;
-  updatePost: (postId: string, content: string) => Promise<boolean>;
+  updatePost: (postId: string) => Promise<boolean>;
   createAnnouncementPost: () => Promise<boolean>;
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
   setDraftText: (text: string) => void;
   resetPost: () => void;
-  setEditingPost: (post: CompanyPost | null) => void;
+  setEditingPost: (post: CompanyPost) => void;
   setCompanyAnnouncementsToPosts: () => void;
 }
 
@@ -81,6 +83,7 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
     content: '',
     media: [],
   },
+  removedImageIds: [],
   lastCompanyPostId: null,
   setLastCompanyPostId: (id) => set({ lastCompanyPostId: id }),
 
@@ -111,21 +114,40 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
   repostSourcePost: null,
   setRepostSourcePost: (post) => set({ repostSourcePost: post }),
 
-  setEditingPost: (post) => {
+  setEditingPost: (post: CompanyPost) => {
     const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
-    const previews: string[] = [];
-    if (post?.image) previews.push(post.image);
-    if (post?.video) previews.push(post.video);
+    const previews = post.media.map((m) => m.preview);
     setMediaFiles([]);
     setMediaPreviews(previews);
-    set({ editingPost: post, postText: post?.content ?? "", open: true });
+
+    const clonedMedia = post.media.map((m) => ({ ...m }));
+
+    set({
+      editingPost: {
+        id: post.id,
+        content: post.content,
+        createdAt: post.createdAt,
+        media: clonedMedia,
+        image: post.image,
+        video: post.video,
+        repostSourcePost: post.repostSourcePost || null,
+      },
+      draftPost: {
+        content: post.content,
+        media: clonedMedia,
+      },
+      removedImageIds: [],
+      open: true,
+    });
   },
+
   resetPost: () => set({ open: false, postText: "", editingPost: null }),
 
   setDraftPostContent: (content) =>
     set((state) => ({
       draftPost: { ...state.draftPost, content },
     })),
+
   addDraftMedia: (mediaArray) =>
     set((state) => ({
       draftPost: {
@@ -133,25 +155,33 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
         media: [...state.draftPost.media, ...mediaArray],
       },
     })),
+
   removeDraftMedia: (index) =>
-    set((state) => ({
-      draftPost: {
-        ...state.draftPost,
-        media: state.draftPost.media.filter((_, i) => i !== index),
-      },
-    })),
+    set((state) => {
+      const removed = state.draftPost.media[index];
+      const updatedMedia = state.draftPost.media.filter((_, i) => i !== index);
+      const removedIds = removed.id ? [...state.removedImageIds, removed.id] : state.removedImageIds;
+      return {
+        draftPost: {
+          ...state.draftPost,
+          media: updatedMedia,
+        },
+        removedImageIds: removedIds,
+      };
+    }),
+
   clearDraftPost: () =>
     set({
       draftPost: {
         content: '',
         media: [],
       },
+      removedImageIds: [],
     }),
+
   addPost: () => {
     const { draftPost, posts } = get();
-    if (!draftPost.content.trim() && draftPost.media.length === 0) {
-      return false;
-    }
+    if (!draftPost.content.trim() && draftPost.media.length === 0) return false;
 
     const newPost: CompanyPost = {
       id: Date.now().toString(),
@@ -163,14 +193,15 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
     set({
       posts: [...posts, newPost],
       draftPost: { content: '', media: [] },
+      removedImageIds: [],
     });
 
     return true;
   },
-  deletePost: async (postId: string) => {
+
+  deletePost: async (postId) => {
     const companyId = useCompanyStore.getState().companyId;
     if (!companyId) return;
-
     try {
       await deleteCompanyAnnouncementAPI(companyId, Number(postId));
       set((state) => ({
@@ -183,129 +214,133 @@ export const useCompanyPostStore = create<CompanyPostStore>((set, get) => ({
 
   updatePost: async (postId: string) => {
     const companyId = useCompanyStore.getState().companyId;
-    const { draftPost, posts } = get();
-  
-    if (!companyId) {
-      console.error("❌ No company ID available for update.");
+    const { draftPost, posts, editingPost, removedImageIds } = get();
+
+    if (!companyId || !editingPost) {
+      console.error("❌ Missing company ID or editing post.");
       return false;
     }
-  
+
     try {
       const announcement = await updateCompanyAnnouncementAPI(
         companyId,
         Number(postId),
         draftPost.content.trim(),
-        draftPost.media // send updated media
+        draftPost.media,
+        removedImageIds // pass as additional parameter
       );
-  
+
+      const updatedMedia: MediaFile[] = [
+        ...announcement.image_urls.map((url: string, i: number) => ({
+          type: "image",
+          file: {} as File,
+          preview: url,
+          url,
+          id: announcement.image_ids[i],
+        })),
+        ...(announcement.video_url
+          ? [{
+              type: "video",
+              file: {} as File,
+              preview: announcement.video_url,
+              url: announcement.video_url,
+            }]
+          : []),
+      ];
+
       const updatedPost: CompanyPost = {
         id: announcement.announcement_id.toString(),
         content: announcement.content,
-        media: [
-          ...announcement.image_urls.map((url: string) => ({
-            type: "image",
-            file: {} as File,
-            preview: url,
-          })),
-          ...(announcement.video_url
-            ? [{
-                type: "video",
-                file: {} as File,
-                preview: announcement.video_url,
-              }]
-            : []),
-        ],
         createdAt: new Date(announcement.created_at),
+        media: updatedMedia,
       };
-  
+
       set({
         posts: posts.map((p) => (p.id === postId ? updatedPost : p)),
         draftPost: { content: '', media: [] },
+        removedImageIds: [],
       });
-  
+
       return true;
     } catch (error) {
       console.error("❌ Failed to update post", error);
       return false;
     }
   },
-  
-  
-  
 
   createAnnouncementPost: async () => {
     const { draftPost, posts } = get();
     const companyId = useCompanyStore.getState().companyId;
-
-    if (!draftPost.content.trim() && draftPost.media.length === 0) {
-      return false;
-    }
-
-    if (!companyId) {
-      console.error("❌ No company ID available");
-      return false;
-    }
-
+    if (!draftPost.content.trim() && draftPost.media.length === 0) return false;
+    if (!companyId) return false;
+  
+    console.log("📤 Creating post with media:", draftPost.media);
+  
     try {
       const announcement = await createCompanyAnnouncementAPI(
         companyId,
         draftPost.content.trim(),
         draftPost.media
       );
-
+  
       const newPost: CompanyPost = {
         id: announcement.announcement_id.toString(),
         content: announcement.content,
+        createdAt: new Date(announcement.created_at),
         media: [
-          ...announcement.image_urls.map((url: string) => ({
+          ...(announcement.image_urls || []).map((url: string, i: number) => ({
             type: "image",
             file: {} as File,
             preview: url,
+            url,
+            id: announcement.image_ids[i],
           })),
           ...(announcement.video_url
             ? [{
                 type: "video",
                 file: {} as File,
                 preview: announcement.video_url,
+                url: announcement.video_url,
               }]
-            : []),
-        ],
-        createdAt: new Date(announcement.created_at),
+            : [])
+        ]
       };
-
+  
       set({
-        posts: [...posts, newPost],
-        draftPost: { content: "", media: [] },
+        posts: [newPost, ...posts],
+        draftPost: { content: '', media: [] },
+        removedImageIds: [],
       });
-
+  
       return true;
     } catch (error) {
       console.error("❌ Error posting announcement:", error);
       return false;
     }
   },
-
+  
   setCompanyAnnouncementsToPosts: () => {
     const announcements = useCompanyStore.getState().announcements;
-
     const transformedPosts: CompanyPost[] = announcements.map((a: any) => ({
       id: a.announcement_id.toString(),
       content: a.content,
-      media: [
-        ...a.image_urls.map((url: string) => ({
-          type: "image",
-          file: {} as File,
-          preview: url,
-        })),
-        ...(a.video_url
+      createdAt: new Date(a.created_at),
+      media: a.image_urls.map((url: string, i: number) => ({
+        type: "image",
+        file: {} as File,
+        preview: url,
+        url,
+        id: a.image_ids[i],
+      })).concat(
+        a.video_url
           ? [{
               type: "video",
               file: {} as File,
               preview: a.video_url,
+              url: a.video_url,
             }]
-          : []),
-      ],
-      createdAt: new Date(a.created_at),
+          : []
+      )
     }));
 
     set({ posts: transformedPosts });

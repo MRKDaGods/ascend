@@ -7,7 +7,6 @@ import ImageIcon from '@mui/icons-material/Image';
 import ArticleIcon from '@mui/icons-material/Article';
 import CloseIcon from '@mui/icons-material/Close';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CreateCompanyPost from "../components/CreateCompanyPost";
 import { useEffect, useState } from 'react';
 import { useCompanyPostStore, MediaFile, CompanyPost } from '@/app/stores/useCompanyPostStore';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
@@ -37,33 +36,66 @@ export default function PagePosts() {
   const {
     createAnnouncementPost,
     updatePost,
+    setEditingPost,
     addDraftMedia,
     removeDraftMedia,
     draftPost,
     posts,
     deletePost,
     setDraftPostContent,
-    clearDraftPost
+    clearDraftPost,
+    removedImageIds
   } = useCompanyPostStore();
 
   const companyName = useCompanyStore((state) => state.name);
   const companyProfileImage = useCompanyStore((state) => state.profileImage);
   const [selectedReactions, setSelectedReactions] = useState<{ [postId: string]: string | null }>({});
 
-  const handleFileUpload = (type: 'image' | 'video' | 'document') => (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const media = Array.from(files).map((file) => ({
-        type, file, preview: URL.createObjectURL(file),
-      }));
-      addDraftMedia(media);
-      setOpen(true);
-    }
-  };
+  const handleFileUpload = (type: 'image' | 'video') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = e.target.files;
+  if (!files) return;
+
+  const fileArray: File[] = Array.from(files);
+  const mediaArray: MediaFile[] = [];
+
+  fileArray.forEach((file) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      useCompanyPostStore.getState().addDraftMedia([
+        {
+          type,
+          file,
+          preview: base64, // ✅ MUST be base64 for uploading
+        },
+      ]);
+    };
+    reader.readAsDataURL(file); // ✅ This ensures base64, not blob
+  });
+  
+};
+
 
   const handleSubmit = async () => {
-    if (isEditing && editingPostId) {
-      await updatePost(editingPostId, draftPost.content.trim());
+    const { draftPost, editingPost } = useCompanyPostStore.getState();
+
+    if (isEditing && editingPostId && editingPost) {
+      const hasContentChanged = draftPost.content.trim() !== editingPost.content.trim();
+
+      const draftPreviews = draftPost.media.map((m) => m.preview);
+      const originalPreviews = editingPost.media.map((m) => m.preview);
+      const hasMediaChanged = JSON.stringify(draftPreviews) !== JSON.stringify(originalPreviews);
+
+      if (!hasContentChanged && !hasMediaChanged && removedImageIds.length === 0) {
+        console.log("⚠️ No changes detected. Skipping update.");
+        setOpen(false);
+        setIsEditing(false);
+        setEditingPostId(null);
+        return;
+      }
+
+      const success = await updatePost(editingPostId);
+      if (!success) return;
       setIsEditing(false);
       setEditingPostId(null);
     } else {
@@ -77,9 +109,8 @@ export default function PagePosts() {
   };
 
   const handleEditPost = (post: CompanyPost) => {
-    setDraftPostContent(post.content);
     clearDraftPost();
-    useCompanyPostStore.setState({ draftPost: { content: post.content, media: [...post.media] } });
+    setEditingPost(post);
     setIsEditing(true);
     setEditingPostId(post.id);
     setOpen(true);
@@ -93,8 +124,6 @@ export default function PagePosts() {
     setSelectedPostId(null);
   };
 
-  
-
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} md={8}>
@@ -106,7 +135,6 @@ export default function PagePosts() {
             <Tab label="Published" />
           </Tabs>
         </Paper>
-        {/* <CreateCompanyPost /> */}
 
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
           <Box display="flex" alignItems="center" gap={2}>
@@ -139,13 +167,9 @@ export default function PagePosts() {
               Video
               <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
             </Button>
-            {/* <Button component="label" startIcon={<ArticleIcon color="error" />} sx={{ textTransform: 'none' }}>
-              Document
-              <input type="file" accept="application/pdf,.doc,.docx" hidden multiple onChange={handleFileUpload('document')} />
-            </Button> */}
           </Box>
         </Paper>
-        
+
         {posts.map((post) => (
           <Paper key={post.id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -174,41 +198,37 @@ export default function PagePosts() {
             <Typography variant="body1" mt={2} mb={2}>{post.content}</Typography>
 
             <Grid container spacing={1}>
-            {post.media.map((media, index) => (
-              <Grid item xs={12} key={index}>
-                {media.type === 'image' && (media.url || media.preview) && (
-                  <>
-                  {console.log("🔍 Image src:", media.preview)}
-                  <Box
-                    component="img"
-                    src={media.url || media.preview}
-                    alt="image"
-                    sx={{
-                      width: '100%',
-                      maxHeight: 400,
-                      objectFit: 'cover',
-                      borderRadius: 2,
-                      my: 1,
-                    }}
-                  />
-                  </>
-                )}
-                {media.type === 'video' && (media.url || media.preview) && (
-                  <Box
-                    component="video"
-                    controls
-                    src={media.url || media.preview}
-                    sx={{
-                      width: '100%',
-                      maxHeight: 500,
-                      borderRadius: 2,
-                      my: 1,
-                    }}
-                  />
-                )}
-              </Grid>
-            ))}
-
+              {post.media.map((media, index) => (
+                <Grid item xs={12} key={index}>
+                  {media.type === 'image' && (media.url || media.preview) && (
+                    <Box
+                      component="img"
+                      src={media.url || media.preview}
+                      alt="image"
+                      sx={{
+                        width: '100%',
+                        maxHeight: 400,
+                        objectFit: 'cover',
+                        borderRadius: 2,
+                        my: 1,
+                      }}
+                    />
+                  )}
+                  {media.type === 'video' && (media.url || media.preview) && (
+                    <Box
+                      component="video"
+                      controls
+                      src={media.url || media.preview}
+                      sx={{
+                        width: '100%',
+                        maxHeight: 500,
+                        borderRadius: 2,
+                        my: 1,
+                      }}
+                    />
+                  )}
+                </Grid>
+              ))}
             </Grid>
 
             <Box display="flex" alignItems="center" gap={1} mt={1}>
@@ -294,20 +314,53 @@ export default function PagePosts() {
               Video
               <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
             </Button>
-            <Button component="label" startIcon={<ArticleIcon color="error" />} sx={{ textTransform: 'none' }}>
-              Document
-              <input type="file" accept="application/pdf,.doc,.docx" hidden multiple onChange={handleFileUpload('document')} />
-            </Button>
           </Box>
 
-          <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
-            {draftPost.media.map((media: MediaFile, i: number) => (
-              <Box key={i} display="flex" alignItems="center" gap={1}>
-                <Typography variant="body2">{media.file.name}</Typography>
-                <Button onClick={() => removeDraftMedia(i)}>Remove</Button>
-              </Box>
-            ))}
+          <Box display="flex" flexDirection="column" gap={2} mb={2}>
+            {draftPost.media.length === 0 ? (
+              <Typography variant="body2" color="text.secondary" textAlign="center">
+                No media attached.
+              </Typography>
+            ) : (
+              draftPost.media.map((media: MediaFile, i: number) => (
+                <Box key={i} display="flex" alignItems="center" gap={2}>
+                  {media.type === 'image' && (
+                    <Box
+                      component="img"
+                      src={media.url || media.preview}
+                      alt="preview"
+                      sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                    />
+                  )}
+                  {media.type === 'video' && (
+                    <Box
+                      component="video"
+                      src={media.url || media.preview}
+                      controls
+                      sx={{ width: 120, height: 80, borderRadius: 1 }}
+                    />
+                  )}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      flex: 1,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {media.file?.name ??
+                      decodeURIComponent(media.url?.split('/view?')[1]?.split('&')[0] || 'media')}
+                  </Typography>
+                  <Button size="small" color="error" onClick={() => removeDraftMedia(i)}>
+                    Remove
+                  </Button>
+                </Box>
+              ))
+            )}
           </Box>
+
+
 
           <Button fullWidth variant="contained" onClick={handleSubmit}>
             {isEditing ? 'Save Changes' : 'Post'}

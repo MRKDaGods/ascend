@@ -7,6 +7,11 @@ import {
   updateCompanyProfileAPI,
   deleteCompanyProfileAPI,
   getCompanyAnnouncementsAPI,
+  followCompanyAPI,
+  unfollowCompanyAPI,
+  getCompanyFollowersAPI,
+  getAllCompanyProfilesAPI,
+  CompanyResponse
 } from "@/api/company";
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -14,18 +19,25 @@ const fileToBase64 = (file: File): Promise<string> => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      resolve(result); // ✅ Keep full data URI format: data:image/jpeg;base64,...
+      resolve(result);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 };
 
+interface Company {
+  company_id: number;
+  company_name: string;
+  description: string;
+  location: string;
+  industry: string;
+  profile_photo_url: string;
+}
 
 interface CompanyState {
   companyId: number | null;
   name: string;
-  url: string;
   industry: string;
   domainName: string;
   location: string;
@@ -36,12 +48,19 @@ interface CompanyState {
   coverFile: File | null;
   announcements: any[];
 
-  getCompanyAnnouncements: (companyId: number) => Promise<void>;
+  companies: Company[];
+  followerCounts: Record<number, number>;
+  followingStatus: Record<number, boolean>;
+
   setCompanyInfo: (data: Partial<CompanyState>) => void;
   fetchCompanyProfile: (companyId: number) => Promise<void>;
-  createCompanyProfile: () => Promise<void>;
+  fetchAllCompanies: () => Promise<void>;
+  fetchCompanyFollowers: (companyId: number, userId: number | null) => Promise<void>;
+  toggleFollowCompany: (companyId: number, currentUserId: number) => Promise<'followed' | 'unfollowed'>;
+  createCompanyProfile: () => Promise<CompanyResponse>;
   updateCompanyProfile: (fieldsToUpdate: Partial<CompanyState>) => Promise<void>;
   deleteCompanyProfile: () => Promise<void>;
+  getCompanyAnnouncements: (companyId: number) => Promise<void>;
 }
 
 export const useCompanyStore = create<CompanyState>()(
@@ -49,7 +68,6 @@ export const useCompanyStore = create<CompanyState>()(
     (set, get) => ({
       companyId: null,
       name: "",
-      url: "",
       industry: "",
       domainName: "",
       location: "",
@@ -59,7 +77,45 @@ export const useCompanyStore = create<CompanyState>()(
       logoFile: null,
       coverFile: null,
 
+      companies: [],
+      followerCounts: {},
+      followingStatus: {},
+
       setCompanyInfo: (data) => set((state) => ({ ...state, ...data })),
+
+      fetchAllCompanies: async () => {
+        const companies = await getAllCompanyProfilesAPI();
+        set({ companies });
+      },
+
+      fetchCompanyFollowers: async (companyId, userId) => {
+        const response = await getCompanyFollowersAPI(companyId);
+        const followers = response.followers || [];
+
+        set((state) => ({
+          followerCounts: {
+            ...state.followerCounts,
+            [companyId]: followers.length,
+          },
+          followingStatus: {
+            ...state.followingStatus,
+            [companyId]: userId ? followers.some((f: any) => f.follower_id === userId) : false,
+          },
+        }));
+      },
+
+      toggleFollowCompany: async (companyId, currentUserId) => {
+        const { followingStatus } = get();
+
+        if (followingStatus[companyId]) {
+          await unfollowCompanyAPI(companyId);
+        } else {
+          await followCompanyAPI(companyId);
+        }
+
+        await get().fetchCompanyFollowers(companyId, currentUserId);
+        return followingStatus[companyId] ? "unfollowed" : "followed";
+      },
 
       fetchCompanyProfile: async (companyId) => {
         try {
@@ -67,9 +123,6 @@ export const useCompanyStore = create<CompanyState>()(
           set({
             companyId: company.company_id,
             name: company.company_name || "",
-            url: company.company_domain_name
-              ? `https://ascendx.tech/company/${company.company_domain_name}`
-              : "",
             industry: company.industry || "",
             domainName: company.company_domain_name || "",
             location: company.location || "",
@@ -83,7 +136,7 @@ export const useCompanyStore = create<CompanyState>()(
         }
       },
 
-      createCompanyProfile: async () => {
+      createCompanyProfile: async (): Promise<CompanyResponse> => {
         try {
           const {
             name,
@@ -109,21 +162,18 @@ export const useCompanyStore = create<CompanyState>()(
             location: location.trim().slice(0, 50),
             company_domain_name: domainName.trim().slice(0, 50),
             profile_photo: {
-              buffer: profileBase64, // now full "data:image/jpeg;base64,..."
+              buffer: profileBase64.replace(/^data:.+;base64,/, ""),
               file_name: logoFile.name,
               file_size: logoFile.size.toString(),
               mime_type: logoFile.type,
             },
             cover_photo: {
-              buffer: coverBase64, // same here
+              buffer: coverBase64.replace(/^data:.+;base64,/, ""),
               file_name: coverFile.name,
               file_size: coverFile.size.toString(),
               mime_type: coverFile.type,
             },
           };
-          console.log("🚀 Final payload being sent to backend:", payload);
-
-          
 
           const result = await createCompanyProfileAPI(payload);
 
@@ -139,7 +189,8 @@ export const useCompanyStore = create<CompanyState>()(
           });
 
           localStorage.setItem("companyId", result.company_id.toString());
-          console.log("✅ Company profile created successfully!");
+
+          return result;
         } catch (error) {
           console.error("❌ Failed to create company profile:", error);
           throw error;
@@ -152,7 +203,6 @@ export const useCompanyStore = create<CompanyState>()(
         try {
           const announcements = await getCompanyAnnouncementsAPI(companyId);
           set({ announcements });
-          console.log("📢 Announcements fetched:", announcements);
         } catch (error) {
           console.error("❌ Failed to fetch announcements:", error);
         }
@@ -176,7 +226,6 @@ export const useCompanyStore = create<CompanyState>()(
           set({
             companyId: null,
             name: "",
-            url: "",
             industry: "",
             domainName: "",
             location: "",
@@ -188,7 +237,6 @@ export const useCompanyStore = create<CompanyState>()(
           });
 
           localStorage.removeItem("companyId");
-          console.log("✅ Company profile deleted.");
         } catch (error) {
           console.error("❌ Failed to delete company profile:", error);
           throw error;
@@ -217,7 +265,7 @@ export const useCompanyStore = create<CompanyState>()(
           if (fieldsToUpdate.logoFile instanceof File) {
             const base64 = await fileToBase64(fieldsToUpdate.logoFile);
             payload.profile_photo = {
-              buffer: base64,
+              buffer: base64.replace(/^data:.+;base64,/, ""),
               file_name: fieldsToUpdate.logoFile.name,
               file_size: fieldsToUpdate.logoFile.size.toString(),
               mime_type: fieldsToUpdate.logoFile.type,
@@ -227,7 +275,7 @@ export const useCompanyStore = create<CompanyState>()(
           if (fieldsToUpdate.coverFile instanceof File) {
             const base64 = await fileToBase64(fieldsToUpdate.coverFile);
             payload.cover_photo = {
-              buffer: base64,
+              buffer: base64.replace(/^data:.+;base64,/, ""),
               file_name: fieldsToUpdate.coverFile.name,
               file_size: fieldsToUpdate.coverFile.size.toString(),
               mime_type: fieldsToUpdate.coverFile.type,
@@ -248,7 +296,6 @@ export const useCompanyStore = create<CompanyState>()(
             coverImage: updatedCompany.cover_photo_url,
           }));
 
-          console.log("✅ Company profile updated!");
         } catch (error) {
           console.error("❌ Failed to update company profile:", error);
           throw error;

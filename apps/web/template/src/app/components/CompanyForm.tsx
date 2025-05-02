@@ -17,7 +17,8 @@ const CompanyForm = () => {
     companyId,
     fetchCompanyProfile,
     createCompanyProfile,
-    name, url, industry, location, description, domainName, profileImage, coverImage, logoFile, coverFile,
+    name, industry, location, description, domainName,
+    profileImage, coverImage, logoFile, coverFile,
     setCompanyInfo,
   } = useCompanyStore();
 
@@ -28,18 +29,12 @@ const CompanyForm = () => {
   }, [companyId, fetchCompanyProfile]);
 
   const isFormValid = () =>
-    name && url && domainName && industry && location && description && logoFile && coverFile && isChecked;
+    name && domainName && industry && location && description && logoFile && coverFile && isChecked;
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      if (!(file instanceof File)) {
-        return reject(new Error("Provided input is not a valid File instance."));
-      }
       const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1]);
-      };
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -47,10 +42,10 @@ const CompanyForm = () => {
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file instanceof File) {
+    if (file) {
       convertToBase64(file).then((base64) => {
         setCompanyInfo({
-          profileImage: `data:${file.type};base64,${base64}`,
+          profileImage: base64,
           logoFile: file,
         });
       }).catch((error) => console.error("Error converting logo to base64:", error));
@@ -59,10 +54,10 @@ const CompanyForm = () => {
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file instanceof File) {
+    if (file) {
       convertToBase64(file).then((base64) => {
         setCompanyInfo({
-          coverImage: `data:${file.type};base64,${base64}`,
+          coverImage: base64,
           coverFile: file,
         });
       }).catch((error) => console.error("Error converting cover to base64:", error));
@@ -74,7 +69,11 @@ const CompanyForm = () => {
     setIsSubmitting(true);
 
     try {
-      await createCompanyProfile();
+      const createdCompany = await createCompanyProfile();
+      setCompanyInfo({
+        profileImage: createdCompany.profile_photo_url,
+        coverImage: createdCompany.cover_photo_url,
+      });
       router.push("/CreateCompanyPage/Company/CompanyPageItself");
     } catch (err) {
       console.error('Submission Error:', err);
@@ -88,7 +87,7 @@ const CompanyForm = () => {
     if (name) {
       const generatedDomain = name.trim().toLowerCase().replace(/\s+/g, '');
       const generatedUrl = `Ascend.com/company/${generatedDomain}`;
-      setCompanyInfo({ domainName: generatedDomain, url: generatedUrl });
+      setCompanyInfo({ domainName: generatedDomain });
     }
   }, [name, setCompanyInfo]);
 
@@ -161,7 +160,11 @@ const CompanyForm = () => {
             <label htmlFor="logo-upload">
               <Button variant="outlined" component="span">Choose Profile Image</Button>
             </label>
-            <Typography variant="body2" mt={1}>Profile image preview</Typography>
+            {profileImage && (
+              <Box mt={2}>
+                <img src={profileImage} alt="Profile preview" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }} />
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ border: '1px dashed #ccc', p: 3, textAlign: 'center', my: 2 }}>
@@ -175,7 +178,11 @@ const CompanyForm = () => {
             <label htmlFor="cover-upload">
               <Button variant="outlined" component="span">Choose Cover Image</Button>
             </label>
-            <Typography variant="body2" mt={1}>Cover image preview</Typography>
+            {coverImage && (
+              <Box mt={2}>
+                <img src={coverImage} alt="Cover preview" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }} />
+              </Box>
+            )}
           </Box>
 
           <FormControlLabel
