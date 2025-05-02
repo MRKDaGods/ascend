@@ -4,7 +4,7 @@ import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 
 class JobFilterScreen extends StatefulWidget {
-  const JobFilterScreen({
+  JobFilterScreen({
     super.key,
     required this.chosenCategory,
     required this.jobs,
@@ -17,6 +17,9 @@ class JobFilterScreen extends StatefulWidget {
 }
 
 class _JobFilterScreenState extends State<JobFilterScreen> {
+
+  double _sliderValue = 0;
+
   final List<String> jobCategories = [
     "Easy Apply",
     "Part-time",

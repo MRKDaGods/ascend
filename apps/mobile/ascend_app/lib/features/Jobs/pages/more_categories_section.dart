@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class MoreCategoriesScreen extends StatelessWidget {
   final List<String> categories;
 
-  const MoreCategoriesScreen({super.key, required this.categories});
+  MoreCategoriesScreen({required this.categories});
 
   @override
   Widget build(BuildContext context) {
