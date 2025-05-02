@@ -1,11 +1,13 @@
 import database from "@shared/config/db";
 import { Services } from "@ascend/shared";
 import { getPresignedUrl, getFileMetadata } from "@shared/utils/files";
+import { Message, Conversation } from "packages/shared/src/models/message";
+
 import {
   getUserFullName,
   getUserProfilePictureUrl,
 } from "@shared/utils/userProfile";
-import { Message, Conversation } from "packages/shared/src/models/message";
+
 import {
   callRPC,
   Events,
@@ -13,6 +15,18 @@ import {
   getRPCQueueName,
 } from "@shared/rabbitMQ";
 
+/**
+ * Interface for paginated responses
+ * @interface PaginatedResponse
+ * @template T - The type of data being paginated
+ * @property {T[]} data - Array of data items
+ * @property {Object} pagination - Pagination information
+ * @property {number} pagination.totalRecords - Total number of records
+ * @property {number} pagination.totalPages - Total number of pages
+ * @property {number} pagination.currentPage - Current page number
+ * @property {number|null} pagination.nextPage - Next page number or null if none
+ * @property {number|null} pagination.previousPage - Previous page number or null if none
+ */
 interface PaginatedResponse<T> {
   data: T[];
   pagination: {
@@ -82,6 +96,12 @@ export const getOtherUserId = async (
   }
 };
 
+/**
+ * Checks if either user has blocked the other
+ * @param {number} userId1 - First user's ID
+ * @param {number} userId2 - Second user's ID
+ * @returns {Promise<boolean>} Whether either user has blocked the other
+ */
 export const isBlockedBetweenUsers = async (
   userId1: number,
   userId2: number
@@ -126,6 +146,13 @@ export const markMessagesAsRead = async (
   }
 };
 
+/**
+ * Determines if a user can send a message to another user
+ * Checks block status and connection status
+ * @param {number} senderId - Sender's user ID
+ * @param {number} receiverId - Receiver's user ID
+ * @returns {Promise<boolean>} Whether the sender can send a message to the receiver
+ */
 export const canSendMessage = async (
   senderId: number,
   receiverId: number
@@ -164,6 +191,11 @@ export const canSendMessage = async (
   }
 };
 
+/**
+ * Checks if a user has reached their daily message limit
+ * @param {number} userId - The user's ID
+ * @returns {Promise<boolean>} Whether the user has reached their message limit
+ */
 export const isMessageLimitReached = async (
   userId: number
 ): Promise<boolean> => {
@@ -197,9 +229,16 @@ export const isMessageLimitReached = async (
  * Sends a message between users, creating a conversation if needed
  * @param {number} senderId - The sender's ID
  * @param {number} receiverId - The receiver's ID
- * @param {string} messageContent - The message content to be sent (if any)
- * @param {Express.Multer.File} file - The file to be sent (if any)
- * @returns {Promise<{conversationId: number, messageId: number, content: string | null, fileUrl: string | null, sentAt: Date}>}
+ * @param {string|null} messageContent - The message content to be sent (if any)
+ * @param {Express.Multer.File|null} file - The file to be sent (if any)
+ * @returns {Promise<{
+ *   conversationId: number,
+ *   messageId: number,
+ *   content: string|null,
+ *   fileUrl: string|null,
+ *   fileType: string|null,
+ *   sentAt: Date
+ * }>} The sent message details
  */
 export const sendMessage = async (
   senderId: number,
