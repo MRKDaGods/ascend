@@ -224,7 +224,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
       _webSocketService.connectionStatusStream;
 
   @override
-  Stream<Map<String, bool>> get typingStatusStream =>
+  Stream<Map<String, String>> get typingStatusStream =>
       _webSocketService.typingStatusStream;
 
   @override
