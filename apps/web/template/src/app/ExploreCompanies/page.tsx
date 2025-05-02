@@ -1,4 +1,3 @@
-// app/explore/companies/page.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -66,12 +65,16 @@ export default function ExploreCompaniesPage() {
 
   const handleNavigateToCompany = async (companyId: number) => {
     await fetchCompanyProfile(companyId);
-    router.push('/CreateCompanyPageUser');
+    if (tab === 0) {
+      router.push('/CreateCompanyPage/Company/CompanyPageItself');
+    } else {
+      router.push('/CreateCompanyPageUser');
+    }
   };
 
   const renderCompanyCards = (companyList: any[]) => {
-    if (!Array.isArray(companyList)) return null; // Prevent .map() crash
-  
+    if (!Array.isArray(companyList)) return null;
+
     return (
       <Grid container spacing={3} mt={2}>
         {companyList.map((company: any) => (
@@ -113,7 +116,6 @@ export default function ExploreCompaniesPage() {
       </Grid>
     );
   };
-  
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
