@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Avatar,
@@ -11,48 +11,19 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Button,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
-import { useConnectionStore } from "../stores/useConnectionStore";
-import ConnectDialog from "./ConnectDialog";
+import ConnectionUI from "./ConnectionUI";
 
 const SearchResults: React.FC = () => {
   const { searchResults, setSearchResults } = usePostStore();
-  const { sendConnectionRequest } = useConnectionStore();
   const router = useRouter();
-
-  const [selectedUser, setSelectedUser] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
 
   if (!searchResults) return null;
 
   const { users, posts } = searchResults;
-
-  const handleOpenDialog = (user: any) => {
-    setSelectedUser({
-      id: user.id,
-      name: `${user.first_name} ${user.last_name}`,
-    });
-  };
-
-  const handleCloseDialog = () => {
-    setSelectedUser(null);
-  };
-
-  const handleSendRequest = async (message: string) => {
-    if (selectedUser) {
-      await sendConnectionRequest({
-        userId: selectedUser.id,
-        message,
-      });
-      setSelectedUser(null);
-    }
-  };
 
   return (
     <ClickAwayListener onClickAway={() => setSearchResults(null)}>
@@ -131,18 +102,8 @@ const SearchResults: React.FC = () => {
                   </Box>
                 </Box>
 
-                {/* Right: Connect button */}
-                <Button
-                  variant="outlined"
-                  size="small"
-                  sx={{ textTransform: "none", fontWeight: 500 }}
-                  onClick={(e) => {
-                    e.stopPropagation(); // prevent nav
-                    handleOpenDialog(user);
-                  }}
-                >
-                  Connect
-                </Button>
+                {/* Right: new Connect logic */}
+                <ConnectionUI userId={user.id} />
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
@@ -199,15 +160,6 @@ const SearchResults: React.FC = () => {
           <Typography textAlign="center" color="text.secondary" py={2}>
             No results found.
           </Typography>
-        )}
-
-        {/* CONNECT DIALOG */}
-        {selectedUser && (
-          <ConnectDialog
-            open={true}
-            onClose={handleCloseDialog}
-            onSend={handleSendRequest}
-          />
         )}
       </Box>
     </ClickAwayListener>

@@ -99,34 +99,6 @@ export interface UltimateSearchResponse {
   };
 }
 
-interface TagUserRequest {
-  contentType: "post" | "comment";
-  contentId: number;
-  tags: {
-    userId: number;
-    startIndex: number;
-    endIndex: number;
-  }[];
-}
-
-interface TagUserResponse {
-  success: boolean;
-  data: {
-    contentType: "post" | "comment";
-    contentId: number;
-    tags: {
-      id: number;
-      tagged_user_id: number;
-      tagger_user_id: number;
-      post_id: number | null;
-      comment_id: number | null;
-      start_index: number;
-      end_index: number;
-      created_at: string;
-    }[];
-  };
-}
-
 // ================================================================================================= //
 
 // ==== FETCH FEED ====
@@ -314,22 +286,6 @@ export const ultimateSearchAPI = async (
   return response.data;
 };
 
-// ==== TAG USERS ON POST OR COMMENT ====
-
-export const tagUsersAPI = async (payload: TagUserRequest): Promise<TagUserResponse> => {
-  const response = await API.post<TagUserResponse>("/post/tags", payload);
-  return response.data;
-};
-
-export const tagUsersOnContentAPI = async (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number }[]) => {
-  const res = await API.post(`/tags`, {
-    contentType,
-    contentId,
-    tags,
-  });
-  return res.data;
-};
-
 // ==== CREATE REACTION ON POST ====
 
 export const reactToPostAPI = async (postId: number, type: string) => {
@@ -361,4 +317,20 @@ export const reportPostAPI = async (
     description,
   });
   return response.data;
+};
+
+// ==== TAG USERS ====
+export interface TagPayload {
+  contentType: "post" | "comment";
+  contentId: number;
+  tags: {
+    userId: number;
+    startIndex: number;
+    endIndex: number;
+  }[];
+}
+
+export const tagUsersAPI = async (payload: TagPayload): Promise<{ success: boolean; data: any }> => {
+  const res = await API.post("/post/tags", payload); // ✅ Correct endpoint
+  return res.data;
 };

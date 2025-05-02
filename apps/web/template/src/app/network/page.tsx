@@ -32,17 +32,15 @@ const NetworkPage: React.FC = () => {
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           justifyContent: "center",
-          gap: 3,
           px: { xs: 1, sm: 2 },
           maxWidth: "1400px",
-          pb: 5,
         }}
       >
         {/* Left Panel (Manage Network) */}
         <Box
           sx={{
             width: "100%",
-            maxWidth: { xs: "100%", md: "280px" },
+            maxWidth: { xs: "100%", md: "350px" },
             display: "flex",
             flexDirection: "column",
             gap: 2,
