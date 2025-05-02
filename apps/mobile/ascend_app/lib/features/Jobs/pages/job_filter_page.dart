@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-//import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
 import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 
 class JobFilterScreen extends StatefulWidget {
@@ -14,11 +13,13 @@ class JobFilterScreen extends StatefulWidget {
   final String chosenCategory; // Category selected by the user
 
   @override
-  _JobFilterScreenState createState() => _JobFilterScreenState();
+  State<JobFilterScreen> createState() => _JobFilterScreenState();
 }
 
 class _JobFilterScreenState extends State<JobFilterScreen> {
+
   double _sliderValue = 0;
+
   final List<String> jobCategories = [
     "Easy Apply",
     "Part-time",
@@ -58,7 +59,6 @@ class _JobFilterScreenState extends State<JobFilterScreen> {
   @override
   Widget build(BuildContext context) {
     final jobsByCategory = getJobsByCategory();
-    final List<String> jobNames = jobsByCategory.keys.toList();
 
     return Scaffold(
       appBar: AppBar(

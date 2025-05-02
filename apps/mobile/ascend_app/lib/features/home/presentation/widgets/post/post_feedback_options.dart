@@ -48,17 +48,18 @@ class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
                 children: [
                   Text(
                     _feedbackSubmittedReason == null
-                        ? 'Help us improve your feed' // Or change to "Report this post"
-                        : 'Thank you for your feedback', // Or "Report submitted"
+                        ? 'Report this post' // Updated text
+                        : 'Report submitted', // Updated text
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  TextButton(
-                    onPressed: _handleUndo,
-                    child: const Text('UNDO'),
-                  ),
+                  if (_feedbackSubmittedReason != null) // Only show UNDO after submitting
+                    TextButton(
+                      onPressed: _handleUndo,
+                      child: const Text('UNDO'),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -67,26 +68,37 @@ class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
                 const SizedBox(height: 16),
                 _buildFeedbackOption(
                   context,
-                  'Not interested in this topic',
-                  'topic', // Keep UI value if needed
-                  // Use a backend-valid reason, e.g., 'spam' or 'irrelevant'
-                  () => _handleReportSubmit('irrelevant'), // CHANGE REASON HERE
+                  'Harassment', // Display text
+                  'harassment', // Backend value
+                  () => _handleReportSubmit('harassment'), // Use backend value
                 ),
                 const SizedBox(height: 8),
                 _buildFeedbackOption(
                   context,
-                  'Not interested in posts from ${widget.ownerName}',
-                  'author', // Keep UI value if needed
-                  // Use a backend-valid reason, e.g., 'block_author' or specific code
-                  () => _handleReportSubmit('block_author'), // CHANGE REASON HERE
+                  'Violence', // Display text
+                  'violence', // Backend value
+                  () => _handleReportSubmit('violence'), // Use backend value
                 ),
                 const SizedBox(height: 8),
                 _buildFeedbackOption(
                   context,
-                  'Not appropriate for LinkedIn',
-                  'inappropriate', // Keep UI value if needed
-                  // Use a backend-valid reason, e.g., 'inappropriate_content'
-                  () => _handleReportSubmit('inappropriate_content'), // CHANGE REASON HERE
+                  'Hate Speech', // Display text
+                  'hate_speech', // Backend value
+                  () => _handleReportSubmit('hate_speech'), // Use backend value
+                ),
+                const SizedBox(height: 8),
+                _buildFeedbackOption(
+                  context,
+                  'Misinformation', // Display text
+                  'misinformation', // Backend value
+                  () => _handleReportSubmit('misinformation'), // Use backend value
+                ),
+                const SizedBox(height: 8),
+                _buildFeedbackOption(
+                  context,
+                  'Other', // Display text
+                  'other', // Backend value
+                  () => _handleReportSubmit('other'), // Use backend value
                 ),
               ],
             ],
@@ -99,20 +111,23 @@ class _PostFeedbackOptionsState extends State<PostFeedbackOptions> {
   Widget _buildFeedbackOption(
     BuildContext context,
     String text,
-    String value,
+    String value, // Keep value if needed for internal logic, but not used here
     VoidCallback? onPressed,
   ) {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.grey[700],
-        side: BorderSide(color: Colors.grey[300]!),
+        minimumSize: const Size(double.infinity, 40), // Full width
+        alignment: Alignment.centerLeft,
+        side: BorderSide(color: Colors.grey.shade300),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(8.0),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       ),
-      child: Text(text),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.black87),
+      ),
     );
   }
 }

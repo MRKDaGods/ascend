@@ -342,6 +342,7 @@ class Profile {
   final int userId;
   final String firstName;
   final String lastName;
+  final String? headline;
   final String? resumeUrl;
   final int? resumeId;
   final String? coverPhotoUrl;
@@ -372,6 +373,7 @@ class Profile {
     required this.firstName,
     required this.lastName,
     this.resumeUrl,
+    this.headline,
     this.resumeId,
     this.coverPhotoUrl,
     this.coverPhotoId,
@@ -458,6 +460,7 @@ class Profile {
       lastName: lastNameValue, // Use the validated value
       resumeUrl: json['resume_url'],
       resumeId: json['resume_id'],
+      headline: json['headline'],
       coverPhotoUrl: json['cover_photo_url'],
       coverPhotoId: json['cover_photo_id'],
       profilePictureUrl: json['profile_picture_url'],
@@ -518,6 +521,7 @@ class Profile {
     return {
       'user_id': userId,
       'first_name': firstName,
+      'headline': headline,
       'last_name': lastName,
       'resume_url': resumeUrl,
       'resume_id': resumeId,
@@ -544,5 +548,59 @@ class Profile {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
+  }
+
+  Profile copyWith({
+    String? firstName,
+    String? lastName,
+    String? headline,
+    String? resumeUrl,
+    String? additionalName,
+    String? website,
+    bool? showCurrentCompany,
+    String? industry,
+    String? location,
+    bool? showSchool,
+    String? bio,
+    String? profilePictureUrl,
+    String? coverPhotoUrl,
+    List<Education>? education,
+    List<Experience>? experience,
+    List<Project>? projects,
+    List<Skill>? skills,
+    List<Interest>? interests,
+    List<Course>? courses,
+    ContactInfo? contactInfo,
+  }) {
+    return Profile(
+      userId: userId ?? this.userId,
+      additionalName: additionalName ?? this.additionalName,
+      resumeUrl: resumeUrl ?? this.resumeUrl,
+      resumeId: this.resumeId,
+      contactInfo: contactInfo ?? this.contactInfo,
+      industry: industry ?? this.industry,
+      location: location ?? this.location,
+      showCurrentCompany: showCurrentCompany ?? this.showCurrentCompany,
+      coverPhotoId: this.coverPhotoId,
+      profilePictureId: this.profilePictureId,
+      privacy: this.privacy,
+      showSchool: showSchool ?? this.showSchool,
+      website: website ?? this.website,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      headline: headline ?? this.headline,
+      namePronunciation: this.namePronunciation,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      bio: bio ?? this.bio,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      coverPhotoUrl: coverPhotoUrl ?? this.coverPhotoUrl,
+      education: education ?? this.education,
+      experience: experience ?? this.experience,
+      projects: projects ?? this.projects,
+      skills: skills ?? this.skills,
+      interests: interests ?? this.interests,
+      courses: courses ?? this.courses,
+    );
   }
 }

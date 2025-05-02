@@ -71,7 +71,7 @@ Widget jobCard({
                                     width: 50,
                                     height: 50,
                                     errorBuilder: (context, error, stackTrace) {
-                                      print(
+                                      debugPrint(
                                         "Image failed to load: ${job.companyPhoto}",
                                       );
                                       return Icon(
