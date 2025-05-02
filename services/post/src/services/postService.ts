@@ -208,7 +208,7 @@ export class PostService {
       // Check if already liked
       const isLiked = await this.isPostLikedByUser(postId, userId);
 
-      if (isLiked) {
+      if (isLiked.reacted) {
         // Unlike
         await db.query(
           "DELETE FROM post_service.reactions WHERE user_id = $1 AND post_id = $2",
@@ -329,7 +329,8 @@ export class PostService {
   async getPostComments(
     postId: number,
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    userId?: number
   ): Promise<Comment[]> {
     const result = await db.query(
       `SELECT c.*,
@@ -350,6 +351,20 @@ export class PostService {
     const comments = result.rows;
     for (const comment of comments) {
       comment.replies = await this.getCommentReplies(comment.id);
+      
+      // Add user reaction info if userId is provided
+      if (userId) {
+        const userReaction = await this.getUserCommentReaction(comment.id, userId);
+        comment.userReaction = userReaction;
+
+        // Also add user reaction info to replies
+        if (comment.replies && comment.replies.length > 0) {
+          for (const reply of comment.replies) {
+            const replyUserReaction = await this.getUserCommentReaction(reply.id, userId);
+            reply.userReaction = replyUserReaction;
+          }
+        }
+      }
     }
 
     return comments;
@@ -492,8 +507,9 @@ export class PostService {
       item.comments_count = await this.getPostCommentsCount(item.id);
       item.shares_count = await this.getPostSharesCount(item.id);
       
-      // Add user-specific engagement attributes
-      item.isLiked = await this.isPostLikedByUser(item.id, userId);
+      // Add user-specific engagement attributes with reaction type
+      const userReaction = await this.isPostLikedByUser(item.id, userId);
+      item.isLiked = userReaction; // Include the reaction object with reacted status and type
       item.isSaved = await this.isPostSavedByUser(item.id, userId);
       item.isShared = await this.isPostSharedByUser(item.id, userId);
 
@@ -756,7 +772,7 @@ export class PostService {
           'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_id
+          'profile_picture_id', u.profile_picture_id
         ) as user,
         sp.created_at as saved_at
        FROM post_service.saved_posts sp
@@ -774,6 +790,13 @@ export class PostService {
       post.likes_count = await this.getPostLikesCount(post.id);
       post.comments_count = await this.getPostCommentsCount(post.id);
       post.shares_count = await this.getPostSharesCount(post.id);
+      
+      // Process user profile picture
+      if (post.user && post.user.profile_picture_id) {
+        post.user.profile_picture_url = await this.getFileUrl(
+          post.user.profile_picture_id
+        );
+      }
     }
 
     return posts;
@@ -797,13 +820,18 @@ export class PostService {
     return parseInt(result.rows[0].count, 10);
   }
 
-  // Check if post is liked by user
-  async isPostLikedByUser(postId: number, userId: number): Promise<boolean> {
+  // Check if post is liked/reacted by user
+  async isPostLikedByUser(postId: number, userId: number): Promise<{reacted: boolean; reactionType: string | null}> {
     const result = await db.query(
-      "SELECT EXISTS(SELECT 1 FROM post_service.reactions WHERE post_id = $1 AND user_id = $2)",
+      "SELECT reaction_type FROM post_service.reactions WHERE post_id = $1 AND user_id = $2",
       [postId, userId]
     );
-    return result.rows[0].exists;
+    
+    if (result.rows.length === 0) {
+      return { reacted: false, reactionType: null };
+    }
+    
+    return { reacted: true, reactionType: result.rows[0].reaction_type };
   }
 
   // Check if post is saved by user
@@ -1561,6 +1589,21 @@ export class PostService {
           post.user.profile_picture_url = await this.getFileUrl(
             post.user.profile_picture_id
           );
+        }
+        
+        // Process media URLs too
+        if (post.media && post.media.length > 0) {
+          for (const media of post.media) {
+            // Replace URL with presigned URL
+            media.original_url = media.url; // Save the original URL/ID
+            media.url = await this.getFileUrl(media.url);
+
+            // Also handle thumbnail URL if present
+            if (media.thumbnail_url) {
+              media.original_thumbnail_url = media.thumbnail_url;
+              media.thumbnail_url = await this.getFileUrl(media.thumbnail_url);
+            }
+          }
         }
       }
   

@@ -18,6 +18,11 @@ import {
   getMutualConnections,
   getFollowers,
   getConnectionsOfConnections,
+  getUserPreferences,
+  getMessagingRequests,
+  deleteConnectionRequest,
+  getConnectionStatus,
+  getFollowStatus,
 } from '../controllers/connectionController';
 
 
@@ -30,13 +35,16 @@ router.get('/search', authenticateToken, searchUsers);
 router.post('/request', authenticateToken, sendConnectionRequest);
 router.put('/respond/:requestId', authenticateToken, respondToConnectionRequest);
 router.delete('/:connectionId', authenticateToken, removeConnection);
+router.delete('/request/:requestId', authenticateToken, deleteConnectionRequest);
 router.get('/connections', authenticateToken, getConnections);
 router.get('/connections/pending', authenticateToken, getPendingRequests);
+router.get('/connections/status/:userId', authenticateToken, getConnectionStatus);
 
 // Following routes
 router.post('/follow/:userId', authenticateToken, followUser);
 router.delete('/follow/:userId', authenticateToken, unfollowUser);
 router.get('/followers/:userId?', authenticateToken, getFollowers);
+router.get('/follows/status/:userId', authenticateToken, getFollowStatus);
 
 // Blocking routes
 router.post('/block/:userId', authenticateToken, blockUser);
@@ -46,9 +54,11 @@ router.get('/blocked', authenticateToken, getBlockedUsers);
 // Messaging routes
 router.post('/message-request', authenticateToken, sendMessageRequest);
 router.put('/message-request/:requestId', authenticateToken, respondToMessageRequest);
+router.get('/message-requests', authenticateToken, getMessagingRequests);
 
 // Preferences routes
 router.put('/preferences', authenticateToken, updateConnectionPreferences);
+router.get('/preferences/:userId?', authenticateToken, getUserPreferences);
 
 // Mutual connections route
 router.get('/connections/mutual/:userId', authenticateToken, getMutualConnections);
