@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart'; // Import url_launcher package
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http; // Import http package
 
+
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
   const JobDetailsPage({Key? key, required this.job}) : super(key: key);

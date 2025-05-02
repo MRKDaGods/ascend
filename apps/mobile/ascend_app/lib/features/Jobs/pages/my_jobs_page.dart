@@ -1,10 +1,10 @@
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
+
 import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'dart:convert';
-// Import http package
 
 class MyJobsPage extends StatefulWidget {
   @override
