@@ -15,15 +15,18 @@ class AdminApiClient {
       throw Exception('Authentication token is missing.');
     }
 
-    final response = await http.get(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-
     debugPrint('Request URL: $baseUrl$endpoint');
+    debugPrint('Request Headers: Authorization: Bearer $token');
+
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    final response = await http
+        .get(Uri.parse('$baseUrl$endpoint'), headers: headers)
+        .timeout(const Duration(seconds: 10));
+
     debugPrint('Response Status Code: ${response.statusCode}');
     debugPrint('Response Body: ${response.body}');
 
@@ -127,7 +130,15 @@ class AdminApiClient {
 
   /// Fetches reported posts with pagination.
   Future<Map<String, dynamic>> getReportedPosts(int page) async {
-    return await get('/posts/reported?page=$page');
+    try {
+      debugPrint('Fetching reported posts for page: $page');
+      final response = await get('/posts/reported?page=$page');
+      debugPrint('Reported posts response: $response');
+      return response;
+    } catch (e) {
+      debugPrint('Error in getReportedPosts: $e');
+      rethrow; // Re-throw the exception to be handled by the caller
+    }
   }
 
   /// Fetches reports for a specific post with pagination.

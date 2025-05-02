@@ -1,0 +1,285 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../../data/models/jobs_model.dart';
+
+class ReportedJobCard extends StatefulWidget {
+  final ReportedJob job;
+  final List<JobReport> reports;
+
+  const ReportedJobCard({Key? key, required this.job, required this.reports})
+    : super(key: key);
+
+  @override
+  _ReportedJobCardState createState() => _ReportedJobCardState();
+}
+
+class _ReportedJobCardState extends State<ReportedJobCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final job = widget.job;
+    final reports = widget.reports;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Job Header Section
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (job.companyLogoUrl != null)
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(job.companyLogoUrl!),
+                    radius: 24,
+                  )
+                else
+                  CircleAvatar(
+                    backgroundColor: Colors.grey[300],
+                    radius: 24,
+                    child: const Icon(Icons.business, color: Colors.white),
+                  ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        job.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        job.companyName,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Job Details Section
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                _buildDetailChip(Icons.work, 'Type: ${job.type}'),
+                _buildDetailChip(
+                  Icons.school,
+                  'Experience: ${job.experienceLevel}',
+                ),
+                _buildDetailChip(Icons.business, 'Industry: ${job.industry}'),
+                _buildDetailChip(
+                  Icons.location_on,
+                  'Location: ${job.location} (${job.workplaceType})',
+                ),
+                if (job.salaryMinRange > 0 && job.salaryMaxRange > 0)
+                  _buildDetailChip(
+                    Icons.attach_money,
+                    'Salary: \$${job.salaryMinRange} - \$${job.salaryMaxRange}',
+                  ),
+                _buildDetailChip(
+                  Icons.calendar_today,
+                  'Posted: ${DateFormat('MMM d, yyyy').format(job.createdAt)}',
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Expand/Collapse Button
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+              label: Text(
+                _isExpanded
+                    ? 'Hide Reports'
+                    : 'Show Reports (${reports.length})',
+              ),
+            ),
+
+            // Reports Section
+            if (_isExpanded)
+              Column(
+                children:
+                    reports
+                        .map((report) => _buildExpandableReportCard(report))
+                        .toList(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailChip(IconData icon, String label) {
+    return Chip(
+      avatar: Icon(icon, size: 16, color: Colors.blue),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      backgroundColor: Colors.grey[200],
+    );
+  }
+
+  Widget _buildExpandableReportCard(JobReport report) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (report.reporterProfilePicture != null)
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      report.reporterProfilePicture!,
+                    ),
+                    radius: 20,
+                  )
+                else
+                  CircleAvatar(
+                    backgroundColor: Colors.grey[300],
+                    radius: 20,
+                    child: const Icon(Icons.person, color: Colors.white),
+                  ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    report.reporterFullName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Reason: ${report.reason}'),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value:
+                      [
+                            'pending',
+                            'reviewed',
+                            'resolved',
+                            'rejected',
+                          ].contains(report.status)
+                          ? report.status
+                          : "pending", // Ensure the value is valid
+                  items:
+                      ['pending', 'reviewed', 'resolved', 'rejected']
+                          .map(
+                            (status) => DropdownMenuItem(
+                              value: status,
+                              child: Text(status),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        report.status = value; // Update the report's status
+                        // Optionally, update the backend here
+                      });
+                    }
+                  },
+                ),
+                const Spacer(),
+                OutlinedButton(
+                  onPressed: () {
+                    _showDeleteConfirmationDialog(report);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.red),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Delete Job',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusPill(String status) {
+    Color color;
+    switch (status) {
+      case 'pending':
+        color = Colors.orange;
+        break;
+      case 'resolved':
+        color = Colors.green;
+        break;
+      default:
+        color = Colors.grey;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(JobReport report) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Job'),
+          content: const Text('Are you sure you want to delete this job?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Handle job deletion here
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

@@ -1,6 +1,9 @@
 import 'package:ascend_app/features/admin/Presentation/widgets/reported_post_card.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/post_search.dart';
+import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_bloc.dart';
+import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PostsPage extends StatefulWidget {
   const PostsPage({super.key});
@@ -10,47 +13,14 @@ class PostsPage extends StatefulWidget {
 }
 
 class _PostsPageState extends State<PostsPage> {
-  final List<Map<String, dynamic>> reportedPosts = [
-    {
-      'id': 'post1',
-      'user': {'first_name': 'bibo', 'last_name': 'developing'},
-      'content': 'Post: 4',
-      'created_at': '2025-05-01T09:02:11.456Z',
-      'privacy': 'public',
-      'likes_count': 10,
-      'comments_count': 5,
-      'shares_count': 2,
-      'media': [
-        {'url': 'https://via.placeholder.com/300'},
-      ],
-      'reports': [
-        {
-          'reporter': 'Alice',
-          'reason': 'Spam',
-          'description': 'This is spam content.',
-        },
-        {
-          'reporter': 'Bob',
-          'reason': 'Inappropriate',
-          'description': 'This post contains inappropriate content.',
-        },
-      ],
-    },
-    {
-      'id': 'post2',
-      'user': {'first_name': 'john', 'last_name': 'doe'},
-      'content': 'Post: 3',
-      'created_at': '2025-05-02T10:15:30.123Z',
-      'privacy': 'private',
-      'likes_count': 3,
-      'comments_count': 1,
-      'shares_count': 0,
-      'media': [],
-      'reports': [],
-    },
-  ];
-
   final Set<String> expandedPosts = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Dispatch the event to fetch reported posts when the page loads
+    context.read<PostsBloc>().add(FetchReportedPosts(page: 1));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,32 +32,61 @@ class _PostsPageState extends State<PostsPage> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              showSearch(
-                context: context,
-                delegate: PostSearchDelegate(reportedPosts),
-              );
+              // Implement search functionality here
+              // You can pass the fetched posts to the search delegate
             },
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: reportedPosts.length,
-        itemBuilder: (context, index) {
-          final post = reportedPosts[index];
-          return ReportedPostCard(
-            post: post,
-            isExpanded: expandedPosts.contains(post['id']),
-            onToggleExpand: () {
-              setState(() {
-                if (expandedPosts.contains(post['id'])) {
-                  expandedPosts.remove(post['id']);
-                } else {
-                  expandedPosts.add(post['id']);
-                }
-              });
-            },
-          );
+      body: BlocBuilder<PostsBloc, PostsState>(
+        builder: (context, state) {
+          if (state is FetchingReportedPostsState) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ReportedPostsFetchedState) {
+            final reportedPosts = state.reportedPosts;
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: reportedPosts.length,
+              itemBuilder: (context, index) {
+                final post = reportedPosts[index];
+                return ReportedPostCard(
+                  post: post,
+                  isExpanded: expandedPosts.contains(post.id),
+                  onToggleExpand: () {
+                    setState(() {
+                      if (expandedPosts.contains(post.id)) {
+                        expandedPosts.remove(post.id);
+                      } else {
+                        expandedPosts.add(post.id);
+                      }
+                    });
+                  },
+                );
+              },
+            );
+          } else if (state is PostsErrorState) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error: ${state.errorMessage}',
+                    style: const TextStyle(color: Colors.red) ,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Retry fetching posts
+                      context.read<PostsBloc>().add(
+                        FetchReportedPosts(page: 1),
+                      );
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const Center(child: Text('No data available.'));
         },
       ),
     );
