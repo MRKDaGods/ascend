@@ -14,9 +14,12 @@ import {
   Button,
   IconButton,
   Divider,
+  Menu,
+  ListItemIcon,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useEffect, useState } from "react";
 import { useConnectionStore } from "../stores/useConnectionStore";
 
@@ -25,7 +28,10 @@ const ConnectionsList = () => {
   const [sort, setSort] = useState("recent");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { connections, fetchConnections } = useConnectionStore();
+  const { connections, fetchConnections, removeConnection } = useConnectionStore();
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuUserId, setMenuUserId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchConnections(searchTerm);
@@ -37,12 +43,32 @@ const ConnectionsList = () => {
         `${b.first_name} ${b.last_name}`
       );
     } else {
-      return new Date(b.connected_at).getTime() - new Date(a.connected_at).getTime();
+      return (
+        new Date(b.connected_at).getTime() - new Date(a.connected_at).getTime()
+      );
     }
   });
 
   const hasConnections = sortedConnections.length > 0;
 
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    userId: number
+  ) => {
+    setAnchorEl(event.currentTarget);
+    setMenuUserId(userId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setMenuUserId(null);
+  };
+
+  const handleRemoveConnection = async (userId: number) => {
+    await removeConnection(userId);
+    handleMenuClose();
+  };
+  
   return (
     <Box
       sx={{
@@ -53,7 +79,7 @@ const ConnectionsList = () => {
         width: "100%",
       }}
     >
-      {/* Header Row */}
+      {/* Header */}
       <Stack
         direction="row"
         alignItems="center"
@@ -72,7 +98,7 @@ const ConnectionsList = () => {
           spacing={2}
           sx={{ flexGrow: 1, justifyContent: "flex-end", minWidth: 0 }}
         >
-          {/* Sort dropdown */}
+          {/* Sort */}
           <Box sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
             <Typography
               variant="body2"
@@ -94,7 +120,7 @@ const ConnectionsList = () => {
             </FormControl>
           </Box>
 
-          {/* Search box */}
+          {/* Search */}
           <Box
             sx={{
               display: "flex",
@@ -136,6 +162,7 @@ const ConnectionsList = () => {
                 justifyContent="space-between"
                 py={1.5}
               >
+                {/* Left: Avatar + Info */}
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Avatar
                     src={
@@ -167,6 +194,7 @@ const ConnectionsList = () => {
                   </Box>
                 </Stack>
 
+                {/* Right: Buttons */}
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Button
                     variant="outlined"
@@ -180,7 +208,10 @@ const ConnectionsList = () => {
                   >
                     Message
                   </Button>
-                  <IconButton size="small">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleMenuOpen(e, conn.user_id)}
+                  >
                     <MoreHorizIcon />
                   </IconButton>
                 </Stack>
@@ -191,17 +222,28 @@ const ConnectionsList = () => {
         </Box>
       ) : (
         <Box textAlign="center" mt={5}>
-          <Box
-            component="img"
-            src="/noconnections.jpg"
-            alt="No connections"
-            sx={{ maxWidth: 340, mx: "auto", mb: 2 }}
-          />
+
           <Typography variant="body1" color="text.secondary">
-            No results found
+            No connections found
           </Typography>
         </Box>
       )}
+
+      {/* Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem onClick={() => handleRemoveConnection(menuUserId!)}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          Remove connection
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };

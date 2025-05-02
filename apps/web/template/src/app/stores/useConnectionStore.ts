@@ -9,6 +9,13 @@ import {
     respondToConnectionRequestAPI,
     getConnectionsAPI,
     Connection,    
+    removeConnectionAPI,
+    followUserAPI,
+    getFollowersAPI,
+    Follower,
+    ConnectionPreferences,
+    upsertConnectionPreferencesAPI,
+    
   } from "@/api/connections";
 
 interface ConnectionStore {
@@ -29,6 +36,19 @@ interface ConnectionStore {
 
   connections: Connection[];
   fetchConnections: (search?: string) => Promise<void>;
+
+  fetchTopConnections: (limit?: number) => Promise<void>;
+  removeConnection: (connectionId: number) => Promise<void>;
+
+  followUser: (userId: number) => Promise<void>;
+
+  followers: Follower[];
+  fetchFollowers: (userId: number, page?: number, limit?: number) => Promise<void>;
+
+  connectionPreferences: ConnectionPreferences | null;
+  setConnectionPreferences: (prefs: ConnectionPreferences) => void;
+  saveConnectionPreferences: (prefs: ConnectionPreferences) => Promise<void>;
+
 
 }
 
@@ -90,5 +110,59 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       console.error("❌ Failed to fetch connections", err);
     }
   },
+  
+  fetchTopConnections: async (limit = 5) => {
+    try {
+      const res = await getConnectionsAPI("", 1, limit);
+      set({ connections: res.data.data }); // reuse connections field
+    } catch (err) {
+      console.error("❌ Failed to fetch top connections", err);
+    }
+  },
+  removeConnection: async (connectionId) => {
+    try {
+      await removeConnectionAPI(connectionId);
+      const updated = get().connections.filter(
+        (c) => c.user_id !== connectionId
+      );
+      set({ connections: updated });
+    } catch (err) {
+      console.error("❌ Failed to remove connection", err);
+    }
+  },
+
+  followUser: async (userId) => {
+    try {
+      const res = await followUserAPI(userId);
+      console.log("✅ Followed user:", res.message);
+    } catch (err) {
+      console.error("❌ Failed to follow user", err);
+    }
+  },
+
+  followers: [],
+
+  fetchFollowers: async (userId, page = 1, limit = 10) => {
+    try {
+      const res = await getFollowersAPI(userId, page, limit);
+      set({ followers: res.data.data });
+    } catch (err) {
+      console.error("❌ Failed to fetch followers", err);
+    }
+  },
+
+  connectionPreferences: null,
+
+setConnectionPreferences: (prefs) => set({ connectionPreferences: prefs }),
+
+saveConnectionPreferences: async (prefs) => {
+  try {
+    const res = await upsertConnectionPreferencesAPI(prefs);
+    set({ connectionPreferences: res.data });
+    console.log("✅ Preferences saved");
+  } catch (err) {
+    console.error("❌ Failed to save preferences", err);
+  }
+},
 
 }));

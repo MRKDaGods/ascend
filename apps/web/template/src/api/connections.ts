@@ -115,3 +115,70 @@ export interface SendConnectionRequestResponse {
     message: string;
   };
 }
+
+export const removeConnectionAPI = async (connectionId: number): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  const res = await API.delete(`/connection/${connectionId}`);
+  return res.data;
+};
+
+export const followUserAPI = async (userId: number): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  const res = await API.post(`/follow/${userId}`);
+  return res.data;
+};
+
+export interface Follower {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  profile_picture_id: number | null;
+  bio: string | null;
+  followed_at: string;
+}
+
+export const getFollowersAPI = async (
+  userId: number,
+  page = 1,
+  limit = 10
+): Promise<{
+  success: boolean;
+  data: {
+    data: Follower[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+    };
+  };
+}> => {
+  const res = await API.get(`/followers/${userId}`, {
+    params: { page, limit },
+  });
+  return res.data;
+};
+
+export interface ConnectionPreferences {
+  allow_connection_requests: boolean;
+  allow_messages_from: "all" | "connections-only";
+  visible_to_public: boolean;
+  visible_to_connections: boolean;
+  visible_to_network: boolean;
+  show_followers: boolean;
+}
+
+export interface ConnectionPreferencesResponse {
+  success: boolean;
+  data: ConnectionPreferences & { user_id: number; updated_at: string };
+}
+
+export const upsertConnectionPreferencesAPI = async (
+  preferences: ConnectionPreferences
+): Promise<ConnectionPreferencesResponse> => {
+  const res = await API.put("/connection/preferences", preferences);
+  return res.data;
+};

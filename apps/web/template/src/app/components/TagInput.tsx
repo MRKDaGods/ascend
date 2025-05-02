@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
+  Typography,
   TextField,
   List,
   ListItemButton,
   ListItemText,
-  Typography,
   Popper,
   Paper,
+  useTheme,
 } from "@mui/material";
-import { usePostStore, Tag } from "../stores/usePostStore";
-import { useProfileStore } from "../stores/useProfileStore"; // Assuming you fetch user list from here or can adjust
+import React, { useEffect, useRef, useState } from "react";
+import { usePostStore } from "../stores/usePostStore";
+import { useConnectionStore } from "../stores/useConnectionStore";
 
 interface TagInputProps {
   postId: number;
@@ -21,9 +22,7 @@ interface TagInputProps {
   setCommentText?: (val: string) => void;
   commentIndex?: number;
   placeholder?: string;
-  onTagSelect?: (tag: Tag) => void;
 }
-
 
 const TagInput: React.FC<TagInputProps> = ({
   postId,
@@ -33,19 +32,21 @@ const TagInput: React.FC<TagInputProps> = ({
   commentIndex,
   placeholder,
 }) => {
-  const { postText, setPostText, addTagToPost, addTagToComment } = usePostStore();
-  const { userData } = useProfileStore(); // Get current user data if needed for filtering
-  
+  const theme = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
-
   const [query, setQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
+  const { postText, setPostText, tagUsersInPost } = usePostStore();
+  const { connections, fetchConnections } = useConnectionStore();
+
   const text = isComment ? commentText || "" : postText;
   const setText = isComment ? setCommentText! : setPostText;
 
-  const [userSuggestions, setUserSuggestions] = useState<Tag[]>([]); // dynamic users
+  useEffect(() => {
+    fetchConnections();
+  }, []);
 
   useEffect(() => {
     const lastAtIndex = text.lastIndexOf("@");
@@ -54,13 +55,6 @@ const TagInput: React.FC<TagInputProps> = ({
       setQuery(searchTerm);
 
       if (searchTerm.length >= 0) {
-        // Fake fetch users matching query, you can replace with real API later
-        setUserSuggestions([
-          { id: 18, name: "Habiba" },
-          { id: 6, name: "Bibo" },
-          { id: 24, name: "Sara" },
-        ].filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase())));
-        
         setShowDropdown(true);
         setAnchorEl(inputRef.current);
       }
@@ -69,21 +63,45 @@ const TagInput: React.FC<TagInputProps> = ({
     }
   }, [text]);
 
-  const handleSelectUser = (user: Tag) => {
+  const filteredConnections = connections
+    .map((c) => ({ id: c.user_id, name: `${c.first_name} ${c.last_name}` }))
+    .filter((user) => user.name.toLowerCase().includes(query.toLowerCase()));
+
+  const handleSelectUser = async (user: { id: number; name: string }) => {
     const lastAtIndex = text.lastIndexOf("@");
     if (lastAtIndex === -1) return;
 
-    const newText = text.substring(0, lastAtIndex) + `@${user.name} `;
+    const before = text.substring(0, lastAtIndex);
+    const newMention = `@${user.name}`;
+    const newText = before + newMention + " ";
     setText(newText);
 
-    if (isComment) {
-      addTagToComment(postId, commentIndex ?? 0, user);
-    } else {
-      addTagToPost(postId, user);
+    const startIndex = before.length;
+    const endIndex = startIndex + newMention.length;
+
+    const payload = {
+      contentType: isComment ? ("comment" as "comment") : ("post" as "post"),
+      contentId: postId,
+      tags: [
+        {
+          userId: user.id,
+          startIndex,
+          endIndex,
+        },
+      ],
+    };
+
+    console.log("📦 Sending tag payload:", payload);
+
+    try {
+      await tagUsersInPost(payload);
+    } catch (error) {
+      console.error("❌ Failed to tag user:", error);
     }
 
-    setShowDropdown(false);
     setQuery("");
+    setShowDropdown(false);
+    inputRef.current?.focus();
   };
 
   return (
@@ -107,21 +125,20 @@ const TagInput: React.FC<TagInputProps> = ({
       />
 
       <Popper
-        open={showDropdown && userSuggestions.length > 0}
+        open={showDropdown && filteredConnections.length > 0}
         anchorEl={anchorEl}
         placement="bottom-start"
         style={{ zIndex: 1300 }}
       >
-        <Paper sx={{ mt: 1, width: 250, maxHeight: 200, overflowY: "auto" }} elevation={3}>
+        <Paper
+          sx={{ mt: 1, width: 250, maxHeight: 200, overflowY: "auto" }}
+          elevation={3}
+        >
           <List dense>
-            {userSuggestions.map((user) => (
+            {filteredConnections.map((user) => (
               <ListItemButton key={user.id} onClick={() => handleSelectUser(user)}>
                 <ListItemText
-                  primary={
-                    <Typography fontWeight="bold">
-                      @{user.name}
-                    </Typography>
-                  }
+                  primary={<Typography fontWeight="bold">@{user.name}</Typography>}
                 />
               </ListItemButton>
             ))}

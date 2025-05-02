@@ -11,35 +11,17 @@ import {
 } from "@mui/material";
 import Diversity3Icon from "@mui/icons-material/Diversity3";
 import { useRouter } from "next/navigation";
-
-// Dummy data (replace with backend fetch later)
-const dummyInvitations = [
-  {
-    id: 1,
-    name: "Ahmed Essam",
-    location: "Giza",
-    mutual: "Amr Mohamed and 5 other mutual connections",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    id: 2,
-    name: "Mujeeb Ali",
-    location: "🎓 SZABIST'27 | BBA | Financial Accountant",
-    mutual: "Aya Mohamed AbdelTawab and 21 other mutual connections",
-    avatar: "https://randomuser.me/api/portraits/men/45.jpg",
-  },
-  {
-    id: 3,
-    name: "Yasmine Amin",
-    location: "Student at Cairo University",
-    mutual: "Rowyna El-Meghalawy and 19 other mutual connections",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
-];
+import { useEffect } from "react";
+import { useConnectionStore } from "../stores/useConnectionStore";
 
 const InvitationsCard = () => {
   const theme = useTheme();
   const router = useRouter();
+  const { connections, fetchTopConnections } = useConnectionStore();
+
+  useEffect(() => {
+    fetchTopConnections(5);
+  }, []);
 
   return (
     <Box
@@ -60,7 +42,7 @@ const InvitationsCard = () => {
         }}
       >
         <Typography variant="subtitle1" fontWeight={600}>
-          Invitations ({dummyInvitations.length})
+          Invitations ({connections.length})
         </Typography>
 
         <Typography
@@ -82,47 +64,70 @@ const InvitationsCard = () => {
         </Typography>
       </Box>
 
-      {dummyInvitations.map((invite, index) => (
-        <Box key={invite.id}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 2,
-              pb: 2,
-            }}
-          >
-            <Avatar src={invite.avatar} sx={{ width: 48, height: 48 }} />
-            <Box sx={{ flexGrow: 1 }}>
-              <Typography fontWeight={600}>{invite.name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {invite.location}
-              </Typography>
-              <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
-                <Diversity3Icon sx={{ fontSize: 16 }} />
-                <Typography variant="caption" color="text.secondary">
-                  {invite.mutual}
+      {connections.length === 0 ? (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          textAlign="center"
+          py={3}
+        >
+          You have no invitations yet.
+        </Typography>
+      ) : (
+        connections.map((conn, index) => (
+          <Box key={conn.user_id}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 2,
+                pb: 2,
+              }}
+            >
+              <Avatar
+                src={
+                  conn.profile_picture_id
+                    ? `https://api.ascendx.tech/files/${conn.profile_picture_id}`
+                    : undefined
+                }
+                sx={{ width: 48, height: 48 }}
+              />
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography fontWeight={600}>
+                  {conn.first_name} {conn.last_name}
                 </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Mutual connection
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
+                  <Diversity3Icon sx={{ fontSize: 16 }} />
+                  <Typography variant="caption" color="text.secondary">
+                    1 mutual connection
+                  </Typography>
+                </Stack>
+              </Box>
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    cursor: "pointer",
+                    border: "0px",
+                  }}
+                >
+                  Ignore
+                </Button>
+                <Button variant="outlined" size="small">
+                  Accept
+                </Button>
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1}>
-              <Button variant="outlined" size="small" 
-              sx={{
-                  color: theme.palette.text.secondary,
-                  cursor: "pointer",
-                  border: "0px",
-                }}>
-                Ignore
-              </Button>
-              <Button variant="outlined" size="small">
-                Accept
-              </Button>
-            </Stack>
+            {index < connections.length - 1 && <Divider sx={{ mb: 2 }} />}
           </Box>
-          {index < dummyInvitations.length - 1 && <Divider sx={{ mb: 2 }} />}
-        </Box>
-      ))}
+        ))
+      )}
     </Box>
   );
 };

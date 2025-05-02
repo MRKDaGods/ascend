@@ -12,13 +12,18 @@ import {
   toggleSavePostAPI,
   fetchCommentsForPost,
   ultimateSearchAPI,
-  tagUsersOnContentAPI,
   reactToPostAPI,
   createPostNew,
-  reportPostAPI
+  reportPostAPI,
+  tagUsersAPI, 
+  TagPayload
 } from "@/api/posts";
 import InvitationWithdrawnPopup from "../components/InvitationWithdrawnPopup";
 
+export type Tag = {
+  id: number;
+  name: string;
+};
 
 export type ReactionType =
   | "Like"
@@ -27,11 +32,6 @@ export type ReactionType =
   | "Love"
   | "Insightful"
   | "Funny";
-
-export interface Tag {
-  id: number;
-  name: string;
-}
 
 export type PostType = {
   repostSourcePost?: PostType | null;
@@ -47,8 +47,7 @@ export type PostType = {
   commentsList: string[];
   isUserPost?: boolean;
   reaction?: ReactionType;
-  tags?: Tag[];
-  commentTags?: { [commentIndex: number]: Tag[] };
+ 
   fileDescription?: string;
   file?: string | null;
   fileTitle?: string | null;
@@ -86,7 +85,6 @@ interface PostStoreState {
   postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
   savedPosts: number[];
-  taggedUsers: Tag[]; 
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
@@ -109,7 +107,6 @@ interface PostStoreState {
   setLastRepostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
-  setTaggedUsers: (tags: Tag[]) => void;
 
   fetchNewsFeedFromAPI: () => Promise<void>;
   fetchPostFromAPI: (id: number) => Promise<void>;
@@ -164,17 +161,10 @@ interface PostStoreState {
     posts: PostType[];
   } | null) => void;  
 
-  tagUsersOnContent: (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number; }[]) => Promise<void>;
-
   setReaction: (postId: number, reaction: ReactionType) => void;
   clearReaction: (postId: number) => void;
   
   commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<{ id: number }>;
-
-  addTagToPost: (postId: number, tag: Tag) => void;
-  removeTagFromPost: (postId: number, tagId: number) => void;
-  addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
-  removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
 
   setRepostSourcePost: (post: PostType | null) => void;
 
@@ -204,6 +194,9 @@ interface PostStoreState {
   setReportDialogReason: (reason: string) => void;  // Sets the reason for reporting
 
   selectedReportReason: string | null;
+
+  tagUsersInPost: (payload: TagPayload) => Promise<void>;
+
   }
 
 export const usePostStore = create<PostStoreState>()(
@@ -531,17 +524,6 @@ export const usePostStore = create<PostStoreState>()(
         }
       },
 
-      taggedUsers: [],
-      setTaggedUsers: (tags) => set({ taggedUsers: tags }),
-      tagUsersOnContent: async (contentType, contentId, tags) => {
-        try {
-          await tagUsersOnContentAPI(contentType, contentId, tags);
-          console.log(`✅ Tagged users successfully on ${contentType} ${contentId}`);
-        } catch (err: any) {
-          console.error("❌ Failed to tag users:", err?.response?.data || err.message);
-        }
-      },
-
       reactToPostFromAPI: async (postId, type) => {
         try {
           const response = await reactToPostAPI(postId, type);
@@ -620,35 +602,6 @@ export const usePostStore = create<PostStoreState>()(
         }
       },   
 
-      addTagToPost: (postId, tag) =>
-        set((s) => ({
-          posts: s.posts.map((p) =>
-            p.id === postId ? { ...p, tags: p.tags ? [...p.tags, tag] : [tag] } : p
-          ),
-        })),
-      removeTagFromPost: (postId, tagId) =>
-        set((s) => ({
-          posts: s.posts.map((p) =>
-            p.id === postId ? { ...p, tags: p.tags?.filter((t) => t.id !== tagId) || [] } : p
-          ),
-        })),
-      addTagToComment: (postId, i, tag) =>
-        set((s) => ({
-          posts: s.posts.map((p) => {
-            if (p.id !== postId) return p;
-            const tags = { ...p.commentTags, [i]: [...(p.commentTags?.[i] || []), tag] };
-            return { ...p, commentTags: tags };
-          }),
-        })),
-      removeTagFromComment: (postId, i, tagId) =>
-        set((s) => ({
-          posts: s.posts.map((p) => {
-            if (p.id !== postId) return p;
-            const tags = { ...p.commentTags, [i]: p.commentTags?.[i]?.filter((t) => t.id !== tagId) || [] };
-            return { ...p, commentTags: tags };
-          }),
-        })),
-
       repostSourcePost: null,
       setRepostSourcePost: (post) => set({ repostSourcePost: post }),
 
@@ -694,6 +647,16 @@ export const usePostStore = create<PostStoreState>()(
         reportDialogPostId: null,
         selectedReportReason: null,
       }),      
+
+      tagUsersInPost: async (payload: TagPayload) => {
+        try {
+          const response = await tagUsersAPI(payload);
+          console.log("✅ Tagged users:", response);
+        } catch (err: any) {
+          console.error("❌ Failed to tag users:", err?.response?.data || err.message);
+        }
+      },
+      
     }),
 
     {

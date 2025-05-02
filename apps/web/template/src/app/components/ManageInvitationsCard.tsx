@@ -12,9 +12,9 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { useEffect, useState } from "react";
 import ReceivedInviteCard from "./ReceivedInviteCard";
 import SentInviteCard from "./SentInviteCard";
+import ConnectionPreferencesDialog from "./ConnectionPreferencesDialog";
 import { useConnectionStore } from "../stores/useConnectionStore";
 
-// Utility: Format "x days ago"
 function formatTimeAgo(dateString: string): string {
   const diff = Date.now() - new Date(dateString).getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -26,13 +26,14 @@ function formatTimeAgo(dateString: string): string {
 const ManageInvitationsCard = () => {
   const theme = useTheme();
   const [tab, setTab] = useState(0);
+  const [openSettings, setOpenSettings] = useState(false);
 
   const {
     fetchReceivedInvitations,
     fetchSentInvitations,
     receivedInvitations,
     sentInvitations,
-    respondToConnectionRequest
+    respondToConnectionRequest,
   } = useConnectionStore();
 
   useEffect(() => {
@@ -62,7 +63,7 @@ const ManageInvitationsCard = () => {
         <Typography variant="subtitle1" fontWeight={600}>
           Manage invitations
         </Typography>
-        <IconButton size="small">
+        <IconButton size="small" onClick={() => setOpenSettings(true)}>
           <SettingsIcon />
         </IconButton>
       </Box>
@@ -80,22 +81,28 @@ const ManageInvitationsCard = () => {
       {/* Tab: Received */}
       {tab === 0 && (
         <>
-          {receivedInvitations.map((invite) => (
-            <Box key={invite.id} mb={2}>
-              <ReceivedInviteCard
-                fullName={`${invite.first_name} ${invite.last_name}`}
-                message={invite.message}
-                time={formatTimeAgo(invite.created_at)}
-                profilePicture={
-                  invite.profile_picture_id
-                    ? `https://api.ascendx.tech/files/${invite.profile_picture_id}`
-                    : undefined
-                }
-                onAccept={() => respondToConnectionRequest(invite.id, true)}
-                onIgnore={() => respondToConnectionRequest(invite.id, false)}
-              />
-            </Box>
-          ))}
+          {receivedInvitations.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+              You have no received invitations.
+            </Typography>
+          ) : (
+            receivedInvitations.map((invite) => (
+              <Box key={invite.id} mb={2}>
+                <ReceivedInviteCard
+                  fullName={`${invite.first_name} ${invite.last_name}`}
+                  message={invite.message}
+                  time={formatTimeAgo(invite.created_at)}
+                  profilePicture={
+                    invite.profile_picture_id
+                      ? `https://api.ascendx.tech/files/${invite.profile_picture_id}`
+                      : undefined
+                  }
+                  onAccept={() => respondToConnectionRequest(invite.id, true)}
+                  onIgnore={() => respondToConnectionRequest(invite.id, false)}
+                />
+              </Box>
+            ))
+          )}
         </>
       )}
 
@@ -103,8 +110,8 @@ const ManageInvitationsCard = () => {
       {tab === 1 && (
         <>
           {sentInvitations.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              No sent invitations yet.
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+              You have not sent any invitations yet.
             </Typography>
           ) : (
             sentInvitations.map((invite) => (
@@ -124,6 +131,9 @@ const ManageInvitationsCard = () => {
           )}
         </>
       )}
+
+      {/* Settings Dialog */}
+      <ConnectionPreferencesDialog open={openSettings} onClose={() => setOpenSettings(false)} />
     </Box>
   );
 };

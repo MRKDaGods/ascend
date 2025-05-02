@@ -52,32 +52,78 @@ const MediaEditor: React.FC = () => {
       hidden ref={fileInputRef} 
       onChange={handleFileUpload} /> */}
 
-      <Dialog open={editorOpen} onClose={handleClose} fullWidth maxWidth="lg">
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Dialog 
+        open={editorOpen} 
+        onClose={handleClose} 
+        fullWidth 
+        maxWidth="lg"
+        PaperProps={{
+          sx: {
+            height: '80vh', // Changed from minHeight/maxHeight to fixed height
+            margin: { xs: 1, sm: 2 },
+            display: 'flex',
+            flexDirection: 'column',
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            display: "flex", 
+            justifyContent: "space-between",
+            p: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
           <Typography fontWeight="bold">Editor</Typography>
-          <IconButton onClick={handleClose}><Close /></IconButton>
+          <IconButton onClick={handleClose} size="small"><Close /></IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{
-            minHeight: 400,
-            overflow: "hidden", // Prevent extra scrollbar
-          }}>
-          {mediaFiles.length > 0 ? <MediaPreview /> : (
-            <Box textAlign="center" mt={5}>
-              <img src="/select-files.png" width={200} />
-              <Typography fontWeight="bold" mt={2}>Select files to begin</Typography>
+        <DialogContent 
+          sx={{
+            flex: 1,
+            p: '16px !important', // Override MUI default padding
+            display: 'flex',
+            overflow: 'hidden',
+          }}
+        >
+          {mediaFiles.length > 0 ? (
+            <MediaPreview />
+          ) : (
+            <Box 
+              sx={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+              }}
+            >
+              <img src="/select-files.png" style={{ width: 200, height: 'auto' }} />
+              <Typography fontWeight="bold">Select files to begin</Typography>
               <Typography color="gray">Share images or a single video in your post.</Typography>
-              <Button variant="contained" component="label" sx={{ mt: 2 }}>
+              <Button variant="contained" onClick={() => fileInputRef.current?.click()}>
                 Upload from computer
-                <input type="file" hidden onChange={handleFileUpload} />
               </Button>
             </Box>
           )}
         </DialogContent>
 
+        {/* Added fixed bottom section for Next button */}
         {mediaFiles.length > 0 && (
-          <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
-            <Button variant="contained" onClick={handleNext}>Next</Button>
+          <Box
+            sx={{
+              p: 2,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Button variant="contained" onClick={handleNext}>
+              Next
+            </Button>
           </Box>
         )}
       </Dialog>
