@@ -1,0 +1,474 @@
+{
+    "Users": [
+        {
+            "id": "1",
+            "name": "John Doe",
+            "company": "Company A",
+            "industry": "Industry A",
+            "profilePic": "assets/logo.jpg",
+            "coverpic": "assets/pexels-karymefranca-1535907.jpg",
+            "bio": "Engineer at Company A",
+            "firstFollow": false,
+            "firstConnect": true
+        },
+        {
+            "id": "2",
+            "name": "Jane Doe",
+            "company": "Company B",
+            "industry": "Industry B",
+            "profilePic": "assets/logo.jpg",
+            "coverpic": "assets/pexels-karymefranca-1535907.jpg",
+            "bio": "Manager at Company B",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "3",
+            "name": "Alice",
+            "company": "Company C",
+            "industry": "Industry C",
+            "profilePic": "assets/logo.jpg",
+            "coverpic": "assets/pic 2.jpg",
+            "bio": "Developer at Company C",
+            "firstConnect": false,
+            "firstFollow": true
+        },
+        {
+            "id": "4",
+            "name": "Bob",
+            "company": "Company D",
+            "industry": "Industry D",
+            "profilePic": "assets/logo.jpg",
+            "coverpic": "assets/pic 2.jpg",
+            "bio": "Designer at Company D",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "5",
+            "name": "Charlie Ronaldo",
+            "company": "Company E",
+            "industry": "Industry E",
+            "profilePic": "assets/logo.jpg",
+            "coverpic": "assets/pic 3.jpg",
+            "bio": "Analyst at Company E",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "6",
+            "name": "David",
+            "company": "Company F",
+            "industry": "Industry F",
+            "profilePic": "assets/logo.jpg",
+            "coverpic": "assets/pic 3.jpg",
+            "bio": "Consultant at Company F",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "7",
+            "name": "Eve",
+            "company": "Company G",
+            "industry": "Industry G",
+            "profilePic": "assets/pexels-karymefranca-1535907.jpg",
+            "coverpic": "assets/image 4.jpg",
+            "bio": "HR at Company G lorem ipsum dolor sit amet consectetur adipiscing elit",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "8",
+            "name": "Frank",
+            "company": "Company H",
+            "industry": "Industry H",
+            "profilePic": "assets/pexels-karymefranca-1535907.jpg",
+            "coverpic": "assets/image 4.jpg",
+            "bio": "Marketing at Company H lorem ipsum dolor sit amet consectetur adipiscing elit",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "9",
+            "name": "Grace",
+            "company": "Company I",
+            "industry": "Industry I",
+            "profilePic": "assets/pexels-karymefranca-1535907.jpg",
+            "coverpic": "assets/image 4.jpg",
+            "bio": "Sales at Company I lorem ipsum dolor sit amet consectetur adipiscing elit",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "10",
+            "name": "Henry",
+            "company": "Company J",
+            "industry": "Industry J",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/logo.jpg",
+            "bio": "Engineer at Company J lorem ipsum dolor sit amet consectetur adipiscing elit",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "11",
+            "name": "Ivy",
+            "company": "Company K",
+            "industry": "Industry K",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/logo.jpg",
+            "bio": "Manager at Company K lorem ipsum dolor sit amet consectetur adipiscing elit",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "12",
+            "name": "Jack",
+            "company": "Company L",
+            "industry": "Industry L",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 2.jpg",
+            "bio": "Developer at Company L",
+            "firstConnect": true,
+            "firstFollow": false
+        },
+        {
+            "id": "13",
+            "name": "Kate",
+            "company": "Company M",
+            "industry": "Industry M",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 2.jpg",
+            "bio": "Designer at Company M",
+            "firstConnect": false,
+            "firstFollow": true
+        },
+        {
+            "id": "14",
+            "name": "Liam",
+            "company": "Company N",
+            "industry": "Industry N",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 3.jpg",
+            "bio": "Analyst at Company N",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "15",
+            "name": "Mia",
+            "company": "Company O",
+            "industry": "Industry O",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 3.jpg",
+            "bio": "Consultant at Company O",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "16",
+            "name": "Nathan",
+            "company": "Company P",
+            "industry": "Industry P",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/image 4.jpg",
+            "bio": "HR at Company P",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "17",
+            "name": "Olivia",
+            "company": "Company Q",
+            "industry": "Industry Q",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/image 4.jpg",
+            "bio": "Marketing at Company Q",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "18",
+            "name": "Peter",
+            "company": "Company R",
+            "industry": "Industry R",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/image 4.jpg",
+            "bio": "Sales at Company R",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "19",
+            "name": "Quinn",
+            "company": "Company S",
+            "industry": "Industry S",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/logo.jpg",
+            "bio": "Engineer at Company S",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "20",
+            "name": "Rose",
+            "company": "Company T",
+            "industry": "Industry T",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/logo.jpg",
+            "bio": "Manager at Company T",
+            "firstFollow": true,
+            "firstConnect": false
+        },
+        {
+            "id": "21",
+            "name": "Sam",
+            "company": "Company U",
+            "industry": "Industry U",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 2.jpg",
+            "bio": "Developer at Company U",
+            "firstFollow": false,
+            "firstConnect": true
+        },
+        {
+            "id": "22",
+            "name": "Tina",
+            "company": "Company V",
+            "industry": "Industry V",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 2.jpg",
+            "bio": "Designer at Company V",
+            "firstFollow": false,
+            "firstConnect": true
+        },
+        {
+            "id": "23",
+            "name": "Umar",
+            "company": "Company W",
+            "industry": "Industry W",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 3.jpg",
+            "bio": "Analyst at Company W",
+            "firstFollow": false,
+            "firstConnect": true
+        },
+        {
+            "id": "24",
+            "name": "Vivian",
+            "company": "Company X",
+            "industry": "Industry X",
+            "profilePic": "assets/facebook.png",
+            "coverpic": "assets/pic 3.jpg",
+            "bio": "Consultant at Company X",
+            "firstFollow": false,
+            "firstConnect": true
+        }
+    ],
+    "connection_requests": [
+        {
+            "requestId": "101",
+            "senderId": "1",
+            "receiverId": "2",
+            "status": "pending",
+            "timestamp": "2021-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "102",
+            "senderId": "3",
+            "receiverId": "1",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "103",
+            "senderId": "4",
+            "receiverId": "2",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "104",
+            "senderId": "5",
+            "receiverId": "2",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "105",
+            "senderId": "6",
+            "receiverId": "1",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "106",
+            "senderId": "7",
+            "receiverId": "2",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "107",
+            "senderId": "8",
+            "receiverId": "5",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "108",
+            "senderId": "1",
+            "receiverId": "9",
+            "status": "pending",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "109",
+            "senderId": "7",
+            "receiverId": "1",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "110",
+            "senderId": "1",
+            "receiverId": "8",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "111",
+            "senderId": "1",
+            "receiverId": "4",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "112",
+            "senderId": "1",
+            "receiverId": "11",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "113",
+            "senderId": "4",
+            "receiverId": "12",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "114",
+            "senderId": "4",
+            "receiverId": "21",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "115",
+            "senderId": "4",
+            "receiverId": "22",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "116",
+            "senderId": "7",
+            "receiverId": "22",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "117",
+            "senderId": "4",
+            "receiverId": "23",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "118",
+            "senderId": "23",
+            "receiverId": "11",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "119",
+            "senderId": "23",
+            "receiverId": "8",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "120",
+            "senderId": "23",
+            "receiverId": "5",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "121",
+            "senderId": "24",
+            "receiverId": "5",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        },
+        {
+            "requestId": "122",
+            "senderId": "24",
+            "receiverId": "10",
+            "status": "accepted",
+            "timestamp": "2024-09-01T12:00:00Z"
+        }
+    ],
+    "follow": [
+        {
+            "followerId": "1",
+            "followingId": "11"
+        },
+        {
+            "followerId": "1",
+            "followingId": "12"
+        },
+        {
+            "followerId": "7",
+            "followingId": "13"
+        },
+        {
+            "followerId": "8",
+            "followingId": "13"
+        },
+        {
+            "followerId": "4",
+            "followingId": "13"
+        },
+        {
+            "followerId": "11",
+            "followingId": "13"
+        },
+        {
+            "followerId": "7",
+            "followingId": "14"
+        },
+        {
+            "followerId": "8",
+            "followingId": "14"
+        },
+        {
+            "followerId": "4",
+            "followingId": "14"
+        },
+        {
+            "followerId": "11",
+            "followingId": "15"
+        },
+        {
+            "followerId": "9",
+            "followingId": "16"
+        },
+        {
+            "followerId": "10",
+            "followingId": "16"
+        }
+    ]
+}

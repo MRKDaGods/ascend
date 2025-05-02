@@ -19,7 +19,8 @@ class CustomSliverAppBar extends StatefulWidget {
   final bool jobs;
   final bool showAppBar;
   final VoidCallback? onJobAction;
-
+  final bool showProfileAvatar; // Added property to show/hide QR code button
+  final BuildContext? contextin;
   const CustomSliverAppBar({
     super.key,
     this.showTabBar = false,
@@ -30,10 +31,12 @@ class CustomSliverAppBar extends StatefulWidget {
     this.jobs = false,
     this.showAppBar = false,
     this.onJobAction, // To detetct the job action
+    this.showProfileAvatar = true, // To show/hide profile avatar
+    this.contextin, // To show/hide context
   });
 
   @override
-  _CustomSliverAppBarState createState() => _CustomSliverAppBarState();
+  State<CustomSliverAppBar> createState() => _CustomSliverAppBarState();
 }
 
 class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
@@ -45,29 +48,40 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
       pinned: widget.pinned,
       floating: widget.floating,
       leading: Builder(
-        builder: (context) => GestureDetector(
-          onTap: () {
-            Scaffold.of(context).openDrawerWithAnimation(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-            );
-          },
-          child: BlocBuilder<UserProfileBloc, UserProfileState>(
-            builder: (context, state) {
-              final avatarUrl = state is UserProfileLoaded && state.profile.avatarUrl.isNotEmpty
-                  ? state.profile.avatarUrl
-                  : null;
-                  
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: UserAvatar(
-                  imageUrl: avatarUrl,
-                  radius: 18, // Adjust radius as needed
-                ),
-              );
-            },
-          ),
-        ),
+        builder:
+            (context) => GestureDetector(
+              onTap: () {
+                Scaffold.of(context).openDrawerWithAnimation(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+              child: BlocBuilder<UserProfileBloc, UserProfileState>(
+                builder: (context, state) {
+                  final avatarUrl =
+                      state is UserProfileLoaded &&
+                              state.profile.avatarUrl.isNotEmpty
+                          ? state.profile.avatarUrl
+                          : null;
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child:
+                        widget.showProfileAvatar
+                            ? UserAvatar(
+                              imageUrl: avatarUrl,
+                              radius: 18, // Adjust radius as needed
+                            )
+                            : IconButton(
+                              icon: Icon(Icons.arrow_back),
+                              onPressed: () {
+                                Navigator.pop(widget.contextin!);
+                              },
+                            ), // Default icon if no avatar
+                  );
+                },
+              ),
+            ),
       ),
       title: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
@@ -144,7 +158,10 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
               ),
             IconButton(
               icon: const Icon(Icons.message_outlined),
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to MessagingPage
+                Navigator.pushNamed(context, RouteNames.mainMessage);
+              },
             ),
           ],
         ),

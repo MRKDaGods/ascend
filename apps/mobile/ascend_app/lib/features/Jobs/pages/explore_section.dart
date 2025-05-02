@@ -15,8 +15,10 @@ class ExploreScreen extends StatefulWidget {
   });
 
   @override
+
   // ignore: library_private_types_in_public_api
   _ExploreScreenState createState() => _ExploreScreenState();
+
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {

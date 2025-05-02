@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/networks/widgets/single_Invitation.dart';
+import 'package:ascend_app/features/networks/widgets/single_invitation.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/invitation_model.dart';
 
@@ -13,7 +13,7 @@ class InvitationsList extends StatefulWidget {
   });
 
   @override
-  _InvitationsListState createState() => _InvitationsListState();
+  State<InvitationsList> createState() => _InvitationsListState();
 }
 
 class _InvitationsListState extends State<InvitationsList> {

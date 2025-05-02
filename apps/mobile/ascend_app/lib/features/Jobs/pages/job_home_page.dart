@@ -209,7 +209,7 @@ class _JobHomePageState extends State<JobHomePage> {
   Future<void> _refreshJobs() async {
     // Simulate a network call or data refresh
     await Future.delayed(Duration(seconds: 1));
-    print("Refreshed jobs");
+    debugPrint("Refreshed jobs");
     setState(() {
       // Update the jobs list or any other state
       jobsList = List.from(widget.jobs); // Reset the jobs list

@@ -37,7 +37,6 @@ class _CustomDrawerController extends StatefulWidget {
   final Curve closeCurve;
 
   const _CustomDrawerController({
-    super.key,
     required this.child,
     required this.openDuration,
     required this.closeDuration,

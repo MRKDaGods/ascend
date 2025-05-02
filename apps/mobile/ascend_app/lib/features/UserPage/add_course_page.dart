@@ -7,7 +7,7 @@ class AddCoursePage extends StatefulWidget {
   const AddCoursePage({super.key, required this.onSave});
 
   @override
-  _AddCoursePageState createState() => _AddCoursePageState();
+  State<AddCoursePage> createState() => _AddCoursePageState();
 }
 
 class _AddCoursePageState extends State<AddCoursePage> {

@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
 
 class RecommendedToFollow extends StatefulWidget {
-  final String Message;
-  final List<UserModel> users;
-  final Map<String, List<UserModel>> mutualUsers;
+  final String message;
+  final List<UserSuggestedtoFollow> users;
+  final Function(String) onSentMessageRequest;
   final Function(String) onFollow;
   final Function(String) onUnfollow;
-  final Function(String) onHide;
   final bool showAll;
 
   const RecommendedToFollow({
     super.key,
-    required this.Message,
+    required this.message,
     required this.users,
-    required this.mutualUsers,
+    required this.onSentMessageRequest,
     required this.onFollow,
     required this.onUnfollow,
-    required this.onHide,
     required this.showAll,
   });
 
   @override
-  _RecommendedToFollowState createState() => _RecommendedToFollowState();
+  State<RecommendedToFollow> createState() => _RecommendedToFollowState();
 }
 
 class _RecommendedToFollowState extends State<RecommendedToFollow> {
@@ -64,17 +62,16 @@ class _RecommendedToFollowState extends State<RecommendedToFollow> {
               const SizedBox(height: 5),
               PeopleToFollow(
                 users: widget.users,
-                mutualUsers: widget.mutualUsers,
                 onFollow: (userId) {
                   widget.onFollow(userId);
                 },
                 onUnfollow: (userId) {
                   widget.onUnfollow(userId);
                 },
-                onHide: (userId) {
-                  widget.onHide(userId);
+                onSentMessageRequest: (userId) {
+                  widget.onSentMessageRequest(userId);
                 },
-                showAll: true,
+                showAll: widget.showAll,
               ),
             ],
           ),
