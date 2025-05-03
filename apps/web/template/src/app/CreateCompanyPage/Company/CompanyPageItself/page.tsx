@@ -9,6 +9,7 @@ import AnalyticsPage from '@/app/components/AnalyticsPage';
 import { useNavigationStore } from '@/app/stores/useNavigationStore';
 import PagePosts from '@/app/components/PagePosts';
 import CompanySettings from '@/app/components/CompanySettings';
+import CompanyJobsLists from '@/app/components/CompanyJobsList';
 
 export default function Page() {
   const { activePage } = useNavigationStore();
@@ -32,7 +33,7 @@ export default function Page() {
             <AnalyticsPage />
           </Grid>
         );
-      case 'Edit page':
+        case 'Edit page':
         return (
           <>
             <Grid id="edit-page-dashboard-actions-grid" item xs={12}>
@@ -40,6 +41,14 @@ export default function Page() {
             </Grid>
             <Grid id="edit-page-manage-posts-grid" item xs={12}>
               <ManagePosts />
+            </Grid>
+          </>
+        );
+      case 'Feed':
+        return (
+          <>
+            <Grid id="edit-page-dashboard-actions-grid" item xs={12}>
+              <CompanyJobsLists />
             </Grid>
           </>
         );

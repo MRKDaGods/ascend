@@ -8,6 +8,7 @@ import AnalyticsPage from '@/app/components/AnalyticsPage';
 import PagePostsUserCompany from '../components/PagePostsUserCompany';
 import { useNavigationStore } from '@/app/stores/useNavigationStore';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
+import CompanyJobsLists from '../components/CompanyJobsList';
 
 export default function Page() {
   const { activePage } = useNavigationStore();
@@ -30,10 +31,10 @@ export default function Page() {
             <PagePostsUserCompany />
           </Grid>
         );
-      case 'Analytics':
+      case 'Company jobs':
         return (
           <Grid id="analytics-grid" item xs={12}>
-            <AnalyticsPage />
+            <CompanyJobsLists />
           </Grid>
         );
       default:

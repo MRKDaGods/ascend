@@ -81,7 +81,7 @@ export default function CompanySidebarUser() {
         <Divider id="sidebar-divider" sx={{ my: 2 }} />
 
         <List id="sidebar-navigation">
-          {['Feed', 'Analytics'].map((item) => (
+          {['Feed', 'Company jobs'].map((item) => (
             <ListItem key={item} id={`sidebar-item-${item.toLowerCase()}`} sx={{ py: 1 }}>
               <Button
                 id={`sidebar-button-${item.toLowerCase()}`}
