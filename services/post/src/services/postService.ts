@@ -544,12 +544,17 @@ export class PostService {
   // Helper methods for counting engagements
   private async getPostLikesCount(postId: number): Promise<number> {
     const result = await db.query(
-      "SELECT COUNT(*) FROM post_service.post_engagement WHERE post_id = $1",
+      "SELECT total_reactions_count FROM post_service.post_engagement WHERE post_id = $1",
       [postId]
     );
-    return parseInt(result.rows[0].count, 10);
+    
+    // Check if there's an engagement record, return 0 if not
+    if (result.rows.length === 0) {
+      return 0;
+    }
+    
+    return parseInt(result.rows[0].total_reactions_count, 10);
   }
-
   private async getPostSharesCount(postId: number): Promise<number> {
     const result = await db.query(
       "SELECT COUNT(*) FROM post_service.shares WHERE post_id = $1",
@@ -836,23 +841,23 @@ export class PostService {
     return { reacted: true, reactionType: result.rows[0].reaction_type };
   }
 
-  // Check if post is saved by user
-  async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
-    const result = await db.query(
-      "SELECT EXISTS(SELECT 1 FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2)",
-      [postId, userId]
-    );
-    return result.rows[0].exists;
-  }
+// Check if post is saved by user
+async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
+  const result = await db.query(
+    "SELECT COUNT(*) > 0 as is_saved FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2",
+    [postId, userId]
+  );
+  return result.rows[0].is_saved;
+}
 
-  // Check if post is shared by user
-  async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
-    const result = await db.query(
-      "SELECT EXISTS(SELECT 1 FROM post_service.shares WHERE post_id = $1 AND user_id = $2)",
-      [postId, userId]
-    );
-    return result.rows[0].exists;
-  }
+// Check if post is shared by user
+async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
+  const result = await db.query(
+    "SELECT COUNT(*) > 0 as is_shared FROM post_service.shares WHERE post_id = $1 AND user_id = $2",
+    [postId, userId]
+  );
+  return result.rows[0].is_shared;
+}
 
   async updatePrivacy(
     postId: number,
