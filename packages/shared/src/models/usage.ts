@@ -18,7 +18,7 @@ export interface Usage {
     connections : number,
     job_applications_per_month : number,
     messages_per_day_limit : number,
-    conenctions_limit : number,
+    connections_limit : number,
     job_applications_limit : number,
     last_date : Date,
     stripe_customer_id : string

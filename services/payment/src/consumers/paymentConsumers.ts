@@ -49,11 +49,11 @@ export const handleGetUserConnectionsUsage = async (payload : GetUserUsageConnec
 
     const response : GetUserUsageConnections.Response = {
         connections : user_usage.connections,
-        connections_limit : user_usage.conenctions_limit
+        connections_limit : user_usage.connections_limit
     };
 
     if(payload.update_usage){
-        if(user_usage.conenctions_limit === -1 || user_usage.connections < user_usage.conenctions_limit){
+        if(user_usage.connections_limit === -1 || user_usage.connections < user_usage.connections_limit){
             await updateUsage(user_id, {connections : user_usage.connections + 1});
         }
     }
