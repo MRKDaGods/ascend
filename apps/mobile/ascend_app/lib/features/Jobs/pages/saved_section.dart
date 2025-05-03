@@ -61,11 +61,11 @@ class _SavedPageState extends State<SavedPage> {
           }
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to fetch saved jobs: ${response.body}'),
-          ),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Failed to fetch saved jobs: ${response.body}'),
+        //   ),
+        // );
       }
     } catch (e) {
       ScaffoldMessenger.of(

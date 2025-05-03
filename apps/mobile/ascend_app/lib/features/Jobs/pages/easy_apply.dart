@@ -7,6 +7,8 @@ import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as path;
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -55,11 +57,15 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
       );
 
       if (result != null && result.files.single.path != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('File uploaded')));
         setState(() {
           _selectedFile = File(result.files.single.path!);
         });
       } else {
         ScaffoldMessenger.of(
+          // ignore: use_build_context_synchronously
           context,
         ).showSnackBar(const SnackBar(content: Text('No file selected')));
       }
@@ -71,37 +77,51 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     }
   }
 
+  Future<File> convertToPdfFile(File originalFile) async {
+    // Define the path for the new PDF file
+    final String newPath =
+        '${originalFile.parent.path}/converted_${path.basename(originalFile.path)}';
+
+    // Create a new file and write the binary content of the original file
+    final File newPdfFile = File(newPath);
+    await newPdfFile.writeAsBytes(await originalFile.readAsBytes());
+
+    print('New PDF File Path: $newPath');
+    return newPdfFile;
+  }
+
   Future<void> _uploadFile() async {
     final String baseUrl = 'https://api.ascendx.tech';
     final String endpoint = '/job/${widget.job.jobID}/applications';
-    final String? mimeType = _selectedFile?.path.split('.').last;
-    Map<String, dynamic> resumeData = {};
-    if (_selectedFile != null) {
-      final bytes = await _selectedFile!.readAsBytes();
-      resumeData = {
-        "buffer": base64Encode(bytes),
-        "file_name": _selectedFile!.path.split('/').last,
-        "file_size": bytes.length.toString(),
-        "mime_type": mimeType,
-      };
-    }
 
-    final data = {"email": email, "phone": phone, "resume": resumeData};
+    if (_selectedFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a PDF file.')),
+      );
+      return;
+    }
 
     try {
       final token = await SecureStorageHelper.getAuthToken();
-      final headers = {
-        if (token != null) 'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
       final url = Uri.parse('$baseUrl$endpoint');
+      print('Uploading file to: $url');
+      var request =
+          http.MultipartRequest('POST', url)
+            ..fields['email'] = email
+            ..fields['phone'] = phone
+            ..headers.addAll({
+              if (token != null) 'Authorization': 'Bearer $token',
+              'Accept': 'application/json',
+            })
+            ..files.add(
+              await http.MultipartFile.fromPath(
+                'resume', // <-- The key expected by your backend
+                _selectedFile!.path,
+                contentType: MediaType('application', 'pdf'),
+              ),
+            );
 
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: jsonEncode(data),
-      );
+      var response = await request.send();
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -109,11 +129,13 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         );
         Navigator.pop(context);
       } else {
+        final responseBody = await response.stream.bytesToString();
         print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
+        print('Response body: $responseBody');
         throw Exception('Failed to apply');
       }
     } catch (e) {
+      print('Error: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -229,8 +251,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
             //   return;
             // }
 
-            await _uploadFile();
-            applyForJob();
+            _uploadFile();
           },
           child: const Text("Submit Application"),
         ),

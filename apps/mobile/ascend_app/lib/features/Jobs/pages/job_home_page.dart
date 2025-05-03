@@ -29,6 +29,7 @@ class _JobHomePageState extends State<JobHomePage> {
   @override
   void initState() {
     super.initState();
+    jobsList = []; // Initialize jobsList as an empty list
     fetchJobs();
   }
 
@@ -41,31 +42,41 @@ class _JobHomePageState extends State<JobHomePage> {
       }
     });
 
-    final url = Uri.parse('https://api.ascendx.tech/job?page=$page');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-      if (jsonResponse.containsKey('data')) {
-        final List<dynamic> jobData = jsonResponse['data'];
-        setState(() {
-          if (page > 1) {
-            jobsList.addAll(
-              jobData.map((data) => Jobsattributes.fromJson(data)).toList(),
-            );
-          } else {
-            jobsList =
-                jobData.map((data) => Jobsattributes.fromJson(data)).toList();
-          }
-        });
+    try {
+      final url = Uri.parse(
+        'https://api.ascendx.tech/job?keyword=&location&industry=&experience_level=&company=&salary_min_range=0&salary_max_range=200000&page=$page',
+      );
+      print("Fetching jobs from: $url");
+      final response = await http.get(url);
+      print("Response: ${response.body}");
+      print("Status Code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse.containsKey('data')) {
+          final List<dynamic> jobData = jsonResponse['data'];
+          setState(() {
+            if (page > 1) {
+              jobsList.addAll(
+                jobData.map((data) => Jobsattributes.fromJson(data)).toList(),
+              );
+            } else {
+              jobsList =
+                  jobData.map((data) => Jobsattributes.fromJson(data)).toList();
+            }
+          });
+        }
+      } else {
+        throw Exception('Failed to load jobs');
       }
+    } catch (e) {
+      print('Error fetching jobs: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+        isLoadingMore = false;
+        currentPage = page;
+      });
     }
-
-    setState(() {
-      isLoading = false;
-      isLoadingMore = false;
-      currentPage = page;
-    });
   }
 
   Future<void> fetchMoreJobs({int page = 1}) async {
@@ -73,7 +84,9 @@ class _JobHomePageState extends State<JobHomePage> {
       isLoadingMore = true;
     });
 
-    final url = Uri.parse('https://api.ascendx.tech/job?page=$page');
+    final url = Uri.parse(
+      'https://api.ascendx.tech/job?keyword=&location&industry=&experience_level=&company=&salary_min_range=0&salary_max_range=200000&page=$page',
+    );
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
