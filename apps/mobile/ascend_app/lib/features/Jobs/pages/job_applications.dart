@@ -1,0 +1,89 @@
+import 'package:flutter/material.dart';
+import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+import 'dart:convert';
+import 'application_details.dart';
+
+class JobApplications extends StatefulWidget {
+  final int jobId;
+
+  const JobApplications({super.key, required this.jobId});
+
+  @override
+  _JobApplicationsState createState() => _JobApplicationsState();
+}
+
+class _JobApplicationsState extends State<JobApplications> {
+  List<dynamic> applications = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchApplications();
+  }
+
+  Future<void> fetchApplications() async {
+    final apiClient = ApiClient();
+    final job = widget.jobId;
+    try {
+      final response = await apiClient.get('/job/$job/applications?page=1');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          applications = data['data'];
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load applications');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching applications: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Job Applications')),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : applications.isEmpty
+              ? const Center(child: Text('No applications found.'))
+              : ListView.builder(
+                itemCount: applications.length,
+                itemBuilder: (context, index) {
+                  final application = applications[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: ListTile(
+                      title: Text(application['name']),
+                      subtitle: Text(application['email']),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => ApplicationDetails(
+                                  name: application['name'],
+                                  email: application['email'],
+                                  resumeUrl: application['resume_url'],
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+    );
+  }
+}
