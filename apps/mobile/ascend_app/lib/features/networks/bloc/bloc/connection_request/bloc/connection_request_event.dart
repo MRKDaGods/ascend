@@ -17,14 +17,14 @@ class DeclineConnectionRequest extends ConnectionRequestEvent {
   DeclineConnectionRequest({required this.requestId});
 }
 
-class CancelConnectionRequest extends ConnectionRequestEvent {
-  final String requestId;
-  CancelConnectionRequest({required this.requestId});
-}
-
 class RemoveConnection extends ConnectionRequestEvent {
   final String connectionId;
   RemoveConnection({required this.connectionId});
+}
+
+class CancelConnectionRequest extends ConnectionRequestEvent {
+  final String requestId;
+  CancelConnectionRequest({required this.requestId});
 }
 
 class FetchConnectionRequests extends ConnectionRequestEvent {}

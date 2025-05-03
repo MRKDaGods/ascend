@@ -1,3 +1,7 @@
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,10 +9,7 @@ import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/c
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
-import 'package:ascend_app/features/networks/pages/blocked_page.dart';
 
 class ManageMyNetwork extends StatelessWidget {
   final List<ConnectedUser> connections;
@@ -52,7 +53,21 @@ class ManageMyNetwork extends StatelessWidget {
                               ),
                             ),
                             BlocProvider.value(
-                              value: BlocProvider.of<SearchFiltersBloc>(
+                              value: BlocProvider.of<UserSearchBloc>(context),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<ConnectionPreferencesBloc>(
+                                context,
+                              ),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<FollowBloc>(context),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<BlockBloc>(context),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<MessagingRequestsBloc>(
                                 context,
                               ),
                             ),
@@ -137,25 +152,6 @@ class ManageMyNetwork extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               onTap: () {},
-            );
-          } else if (index == 6) {
-            return ListTile(
-              leading: Icon(Icons.block),
-              title: Text(
-                'Blocked Users',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder:
-                        (_) => BlocProvider.value(
-                          value: BlocProvider.of<BlockBloc>(context),
-                          child: BlockedPage(),
-                        ),
-                  ),
-                );
-              },
             );
           } else {
             return SizedBox.shrink(); // Return an empty widget for other indices

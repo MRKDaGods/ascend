@@ -20,9 +20,9 @@ Widget buildSent(
                 ListTile(
                   leading: CircleAvatar(
                     backgroundImage:
-                        invitation.profile_image_id!.startsWith('http')
+                        invitation.profile_image_id != null
                             ? NetworkImage(invitation.profile_image_id!)
-                            : AssetImage(invitation.profile_image_id!)
+                            : AssetImage('assets/EmptyUser.png')
                                 as ImageProvider,
                   ),
                   title: Text(
@@ -32,7 +32,7 @@ Widget buildSent(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        invitation.bio!,
+                        invitation.bio ?? 'No bio available',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -41,7 +41,7 @@ Widget buildSent(
                         ),
                       ),
                       Text(
-                        timeDifference(invitation.requestedAt!),
+                        timeDifference(invitation.created_at!),
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 10,
@@ -50,7 +50,7 @@ Widget buildSent(
                     ],
                   ),
                   trailing: TextButton(
-                    onPressed: () => onRemove(invitation.request_id!),
+                    onPressed: () => onRemove(invitation.id!),
                     child: const Text('Withdraw'),
                   ),
                 ),
