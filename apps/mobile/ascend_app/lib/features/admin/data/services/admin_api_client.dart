@@ -37,14 +37,16 @@ class AdminApiClient {
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token is missing.');
     }
+    
+    final url = Uri.parse('$baseUrl$endpoint');
+    
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
 
-    final response = await http.delete(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    final response = await http.delete(url, headers: headers)
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('DELETE $endpoint failed with ${response.statusCode}');
@@ -163,7 +165,7 @@ class AdminApiClient {
   }
 
   /// Deletes a specific job by its ID.
-  Future<void> deleteJob(int jobId) async {
+  Future<void> deleteJob(String jobId) async {  // Changed parameter type from int to String
     try {
       await delete('/jobs/$jobId');
     } catch (e) {

@@ -75,6 +75,48 @@ class _JobsPageState extends State<JobsPage> {
                       FetchJobReportsEvent(job.jobId, page: 1),
                     );
                   },
+                  onDelete: () {
+                    showDialog(
+                      context: context,
+                      builder:
+                          (dialogContext) => BlocProvider.value(
+                            value:
+                                context
+                                    .read<JobsBloc>(), // Pass the existing bloc
+                            child: Builder(
+                              builder:
+                                  (builderContext) => AlertDialog(
+                                    title: const Text('Delete Job'),
+                                    content: Text(
+                                      'Are you sure you want to delete this job?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.pop(dialogContext),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext);
+                                          // Use builderContext to ensure proper provider access
+                                          builderContext.read<JobsBloc>().add(
+                                            DeleteJobEvent(
+                                              job.jobId.toString(),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                          ),
+                    );
+                  },
                 );
               },
             );
@@ -112,6 +154,56 @@ class _JobsPageState extends State<JobsPage> {
                           // Fetch reports for this specific job when expanded
                           context.read<JobsBloc>().add(
                             FetchJobReportsEvent(job.jobId, page: 1),
+                          );
+                        },
+                        onDelete: () {
+                          showDialog(
+                            context: context,
+                            builder:
+                                (dialogContext) => BlocProvider.value(
+                                  value:
+                                      context
+                                          .read<
+                                            JobsBloc
+                                          >(), // Pass the existing bloc
+                                  child: Builder(
+                                    builder:
+                                        (builderContext) => AlertDialog(
+                                          title: const Text('Delete Job'),
+                                          content: Text(
+                                            'Are you sure you want to delete this job?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed:
+                                                  () => Navigator.pop(
+                                                    dialogContext,
+                                                  ),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(dialogContext);
+                                                // Use builderContext to ensure proper provider access
+                                                builderContext
+                                                    .read<JobsBloc>()
+                                                    .add(
+                                                      DeleteJobEvent(
+                                                        job.jobId.toString(),
+                                                      ),
+                                                    );
+                                              },
+                                              child: const Text(
+                                                'Delete',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                  ),
+                                ),
                           );
                         },
                       );

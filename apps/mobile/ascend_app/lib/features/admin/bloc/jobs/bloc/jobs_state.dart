@@ -28,6 +28,9 @@ final class JobDeletedState extends JobsState {
   final String jobId;
 
   JobDeletedState(this.jobId);
+
+  @override
+  List<Object?> get props => [jobId];
 }
 
 final class JobReportStatusUpdatedState extends JobsState {
