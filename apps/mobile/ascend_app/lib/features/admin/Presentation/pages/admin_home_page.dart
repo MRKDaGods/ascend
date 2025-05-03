@@ -1,9 +1,11 @@
-import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/analytics_page.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/jobs_page.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/posts_page.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/users_page.dart';
 import 'package:ascend_app/features/admin/bloc/analytics/bloc/analytics_bloc.dart';
+import 'package:ascend_app/features/admin/bloc/jobs/bloc/jobs_bloc.dart';
+import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_bloc.dart';
+import 'package:ascend_app/features/admin/data/models/jobs_model.dart';
 import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:flutter/material.dart';
@@ -36,27 +38,42 @@ class _AdminHomePageState extends State<AdminHomePage> {
         body: TabBarView(
           children: [
             BlocProvider(
-              create: (_) => AnalyticsBloc(
-                repository: AdminRepository(
-                  apiClient: AdminApiClient(baseUrl: 'http://api.ascendx.tech/admin'),
-                ),
-              )..add(const FetchAnalyticsEvent('week')), // Adjust the event as needed
+              create:
+                  (_) => AnalyticsBloc(
+                    repository: AdminRepository(
+                      apiClient: AdminApiClient(
+                        baseUrl: 'https://api.ascendx.tech/admin',
+                      ),
+                    ),
+                  )..add(const FetchAnalyticsEvent('week')),
               child: const AnalyticsPage(),
             ),
             const UsersPage(),
-            const PostsPage(),
-            const JobsPage(),
+            BlocProvider(
+              create:
+                  (_) => PostsBloc(
+                    apiClient: AdminApiClient(
+                      baseUrl: 'https://api.ascendx.tech/admin',
+                    ),
+                  ),
+              child: const PostsPage(),
+            ),
+            BlocProvider(
+              create:
+                  (context) => JobsBloc(
+                    adminRepository: AdminRepository(
+                      apiClient: AdminApiClient(
+                        baseUrl: 'https://api.ascendx.tech/admin',
+                      ),
+                    ),
+                  )..add(
+                    FetchReportedJobsEvent(page: 1),
+                  ), // Trigger fetching jobs
+              child: const JobsPage(),
+            ),
           ],
         ),
       ),
     );
   }
-}
-
-class AnalyticsRepository {
-  final ApiClient client;
-
-  AnalyticsRepository({required this.client});
-
-  // Add methods to fetch analytics data if needed
 }
