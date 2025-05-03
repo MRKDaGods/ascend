@@ -10,6 +10,8 @@ class ProfileMainImages extends StatelessWidget {
     this.isMyProfile = false,
     this.profileImageProvider,
     this.coverImageProvider,
+    this.deleteCover,
+    this.deleteProfile,
   });
   final String profilePic;
   final String coverPic;
@@ -20,13 +22,25 @@ class ProfileMainImages extends StatelessWidget {
   final ImageProvider? coverImageProvider; // = AssetImage(
   //   'assets/company_placeholder.png',
   // ); // Add this for testing
-  void _showFullScreenImage(BuildContext context, String imageUrl) {
+  final void Function()? deleteCover;
+  final void Function()? deleteProfile; // Add this for testing
+  void _showFullScreenImage(
+    BuildContext context,
+    String imageUrl,
+    bool? isProfilePic,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder:
-            (context) =>
-                FullScreenImage(imageUrl: imageUrl, isMyProfile: isMyProfile),
+            (context) => FullScreenImage(
+              imageUrl: imageUrl,
+              isMyProfile: isMyProfile,
+              delete:
+                  isProfilePic!
+                      ? deleteProfile
+                      : deleteCover, // Pass the correct delete function
+            ),
       ),
     );
   }
@@ -70,7 +84,7 @@ class ProfileMainImages extends StatelessWidget {
             } else {
               _showFullScreenImage(
                 context,
-                coverPic,
+                coverPic,null
               ); // Go full screen directly
             }
           },
@@ -98,7 +112,7 @@ class ProfileMainImages extends StatelessWidget {
               } else {
                 _showFullScreenImage(
                   context,
-                  profilePic,
+                  profilePic,null
                 ); // Go full screen directly
               }
             },

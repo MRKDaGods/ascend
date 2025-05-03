@@ -68,6 +68,7 @@ class NotificationCard extends StatelessWidget {
         color:
             notification.isRead
                 ? null
+                // ignore: deprecated_member_use
                 : Colors.blue.withOpacity(0.08), // Changed to blue hue
         child: InkWell(
           onTap: () {
@@ -158,6 +159,7 @@ class NotificationCard extends StatelessWidget {
                         fontSize: 12,
                         color: Theme.of(
                           context,
+                          // ignore: deprecated_member_use
                         ).colorScheme.onSurfaceVariant.withOpacity(0.7),
                       ),
                     ),
@@ -224,6 +226,7 @@ class NotificationCard extends StatelessWidget {
 
     return CircleAvatar(
       radius: 20,
+      // ignore: deprecated_member_use
       backgroundColor: iconColor.withOpacity(0.1),
       child: Icon(iconData, color: iconColor, size: 20),
     );

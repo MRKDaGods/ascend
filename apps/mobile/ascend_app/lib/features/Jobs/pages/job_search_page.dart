@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/pages/Search_jobs.dart';
+import 'package:ascend_app/features/Jobs/pages/search_jobs.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 
 class JobSearchPage extends StatefulWidget {
@@ -14,7 +14,7 @@ class JobSearchPage extends StatefulWidget {
   }); //is from home to check if the one calling the search bar is the home page or not
 
   @override
-  _JobSearchPageState createState() => _JobSearchPageState();
+  State<JobSearchPage> createState() => _JobSearchPageState();
 }
 
 class _JobSearchPageState extends State<JobSearchPage> {

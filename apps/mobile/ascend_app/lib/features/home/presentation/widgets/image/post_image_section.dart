@@ -5,15 +5,15 @@ import 'package:ascend_app/features/home/presentation/widgets/image/post_images_
 class PostImageSection extends StatelessWidget {
   final List<String> images;
   final bool useCarousel;
-  final bool isSponsored; 
-  final Function(int)? onTapImage;  // Renamed to match your Post widget
+  final bool isSponsored;
+  final Function(int)? onTapImage; // Renamed to match your Post widget
 
   const PostImageSection({
     super.key,
     required this.images,
     this.useCarousel = false,
     this.isSponsored = false,
-    this.onTapImage,  // Updated parameter name
+    this.onTapImage, // Updated parameter name
   });
 
   @override
@@ -38,7 +38,8 @@ class PostImageSection extends StatelessWidget {
           return Builder(
             builder: (BuildContext context) {
               return GestureDetector(
-                onTap: () => onTapImage?.call(index),  // Use the renamed parameter
+                onTap:
+                    () => onTapImage?.call(index), // Use the renamed parameter
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   margin: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -48,11 +49,13 @@ class PostImageSection extends StatelessWidget {
                       images[index],
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        print("Error loading image: $error");
+                        debugPrint("Error loading image: $error");
                         return Container(
                           height: 200,
                           color: Colors.grey[300],
-                          child: const Center(child: Text('Image not available')),
+                          child: const Center(
+                            child: Text('Image not available'),
+                          ),
                         );
                       },
                     ),
@@ -63,13 +66,13 @@ class PostImageSection extends StatelessWidget {
           );
         }),
       );
-    } 
+    }
     // For all non-sponsored posts, always use grid layout
     else {
       return ImagesGridShape(
         imageCount: images.length,
         images: images,
-        onTap: onTapImage,  // Pass the renamed parameter to ImagesGridShape
+        onTap: onTapImage, // Pass the renamed parameter to ImagesGridShape
       );
     }
   }
