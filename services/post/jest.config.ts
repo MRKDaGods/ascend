@@ -12,7 +12,7 @@ const config: Config = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   moduleNameMapper: {
-    '@shared/(.*)': '<rootDir>/../../shared/src/$1'
+    '^@shared/(.*)$': '<rootDir>/../../packages/shared/src/$1'
   },
   testMatch: [
     '**/__tests__/**/*.test.ts'
