@@ -11,7 +11,7 @@ class DegreeSelectionPage extends StatefulWidget {
   });
 
   @override
-  _DegreeSelectionPageState createState() => _DegreeSelectionPageState();
+  State<DegreeSelectionPage> createState() => _DegreeSelectionPageState();
 }
 
 class _DegreeSelectionPageState extends State<DegreeSelectionPage> {

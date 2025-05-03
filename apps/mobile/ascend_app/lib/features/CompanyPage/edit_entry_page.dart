@@ -11,7 +11,7 @@ class EditEntryPage extends StatefulWidget {
   });
 
   @override
-  _EditEntryPageState createState() => _EditEntryPageState();
+  State<EditEntryPage> createState() => _EditEntryPageState();
 }
 
 class _EditEntryPageState extends State<EditEntryPage> {

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class ProfileEntryWidget extends StatefulWidget {
-  String? title;
-  String? subtitle;
-  String? description;
-  String? imageUrl;
-  Icon? icon;
-  List<Widget>? extraContent;
+  final String? title;
+  final String? subtitle;
+  final String? description;
+  final String? imageUrl;
+  final Icon? icon;
+  final List<Widget>? extraContent;
 
-  ProfileEntryWidget({
+  const ProfileEntryWidget({
     super.key,
     this.title,
     this.subtitle,
@@ -19,7 +19,7 @@ class ProfileEntryWidget extends StatefulWidget {
   });
 
   @override
-  _ProfileEntryWidgetState createState() => _ProfileEntryWidgetState();
+  State<ProfileEntryWidget> createState() => _ProfileEntryWidgetState();
 }
 
 class _ProfileEntryWidgetState extends State<ProfileEntryWidget> {

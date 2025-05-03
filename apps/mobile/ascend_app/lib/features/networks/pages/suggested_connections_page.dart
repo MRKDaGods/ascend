@@ -1,25 +1,23 @@
+import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
 
 class SuggestedConnectionsPage extends StatefulWidget {
-  final String Message;
-  final List<UserModel> users;
-  final Map<String, List<UserModel>> mutualUsers;
+  final String message;
+  final List<UserSuggestedtoConnect> users;
   final Function(String) onSend;
   final bool showAll;
 
   const SuggestedConnectionsPage({
     super.key,
-    required this.Message,
+    required this.message,
     required this.users,
-    required this.mutualUsers,
     required this.onSend,
     required this.showAll,
   });
 
   @override
-  _SuggestedConnectionsPageState createState() =>
+  State<SuggestedConnectionsPage> createState() =>
       _SuggestedConnectionsPageState();
 }
 
@@ -54,18 +52,19 @@ class _SuggestedConnectionsPageState extends State<SuggestedConnectionsPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
-                  widget.Message,
+                  widget.message,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+              //ConnectionSuggestions PAGE
               ConnectionSuggestions(
                 suggestedUsers: widget.users,
-                connectionsMap: widget.mutualUsers,
                 onSend: widget.onSend,
-                ShowAll: widget.showAll,
+                onSentMessageRequest: widget.onSend,
+                showAll: widget.showAll,
               ),
             ],
           ),

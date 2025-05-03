@@ -5,15 +5,19 @@ import 'package:ascend_app/features/Jobs/pages/easy_apply.dart';
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher package
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http; // Import http package
+
 import 'package:ascend_app/features/Jobs/pages/report_page.dart'; // Import the new ReportPage
+
 
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
   const JobDetailsPage({super.key, required this.job});
 
   @override
+
   // ignore: library_private_types_in_public_api
   _JobDetailsPageState createState() => _JobDetailsPageState();
+
 }
 
 class _JobDetailsPageState extends State<JobDetailsPage> {

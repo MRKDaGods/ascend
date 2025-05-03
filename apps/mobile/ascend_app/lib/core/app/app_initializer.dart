@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
-import 'package:ascend_app/features/StartPages/repository/auth_repository.dart';
 import 'package:ascend_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
