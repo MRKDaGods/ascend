@@ -20,14 +20,15 @@ class SearchRepository {
 
   Future<List<dynamic>> searchUltimate({
     required String query,
-    int limit = 10,
-    int offset = 0,
+    int limit = 10, // Note: The API response doesn't seem paginated per category yet
+    int offset = 0, // Note: Offset might apply to the overall query, not categories
   }) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null) {
       throw Exception('Authentication token not found.');
     }
 
+    // Using /search/ultimate endpoint now
     final uri = Uri.parse(
       '$baseUrl/post/search/ultimate?q=${Uri.encodeComponent(query)}&limit=$limit&offset=$offset',
     );
@@ -50,39 +51,41 @@ class SearchRepository {
       if (response.statusCode == 200) {
         final jsonData = json.decode(responseBody);
 
-        // --- Adjusted Result Extraction ---
-        List<dynamic> results = []; // Default to empty list
+        // --- Adjusted Result Extraction for {"data": {"users": [], "posts": []}} ---
+        List<dynamic> combinedResults = []; // Initialize empty list
 
-        if (jsonData is Map<String, dynamic>) {
-          if (jsonData.containsKey('data')) {
-            final dataField = jsonData['data'];
-            if (dataField is List) {
-              results = dataField; // Case 1: { "data": [...] }
-            } else if (dataField is Map<String, dynamic> && dataField.containsKey('results')) {
-               final resultsField = dataField['results'];
-               if (resultsField is List) {
-                 results = resultsField; // Case 2: { "data": { "results": [...] } }
-               }
+        if (jsonData is Map<String, dynamic> && jsonData.containsKey('data')) {
+          final dataMap = jsonData['data'];
+          if (dataMap is Map<String, dynamic>) {
+            // Extract users if present
+            if (dataMap.containsKey('users') && dataMap['users'] is List) {
+              final users = dataMap['users'] as List;
+              // Add type information for easier rendering later
+              combinedResults.addAll(users.map((user) => {'type': 'user', 'data': user}));
             }
-          } else if (jsonData.containsKey('results')) {
-             final resultsField = jsonData['results'];
-             if (resultsField is List) {
-                results = resultsField; // Case 3: { "results": [...] }
-             }
+            // Extract posts if present
+            if (dataMap.containsKey('posts') && dataMap['posts'] is List) {
+              final posts = dataMap['posts'] as List;
+              // Add type information
+              combinedResults.addAll(posts.map((post) => {'type': 'post', 'data': post}));
+            }
+            // Add extraction for other types (jobs, companies) here if needed
+            // e.g., if (dataMap.containsKey('jobs') && dataMap['jobs'] is List) { ... }
           } else {
-             debugPrint('⚠️ [SearchRepository] Unexpected Map structure: $jsonData');
+             debugPrint('⚠️ [SearchRepository] "data" field is not a Map: $dataMap');
           }
-        } else if (jsonData is List) {
-           results = jsonData; // Case 4: API returns a direct list [...]
         } else {
-           debugPrint('⚠️ [SearchRepository] Unexpected JSON structure: $jsonData');
+           debugPrint('⚠️ [SearchRepository] Unexpected JSON structure or missing "data" key: $jsonData');
         }
         // --- End of Adjustment ---
 
+        // Optional: Sort results by rank or relevance if needed
+        // combinedResults.sort((a, b) => (b['data']['rank'] ?? 0.0).compareTo(a['data']['rank'] ?? 0.0));
+
         debugPrint(
-          '✅ [SearchRepository] Found ${results.length} search results.',
+          '✅ [SearchRepository] Found ${combinedResults.length} combined search results.',
         );
-        return results;
+        return combinedResults; // Return the combined list
       } else {
         debugPrint(
           '❌ [SearchRepository] Search failed. Status: ${response.statusCode}, Body: $responseBody',
