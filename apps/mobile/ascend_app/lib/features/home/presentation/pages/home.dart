@@ -2,12 +2,15 @@ import 'package:ascend_app/features/home/bloc/post_bloc/post_bloc.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart';
 import 'package:ascend_app/features/home/bloc/post_bloc/post_state.dart';
 import 'package:ascend_app/features/home/models/comment_model.dart';
+import 'package:ascend_app/features/home/presentation/pages/ultimate_search_page.dart'; // Import UltimateSearchPage
 import 'package:ascend_app/features/home/presentation/widgets/post/post.dart'
     as post_widget;
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 import 'package:ascend_app/shared/widgets/app_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ascend_app/features/home/bloc/search/search_bloc.dart'; // Import SearchBloc
+import 'package:ascend_app/features/home/repositories/search_repository.dart'; // Import SearchRepository
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -20,6 +23,7 @@ class _HomeState extends State<Home> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   int _sponsoredPostCounter = 0;
+  bool _isSearching = false; // State to control search view
 
   @override
   void initState() {
@@ -28,7 +32,9 @@ class _HomeState extends State<Home> {
 
     // Load initial posts through BLoC
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PostBloc>().add(const LoadPosts());
+      if (!_isSearching) { // Only load posts if not searching
+        context.read<PostBloc>().add(const LoadPosts());
+      }
     });
   }
 
@@ -87,8 +93,36 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void _toggleSearch(bool searching) {
+    setState(() {
+      _isSearching = searching;
+      if (!_isSearching) {
+        // Optionally clear search or reload home feed if needed
+        // context.read<SearchBloc>().add(ClearSearch()); // If using a shared SearchBloc
+        // context.read<PostBloc>().add(const LoadPosts()); // Reload posts when exiting search
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // If searching, show the UltimateSearchPage wrapped in BlocProvider
+    if (_isSearching) {
+      return AppScaffold(
+        body: SafeArea(
+          child: BlocProvider(
+            create: (context) => SearchBloc(
+              searchRepository: SearchRepository(), // Instantiate repository
+            ),
+            child: UltimateSearchPage(
+              onBackPressed: () => _toggleSearch(false), // Callback to exit search
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Otherwise, show the home feed
     return AppScaffold(
       body: SafeArea(
         child: BlocConsumer<PostBloc, PostState>(
@@ -140,10 +174,11 @@ class _HomeState extends State<Home> {
                 child: CustomScrollView(
                   controller: _scrollController,
                   slivers: [
-                    const CustomSliverAppBar(
+                    CustomSliverAppBar( // Pass the callback here
                       pinned: false,
                       floating: true,
                       addpost: true,
+                      onSearchAction: () => _toggleSearch(true), // Trigger search view
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(

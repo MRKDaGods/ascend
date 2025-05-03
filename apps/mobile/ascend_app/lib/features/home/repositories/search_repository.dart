@@ -29,7 +29,7 @@ class SearchRepository {
     }
 
     final uri = Uri.parse(
-      '$baseUrl/search/ultimate?q=${Uri.encodeComponent(query)}&limit=$limit&offset=$offset',
+      '$baseUrl/post/search/ultimate?q=${Uri.encodeComponent(query)}&limit=$limit&offset=$offset',
     );
     debugPrint('🔄 [SearchRepository] Searching: $uri');
 
@@ -46,17 +46,42 @@ class SearchRepository {
         '✅ [SearchRepository] Search API response status: ${response.statusCode}',
       );
       final responseBody = response.body;
-      // debugPrint('📄 [SearchRepository] Search API response body: $responseBody');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(responseBody);
-        // Assuming the API returns a list directly under a key like 'data' or root
-        final List<dynamic> results = jsonData['data'] ?? jsonData ?? [];
+
+        // --- Adjusted Result Extraction ---
+        List<dynamic> results = []; // Default to empty list
+
+        if (jsonData is Map<String, dynamic>) {
+          if (jsonData.containsKey('data')) {
+            final dataField = jsonData['data'];
+            if (dataField is List) {
+              results = dataField; // Case 1: { "data": [...] }
+            } else if (dataField is Map<String, dynamic> && dataField.containsKey('results')) {
+               final resultsField = dataField['results'];
+               if (resultsField is List) {
+                 results = resultsField; // Case 2: { "data": { "results": [...] } }
+               }
+            }
+          } else if (jsonData.containsKey('results')) {
+             final resultsField = jsonData['results'];
+             if (resultsField is List) {
+                results = resultsField; // Case 3: { "results": [...] }
+             }
+          } else {
+             debugPrint('⚠️ [SearchRepository] Unexpected Map structure: $jsonData');
+          }
+        } else if (jsonData is List) {
+           results = jsonData; // Case 4: API returns a direct list [...]
+        } else {
+           debugPrint('⚠️ [SearchRepository] Unexpected JSON structure: $jsonData');
+        }
+        // --- End of Adjustment ---
+
         debugPrint(
           '✅ [SearchRepository] Found ${results.length} search results.',
         );
-        // Here, you would map 'results' to your defined models (e.g., UltimateSearchResult)
-        // For now, returning List<dynamic>
         return results;
       } else {
         debugPrint(
