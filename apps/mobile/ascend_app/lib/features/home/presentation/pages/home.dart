@@ -110,7 +110,23 @@ class _HomeState extends State<Home> {
             }
 
             if (state is PostsError) {
-              return Center(child: Text('Error: ${state.message}'));
+              // Show error message and a retry button for initial load errors
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error loading posts: ${state.message}'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Dispatch LoadPosts event again on retry
+                        context.read<PostBloc>().add(const LoadPosts());
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
             }
 
             if (state is PostsLoaded) {
@@ -166,12 +182,13 @@ class _HomeState extends State<Home> {
                             );
 
                             if (actualPostIndex >= posts.length) {
+                              // This should ideally not happen if childCount is correct
                               return const SizedBox.shrink();
                             }
 
                             postId = posts[actualPostIndex].id;
 
-                            // Add preview comment to every 7th regular post
+                            // Add preview comment logic remains the same
                             if (actualPostIndex % 7 == 6) {
                               final currentPost = posts[actualPostIndex];
                               if (currentPost.comments.isNotEmpty) {
@@ -186,10 +203,8 @@ class _HomeState extends State<Home> {
                             previewComment: previewComment,
                           );
                         },
-                        // Adjust childCount based on whether loading indicator might be shown
-                        childCount:
-                            _getDisplayItemCount(posts.length) +
-                            (state.hasMorePages ? 1 : 0),
+                        // Adjust childCount: posts + sponsored + potential loading/error indicator
+                        childCount: _getDisplayItemCount(posts.length) + 1, // Always add 1 for the potential indicator slot
                       ),
                     ),
                   ],
@@ -197,6 +212,7 @@ class _HomeState extends State<Home> {
               );
             }
 
+            // Fallback loading indicator
             return const Center(child: CircularProgressIndicator());
           },
         ),
