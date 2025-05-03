@@ -8,12 +8,15 @@ part 'connection_preferences_state.dart';
 
 class ConnectionPreferencesBloc
     extends Bloc<ConnectionPreferencesEvent, ConnectionPreferencesState> {
-  ConnectionPreferencesBloc() : super(ConnectionPreferencesInitial()) {
+  final ConnectionPreferencesRepository _connectionPreferencesRepository;
+
+  ConnectionPreferencesBloc({
+    required ConnectionPreferencesRepository connectionPreferencesRepository,
+  }) : _connectionPreferencesRepository = connectionPreferencesRepository,
+       super(ConnectionPreferencesInitial()) {
     on<ConnectionPreferencesLoadEvent>(_connectionPreferencesLoadEvent);
     on<ConnectionPreferencesUpdateEvent>(_connectionPreferencesUpdateEvent);
   }
-  final ConnectionPreferencesRepository _connectionPreferencesRepository =
-      ConnectionPreferencesRepository();
 
   Future<void> _connectionPreferencesLoadEvent(
     ConnectionPreferencesLoadEvent event,
@@ -38,7 +41,7 @@ class ConnectionPreferencesBloc
       await _connectionPreferencesRepository.setConnectionPreferences(
         event.connectionPreferences,
       );
-      emit(ConnectionPreferencesLoaded(event.connectionPreferences));
+      add(ConnectionPreferencesLoadEvent());
     } catch (e) {
       emit(ConnectionPreferencesError(e.toString()));
     }

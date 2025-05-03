@@ -11,8 +11,7 @@ class MockConnectedUsers {
       last_name: 'Doe',
       profile_image_id: 'assets/logo.jpg',
       bio: 'Software Engineer at Google',
-      connectedAt: DateTime.now().subtract(const Duration(days: 30)),
-      request_id: '123',
+      connected_at: DateTime.now().subtract(const Duration(days: 30)),
     ),
     ConnectedUser(
       user_id: '2',
@@ -20,8 +19,7 @@ class MockConnectedUsers {
       last_name: 'Smith',
       profile_image_id: 'assets/logo.jpg',
       bio: 'Product Manager at Facebook',
-      connectedAt: DateTime.now().subtract(const Duration(days: 25)),
-      request_id: '124',
+      connected_at: DateTime.now().subtract(const Duration(days: 25)),
     ),
     // Add more connected users...
   ];
@@ -62,8 +60,7 @@ class MockConnectedUsers {
             last_name: 'User',
             profile_image_id: 'assets/EmptyUser.png',
             bio: 'No information available',
-            request_id: null,
-            connectedAt: DateTime.now(),
+            connected_at: DateTime.now(),
           ),
     );
   }
@@ -85,8 +82,7 @@ class MockConnectedUsers {
         last_name: 'Ronaldo',
         profile_image_id: 'assets/logo.jpg',
         bio: 'Data Analyst at Amazon',
-        connectedAt: DateTime.now().subtract(const Duration(days: 45)),
-        request_id: '125',
+        connected_at: DateTime.now().subtract(const Duration(days: 45)),
       ),
       ConnectedUser(
         user_id: '6',
@@ -94,8 +90,7 @@ class MockConnectedUsers {
         last_name: 'Kim',
         profile_image_id: 'assets/logo.jpg',
         bio: 'iOS Developer at Apple',
-        connectedAt: DateTime.now().subtract(const Duration(days: 50)),
-        request_id: '126',
+        connected_at: DateTime.now().subtract(const Duration(days: 50)),
       ),
     ];
   }

@@ -1,4 +1,4 @@
-import 'package:ascend_app/features/networks/widgets/single_invitation.dart';
+import 'package:ascend_app/features/networks/widgets/single_Invitation.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/invitation_model.dart';
 

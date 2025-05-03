@@ -1,9 +1,13 @@
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/pages/search_users_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
-import 'package:ascend_app/features/networks/pages/Networks_search_page.dart';
-import 'package:ascend_app/features/networks/bloc/bloc/search_filters/bloc/search_filters_bloc.dart';
 
 class Connections extends StatelessWidget {
   final List<ConnectedUser> connections;
@@ -52,16 +56,45 @@ class Connections extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.search),
                         onPressed: () {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder:
-                                  (_) => BlocProvider.value(
-                                    value: BlocProvider.of<SearchFiltersBloc>(
-                                      context,
+                              builder: (context) {
+                                return MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        ConnectionRequestBloc
+                                      >(context),
                                     ),
-                                    child: NetworksSearchPage(),
-                                  ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<UserSearchBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        ConnectionPreferencesBloc
+                                      >(context),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<FollowBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<BlockBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        MessagingRequestsBloc
+                                      >(context),
+                                    ),
+                                  ],
+                                  child: const SearchUsersPage(),
+                                );
+                              },
                             ),
                           );
                         },
@@ -88,9 +121,13 @@ class Connections extends StatelessWidget {
 
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage(
-                              connection.profile_image_id!,
-                            ),
+                            backgroundImage:
+                                connection.profile_image_id != null
+                                    ? NetworkImage(connection.profile_image_id!)
+                                    : const AssetImage(
+                                          'assets/images/default_profile.png',
+                                        )
+                                        as ImageProvider,
                           ),
                           title: Text(
                             '${connection.first_name} ${connection.last_name}',
@@ -109,7 +146,7 @@ class Connections extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'connected on ${connection.connectedAt}',
+                                'connected on ${connection.connected_at}',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
@@ -146,9 +183,7 @@ class Connections extends StatelessWidget {
                                 onPressed:
                                     () => _showOptionsModal(
                                       context,
-                                      state
-                                          .acceptedConnections[index]
-                                          .request_id!,
+                                      state.acceptedConnections[index].user_id!,
                                     ), // Three-dot icon
                               ),
                             ],
@@ -190,7 +225,10 @@ class Connections extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             onTap: () {
-              Navigator.pop(context); // Close the modal
+              Future.delayed(Duration.zero, () {
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+              });
               onRemove(requestId); // Call the remove function
             },
           ),

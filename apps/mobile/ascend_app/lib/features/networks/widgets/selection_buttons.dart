@@ -33,7 +33,7 @@ class SelectionButtons extends StatelessWidget {
           child: IconButton(
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.close, color: Colors.grey),
-            onPressed: () => onDecline(userpending.request_id!),
+            onPressed: () => onDecline(userpending.id!),
             tooltip: 'Decline',
           ),
         ),
@@ -53,7 +53,7 @@ class SelectionButtons extends StatelessWidget {
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.check, color: Colors.lightBlue),
             onPressed: () {
-              onAccept(userpending.request_id!);
+              onAccept(userpending.id!);
               showSnackBar(context);
             },
             tooltip: 'Accept',
