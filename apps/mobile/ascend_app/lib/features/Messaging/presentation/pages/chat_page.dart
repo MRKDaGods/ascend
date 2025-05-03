@@ -223,6 +223,18 @@ class _ChatPageState extends State<ChatPage> {
       'DEBUG: [_sendMessage] Message sent. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
     );
 
+    final bloc = context.read<MessagingBloc>();
+    if (bloc.state is MessagesLoaded &&
+        (bloc.state as MessagesLoaded).sendingStatus != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Messages Failed to send. Please try again with error ${(bloc.state as MessagesLoaded).sendingStatus!['error']}',
+          ),
+        ),
+      );
+    }
+
     // Clear input
     _messageController.clear();
 
@@ -391,6 +403,30 @@ class _ChatPageState extends State<ChatPage> {
               } else if (state.page == 1 && !wasLoadingMore) {
                 // Initial load completed, jump to bottom
                 _scrollToBottom(animate: false);
+              }
+
+              if (state.sendingStatus != null) {
+                // Handle sending status if needed
+                debugPrint('[ChatPage] Sending status: ${state.sendingStatus}');
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Typing Status Error'),
+                      content: Text(
+                        'Failed to update typing status: ${state.sendingStatus!['error']}',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
               }
 
               // Use your method instead

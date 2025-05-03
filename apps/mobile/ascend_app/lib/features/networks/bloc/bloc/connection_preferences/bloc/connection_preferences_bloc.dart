@@ -41,7 +41,7 @@ class ConnectionPreferencesBloc
       await _connectionPreferencesRepository.setConnectionPreferences(
         event.connectionPreferences,
       );
-      emit(ConnectionPreferencesLoaded(event.connectionPreferences));
+      add(ConnectionPreferencesLoadEvent());
     } catch (e) {
       emit(ConnectionPreferencesError(e.toString()));
     }

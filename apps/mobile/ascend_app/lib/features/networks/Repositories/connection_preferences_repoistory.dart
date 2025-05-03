@@ -3,6 +3,7 @@ import 'package:ascend_app/features/networks/model/connection_preferences.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
 import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class ConnectionPreferencesRepository {
   final ApiClient _client;
@@ -15,18 +16,23 @@ class ConnectionPreferencesRepository {
 
   /// Fetch connection preferences from the server
   Future<ConnectionPreferences> fetchConnectionPreferences() async {
+    final String? userId = await SecureStorageHelper.getUserId();
+    final int userIdInt = int.tryParse(userId!) ?? 0;
     try {
-      final response = await _client.get(ApiEndpoints.preferences);
+      final response = await _client.get(
+        '${ApiEndpoints.preferences}/$userIdInt',
+      );
 
       if (response.statusCode == 200) {
         // Successfully fetched the connection preferences
         final Map<String, dynamic> data = json.decode(response.body);
-        return ConnectionPreferences.fromJson(data);
+        return ConnectionPreferences.fromJson(data['data']);
       } else {
         debugPrint(
           'Failed to fetch connection preferences: ${response.statusCode}',
         );
         return ConnectionPreferences(
+          user_id: userId,
           allow_connection_requests: true,
           allow_messages_from: 'all',
           visible_to_public: true,
