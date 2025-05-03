@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:ascend_app/features/home/models/comment_model.dart';
 import 'package:ascend_app/features/home/managers/post_manager.dart';
+import 'package:flutter/material.dart';
 
 // Renamed from Post to PostModel for consistency
 class PostModel extends Equatable {
@@ -118,7 +119,7 @@ class PostModel extends Equatable {
       isSaved: isSaved ?? this.isSaved, // Add to copyWith logic
     );
   }
-  
+
   // Updated to return PostModel
   PostModel toggleReaction(String? reactionType) {
     // If removing reaction (reactionType is null)
@@ -126,18 +127,18 @@ class PostModel extends Equatable {
       // If currently liked, decrement like count
       final newLikesCount = isLiked ? likesCount - 1 : likesCount;
       return copyWith(
-        isLiked: false, 
+        isLiked: false,
         currentReaction: null,
-        likesCount: newLikesCount
+        likesCount: newLikesCount,
       );
     }
-    
+
     // If adding or changing reaction
     final newLikesCount = isLiked ? likesCount : likesCount + 1;
     return copyWith(
       isLiked: true,
       currentReaction: reactionType,
-      likesCount: newLikesCount
+      likesCount: newLikesCount,
     );
   }
 
@@ -150,7 +151,7 @@ class PostModel extends Equatable {
   PostModel toggleCommentReaction(String commentId, String? reactionType) {
     return PostManager.toggleCommentReaction(this, commentId, reactionType);
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -166,7 +167,7 @@ class PostModel extends Equatable {
       'timePosted': timePosted,
       'likesCount': likesCount,
       'commentsCount': commentsCount,
-      'shares_count': sharedCount,  // Change to match API naming convention
+      'shares_count': sharedCount, // Change to match API naming convention
       'followers': followers,
       'isLiked': isLiked,
       'currentReaction': currentReaction,
@@ -180,7 +181,9 @@ class PostModel extends Equatable {
   factory PostModel.fromJson(Map<String, dynamic> json) {
     // Ensure userId is handled correctly, converting if necessary
     final userIdValue = json['user_id'] ?? json['userId']; // Check both keys
-    final userIdString = userIdValue?.toString() ?? 'unknown_user'; // Convert to string, provide default
+    final userIdString =
+        userIdValue?.toString() ??
+        'unknown_user'; // Convert to string, provide default
 
     return PostModel(
       id: (json['id'] ?? '').toString(), // Ensure id is string
@@ -200,26 +203,33 @@ class PostModel extends Equatable {
       followers: json['followers'] as int? ?? 0,
       isLiked: json['isLiked'] as bool? ?? false,
       currentReaction: json['currentReaction'] as String?,
-      comments: json['comments'] != null 
-          ? List<Comment>.from(
-              (json['comments'] as List).map(
-                (comment) => Comment.fromJson(comment as Map<String, dynamic>),
-              ),
-            )
-          : const [],
+      comments:
+          json['comments'] != null
+              ? List<Comment>.from(
+                (json['comments'] as List).map(
+                  (comment) =>
+                      Comment.fromJson(comment as Map<String, dynamic>),
+                ),
+              )
+              : const [],
       showFeedbackOptions: json['showFeedbackOptions'] as bool? ?? false,
       isSaved: json['isSaved'] as bool? ?? false, // Add fromJson logic
     );
   }
-  
+
   // Updated factory constructor
   factory PostModel.fromLegacyModel(Map<String, dynamic> oldModel) {
     return PostModel(
       id: oldModel['id'] ?? 'post_${DateTime.now().millisecondsSinceEpoch}',
-      userId: oldModel['userId']?.toString() ?? 'legacy_user', // Add default userId, ensure string
+      userId:
+          oldModel['userId']?.toString() ??
+          'legacy_user', // Add default userId, ensure string
       title: oldModel['title'] ?? '',
       description: oldModel['description'] ?? '',
-      images: oldModel['images'] != null ? List<String>.from(oldModel['images']) : const [],
+      images:
+          oldModel['images'] != null
+              ? List<String>.from(oldModel['images'])
+              : const [],
       useCarousel: oldModel['useCarousel'] ?? false,
       isSponsored: oldModel['isSponsored'] ?? false,
       ownerName: oldModel['ownerName'] ?? '',
@@ -227,7 +237,8 @@ class PostModel extends Equatable {
       ownerOccupation: oldModel['ownerOccupation'] ?? '',
       timePosted: oldModel['timePosted'] ?? 'Just now',
       likesCount: oldModel['initialLikes'] ?? oldModel['likesCount'] ?? 0,
-      commentsCount: oldModel['initialComments'] ?? oldModel['commentsCount'] ?? 0,
+      commentsCount:
+          oldModel['initialComments'] ?? oldModel['commentsCount'] ?? 0,
       sharedCount: oldModel['sharedCount'] ?? 0,
       followers: oldModel['followers'] ?? 0,
       isLiked: oldModel['isLiked'] ?? false,
@@ -262,86 +273,94 @@ class PostModel extends Equatable {
   // Add this factory constructor to your PostModel class
   factory PostModel.fromApiResponse(Map<String, dynamic> apiPost) {
     try {
-        // Debug what we're receiving
-    print('Processing API post: ${apiPost['id']}');
-    
-    // Extract user data
-    final userData = apiPost['user'] as Map<String, dynamic>? ?? {};
-    
-    // Extract userId directly from the post object or user object
-    final userIdValue = apiPost['user_id'] ?? userData['id'];
-    final userIdString = userIdValue?.toString() ?? 'unknown_user'; // Fallback
-    
-    // Combine first and last name
-    final firstName = userData['first_name'] as String? ?? '';
-    final lastName = userData['last_name'] as String? ?? '';
-    final fullName = '$firstName $lastName'.trim();
-    
-    // Extract media URLs from complex media objects
-    final mediaList = apiPost['media'] as List<dynamic>? ?? [];
-    final imageUrls = mediaList
-        .where((media) => media['type'] == 'image' && media['url'] != null)
-        .map((media) => media['url'] as String)
-        .toList();
-    
-    // Format the timestamp
-    final createdAt = apiPost['created_at'] != null 
-        ? DateTime.parse(apiPost['created_at'] as String)
-        : DateTime.now();
-    final timeAgo = formatTimeAgo(createdAt);
-    
-    // Extract profile picture URL, provide a valid default if missing
-    final profilePicUrl = userData['profile_picture_url'] as String?;
-    final ownerImageUrl = (profilePicUrl != null && profilePicUrl.isNotEmpty)
-        ? profilePicUrl
-        : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
-    
-    return PostModel(
-      // Convert numeric ID to string
-      id: (apiPost['id'] ?? '').toString(),
-      userId: userIdString, // Use the extracted userId
-      
-      // Set title empty and use content for description
-      title: '',
-      description: apiPost['content'] as String? ?? '',
-      
-      // Media handling
-      images: imageUrls,
-      useCarousel: imageUrls.length > 1,
-      
-      // User information
-      ownerName: fullName.isNotEmpty ? fullName : 'Ascend User', // Fallback name
-      ownerImageUrl: ownerImageUrl, // Use the determined image URL
-      ownerOccupation: 'User', // Not provided by API
-      
-      // Time posted
-      timePosted: timeAgo,
-      
-      // Engagement metrics from API
-      likesCount: apiPost['likes_count'] as int? ?? 0,
-      commentsCount: apiPost['comments_count'] as int? ?? 0,
-      sharedCount: apiPost['shares_count'] as int? ?? 0,  // Make sure to use the correct API field
-      followers: 0, // Not provided by API
-      
-      // Default values for fields not in API
-      isLiked: false,
-      currentReaction: null,
-      comments: [],
-      isSponsored: false,
-      isSaved: apiPost['is_saved'] as bool? ?? false, // Assuming API provides 'is_saved'
-    );
+      // Debug what we're receiving
+      debugPrint('Processing API post: ${apiPost['id']}');
+
+      // Extract user data
+      final userData = apiPost['user'] as Map<String, dynamic>? ?? {};
+
+      // Extract userId directly from the post object or user object
+      final userIdValue = apiPost['user_id'] ?? userData['id'];
+      final userIdString =
+          userIdValue?.toString() ?? 'unknown_user'; // Fallback
+
+      // Combine first and last name
+      final firstName = userData['first_name'] as String? ?? '';
+      final lastName = userData['last_name'] as String? ?? '';
+      final fullName = '$firstName $lastName'.trim();
+
+      // Extract media URLs from complex media objects
+      final mediaList = apiPost['media'] as List<dynamic>? ?? [];
+      final imageUrls =
+          mediaList
+              .where(
+                (media) => media['type'] == 'image' && media['url'] != null,
+              )
+              .map((media) => media['url'] as String)
+              .toList();
+
+      // Format the timestamp
+      final createdAt =
+          apiPost['created_at'] != null
+              ? DateTime.parse(apiPost['created_at'] as String)
+              : DateTime.now();
+      final timeAgo = formatTimeAgo(createdAt);
+
+      // Extract profile picture URL, provide a valid default if missing
+      final profilePicUrl = userData['profile_picture_url'] as String?;
+      final ownerImageUrl =
+          (profilePicUrl != null && profilePicUrl.isNotEmpty)
+              ? profilePicUrl
+              : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
+
+      return PostModel(
+        // Convert numeric ID to string
+        id: (apiPost['id'] ?? '').toString(),
+        userId: userIdString, // Use the extracted userId
+        // Set title empty and use content for description
+        title: '',
+        description: apiPost['content'] as String? ?? '',
+
+        // Media handling
+        images: imageUrls,
+        useCarousel: imageUrls.length > 1,
+
+        // User information
+        ownerName:
+            fullName.isNotEmpty ? fullName : 'Ascend User', // Fallback name
+        ownerImageUrl: ownerImageUrl, // Use the determined image URL
+        ownerOccupation: 'User', // Not provided by API
+        // Time posted
+        timePosted: timeAgo,
+
+        // Engagement metrics from API
+        likesCount: apiPost['likes_count'] as int? ?? 0,
+        commentsCount: apiPost['comments_count'] as int? ?? 0,
+        sharedCount:
+            apiPost['shares_count'] as int? ??
+            0, // Make sure to use the correct API field
+        followers: 0, // Not provided by API
+        // Default values for fields not in API
+        isLiked: false,
+        currentReaction: null,
+        comments: [],
+        isSponsored: false,
+        isSaved:
+            apiPost['is_saved'] as bool? ??
+            false, // Assuming API provides 'is_saved'
+      );
     } catch (e) {
-    print('Error creating PostModel from API data: $e');
-    print('API post data: $apiPost');
-    rethrow;
-  }
+      debugPrint('Error creating PostModel from API data: $e');
+      debugPrint('API post data: $apiPost');
+      rethrow;
+    }
   }
 
   // Helper method to format timestamps - Made public static
   static String formatTimeAgo(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inDays > 365) {
       return '${(difference.inDays / 365).floor()}y ago';
     } else if (difference.inDays > 30) {

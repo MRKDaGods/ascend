@@ -1,16 +1,15 @@
-import 'package:ascend_app/features/networks/model/user_model.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
+import 'package:ascend_app/features/networks/utils/helper_functions.dart';
 import 'package:flutter/material.dart';
+import 'package:ascend_app/features/networks/widgets/selection_buttons.dart';
+import 'package:ascend_app/features/networks/model/user_pending_model.dart';
 
 class ConnectionRequestsReceivedListPartial extends StatelessWidget {
-  final List<UserModel> invitations;
-  final List<ConnectionRequestModel> pendingRequestsReceived;
+  final List<UserPendingModel> pendingRequestsReceived;
   final Function(String) onAccept;
   final Function(String) onDecline;
 
   const ConnectionRequestsReceivedListPartial({
     super.key,
-    required this.invitations,
     required this.pendingRequestsReceived,
     required this.onAccept,
     required this.onDecline,
@@ -20,30 +19,19 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (invitations.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: const Text('No invitations received'),
-          ),
-        Column(
-          children:
-              invitations
-                  .sublist(0, invitations.length > 2 ? 2 : invitations.length)
-                  .map((invitation) {
-                    final connectionRequest = pendingRequestsReceived
-                        .firstWhere(
-                          (element) => element.senderId == invitation.id,
-                          orElse:
-                              () => ConnectionRequestModel(
-                                requestId: '',
-                                senderId: '',
-                                receiverId: '',
-                                timestamp: DateTime.now().toIso8601String(),
-                                status: '',
-                              ),
-                        );
-
-                    if (connectionRequest.requestId != '') {
+        if (pendingRequestsReceived.isEmpty)
+          const SizedBox(height: 20)
+        else
+          Column(
+            children:
+                pendingRequestsReceived
+                    .sublist(
+                      0,
+                      pendingRequestsReceived.length > 2
+                          ? 2
+                          : pendingRequestsReceived.length,
+                    )
+                    .map((invitation) {
                       return Column(
                         children: [
                           Padding(
@@ -55,9 +43,13 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                 CircleAvatar(
                                   radius: 24,
                                   backgroundImage:
-                                      invitation.profilePic.startsWith('http')
-                                          ? NetworkImage(invitation.profilePic)
-                                          : AssetImage(invitation.profilePic)
+                                      invitation.profile_image_id != null
+                                          ? NetworkImage(
+                                            invitation.profile_image_id!,
+                                          )
+                                          : const AssetImage(
+                                                'assets/EmptyUser.png',
+                                              )
                                               as ImageProvider,
                                 ),
                                 const SizedBox(
@@ -70,7 +62,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        invitation.name,
+                                        '${invitation.first_name} ${invitation.last_name}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
@@ -78,7 +70,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        invitation.bio,
+                                        invitation.bio ?? 'No bio available',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
@@ -88,7 +80,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        connectionRequest.timestamp,
+                                        timeDifference(invitation.created_at!),
                                         style: const TextStyle(
                                           color: Colors.grey,
                                           fontSize: 10,
@@ -101,79 +93,20 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                   width: 8,
                                 ), // Spacing between text and icons
                                 // Action Icons
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Decline Button with Circular Border
-                                    Container(
-                                      width:
-                                          36, // Set width and height for the circular border
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.grey,
-                                          width: 2,
-                                        ), // Grey circular border
-                                      ),
-                                      child: IconButton(
-                                        padding: EdgeInsets.zero,
-                                        icon: const Icon(
-                                          Icons.close,
-                                          color: Colors.grey,
-                                        ),
-                                        onPressed:
-                                            () => onDecline(
-                                              connectionRequest.requestId,
-                                            ),
-                                        tooltip: 'Decline',
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 8,
-                                    ), // Spacing between the two buttons
-                                    // Accept Button with Circular Border
-                                    Container(
-                                      width:
-                                          36, // Set width and height for the circular border
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.blue,
-                                          width: 2,
-                                        ), // Blue circular border
-                                      ),
-                                      child: IconButton(
-                                        padding: EdgeInsets.zero,
-                                        icon: const Icon(
-                                          Icons.check,
-                                          color: Colors.lightBlue,
-                                        ),
-                                        onPressed:
-                                            () => onAccept(
-                                              connectionRequest.requestId,
-                                            ),
-                                        tooltip: 'Accept',
-                                      ),
-                                    ),
-                                  ],
+                                SelectionButtons(
+                                  onAccept: onAccept,
+                                  onDecline: onDecline,
+                                  userpending: invitation,
                                 ),
                               ],
                             ),
                           ),
-                          const Divider(
-                            thickness: 1,
-                            //height: 16, // Add spacing between items
-                          ),
+                          const Divider(thickness: 3, height: 16),
                         ],
                       );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  })
-                  .toList(),
-        ),
+                    })
+                    .toList(),
+          ),
       ],
     );
   }

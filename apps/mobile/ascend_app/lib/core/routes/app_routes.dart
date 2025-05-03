@@ -1,19 +1,25 @@
-import 'package:ascend_app/features/StartPages/Presentation/Pages/ForgetPassword.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/ResetPasswordPage.dart';
-import 'package:ascend_app/features/StartPages/Presentation/Pages/VerificationPasswordCodePage.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/forget_password.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/reset_password_page.dart';
+import 'package:ascend_app/features/StartPages/Presentation/Pages/verification_password_code_page.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/welcome.dart';
-import 'package:ascend_app/features/settings/Presentation/pages/account_preferences_page.dart';
+import 'package:ascend_app/features/admin/Presentation/pages/admin_home_page.dart';
+import 'package:ascend_app/features/settings/Presentation/pages/connection_preferences_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/settings_main_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_in_security_page.dart';
 import 'package:flutter/material.dart';
-import '../../features/home/presentation/pages/create_post_page.dart'; // Import the new page
+import '../../features/home/presentation/pages/create_post_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/advertising_data_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/data_privacy_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/help_center_page.dart';
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/sign_out_page.dart';
 import 'package:ascend_app/features/settings/Presentation/pages/visibility_page.dart';
-import 'package:ascend_app/features/startPages/Presentation/Pages/SignIn.dart';
+import 'package:ascend_app/features/Messaging/presentation/pages/main_message_page.dart';
+import 'package:ascend_app/features/startPages/Presentation/Pages/sign_in.dart';
+import 'package:ascend_app/features/home/presentation/pages/saved_posts_page.dart';
+import 'package:ascend_app/shared/navigation/main_navigation.dart'; // Add this import
+import 'package:ascend_app/features/networks/pages/blocked_page.dart';
+
 // Import other page files as needed
 
 /// Class containing all the route names as constants
@@ -33,7 +39,7 @@ class RouteNames {
   static const String profile = '/profile';
   static const String settings = '/settings';
   static const String createPost = '/create-post'; // Add new route name
-  static const String accountPreferences = '/accountPreferences';
+  static const String connectionPreferences = '/connectionPreferences';
   static const String signInSecurity = '/signInSecurity';
   static const String visibility = '/visibility';
   static const String dataPrivacy = '/dataPrivacy';
@@ -41,6 +47,10 @@ class RouteNames {
   static const String helpCenter = '/helpCenter';
   static const String privacyPolicy = '/privacyPolicy';
   static const String signOut = '/signOut';
+  static const String mainMessage = '/mainMessage';
+  static const String savedPosts = '/saved_posts_page';
+  static const String adminHome = '/admin_home';
+  static const String blockedUsers = '/blockedUsers';
   // Add more routes as needed
 }
 
@@ -76,8 +86,8 @@ class AppRoutes {
       },
       RouteNames.createPost: (context) => const CreatePostPage(),
       RouteNames.settings: (context) => const SettingsMainPage(),
-      RouteNames.accountPreferences:
-          (context) => const AccountPreferencesPage(),
+      RouteNames.connectionPreferences:
+          (context) => const ConnectionPreferencesPage(),
       RouteNames.signInSecurity: (context) => const SignInSecurityPage(),
       RouteNames.visibility: (context) => const VisibilityPage(),
       RouteNames.dataPrivacy: (context) => const DataPrivacyPage(),
@@ -85,6 +95,12 @@ class AppRoutes {
       RouteNames.helpCenter: (context) => const HelpCenterPage(),
       RouteNames.privacyPolicy: (context) => const HelpCenterPage(),
       RouteNames.signOut: (context) => const SignOutPage(),
+      RouteNames.mainMessage: (context) => const MainMessagingPage(),
+      RouteNames.home: (context) => const MainNavigation(), // Add this line
+      RouteNames.savedPosts: (context) => const SavedPostsPage(),
+      RouteNames.adminHome: (context) => AdminHomePage(),
+      RouteNames.blockedUsers: (context) => BlockedPage(),
+
       // Add more routes as needed
     };
   }

@@ -5,17 +5,18 @@ class ScheduledPostsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Implement logic to fetch and display scheduled posts
     final bool hasScheduledPosts = false; // Placeholder
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scheduled Posts'),
-      ),
+      appBar: AppBar(title: const Text('Scheduled Posts')),
       body: Center(
-        child: hasScheduledPosts
-            ? const Text('Display list of scheduled posts here.') // Replace with actual list view
-            : const Text('No scheduled posts.'),
+        child:
+            hasScheduledPosts
+                // ignore: dead_code
+                ? const Text(
+                  'Display list of scheduled posts here.',
+                ) // Replace with actual list view
+                : const Text('No scheduled posts.'),
       ),
     );
   }

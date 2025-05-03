@@ -1,0 +1,114 @@
+import 'dart:convert';
+import 'package:ascend_app/features/networks/model/connection_preferences.dart';
+import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+import 'package:flutter/material.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+
+class ConnectionPreferencesRepository {
+  final ApiClient _client;
+  //final AuthService _authService;
+
+  ConnectionPreferencesRepository({
+    required ApiClient client,
+    //required AuthService authService,
+  }) : _client = client;
+
+  /// Fetch connection preferences from the server
+  Future<ConnectionPreferences> fetchConnectionPreferences() async {
+    final String? userId = await SecureStorageHelper.getUserId();
+    final int userIdInt = int.tryParse(userId!) ?? 0;
+    try {
+      final response = await _client.get(
+        '${ApiEndpoints.preferences}/$userIdInt',
+      );
+
+      if (response.statusCode == 200) {
+        // Successfully fetched the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        return ConnectionPreferences.fromJson(data['data']);
+      } else {
+        debugPrint(
+          'Failed to fetch connection preferences: ${response.statusCode}',
+        );
+        return ConnectionPreferences(
+          user_id: userId,
+          allow_connection_requests: true,
+          allow_messages_from: 'all',
+          visible_to_public: true,
+          visible_to_connections: true,
+          visible_to_network: true,
+          show_followers: true,
+        );
+      }
+    } catch (e) {
+      // For now, debugPrint the error
+      await Future.delayed(const Duration(milliseconds: 500));
+      print('Error: $e');
+      rethrow; // Rethrow the error for further handling if needed
+    }
+  }
+
+  Future<void> setConnectionPreferences(
+    ConnectionPreferences connectionPreference,
+  ) async {
+    try {
+      final response = await _client.put(
+        ApiEndpoints.preferences,
+        data: connectionPreference.toJson(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Successfully updated the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> updatedData = data['data'];
+        debugPrint(
+          'Updated connection preferences for user : $updatedData["user_id"] with preferences: $updatedData',
+        );
+      } else {
+        throw Exception(
+          'Failed to update connection preferences: ${response.body}',
+        );
+      }
+    } catch (e) {
+      // For now, debugPrint the error
+      await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      rethrow; // Rethrow the error for further handling if needed
+    }
+  }
+
+  Future<Map<String, bool>> canConnect(String userId) async {
+    try {
+      final int userIdInt = int.tryParse(userId) ?? 0;
+      final response = await _client.get(
+        '${ApiEndpoints.preferences}/$userIdInt',
+      );
+
+      if (response.statusCode == 200) {
+        // Successfully fetched the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        final Map<String, bool> canConnect = {
+          'canConnect': responseData['allow_connection_requests'] ?? false,
+          'canReceiveMessageRequests':
+              responseData['allow_messages_from'] == 'all' ? true : false,
+        };
+        return canConnect;
+      } else {
+        debugPrint(
+          'Failed to fetch connection preferences: ${response.statusCode}',
+        );
+        return {'canConnect': false, 'canReceiveMessageRequests': false};
+      }
+    } catch (e) {
+      // For now, debugPrint the error
+      await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      return {
+        'canConnect': false,
+        'canReceiveMessageRequests': false,
+      }; // Return default values in case of error
+    }
+  }
+}

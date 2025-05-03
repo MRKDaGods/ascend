@@ -1,14 +1,16 @@
 part of 'follow_bloc.dart';
 
-@immutable
-sealed class FollowState {}
+abstract class FollowState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 final class FollowInitial extends FollowState {}
 
 final class FollowLoading extends FollowState {}
 
 final class FollowSuccess extends FollowState {
-  final List<FollowModel> following;
+  final List<FollowedUser> following;
 
   FollowSuccess({required this.following});
 }

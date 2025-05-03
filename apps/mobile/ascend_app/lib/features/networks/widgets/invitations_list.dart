@@ -13,7 +13,7 @@ class InvitationsList extends StatefulWidget {
   });
 
   @override
-  _InvitationsListState createState() => _InvitationsListState();
+  State<InvitationsList> createState() => _InvitationsListState();
 }
 
 class _InvitationsListState extends State<InvitationsList> {

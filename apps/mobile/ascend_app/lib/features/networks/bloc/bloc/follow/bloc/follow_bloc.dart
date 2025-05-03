@@ -1,24 +1,25 @@
-import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
-import 'package:ascend_app/features/networks/model/follow_model.dart';
+import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:ascend_app/features/networks/Repositories/follow_repoistory.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'follow_event.dart';
 part 'follow_state.dart';
 
 class FollowBloc extends Bloc<FollowEvent, FollowState> {
-  final FollowRepoistory followRepoistory = FollowRepoistory();
-  FollowBloc() : super(FollowInitial()) {
+  final FollowRepoistory _followRepoistory;
+  FollowBloc({required FollowRepoistory followRepoistory})
+    : _followRepoistory = followRepoistory,
+      super(FollowInitial()) {
     on<FetchFollowing>(_fetchfollowings);
     on<FollowUser>(_addfollowing);
     on<UnfollowUser>(_deletefollowing);
-    on<HideUser>(_hideUser);
   }
 
-  void _addfollowing(FollowUser event, Emitter<FollowState> emit) {
+  void _addfollowing(FollowUser event, Emitter<FollowState> emit) async {
     emit(FollowLoading());
     try {
-      followRepoistory.addFollowingRepoistory(event.userId);
+      _followRepoistory.followUser(event.userId);
       add(FetchFollowing());
     } catch (e) {
       emit(FollowFailure(message: e.toString()));
@@ -28,28 +29,21 @@ class FollowBloc extends Bloc<FollowEvent, FollowState> {
   void _deletefollowing(UnfollowUser event, Emitter<FollowState> emit) {
     emit(FollowLoading());
     try {
-      followRepoistory.deleteFollowingRepoistory(event.userId);
+      _followRepoistory.unfollowUser(event.userId);
       add(FetchFollowing());
     } catch (e) {
       emit(FollowFailure(message: e.toString()));
     }
   }
 
-  void _fetchfollowings(FetchFollowing event, Emitter<FollowState> emit) {
+  Future<void> _fetchfollowings(
+    FetchFollowing event,
+    Emitter<FollowState> emit,
+  ) async {
     emit(FollowLoading());
     try {
-      final followings = followRepoistory.fetchFollowingsRepoistory('1');
+      final followings = await _followRepoistory.fetchFollowedUsers();
       emit(FollowSuccess(following: followings));
-    } catch (e) {
-      emit(FollowFailure(message: e.toString()));
-    }
-  }
-
-  void _hideUser(HideUser event, Emitter<FollowState> emit) {
-    emit(FollowLoading());
-    try {
-      followRepoistory.hideUserRepoistory(event.userId);
-      add(FetchFollowing());
     } catch (e) {
       emit(FollowFailure(message: e.toString()));
     }

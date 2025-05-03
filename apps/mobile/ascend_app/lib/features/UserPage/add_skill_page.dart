@@ -7,7 +7,7 @@ class AddSkillPage extends StatefulWidget {
   const AddSkillPage({super.key, required this.onSave});
 
   @override
-  _AddSkillPageState createState() => _AddSkillPageState();
+  State<AddSkillPage> createState() => _AddSkillPageState();
 }
 
 class _AddSkillPageState extends State<AddSkillPage> {

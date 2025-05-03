@@ -1,21 +1,19 @@
-import '';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FollowButton extends StatefulWidget {
-  @override
   final String userId;
-  Function(String) onFollow;
-  Function(String) onUnFollow;
+  final Function(String) onFollow;
+  final Function(String) onUnFollow;
 
-  FollowButton({
+  const FollowButton({
     super.key,
     required this.userId,
     required this.onFollow,
     required this.onUnFollow,
   });
+
   @override
-  _FollowButtonState createState() => _FollowButtonState();
+  State<FollowButton> createState() => _FollowButtonState();
 }
 
 class _FollowButtonState extends State<FollowButton> {
