@@ -50,6 +50,7 @@ const handleSubmit = async () => {
     <Stack spacing={2}>
       <TextField
         label="First Name"
+        aria-label="First Name input"
         value={form.firstName}
         onChange={(e) => handleChange("firstName", e.target.value)}
         required
@@ -58,6 +59,7 @@ const handleSubmit = async () => {
       />
       <TextField
         label="Last Name"
+        aria-label="First Name input"
         value={form.lastName}
         onChange={(e) => handleChange("lastName", e.target.value)}
         required
@@ -66,6 +68,7 @@ const handleSubmit = async () => {
       />
       <TextField
         label="Email"
+        aria-label="Email input"
         value={form.email}
         onChange={(e) => handleChange("email", e.target.value)}
         required
@@ -75,6 +78,7 @@ const handleSubmit = async () => {
       />
       <TextField
         label="Password"
+        aria-label="Password input"
         value={form.password}
         onChange={(e) => handleChange("password", e.target.value)}
         required
@@ -86,6 +90,7 @@ const handleSubmit = async () => {
       <Button
         variant="contained"
         color="primary"
+        aria-label="Create admin user button"
         onClick={() => {
         if (
           form.firstName &&

@@ -46,11 +46,15 @@ export default function BanUsers() {
     
    return (
        <Box p={4}>
-         <Typography variant="h4" fontWeight="bold" mb={4}>
+         <Typography variant="h4" fontWeight="bold" mb={4}
+         aria-label="Banned users title"
+         >
            Manage Banned Users
          </Typography>
          {loading ? (
-           <CircularProgress />
+           <CircularProgress
+           aria-label="Loading banned users spinner"
+            />
          ) : Array.isArray(bans) && bans.length > 0 ? (
            <Stack spacing={3}>
              {bans.map((b) => (
@@ -58,11 +62,16 @@ export default function BanUsers() {
                  key={b.id}
                  ban={b}
                  onUnban={handleUnbanUser}
+                 aria-label={`Banned user card for ${b.full_name || "user"}`}
                />
              ))}
            </Stack>
          ) : (
-           <Typography>No banned users found.</Typography>
+           <Typography
+            aria-label="No banned users message"
+           >
+            No banned users found.
+            </Typography>
          )}
         
        </Box>

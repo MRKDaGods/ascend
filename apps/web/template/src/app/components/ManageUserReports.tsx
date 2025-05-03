@@ -68,11 +68,15 @@ export default function ManageUserReports() {
         
        return (
            <Box p={4}>
-             <Typography variant="h4" fontWeight="bold" mb={4}>
+             <Typography variant="h4" fontWeight="bold" mb={4}
+             aria-label="Manage Reported Users heading"
+             >
                Manage Reported Users
              </Typography>
              {loading ? (
-               <CircularProgress />
+               <CircularProgress 
+               aria-label="Loading spinner for reported users"
+               />
              ) : Array.isArray(reports) && reports.length > 0 ? (
                <Stack spacing={3}>
                  {reports.map((r) => (
@@ -82,11 +86,15 @@ export default function ManageUserReports() {
                      onBanUser={handleBanUser}
                      onDeleteUser={handleDeleteUser}
                      onDeleteReport={handleDeleteReport}
+                     aria-label={`Reported user card for ${r.full_name || "user"}`}
                    />
                  ))}
                </Stack>
              ) : (
-               <Typography>No reported users found.</Typography>
+               <Typography
+               aria-label="No reported users found message"
+               >
+                No reported users found.</Typography>
              )}
             
            </Box>

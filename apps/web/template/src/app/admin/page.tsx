@@ -19,11 +19,11 @@ import {
   getFollowsCount,
   getReportedJobsCount,
   getReportedPostsCount,
+  getSubscriptionsCount,
 } from "@/app/utils/adminApi";
 
 import AnalyticsCard from "@/app/components/AnalyticsCard";
-
-
+import { Subscriptions } from "@mui/icons-material";
 
 export default function AdminDashboard() {
   const [duration, setDuration] = useState<"day" | "week" | "month" | "year">(
@@ -38,6 +38,7 @@ export default function AdminDashboard() {
     follows: 0,
     reportedJobs: 0,
     reportedPosts: 0,
+    Subscriptions: 0,
   });
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function AdminDashboard() {
           follows,
           reportedJobs,
           reportedPosts,
+          subscriptions,
         ] = await Promise.all([
           getUsersCount(duration),
           getJobsCount(duration),
@@ -60,6 +62,7 @@ export default function AdminDashboard() {
           getFollowsCount(duration),
           getReportedJobsCount(duration),
           getReportedPostsCount(duration),
+          getSubscriptionsCount(duration),
         ]);
 
         setCounts({
@@ -70,6 +73,7 @@ export default function AdminDashboard() {
           follows: follows.data.count,
           reportedJobs: reportedJobs.data.count,
           reportedPosts: reportedPosts.data.count,
+          Subscriptions: subscriptions.data.count,
         });
       } catch (err) {
         console.error("Error fetching counts", err);
@@ -100,16 +104,25 @@ export default function AdminDashboard() {
           <InputLabel id="duration-label">Duration</InputLabel>
           <Select
             labelId="duration-label"
+            aria-label="Select analytics duration"
             value={duration}
             label="Duration"
             onChange={(e) =>
               setDuration(e.target.value as "day" | "week" | "month" | "year")
             }
           >
-            <MenuItem value="day">Today</MenuItem>
-            <MenuItem value="week">This Week</MenuItem>
-            <MenuItem value="month">This Month</MenuItem>
-            <MenuItem value="year">This Year</MenuItem>
+            <MenuItem value="day" aria-label="Today">
+              Today
+            </MenuItem>
+            <MenuItem value="week" aria-label="This week">
+              This Week
+            </MenuItem>
+            <MenuItem value="month" aria-label="This month">
+              This Month
+            </MenuItem>
+            <MenuItem value="year" aria-label="This year">
+              This Year
+            </MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -130,7 +143,6 @@ export default function AdminDashboard() {
             title="Total Users"
             value={counts.users}
             color="#2196f3"
-    
           />
           <AnalyticsCard
             title="Total Jobs"
@@ -161,6 +173,11 @@ export default function AdminDashboard() {
             title="Reported Posts"
             value={counts.reportedPosts}
             color="#607d8b"
+          />
+          <AnalyticsCard
+            title="Premium Users"
+            value={counts.Subscriptions}
+            color="#ff5722"
           />
         </Box>
       )}
