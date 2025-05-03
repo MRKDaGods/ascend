@@ -35,6 +35,22 @@ class AdminRepository {
       throw Exception('Failed to fetch analytics: $e');
     }
   }
+  
+  /// Fetches a list of reported jobs with pagination support.
+  Future<List<ReportedJob>> getReportedJobs({int page = 1}) async {
+    try {
+      final response = await apiClient.get('/jobs/reported?page=$page');
+      
+      if (response['data'] != null) {
+        final data = response['data'] as List;
+        return data.map((json) => ReportedJob.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching reported jobs: $e');
+      throw Exception('Failed to fetch reported jobs: $e');
+    }
+  }
 
   /// Fetches a list of reported posts.
   Future<List<ReportedPost>> fetchReportedPosts({int page = 1}) async {

@@ -1,18 +1,22 @@
 part of 'jobs_bloc.dart';
 
 @immutable
-sealed class JobsState {}
+abstract class JobsState {}
 
 final class JobsInitial extends JobsState {}
+
+final class ReportedJobsInitialState extends JobsState {}
 
 final class ReportedJobsLoadingState extends JobsState {}
 
 final class ReportedJobsLoadedState extends JobsState {
-  final List<dynamic> reportedJobs;
-  final Map<int, List<JobReport>> jobReports; // Ensure this property exists
+  final List<ReportedJob> jobs;
+  final bool hasReachedEnd;
+  final Map<int, List<JobReport>> jobReports; // Keeping the existing property
 
   ReportedJobsLoadedState({
-    required this.reportedJobs,
+    required this.jobs,
+    required this.hasReachedEnd,
     required this.jobReports,
   });
 }
@@ -41,9 +45,9 @@ final class JobReportStatusUpdatedState extends JobsState {
 }
 
 final class JobsErrorState extends JobsState {
-  final String errorMessage;
+  final String message;
 
-  JobsErrorState(this.errorMessage);
+  JobsErrorState(this.message);
 }
 
 // New state for errors related to specific reported jobs
@@ -52,4 +56,11 @@ final class ReportedJobsErrorState extends JobsState {
   final String errorMessage;
 
   ReportedJobsErrorState({required this.jobId, required this.errorMessage});
+}
+
+// This should be moved to jobs_state.dart part file
+// Make sure to add this if it doesn't exist
+class JobsDeletingState extends JobsState {
+  @override // Added missing override decorator
+  List<Object?> get props => [];
 }
