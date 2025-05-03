@@ -12,9 +12,9 @@ startSharedService(Services.PAYMENT, paymentRoutes, {
     },
 
     registerConsumers : [
-        async () => {
-            await consumeEvents(getQueueName(Events.USER_CREATED), Events.USER_CREATED, handleUserCreated);
-        },
+        // async () => {
+        //     await consumeEvents(getQueueName(Events.USER_CREATED), Events.USER_CREATED, handleUserCreated);
+        // },
 
         async () => {
             await consumeEvents(getQueueName(Events.AUTH_USER_DELETED), Events.AUTH_USER_DELETED, handleUserDeleted );
