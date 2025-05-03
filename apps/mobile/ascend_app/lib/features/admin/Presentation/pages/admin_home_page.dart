@@ -66,7 +66,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         baseUrl: 'https://api.ascendx.tech/admin',
                       ),
                     ),
-                  )..add(FetchReportedJobsEvent(page: 1)), // Trigger fetching jobs
+                  )..add(
+                    FetchReportedJobsEvent(page: 1),
+                  ), // Trigger fetching jobs
               child: const JobsPage(),
             ),
           ],
