@@ -96,7 +96,7 @@ class Jobsattributes {
       experienceLevel: json['experience_level'] as String? ?? 'Unknown Level',
       salaryMinRange: json['salary_min_range'] as int? ?? 0,
       salaryMaxRange:
-          json['salary_max_range'] as int? ?? double.infinity.toInt(),
+          json['salary_max_range'] as int? ?? 2147483647, // Use max int value as default
       easyapply: json['easyapply'] as bool? ?? true,
       jobDescription: json['description'] as String? ?? 'No Description',
       isPartTime: json['is_part_tixzce'] as bool? ?? partTime,
