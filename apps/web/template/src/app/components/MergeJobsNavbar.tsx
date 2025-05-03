@@ -108,7 +108,9 @@ const MergeJobsNavbar: React.FC = () => {
     }
   };
 
-  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(null);
+  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
   const businessMenuOpen = Boolean(businessAnchorEl);
 
   const handleBusinessClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -135,7 +137,10 @@ const MergeJobsNavbar: React.FC = () => {
   const renderUserProfileArea = () => (
     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
       <Tooltip title="Me">
-        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+        <IconButton
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+          id="profile-avatar-button"
+        >
           <Avatar
             src={profilePicture}
             alt={fullName}
@@ -163,6 +168,7 @@ const MergeJobsNavbar: React.FC = () => {
         }}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
+        id="profile-dropdown-menu"
       >
         <Box px={2} py={2} textAlign="center">
           <Avatar
@@ -180,18 +186,25 @@ const MergeJobsNavbar: React.FC = () => {
             variant="outlined"
             fullWidth
             sx={{ mt: 1.5, borderRadius: "999px", textTransform: "none" }}
+            id="view-profile-button"
           >
             View Profile
           </Button>
         </Box>
 
-        <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+        <Typography
+          px={2}
+          mt={1}
+          fontSize="0.75rem"
+          fontWeight={700}
+          color="gray"
+        >
           Account
         </Typography>
-        <MenuItem>
+        <MenuItem id="try-premium-menu-item">
           <ListItemText>Try Premium</ListItemText>
         </MenuItem>
-        <MenuItem>
+        <MenuItem id="settings-menu-item">
           <ListItemText onClick={() => router.push("/Settings")}>
             Settings & Privacy
           </ListItemText>
@@ -201,18 +214,24 @@ const MergeJobsNavbar: React.FC = () => {
         </MenuItem>
 
         <Divider />
-        <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+        <Typography
+          px={2}
+          mt={1}
+          fontSize="0.75rem"
+          fontWeight={700}
+          color="gray"
+        >
           Manage
         </Typography>
-        <MenuItem>
+        <MenuItem id="posts-activity-menu-item">
           <ListItemText>Posts & Activity</ListItemText>
         </MenuItem>
-        <MenuItem>
+        <MenuItem id="job-posting-menu-item">
           <ListItemText>Job Posting Account</ListItemText>
         </MenuItem>
 
         <Divider />
-        <MenuItem onClick={() => setAnchorEl(null)}>
+        <MenuItem onClick={() => setAnchorEl(null)} id="sign-out-menu-item">
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
@@ -222,9 +241,11 @@ const MergeJobsNavbar: React.FC = () => {
 
       {/* Theme Toggle */}
       <Tooltip
-        title={appTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        title={
+          appTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+        }
       >
-        <IconButton onClick={toggleTheme}>
+        <IconButton onClick={toggleTheme} id="theme-toggle-button">
           {appTheme === "dark" ? (
             <LightMode sx={{ color: "#ffeb3b" }} />
           ) : (
@@ -242,6 +263,7 @@ const MergeJobsNavbar: React.FC = () => {
         }}
         endIcon={<ExpandMore />}
         onClick={handleBusinessClick}
+        id="business-menu-button"
       >
         For Business
       </Button>
@@ -253,14 +275,15 @@ const MergeJobsNavbar: React.FC = () => {
         onClose={handleBusinessClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        PaperProps={{ 
-          sx: { 
+        PaperProps={{
+          sx: {
             width: { xs: "95%", sm: "90%", md: 700 },
             mt: 1,
             maxHeight: "80vh",
-            overflowY: "auto" 
-          } 
+            overflowY: "auto",
+          },
         }}
+        id="business-menu-popover"
       >
         <BusinessMenu />
       </Popover>
@@ -280,6 +303,7 @@ const MergeJobsNavbar: React.FC = () => {
             backgroundColor: "#D4AF37",
           },
         }}
+        id="try-premium-button"
       >
         Try Premium Free
       </Button>
@@ -296,6 +320,7 @@ const MergeJobsNavbar: React.FC = () => {
         position: "sticky",
         height: { xs: "auto", md: 80 },
       }}
+      id="main-navbar"
     >
       <Toolbar
         sx={{
@@ -322,37 +347,51 @@ const MergeJobsNavbar: React.FC = () => {
               alt="Ascend"
               style={{ height: 36, borderRadius: 6, cursor: "pointer" }}
               onClick={() => router.push("/feed")}
+              id="logo-image"
             />
           </Box>
 
           {/* Desktop Navigation and Search */}
           {!isSmallScreen && (
-            <Box sx={{ 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              gap: 3,
-              width: "100%",
-              mx: "auto"
-            }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 3,
+                width: "100%",
+                mx: "auto",
+              }}
+            >
               {/* Left Group: SearchBar Component with Navigation Icons */}
-              <Box sx={{ 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "flex-end",
-                gap: 2,
-                flex: 1
-              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: 2,
+                  flex: 1,
+                }}
+              >
                 {/* SearchBar Component */}
-                <SearchBar isSmallScreen={isSmallScreen} />
+                <SearchBar
+                  isSmallScreen={isSmallScreen}
+                  id="desktop-search-bar"
+                />
 
                 {/* Navigation Icons */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                  id="nav-icons-container"
+                >
                   {navigationItems.map(({ icon, route, label, badge }, i) => (
                     <Tooltip key={i} title={label}>
                       <NavIconButton
                         onClick={() => handleNavigation(route)}
                         active={pathname === route}
+                        id={`nav-item-${label
+                          .toLowerCase()
+                          .replace(/\s+/g, "-")}`}
                       >
                         {badge && badge > 0 ? (
                           <Badge badgeContent={badge} color="error">
@@ -372,7 +411,7 @@ const MergeJobsNavbar: React.FC = () => {
               </Box>
 
               {/* Right Group: User Profile Area */}
-              <Box sx={{ flex: 1 }}>
+              <Box sx={{ flex: 1 }} id="user-profile-area">
                 {renderUserProfileArea()}
               </Box>
             </Box>
@@ -380,26 +419,33 @@ const MergeJobsNavbar: React.FC = () => {
 
           {/* Mobile Controls */}
           {isSmallScreen && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+              id="mobile-controls"
+            >
               {/* Search Icon for Mobile */}
               <IconButton
                 color="inherit"
                 onClick={() => setSearchDrawerOpen(true)}
+                id="mobile-search-icon"
               >
                 <SearchIcon />
               </IconButton>
 
               {/* Theme Toggle */}
-              <IconButton onClick={toggleTheme}>
+              <IconButton onClick={toggleTheme} id="mobile-theme-toggle">
                 {appTheme === "dark" ? (
                   <LightMode sx={{ color: "#ffeb3b" }} />
                 ) : (
                   <DarkMode sx={{ color: "#333" }} />
                 )}
               </IconButton>
-              
+
               {/* Avatar for Mobile */}
-              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <IconButton
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                id="mobile-avatar"
+              >
                 <Avatar
                   src={profilePicture}
                   alt={fullName}
@@ -411,6 +457,7 @@ const MergeJobsNavbar: React.FC = () => {
               <IconButton
                 color="inherit"
                 onClick={() => setMobileMenuOpen(true)}
+                id="mobile-menu-button"
               >
                 <MenuIcon />
               </IconButton>
@@ -420,8 +467,8 @@ const MergeJobsNavbar: React.FC = () => {
 
         {/* Mobile Search Bar - For when screen is small but not too small */}
         {isSmallScreen && !isMobileScreen && (
-          <Box sx={{ width: "100%", py: 1 }}>
-            <SearchBar isSmallScreen={true} />
+          <Box sx={{ width: "100%", py: 1 }} id="tablet-search-container">
+            <SearchBar isSmallScreen={true} id="tablet-search-bar" />
           </Box>
         )}
       </Toolbar>
@@ -431,8 +478,9 @@ const MergeJobsNavbar: React.FC = () => {
         anchor="right"
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
+        id="mobile-navigation-drawer"
       >
-        <Box sx={{ width: 250, pt: 2, px: 2 }}>
+        <Box sx={{ width: 250, pt: 2, px: 2 }} id="mobile-drawer-content">
           <Box
             sx={{
               display: "flex",
@@ -440,25 +488,30 @@ const MergeJobsNavbar: React.FC = () => {
               alignItems: "center",
               mb: 2,
             }}
+            id="mobile-drawer-header"
           >
             <Typography variant="h6">Menu</Typography>
-            <IconButton onClick={() => setMobileMenuOpen(false)}>
+            <IconButton
+              onClick={() => setMobileMenuOpen(false)}
+              id="mobile-drawer-close"
+            >
               <Close />
             </IconButton>
           </Box>
-          
+
           <Divider sx={{ mb: 2 }} />
-          
+
           {navigationItems.map(({ icon, route, label, badge }, i) => (
-            <MenuItem 
-              key={i} 
+            <MenuItem
+              key={i}
               onClick={() => handleNavigation(route)}
               selected={pathname === route}
-              sx={{ 
+              sx={{
                 borderRadius: 1,
                 mb: 1,
-                py: 1.5
+                py: 1.5,
               }}
+              id={`mobile-nav-item-${label.toLowerCase().replace(/\s+/g, "-")}`}
             >
               {badge && badge > 0 ? (
                 <Badge badgeContent={badge} color="error" sx={{ mr: 2 }}>
@@ -470,10 +523,10 @@ const MergeJobsNavbar: React.FC = () => {
               {label}
             </MenuItem>
           ))}
-          
+
           <Divider sx={{ my: 2 }} />
-          
-          <MenuItem>
+
+          <MenuItem id="mobile-premium-item">
             <Button
               variant="contained"
               fullWidth
@@ -488,12 +541,13 @@ const MergeJobsNavbar: React.FC = () => {
                   backgroundColor: "#D4AF37",
                 },
               }}
+              id="mobile-premium-button"
             >
               Try Premium Free
             </Button>
           </MenuItem>
-          
-          <MenuItem>
+
+          <MenuItem id="mobile-business-item">
             <Button
               fullWidth
               sx={{
@@ -506,12 +560,13 @@ const MergeJobsNavbar: React.FC = () => {
                 setMobileMenuOpen(false);
                 setBusinessAnchorEl(e.currentTarget);
               }}
+              id="mobile-business-button"
             >
               For Business
             </Button>
           </MenuItem>
-          
-          <MenuItem onClick={handleLogout}>
+
+          <MenuItem onClick={handleLogout} id="mobile-signout-item">
             <ListItemIcon>
               <LogoutIcon fontSize="small" />
             </ListItemIcon>
@@ -525,14 +580,21 @@ const MergeJobsNavbar: React.FC = () => {
         anchor="top"
         open={searchDrawerOpen && isMobileScreen}
         onClose={() => setSearchDrawerOpen(false)}
+        id="mobile-search-drawer"
       >
-        <Box sx={{ p: 2 }}>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
-            <IconButton onClick={() => setSearchDrawerOpen(false)}>
+        <Box sx={{ p: 2 }} id="mobile-search-container">
+          <Box
+            sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
+            id="mobile-search-header"
+          >
+            <IconButton
+              onClick={() => setSearchDrawerOpen(false)}
+              id="mobile-search-close"
+            >
               <Close />
             </IconButton>
           </Box>
-          <SearchBar isSmallScreen={true} />
+          <SearchBar isSmallScreen={true} id="mobile-search-bar" />
         </Box>
       </Drawer>
     </AppBar>
