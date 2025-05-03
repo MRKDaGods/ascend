@@ -102,8 +102,8 @@ class AdminRepository {
     try {
       final response = await apiClient.get('/jobs/reported?page=$page');
 
-      if (response == null || response['data'] == null) {
-        debugPrint('Warning: Null response or missing data field');
+      if (response['data'] == null) {
+        debugPrint('Warning: Missing data field in response');
         return []; // Return empty list instead of null
       }
 
