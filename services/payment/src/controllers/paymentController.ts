@@ -458,7 +458,7 @@ export const getUserUsageLimits = async (req : AuthenticatedRequest, res : Respo
                     connections : user_usage_limits.connections,
                     job_application_per_month : user_usage_limits.job_applications_per_month,
                     messages_per_day_limit : user_usage_limits.messages_per_day_limit,
-                    conenctions_limit : user_usage_limits.conenctions_limit,
+                    connections_limit : user_usage_limits.connections_limit,
                     job_applications_limit : user_usage_limits.job_applications_limit,
                     last_date : user_usage_limits.last_date,
                 } 
