@@ -290,6 +290,7 @@ const MergeJobsNavbar: React.FC = () => {
 
       {/* Premium Button */}
       <Button
+        onClick={() => router.push("/prem")}
         variant="contained"
         sx={{
           backgroundColor: "#FFC107",
@@ -528,6 +529,7 @@ const MergeJobsNavbar: React.FC = () => {
 
           <MenuItem id="mobile-premium-item">
             <Button
+              onClick={() => router.push("/prem")}
               variant="contained"
               fullWidth
               sx={{

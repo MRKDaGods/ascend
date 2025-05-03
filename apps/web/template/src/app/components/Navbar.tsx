@@ -609,6 +609,7 @@ const Navbar: React.FC = () => {
 
           <MenuItem>
             <Button
+              onClick={() => router.push("/prem")}
               variant="contained"
               fullWidth
               sx={{
