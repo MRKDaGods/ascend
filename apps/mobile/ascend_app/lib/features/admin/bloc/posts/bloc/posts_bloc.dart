@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
+import 'dart:async';
 part 'posts_state.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
@@ -23,6 +24,14 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     on<FetchReportedPosts>((event, emit) async {
       // If we've already reached max and not refreshing, do nothing
       if (_hasReachedMax && event.page > 1) {
+        // Important: Emit the current state with hasReachedMax=true so UI knows to stop loading
+        emit(ReportedPostsFetchedState(
+          reportedPosts: _posts,
+          currentPage: currentPage,
+          totalPages: _totalPages,
+          hasReachedMax: true,
+          postReports: _postReports,
+        ));
         return;
       }
 
@@ -30,6 +39,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         emit(FetchingReportedPostsState());
         _posts = []; // Reset posts list on first page
         _hasReachedMax = false; // Reset max flag on refresh
+      } else {
+        // For subsequent pages, emit a loading more state that doesn't replace the current posts
+        emit(FetchingMorePostsState(currentPosts: _posts));
       }
 
       // Don't request pages beyond what's available
@@ -37,15 +49,31 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         debugPrint(
           'Skipping fetch for page ${event.page} as total pages is $_totalPages',
         );
+        _hasReachedMax = true;
+        emit(ReportedPostsFetchedState(
+          reportedPosts: _posts,
+          currentPage: currentPage,
+          totalPages: _totalPages,
+          hasReachedMax: true,
+          postReports: _postReports,
+        ));
         return;
       }
 
       try {
-        final response = await apiClient.getReportedPosts(event.page);
-        final newPosts =
-            (response['data'] as List)
-                .map((postJson) => ReportedPost.fromJson(postJson))
-                .toList();
+        // Add timeout to the API call
+        final response = await apiClient.getReportedPosts(event.page).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            throw TimeoutException(
+              'The connection timed out. Please check your internet connection and try again.',
+            );
+          },
+        );
+
+        final newPosts = (response['data'] as List)
+            .map((postJson) => ReportedPost.fromJson(postJson))
+            .toList();
 
         // Store total pages for reference
         _totalPages = response['pagination']['totalPages'] ?? 1;
@@ -53,7 +81,6 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         // If we got fewer items than expected or reached the last page, mark as reached max
         if (newPosts.isEmpty || event.page >= _totalPages) {
           _hasReachedMax = true;
-          emit(EndOfPostsReachedState()); // Add this to notify UI
         }
 
         // Append new posts to existing list
@@ -61,19 +88,32 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
         final currentPage = response['pagination']['currentPage'] ?? 1;
 
+        // If we've reached the max, emit EndOfPostsReachedState before the regular state update
+        if (_hasReachedMax) {
+          emit(EndOfPostsReachedState());
+        }
+
         emit(
           ReportedPostsFetchedState(
             reportedPosts: _posts, // Use accumulated posts
             currentPage: currentPage,
             totalPages: _totalPages,
-            hasReachedMax: _hasReachedMax,
+            hasReachedMax: _hasReachedMax, // This is crucial!
             postReports: _postReports,
           ),
         );
       } catch (e) {
-        if (e.toString().contains('404') && event.page > 1) {
+        // Add specific handling for timeout exceptions
+        if (e is TimeoutException) {
+          debugPrint('Timeout fetching reported posts: $e');
+          emit(PostsErrorState(
+            errorMessage:
+                'Request timed out. Please check your connection and try again.',
+          ));
+        } else if (e.toString().contains('404') && event.page > 1) {
           // This is likely just the end of available pages
           _hasReachedMax = true;
+          emit(EndOfPostsReachedState());
           emit(
             ReportedPostsFetchedState(
               reportedPosts: _posts,
@@ -100,10 +140,9 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         );
         debugPrint('Fetched reports response: $response'); // Debug print
 
-        final postReportsList =
-            (response['data'] as List)
-                .map((reportJson) => PostReport.fromJson(reportJson))
-                .toList();
+        final postReportsList = (response['data'] as List)
+            .map((reportJson) => PostReport.fromJson(reportJson))
+            .toList();
         final currentPage = response['pagination']['currentPage'] ?? 1;
         final totalPages = response['pagination']['totalPages'] ?? 1;
 

@@ -16,12 +16,59 @@ class _PostsPageState extends State<PostsPage> {
   // Track expanded posts and posts with expanded reports separately
   final Set<String> expandedPosts = {};
   final Set<String> postsWithExpandedReports = {};
+  late ScrollController _scrollController;
+  int _currentPage = 1;
+  // Add a flag to track if a request is in progress
+  bool _isLoadingMore = false;
 
   @override
   void initState() {
     super.initState();
+    // Initialize the controller first
+    _scrollController = ScrollController();
+    // Add the listener after initialization
+    _scrollController.addListener(_onScroll);
     // Fetch reported posts when page loads
-    context.read<PostsBloc>().add(FetchReportedPosts());
+    context.read<PostsBloc>().add(FetchReportedPosts(page: _currentPage));
+  }
+
+  @override
+  void dispose() {
+    // Remove listener and dispose properly
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Update _onScroll method to check this flag
+  void _onScroll() {
+    if (_isBottom && !context.read<PostsBloc>().hasReachedMax && !_isLoadingMore) {
+      setState(() {
+        _isLoadingMore = true;
+      });
+      
+      _currentPage++;
+      context.read<PostsBloc>().add(FetchReportedPosts(page: _currentPage));
+      
+      // Reset the flag after a reasonable delay even if the request fails
+      Future.delayed(const Duration(seconds: 20), () {
+        if (mounted) {
+          setState(() {
+            _isLoadingMore = false;
+          });
+        }
+      });
+    }
+  }
+
+  // Helper method to check if we're at the bottom of the scroll
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    final delta = 200.0; // Load more when within 200 pixels of the bottom
+    return maxScroll - currentScroll <= delta;
   }
 
   void _handleDeletePost(BuildContext context, String postId) {
@@ -91,6 +138,15 @@ class _PostsPageState extends State<PostsPage> {
       body: SafeArea(
         child: BlocConsumer<PostsBloc, PostsState>(
           listener: (context, state) {
+            // Reset loading flag when any terminal state is reached
+            if (state is ReportedPostsFetchedState || 
+                state is PostsErrorState ||
+                state is EndOfPostsReachedState) {
+              setState(() {
+                _isLoadingMore = false;
+              });
+            }
+            
             if (state is PostsErrorState) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -121,70 +177,75 @@ class _PostsPageState extends State<PostsPage> {
             }
           },
           builder: (context, state) {
-            // Handle loading state
-            if (state is FetchingReportedPostsState &&
-                context.read<PostsBloc>().posts.isEmpty) {
+            if (state is PostsInitial ||
+                (state is FetchingReportedPostsState &&
+                    context.read<PostsBloc>().posts.isEmpty)) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final posts = context.read<PostsBloc>().posts;
-            final hasReachedMax = context.read<PostsBloc>().hasReachedMax;
-            final currentPage = context.read<PostsBloc>().currentPage;
+            if (state is PostsErrorState) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: ${state.errorMessage}'),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<PostsBloc>().add(
+                          FetchReportedPosts(page: 1),
+                        );
+                      },
+                      child: const Text('Try Again'),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-            // Handle empty state
+            final List<ReportedPost> posts;
+            bool isLoadingMore = false;
+
+            if (state is FetchingMorePostsState) {
+              posts = state.currentPosts;
+              isLoadingMore = true;
+            } else if (state is ReportedPostsFetchedState) {
+              posts = state.reportedPosts;
+            } else {
+              posts = context.read<PostsBloc>().posts;
+            }
+
             if (posts.isEmpty) {
               return const Center(child: Text('No reported posts found'));
             }
 
-            // Show posts list with infinite scroll
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<PostsBloc>().add(
-                  FetchReportedPosts(isRefresh: true),
+            return ListView.builder(
+              controller: _scrollController,
+              itemCount:
+                  posts.length +
+                  (isLoadingMore || !context.read<PostsBloc>().hasReachedMax
+                      ? 1
+                      : 0),
+              itemBuilder: (context, index) {
+                if (index >= posts.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final post = posts[index];
+                final isExpanded = expandedPosts.contains(post.id);
+                final showReports = postsWithExpandedReports.contains(post.id);
+
+                return ReportedPostCard(
+                  post: post,
+                  isExpanded: isExpanded,
+                  showReports: showReports,
+                  onToggleExpand: () => _togglePostExpansion(post.id),
+                  onToggleReports: () => _toggleReportsVisibility(post.id),
+                  onDelete: () => _handleDeletePost(context, post.id),
                 );
               },
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (scrollInfo) {
-                  if (scrollInfo.metrics.pixels ==
-                          scrollInfo.metrics.maxScrollExtent &&
-                      !hasReachedMax) {
-                    context.read<PostsBloc>().add(
-                      FetchReportedPosts(page: currentPage + 1),
-                    );
-                  }
-                  return true;
-                },
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: posts.length + (hasReachedMax ? 0 : 1),
-                  itemBuilder: (context, index) {
-                    // Show loading indicator at the bottom while more posts are loading
-                    if (index == posts.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-
-                    final post = posts[index];
-                    final isExpanded = expandedPosts.contains(post.id);
-                    final showReports = postsWithExpandedReports.contains(
-                      post.id,
-                    );
-
-                    return ReportedPostCard(
-                      post: post,
-                      isExpanded: isExpanded,
-                      showReports: showReports,
-                      onToggleExpand: () => _togglePostExpansion(post.id),
-                      onToggleReports: () => _toggleReportsVisibility(post.id),
-                      onDelete: () => _handleDeletePost(context, post.id),
-                    );
-                  },
-                ),
-              ),
             );
           },
         ),
