@@ -1,5 +1,7 @@
 import 'package:ascend_app/features/Jobs/pages/my_jobs_page.dart';
+
 import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 import 'package:ascend_app/features/Jobs/pages/easy_apply.dart';
