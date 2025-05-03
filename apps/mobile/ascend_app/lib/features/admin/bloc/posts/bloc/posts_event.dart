@@ -1,30 +1,57 @@
-part of 'posts_bloc.dart';
+import 'package:equatable/equatable.dart';
 
-@immutable
-sealed class PostsEvent {}
-
-/// Event to fetch reported posts with pagination.
-class FetchReportedPostsEvent extends PostsEvent {
-  final int page;
-  FetchReportedPostsEvent({required this.page});
+// Removed redundant sealed class declaration
+abstract class PostsEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
 }
 
-/// Event to fetch reports for a specific post with pagination.
-class FetchPostReportsEvent extends PostsEvent {
+class FetchReportedPosts extends PostsEvent {
+  final int page;
+
+  FetchReportedPosts({this.page = 1});
+
+  @override
+  List<Object?> get props => [page];
+}
+
+class FetchPostDetails extends PostsEvent {
+  final String postId;
+
+  FetchPostDetails(this.postId);
+
+  @override
+  List<Object?> get props => [postId];
+}
+
+class FetchPostReports extends PostsEvent {
   final String postId;
   final int page;
-  FetchPostReportsEvent({required this.postId, required this.page});
+
+  FetchPostReports({required this.postId, this.page = 1});
+
+  @override
+  List<Object?> get props => [postId, page];
 }
 
-/// Event to delete a specific post by its ID.
+class FetchReportDetails extends PostsEvent {
+  final String reportId;
+
+  FetchReportDetails(this.reportId);
+
+  @override
+  List<Object?> get props => [reportId];
+}
+
 class DeletePostEvent extends PostsEvent {
   final String postId;
+
   DeletePostEvent({required this.postId});
 }
 
-/// Event to update a specific report by its ID.
 class UpdateReportStatusEvent extends PostsEvent {
   final String reportId;
   final Map<String, dynamic> data;
+
   UpdateReportStatusEvent({required this.reportId, required this.data});
 }

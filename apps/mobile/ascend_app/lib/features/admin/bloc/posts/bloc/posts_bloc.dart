@@ -1,8 +1,9 @@
+import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_event.dart';
+import 'package:ascend_app/features/admin/data/models/posts_model.dart';
 import 'package:bloc/bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
-
-part 'posts_event.dart';
 part 'posts_state.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
@@ -10,38 +11,51 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
 
   PostsBloc({required this.apiClient}) : super(PostsInitial()) {
     // Handle fetching reported posts
-    on<FetchReportedPostsEvent>((event, emit) async {
+    on<FetchReportedPosts>((event, emit) async {
       emit(FetchingReportedPostsState());
       try {
         final response = await apiClient.getReportedPosts(event.page);
-        final reportedPosts = List<Map<String, dynamic>>.from(response['data']);
-        final currentPage = response['currentPage'] ?? 1;
-        final totalPages = response['totalPages'] ?? 1;
+        final reportedPosts =
+            (response['data'] as List)
+                .map((postJson) => ReportedPost.fromJson(postJson))
+                .toList();
+        final currentPage = response['pagination']['currentPage'] ?? 1;
+        final totalPages = response['pagination']['totalPages'] ?? 1;
 
-        emit(ReportedPostsFetchedState(
-          reportedPosts: reportedPosts,
-          currentPage: currentPage,
-          totalPages: totalPages,
-        ));
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: reportedPosts,
+            currentPage: currentPage,
+            totalPages: totalPages,
+          ),
+        );
       } catch (e) {
+        debugPrint('Error in FetchReportedPostsEvent: $e');
         emit(PostsErrorState(errorMessage: e.toString()));
       }
     });
 
     // Handle fetching reports for a specific post
-    on<FetchPostReportsEvent>((event, emit) async {
+    on<FetchPostReports>((event, emit) async {
       emit(FetchingPostReportsState());
       try {
-        final response = await apiClient.getPostReports(event.postId, event.page);
-        final postReports = List<Map<String, dynamic>>.from(response['data']);
-        final currentPage = response['currentPage'] ?? 1;
-        final totalPages = response['totalPages'] ?? 1;
+        final response = await apiClient.get(
+          '/posts/${event.postId}/reports?page=${event.page}',
+        );
+        final postReports =
+            (response['data'] as List)
+                .map((reportJson) => PostReport.fromJson(reportJson))
+                .toList();
+        final currentPage = response['pagination']['currentPage'] ?? 1;
+        final totalPages = response['pagination']['totalPages'] ?? 1;
 
-        emit(PostReportsFetchedState(
-          postReports: postReports,
-          currentPage: currentPage,
-          totalPages: totalPages,
-        ));
+        emit(
+          PostReportsFetchedState(
+            postReports: postReports,
+            currentPage: currentPage,
+            totalPages: totalPages,
+          ),
+        );
       } catch (e) {
         emit(PostsErrorState(errorMessage: e.toString()));
       }
@@ -51,7 +65,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     on<DeletePostEvent>((event, emit) async {
       emit(DeletingPostState());
       try {
-        await apiClient.deletePost(event.postId);
+        await apiClient.delete('/posts/${event.postId}');
         emit(PostDeletedState(postId: event.postId));
       } catch (e) {
         emit(PostsErrorState(errorMessage: e.toString()));
@@ -62,7 +76,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
     on<UpdateReportStatusEvent>((event, emit) async {
       emit(UpdatingReportState());
       try {
-        await apiClient.updateReport(event.reportId, event.data);
+        await apiClient.patch('/posts/reports/${event.reportId}', event.data);
         emit(ReportUpdatedState(reportId: event.reportId));
       } catch (e) {
         emit(PostsErrorState(errorMessage: e.toString()));
