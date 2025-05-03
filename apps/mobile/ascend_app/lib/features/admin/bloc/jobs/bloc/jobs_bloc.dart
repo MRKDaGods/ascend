@@ -11,7 +11,7 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
   final AdminRepository adminRepository;
   int currentPage = 1;
   bool hasReachedEnd = false;
-  List<JobModel> allJobs = [];
+  List<ReportedJob> allJobs = [];
   Map<int, List<JobReport>> jobReports = {};
 
   JobsBloc({required this.adminRepository}) : super(JobsInitial()) {
@@ -28,7 +28,15 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
       emit(ReportedJobsLoadingState());
 
       try {
-        final newJobs = await adminRepository.fetchReportedJobs(page: event.page);
+        final newJobs = await adminRepository.fetchReportedJobs(
+          page: event.page,
+        );
+
+        // Null safety check for the returned jobs
+        if (newJobs == null) {
+          emit(JobsErrorState("Received null response from server"));
+          return;
+        }
 
         if (newJobs.isEmpty) {
           hasReachedEnd = true;
@@ -65,7 +73,7 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
 
           // Update with the new reports
           updatedReports[event.jobId] = jobReportsResult;
-          
+
           // Update the class variable
           jobReports = updatedReports;
 
@@ -80,7 +88,10 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
         } else {
           // Fallback if we somehow get here without having loaded jobs first
           emit(
-            JobReportsLoadedState(jobId: event.jobId, jobReports: jobReportsResult),
+            JobReportsLoadedState(
+              jobId: event.jobId,
+              jobReports: jobReportsResult,
+            ),
           );
         }
       } catch (e) {
@@ -100,11 +111,11 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
 
         if (success) {
           // Remove the deleted job from our local list if it exists
-          allJobs.removeWhere((job) => job.id.toString() == jobId);
-          
+          allJobs.removeWhere((job) => job.jobId.toString() == jobId);
+
           // Fixed: Use the constructor correctly based on how JobDeletedState is defined
           emit(JobDeletedState(jobId.toString()));
-          
+
           // Update the state to reflect the removed job
           emit(
             ReportedJobsLoadedState(
@@ -132,7 +143,7 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
           event.status,
         );
         emit(JobReportStatusUpdatedState(event.reportId, event.status));
-        
+
         // After successful update, refresh the current state
         emit(
           ReportedJobsLoadedState(
@@ -147,4 +158,3 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
     });
   }
 }
-

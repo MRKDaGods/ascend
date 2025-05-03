@@ -35,12 +35,12 @@ class AdminRepository {
       throw Exception('Failed to fetch analytics: $e');
     }
   }
-  
+
   /// Fetches a list of reported jobs with pagination support.
   Future<List<ReportedJob>> getReportedJobs({int page = 1}) async {
     try {
       final response = await apiClient.get('/jobs/reported?page=$page');
-      
+
       if (response['data'] != null) {
         final data = response['data'] as List;
         return data.map((json) => ReportedJob.fromJson(json)).toList();
@@ -99,11 +99,20 @@ class AdminRepository {
 
   /// Fetches a list of reported jobs.
   Future<List<ReportedJob>> fetchReportedJobs({int page = 1}) async {
-    return _fetchList<ReportedJob>(
-      endpoint: '/jobs/reported',
-      fromJson: (json) => ReportedJob.fromJson(json),
-      page: page,
-    );
+    try {
+      final response = await apiClient.get('/jobs/reported?page=$page');
+
+      if (response == null || response['data'] == null) {
+        debugPrint('Warning: Null response or missing data field');
+        return []; // Return empty list instead of null
+      }
+
+      final data = response['data'] as List;
+      return data.map((json) => ReportedJob.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching reported jobs: $e');
+      throw Exception('Failed to fetch reported jobs: $e');
+    }
   }
 
   /// Deletes a specific job by its ID.
