@@ -9,21 +9,38 @@ part 'jobs_state.dart';
 
 class JobsBloc extends Bloc<JobsEvent, JobsState> {
   final AdminRepository adminRepository;
+  int currentPage = 1;
+  bool hasReachedEnd = false;
+  List<JobModel> allJobs = [];
+  Map<int, List<JobReport>> jobReports = {};
 
   JobsBloc({required this.adminRepository}) : super(JobsInitial()) {
     // Handle FetchReportedJobsEvent
     on<FetchReportedJobsEvent>((event, emit) async {
+      if (event.isRefresh) {
+        currentPage = 1;
+        allJobs.clear();
+        hasReachedEnd = false;
+      }
+
+      if (hasReachedEnd && !event.isRefresh) return;
+
       emit(ReportedJobsLoadingState());
+
       try {
-        final reportedJobs = await adminRepository.fetchReportedJobs();
-        final jobReports =
-            <
-              int,
-              List<JobReport>
-            >{}; // Initialize an empty map or fetch actual reports
+        final newJobs = await adminRepository.fetchReportedJobs(page: event.page);
+
+        if (newJobs.isEmpty) {
+          hasReachedEnd = true;
+        } else {
+          currentPage++;
+          allJobs.addAll(newJobs);
+        }
+
         emit(
           ReportedJobsLoadedState(
-            reportedJobs: reportedJobs,
+            jobs: allJobs,
+            hasReachedEnd: hasReachedEnd,
             jobReports: jobReports,
           ),
         );
@@ -36,34 +53,34 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
     on<FetchJobReportsEvent>((event, emit) async {
       // Don't emit loading state here to avoid UI flickering
       try {
-        final jobReports = await adminRepository.fetchJobReports(
+        final jobReportsResult = await adminRepository.fetchJobReports(
           event.jobId,
           page: event.page,
         );
 
         // Check if we're already in a ReportedJobsLoadedState
         if (state is ReportedJobsLoadedState) {
-          final currentState = state as ReportedJobsLoadedState;
-
           // Create a copy of the current reports map
-          final updatedReports = Map<int, List<JobReport>>.from(
-            currentState.jobReports,
-          );
+          final updatedReports = Map<int, List<JobReport>>.from(jobReports);
 
           // Update with the new reports
-          updatedReports[event.jobId] = jobReports;
+          updatedReports[event.jobId] = jobReportsResult;
+          
+          // Update the class variable
+          jobReports = updatedReports;
 
           // Emit a new state with updated reports
           emit(
             ReportedJobsLoadedState(
-              reportedJobs: currentState.reportedJobs,
-              jobReports: updatedReports,
+              jobs: allJobs,
+              hasReachedEnd: hasReachedEnd,
+              jobReports: jobReports,
             ),
           );
         } else {
           // Fallback if we somehow get here without having loaded jobs first
           emit(
-            JobReportsLoadedState(jobId: event.jobId, jobReports: jobReports),
+            JobReportsLoadedState(jobId: event.jobId, jobReports: jobReportsResult),
           );
         }
       } catch (e) {
@@ -82,8 +99,20 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
         final success = await adminRepository.deleteJob(jobId.toString());
 
         if (success) {
+          // Remove the deleted job from our local list if it exists
+          allJobs.removeWhere((job) => job.id.toString() == jobId);
+          
           // Fixed: Use the constructor correctly based on how JobDeletedState is defined
           emit(JobDeletedState(jobId.toString()));
+          
+          // Update the state to reflect the removed job
+          emit(
+            ReportedJobsLoadedState(
+              jobs: allJobs,
+              hasReachedEnd: hasReachedEnd,
+              jobReports: jobReports,
+            ),
+          );
         } else {
           emit(
             JobsErrorState('Failed to delete job. Server returned an error.'),
@@ -103,6 +132,15 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
           event.status,
         );
         emit(JobReportStatusUpdatedState(event.reportId, event.status));
+        
+        // After successful update, refresh the current state
+        emit(
+          ReportedJobsLoadedState(
+            jobs: allJobs,
+            hasReachedEnd: hasReachedEnd,
+            jobReports: jobReports,
+          ),
+        );
       } catch (e) {
         emit(JobsErrorState(e.toString()));
       }
@@ -110,9 +148,3 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
   }
 }
 
-// This should be moved to jobs_state.dart part file
-// Make sure to add this if it doesn't exist
-class JobsDeletingState extends JobsState {
-  @override // Added missing override decorator
-  List<Object?> get props => [];
-}

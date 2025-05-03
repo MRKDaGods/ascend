@@ -5,17 +5,19 @@ sealed class JobsEvent {}
 
 // Event to fetch all reported jobs
 class FetchReportedJobsEvent extends JobsEvent {
-  final int page;
+   int page;
+   bool isRefresh;
 
-  FetchReportedJobsEvent({required this.page});
+  FetchReportedJobsEvent({required this.page, this.isRefresh = false});
 }
 
 // Event to fetch reports for a specific job
 class FetchJobReportsEvent extends JobsEvent {
-  final int jobId;
-  final int page;
+   int jobId;
+   int page;
+  bool? isRefresh;
 
-  FetchJobReportsEvent(this.jobId, {this.page = 1});
+  FetchJobReportsEvent(this.jobId, {this.page = 1, this.isRefresh = false});
 }
 
 // Event to delete a specific job

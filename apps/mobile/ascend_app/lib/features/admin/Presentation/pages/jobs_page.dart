@@ -38,87 +38,124 @@ class _JobsPageState extends State<JobsPage> {
               ),
             );
             // Refresh the jobs list after deletion
-            context.read<JobsBloc>().add(FetchReportedJobsEvent(page: 1));
+            context.read<JobsBloc>().add(
+              FetchReportedJobsEvent(page: 1, isRefresh: true),
+            );
           } else if (state is JobsErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${state.errorMessage}'),
+                content: Text('Error: ${state.message}'),
                 backgroundColor: Colors.red,
               ),
             );
           }
         },
         builder: (context, state) {
-          if (state is ReportedJobsLoadingState) {
+          if (state is ReportedJobsLoadingState &&
+              context.read<JobsBloc>().allJobs.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is ReportedJobsLoadedState) {
-            final jobs = state.reportedJobs;
+            final jobs = state.jobs;
             final reports = state.jobReports;
+            final currentPage = context.read<JobsBloc>().currentPage;
+            final hasReachedEnd = state.hasReachedEnd;
 
             if (jobs.isEmpty) {
               return const Center(child: Text('No reported jobs found'));
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: jobs.length,
-              itemBuilder: (context, index) {
-                final job = jobs[index] as ReportedJob;
-                final jobReportsList = reports[job.jobId] ?? [];
-
-                return ReportedJobCard(
-                  job: job,
-                  reports: jobReportsList,
-                  onExpand: () {
-                    // Fetch reports for this specific job when expanded
-                    context.read<JobsBloc>().add(
-                      FetchJobReportsEvent(job.jobId, page: 1),
-                    );
-                  },
-                  onDelete: () {
-                    showDialog(
-                      context: context,
-                      builder:
-                          (dialogContext) => BlocProvider.value(
-                            value:
-                                context
-                                    .read<JobsBloc>(), // Pass the existing bloc
-                            child: Builder(
-                              builder:
-                                  (builderContext) => AlertDialog(
-                                    title: const Text('Delete Job'),
-                                    content: Text(
-                                      'Are you sure you want to delete this job?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(dialogContext),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(dialogContext);
-                                          // Use builderContext to ensure proper provider access
-                                          builderContext.read<JobsBloc>().add(
-                                            DeleteJobEvent(
-                                              job.jobId.toString(),
-                                            ),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Delete',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                            ),
-                          ),
-                    );
-                  },
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<JobsBloc>().add(
+                  FetchReportedJobsEvent(page: 1, isRefresh: true),
                 );
               },
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scrollInfo) {
+                  if (scrollInfo.metrics.pixels ==
+                          scrollInfo.metrics.maxScrollExtent &&
+                      !hasReachedEnd) {
+                    context.read<JobsBloc>().add(
+                      FetchReportedJobsEvent(page: currentPage),
+                    );
+                  }
+                  return true;
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: jobs.length + (hasReachedEnd ? 0 : 1),
+                  itemBuilder: (context, index) {
+                    if (index == jobs.length) {
+                      // Show loading indicator at the bottom
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    final job = jobs[index];
+                    final jobReportsList = reports[job.jobId] ?? [];
+
+                    return ReportedJobCard(
+                      job: job,
+                      reports: jobReportsList,
+                      onExpand: () {
+                        // Fetch reports for this specific job when expanded
+                        context.read<JobsBloc>().add(
+                          FetchJobReportsEvent(job.jobId, page: 1),
+                        );
+                      },
+                      onDelete: () {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (dialogContext) => BlocProvider.value(
+                                value: context.read<JobsBloc>(),
+                                child: Builder(
+                                  builder:
+                                      (builderContext) => AlertDialog(
+                                        title: const Text('Delete Job'),
+                                        content: Text(
+                                          'Are you sure you want to delete this job?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.pop(
+                                                  dialogContext,
+                                                ),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(dialogContext);
+                                              builderContext
+                                                  .read<JobsBloc>()
+                                                  .add(
+                                                    DeleteJobEvent(
+                                                      job.jobId.toString(),
+                                                    ),
+                                                  );
+                                            },
+                                            child: const Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                ),
+                              ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
             );
           } else if (state is JobReportsLoadedState) {
             // This state is used to update the reports for a specific job
@@ -132,82 +169,100 @@ class _JobsPageState extends State<JobsPage> {
                         : context.read<JobsBloc>().state;
 
                 if (reportedJobsState is ReportedJobsLoadedState) {
-                  final jobs = reportedJobsState.reportedJobs;
+                  final jobs = reportedJobsState.jobs;
                   final reports = Map<int, List<JobReport>>.from(
                     reportedJobsState.jobReports,
                   );
+                  final currentPage = context.read<JobsBloc>().currentPage;
+                  final hasReachedEnd = reportedJobsState.hasReachedEnd;
 
                   // Update the reports for the specific job
                   reports[state.jobId] = state.jobReports;
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: jobs.length,
-                    itemBuilder: (context, index) {
-                      final job = jobs[index] as ReportedJob;
-                      final jobReportsList = reports[job.jobId] ?? [];
-
-                      return ReportedJobCard(
-                        job: job,
-                        reports: jobReportsList,
-                        onExpand: () {
-                          // Fetch reports for this specific job when expanded
-                          context.read<JobsBloc>().add(
-                            FetchJobReportsEvent(job.jobId, page: 1),
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (scrollInfo) {
+                      if (scrollInfo.metrics.pixels ==
+                              scrollInfo.metrics.maxScrollExtent &&
+                          !hasReachedEnd) {
+                        context.read<JobsBloc>().add(
+                          FetchReportedJobsEvent(page: currentPage),
+                        );
+                      }
+                      return true;
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: jobs.length + (hasReachedEnd ? 0 : 1),
+                      itemBuilder: (context, index) {
+                        if (index == jobs.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
+                            ),
                           );
-                        },
-                        onDelete: () {
-                          showDialog(
-                            context: context,
-                            builder:
-                                (dialogContext) => BlocProvider.value(
-                                  value:
-                                      context
-                                          .read<
-                                            JobsBloc
-                                          >(), // Pass the existing bloc
-                                  child: Builder(
-                                    builder:
-                                        (builderContext) => AlertDialog(
-                                          title: const Text('Delete Job'),
-                                          content: Text(
-                                            'Are you sure you want to delete this job?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed:
-                                                  () => Navigator.pop(
-                                                    dialogContext,
-                                                  ),
-                                              child: const Text('Cancel'),
+                        }
+
+                        final job = jobs[index];
+                        final jobReportsList = reports[job.jobId] ?? [];
+
+                        return ReportedJobCard(
+                          job: job,
+                          reports: jobReportsList,
+                          onExpand: () {
+                            // Fetch reports for this specific job when expanded
+                            context.read<JobsBloc>().add(
+                              FetchJobReportsEvent(job.jobId, page: 1),
+                            );
+                          },
+                          onDelete: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (dialogContext) => BlocProvider.value(
+                                    value: context.read<JobsBloc>(),
+                                    child: Builder(
+                                      builder:
+                                          (builderContext) => AlertDialog(
+                                            title: const Text('Delete Job'),
+                                            content: Text(
+                                              'Are you sure you want to delete this job?',
                                             ),
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(dialogContext);
-                                                // Use builderContext to ensure proper provider access
-                                                builderContext
-                                                    .read<JobsBloc>()
-                                                    .add(
-                                                      DeleteJobEvent(
-                                                        job.jobId.toString(),
-                                                      ),
-                                                    );
-                                              },
-                                              child: const Text(
-                                                'Delete',
-                                                style: TextStyle(
-                                                  color: Colors.red,
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.pop(
+                                                      dialogContext,
+                                                    ),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(dialogContext);
+                                                  builderContext
+                                                      .read<JobsBloc>()
+                                                      .add(
+                                                        DeleteJobEvent(
+                                                          job.jobId.toString(),
+                                                        ),
+                                                      );
+                                                },
+                                                child: const Text(
+                                                  'Delete',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
+                                            ],
+                                          ),
+                                    ),
                                   ),
-                                ),
-                          );
-                        },
-                      );
-                    },
+                            );
+                          },
+                        );
+                      },
+                    ),
                   );
                 }
 
@@ -225,7 +280,7 @@ class _JobsPageState extends State<JobsPage> {
                   ElevatedButton(
                     onPressed: () {
                       context.read<JobsBloc>().add(
-                        FetchReportedJobsEvent(page: 1),
+                        FetchReportedJobsEvent(page: 1, isRefresh: true),
                       );
                     },
                     child: const Text('Retry'),
