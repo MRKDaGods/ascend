@@ -111,6 +111,12 @@ class AdminRepository {
       return data.map((json) => ReportedJob.fromJson(json)).toList();
     } catch (e) {
       debugPrint('Error fetching reported jobs: $e');
+      // Check if it's a 404 error, which means we've reached the end of the list
+      if (e.toString().contains('404')) {
+        // Return empty list to indicate end of data without throwing an exception
+        return [];
+      }
+      // For other errors, we still throw the exception
       throw Exception('Failed to fetch reported jobs: $e');
     }
   }

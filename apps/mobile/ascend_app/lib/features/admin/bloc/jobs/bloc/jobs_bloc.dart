@@ -16,6 +16,7 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
 
   JobsBloc({required this.adminRepository}) : super(JobsInitial()) {
     // Handle FetchReportedJobsEvent
+    // In your FetchReportedJobsEvent handler
     on<FetchReportedJobsEvent>((event, emit) async {
       if (event.isRefresh) {
         currentPage = 1;
@@ -25,26 +26,57 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
 
       if (hasReachedEnd && !event.isRefresh) return;
 
-      emit(ReportedJobsLoadingState());
+      if (event.page == 1) {
+        emit(ReportedJobsLoadingState());
+      }
 
       try {
         final newJobs = await adminRepository.fetchReportedJobs(
           page: event.page,
         );
 
-        // Null safety check for the returned jobs
-        if (newJobs == null) {
-          emit(JobsErrorState("Received null response from server"));
-          return;
-        }
-
         if (newJobs.isEmpty) {
           hasReachedEnd = true;
+
+          // Emit regular state with current jobs
+          emit(
+            ReportedJobsLoadedState(
+              jobs: allJobs,
+              hasReachedEnd: true,
+              jobReports: jobReports,
+            ),
+          );
+
+          // Then emit the end of data state to trigger snackbar
+          if (allJobs.isNotEmpty) {
+            emit(EndOfDataReachedState());
+            // Immediately re-emit the loaded state to keep UI showing jobs
+            emit(
+              ReportedJobsLoadedState(
+                jobs: allJobs,
+                hasReachedEnd: true,
+                jobReports: jobReports,
+              ),
+            );
+          }
         } else {
           currentPage++;
           allJobs.addAll(newJobs);
-        }
 
+          emit(
+            ReportedJobsLoadedState(
+              jobs: allJobs,
+              hasReachedEnd: hasReachedEnd,
+              jobReports: jobReports,
+            ),
+          );
+        }
+      } catch (e) {
+        // Instead of showing error page, just emit error state for Snackbar
+        // and keep the current jobs list
+        emit(JobsErrorState(e.toString()));
+
+        // Re-emit the current state to keep UI showing jobs
         emit(
           ReportedJobsLoadedState(
             jobs: allJobs,
@@ -52,8 +84,6 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
             jobReports: jobReports,
           ),
         );
-      } catch (e) {
-        emit(JobsErrorState(e.toString()));
       }
     });
 
