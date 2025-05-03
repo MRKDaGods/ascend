@@ -69,6 +69,37 @@ class AdminRepository {
     );
   }
 
+  /// Fetches all reports for a specific post by its ID.
+  Future<List<PostReport>> fetchPostReports(
+    String postId, {
+    int page = 1,
+  }) async {
+    try {
+      final endpoint = '/posts/$postId/reports';
+      final paginatedEndpoint = '$endpoint?page=$page';
+
+      debugPrint(
+        'Fetching post reports from URL: $paginatedEndpoint',
+      ); // Log the URL
+
+      final response = await apiClient.get(paginatedEndpoint);
+
+      debugPrint(
+        'Response from API for post reports: $response',
+      ); // Debug response
+
+      if (response['data'] != null) {
+        final data = response['data'] as List;
+        return data.map((item) => PostReport.fromJson(item)).toList();
+      } else {
+        return []; // Return empty list if no data
+      }
+    } catch (e) {
+      debugPrint('Error fetching post reports for post $postId: $e');
+      throw Exception('Failed to fetch post reports: $e');
+    }
+  }
+
   /// Fetches all reports for a specific job by its ID.
   Future<List<JobReport>> fetchJobReports(int jobId, {int page = 1}) async {
     try {
@@ -87,6 +118,7 @@ class AdminRepository {
 
       if (response['data'] != null) {
         final data = response['data'] as List;
+        // Fix: Return directly instead of wrapping in a List
         return data.map((item) => JobReport.fromJson(item)).toList();
       } else {
         return []; // Return empty list if no data
@@ -132,9 +164,38 @@ class AdminRepository {
     }
   }
 
+  /// Deletes a specific post by its ID.
+  Future<bool> deletePost(String postId) async {
+    try {
+      await _delete(endpoint: '/posts/$postId');
+      return true; // Return true if deletion was successful
+    } catch (e) {
+      debugPrint('Error deleting post: $e');
+      return false; // Return false if deletion failed
+    }
+  }
+
   /// Updates the status of a specific job report.
-  Future<void> updateJobReportStatus(int reportId, String status) async {
-    await _patch(endpoint: '/jobs/reports/$reportId', data: {'status': status});
+  Future<bool> updateJobReportStatus(int reportId, String status) async {
+    try {
+      // Call the patch method without trying to use its return value
+      await apiClient.patch('/jobs/reports/$reportId', {'status': status});
+
+      // If we reach this point without exceptions, consider it successful
+      debugPrint('Successfully updated job report status');
+      return true;
+    } catch (e) {
+      debugPrint('Error updating job report status: $e');
+      throw Exception('Failed to update job report status: $e');
+    }
+  }
+
+  /// Updates the status of a specific post report.
+  Future<void> updatePostReportStatus(String reportId, String status) async {
+    await _patch(
+      endpoint: '/posts/reports/$reportId',
+      data: {'status': status},
+    );
   }
 
   /// Generic method to fetch a list of items.

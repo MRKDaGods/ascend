@@ -23,6 +23,33 @@ class PostReport {
     required this.updatedAt,
   });
 
+  // Add copyWith method to enable easy status updates
+  PostReport copyWith({
+    int? id,
+    int? reporterId,
+    String? reporterFullName,
+    String? reporterProfilePicture,
+    String? reason,
+    String? description,
+    String? status,
+    String? adminComment,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return PostReport(
+      id: id ?? this.id,
+      reporterId: reporterId ?? this.reporterId,
+      reporterFullName: reporterFullName ?? this.reporterFullName,
+      reporterProfilePicture: reporterProfilePicture ?? this.reporterProfilePicture,
+      reason: reason ?? this.reason,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      adminComment: adminComment ?? this.adminComment,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   factory PostReport.fromJson(Map<String, dynamic> json) {
     return PostReport(
       id: json['id'],
@@ -41,30 +68,59 @@ class PostReport {
 
 class ReportedPost {
   final String id;
+  final String authorFullName;
+  final String profilePictureUrl;
   final String content;
-  final DateTime createdAt;
+  final List<String> mediaUrls;
   final String privacy;
   final int likesCount;
   final int commentsCount;
   final int sharesCount;
-  final List<String> mediaUrls;
-  final String authorFullName;
+  final DateTime createdAt;
   final List<PostReport> reports;
-  final String profilePictureUrl;
 
   ReportedPost({
     required this.id,
+    required this.authorFullName,
+    required this.profilePictureUrl,
     required this.content,
-    required this.createdAt,
+    required this.mediaUrls,
     required this.privacy,
     required this.likesCount,
     required this.commentsCount,
     required this.sharesCount,
-    required this.mediaUrls,
-    required this.authorFullName,
-    required this.reports,
-    required this.profilePictureUrl,
+    required this.createdAt,
+    this.reports = const [],
   });
+
+  // Add this copyWith method to enable updating properties
+  ReportedPost copyWith({
+    String? id,
+    String? authorFullName,
+    String? profilePictureUrl,
+    String? content,
+    List<String>? mediaUrls,
+    String? privacy,
+    int? likesCount,
+    int? commentsCount,
+    int? sharesCount,
+    DateTime? createdAt,
+    List<PostReport>? reports,
+  }) {
+    return ReportedPost(
+      id: id ?? this.id,
+      authorFullName: authorFullName ?? this.authorFullName,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      content: content ?? this.content,
+      mediaUrls: mediaUrls ?? this.mediaUrls,
+      privacy: privacy ?? this.privacy,
+      likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
+      sharesCount: sharesCount ?? this.sharesCount,
+      createdAt: createdAt ?? this.createdAt,
+      reports: reports ?? this.reports,
+    );
+  }
 
   factory ReportedPost.fromJson(Map<String, dynamic> json) {
     final user = json['user'] ?? {};

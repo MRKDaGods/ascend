@@ -1,9 +1,9 @@
-import 'package:ascend_app/features/admin/Presentation/widgets/reported_post_card.dart';
-import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_bloc.dart';
-import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_event.dart';
-import 'package:ascend_app/features/admin/data/models/posts_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../widgets/reported_post_card.dart';
+import '../../bloc/posts/bloc/posts_bloc.dart';
+import '../../bloc/posts/bloc/posts_event.dart';
+import '../../data/models/posts_model.dart';
 
 class PostsPage extends StatefulWidget {
   const PostsPage({super.key});
@@ -13,49 +13,71 @@ class PostsPage extends StatefulWidget {
 }
 
 class _PostsPageState extends State<PostsPage> {
+  // Track expanded posts and posts with expanded reports separately
   final Set<String> expandedPosts = {};
+  final Set<String> postsWithExpandedReports = {};
 
   @override
   void initState() {
     super.initState();
     // Fetch reported posts when page loads
-    context.read<PostsBloc>().add(FetchReportedPosts(page: 1));
+    context.read<PostsBloc>().add(FetchReportedPosts());
   }
 
   void _handleDeletePost(BuildContext context, String postId) {
     showDialog(
       context: context,
       builder:
-          (dialogContext) => BlocProvider.value(
-            value: context.read<PostsBloc>(),
-            child: Builder(
-              builder:
-                  (builderContext) => AlertDialog(
-                    title: const Text('Delete Post'),
-                    content: const Text(
-                      'Are you sure you want to delete this reported post?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                          builderContext.read<PostsBloc>().add(
-                            DeletePostEvent(postId: postId),
-                          );
-                        },
-                        child: const Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
+          (dialogContext) => AlertDialog(
+            title: const Text('Delete Post'),
+            content: const Text(
+              'Are you sure you want to delete this reported post?',
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<PostsBloc>().add(
+                    DeletePostEvent(postId: postId),
+                  );
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
+    );
+  }
+
+  void _togglePostExpansion(String postId) {
+    setState(() {
+      if (expandedPosts.contains(postId)) {
+        expandedPosts.remove(postId);
+      } else {
+        expandedPosts.add(postId);
+      }
+    });
+  }
+
+  void _toggleReportsVisibility(String postId) {
+    setState(() {
+      if (postsWithExpandedReports.contains(postId)) {
+        postsWithExpandedReports.remove(postId);
+      } else {
+        postsWithExpandedReports.add(postId);
+        // Fetch reports when showing them for the first time
+        context.read<PostsBloc>().add(FetchPostReports(postId: postId));
+      }
+    });
+  }
+
+  void _handleUpdateReportStatus(String reportId, String status) {
+    context.read<PostsBloc>().add(
+      UpdatePostReportStatus(reportId: reportId, status: status),
     );
   }
 
@@ -65,14 +87,6 @@ class _PostsPageState extends State<PostsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Manage Reported Posts'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Implement search functionality here
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: BlocConsumer<PostsBloc, PostsState>(
@@ -90,66 +104,53 @@ class _PostsPageState extends State<PostsPage> {
                   content: Text('You have reached the end of posts'),
                 ),
               );
+            } else if (state is PostDeletedState) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Post deleted successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            } else if (state is PostReportStatusUpdatedState) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Report status updated to ${state.status}'),
+                  backgroundColor: Colors.green,
+                ),
+              );
             }
           },
           builder: (context, state) {
-            final PostsBloc postsBloc = context.read<PostsBloc>();
-            final List<ReportedPost> posts;
-            bool hasReachedMax;
-            int currentPage;
-
-            if (state is ReportedPostsFetchedState) {
-              posts = state.reportedPosts;
-              hasReachedMax = state.hasReachedMax;
-              currentPage = state.currentPage;
-            } else {
-              posts = postsBloc.posts;
-              hasReachedMax = postsBloc.hasReachedMax;
-              currentPage = postsBloc.currentPage;
-            }
-
-            // Show loading indicator if fetching initial data
-            if (state is FetchingReportedPostsState && posts.isEmpty) {
+            // Handle loading state
+            if (state is FetchingReportedPostsState &&
+                context.read<PostsBloc>().posts.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            // Show empty state if no posts
+            final posts = context.read<PostsBloc>().posts;
+            final hasReachedMax = context.read<PostsBloc>().hasReachedMax;
+            final currentPage = context.read<PostsBloc>().currentPage;
+
+            // Handle empty state
             if (posts.isEmpty) {
               return const Center(child: Text('No reported posts found'));
             }
 
-            // Show error state if error and no posts
-            if (state is PostsErrorState && posts.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Error: ${state.errorMessage}',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed:
-                          () => postsBloc.add(FetchReportedPosts(page: 1)),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            // Main posts list
+            // Show posts list with infinite scroll
             return RefreshIndicator(
               onRefresh: () async {
-                postsBloc.add(FetchReportedPosts(page: 1));
+                context.read<PostsBloc>().add(
+                  FetchReportedPosts(isRefresh: true),
+                );
               },
               child: NotificationListener<ScrollNotification>(
                 onNotification: (scrollInfo) {
                   if (scrollInfo.metrics.pixels ==
                           scrollInfo.metrics.maxScrollExtent &&
                       !hasReachedMax) {
-                    postsBloc.add(FetchReportedPosts(page: currentPage + 1));
+                    context.read<PostsBloc>().add(
+                      FetchReportedPosts(page: currentPage + 1),
+                    );
                   }
                   return true;
                 },
@@ -157,6 +158,7 @@ class _PostsPageState extends State<PostsPage> {
                   padding: const EdgeInsets.all(16),
                   itemCount: posts.length + (hasReachedMax ? 0 : 1),
                   itemBuilder: (context, index) {
+                    // Show loading indicator at the bottom while more posts are loading
                     if (index == posts.length) {
                       return const Center(
                         child: Padding(
@@ -167,20 +169,18 @@ class _PostsPageState extends State<PostsPage> {
                     }
 
                     final post = posts[index];
+                    final isExpanded = expandedPosts.contains(post.id);
+                    final showReports = postsWithExpandedReports.contains(
+                      post.id,
+                    );
+
                     return ReportedPostCard(
                       post: post,
-                      isExpanded: expandedPosts.contains(post.id),
-                      onToggleExpand: () {
-                        setState(() {
-                          if (expandedPosts.contains(post.id)) {
-                            expandedPosts.remove(post.id);
-                          } else {
-                            expandedPosts.add(post.id);
-                          }
-                        });
-                      },
-                      onDelete:
-                          () => _handleDeletePost(context, post.id.toString()),
+                      isExpanded: isExpanded,
+                      showReports: showReports,
+                      onToggleExpand: () => _togglePostExpansion(post.id),
+                      onToggleReports: () => _toggleReportsVisibility(post.id),
+                      onDelete: () => _handleDeletePost(context, post.id),
                     );
                   },
                 ),

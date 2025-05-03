@@ -11,17 +11,18 @@ final class FetchingReportedPostsState extends PostsState {}
 
 /// State when reported posts are successfully fetched.
 final class ReportedPostsFetchedState extends PostsState {
-  final List<ReportedPost>
-  reportedPosts; // Updated to use the ReportedPost model
+  final List<ReportedPost> reportedPosts;
   final int currentPage;
   final int totalPages;
   final bool hasReachedMax;
+  final Map<String, List<PostReport>> postReports;
 
   ReportedPostsFetchedState({
     required this.reportedPosts,
     required this.currentPage,
     required this.totalPages,
     this.hasReachedMax = false,
+    this.postReports = const {},
   });
 }
 
@@ -30,14 +31,16 @@ final class FetchingPostReportsState extends PostsState {}
 
 /// State when reports for a specific post are successfully fetched.
 final class PostReportsFetchedState extends PostsState {
-  final List<PostReport> postReports; // Updated to use the PostReport model
+  final List<PostReport> postReports;
   final int currentPage;
   final int totalPages;
+  final String postId;
 
   PostReportsFetchedState({
     required this.postReports,
     required this.currentPage,
     required this.totalPages,
+    required this.postId,
   });
 }
 
@@ -57,8 +60,23 @@ final class UpdatingReportState extends PostsState {}
 /// State when a report is successfully updated.
 final class ReportUpdatedState extends PostsState {
   final String reportId;
+  final Map<String, dynamic>? updatedData;
 
-  ReportUpdatedState({required this.reportId});
+  ReportUpdatedState({
+    required this.reportId,
+    this.updatedData,
+  });
+}
+
+/// State when a specific report status is updated.
+final class PostReportStatusUpdatedState extends PostsState {
+  final String reportId;
+  final String status;
+
+  PostReportStatusUpdatedState({
+    required this.reportId,
+    required this.status,
+  });
 }
 
 /// State when an error occurs.
@@ -70,3 +88,14 @@ final class PostsErrorState extends PostsState {
 
 /// State when the end of posts is reached.
 final class EndOfPostsReachedState extends PostsState {}
+
+/// State for toggling post reports visibility in the UI.
+final class PostReportsVisibilityState extends PostsState {
+  final String postId;
+  final bool isVisible;
+
+  PostReportsVisibilityState({
+    required this.postId,
+    required this.isVisible,
+  });
+}
