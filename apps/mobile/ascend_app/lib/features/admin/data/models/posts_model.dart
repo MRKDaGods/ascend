@@ -71,27 +71,29 @@ class ReportedPost {
     final media = json['media'] as List? ?? [];
 
     return ReportedPost(
-      id: json['id'],
+      id: json['id'].toString(), // Ensure ID is a string
       content: json['content'],
       createdAt: DateTime.parse(json['created_at']),
       privacy: json['privacy'],
       likesCount: json['likes_count'],
       commentsCount: json['comments_count'],
       sharesCount: json['shares_count'],
-      mediaUrls: media.map((m) => m['url'] as String).toList(),
+      mediaUrls: media.map((m) => m['url'].toString()).toList(),
       authorFullName: '${user['first_name']} ${user['last_name']}',
       reports:
-          (json['reports'] as List)
+          (json['reports'] as List? ?? [])
               .map((reportJson) => PostReport.fromJson(reportJson))
               .toList(),
-      profilePictureUrl: user['profile_picture_url']?.toString() ?? '',
+      profilePictureUrl: _parseProfilePic(user['profile_picture_url']) ?? '',
     );
   }
 
-  static String _convertToString(dynamic value) {
-    if (value == null) {
-      return '';
+  static String? _parseProfilePic(dynamic value) {
+    // If the value is a String, it's a valid URL
+    if (value is String) {
+      return value;
     }
-    return value.toString();
+    // If the value is an int or any other type, return null to use fallback
+    return null;
   }
 }

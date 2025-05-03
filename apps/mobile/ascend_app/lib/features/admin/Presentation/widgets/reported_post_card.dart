@@ -34,12 +34,25 @@ class ReportedPostCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  fullName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage:
+                          post.profilePictureUrl.isNotEmpty
+                              ? NetworkImage(post.profilePictureUrl)
+                              : const AssetImage('assets/default_profile.png')
+                                  as ImageProvider,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      fullName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
                   createdAt,
