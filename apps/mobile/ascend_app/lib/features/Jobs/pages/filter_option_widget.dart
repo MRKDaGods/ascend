@@ -9,18 +9,21 @@ class FilterOptionWidget extends StatefulWidget {
   final bool isReset;
 
   const FilterOptionWidget({
-    Key? key,
+    super.key,
     required this.filterName,
     required this.options,
     required this.allowMultipleSelection,
     required this.onFilterChanged,
     required this.isReset,
-  }) : super(key: key);
+  });
 
 
 
   @override
-  State<FilterOptionWidget> createState() => _FilterOptionWidgetState();
+
+  // ignore: library_private_types_in_public_api
+  _FilterOptionWidgetState createState() => _FilterOptionWidgetState();
+
 }
 
 class _FilterOptionWidgetState extends State<FilterOptionWidget> {
@@ -320,8 +323,17 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                                             .toLowerCase()
                                             .contains(value.toLowerCase()),
                                       )
-                                      .take(3)
                                       .toList();
+                              if (!filteredOptions.contains(value) &&
+                                  value.isNotEmpty) {
+                                setState(() {
+                                  companySearchNames.add(value);
+                                  filteredOptions.add(value);
+                                });
+                              } else if (filteredOptions.contains(value) &&
+                                  value.isNotEmpty) {
+                                filteredOptions.remove(value);
+                              }
                             });
                           },
                         ),
@@ -427,8 +439,12 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        chipColor =
-                            Colors.green; // Set the filter color to green
+                        if (selectedOptions.isNotEmpty) {
+                          chipColor =
+                              Colors.green; // Set the filter color to green
+                        } else {
+                          selectedFilterName = widget.filterName;
+                        }
                       });
                       Navigator.pop(context);
                     },
