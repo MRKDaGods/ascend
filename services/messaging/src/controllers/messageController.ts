@@ -64,16 +64,19 @@ export const handleSendMessage = [
       );
 
       // Send the message to the receiver via WebSocket
-      const receiverSocketId = getOnlineUsersMap().get(receiverId);
-      if (receiverSocketId) {
-        getSocketServer().to(receiverSocketId).emit("message:receive", {
-          senderId,
-          conversationId: messageResult.conversationId,
-          messageId: messageResult.messageId,
-          content: messageResult.content,
-          fileUrl: messageResult.fileUrl,
-          fileType: messageResult.fileType,
-          sentAt: messageResult.sentAt,
+      const receiverSockets = getOnlineUsersMap().get(receiverId);
+      if (receiverSockets && receiverSockets.size > 0) {
+        // Send to all of the receiver's connected devices
+        receiverSockets.forEach((socketId) => {
+          getSocketServer().to(socketId).emit("message:receive", {
+            senderId,
+            conversationId: messageResult.conversationId,
+            messageId: messageResult.messageId,
+            content: messageResult.content,
+            fileUrl: messageResult.fileUrl,
+            fileType: messageResult.fileType,
+            sentAt: messageResult.sentAt,
+          });
         });
       }
 
@@ -166,10 +169,13 @@ export const handleGetMessages = async (
     const otherUserId = await getOtherUserId(conversationId, userId);
     await markMessagesAsRead(conversationId, otherUserId);
 
-    const otherUserSocketId = getOnlineUsersMap().get(otherUserId);
-    if (otherUserSocketId) {
-      getSocketServer().to(otherUserSocketId).emit("message:read", {
-        conversationId,
+    const otherUserSockets = getOnlineUsersMap().get(otherUserId);
+    if (otherUserSockets && otherUserSockets.size > 0) {
+      // Notify all of the other user's connected devices
+      otherUserSockets.forEach((socketId) => {
+        getSocketServer().to(socketId).emit("message:read", {
+          conversationId,
+        });
       });
     }
 

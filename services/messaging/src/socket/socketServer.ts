@@ -6,8 +6,9 @@ import {
   markMessagesAsRead,
 } from "../services/messageService";
 
-// Maps user IDs to their socket IDs for tracking online status
-const onlineUsersMap = new Map<number, string>();
+// Map to keep track of online users and their socket IDs
+// This map will store user IDs as keys and a Set of socket IDs as values
+const onlineUsersMap = new Map<number, Set<string>>();
 
 const socketServer = new Server({
   cors: {
@@ -36,10 +37,19 @@ socketServer.on("connection", (socket) => {
       const tokenPayload = verifyToken(authToken);
       const userId = tokenPayload.id;
 
-      onlineUsersMap.set(userId, socket.id);
+      // Initialize Set if this is the first socket for this user
+      if (!onlineUsersMap.has(userId)) {
+        onlineUsersMap.set(userId, new Set());
+      }
+
+      // Add this socket ID to the user's set of sockets
+      onlineUsersMap.get(userId)?.add(socket.id);
+
       socket.data.userId = userId;
 
-      console.log(`User ${userId} registered successfully`);
+      console.log(
+        `User ${userId} registered successfully on socket ${socket.id}`
+      );
       socket.emit("registered", { userId });
     } catch (error) {
       console.error("Authentication failed:", error);
@@ -49,7 +59,7 @@ socketServer.on("connection", (socket) => {
 
   /**
    * Notifies recipient that sender has started typing
-   * @param {{ toUserId: number }} data - Recipient's user ID
+   * @param {{ conversationId: number }} data - Conversation ID
    */
   socket.on("typing", async ({ conversationId }) => {
     if (!socket.data.userId) {
@@ -72,11 +82,14 @@ socketServer.on("connection", (socket) => {
     }
 
     const recipientId = await getOtherUserId(conversationId, senderId);
-    const recipientSocketId = onlineUsersMap.get(recipientId);
+    const recipientSockets = onlineUsersMap.get(recipientId);
 
-    if (recipientSocketId) {
-      socketServer.to(recipientSocketId).emit("typing", {
-        conversationId,
+    // Send typing notification to all recipient's connected devices
+    if (recipientSockets && recipientSockets.size > 0) {
+      recipientSockets.forEach((socketId) => {
+        socketServer.to(socketId).emit("typing", {
+          conversationId,
+        });
       });
     }
   });
@@ -104,12 +117,14 @@ socketServer.on("connection", (socket) => {
 
       // Get the other user's ID
       const otherUserId = await getOtherUserId(conversationId, senderId);
-      const otherUserSocketId = onlineUsersMap.get(otherUserId);
+      const otherUserSockets = onlineUsersMap.get(otherUserId);
 
-      // Notify the other user if they are online
-      if (otherUserSocketId) {
-        socketServer.to(otherUserSocketId).emit("message:read", {
-          conversationId,
+      // Notify all of the other user's devices if they are online
+      if (otherUserSockets && otherUserSockets.size > 0) {
+        otherUserSockets.forEach((socketId) => {
+          socketServer.to(socketId).emit("message:read", {
+            conversationId,
+          });
         });
       }
 
@@ -122,13 +137,24 @@ socketServer.on("connection", (socket) => {
   });
 
   /**
-   * Handles client disconnection and removes user from online list
+   * Handles client disconnection and removes socket from user's set
    */
   socket.on("disconnect", () => {
     if (socket.data.userId) {
-      onlineUsersMap.delete(socket.data.userId);
+      const userId = socket.data.userId;
+      const userSockets = onlineUsersMap.get(userId);
+
+      if (userSockets) {
+        // Remove this socket
+        userSockets.delete(socket.id);
+
+        // If no more sockets for this user, remove the user entry
+        if (userSockets.size === 0) {
+          onlineUsersMap.delete(userId);
+        }
+      }
     }
-    console.log("Client disconnected");
+    console.log(`Client disconnected: ${socket.id}`);
   });
 });
 
@@ -139,7 +165,27 @@ socketServer.on("connection", (socket) => {
 export const getSocketServer = () => socketServer;
 
 /**
- * Gets the map of online users
- * @returns {Map<number, string>} Map of user IDs to socket IDs
+ * Gets the map of online users with their socket IDs
+ * @returns {Map<number, Set<string>>} Map of user IDs to sets of socket IDs
  */
 export const getOnlineUsersMap = () => onlineUsersMap;
+
+/**
+ * Checks if a user is online (has at least one active socket)
+ * @param {number} userId - The user ID to check
+ * @returns {boolean} True if the user has at least one active connection
+ */
+export const isUserOnline = (userId: number): boolean => {
+  const sockets = onlineUsersMap.get(userId);
+  return !!sockets && sockets.size > 0;
+};
+
+/**
+ * Gets the number of active connections for a user
+ * @param {number} userId - The user ID to check
+ * @returns {number} The number of active connections
+ */
+export const getUserConnectionCount = (userId: number): number => {
+  const sockets = onlineUsersMap.get(userId);
+  return sockets ? sockets.size : 0;
+};
