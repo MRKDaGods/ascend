@@ -951,8 +951,29 @@ class PostRepository {
         debugPrint(
           '✅ [PostRepository] Fetched ${comments.length} comments for post $postId.',
         );
-        // Return the list as is. The BLoC will structure it.
-        return comments;
+
+        // Fetch reaction counts for each comment
+        List<Comment> commentsWithCounts = [];
+        for (var comment in comments) {
+          try {
+            // Fetch counts using the updated method
+            final countsData = await getCommentReactionCounts(comment.id);
+            // Extract the total count from the returned map
+            final totalCount = countsData['total'] ?? 0;
+            commentsWithCounts.add(comment.copyWith(likesCount: totalCount));
+            debugPrint('📊 [PostRepository] Fetched reaction count for comment ${comment.id}: $totalCount');
+          } catch (e) {
+            debugPrint('⚠️ [PostRepository] Failed to fetch reaction count for comment ${comment.id}: $e. Using initial count: ${comment.likesCount}');
+            // Add the comment even if count fetching fails, using the count from the initial fetch (likely 0 or outdated)
+            commentsWithCounts.add(comment);
+          }
+        }
+        debugPrint(
+          '✅ [PostRepository] Finished fetching counts. Returning ${commentsWithCounts.length} comments with counts.',
+        );
+        // Return the list with updated counts. The BLoC will structure it.
+        return commentsWithCounts;
+
       } else {
         debugPrint(
           '❌ [PostRepository] Failed to load comments for post $postId. Status: ${response.statusCode}, Body: ${response.body}',
@@ -964,6 +985,53 @@ class PostRepository {
         '❌ [PostRepository] Error fetching comments for post $postId: $e',
       );
       throw Exception('Error fetching comments: $e');
+    }
+  }
+
+  // NEW: Get reaction counts for a specific comment
+  Future<Map<String, int>> getCommentReactionCounts(String commentId) async {
+    // Adjust the endpoint path if necessary
+    final String countsUrl = '$baseUrl/post/comments/$commentId/reaction-counts';
+    debugPrint('🔄 [PostRepository] Fetching reaction counts for comment $commentId from $countsUrl');
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      // Handle missing token case
+      if (authToken == null) {
+        debugPrint('⚠️ [PostRepository] Auth token is null. Cannot fetch reaction counts for comment $commentId.');
+        return {'total': 0}; // Return 0 count if not authenticated
+      }
+
+      final response = await http.get( // Use http.get directly or ensure _client is available
+        Uri.parse(countsUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        // Check if the response indicates success and contains data
+        if (responseData['success'] == true && responseData['data'] != null) {
+            final Map<String, dynamic> data = responseData['data'];
+            // Extract the total reactions count
+            final int totalCount = data['total_reactions_count'] as int? ?? 0;
+            debugPrint('✅ [PostRepository] Received total reaction count for comment $commentId: $totalCount');
+            // Return a map with the 'total' key for consistency with previous usage
+            return {'total': totalCount};
+        } else {
+            debugPrint('❌ [PostRepository] API indicated failure or missing data for comment $commentId reaction counts. Response: ${response.body}');
+            return {'total': 0}; // Return 0 on API-level failure
+        }
+      } else {
+        debugPrint('❌ [PostRepository] Failed to fetch reaction counts for comment $commentId. Status: ${response.statusCode}, Body: ${response.body}');
+        // Return 0 count on HTTP failure
+        return {'total': 0};
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error in getCommentReactionCounts for comment $commentId: $e');
+      // Return 0 count on exception
+      return {'total': 0};
     }
   }
 
