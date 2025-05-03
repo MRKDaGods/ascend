@@ -64,12 +64,13 @@ export default function Home() {
       <Container
         sx={{
           flexGrow: 1,
-          mt: 10,
+          mt: 6, // Changed from 10 to 2 to match other pages
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
-          gap: 3,
+          gap: 7,
           maxWidth: "1200px",
           pb: 3,
+          px: { xs: 1, sm: 2 }, // Added consistent padding
         }}
       >
         {/* Left Panel */}
@@ -82,6 +83,7 @@ export default function Home() {
             position: { md: "sticky" },
             top: { md: "80px" },
             height: "fit-content",
+            alignSelf: "flex-start", // Added to ensure consistent alignment
           }}
         >
           {userData ? <ProfileCard /> : <CircularProgress />}
@@ -98,6 +100,7 @@ export default function Home() {
             minHeight: "100vh",
             display: "flex",
             flexDirection: "column",
+            mt: { xs: 0, md: 0 }, // Reset any margin
           }}
         >
           <NotificationCard />

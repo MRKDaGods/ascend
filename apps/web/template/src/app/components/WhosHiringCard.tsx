@@ -17,7 +17,6 @@ const WhosHiringCard = () => {
   return (
     <Card
       sx={{
-        maxWidth: 360,
         borderRadius: 3,
         overflow: "hidden",
         border: `1px solid ${theme.palette.divider}`,

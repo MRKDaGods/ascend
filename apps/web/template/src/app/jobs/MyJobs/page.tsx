@@ -196,34 +196,32 @@ const MyJobsPage = () => {
           {/* Job Cards Section */}
           <Stack spacing={3}>
             {filteredJobs.length > 0 ? (
-              filteredJobs.map((job, index) => (
-                <Fade in timeout={400 + index * 75} key={job.job_id}>
-                  <Box>
-                    <JobCard
-                      job_id={job.job_id}
-                      title={job.title}
-                      description={job.description}
-                      industry={job.industry}
-                      type={job.type}
-                      experience_level={job.experience_level}
-                      location={job.location}
-                      workplace_type={job.workplace_type}
-                      salary_min_range={job.salary_min_range}
-                      salary_max_range={job.salary_max_range}
-                      company_id={job.company_id}
-                      company_name={job.company_name}
-                      company_logo_url={job.company_logo_url ?? null}
-                      saved_at={job.saved_at}
-                      status={job.status}
-                      applicationStatus={job.applicationStatus}
-                      onDelete={deleteJob}
-                      created_at={job.created_at}
-                      company_description={job.company_description}
-                      company_industry={job.company_industry}
-                      company_location={job.company_location}
-                    />
-                  </Box>
-                </Fade>
+              filteredJobs.map((job) => (
+                <Box key={`job-${job.job_id}`}>  {/* Added unique key prop */}
+                  <JobCard
+                    job_id={job.job_id}
+                    title={job.title}
+                    description={job.description}
+                    industry={job.industry}
+                    type={job.type}
+                    experience_level={job.experience_level}
+                    location={job.location}
+                    workplace_type={job.workplace_type}
+                    salary_min_range={job.salary_min_range}
+                    salary_max_range={job.salary_max_range}
+                    company_id={job.company_id}
+                    company_name={job.company_name}
+                    company_logo_url={job.company_logo_url ?? null}
+                    saved_at={job.saved_at}
+                    status={job.status}
+                    applicationStatus={job.applicationStatus}
+                    onDelete={deleteJob}
+                    created_at={job.created_at}
+                    company_description={job.company_description}
+                    company_industry={job.company_industry}
+                    company_location={job.company_location}
+                  />
+                </Box>
               ))
             ) : (
               <Paper

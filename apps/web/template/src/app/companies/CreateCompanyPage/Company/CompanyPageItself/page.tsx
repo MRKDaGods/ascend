@@ -2,6 +2,7 @@
 'use client';
 
 import { Box, Grid } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Sidebar from '@/app/components/CompanySidebar';
 import DashboardActions from '@/app/components/DashboardActions';
 import ManagePosts from '@/app/components/ManagePosts';
@@ -13,6 +14,7 @@ import Navbar from '@/app/components/Navbar';
 
 export default function Page() {
   const { activePage } = useNavigationStore();
+  const theme = useTheme();
 
   const renderContent = () => {
     switch (activePage) {
@@ -60,7 +62,14 @@ export default function Page() {
       default:
         return (
           <Grid item xs={12}>
-            <Box sx={{ p: 2 }}>No content available for "{activePage}" yet.</Box>
+            <Box sx={{ 
+              p: 2,
+              color: theme.palette.text.secondary,
+              bgcolor: theme.palette.background.paper,
+              borderRadius: 1,
+            }}>
+              No content available for "{activePage}" yet.
+            </Box>
           </Grid>
         );
     }
@@ -68,13 +77,26 @@ export default function Page() {
 
   return (
     <>
-    <Navbar />
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
-      <Sidebar />
-      <Grid container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
-        {renderContent()}
-      </Grid>
-    </Box>
+      <Navbar />
+      <Box sx={{ 
+        display: 'flex', 
+        minHeight: '100vh',
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+      }}>
+        <Sidebar />
+        <Grid 
+          container 
+          spacing={2} 
+          sx={{ 
+            padding: 2, 
+            flexGrow: 1,
+            bgcolor: 'inherit',
+          }}
+        >
+          {renderContent()}
+        </Grid>
+      </Box>
     </>
   );
 }

@@ -135,7 +135,6 @@ const NotificationCard: React.FC = () => {
         width: "100%",
         maxWidth: 750,
         p: 2,
-        mt: 2,
         borderRadius: 3,
         boxShadow: 3,
         bgcolor: theme.palette.background.paper,

@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from "react";
+import API from "@/api/api";
 import { useRouter } from "next/navigation";
 import {
   Card, CardContent, List, ListItem, Avatar, Typography, Divider,
@@ -73,15 +74,6 @@ const JobList = () => {
       ...(job.salary_max_range && { salary_max_range: job.salary_max_range.toString() })
     });
     
-    // If you have about and requirements properties, add them too
-    // if (job.about) {
-    //   params.append('about', job.about);
-    // }
-    
-    // if (job.requirements && Array.isArray(job.requirements)) {
-    //   params.append('requirements', job.requirements.join(','));
-    // }
-    
     router.push(`/jobs/apply?${params.toString()}`);
   };
 
@@ -98,38 +90,34 @@ const JobList = () => {
     }
 
     try {
-      // Get token from localStorage instead of hardcoding it
-      const token = localStorage.getItem('token') || '';
       
-      const response = await fetch(`https://api.ascendx.tech/job/${id}/report`, {
-        method: "POST",
+      const response = await API.post(`/job/${id}/report`, {
+        reason: reportReason,
+        job_id: id,
+      }, {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          reason: reportReason,
-          job_id: id
-        }),
       });
 
       // Check if the response is OK without trying to parse it as JSON first
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (!response.data) {
+        const errorText = await response.data;
         console.error("Report failed:", errorText);
         alert(`Failed to submit the report: ${response.status} ${response.statusText}`);
         return;
       }
 
-      // Try to parse as JSON only if needed (or skip if you know it's just a text response)
-      let responseData;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json();
-      } else {
-        responseData = await response.text();
-      }
-
-      console.log("Report successful:", responseData);
+      // // Try to parse as JSON only if needed (or skip if you know it's just a text response)
+      // let responseData;
+      // const contentType = response.headers.get('content-type');
+      // if (contentType && contentType.includes('application/json')) {
+      //   responseData = await response.data;
+      // } else {
+      //   responseData = await response.data;
+      // }
+      // console.log("Report successful:", responseData);
+      
       setReportDialogOpen(false);
       setReportReason("");
       setJobToReport(null);

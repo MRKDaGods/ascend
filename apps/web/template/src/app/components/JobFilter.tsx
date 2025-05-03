@@ -87,15 +87,36 @@ export default function JobFilter() {
           />
         </Grid>
 
-        {/* Location */}
+        {/* Location - Modified to allow free text input with error handling */}
         <Grid item xs={12} sm={6} md={4}>
-          <TextField 
-            label="Location" 
-            fullWidth
-            margin="dense" 
-            sx={textFieldStyle}
-            size="small"
+          <Autocomplete
+            freeSolo
+            options={locations}
+            value={location}
+            inputValue={location}
+            onInputChange={(event, newInputValue) => {
+              // Sanitize input to prevent API errors
+              const sanitizedValue = newInputValue.replace(/[^\w\s,-]/g, '');
+              setFilter('location', sanitizedValue);
+            }}
+            onChange={(event, newValue) => {
+              // Sanitize selected value as well
+              const sanitizedValue = newValue ? newValue.replace(/[^\w\s,-]/g, '') : '';
+              setFilter('location', sanitizedValue);
+            }}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Location" 
+                margin="dense" 
+                sx={textFieldStyle}
+                size="small"
+                placeholder="Enter locations (separate multiple with commas)"
+                helperText="For multiple locations, use commas: New York, London"
+              />
+            )}
             data-testid="job-filter-location"
+            size="small"
           />
         </Grid>
 

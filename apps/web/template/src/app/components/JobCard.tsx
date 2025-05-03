@@ -850,7 +850,7 @@ const JobCard: React.FC<JobCardProps> = ({
         }}>
           {!isEditMode && (
             <Button 
-              onClick={() => router.push(`/job/${job_id}/applications?title=${encodeURIComponent(title)}&company=${encodeURIComponent(company_name)}`)} 
+              onClick={() => router.push(`/jobs/job/${job_id}`)} 
               variant="contained" 
               color="primary"
               fullWidth={window.innerWidth < 600} // Responsive full-width button on mobile

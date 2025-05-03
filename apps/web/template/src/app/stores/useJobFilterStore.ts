@@ -10,7 +10,7 @@ type Job = {
   experience_level: string;
   location: string;
   workplace_type: string;
-  salary_min_range: number |undefined;
+  salary_min_range: number | undefined;
   salary_max_range: number | undefined;
   company_id: number;
   company_name: string;
@@ -25,16 +25,20 @@ type JobFilters = {
   experience_level: string[];
   company: string;
   workplace_type: string;
-  salary_range_min: number | undefined; // Allow undefined
-  salary_range_max: number | undefined; // Allow undefined
+  salary_range_min: number | undefined;
+  salary_range_max: number | undefined;
   page: number;
 };
 
 type JobFilterStore = JobFilters & {
   jobs: Job[];
+  loading: boolean;
+  error: string | null;
   setFilter: (key: keyof JobFilters, value: any) => void;
   resetFilters: () => void;
   setJobs: (jobs: Job[]) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 };
 
 export const useJobFilterStore = create<JobFilterStore>((set) => ({
@@ -44,10 +48,12 @@ export const useJobFilterStore = create<JobFilterStore>((set) => ({
   experience_level: [],
   company: '',
   workplace_type: '',
-  salary_range_min: 0, // Default to 0
-  salary_range_max: 0, // Default to 0
+  salary_range_min: undefined,
+  salary_range_max: undefined,
   page: 1,
   jobs: [],
+  loading: false,
+  error: null,
   setFilter: (key, value) => set((state) => ({ ...state, [key]: value })),
   resetFilters: () =>
     set({
@@ -57,10 +63,11 @@ export const useJobFilterStore = create<JobFilterStore>((set) => ({
       experience_level: [],
       company: '',
       workplace_type: '',
-      salary_range_min: 0,
-      salary_range_max: 0, // Reset to 0
+      salary_range_min: undefined,
+      salary_range_max: undefined,
       page: 1,
-      jobs: [],
     }),
   setJobs: (jobs) => set({ jobs }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
 }));

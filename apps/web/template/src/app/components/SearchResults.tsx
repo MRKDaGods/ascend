@@ -11,6 +11,8 @@ import {
   Card,
   CardContent,
   CardHeader,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
@@ -20,25 +22,51 @@ import ConnectionUI from "./ConnectionUI";
 const SearchResults: React.FC = () => {
   const { searchResults, setSearchResults } = usePostStore();
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   if (!searchResults) return null;
 
   const { users, posts } = searchResults;
+
+  const positionStyle = isMobile
+    ? {
+        top: "auto",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        transform: "none",
+        width: "100%",
+        height: "70vh",
+        borderRadius: "16px 16px 0 0",
+      }
+    : isTablet
+    ? {
+        top: "64px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "90%",
+        maxHeight: "70vh",
+      }
+    : {
+        top: "64px",
+        left: "30%", 
+        transform: "translateX(-50%)",
+        width: "min(600px, 90%)",
+        maxHeight: "70vh",
+      };
 
   return (
     <ClickAwayListener onClickAway={() => setSearchResults(null)}>
       <Box
         sx={{
           position: "absolute",
-          top: "64px",
-          left: "30%",
-          transform: "translateX(-50%)",
+          ...positionStyle,
           bgcolor: "background.paper",
           border: "1px solid",
           borderColor: "divider",
-          borderRadius: 2,
-          width: "min(600px, 90%)",
-          maxHeight: "70vh",
+          borderRadius: isMobile ? "16px 16px 0 0" : 2,
           overflowY: "auto",
           zIndex: 1300,
           boxShadow: 5,
@@ -46,7 +74,10 @@ const SearchResults: React.FC = () => {
         }}
       >
         {/* ❌ Close Button */}
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, alignItems: "center" }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Search Results
+          </Typography>
           <IconButton size="small" onClick={() => setSearchResults(null)}>
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -69,6 +100,7 @@ const SearchResults: React.FC = () => {
                   mb: 2,
                   p: 1,
                   borderRadius: 2,
+                  flexDirection: isMobile ? "column" : "row",
                   "&:hover": {
                     backgroundColor: "action.hover",
                   },
@@ -76,7 +108,14 @@ const SearchResults: React.FC = () => {
               >
                 {/* Left: avatar + name (clickable) */}
                 <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1, cursor: "pointer" }}
+                  sx={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 2, 
+                    flex: 1, 
+                    cursor: "pointer",
+                    width: isMobile ? "100%" : "auto",
+                  }}
                   onClick={() => {
                     router.push(`/profile?id=${user.id}`);
                     setSearchResults(null);
@@ -90,20 +129,32 @@ const SearchResults: React.FC = () => {
                         : undefined
                     }
                   />
-                  <Box>
-                    <Typography fontWeight="bold">
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography fontWeight="bold" noWrap>
                       {user.first_name} {user.last_name}
                     </Typography>
                     {user.bio && (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
                         {user.bio}
                       </Typography>
                     )}
                   </Box>
                 </Box>
 
-                {/* Right: new Connect logic */}
-                <ConnectionUI userId={user.id} />
+                {/* Right: Connect button */}
+                <Box sx={{ mt: isMobile ? 1 : 0, width: isMobile ? "100%" : "auto" }}>
+                  <ConnectionUI userId={user.id} />
+                </Box>
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
@@ -121,13 +172,14 @@ const SearchResults: React.FC = () => {
                 key={post.id}
                 sx={{
                   mb: 2,
-                  p: 2,
+                  p: { xs: 1, sm: 2 },
                   boxShadow: 2,
                   borderRadius: 3,
                   backgroundColor: "background.default",
                 }}
               >
                 <CardHeader
+                  sx={{ p: { xs: 1, sm: 2 } }}
                   avatar={
                     <Avatar
                       src={
@@ -145,8 +197,18 @@ const SearchResults: React.FC = () => {
                     </Typography>
                   }
                 />
-                <CardContent sx={{ pt: 0 }}>
-                  <Typography fontSize="1rem" sx={{ wordBreak: "break-word" }}>
+                <CardContent sx={{ pt: 0, p: { xs: 1, sm: 2 } }}>
+                  <Typography 
+                    fontSize="1rem" 
+                    sx={{ 
+                      wordBreak: "break-word",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 4,
+                      WebkitBoxOrient: "vertical",
+                    }}
+                  >
                     {post.content}
                   </Typography>
                 </CardContent>
@@ -157,8 +219,8 @@ const SearchResults: React.FC = () => {
 
         {/* NO RESULTS */}
         {users.length === 0 && posts.length === 0 && (
-          <Typography textAlign="center" color="text.secondary" py={2}>
-            No results found.
+          <Typography textAlign="center" color="text.secondary" py={4}>
+            No results found. Try different keywords.
           </Typography>
         )}
       </Box>
