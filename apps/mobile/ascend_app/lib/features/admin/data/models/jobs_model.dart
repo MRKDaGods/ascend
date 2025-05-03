@@ -27,26 +27,29 @@ class ReportedJob {
     required this.salaryMaxRange,
     required this.companyId,
     required this.companyName,
-    required this.companyLogoUrl,
+    this.companyLogoUrl,
     required this.createdAt,
   });
 
   factory ReportedJob.fromJson(Map<String, dynamic> json) {
     return ReportedJob(
-      jobId: json['job_id'],
-      title: json['title'],
-      description: json['description'],
-      industry: json['industry'],
-      type: json['type'],
-      experienceLevel: json['experience_level'],
-      location: json['location'],
-      workplaceType: json['workplace_type'],
-      salaryMinRange: json['salary_min_range'],
-      salaryMaxRange: json['salary_max_range'],
-      companyId: json['company_id'],
-      companyName: json['company_name'],
+      jobId: json['job_id'] ?? 0,
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      industry: json['industry'] ?? '',
+      type: json['type'] ?? '',
+      experienceLevel: json['experience_level'] ?? '',
+      location: json['location'] ?? '',
+      workplaceType: json['workplace_type'] ?? '',
+      salaryMinRange: json['salary_min_range'] ?? 0,
+      salaryMaxRange: json['salary_max_range'] ?? 0,
+      companyId: json['company_id'] ?? 0,
+      companyName: json['company_name'] ?? '',
       companyLogoUrl: json['company_logo_url'],
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
     );
   }
 }
@@ -57,6 +60,7 @@ class JobReport {
   final String reporterFullName;
   final String? reporterProfilePicture;
   final String reason;
+  int totalRecords;
   String status;
   final DateTime createdAt;
 
@@ -68,17 +72,22 @@ class JobReport {
     required this.reason,
     required this.status,
     required this.createdAt,
+    this.totalRecords = 0,
   });
 
   factory JobReport.fromJson(Map<String, dynamic> json) {
     return JobReport(
-      id: json['id'],
-      reporterId: json['reporter_id'],
-      reporterFullName: json['reporter_full_name'],
+      id: json['id'] ?? 0,
+      reporterId: json['reporter_id'] ?? 0,
+      reporterFullName: json['reporter_full_name'] ?? '',
       reporterProfilePicture: json['reporter_profile_picture'],
-      reason: json['reason'],
-      status: json['status'],
-      createdAt: DateTime.parse(json['created_at']),
+      reason: json['reason'] ?? '',
+      status: json['status'] ?? '',
+      totalRecords: json['total_records'] ?? 0,
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
     );
   }
 }

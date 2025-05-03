@@ -55,11 +55,30 @@ class AdminRepository {
 
   /// Fetches all reports for a specific job by its ID.
   Future<List<JobReport>> fetchJobReports(int jobId, {int page = 1}) async {
-    return _fetchList<JobReport>(
-      endpoint: '/jobs/$jobId/reports',
-      fromJson: (json) => JobReport.fromJson(json),
-      page: page, // Pass the page parameter
-    );
+    try {
+      final endpoint = '/jobs/$jobId/reports';
+      final paginatedEndpoint = '$endpoint?page=$page';
+
+      debugPrint(
+        'Fetching job reports from URL: $paginatedEndpoint',
+      ); // Log the URL
+
+      final response = await apiClient.get(paginatedEndpoint);
+
+      debugPrint(
+        'Response from API for job reports: $response',
+      ); // Debug response
+
+      if (response['data'] != null) {
+        final data = response['data'] as List;
+        return data.map((item) => JobReport.fromJson(item)).toList();
+      } else {
+        return []; // Return empty list if no data
+      }
+    } catch (e) {
+      debugPrint('Error fetching job reports for job $jobId: $e');
+      throw Exception('Failed to fetch job reports: $e');
+    }
   }
 
   /// Fetches a list of reported jobs.

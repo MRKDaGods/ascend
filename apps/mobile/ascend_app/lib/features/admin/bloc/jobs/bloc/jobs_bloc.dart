@@ -34,28 +34,31 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
 
     // Handle FetchJobReportsEvent
     on<FetchJobReportsEvent>((event, emit) async {
-      debugPrint('Fetching reports for jobId: ${event.jobId}'); // Log the jobId
-      emit(ReportedJobsLoadingState());
+      // Don't emit loading state here to avoid UI flickering
       try {
-        final jobReports = await adminRepository.fetchJobReports(
-          event.jobId,
-          page: event.page,
-        );
-
-        // Debug the fetched reports
-        debugPrint(
-          'Fetched ${jobReports.length} reports for jobId: ${event.jobId}',
-        );
-        for (var report in jobReports) {
-          debugPrint(
-            'Report: ${report.reporterFullName}, Reason: ${report.reason}',
-          );
+        final jobReports = await adminRepository.fetchJobReports(event.jobId, page: event.page);
+        
+        // Check if we're already in a ReportedJobsLoadedState
+        if (state is ReportedJobsLoadedState) {
+          final currentState = state as ReportedJobsLoadedState;
+          
+          // Create a copy of the current reports map
+          final updatedReports = Map<int, List<JobReport>>.from(currentState.jobReports);
+          
+          // Update with the new reports
+          updatedReports[event.jobId] = jobReports;
+          
+          // Emit a new state with updated reports
+          emit(ReportedJobsLoadedState(
+            reportedJobs: currentState.reportedJobs,
+            jobReports: updatedReports,
+          ));
+        } else {
+          // Fallback if we somehow get here without having loaded jobs first
+          emit(JobReportsLoadedState(jobId: event.jobId, jobReports: jobReports));
         }
-
-        emit(JobReportsLoadedState(jobId: event.jobId, jobReports: jobReports));
       } catch (e) {
-        debugPrint('Error fetching reports for jobId: ${event.jobId} - $e');
-        emit(JobsErrorState(e.toString()));
+        emit(JobsErrorState('Failed to load reports: ${e.toString()}'));
       }
     });
 
