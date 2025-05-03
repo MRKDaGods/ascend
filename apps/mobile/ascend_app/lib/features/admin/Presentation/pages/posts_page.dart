@@ -1,6 +1,7 @@
 import 'package:ascend_app/features/admin/Presentation/widgets/reported_post_card.dart';
 import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_bloc.dart';
 import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_event.dart';
+import 'package:ascend_app/features/admin/data/models/posts_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,6 +20,43 @@ class _PostsPageState extends State<PostsPage> {
     super.initState();
     // Fetch reported posts when page loads
     context.read<PostsBloc>().add(FetchReportedPosts(page: 1));
+  }
+
+  void _handleDeletePost(BuildContext context, String postId) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => BlocProvider.value(
+            value: context.read<PostsBloc>(),
+            child: Builder(
+              builder:
+                  (builderContext) => AlertDialog(
+                    title: const Text('Delete Post'),
+                    content: const Text(
+                      'Are you sure you want to delete this reported post?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                          builderContext.read<PostsBloc>().add(
+                            DeletePostEvent(postId: postId),
+                          );
+                        },
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  ),
+            ),
+          ),
+    );
   }
 
   @override
@@ -48,142 +86,106 @@ class _PostsPageState extends State<PostsPage> {
               );
             } else if (state is EndOfPostsReachedState) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('You have reached the end of posts')),
+                const SnackBar(
+                  content: Text('You have reached the end of posts'),
+                ),
               );
             }
           },
           builder: (context, state) {
-            if (state is FetchingReportedPostsState && 
-                (context.read<PostsBloc>().posts.isEmpty)) {
+            final PostsBloc postsBloc = context.read<PostsBloc>();
+            final List<ReportedPost> posts;
+            bool hasReachedMax;
+            int currentPage;
+
+            if (state is ReportedPostsFetchedState) {
+              posts = state.reportedPosts;
+              hasReachedMax = state.hasReachedMax;
+              currentPage = state.currentPage;
+            } else {
+              posts = postsBloc.posts;
+              hasReachedMax = postsBloc.hasReachedMax;
+              currentPage = postsBloc.currentPage;
+            }
+
+            // Show loading indicator if fetching initial data
+            if (state is FetchingReportedPostsState && posts.isEmpty) {
               return const Center(child: CircularProgressIndicator());
-            } else if (state is ReportedPostsFetchedState) {
-              final reportedPosts = state.reportedPosts;
-              final currentPage = state.currentPage;
-              final hasReachedMax = state.hasReachedMax;
+            }
 
-              if (reportedPosts.isEmpty) {
-                return const Center(child: Text('No reported posts found'));
-              }
+            // Show empty state if no posts
+            if (posts.isEmpty) {
+              return const Center(child: Text('No reported posts found'));
+            }
 
-              return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<PostsBloc>().add(FetchReportedPosts(page: 1));
-                },
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (scrollInfo) {
-                    if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
-                        !hasReachedMax) {
-                      context.read<PostsBloc>().add(
-                        FetchReportedPosts(page: currentPage + 1),
-                      );
-                    }
-                    return true;
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: reportedPosts.length + (hasReachedMax ? 0 : 1),
-                    itemBuilder: (context, index) {
-                      // Log each item being rendered with its index and the current page
-                      debugPrint('Rendering post at index: $index in page: ${state.currentPage}');
-                      
-                      if (index == reportedPosts.length) {
-                        // Show loading indicator at the bottom
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-
-                      final post = reportedPosts[index];
-                      return ReportedPostCard(
-                        post: post,
-                        isExpanded: expandedPosts.contains(post.id),
-                        onToggleExpand: () {
-                          setState(() {
-                            if (expandedPosts.contains(post.id)) {
-                              expandedPosts.remove(post.id);
-                            } else {
-                              expandedPosts.add(post.id);
-                            }
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-              );
-            } else if (state is PostsErrorState) {
-              // Show error UI only if there are no posts loaded
-              if (context.read<PostsBloc>().posts.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Error: ${state.errorMessage}',
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<PostsBloc>().add(FetchReportedPosts(page: 1));
-                        },
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              
-              // Otherwise, show the last successful state
-              final postBloc = context.read<PostsBloc>();
-              return RefreshIndicator(
-                onRefresh: () async {
-                  context.read<PostsBloc>().add(FetchReportedPosts(page: 1));
-                },
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (scrollInfo) {
-                    if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent &&
-                        !postBloc.hasReachedMax) {
-                      postBloc.add(FetchReportedPosts(page: postBloc.currentPage + 1));
-                    }
-                    return true;
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: postBloc.posts.length + (postBloc.hasReachedMax ? 0 : 1),
-                    itemBuilder: (context, index) {
-                      if (index == postBloc.posts.length) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-
-                      final post = postBloc.posts[index];
-                      return ReportedPostCard(
-                        post: post,
-                        isExpanded: expandedPosts.contains(post.id),
-                        onToggleExpand: () {
-                          setState(() {
-                            if (expandedPosts.contains(post.id)) {
-                              expandedPosts.remove(post.id);
-                            } else {
-                              expandedPosts.add(post.id);
-                            }
-                          });
-                        },
-                      );
-                    },
-                  ),
+            // Show error state if error and no posts
+            if (state is PostsErrorState && posts.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: ${state.errorMessage}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed:
+                          () => postsBloc.add(FetchReportedPosts(page: 1)),
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
               );
             }
-            return const Center(child: Text('No data available.'));
+
+            // Main posts list
+            return RefreshIndicator(
+              onRefresh: () async {
+                postsBloc.add(FetchReportedPosts(page: 1));
+              },
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (scrollInfo) {
+                  if (scrollInfo.metrics.pixels ==
+                          scrollInfo.metrics.maxScrollExtent &&
+                      !hasReachedMax) {
+                    postsBloc.add(FetchReportedPosts(page: currentPage + 1));
+                  }
+                  return true;
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: posts.length + (hasReachedMax ? 0 : 1),
+                  itemBuilder: (context, index) {
+                    if (index == posts.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    final post = posts[index];
+                    return ReportedPostCard(
+                      post: post,
+                      isExpanded: expandedPosts.contains(post.id),
+                      onToggleExpand: () {
+                        setState(() {
+                          if (expandedPosts.contains(post.id)) {
+                            expandedPosts.remove(post.id);
+                          } else {
+                            expandedPosts.add(post.id);
+                          }
+                        });
+                      },
+                      onDelete:
+                          () => _handleDeletePost(context, post.id.toString()),
+                    );
+                  },
+                ),
+              ),
+            );
           },
         ),
       ),
