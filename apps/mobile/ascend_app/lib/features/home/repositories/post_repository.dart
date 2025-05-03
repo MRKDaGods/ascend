@@ -902,9 +902,7 @@ class PostRepository {
     }
   }
 
-  // Fetch comments for a specific post
-  // This method correctly fetches the list as provided by the API.
-  // It should NOT be responsible for structuring replies.
+  // Fetch comments for a specific post - UPDATED FOR RECURSIVE COUNT FETCHING
   Future<List<Comment>> fetchComments(
     String postId, {
     int page = 1,
@@ -915,7 +913,6 @@ class PostRepository {
       throw Exception('Authentication token not found.');
     }
 
-    // The API endpoint provides comments for the post, potentially including parent_comment_id
     final url = Uri.parse(
       '$baseUrl/post/$postId/comments?page=$page&limit=$limit',
     );
@@ -935,41 +932,36 @@ class PostRepository {
       debugPrint(
         '📄 [PostRepository] Comments Response Status: ${response.statusCode}',
       );
-      // debugPrint('📄 [PostRepository] Comments Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // The API response (data['data'] or data['comments']) contains the list.
-        // Comment.fromJson handles parsing each comment, including its parent_comment_id and potentially nested replies if the API sends them.
         final List<dynamic> commentListJson =
-            data['comments'] ?? data['data'] ?? data;
+            data['comments'] ?? data['data'] ?? [];
 
-        final comments =
+        // Parse comments first (this might include nested replies from API)
+        List<Comment> comments =
             commentListJson
                 .map((json) => Comment.fromJson(json as Map<String, dynamic>))
                 .toList();
         debugPrint(
-          '✅ [PostRepository] Fetched ${comments.length} comments for post $postId.',
+          '✅ [PostRepository] Parsed ${comments.length} base comments for post $postId.',
         );
 
-        // Fetch reaction counts for each comment
+        // Recursively fetch reaction counts for comments and their replies
         List<Comment> commentsWithCounts = [];
         for (var comment in comments) {
           try {
-            // Fetch counts using the updated method
-            final countsData = await getCommentReactionCounts(comment.id);
-            // Extract the total count from the returned map
-            final totalCount = countsData['total'] ?? 0;
-            commentsWithCounts.add(comment.copyWith(likesCount: totalCount));
-            debugPrint('📊 [PostRepository] Fetched reaction count for comment ${comment.id}: $totalCount');
+            // Call the recursive helper to fetch counts for the comment and its replies
+            final updatedComment = await _fetchCountsRecursively(comment);
+            commentsWithCounts.add(updatedComment);
           } catch (e) {
-            debugPrint('⚠️ [PostRepository] Failed to fetch reaction count for comment ${comment.id}: $e. Using initial count: ${comment.likesCount}');
-            // Add the comment even if count fetching fails, using the count from the initial fetch (likely 0 or outdated)
-            commentsWithCounts.add(comment);
+             debugPrint('⚠️ [PostRepository] Failed to fetch counts recursively for comment ${comment.id}: $e. Adding original comment.');
+             commentsWithCounts.add(comment); // Add original comment if recursive fetch fails
           }
         }
+
         debugPrint(
-          '✅ [PostRepository] Finished fetching counts. Returning ${commentsWithCounts.length} comments with counts.',
+          '✅ [PostRepository] Finished fetching counts recursively. Returning ${commentsWithCounts.length} comments.',
         );
         // Return the list with updated counts. The BLoC will structure it.
         return commentsWithCounts;
@@ -988,20 +980,56 @@ class PostRepository {
     }
   }
 
-  // NEW: Get reaction counts for a specific comment
+  // NEW HELPER: Recursively fetches counts for a comment and its replies
+  Future<Comment> _fetchCountsRecursively(Comment comment) async {
+    // Fetch count for the current comment
+    Map<String, int> countsData;
+    try {
+      countsData = await getCommentReactionCounts(comment.id);
+    } catch (e) {
+      debugPrint('⚠️ [_fetchCountsRecursively] Failed to fetch count for comment ${comment.id}: $e. Using 0.');
+      countsData = {'total': 0}; // Default to 0 on error
+    }
+    final totalCount = countsData['total'] ?? 0;
+    debugPrint('📊 [_fetchCountsRecursively] Fetched count for comment ${comment.id}: $totalCount');
+
+    // Update the current comment with its count
+    Comment updatedComment = comment.copyWith(likesCount: totalCount);
+
+    // Recursively fetch counts for replies
+    if (updatedComment.replies.isNotEmpty) {
+      List<Comment> updatedReplies = [];
+      for (var reply in updatedComment.replies) {
+        try {
+          // Recursive call for each reply
+          final updatedReply = await _fetchCountsRecursively(reply);
+          updatedReplies.add(updatedReply);
+        } catch (e) {
+          debugPrint('⚠️ [_fetchCountsRecursively] Failed recursive fetch for reply ${reply.id}. Adding original reply.');
+          updatedReplies.add(reply); // Add original reply if recursive call fails
+        }
+      }
+      // Update the comment with the updated replies list
+      updatedComment = updatedComment.copyWith(replies: updatedReplies);
+    }
+
+    return updatedComment;
+  }
+
+
+  // Get reaction counts for a specific comment - (Ensure it uses the correct client if needed)
   Future<Map<String, int>> getCommentReactionCounts(String commentId) async {
-    // Adjust the endpoint path if necessary
     final String countsUrl = '$baseUrl/post/comments/$commentId/reaction-counts';
     debugPrint('🔄 [PostRepository] Fetching reaction counts for comment $commentId from $countsUrl');
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
-      // Handle missing token case
       if (authToken == null) {
         debugPrint('⚠️ [PostRepository] Auth token is null. Cannot fetch reaction counts for comment $commentId.');
-        return {'total': 0}; // Return 0 count if not authenticated
+        return {'total': 0};
       }
 
-      final response = await http.get( // Use http.get directly or ensure _client is available
+      // Use _client if available and preferred, otherwise use http.get
+      final response = await _client.get(
         Uri.parse(countsUrl),
         headers: {
           'Content-Type': 'application/json',
@@ -1011,26 +1039,21 @@ class PostRepository {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        // Check if the response indicates success and contains data
         if (responseData['success'] == true && responseData['data'] != null) {
             final Map<String, dynamic> data = responseData['data'];
-            // Extract the total reactions count
             final int totalCount = data['total_reactions_count'] as int? ?? 0;
             debugPrint('✅ [PostRepository] Received total reaction count for comment $commentId: $totalCount');
-            // Return a map with the 'total' key for consistency with previous usage
             return {'total': totalCount};
         } else {
             debugPrint('❌ [PostRepository] API indicated failure or missing data for comment $commentId reaction counts. Response: ${response.body}');
-            return {'total': 0}; // Return 0 on API-level failure
+            return {'total': 0};
         }
       } else {
         debugPrint('❌ [PostRepository] Failed to fetch reaction counts for comment $commentId. Status: ${response.statusCode}, Body: ${response.body}');
-        // Return 0 count on HTTP failure
         return {'total': 0};
       }
     } catch (e) {
       debugPrint('❌ [PostRepository] Error in getCommentReactionCounts for comment $commentId: $e');
-      // Return 0 count on exception
       return {'total': 0};
     }
   }
