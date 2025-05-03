@@ -67,3 +67,6 @@ final class PostsErrorState extends PostsState {
 
   PostsErrorState({required this.errorMessage});
 }
+
+/// State when the end of posts is reached.
+final class EndOfPostsReachedState extends PostsState {}
