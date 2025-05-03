@@ -14,6 +14,7 @@ import 'features/profile/bloc/user_profile_bloc.dart';
 import 'features/profile/bloc/user_profile_event.dart';
 import 'features/home/bloc/post_bloc/post_bloc.dart';
 import 'features/home/repositories/post_repository.dart';
+import 'features/home/bloc/saved_posts_bloc/saved_posts_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'theme.dart';
 import 'features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
@@ -129,6 +130,13 @@ class _MainAppState extends State<MainApp> {
               (context) => PostBloc(
                 PostRepository(),
               ), // Assuming it might add LoadPosts itself or Home page does
+        ),
+        BlocProvider<SavedPostsBloc>(
+          // Add SavedPostsBloc here
+          create: (context) => SavedPostsBloc(
+            postRepository: sl.postRepository, // Assuming sl.postRepository is available
+            postBloc: BlocProvider.of<PostBloc>(context),
+          ),
         ),
         BlocProvider<NotificationBloc>(
           // Restore original creation logic (likely fetches immediately or handled elsewhere)

@@ -264,23 +264,31 @@ class PostRepository {
         '✅ [PostRepository] Saved Posts API response status: ${response.statusCode}',
       );
       // Limit debugPrinting large bodies
+      final responseBody = response.body;
       debugPrint(
-        '📄 [PostRepository] Saved Posts API response body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...' : response.body}',
+        '📄 [PostRepository] Saved Posts API response body: ${responseBody.length > 500 ? '${responseBody.substring(0, 500)}...' : responseBody}',
       );
 
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
-        final List<dynamic> apiPosts = jsonData['data'] ?? [];
+        final jsonData = json.decode(responseBody);
+        // Log the raw JSON data structure
+        debugPrint('📄 [PostRepository] Raw Saved Posts JSON data: $jsonData');
+
+        // Adjust extraction based on actual API response structure if needed
+        // Common structures: jsonData['data'], jsonData['posts'], jsonData['saved_posts'], etc.
+        final List<dynamic> apiPosts = jsonData['data'] ?? []; // Assuming 'data' key holds the list
         final Map<String, dynamic> pagination = jsonData['pagination'] ?? {};
         final int totalPosts = pagination['total'] ?? 0;
         final int currentPage = pagination['page'] ?? page;
         final int currentLimit = pagination['limit'] ?? limit;
-        // Calculate hasMorePages based on total, current page, and limit
         final bool hasMorePages = (currentPage * currentLimit) < totalPosts;
 
         debugPrint(
           '📄 [PostRepository] Saved Posts Pagination: Total=$totalPosts, CurrentPage=$currentPage, Limit=$currentLimit, HasMore=$hasMorePages',
         );
+        // Log the extracted list before conversion
+        debugPrint('📄 [PostRepository] Extracted apiPosts list: $apiPosts');
+
 
         if (apiPosts.isEmpty) {
           debugPrint(
@@ -295,8 +303,7 @@ class PostRepository {
         }
 
         try {
-          // Assuming saved posts might not have reaction info, fetch it separately if needed
-          // For simplicity, we'll use the standard conversion first.
+          // Attempt conversion using the existing method
           final posts = PostModel.fromApiResponseList(apiPosts);
           debugPrint(
             '✅ [PostRepository] Converted ${posts.length} saved API posts to PostModel objects',
@@ -309,7 +316,8 @@ class PostRepository {
           };
         } catch (e) {
           debugPrint('❌ [PostRepository] Error converting saved API posts: $e');
-          // Return empty but with pagination info
+          // Log the specific item causing the error if possible (might require iterating and catching)
+          // For now, return empty but with pagination info
           return {
             'posts': <PostModel>[],
             'totalPosts': totalPosts,
@@ -319,7 +327,7 @@ class PostRepository {
         }
       } else {
         debugPrint(
-          '❌ [PostRepository] Failed to load saved posts. Status: ${response.statusCode}, Body: ${response.body}',
+          '❌ [PostRepository] Failed to load saved posts. Status: ${response.statusCode}, Body: $responseBody',
         );
         throw Exception('Failed to load saved posts: ${response.statusCode}');
       }
