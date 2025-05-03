@@ -7,6 +7,8 @@ import 'package:ascend_app/features/Jobs/pages/explore_section.dart';
 import 'package:ascend_app/features/Jobs/pages/more_jobs_section.dart';
 import 'package:ascend_app/features/Jobs/pages/saved_section.dart';
 import 'package:ascend_app/features/Jobs/pages/my_jobs_page.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class JobHomePage extends StatefulWidget {
   final bool isDarkMode;
@@ -19,65 +21,118 @@ class JobHomePage extends StatefulWidget {
 
 class _JobHomePageState extends State<JobHomePage> {
   final TextEditingController searchController = TextEditingController();
-  late List<Jobsattributes> jobsList; // Create a mutable copy of jobs
+  late List<Jobsattributes> jobsList;
+  bool isLoading = true;
+  int currentPage = 1;
+  bool isLoadingMore = false;
+
   @override
   void initState() {
     super.initState();
-    jobsList = List.from(widget.jobs); // Initialize jobsList in initState
-    _randomizeJobs(); // Randomize the order of the jobs during initialization
+    fetchJobs();
+  }
+
+  Future<void> fetchJobs({int page = 1}) async {
+    setState(() {
+      if (page > 1) {
+        isLoadingMore = true;
+      } else {
+        isLoading = true;
+      }
+    });
+
+    final url = Uri.parse('https://api.ascendx.tech/job?page=$page');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      if (jsonResponse.containsKey('data')) {
+        final List<dynamic> jobData = jsonResponse['data'];
+        setState(() {
+          if (page > 1) {
+            jobsList.addAll(
+              jobData.map((data) => Jobsattributes.fromJson(data)).toList(),
+            );
+          } else {
+            jobsList =
+                jobData.map((data) => Jobsattributes.fromJson(data)).toList();
+          }
+        });
+      }
+    }
+
+    setState(() {
+      isLoading = false;
+      isLoadingMore = false;
+      currentPage = page;
+    });
+  }
+
+  Future<void> fetchMoreJobs({int page = 1}) async {
+    setState(() {
+      isLoadingMore = true;
+    });
+
+    final url = Uri.parse('https://api.ascendx.tech/job?page=$page');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+      if (jsonResponse.containsKey('data')) {
+        final List<dynamic> jobData = jsonResponse['data'];
+        setState(() {
+          jobsList.addAll(
+            jobData.map((data) => Jobsattributes.fromJson(data)).toList(),
+          );
+        });
+      }
+    }
+
+    setState(() {
+      isLoadingMore = false;
+      currentPage = page;
+    });
   }
 
   void removeJob(Jobsattributes job) {
     setState(() {
-      jobsList.remove(job); // Remove the job from the list
+      jobsList.remove(job);
     });
   }
 
   void _randomizeJobs() {
     setState(() {
-      jobsList.shuffle(); // Randomly shuffle the jobs list
+      jobsList.shuffle();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final savedJobs = widget.jobs.where((job) => job.isBookmarked).toList();
     return Scaffold(
-      // backgroundColor:
-      //     widget.isDarkMode
-      //         ? const Color.fromARGB(255, 29, 34, 38)
-      //         : Colors.white,
-      body: RefreshIndicator(
-        onRefresh: _refreshJobs,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return ListView(
-              physics: AlwaysScrollableScrollPhysics(), // Ensures scrollability
-
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: () => fetchJobs(page: 1),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   children: [
-                    // Filters Row
                     LayoutBuilder(
                       builder: (context, constraints) {
                         if (constraints.maxWidth < 300) {
-                          // Vertical layout for small screens
                           return SingleChildScrollView(
-                            scrollDirection:
-                                Axis.horizontal, // Allow horizontal scrolling
+                            scrollDirection: Axis.horizontal,
                             child: Column(
                               children: [
                                 _filterButton("My jobs"),
-                                SizedBox(height: 5),
+                                const SizedBox(height: 5),
                                 _filterButton("Manage Company"),
                               ],
                             ),
                           );
                         } else {
-                          // Horizontal layout for wider screens
                           return Padding(
-                            padding: EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -99,83 +154,54 @@ class _JobHomePageState extends State<JobHomePage> {
                         }
                       },
                     ),
-                    Container(
-                      height: 10,
-                      // color:
-                      //     widget.isDarkMode
-                      //         ? Colors.black
-                      //         : Colors.grey[300], // Gray if not dark mode
-                    ),
-
+                    const SizedBox(height: 10),
                     JobPicksSection(
                       isDarkMode: widget.isDarkMode,
                       jobs: jobsList,
                       onRemove: removeJob,
                     ),
-                    Container(
-                      height: 10,
-                      // color:
-                      //     widget.isDarkMode
-                      //         ? Colors.black
-                      //         : Colors.grey[300], // Gray if not dark mode
-                    ),
+                    const SizedBox(height: 10),
 
-                    // Saved Section (only if there are saved jobs)
-                    if (savedJobs.isNotEmpty) ...[
-                      SavedPage(isDarkMode: widget.isDarkMode, jobs: jobsList),
-                      Container(
-                        height: 10,
-                        // color:
-                        //     widget.isDarkMode
-                        //         ? Colors.black
-                        //         : Colors.grey[300], // Gray if not dark mode
-                      ),
-                    ],
-                    Container(height: 3, color: Colors.amber),
+                    SavedPage(
+                      isDarkMode: widget.isDarkMode,
+                      jobs: jobsList.where((job) => job.isBookmarked).toList(),
+                    ),
+                    const SizedBox(height: 10),
+
                     PremiumSection(isDarkMode: widget.isDarkMode),
-                    Container(
-                      height: 10,
-                      // color:
-                      //     widget.isDarkMode
-                      //         ? Colors.black
-                      //         : Colors.grey[300], // Gray if not dark mode
-                    ),
-
+                    const SizedBox(height: 10),
                     ExploreScreen(
                       isDarkMode: widget.isDarkMode,
                       jobs: jobsList,
                     ),
-                    Container(
-                      height: 10,
-                      // color:
-                      //     widget.isDarkMode
-                      //         ? Colors.black
-                      //         : Colors.grey[300], // Gray if not dark mode
-                    ),
-
+                    const SizedBox(height: 10),
                     MoreJobsSection(
                       isDarkMode: widget.isDarkMode,
                       jobs: jobsList,
                       onRemove: removeJob,
                     ),
+                    if (isLoadingMore)
+                      const Center(child: CircularProgressIndicator())
+                    else if (currentPage > 1 &&
+                        jobsList.length < (currentPage * 20))
+                      Center(
+                        child: Text("No more jobs to load", style: TextStyle()),
+                      )
+                    else
+                      TextButton(
+                        onPressed: () => fetchMoreJobs(page: currentPage + 1),
+                        child: const Text("Load More"),
+                      ),
                   ],
                 ),
-              ],
-            );
-          },
-        ),
-      ),
+              ),
     );
   }
 
   Widget _filterButton(String title) {
     return ElevatedButton(
       onPressed: () {
-        if (title == "Preferences") {
-          // Handle Preferences button press
-        } else if (title == "Post a free job") {
-          // Handle Post a free job button press
-        } else if (title == "My jobs") {
+        if (title == "My jobs") {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MyJobsPage()),
@@ -192,36 +218,19 @@ class _JobHomePageState extends State<JobHomePage> {
         }
       },
       style: ElevatedButton.styleFrom(
-        // backgroundColor:
-        //     widget.isDarkMode
-        //         ? const Color.fromARGB(255, 29, 34, 38)
-        //         : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        side: BorderSide(
-          // color: widget.isDarkMode ? Colors.grey : Colors.black, // Border color
-          width: 0.5, // Border width
-        ),
+        side: const BorderSide(width: 0.5),
       ),
-
-      child: Text(title, style: TextStyle(fontSize: 13, color: Colors.grey)),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 13, color: Colors.grey),
+      ),
     );
   }
 
-  // Function to handle refresh
-  Future<void> _refreshJobs() async {
-    // Simulate a network call or data refresh
-    await Future.delayed(Duration(seconds: 1));
-    debugPrint("Refreshed jobs");
-    setState(() {
-      // Update the jobs list or any other state
-      jobsList = List.from(widget.jobs); // Reset the jobs list
-      _randomizeJobs(); // Randomize the order of the jobs
-    });
-  }
 
   @override
   void dispose() {
-    // Dispose of any resources, such as timers or streams
     searchController.dispose();
     super.dispose();
   }

@@ -128,7 +128,7 @@ class _CreateCompanyState extends State<CreateCompany> {
           body: jsonEncode(data),
         );
 
-        if (response.statusCode == 201) {
+        if (response.statusCode == 200) {
           // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Company created successfully!')),
