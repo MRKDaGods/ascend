@@ -172,10 +172,9 @@ class _BlockedPageState extends State<BlockedPage> {
             CircleAvatar(
               radius: 24,
               backgroundImage:
-                  user.profile_image_id!.isNotEmpty
+                  user.profile_image_id != null
                       ? NetworkImage(user.profile_image_id!)
-                      : const AssetImage('assets/EmptyUser.png')
-                          as ImageProvider<Object>,
+                      : const AssetImage('assets/EmptyUser.png'),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -190,14 +189,7 @@ class _BlockedPageState extends State<BlockedPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    user.bio!.isNotEmpty ? user.bio! : 'No bio available',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Blocked ${_formatBlockDate(user.blockedAt!)}',
+                    'Blocked ${_formatBlockDate(user.blocked_at!)}',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                     maxLines: 1,
                   ),

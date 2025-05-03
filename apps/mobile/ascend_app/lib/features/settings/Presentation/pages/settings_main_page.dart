@@ -14,8 +14,8 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
     // Main settings items
     final settingsItems = [
       {
-        'title': 'Account Preferences',
-        'route': '/accountPreferences',
+        'title': 'Connection Preferences',
+        'route': '/connectionPreferences',
         'icon': Icons.person,
       },
       {
@@ -39,6 +39,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
         'route': '/notifications',
         'icon': Icons.notifications,
       },
+      {'title': 'Blocked Users', 'route': '/blockedUsers', 'icon': Icons.block},
     ];
 
     // Other settings items
@@ -112,7 +113,7 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
                                   : null,
                         ),
                         const SizedBox(height: 8), // Spacing between items
-                        if (item['title'] == 'Notifications')
+                        if (item['title'] == 'Blocked Users')
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16.0,

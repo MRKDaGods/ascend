@@ -1,43 +1,26 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 //import 'package:ascend_app/core/services/auth_service.dart';
 
 class BlockRepository {
-  final http.Client _client;
-  final String baseUrl;
-  final Map<String, String> headers;
-  final bool useMockData;
+  final ApiClient _client;
 
-  //final AuthService _authService;
-
-  BlockRepository({
-    this.baseUrl = 'https://api.ascendx.tech',
-    this.headers = const {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    this.useMockData = false,
-  }) : _client = http.Client();
-  // _authService = authService ?? AuthService();
+  BlockRepository({required ApiClient client}) : _client = client;
 
   /// Block a user by their ID
   Future<void> blockUser(String userId) async {
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.block}/:$userId');
-      final response = await _client.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await _client.post('${ApiEndpoints.block}/:$userId');
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to unblock user: ${response.body}');
+      if (response.statusCode == 200) {
+        // Successfully blocked the user
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint('$data["message"]');
+      } else {
+        throw Exception('Failed to block user: ${response.body}');
       }
     } catch (e) {
       // For now, debugPrint the error
@@ -49,17 +32,16 @@ class BlockRepository {
   /// Unblock a user by their ID
   Future<void> unblockUser(String userId) async {
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.block}/:$userId');
+      final int userIdInt = int.parse(userId);
       final response = await _client.delete(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.unblock}/$userIdInt',
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
+      if (response.statusCode == 200) {
+        // Successfully unblocked the user
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint('$data["message"]');
+      } else {
         throw Exception('Failed to unblock user: ${response.body}');
       }
     } catch (e) {
@@ -74,25 +56,24 @@ class BlockRepository {
     int limit = 10,
   }) async {
     try {
-      final token = 'your_token_here';
-
-      final uri = Uri.parse(
-        '$baseUrl${ApiEndpoints.fetchBlockedUsers}',
-      ).replace(
-        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
-      );
-
       final response = await _client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.fetchBlockedUsers}?page=$page&limit=$limit',
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => BlockedUser.fromJson(json)).toList();
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final data = responseData['data'];
+        final status = responseData['success'];
+        if (status == true) {
+          final List<BlockedUser> blockedUsers =
+              (data['data'] as List)
+                  .map((user) => BlockedUser.fromJson(user))
+                  .toList();
+          return blockedUsers;
+        } else {
+          debugPrint('No blocked Users: ');
+          return [];
+        }
       } else {
         throw Exception('Failed to fetch blocked users: ${response.body}');
       }
