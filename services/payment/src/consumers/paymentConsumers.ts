@@ -86,7 +86,8 @@ export const handleGetUserJobApplicationsUsage = async (payload : GetUserUsageJo
 
 export const handleUserCreated = async (payload : UserCreatedPayload) : Promise<void> => {
     const user_id = payload.user_id;
-
+    console.log(`////////////////////////////////////////////////////////////////////user_id///////////////////////////////////////////////////////////////////////`);
+    console.log(`user_id : ${user_id}`);
     if(user_id){
         await insertUsage(user_id, new Date());
     }

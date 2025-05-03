@@ -1,22 +1,17 @@
 import db from "@shared/config/db";
 import { Usage } from "@shared/models/usage";
-import { getSubscriptionPlanLimits } from "./subscriptionPaymentService";
+
+export const getSubscriptionPlanLimits = async () : Promise<Map<string, any>> => {
+    const results = await db.query("SELECT subscription_plan, messages_per_day_limit, job_applications_limit, connections_limit FROM payment_service.subscription_plans");
+    let map = new Map<string, any>();
+    for(const result of results.rows){
+        map.set(result.subscription_plan, {...result});
+    }
+    return map;
+};
 
 export const getUsageByUserId = async (user_id : number) : Promise<Usage|null> => {
     const result = await db.query("SELECT * FROM payment_service.usage WHERE user_id = $1", [user_id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
-};
-
-export const getUsageByCustomerId = async (customer_id : string) : Promise<Usage|null> => {
-    const result = await db.query("SELECT * FROM payment_service.usage WHERE customer_id = $1", [customer_id]);
-    return result.rows.length > 0 ? result.rows[0] : null;
-};
-
-
-export const insertUsage = async (user_id : number, last_date : Date) : Promise<Usage|null> => {
-    const subscription_plans_limits = await getSubscriptionPlanLimits();
-    const basic_plan_limits = subscription_plans_limits.get('basic plan');
-    const result = await db.query("INSERT INTO payment_service.usage (user_id, last_date, messages_per_day_limit, job_applications_limit, connections_limit) VALUES ($1, $2, $3, $4, $5)", [user_id, last_date, basic_plan_limits.messages_per_day_limit, basic_plan_limits.job_applications_limit, basic_plan_limits.connections_limit]);
     return result.rows.length > 0 ? result.rows[0] : null;
 };
 

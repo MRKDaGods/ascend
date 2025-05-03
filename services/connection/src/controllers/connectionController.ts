@@ -10,8 +10,7 @@ import validate from "@shared/middleware/validationMiddleware";
 import { ConnectionStatus } from "../models";
 import { GetUserUsageConnections } from "@shared/rabbitMQ/payloads";
 import { callRPC } from "@shared/rabbitMQ/mq";
-import { Events, getRPCQueueName } from "@shared/rabbitMQ";
-import { Services } from "@shared/index";
+import { getUsageByUserId, updateUsage } from "@shared/utils/getUsage";
 
 
 /**
@@ -69,13 +68,8 @@ export const sendConnectionRequest = [
           message: "User not authenticated",
         });
       }
-      let connection_payload : GetUserUsageConnections.Request = {
-        user_id : req.user.id,
-        update_usage : false
-      }
 
-      let payment_service_queue = getRPCQueueName(Services.PAYMENT , Events.FILE_UPLOAD_RPC);
-      const connection_check_response : GetUserUsageConnections.Response = await callRPC<GetUserUsageConnections.Response>(payment_service_queue, connection_payload, 7000);
+      const connection_check_response = await getUsageByUserId(req.user?.id);
       if(connection_check_response && connection_check_response.connections_limit >= 0 && connection_check_response.connections >= connection_check_response.connections_limit){
         return res.status(403).json({
           success : false,
@@ -87,9 +81,10 @@ export const sendConnectionRequest = [
         recipientId: req.body.userId,
         message: req.body.message,
       });
-
-      connection_payload.update_usage = true;
-      await callRPC<GetUserUsageConnections.Response>(payment_service_queue, connection_payload, 7000);
+      
+      if(connection_check_response){
+          await updateUsage(req.user.id, {messages_per_day : connection_check_response?.messages_per_day + 1, last_date: new Date()});
+      }
       res.status(201).json({ success: true, data: request });
     } catch (error: any) {
       return res.status(404).json({
