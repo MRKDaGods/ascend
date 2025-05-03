@@ -7,7 +7,10 @@ import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'dart:convert';
 
 class MyJobsPage extends StatefulWidget {
+  const MyJobsPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _MyJobsPageState createState() => _MyJobsPageState();
 }
 
@@ -18,6 +21,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
   void initState() {
     super.initState();
     getSavedJobs();
+    getApplications();
   }
 
   Future<void> getSavedJobs() async {
@@ -29,33 +33,65 @@ class _MyJobsPageState extends State<MyJobsPage> {
         setState(() {
           savedJobs =
               jobsData
-                  .map(
-                    (job) => Jobsattributes(
-                      jobID: job['job_id'],
-                      title: job['title'],
-                      company: job['company_name'],
-                      location: job['location'],
-                      experienceLevel: job['experience_level'],
-                      salaryMinRange: job['salary_min_range'],
-                      salaryMaxRange: job['salary_max_range'],
-                      easyapply:
-                          false, // Assuming easy apply is not provided in the response
-                      jobDescription: job['description'],
-                      isRemote: job['workplace_type'] == 'Remote',
-                      isHybrid: job['workplace_type'] == 'Hybrid',
-                      isPartTime: job['type'] == 'Part-time',
-                      companyPhoto: job['company_logo_url'],
-                      createdAt:
-                          DateTime.tryParse(job['saved_at'] ?? '') ??
-                          DateTime.now(),
-                    ),
-                  )
+                  .map((data) {
+                    try {
+                      return Jobsattributes.fromJson(data);
+                    } catch (e) {
+                      print('Error parsing job data: $e');
+                      return null;
+                    }
+                  })
+                  .where((job) => job != null)
+                  .cast<Jobsattributes>()
+                  .toList();
+        });
+      } else {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch saved jobs: ${response.body}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        // ignore: use_build_context_synchronously
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+    }
+  }
+
+  Future<void> getApplications() async {
+    final apiClient = ApiClient();
+    try {
+      final response = await apiClient.get('/job/applications');
+      print(
+        "nooooooooooooooooooooooooooooooooooooooooooooasdsdaasdasdasdasdsadasdasdasdasdsa",
+      );
+      print("response: ${response.body}");
+      print("status code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final List<dynamic> applicationsData =
+            jsonDecode(response.body)['data'];
+        setState(() {
+          savedJobs =
+              applicationsData
+                  .map((data) {
+                    try {
+                      return Jobsattributes.fromJson(data);
+                    } catch (e) {
+                      print('Error parsing application data: $e');
+                      return null;
+                    }
+                  })
+                  .where((job) => job != null)
+                  .cast<Jobsattributes>()
                   .toList();
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to fetch saved jobs: ${response.body}'),
+            content: Text('Failed to fetch applications: ${response.body}'),
           ),
         );
       }

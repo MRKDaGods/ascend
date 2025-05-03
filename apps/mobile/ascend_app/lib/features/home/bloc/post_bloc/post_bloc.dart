@@ -401,32 +401,88 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     ToggleCommentReaction event,
     Emitter<PostState> emit,
   ) async {
-    if (state is PostsLoaded) {
-      final currentState = state as PostsLoaded;
-      try {
-        final post = currentState.getPostById(event.postId);
-        if (post == null) return;
+    final currentState = state;
+    if (currentState is PostsLoaded) {
+      // Store the original state before optimistic update
+      final originalState = currentState; // Keep a reference
 
-        // Update the comment's reaction
-        final updatedPost = post.toggleCommentReaction(
+      // Find the post index
+      final postIndex = currentState.posts.indexWhere(
+        (p) => p.id == event.postId,
+      );
+      if (postIndex == -1) {
+        debugPrint(
+          '⚠️ [PostBloc] Post ${event.postId} not found for comment reaction toggle.',
+        );
+        return; // Post not found
+      }
+      final originalPost = currentState.posts[postIndex];
+
+      // Optimistic UI update first
+      // Use the PostModel's logic to get the updated state
+      final optimisticallyUpdatedPost = originalPost.toggleCommentReaction(
+        event.commentId,
+        event.reactionType,
+      );
+
+      // Check if the comment was actually found and updated
+      // (toggleCommentReaction might return the original post if comment not found)
+      if (identical(originalPost, optimisticallyUpdatedPost)) {
+        debugPrint(
+          '⚠️ [PostBloc] Comment ${event.commentId} not found within post ${event.postId} for reaction toggle. No optimistic update.',
+        );
+        // Optionally, still try the API call if the comment might exist on the backend but not locally yet
+        // For now, we'll skip if not found locally.
+        return;
+      }
+
+      final optimisticPosts = List<PostModel>.from(currentState.posts);
+      optimisticPosts[postIndex] = optimisticallyUpdatedPost;
+
+      // Emit the optimistic state immediately
+      emit(currentState.copyWith(posts: optimisticPosts, freshLoad: false));
+      debugPrint(
+        '🔄 [PostBloc] Optimistically updated reaction for comment ${event.commentId} in post ${event.postId} to ${event.reactionType}',
+      );
+
+      try {
+        // Call the repository to update the backend
+        debugPrint(
+          '📡 [PostBloc] Calling repository toggleCommentReaction for comment ${event.commentId}, type: ${event.reactionType}',
+        );
+        final success = await _postRepository.toggleCommentReaction(
           event.commentId,
           event.reactionType,
         );
 
-        // Update repository
-        await _postRepository.updatePost(updatedPost);
-
-        // Update state
-        final posts =
-            currentState.posts
-                .map((p) => p.id == updatedPost.id ? updatedPost : p)
-                .toList();
-
-        emit(PostsLoaded(posts));
+        if (success) {
+          debugPrint(
+            '✅ [PostBloc] API call successful for toggleCommentReaction comment ${event.commentId}. State already updated optimistically.',
+          );
+          // State is already updated optimistically. No need to emit again.
+        } else {
+          // This case might not be reached if repository throws on failure
+          debugPrint(
+            '⚠️ [PostBloc] API call toggleCommentReaction returned false for comment ${event.commentId}. Reverting optimistic update.',
+          );
+          // Revert the optimistic update by emitting the original state
+          emit(originalState);
+        }
       } catch (e) {
-        emit(PostsError('Failed to update comment reaction: $e'));
-        emit(currentState);
+        debugPrint(
+          '❌ [PostBloc] Error during toggleCommentReaction API call for comment ${event.commentId}: $e. Reverting optimistic update.',
+        );
+        // Revert the optimistic update on error
+        emit(
+          originalState,
+        ); // Emit the original state before the optimistic update
+        // Optionally emit a specific error state *after* reverting
+        // emit(PostsError('Failed to update comment reaction: $e'));
       }
+    } else {
+      debugPrint(
+        '⚠️ [PostBloc] ToggleCommentReaction event received but state is not PostsLoaded.',
+      );
     }
   }
 

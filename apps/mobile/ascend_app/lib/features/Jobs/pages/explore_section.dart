@@ -8,10 +8,17 @@ class ExploreScreen extends StatefulWidget {
   final bool isDarkMode;
   final List<Jobsattributes> jobs;
 
-  ExploreScreen({super.key, required this.isDarkMode, required this.jobs});
+  const ExploreScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.jobs,
+  });
 
   @override
-  State<ExploreScreen> createState() => _ExploreScreenState();
+
+  // ignore: library_private_types_in_public_api
+  _ExploreScreenState createState() => _ExploreScreenState();
+
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
@@ -169,9 +176,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           _moreCategoryTile(Icons.home_work, "Hybrid"),
-          _moreCategoryTile(Icons.storefront, "Small biz"),
-          _moreCategoryTile(Icons.construction, "Construction"),
-          _moreCategoryTile(Icons.school, "Education"),
+          _moreCategoryTile(Icons.work_outline, "Internship"),
+          _moreCategoryTile(Icons.volunteer_activism, "Volunteer"),
+          _moreCategoryTile(Icons.assignment, "Contract"),
         ],
       ),
     );

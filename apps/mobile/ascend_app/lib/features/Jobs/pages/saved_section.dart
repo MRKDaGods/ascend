@@ -1,11 +1,16 @@
+import 'package:ascend_app/features/Jobs/pages/my_jobs_page.dart';
+
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/job_details.dart';
 import 'package:ascend_app/features/Jobs/pages/easy_apply.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:convert';
 
-class SavedPage extends StatelessWidget {
+class SavedPage extends StatefulWidget {
   final bool isDarkMode;
   final List<Jobsattributes> jobs; // Add jobs parameter
 
@@ -16,9 +21,65 @@ class SavedPage extends StatelessWidget {
   });
 
   @override
+  _SavedPageState createState() => _SavedPageState();
+}
+
+class _SavedPageState extends State<SavedPage> {
+  List<Jobsattributes> savedJobs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    print("SavedPage initState called");
+    getSavedJobs();
+  }
+
+  Future<void> getSavedJobs() async {
+    final apiClient = ApiClient();
+    try {
+      final response = await apiClient.get('/job/saved');
+      print("response: ${response.body}");
+      print("status code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final List<dynamic> jobsData = jsonDecode(response.body)['data'];
+        setState(() {
+          savedJobs =
+              jobsData
+                  .map((data) {
+                    try {
+                      return Jobsattributes.fromJson(data);
+                    } catch (e) {
+                      print('Error parsing job data: $e');
+                      return null;
+                    }
+                  })
+                  .where((job) => job != null)
+                  .cast<Jobsattributes>()
+                  .toList();
+
+          if (savedJobs.isNotEmpty) {
+            savedJobs.shuffle();
+            savedJobs = [savedJobs.first]; // Keep only one random job
+          }
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch saved jobs: ${response.body}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Get the first saved job
-    final savedJobs = jobs.where((job) => job.isBookmarked).toList();
+    savedJobs.shuffle(); // Shuffle the list to get a random job
     final firstSavedJob = savedJobs.isNotEmpty ? savedJobs.first : null;
 
     return Padding(
@@ -44,6 +105,10 @@ class SavedPage extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   // Handle "Show all" button press
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MyJobsPage()),
+                  );
                 },
                 child: Row(
                   children: [

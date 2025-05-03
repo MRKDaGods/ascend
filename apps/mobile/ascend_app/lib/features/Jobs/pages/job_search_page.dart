@@ -60,6 +60,7 @@ class _JobSearchPageState extends State<JobSearchPage> {
     } // Set default location to Egypt
 
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Prevent overflow when keyboard appears
       appBar: AppBar(
         elevation: 0,
         title: Row(
@@ -102,65 +103,69 @@ class _JobSearchPageState extends State<JobSearchPage> {
           ],
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 50.0),
-              child: SizedBox(
-                height: searchBoxHeight,
-                child: TextField(
-                  controller: locationController,
-                  onSubmitted: (value) {
-                    locationController.text = value;
-                    navigateToSearchJobs(context);
-                  },
-                  onTap: () {
-                    setState(() {
-                      locationsearch = true;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.location_on),
-                    hintText: 'City, state, or zip code',
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 50.0),
+                  child: SizedBox(
+                    height: searchBoxHeight,
+                    child: TextField(
+                      controller: locationController,
+                      onSubmitted: (value) {
+                        locationController.text = value;
+                        navigateToSearchJobs(context);
+                      },
+                      onTap: () {
+                        setState(() {
+                          locationsearch = true;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.location_on),
+                        hintText: 'City, state, or zip code',
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                const Text('Try searching for', style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 10),
+                if (locationsearch) ...[
+                  _buildSearchSuggestion(
+                    'Cairo, Cairo, Egypt',
+                    locationController,
+                    context,
+                  ),
+                  _buildSearchSuggestion(
+                    'Cairo, Egypt',
+                    locationController,
+                    context,
+                  ),
+                  _buildSearchSuggestion('Remote', locationController, context),
+                ] else ...[
+                  _buildSearchSuggestion('remote', searchController, context),
+                  _buildSearchSuggestion(
+                    'marketing manager',
+                    searchController,
+                    context,
+                  ),
+                  _buildSearchSuggestion('hr', searchController, context),
+                  _buildSearchSuggestion('legal', searchController, context),
+                  _buildSearchSuggestion('sales', searchController, context),
+                ],
+              ],
             ),
-            const SizedBox(height: 20),
-            const Text('Try searching for', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 10),
-            if (locationsearch) ...[
-              _buildSearchSuggestion(
-                'Cairo, Cairo, Egypt',
-                locationController,
-                context,
-              ),
-              _buildSearchSuggestion(
-                'Cairo, Egypt',
-                locationController,
-                context,
-              ),
-              _buildSearchSuggestion('Remote', locationController, context),
-            ] else ...[
-              _buildSearchSuggestion('remote', searchController, context),
-              _buildSearchSuggestion(
-                'marketing manager',
-                searchController,
-                context,
-              ),
-              _buildSearchSuggestion('hr', searchController, context),
-              _buildSearchSuggestion('legal', searchController, context),
-              _buildSearchSuggestion('sales', searchController, context),
-            ],
-          ],
+          ),
         ),
       ),
     );

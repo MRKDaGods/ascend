@@ -10,7 +10,12 @@ class Jobsattributes {
     required this.easyapply,
 
     this.jobID,
+    this.industry,
+    this.contract = false, // Indicates if job is contract
+    this.internship = false, // Indicates if job is internship
+    this.volunteer = false, // Indicates if job is volunteer
     this.isPartTime, // Indicates if job is part-time
+    this.fullTime = false, // Indicates if job is full-time
     this.isRemote, // Indicates if job is remote
     this.isHybrid, // Indicates if job is hybrid
     this.isConstruction, // Indicates if job is in construction
@@ -25,7 +30,16 @@ class Jobsattributes {
     this.isPromoted = false,
     this.viewed = false,
     this.applicationForm,
+    this.type,
+    this.workplaceType,
   });
+  final String? workplaceType; // Type of workplace (e.g., Remote, Hybrid)
+  final String? type; // Type of job (e.g., Full Time, Part Time)
+  final bool fullTime; // Indicates if job is full-time
+  final bool contract; // Indicates if job is contract
+  final bool internship; // Indicates if job is internship
+  final bool volunteer; // Indicates if job is volunteer
+  final String? industry; // Industry of the company
   final int? jobID; // Unique identifier for the job
   final bool? isHybrid; // Indicates if job is hybrid
   final bool? isConstruction; // Indicates if job is in construction
@@ -52,6 +66,29 @@ class Jobsattributes {
   final DateTime createdAt; // Date the job was created
 
   factory Jobsattributes.fromJson(Map<String, dynamic> json) {
+    bool remote = false;
+    bool hybrid = false;
+    bool fullTime = false;
+    bool partTime = false;
+    bool internship = false;
+    bool contract = false;
+    bool volunteer = false;
+    if (json['type'] == "Full-Time") {
+      fullTime = true;
+    } else if (json['type'] == "Part-time") {
+      partTime = true;
+    } else if (json['type'] == "Internship") {
+      internship = true;
+    } else if (json['type'] == "Contract") {
+      contract = true;
+    } else if (json['type'] == "Volunteer") {
+      volunteer = true;
+    }
+    if (json['workplace_type'] == "Remote") {
+      remote = true;
+    } else if (json['workplace_type'] == "Hybrid") {
+      hybrid = true;
+    }
     return Jobsattributes(
       title: json['title'] as String? ?? 'Unknown Title',
       company: json['company_name'] as String? ?? 'Unknown Company',
@@ -62,14 +99,21 @@ class Jobsattributes {
           json['salary_max_range'] as int? ?? double.infinity.toInt(),
       easyapply: json['easyapply'] as bool? ?? true,
       jobDescription: json['description'] as String? ?? 'No Description',
-      isPartTime: json['is_part_time'] as bool? ?? false,
-      isRemote: json['is_remote'] as bool? ?? false,
-      isHybrid: json['is_hybrid'] as bool? ?? false,
+      isPartTime: json['is_part_tixzce'] as bool? ?? partTime,
+      isRemote: json['is_remote'] as bool? ?? remote,
+      isHybrid: json['is_hybrid'] as bool? ?? hybrid,
       isConstruction: json['is_construction'] as bool? ?? false,
       isEducation: json['is_education'] as bool? ?? false,
       isSmallBusiness: json['is_small_business'] as bool? ?? false,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       jobID: json['job_id'] as int?,
+      industry: json['industry'] as String? ?? 'Unknown Industry',
+      fullTime: json['is_full_time'] as bool? ?? fullTime,
+      contract: json['is_contract'] as bool? ?? contract,
+      internship: json['is_internship'] as bool? ?? internship,
+      volunteer: json['is_volunteer'] as bool? ?? volunteer,
+      type: json['type'] as String? ?? 'Unknown Type',
+      workplaceType: json['workplace_type'] as String? ?? 'Unknown Workplace',
     );
   }
 }
