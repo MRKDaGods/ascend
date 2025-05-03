@@ -5,9 +5,14 @@ import '../../data/models/jobs_model.dart';
 class ReportedJobCard extends StatefulWidget {
   final ReportedJob job;
   final List<JobReport> reports;
+  final VoidCallback onExpand;
 
-  const ReportedJobCard({Key? key, required this.job, required this.reports})
-    : super(key: key);
+  const ReportedJobCard({
+    Key? key,
+    required this.job,
+    required this.reports,
+    required this.onExpand,
+  }) : super(key: key);
 
   @override
   _ReportedJobCardState createState() => _ReportedJobCardState();
@@ -53,7 +58,7 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
                       Text(
                         job.title,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -61,7 +66,7 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
                       Text(
                         job.companyName,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 16,
                           color: Colors.grey,
                         ),
                       ),
@@ -106,6 +111,9 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
                 setState(() {
                   _isExpanded = !_isExpanded;
                 });
+                if (_isExpanded) {
+                  widget.onExpand(); // Trigger the onExpand callback
+                }
               },
               icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
               label: Text(
@@ -119,9 +127,7 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
             if (_isExpanded)
               Column(
                 children:
-                    reports
-                        .map((report) => _buildExpandableReportCard(report))
-                        .toList(),
+                    reports.map((report) => _buildReportCard(report)).toList(),
               ),
           ],
         ),
@@ -137,7 +143,7 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
     );
   }
 
-  Widget _buildExpandableReportCard(JobReport report) {
+  Widget _buildReportCard(JobReport report) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       elevation: 2,
@@ -166,7 +172,10 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
                 Expanded(
                   child: Text(
                     report.reporterFullName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ],
@@ -177,109 +186,34 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
             Row(
               children: [
                 DropdownButton<String>(
-                  value:
-                      [
-                            'pending',
-                            'reviewed',
-                            'resolved',
-                            'rejected',
-                          ].contains(report.status)
-                          ? report.status
-                          : "pending", // Ensure the value is valid
+                  value: report.status,
                   items:
                       ['pending', 'reviewed', 'resolved', 'rejected']
                           .map(
                             (status) => DropdownMenuItem(
                               value: status,
-                              child: Text(status),
+                              child: Text(
+                                status[0].toUpperCase() + status.substring(1),
+                              ),
                             ),
                           )
                           .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        report.status = value; // Update the report's status
-                        // Optionally, update the backend here
-                      });
-                    }
+                  onChanged: (newStatus) {
+                    setState(() {
+                      report.status = newStatus!;
+                    });
                   },
                 ),
                 const Spacer(),
-                OutlinedButton(
-                  onPressed: () {
-                    _showDeleteConfirmationDialog(report);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Delete Job',
-                    style: TextStyle(color: Colors.red),
-                  ),
+                Text(
+                  DateFormat('MMM d, yyyy').format(report.createdAt),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatusPill(String status) {
-    Color color;
-    switch (status) {
-      case 'pending':
-        color = Colors.orange;
-        break;
-      case 'resolved':
-        color = Colors.green;
-        break;
-      default:
-        color = Colors.grey;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteConfirmationDialog(JobReport report) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete Job'),
-          content: const Text('Are you sure you want to delete this job?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Handle job deletion here
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

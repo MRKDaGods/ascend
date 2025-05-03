@@ -15,9 +15,6 @@ class AdminApiClient {
       throw Exception('Authentication token is missing.');
     }
 
-    debugPrint('Request URL: $baseUrl$endpoint');
-    debugPrint('Request Headers: Authorization: Bearer $token');
-
     final headers = {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
@@ -26,9 +23,6 @@ class AdminApiClient {
     final response = await http
         .get(Uri.parse('$baseUrl$endpoint'), headers: headers)
         .timeout(const Duration(seconds: 10));
-
-    debugPrint('Response Status Code: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return json.decode(response.body);
@@ -52,9 +46,6 @@ class AdminApiClient {
       },
     );
 
-    debugPrint('Request URL: $baseUrl$endpoint');
-    debugPrint('Response Status Code: ${response.statusCode}');
-
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('DELETE $endpoint failed with ${response.statusCode}');
     }
@@ -75,11 +66,6 @@ class AdminApiClient {
       },
       body: json.encode(body),
     );
-
-    debugPrint('Request URL: $baseUrl$endpoint');
-    debugPrint('Request Body: $body');
-    debugPrint('Response Status Code: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('PATCH $endpoint failed with ${response.statusCode}');
@@ -131,13 +117,11 @@ class AdminApiClient {
   /// Fetches reported posts with pagination.
   Future<Map<String, dynamic>> getReportedPosts(int page) async {
     try {
-      debugPrint('Fetching reported posts for page: $page');
       final response = await get('/posts/reported?page=$page');
-      debugPrint('Reported posts response: $response');
       return response;
     } catch (e) {
       debugPrint('Error in getReportedPosts: $e');
-      rethrow; // Re-throw the exception to be handled by the caller
+      rethrow;
     }
   }
 
@@ -154,5 +138,47 @@ class AdminApiClient {
   /// Updates a specific report by its ID.
   Future<void> updateReport(String reportId, Map<String, dynamic> data) async {
     await patch('/posts/reports/$reportId', data);
+  }
+
+  /// Fetches reported jobs with pagination.
+  Future<Map<String, dynamic>> getReportedJobs({int page = 1}) async {
+    try {
+      final response = await get('/jobs/reported?page=$page');
+      return response;
+    } catch (e) {
+      debugPrint('Error in getReportedJobs: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetches reports for a specific job with pagination.
+  Future<Map<String, dynamic>> getJobReports(int jobId, {int page = 1}) async {
+    try {
+      final response = await get('/jobs/$jobId/reports?page=$page');
+      return response;
+    } catch (e) {
+      debugPrint('Error in getJobReports: $e');
+      rethrow;
+    }
+  }
+
+  /// Deletes a specific job by its ID.
+  Future<void> deleteJob(int jobId) async {
+    try {
+      await delete('/jobs/$jobId');
+    } catch (e) {
+      debugPrint('Error in deleteJob: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates the status of a specific job report.
+  Future<void> updateJobReportStatus(int reportId, String status) async {
+    try {
+      await patch('/jobs/reports/$reportId', {'status': status});
+    } catch (e) {
+      debugPrint('Error in updateJobReportStatus: $e');
+      rethrow;
+    }
   }
 }
