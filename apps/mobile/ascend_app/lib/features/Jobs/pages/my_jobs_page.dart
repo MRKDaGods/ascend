@@ -20,6 +20,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
   void initState() {
     super.initState();
     getSavedJobs();
+    getApplications();
   }
 
   Future<void> getSavedJobs() async {
@@ -54,6 +55,47 @@ class _MyJobsPageState extends State<MyJobsPage> {
     } catch (e) {
       ScaffoldMessenger.of(
         // ignore: use_build_context_synchronously
+        context,
+      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+    }
+  }
+
+  Future<void> getApplications() async {
+    final apiClient = ApiClient();
+    try {
+      final response = await apiClient.get('/job/applications');
+      print(
+        "nooooooooooooooooooooooooooooooooooooooooooooasdsdaasdasdasdasdsadasdasdasdasdsa",
+      );
+      print("response: ${response.body}");
+      print("status code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final List<dynamic> applicationsData =
+            jsonDecode(response.body)['data'];
+        setState(() {
+          savedJobs =
+              applicationsData
+                  .map((data) {
+                    try {
+                      return Jobsattributes.fromJson(data);
+                    } catch (e) {
+                      print('Error parsing application data: $e');
+                      return null;
+                    }
+                  })
+                  .where((job) => job != null)
+                  .cast<Jobsattributes>()
+                  .toList();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch applications: ${response.body}'),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
     }

@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/Jobs/pages/job_filter_page.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
@@ -89,6 +90,16 @@ class JobPicksSection extends StatelessWidget {
               child: TextButton(
                 onPressed: () {
                   // Handle "Show all" button press
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => JobFilterScreen(
+                            chosenCategory: "Easy Apply",
+                            jobs: jobs,
+                          ),
+                    ),
+                  );
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
