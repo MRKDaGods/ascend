@@ -8,6 +8,7 @@ const navLinks = [
   { label: "Users", href: "/admin/users" },
   { label: "Posts", href: "/admin/posts" },
   { label: "Jobs", href: "/admin/jobs" },
+  { label: "Back to Feed", href: "/feed" },
 ];
 
 export default function AdminNavbar() {
@@ -16,13 +17,12 @@ export default function AdminNavbar() {
     <Box sx={{ mb: 3 }}>
       <Stack direction="row" spacing={2}>
         {navLinks.map((link) => (
-            //create link element for each path in the array
+          //create link element for each path in the array
           <Link
             key={link.label}
             href={link.href}
             style={{ textDecoration: "none" }}
           >
-            
             <Button
               variant={pathname === link.href ? "contained" : "outlined"}
               color="primary"
