@@ -22,4 +22,9 @@ class RemoveConnection extends ConnectionRequestEvent {
   RemoveConnection({required this.connectionId});
 }
 
+class CancelConnectionRequest extends ConnectionRequestEvent {
+  final String requestId;
+  CancelConnectionRequest({required this.requestId});
+}
+
 class FetchConnectionRequests extends ConnectionRequestEvent {}

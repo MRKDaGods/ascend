@@ -14,6 +14,7 @@ import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 
 class Grow extends StatefulWidget {
   const Grow({super.key});
@@ -185,6 +186,11 @@ class _GrowState extends State<Grow> {
                                         value: BlocProvider.of<
                                           MessagingRequestsBloc
                                         >(context),
+                                      ),
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<UserSearchBloc>(
+                                          context,
+                                        ),
                                       ),
                                     ],
                                     child: ManageMyNetwork(

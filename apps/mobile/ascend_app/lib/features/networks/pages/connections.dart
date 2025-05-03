@@ -1,4 +1,10 @@
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/pages/search_users_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
@@ -49,7 +55,49 @@ class Connections extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.search),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        ConnectionRequestBloc
+                                      >(context),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<UserSearchBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        ConnectionPreferencesBloc
+                                      >(context),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<FollowBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<BlockBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        MessagingRequestsBloc
+                                      >(context),
+                                    ),
+                                  ],
+                                  child: const SearchUsersPage(),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
                       IconButton(
                         icon: const Icon(Icons.filter_list),

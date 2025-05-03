@@ -19,7 +19,7 @@ class ConnectionRequestBloc
     on<SendConnectionRequest>(_sendConnectionRequest);
     on<AcceptConnectionRequest>(_acceptConnectionRequest);
     on<DeclineConnectionRequest>(_declineConnectionRequest);
-    // on<CancelConnectionRequest>(_cancelConnectionRequest);
+    on<CancelConnectionRequest>(_cancelConnectionRequest);
     on<RemoveConnection>(_removeConnection);
   }
 
@@ -118,7 +118,6 @@ class ConnectionRequestBloc
     }
   }
 
-  /*
   Future<void> _cancelConnectionRequest(
     CancelConnectionRequest event,
     Emitter<ConnectionRequestState> emit,
@@ -131,7 +130,7 @@ class ConnectionRequestBloc
       emit(ConnectionRequestError(e.toString()));
     }
   }
-*/
+
   Future<void> _removeConnection(
     RemoveConnection event,
     Emitter<ConnectionRequestState> emit,

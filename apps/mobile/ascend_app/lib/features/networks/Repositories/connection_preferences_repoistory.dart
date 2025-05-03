@@ -77,4 +77,38 @@ class ConnectionPreferencesRepository {
       rethrow; // Rethrow the error for further handling if needed
     }
   }
+
+  Future<Map<String, bool>> canConnect(String userId) async {
+    try {
+      final int userIdInt = int.tryParse(userId) ?? 0;
+      final response = await _client.get(
+        '${ApiEndpoints.preferences}/$userIdInt',
+      );
+
+      if (response.statusCode == 200) {
+        // Successfully fetched the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        final Map<String, bool> canConnect = {
+          'canConnect': responseData['allow_connection_requests'] ?? false,
+          'canReceiveMessageRequests':
+              responseData['allow_messages_from'] == 'all' ? true : false,
+        };
+        return canConnect;
+      } else {
+        debugPrint(
+          'Failed to fetch connection preferences: ${response.statusCode}',
+        );
+        return {'canConnect': false, 'canReceiveMessageRequests': false};
+      }
+    } catch (e) {
+      // For now, debugPrint the error
+      await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      return {
+        'canConnect': false,
+        'canReceiveMessageRequests': false,
+      }; // Return default values in case of error
+    }
+  }
 }

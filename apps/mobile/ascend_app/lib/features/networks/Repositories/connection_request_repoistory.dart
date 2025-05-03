@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/networks/model/user_suggested_to_connect.dart';
@@ -120,6 +121,7 @@ class ConnectionRequestRepository {
   Future<List<UserPendingModel>> fetchPendingRequestsReceived({
     int page = 1,
     int limit = 10,
+    bool includeMutualConnection = false,
   }) async {
     try {
       final response = await _client.get(
@@ -130,9 +132,16 @@ class ConnectionRequestRepository {
         final List<dynamic> responseData = data['data'];
         debugPrint('Response data: $responseData');
         debugPrint('Response data length: ${responseData.length}');
-        return responseData
-            .map((json) => UserPendingModel.fromJson(json))
-            .toList();
+
+        final pendingRequests =
+            responseData
+                .map((json) => UserPendingModel.fromJson(json))
+                .toList();
+
+        if (includeMutualConnection) {
+          return await addMutualConnectionstoRequests(pendingRequests);
+        }
+        return pendingRequests;
       } else {
         debugPrint(
           'Failed to fetch sent connection requests: ${response.body}',
@@ -201,31 +210,30 @@ class ConnectionRequestRepository {
     }
   }
 
-  /*/
   /// Cancel a pending connection request by its ID
   Future<void> cancelConnectionRequest(String requestId) async {
     try {
-      final token = 'your_token_here';
+      final int id = int.parse(requestId);
       final response = await _client.delete(
-        Uri.parse('$baseUrl${ApiEndpoints.cancelConnectionRequest}/$requestId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.connectionPending}/$id',
       );
-
-      if (response.statusCode != 200) {
-        throw Exception(
-          'Failed to cancel connection request: ${response.body}',
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Connection request cancelled successfully: ${data["message"]}',
+        );
+      } else {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+          'Failed to cancel connection request: ${data["success"]} with error: ${data["success"]}',
         );
       }
     } catch (e) {
-      //
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      removeConnectionRequest(connectionRequests, requestId);
+      debugPrint('Error cancelling connection request: $e');
     }
   }
-*/
 
   /// Remove an existing connection by its ID
   Future<void> removeConnection(String connectionId) async {
@@ -289,7 +297,7 @@ class ConnectionRequestRepository {
   Future<List<ConnectedUser>> fetchMutualConnections(String userId) async {
     try {
       final response = await _client.get(
-        '${ApiEndpoints.fetchMutualConnections}/:$userId',
+        '${ApiEndpoints.fetchMutualConnections}/$userId',
       );
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -304,6 +312,48 @@ class ConnectionRequestRepository {
     } catch (e) {
       debugPrint('Error fetching mutual connections: $e');
       return []; //
+    }
+  }
+
+  Future<List<UserPendingModel>> addMutualConnectionstoRequests(
+    List<UserPendingModel> pendingRequests,
+  ) async {
+    try {
+      List<UserPendingModel> updatedRequests = [];
+      // Iterate through each pending request and fetch mutual connections
+
+      for (var request in pendingRequests) {
+        final mutualConnections = await fetchMutualConnections(
+          request.id.toString(),
+        );
+        final updatedRequest = request.copyWith(
+          connected_users: mutualConnections,
+          connected_users_count: mutualConnections.length,
+        );
+        updatedRequests.add(updatedRequest);
+      }
+
+      return updatedRequests;
+    } catch (e) {
+      debugPrint('Error adding mutual connections: $e');
+      return pendingRequests;
+    }
+  }
+
+  Future<String> getConnectionStatus(String userId) async {
+    try {
+      final int id = int.parse(userId);
+      final response = await _client.get('/connection/connections/status/$id');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['data']['status'] ?? "notConnected";
+      } else {
+        debugPrint('Failed to fetch connection status: ${response.body}');
+        return "notConnected";
+      }
+    } catch (e) {
+      debugPrint('Error fetching connection status: $e');
+      return "notConnected";
     }
   }
 }
