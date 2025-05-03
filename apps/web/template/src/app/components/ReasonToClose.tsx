@@ -19,8 +19,12 @@ export default function ReasonToClose({ username }: { username: string }) {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: 27 }}>
+    <Box
+      id="reason-to-close-container"
+      sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", mt: 27 }}
+    >
       <Paper
+        id="reason-to-close-paper"
         elevation={3}
         sx={{
           maxWidth: "600px",
@@ -33,20 +37,28 @@ export default function ReasonToClose({ username }: { username: string }) {
         <BackButton />
 
         {/* Close Account Content */}
-        <Typography variant="h6" id="close-account-title" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
+        <Typography
+          id="reason-to-close-title"
+          variant="h6"
+          fontWeight="bold"
+          sx={{ fontSize: "1.2rem", mb: 1 }}
+        >
           Close account
         </Typography>
-        <Typography variant="body1" id="username-message" sx={{ mb: 2 }}>
+        <Typography id="reason-to-close-username-message" variant="body1" sx={{ mb: 2 }}>
           {username}, we’re sorry to see you go
         </Typography>
 
         {/* Reason Selection Component */}
-        <ReasonSelection selectedReason={selectedReason} setSelectedReason={setSelectedReason} />
+        <ReasonSelection
+          selectedReason={selectedReason}
+          setSelectedReason={setSelectedReason}
+        />
 
         {/* Next Button - Aligned to Left */}
-        <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
+        <Box id="reason-to-close-next-button-container" sx={{ display: "flex", justifyContent: "flex-start", mt: 3 }}>
           <Button
-            id="next-button"
+            id="reason-to-close-next-button"
             variant="contained"
             color="primary"
             onClick={handleNext}

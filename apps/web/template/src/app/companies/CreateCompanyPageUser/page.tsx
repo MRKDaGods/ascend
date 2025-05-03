@@ -27,20 +27,22 @@ export default function Page() {
     switch (activePage) {
       case 'Feed':
         return (
-          <Grid item xs={12}>
+          <Grid id="feed-grid" item xs={12}>
             <PagePostsUserCompany />
           </Grid>
         );
-      case 'Analytics':
+      case 'Company jobs':
         return (
-          <Grid item xs={12}>
-            <AnalyticsPage />
+          <Grid id="analytics-grid" item xs={12}>
+            <CompanyJobsLists />
           </Grid>
         );
       default:
         return (
-          <Grid item xs={12}>
-            <Box sx={{ p: 2 }}>No content available for "{activePage}" yet.</Box>
+          <Grid id="default-content-grid" item xs={12}>
+            <Box id="default-content-box" sx={{ p: 2 }}>
+              No content available for "{activePage}" yet.
+            </Box>
           </Grid>
         );
     }
@@ -51,7 +53,7 @@ export default function Page() {
     <Navbar />
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f3ef' }}>
       <CompanySidebarUser />
-      <Grid container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
+      <Grid id="user-company-content-grid" container spacing={2} sx={{ padding: 2, flexGrow: 1 }}>
         {renderContent()}
       </Grid>
     </Box>

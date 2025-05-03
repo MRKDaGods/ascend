@@ -9,6 +9,7 @@ const Footer = () => {
 
   return (
     <Box
+      id="footer"
       component="footer"
       display="flex"
       justifyContent="center"
@@ -26,8 +27,9 @@ const Footer = () => {
       }}
     >
       {/* Logo and Year */}
-      <Box display="flex" alignItems="center" gap={0.5}>
+      <Box id="footer-logo-year" display="flex" alignItems="center" gap={0.5}>
         <Box
+          id="footer-logo"
           sx={{
             backgroundColor: theme.palette.grey[700],
             color: theme.palette.getContrastText(theme.palette.grey[700]),
@@ -40,13 +42,10 @@ const Footer = () => {
         >
           Ascend
         </Box>
-        <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+        <Typography id="footer-year" variant="caption" sx={{ color: theme.palette.text.secondary }}>
           © 2025
         </Typography>
       </Box>
-
-      {/* Divider Dot (optional, like LinkedIn style) */}
-      {/* <Typography variant="caption" sx={{ mx: 1 }}>•</Typography> */}
 
       {/* Footer Links */}
       {[
@@ -74,7 +73,7 @@ const Footer = () => {
 
       {/* Language Selector */}
       <Typography
-        id="language-selector"
+        id="footer-language-selector"
         variant="caption"
         sx={{
           cursor: "pointer",
