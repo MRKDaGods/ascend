@@ -5,6 +5,7 @@ import { useProfileStore } from "@/app/stores/useProfileStore";
 
 const API_BASE = "https://api.ascendx.tech";
 const COMPANY_BASE = `${API_BASE}/company`;
+const JOB_BASE = `${API_BASE}/job`;
 
 export interface CompanyResponse {
   company_id: number;
@@ -251,3 +252,10 @@ export const searchForCompaniesAPI = async () => {
     throw err;
   }
 };
+
+export const getCompanyJobsAPI = async (companyId: number, page = 1) => {
+  const response = await API.get(`${JOB_BASE}/company/${companyId}?page=${page}`);
+  return response.data.data; // contains { data: [...jobs], pagination: {...} }
+};
+
+

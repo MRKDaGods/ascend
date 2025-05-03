@@ -8,16 +8,19 @@ export default function AccountManagement() {
   const router = useRouter();
 
   return (
-    <Paper elevation={3} sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
+    <Paper id="account-management-page" elevation={3} sx={{ p: 2 }}>
+      <Typography id="account-management-title" variant="h6" gutterBottom>
         Account management
       </Typography>
-      <List>
+      <List id="account-management-list">
         <ListItemButton id="hibernate-account-button">
-          <ListItemText primary="Hibernate account" />
+          <ListItemText id="hibernate-account-text" primary="Hibernate account" />
         </ListItemButton>
-        <ListItemButton id="close-account-button" onClick={() => router.push("/authen/CloseAccount")}>
-          <ListItemText primary="Close account" />
+        <ListItemButton
+          id="close-account-button"
+          onClick={() => router.push("/authen/CloseAccount")}
+        >
+          <ListItemText id="close-account-text" primary="Close account" />
         </ListItemButton>
       </List>
     </Paper>

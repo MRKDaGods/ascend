@@ -36,6 +36,7 @@ const ForgotPasswordForm = () => {
 
   return (
     <Paper
+      id="forgot-password-form"
       elevation={3}
       sx={{
         padding: 4,
@@ -46,41 +47,42 @@ const ForgotPasswordForm = () => {
         mt: -7,
       }}
     >
-      <Typography variant="h5" fontWeight="bold" mb={2} id="form-title">
+      <Typography id="form-title" variant="h5" fontWeight="bold" mb={2}>
         Forgot password
       </Typography>
       
       {success ? (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert id="success-alert" severity="success" sx={{ mb: 2 }}>
           Password reset link sent! Please check your email.
         </Alert>
       ) : (
-        <form onSubmit={handleSubmit}>
+        <form id="forgot-password-form-content" onSubmit={handleSubmit}>
           <TextField
+            id="email-or-phone-input"
             fullWidth
             variant="outlined"
             label="Email or Phone"
             margin="normal"
-            id="email-or-phone-input"
             value={emailOrPhone}
             onChange={(e) => setEmailOrPhone(e.target.value)}
             disabled={isLoading}
             error={!!error}
           />
           
-          {error && <Alert severity="error" sx={{ mt: 1, mb: 1 }}>{error}</Alert>}
+          {error && <Alert id="error-alert" severity="error" sx={{ mt: 1, mb: 1 }}>{error}</Alert>}
           
           <Typography 
+            id="verification-message"
             variant="body2" 
             color="black" 
             mb={2}
-            sx={{mt: 1,}} 
-            id="verification-message"
+            sx={{ mt: 1 }}
           >
             We'll send a password reset link to this email if it matches an existing Ascend account.
           </Typography>
           
           <Button
+            id="next-button"
             type="submit"
             fullWidth
             variant="contained"
@@ -93,15 +95,15 @@ const ForgotPasswordForm = () => {
               mt: 1,
               textTransform: "none",
             }}
-            id="next-button"
             disabled={isLoading}
           >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : "Next"}
+            {isLoading ? <CircularProgress id="loading-spinner" size={24} color="inherit" /> : "Next"}
           </Button>
         </form>
       )}
       
       <Button
+        id="back-button"
         fullWidth
         variant="text"
         sx={{
@@ -110,7 +112,6 @@ const ForgotPasswordForm = () => {
           fontWeight: "bold",
           textTransform: "none",
         }}
-        id="back-button"
         onClick={() => router.push("/authen/signup")}
         disabled={isLoading}
       >
