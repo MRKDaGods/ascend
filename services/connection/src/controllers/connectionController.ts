@@ -74,7 +74,7 @@ export const sendConnectionRequest = [
         update_usage : false
       }
 
-      let payment_service_queue = getRPCQueueName(Services.PAYMENT , Events.FILE_UPLOAD_RPC);
+      let payment_service_queue = getRPCQueueName(Services.PAYMENT ,  Events.GET_USER_USAGE_CONNECTIONS);
       const connection_check_response : GetUserUsageConnections.Response = await callRPC<GetUserUsageConnections.Response>(payment_service_queue, connection_payload, 7000);
       if(connection_check_response && connection_check_response.connections_limit >= 0 && connection_check_response.connections >= connection_check_response.connections_limit){
         return res.status(403).json({

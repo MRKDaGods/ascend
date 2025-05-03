@@ -16,7 +16,7 @@ export const getUsageByCustomerId = async (customer_id : string) : Promise<Usage
 export const insertUsage = async (user_id : number, last_date : Date) : Promise<Usage|null> => {
     const subscription_plans_limits = await getSubscriptionPlanLimits();
     const basic_plan_limits = subscription_plans_limits.get('basic plan');
-    const result = await db.query("INSERT INTO payment_service.usage (user_id, last_date, messages_per_day_limit, job_applications_limit, connections_limit) VALUES ($1, $2, $3, $4, $5)", [user_id, last_date, basic_plan_limits.messages_per_day_limit, basic_plan_limits.job_applications_per_month_limit, basic_plan_limits.connections_limit]);
+    const result = await db.query("INSERT INTO payment_service.usage (user_id, last_date, messages_per_day_limit, job_applications_limit, connections_limit) VALUES ($1, $2, $3, $4, $5)", [user_id, last_date, basic_plan_limits.messages_per_day_limit, basic_plan_limits.job_applications_limit, basic_plan_limits.connections_limit]);
     return result.rows.length > 0 ? result.rows[0] : null;
 };
 
