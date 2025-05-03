@@ -114,7 +114,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         .toList();
   }
 
-  void fetchData({
+  Future<void> fetchData({
     int pageNumber = 1,
     String experienceLevels = "",
     String companies = "",
@@ -134,7 +134,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     String keyword = "";
     String industry = "";
 
-    // Predefined lists of industries and company names
+    // Predefined lists of industries
     List<String> industries = [
       "Technology",
       "Finance",
@@ -185,18 +185,11 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
           if (jobData.isNotEmpty) {
             setState(() {
               filteredJobs =
-                  jobData
-                      .map((data) {
-                        try {
-                          return Jobsattributes.fromJson(data);
-                        } catch (e) {
 
-                          return null;
-                        }
-                      })
-                      .where((job) => job != null)
-                      .cast<Jobsattributes>()
-                      .toList();
+                  jobData.map((data) => Jobsattributes.fromJson(data)).toList();
+              _updateIndustriesAndCompanies();
+              filteredJobs.shuffle();
+
             });
           } else {
             setState(() {
@@ -222,6 +215,23 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     setState(() {
       isLoading = false; // Hide loading indicator
     });
+  }
+
+  void _updateIndustriesAndCompanies() {
+    final industries = filteredJobs.map((job) => job.industry).toSet();
+    final companies = filteredJobs.map((job) => job.company).toSet();
+
+    for (var industry in industries) {
+      if (!industries.contains(industry)) {
+        industries.add(industry);
+      }
+    }
+
+    for (var company in companies) {
+      if (!companySearchNames.contains(company)) {
+        companySearchNames.add(company);
+      }
+    }
   }
 
   List<Jobsattributes> filterDummyJobs({

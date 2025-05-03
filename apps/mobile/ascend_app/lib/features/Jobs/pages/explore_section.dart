@@ -176,9 +176,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           _moreCategoryTile(Icons.home_work, "Hybrid"),
-          _moreCategoryTile(Icons.storefront, "Small biz"),
-          _moreCategoryTile(Icons.construction, "Construction"),
-          _moreCategoryTile(Icons.school, "Education"),
+          _moreCategoryTile(Icons.work_outline, "Internship"),
+          _moreCategoryTile(Icons.volunteer_activism, "Volunteer"),
+          _moreCategoryTile(Icons.assignment, "Contract"),
         ],
       ),
     );
