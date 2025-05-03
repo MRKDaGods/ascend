@@ -8,14 +8,21 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import CreateDialog from './CreateDialog';
 import EditPageModal from './EditPageModal';
+import CompanyJobsList from './CompanyJobsList';
+import { useRouter } from "next/navigation";
 import CompanySettings from './CompanySettings';
 import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
 import { useNavigationStore } from '@/app/stores/useNavigationStore'; // ✅ Import navigation store
+
+
 
 export default function Sidebar() {
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const { companyId } = useCompanyStore();
+
 
   const {
     name, profileImage, coverImage, setCompanyInfo,
@@ -111,7 +118,10 @@ export default function Sidebar() {
                 variant={activePage === item ? 'contained' : 'text'}
                 onClick={() => {
                   setActivePage(item);
-                  if (item === 'Edit page') setShowEditModal(true);
+                  if (item === 'Edit page') setShowEditModal(true)
+                    else if (item === 'Jobs') {
+                       router.push("/jobs/PostJob")}
+                       
                 }}
                 sx={{
                   textAlign: 'left',
@@ -140,6 +150,7 @@ export default function Sidebar() {
         onClose={() => setShowEditModal(false)}
         onSave={() => setShowEditModal(false)} 
       />
+      
     </>
   );
 }

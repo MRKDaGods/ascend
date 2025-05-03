@@ -116,7 +116,7 @@ export const useCompanyStore = create<CompanyState>()(
             },
           }));
         } catch (err) {
-          console.error(`❌ Failed to fetch followers for company ${companyId}:`, err);
+          console.log(`❌ Failed to fetch followers for company ${companyId}:`, err);
         }
       },
 
