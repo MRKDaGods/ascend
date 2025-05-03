@@ -18,13 +18,6 @@ class JobDetailsPage extends StatefulWidget {
 
 class _JobDetailsPageState extends State<JobDetailsPage> {
   void applyForJob() async {
-    if (widget.job.applied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("You have already applied for this job.")),
-      );
-      return;
-    }
-
     if (widget.job.easyapply) {
       // Navigate to Easy Apply Page
       Navigator.push(
@@ -289,18 +282,6 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                 ),
               ],
             ),
-
-            SizedBox(height: 16),
-
-            if (widget.job.applied) // Show Application Status if applied
-              Text(
-                "Application Status: ${widget.job.applicationStatus}",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
 
             SizedBox(height: 16),
 

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -28,33 +28,35 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
   Uint8List? _selectedFileBytes;
 
   void applyForJob() {
-    if (widget.job.applied) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Already applied for this job!")));
-    } else {
-      setState(() {
-        widget.job.applied = true;
-        widget.job.applicationStatus = "Pending";
-      });
+    // if (widget.job.applied) {
+    //   ScaffoldMessenger.of(
+    //     context,
+    //   ).showSnackBar(SnackBar(content: Text("Already applied for this job!")));
+    // } else {
+    //   setState(() {
+    //     widget.job.applied = true;
+    //     widget.job.applicationStatus = "Pending";
+    //   });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Application Submitted Successfully!")),
-      );
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(content: Text("Application Submitted Successfully!")),
+    //   );
 
-      Navigator.pop(context);
-    }
+    //   Navigator.pop(context);
+    // }
   }
 
   Future<void> _pickFile() async {
     print("Picking file...");
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
 
-      if (pickedFile != null) {
+      if (result != null && result.files.single.path != null) {
         setState(() {
-          _selectedFile = File(pickedFile.path);
+          _selectedFile = File(result.files.single.path!);
         });
       } else {
         ScaffoldMessenger.of(
@@ -62,6 +64,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         ).showSnackBar(const SnackBar(content: Text('No file selected')));
       }
     } catch (e) {
+      print("Error picking file: $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
@@ -71,7 +74,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
   Future<void> _uploadFile() async {
     final String baseUrl = 'https://api.ascendx.tech';
     final String endpoint = '/job/${widget.job.jobID}/applications';
-
+    final String? mimeType = _selectedFile?.path.split('.').last;
     Map<String, dynamic> resumeData = {};
     if (_selectedFile != null) {
       final bytes = await _selectedFile!.readAsBytes();
@@ -79,7 +82,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         "buffer": base64Encode(bytes),
         "file_name": _selectedFile!.path.split('/').last,
         "file_size": bytes.length.toString(),
-        "mime_type": "application/pdf",
+        "mime_type": mimeType,
       };
     }
 
@@ -120,6 +123,8 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Prevent overflow when keyboard appears
+
       appBar: AppBar(
         title: Text("Easy Apply"),
         leading: IconButton(
@@ -129,7 +134,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
           },
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -140,7 +145,8 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
               unselectedColor: Colors.grey,
             ),
             SizedBox(height: 20),
-            Expanded(
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7,
               child: _currentStep == 1 ? _buildStepOne() : _buildStepTwo(),
             ),
           ],
@@ -157,15 +163,15 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         children: [
           TextFormField(
             decoration: InputDecoration(labelText: "Full Name"),
-            // validator: (value) => value!.isEmpty ? "Enter your name" : null,
+            validator: (value) => value!.isEmpty ? "Enter your name" : null,
             onChanged: (value) => name = value,
           ),
           SizedBox(height: 50),
           TextFormField(
             decoration: InputDecoration(labelText: "Email"),
             keyboardType: TextInputType.emailAddress,
-            // validator:
-            //     (value) => value!.contains("@") ? null : "Enter a valid email",
+            validator:
+                (value) => value!.contains("@") ? null : "Enter a valid email",
             onChanged: (value) => email = value,
           ),
           SizedBox(height: 50),
@@ -173,9 +179,9 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
           TextFormField(
             decoration: InputDecoration(labelText: "Phone Number"),
             keyboardType: TextInputType.phone,
-            // validator:
-            //     (value) =>
-            //         value!.length >= 10 ? null : "Enter a valid phone number",
+            validator:
+                (value) =>
+                    value!.length >= 10 ? null : "Enter a valid phone number",
             onChanged: (value) => phone = value,
           ),
           SizedBox(height: 50),
@@ -216,12 +222,12 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () async {
-            if (_selectedFileBytes == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please upload a PDF file.')),
-              );
-              return;
-            }
+            // if (_selectedFileBytes == null) {
+            //   ScaffoldMessenger.of(context).showSnackBar(
+            //     const SnackBar(content: Text('Please upload a PDF file.')),
+            //   );
+            //   return;
+            // }
 
             await _uploadFile();
             applyForJob();
