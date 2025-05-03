@@ -80,31 +80,14 @@ export const unfollowCompanyAPI = async (companyId: number) => {
   }
 };
 
-
 export const createCompanyProfileAPI = async (payload: any) => {
-  try {
-    const response = await API.post(
-      `${COMPANY_BASE}/companies`,
-      JSON.stringify(payload),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response.data.data.company;
-  } catch (error: any) {
-    if (error.response?.data) {
-      console.error("❌ Failed to create company profile:", error.response.data);
-    } else {
-      console.error("❌ Unknown error:", error);
-    }
-    throw error;
-  }
+  const response = await API.post(`${COMPANY_BASE}/companies`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data.data.company;
 };
-
-
 
 export const updateCompanyProfileAPI = async (companyId: number, payload: any) => {
   const response = await API.patch(
