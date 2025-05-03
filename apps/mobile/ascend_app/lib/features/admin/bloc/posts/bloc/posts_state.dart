@@ -11,7 +11,7 @@ final class FetchingReportedPostsState extends PostsState {}
 
 /// State when reported posts are successfully fetched.
 final class ReportedPostsFetchedState extends PostsState {
-  final List<Map<String, dynamic>> reportedPosts;
+  final List<ReportedPost> reportedPosts; // Updated to use the ReportedPost model
   final int currentPage;
   final int totalPages;
 
@@ -27,7 +27,7 @@ final class FetchingPostReportsState extends PostsState {}
 
 /// State when reports for a specific post are successfully fetched.
 final class PostReportsFetchedState extends PostsState {
-  final List<Map<String, dynamic>> postReports;
+  final List<PostReport> postReports; // Updated to use the PostReport model
   final int currentPage;
   final int totalPages;
 

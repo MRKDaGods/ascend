@@ -66,3 +66,5 @@ flutter:
     - assets/
     - assets/logo/
     - assets/company_placeholder.png
+    - assets/EmptyUser.png
+    - assets/default_profile.png
