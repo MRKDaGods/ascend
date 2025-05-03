@@ -50,17 +50,8 @@ final class JobsErrorState extends JobsState {
   JobsErrorState(this.message);
 }
 
-// New state for errors related to specific reported jobs
-final class ReportedJobsErrorState extends JobsState {
-  final String jobId;
-  final String errorMessage;
+// Add the EndOfDataReachedState class
+final class EndOfDataReachedState extends JobsState {}
 
-  ReportedJobsErrorState({required this.jobId, required this.errorMessage});
-}
-
-// This should be moved to jobs_state.dart part file
-// Make sure to add this if it doesn't exist
-class JobsDeletingState extends JobsState {
-  @override // Added missing override decorator
-  List<Object?> get props => [];
-}
+// For deleting jobs
+final class JobsDeletingState extends JobsState {}

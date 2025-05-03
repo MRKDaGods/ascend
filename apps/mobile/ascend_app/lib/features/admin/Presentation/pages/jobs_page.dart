@@ -48,6 +48,10 @@ class _JobsPageState extends State<JobsPage> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state is EndOfDataReachedState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('You have reached the end of reports')),
+            );
           }
         },
         builder: (context, state) {
