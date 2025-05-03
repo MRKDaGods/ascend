@@ -6,12 +6,14 @@ class ReportedPostCard extends StatelessWidget {
   final ReportedPost post;
   final bool isExpanded;
   final VoidCallback onToggleExpand;
+  final VoidCallback onDelete; // Add this line to define the onDelete parameter
 
   const ReportedPostCard({
     super.key,
     required this.post,
     required this.isExpanded,
     required this.onToggleExpand,
+    required this.onDelete, // Add this line to include it in the constructor
   });
 
   @override
@@ -94,14 +96,30 @@ class ReportedPostCard extends StatelessWidget {
             const SizedBox(height: 16),
 
             /// Action row
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              alignment: WrapAlignment.end,
+            Row(
               children: [
-                ElevatedButton(
+                // Expand/Collapse Button
+                TextButton.icon(
                   onPressed: onToggleExpand,
-                  child: Text(isExpanded ? 'HIDE REPORTS' : 'VIEW REPORTS'),
+                  icon: Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                  ),
+                  label: Text(isExpanded ? 'Hide Reports' : 'Show Reports'),
+                ),
+
+                const Spacer(), // Push delete button to the right
+                // Delete button
+                ElevatedButton.icon(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  label: const Text(
+                    'Delete',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),
@@ -113,82 +131,9 @@ class ReportedPostCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               if (post.reports.isNotEmpty)
-                ...post.reports.map<Widget>((report) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            report.reporterId as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          RichText(
-                            text: TextSpan(
-                              text: 'Reason: ',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: report.reason,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(report.description),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              DropdownButton<String>(
-                                value: 'pending',
-                                items:
-                                    [
-                                          'pending',
-                                          'reviewed',
-                                          'resolved',
-                                          'rejected',
-                                        ]
-                                        .map(
-                                          (e) => DropdownMenuItem(
-                                            value: e,
-                                            child: Text(e),
-                                          ),
-                                        )
-                                        .toList(),
-                                onChanged: (val) {},
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                ),
-                                child: const Text(
-                                  'DELETE POST',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList()
+                ...post.reports
+                    .map<Widget>((report) => _buildReportCard(report))
+                    .toList()
               else
                 const Text('No reports available.'),
             ],
@@ -205,6 +150,83 @@ class ReportedPostCard extends StatelessWidget {
         const SizedBox(width: 4),
         Text(value, style: const TextStyle(fontSize: 13)),
       ],
+    );
+  }
+
+  Widget _buildReportCard(PostReport report) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (report.reporterProfilePicture != null)
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      report.reporterProfilePicture!,
+                    ),
+                    radius: 20,
+                  )
+                else
+                  CircleAvatar(
+                    backgroundColor: Colors.grey[300],
+                    radius: 20,
+                    child: const Icon(Icons.person, color: Colors.white),
+                  ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    report.reporterFullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Reason: ${report.reason}'),
+            if (report.description != null &&
+                report.description!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Description: ${report.description}'),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value: report.status,
+                  items:
+                      ['pending', 'reviewed', 'resolved', 'rejected']
+                          .map(
+                            (status) => DropdownMenuItem(
+                              value: status,
+                              child: Text(
+                                status[0].toUpperCase() + status.substring(1),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (newStatus) {
+                    // You'll need to implement status change logic here
+                  },
+                ),
+                const Spacer(),
+                Text(
+                  DateFormat('MMM d, yyyy').format(report.createdAt),
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
