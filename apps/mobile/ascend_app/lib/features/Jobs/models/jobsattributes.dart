@@ -73,9 +73,9 @@ class Jobsattributes {
     bool internship = false;
     bool contract = false;
     bool volunteer = false;
-    if (json['type'] == "Full Time") {
+    if (json['type'] == "Full-Time") {
       fullTime = true;
-    } else if (json['type'] == "Part Time") {
+    } else if (json['type'] == "Part-time") {
       partTime = true;
     } else if (json['type'] == "Internship") {
       internship = true;
@@ -99,7 +99,7 @@ class Jobsattributes {
           json['salary_max_range'] as int? ?? double.infinity.toInt(),
       easyapply: json['easyapply'] as bool? ?? true,
       jobDescription: json['description'] as String? ?? 'No Description',
-      isPartTime: json['is_part_time'] as bool? ?? partTime,
+      isPartTime: json['is_part_tixzce'] as bool? ?? partTime,
       isRemote: json['is_remote'] as bool? ?? remote,
       isHybrid: json['is_hybrid'] as bool? ?? hybrid,
       isConstruction: json['is_construction'] as bool? ?? false,

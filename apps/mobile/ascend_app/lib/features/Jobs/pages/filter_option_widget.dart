@@ -323,8 +323,17 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                                             .toLowerCase()
                                             .contains(value.toLowerCase()),
                                       )
-                                      .take(3)
                                       .toList();
+                              if (!filteredOptions.contains(value) &&
+                                  value.isNotEmpty) {
+                                setState(() {
+                                  companySearchNames.add(value);
+                                  filteredOptions.add(value);
+                                });
+                              } else if (filteredOptions.contains(value) &&
+                                  value.isNotEmpty) {
+                                filteredOptions.remove(value);
+                              }
                             });
                           },
                         ),
@@ -430,8 +439,12 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        chipColor =
-                            Colors.green; // Set the filter color to green
+                        if (selectedOptions.isNotEmpty) {
+                          chipColor =
+                              Colors.green; // Set the filter color to green
+                        } else {
+                          selectedFilterName = widget.filterName;
+                        }
                       });
                       Navigator.pop(context);
                     },
