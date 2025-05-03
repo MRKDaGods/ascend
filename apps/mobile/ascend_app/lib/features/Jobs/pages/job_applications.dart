@@ -1,5 +1,6 @@
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+
 import 'dart:convert';
 import 'application_details.dart';
 

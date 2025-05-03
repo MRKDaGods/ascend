@@ -16,7 +16,8 @@ import '../post/post_action_button.dart';
 import '../post/post_engagement_stats.dart';
 import '../reaction/reaction_button.dart';
 import '../comment/comment_preview.dart';
-import '../../utils/full_screen_image_viewer.dart'; // Add this import
+import '../../utils/full_screen_image_viewer.dart';
+import '../../utils/sheet_helpers.dart';
 
 class Post extends StatefulWidget {
   final String postId;
@@ -44,7 +45,7 @@ class _PostState extends State<Post> {
     PostModel post,
     int imageIndex,
   ) {
-    print("Navigating to image viewer: index=$imageIndex");
+    debugPrint("Navigating to image viewer: index=$imageIndex");
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -55,6 +56,132 @@ class _PostState extends State<Post> {
               postId: post.id,
             ),
       ),
+    );
+  }
+
+  // Method to show the post options bottom sheet
+  void _showPostOptions(BuildContext context, PostModel post) {
+    // --- MODIFICATION START ---
+    // Read the latest state from the bloc to get the most current post status
+    final postBloc = context.read<PostBloc>();
+    final currentState = postBloc.state;
+    PostModel currentPost = post; // Default to the post passed in
+
+    if (currentState is PostsLoaded) {
+      currentPost =
+          currentState.getPostById(post.id) ??
+          post; // Find the latest version or use the old one
+    }
+
+    final bool isCurrentlySaved = currentPost.isSaved;
+    debugPrint(
+      "Showing options sheet for post: ${currentPost.id}, isSaved: $isCurrentlySaved from Post widget",
+    );
+
+    // --- MODIFICATION START ---
+    // Explicitly check the flags being passed
+    final bool showSaveFlag = !isCurrentlySaved;
+    final bool showUnsaveFlag = isCurrentlySaved;
+    debugPrint(
+      "Sheet parameters: showSave=$showSaveFlag, showUnsave=$showUnsaveFlag",
+    );
+    // --- MODIFICATION END ---
+
+    SheetHelpers.showPostOptionsSheet(
+      context: context,
+      ownerName: currentPost.ownerName, // Use currentPost
+      // --- MODIFICATION START ---
+      showSave: showSaveFlag, // Use the debugged flag
+      showUnsave: showUnsaveFlag, // Use the debugged flag
+      // --- MODIFICATION END ---
+      showShare: true, // Control visibility as needed
+      showNotInterested: true, // Control visibility as needed
+      showUnfollow: true, // Control visibility as needed
+      showReport: false, // Control visibility as needed
+      // Add other show flags based on your sheet implementation
+      onSave: () {
+        debugPrint("Save selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(SavePost(currentPost.id)); // Use postBloc directly
+        // --- MODIFICATION END ---
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post saved'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      onUnsave: () {
+        debugPrint("Unsave selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(UnsavePost(currentPost.id)); // Use postBloc directly
+        // --- MODIFICATION END ---
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post unsaved'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      onShare: () {
+        debugPrint("Share selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(SharePost(currentPost.id)); // Use postBloc directly
+        // --- MODIFICATION END ---
+        // Add sharing logic or feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sharing...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      onNotInterested: () {
+        debugPrint("Not interested selected for post ${currentPost.id}");
+        // --- MODIFICATION START ---
+        postBloc.add(
+          HidePost(currentPost.id, "Not interested"),
+        ); // Use postBloc directly
+        // --- MODIFICATION END ---
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post hidden'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      onUnfollow: () {
+        debugPrint("Unfollow selected for user ${currentPost.ownerName}");
+        // Add unfollow logic (likely involves a different BLoC)
+        // --- MODIFICATION START ---
+        // Example: Dispatch event to FollowBloc if available
+        // context.read<FollowBloc>().add(UnfollowUser(currentPost.userId));
+        // --- MODIFICATION END ---
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Unfollow ${currentPost.ownerName} (not implemented)',
+            ),
+          ),
+        );
+      },
+      onReport: () {
+        debugPrint("Report selected for post ${currentPost.id}");
+        // Show report reason dialog, then dispatch event
+        // For now, just dispatch with a placeholder reason
+        // --- MODIFICATION START ---
+        postBloc.add(
+          ReportPost(currentPost.id, "Reason from dialog"),
+        ); // Use postBloc directly
+        // --- MODIFICATION END ---
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post reported'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      // Add other callbacks corresponding to your sheet options
     );
   }
 
@@ -78,10 +205,12 @@ class _PostState extends State<Post> {
                 context.read<PostBloc>().add(ReportPost(post.id, reason));
               },
               onUndo: () {
-                // Use BLoC to hide feedback options
                 context.read<PostBloc>().add(HidePostFeedbackOptions(post.id));
+                // --- MODIFICATION START ---
+                // Add closing parenthesis
               },
             );
+            // --- MODIFICATION END ---
           }
 
           // Normal post view
@@ -105,7 +234,11 @@ class _PostState extends State<Post> {
                     isSponsored: post.isSponsored,
                     followers: post.followers,
                     userId: post.userId, // Pass the userId here
-                    onOptionsPressed: null, // Let it use the default behavior
+                    onOptionsPressed:
+                        () => _showPostOptions(
+                          context,
+                          post,
+                        ), // Use the new method
                     onShowFeedbackOptions: () {
                       // Use BLoC event instead of setState
                       context.read<PostBloc>().add(
@@ -144,7 +277,7 @@ class _PostState extends State<Post> {
                       isSponsored: post.isSponsored, // Add this parameter
                       // Send index to open the specific image in full screen
                       onTapImage: (index) {
-                        print("Image tapped at index: $index");
+                        debugPrint("Image tapped at index: $index");
                         _navigateToImageViewer(context, post, index);
                       },
                     ),
@@ -173,8 +306,6 @@ class _PostState extends State<Post> {
                     likesCount: post.likesCount,
                     commentsCount: post.commentsCount,
                     sharesCount: post.sharedCount,
-                    reactionIcon: _getReactionIcon(post),
-                    reactionColor: _getReactionColor(post),
                     postId: post.id, // Add this line
                   ),
                 ),
@@ -191,16 +322,19 @@ class _PostState extends State<Post> {
                       ReactionButton(
                         key: _reactionButtonKey,
                         manager: ReactionManager(
-                          isLiked: post.isLiked,
                           currentReaction: post.currentReaction,
+                          // Pass postId and context if manager needs to dispatch BLoC events directly
+                          // postId: post.id,
+                          // context: context,
                         ),
-                        onTap:
-                            () => context.read<PostBloc>().add(
-                              TogglePostReaction(
-                                post.id,
-                                post.isLiked ? null : 'like',
-                              ),
-                            ),
+                        onTap: () {
+                          // Determine next state based on current reaction
+                          final nextReaction =
+                              post.currentReaction == null ? 'like' : null;
+                          context.read<PostBloc>().add(
+                            TogglePostReaction(post.id, nextReaction),
+                          );
+                        },
                         onLongPressStart: () {
                           final RenderBox box =
                               _reactionButtonKey.currentContext!
@@ -247,41 +381,11 @@ class _PostState extends State<Post> {
           );
         }
 
-        // Loading state
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          child: const SizedBox(
-            height: 150,
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        );
+        // --- MODIFICATION START ---
+        // Add return statement for other states or if post is null
+        return const SizedBox.shrink(); // Or a loading indicator/error message
+        // --- MODIFICATION END ---
       },
     );
-  }
-
-  IconData _getReactionIcon(PostModel post) {
-    if (!post.isLiked) {
-      return Icons.thumb_up_outlined;
-    }
-
-    if (post.currentReaction != null &&
-        ReactionManager.reactionIcons.containsKey(post.currentReaction)) {
-      return ReactionManager.reactionIcons[post.currentReaction]!;
-    }
-
-    return Icons.thumb_up;
-  }
-
-  Color _getReactionColor(PostModel post) {
-    if (!post.isLiked) {
-      return Colors.grey;
-    }
-
-    if (post.currentReaction != null &&
-        ReactionManager.reactionColors.containsKey(post.currentReaction)) {
-      return ReactionManager.reactionColors[post.currentReaction]!;
-    }
-
-    return Colors.blue;
   }
 }

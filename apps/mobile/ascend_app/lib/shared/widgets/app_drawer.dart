@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/profile/bloc/user_profile_bloc.dart';
 import '../../features/profile/bloc/user_profile_state.dart';
 import '../../features/profile/models/user_profile_model.dart';
+import '../../core/routes/app_routes.dart'; // Import AppRoutes to access RouteNames
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -12,9 +13,10 @@ class AppDrawer extends StatelessWidget {
     return BlocBuilder<UserProfileBloc, UserProfileState>(
       builder: (context, state) {
         // Extract profile from state or use empty profile if not loaded
-        final profile = state is UserProfileLoaded 
-            ? state.profile 
-            : UserProfileModel.empty();
+        final profile =
+            state is UserProfileLoaded
+                ? state.profile
+                : UserProfileModel.empty();
 
         return Drawer(
           child: Column(
@@ -31,33 +33,45 @@ class AppDrawer extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // If the profile is loading, show a loading indicator
                             if (state is UserProfileLoading)
                               const Center(child: CircularProgressIndicator())
                             else
                               CircleAvatar(
                                 radius: 30,
-                                backgroundImage: profile.avatarUrl.isNotEmpty 
-                                    ? NetworkImage(profile.avatarUrl) as ImageProvider
-                                    : const AssetImage('assets/logo.jpg'),
+                                backgroundImage:
+                                    profile.avatarUrl.isNotEmpty
+                                        ? NetworkImage(profile.avatarUrl)
+                                            as ImageProvider
+                                        : const AssetImage('assets/logo.jpg'),
                               ),
                             const SizedBox(height: 10),
                             Text(
                               profile.name,
-                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(height: 5),
-                            Text(profile.position, style: const TextStyle(fontSize: 14)),
+                            Text(
+                              profile.position,
+                              style: const TextStyle(fontSize: 14),
+                            ),
                             const SizedBox(height: 5),
-                            Text(profile.location, style: const TextStyle(fontSize: 14)),
+                            Text(
+                              profile.location,
+                              style: const TextStyle(fontSize: 14),
+                            ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
                                 CircleAvatar(
                                   radius: 8,
-                                  backgroundImage: profile.companyLogoUrl.isNotEmpty 
-                                      ? NetworkImage(profile.companyLogoUrl) as ImageProvider
-                                      : const AssetImage('assets/logo.jpg'),
+                                  backgroundImage:
+                                      profile.companyLogoUrl.isNotEmpty
+                                          ? NetworkImage(profile.companyLogoUrl)
+                                              as ImageProvider
+                                          : const AssetImage('assets/logo.jpg'),
                                 ),
                                 const SizedBox(width: 5),
                                 Flexible(
@@ -106,17 +120,44 @@ class AppDrawer extends StatelessWidget {
                         Navigator.pop(context);
                       },
                     ),
-                    // Add more list tiles as needed
+                    const Divider(),
+                    // Saved Posts
+                    ListTile(
+                      leading: const Icon(Icons.bookmark_border_outlined),
+                      horizontalTitleGap: 5,
+                      title: const Text(
+                        'Saved Posts',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, RouteNames.savedPosts);
+                      },
+                    ),
+                    // Admin Panel
+                    ListTile(
+                      leading: const Icon(Icons.admin_panel_settings_outlined),
+                      horizontalTitleGap: 5,
+                      title: const Text(
+                        'Admin Panel',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, RouteNames.adminHome);
+                      },
+                    ),
                   ],
                 ),
               ),
-              // Settings at the bottom
               const Divider(),
-              // Only show "Try premium" if the user is not a premium user
               if (!profile.isPremium)
                 ListTile(
                   dense: true,
-                  leading: const Icon(Icons.payments_rounded, color: Colors.amber),
+                  leading: const Icon(
+                    Icons.payments_rounded,
+                    color: Colors.amber,
+                  ),
                   horizontalTitleGap: 5,
                   title: const Text(
                     'Try premium for EGP0',
@@ -135,11 +176,11 @@ class AppDrawer extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 onTap: () {
-                  Navigator.pop(context);// Close the drawer
-                  Navigator.pushNamed(context, '/settings');// Navigate to settings
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/settings');
                 },
               ),
-              const SizedBox(height: 16), // Add some padding at the bottom
+              const SizedBox(height: 16),
             ],
           ),
         );

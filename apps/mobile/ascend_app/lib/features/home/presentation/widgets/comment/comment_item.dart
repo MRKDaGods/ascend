@@ -44,7 +44,7 @@ class CommentItem extends StatelessWidget {
                     timePosted: comment.timePosted,
                     text: comment.text,
                     avatarImage: comment.authorImageUrl,
-                    isLiked: comment.isLiked,
+                    
                     reaction: comment.currentReaction,
                     likeCount: comment.likesCount,
                     onReplyTap:

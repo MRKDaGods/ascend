@@ -178,27 +178,27 @@ class SecureStorageHelper {
       rethrow;
     }
   }
-  
-  static Future<void> setPassword(String password) async {
-  try {
-    final box = await _getBox();
-    await box.put('password', password);
-    _logger.i('Password saved successfully');
-  } catch (e) {
-    _logger.e('Error saving password: $e');
-    rethrow;
-  }
-}
 
-static Future<String?> getPassword() async {
-  try {
-    final box = await _getBox();
-    final password = box.get('password');
-    _logger.i('Password retrieved: $password');
-    return password;
-  } catch (e) {
-    _logger.e('Error retrieving password: $e');
-    rethrow;
+  static Future<void> setPassword(String password) async {
+    try {
+      final box = await _getBox();
+      await box.put('password', password);
+      _logger.i('Password saved successfully');
+    } catch (e) {
+      _logger.e('Error saving password: $e');
+      rethrow;
+    }
   }
-}
+
+  static Future<String?> getPassword() async {
+    try {
+      final box = await _getBox();
+      final password = box.get('password');
+      _logger.i('Password retrieved: $password');
+      return password;
+    } catch (e) {
+      _logger.e('Error retrieving password: $e');
+      rethrow;
+    }
+  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
-//import 'package:ascend_app/features/Jobs/data/jobsdummy.dart';
 import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -16,11 +15,13 @@ class JobFilterScreen extends StatefulWidget {
   final String chosenCategory; // Category selected by the user
 
   @override
+
   // ignore: library_private_types_in_public_api
   _JobFilterScreenState createState() => _JobFilterScreenState();
 }
 
 class _JobFilterScreenState extends State<JobFilterScreen> {
+
   final List<String> jobCategories = [
     "Easy Apply",
     "Part-time",

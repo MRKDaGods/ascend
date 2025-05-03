@@ -1,10 +1,16 @@
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/pages/search_users_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 
 class Connections extends StatelessWidget {
-  final List<UserModel> connections;
+  final List<ConnectedUser> connections;
   final Function(String) onRemove;
 
   const Connections({
@@ -21,46 +27,86 @@ class Connections extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         } else if (state is ConnectionRequestSuccess) {
           return Scaffold(
-            appBar: AppBar(title: Text('Connections')),
+            appBar: AppBar(
+              title: Text('Connections'),
+              centerTitle: true,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(0),
+                child: Container(color: Colors.grey[300], height: 1),
+              ),
+            ),
             body: Column(
               children: [
-                Card(
-                  elevation: 2, // Slight shadow effect
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                  title: Text(
+                    '${state.acceptedConnections.length} Connections',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${state.acceptedConnections.length} Connections',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.search),
-                              onPressed: () {},
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        ConnectionRequestBloc
+                                      >(context),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<UserSearchBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        ConnectionPreferencesBloc
+                                      >(context),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<FollowBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<BlockBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        MessagingRequestsBloc
+                                      >(context),
+                                    ),
+                                  ],
+                                  child: const SearchUsersPage(),
+                                );
+                              },
                             ),
-                            IconButton(
-                              icon: Icon(Icons.filter_list),
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.filter_list),
+                        onPressed: () {},
+                      ),
+                    ],
                   ),
                 ),
+                const Divider(color: Colors.grey, thickness: 1),
                 if (connections.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -71,34 +117,21 @@ class Connections extends StatelessWidget {
                     child: ListView.separated(
                       itemCount: state.acceptedConnections.length,
                       itemBuilder: (context, index) {
-                        final connection = connections.firstWhere(
-                          (user) =>
-                              user.id ==
-                                  state.acceptedConnections[index].receiverId ||
-                              user.id ==
-                                  state.acceptedConnections[index].senderId,
-                          orElse:
-                              () => UserModel(
-                                id: '',
-                                name: '',
-                                profilePic: '',
-                                coverpic: '',
-                                industry: '',
-                                company: '',
-                                bio: '',
-                                firstFollow: false,
-                                firstConnect: false,
-                              ),
-                        );
+                        final connection = connections[index];
 
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage(connection.profilePic),
+                            backgroundImage:
+                                connection.profile_image_id != null
+                                    ? NetworkImage(connection.profile_image_id!)
+                                    : const AssetImage(
+                                          'assets/images/default_profile.png',
+                                        )
+                                        as ImageProvider,
                           ),
                           title: Text(
-                            connection.name,
+                            '${connection.first_name} ${connection.last_name}',
                             style: TextStyle(
-                              color: Colors.black,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -107,18 +140,17 @@ class Connections extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                connection.bio,
+                                connection.bio ?? 'No bio available',
                                 maxLines: 2,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                ),
+                                style: TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                state.acceptedConnections[index].timestamp,
+                                'connected on ${connection.connected_at}',
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -126,31 +158,33 @@ class Connections extends StatelessWidget {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              IconButton(
-                                icon: Icon(Icons.message),
-                                onPressed: () {},
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.grey,
+                                    width: 2,
+                                  ), // Grey circular border
+                                ),
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(
+                                    Icons.send,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () {},
+                                  tooltip: 'Message',
+                                ),
                               ),
-                              PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'remove') {
-                                    onRemove(
-                                      state
-                                          .acceptedConnections[index]
-                                          .requestId,
-                                    );
-                                  }
-                                },
-                                itemBuilder:
-                                    (BuildContext context) => [
-                                      PopupMenuItem(
-                                        value: 'remove',
-                                        child: ListTile(
-                                          leading: Icon(Icons.delete),
-                                          title: Text('Remove Connection'),
-                                        ),
-                                      ),
-                                    ],
-                                icon: Icon(Icons.more_vert), // Three-dot icon
+                              IconButton(
+                                icon: Icon(Icons.more_vert),
+                                onPressed:
+                                    () => _showOptionsModal(
+                                      context,
+                                      state.acceptedConnections[index].user_id!,
+                                    ), // Three-dot icon
                               ),
                             ],
                           ),
@@ -171,6 +205,34 @@ class Connections extends StatelessWidget {
         } else {
           return Center(child: Text('Error loading connections'));
         }
+      },
+    );
+  }
+
+  void _showOptionsModal(BuildContext context, String requestId) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListTile(
+            leading: const Icon(Icons.delete),
+            title: const Text(
+              'Remove Connection',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            onTap: () {
+              Future.delayed(Duration.zero, () {
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+              });
+              onRemove(requestId); // Call the remove function
+            },
+          ),
+        );
       },
     );
   }

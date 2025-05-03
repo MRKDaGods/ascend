@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/managers/reaction_manager.dart';
 import 'package:ascend_app/features/home/presentation/widgets/reaction/reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
+import 'package:ascend_app/features/home/presentation/utils/reaction_utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CommentBox extends StatelessWidget {
   final String authorName;
   final String? authorOccupation;
   final String timePosted;
   final String text;
-  final String avatarImage;
+  final String? avatarImage; // Can be URL or asset path
 
   // Replace generic onMenuTap with specific handlers
   final Function(String) onMenuOptionSelected;
@@ -16,7 +18,6 @@ class CommentBox extends StatelessWidget {
   final VoidCallback? onReplyTap;
   final VoidCallback? onReactionTap;
   final VoidCallback? onReactionLongPress;
-  final bool isLiked;
   final String? reaction;
   final int likeCount;
 
@@ -29,12 +30,11 @@ class CommentBox extends StatelessWidget {
     this.authorOccupation,
     required this.timePosted,
     required this.text,
-    required this.avatarImage,
+    this.avatarImage,
     required this.onMenuOptionSelected,
     this.onReplyTap,
     this.onReactionTap,
     this.onReactionLongPress,
-    this.isLiked = false,
     this.reaction,
     this.likeCount = 0,
     this.child,
@@ -42,11 +42,30 @@ class CommentBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reactionIcon = ReactionManager.reactionIcons[reaction] ?? Icons.thumb_up_alt_outlined;
+    final reactionColor = ReactionManager.reactionColors[reaction] ?? Colors.grey;
+    final bool isLiked = reaction != null;
+
+    // Determine if avatarImage is a network URL or a local asset path
+    final bool isNetworkImage = avatarImage?.startsWith('http') ?? false;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Avatar
-        CircleAvatar(backgroundImage: AssetImage(avatarImage), radius: 16),
+        CircleAvatar(
+          radius: 20,
+          // Use Network image if URL, otherwise use Asset image
+          backgroundImage: isNetworkImage
+              ? CachedNetworkImageProvider(avatarImage!) // Use CachedNetworkImageProvider
+              : AssetImage(avatarImage ?? 'assets/images/profile/EmptyUser.png') as ImageProvider, // Fallback asset
+          onBackgroundImageError: isNetworkImage ? (_, __) { // Add error handling for network images
+            debugPrint('Error loading network image: $avatarImage');
+          } : null,
+          child: !isNetworkImage && avatarImage == null // Show icon only if it's truly fallback asset
+              ? const Icon(Icons.person, size: 20)
+              : null,
+        ),
 
         const SizedBox(width: 8),
 
@@ -144,7 +163,6 @@ class CommentBox extends StatelessWidget {
                           ReactionButton(
                             // Create a manager with the current state
                             manager: ReactionManager(
-                              isLiked: isLiked,
                               currentReaction: reaction,
                             ),
                             // Connect callbacks
@@ -196,23 +214,28 @@ class CommentBox extends StatelessWidget {
     SheetHelpers.showPostOptionsSheet(
       context: context,
       ownerName: authorName,
-      showSave: false,
-      showNotInterested: false,
-      showUnfollow: false,
+      showSave: false, // Comments typically aren't saved like posts
+      showUnsave: false, // Add this - Comments typically aren't saved
+      showNotInterested: false, // Assuming not applicable to comments
+      showUnfollow: false, // Assuming not applicable directly to comments
       showMessage: true, // Enable message option
-      reportText: 'Report comment',
+      reportText: 'Report comment', // Customize report text
+      onSave: () {}, // Add empty required callback
+      onUnsave: () {}, // Add empty required callback
       onShare: () {
         Navigator.pop(context);
-        onMenuOptionSelected('share');
+        onMenuOptionSelected('share'); // Use existing callback system
       },
       onMessage: () {
         Navigator.pop(context);
-        onMenuOptionSelected('message');
+        onMenuOptionSelected('message'); // Use existing callback system
       },
       onReport: () {
         Navigator.pop(context);
-        onMenuOptionSelected('report');
+        onMenuOptionSelected('report'); // Use existing callback system
       },
+      // Add other required callbacks from SheetHelpers with empty functions if not used
+      // e.g., onNotInterested: () {}, onUnfollow: () {},
     );
   }
 }
