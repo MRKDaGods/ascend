@@ -91,8 +91,14 @@ class AdminRepository {
   }
 
   /// Deletes a specific job by its ID.
-  Future<void> deleteJob(int jobId) async {
-    await _delete(endpoint: '/jobs/$jobId');
+  Future<bool> deleteJob(String jobId) async {
+    try {
+      await _delete(endpoint: '/jobs/$jobId');
+      return true; // Return true if deletion was successful
+    } catch (e) {
+      debugPrint('Error deleting job: $e');
+      return false; // Return false if deletion failed
+    }
   }
 
   /// Updates the status of a specific job report.

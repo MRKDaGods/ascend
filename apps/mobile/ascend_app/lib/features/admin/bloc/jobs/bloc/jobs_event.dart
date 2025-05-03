@@ -23,6 +23,8 @@ class DeleteJobEvent extends JobsEvent {
   final String jobId;
 
   DeleteJobEvent(this.jobId);
+
+  List<Object?> get props => [jobId];
 }
 
 // Event to update the status of a specific job report

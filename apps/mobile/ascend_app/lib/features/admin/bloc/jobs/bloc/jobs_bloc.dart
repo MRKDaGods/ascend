@@ -36,40 +36,61 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
     on<FetchJobReportsEvent>((event, emit) async {
       // Don't emit loading state here to avoid UI flickering
       try {
-        final jobReports = await adminRepository.fetchJobReports(event.jobId, page: event.page);
-        
+        final jobReports = await adminRepository.fetchJobReports(
+          event.jobId,
+          page: event.page,
+        );
+
         // Check if we're already in a ReportedJobsLoadedState
         if (state is ReportedJobsLoadedState) {
           final currentState = state as ReportedJobsLoadedState;
-          
+
           // Create a copy of the current reports map
-          final updatedReports = Map<int, List<JobReport>>.from(currentState.jobReports);
-          
+          final updatedReports = Map<int, List<JobReport>>.from(
+            currentState.jobReports,
+          );
+
           // Update with the new reports
           updatedReports[event.jobId] = jobReports;
-          
+
           // Emit a new state with updated reports
-          emit(ReportedJobsLoadedState(
-            reportedJobs: currentState.reportedJobs,
-            jobReports: updatedReports,
-          ));
+          emit(
+            ReportedJobsLoadedState(
+              reportedJobs: currentState.reportedJobs,
+              jobReports: updatedReports,
+            ),
+          );
         } else {
           // Fallback if we somehow get here without having loaded jobs first
-          emit(JobReportsLoadedState(jobId: event.jobId, jobReports: jobReports));
+          emit(
+            JobReportsLoadedState(jobId: event.jobId, jobReports: jobReports),
+          );
         }
       } catch (e) {
         emit(JobsErrorState('Failed to load reports: ${e.toString()}'));
       }
     });
 
-    // Handle DeleteJobEvent
+    // Handle DeleteJobEvent - Updated to use API endpoint format
     on<DeleteJobEvent>((event, emit) async {
-      emit(ReportedJobsLoadingState());
+      emit(JobsDeletingState()); // Using a more specific loading state
       try {
-        await adminRepository.deleteJob(int.parse(event.jobId));
-        emit(JobDeletedState(event.jobId));
+        // Store jobId before using it to avoid potential void result issues
+        final jobId = event.jobId;
+
+        // Call the API endpoint {{ADMIN_BASE}}/jobs/:jobId
+        final success = await adminRepository.deleteJob(jobId.toString());
+
+        if (success) {
+          // Fixed: Use the constructor correctly based on how JobDeletedState is defined
+          emit(JobDeletedState(jobId.toString()));
+        } else {
+          emit(
+            JobsErrorState('Failed to delete job. Server returned an error.'),
+          );
+        }
       } catch (e) {
-        emit(JobsErrorState(e.toString()));
+        emit(JobsErrorState('Failed to delete job: ${e.toString()}'));
       }
     });
 
@@ -87,4 +108,11 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
       }
     });
   }
+}
+
+// This should be moved to jobs_state.dart part file
+// Make sure to add this if it doesn't exist
+class JobsDeletingState extends JobsState {
+  @override // Added missing override decorator
+  List<Object?> get props => [];
 }

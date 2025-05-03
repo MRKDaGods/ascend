@@ -6,12 +6,14 @@ class ReportedJobCard extends StatefulWidget {
   final ReportedJob job;
   final List<JobReport> reports;
   final VoidCallback onExpand;
+  final VoidCallback? onDelete; // Add new optional parameter
 
   const ReportedJobCard({
     Key? key,
     required this.job,
     required this.reports,
     required this.onExpand,
+    this.onDelete, // Add this parameter
   }) : super(key: key);
 
   @override
@@ -105,22 +107,41 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
             ),
             const SizedBox(height: 16),
 
-            // Expand/Collapse Button
-            TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-                if (_isExpanded) {
-                  widget.onExpand(); // Trigger the onExpand callback
-                }
-              },
-              icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
-              label: Text(
-                _isExpanded
-                    ? 'Hide Reports'
-                    : 'Show Reports', // No changes needed here after adding the field
-              ),
+            // Action buttons row
+            Row(
+              children: [
+                // Expand/Collapse Button
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                    if (_isExpanded) {
+                      widget.onExpand(); // Trigger the onExpand callback
+                    }
+                  },
+                  icon: Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  ),
+                  label: Text(_isExpanded ? 'Hide Reports' : 'Show Reports'),
+                ),
+
+                const Spacer(), // Push delete button to the right
+                // Delete button
+                if (widget.onDelete != null)
+                  ElevatedButton.icon(
+                    onPressed: widget.onDelete,
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    label: const Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+              ],
             ),
 
             // Reports Section
