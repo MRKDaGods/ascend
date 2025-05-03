@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -5,10 +6,12 @@ import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dar
 
 class AdminApiClient {
   final String baseUrl;
+  final Duration _defaultTimeout = const Duration(seconds: 15);
+  final int _maxRetries = 2;
 
   AdminApiClient({required this.baseUrl});
 
-  /// Makes a GET request to the specified endpoint.
+  /// Makes a GET request to the specified endpoint with retry logic.
   Future<Map<String, dynamic>> get(String endpoint) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null || token.isEmpty) {
@@ -20,57 +23,150 @@ class AdminApiClient {
       'Content-Type': 'application/json',
     };
 
-    final response = await http
-        .get(Uri.parse('$baseUrl$endpoint'), headers: headers)
-        .timeout(const Duration(seconds: 10));
+    int retryCount = 0;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('GET $endpoint failed with ${response.statusCode}');
+    while (true) {
+      try {
+        final response = await http
+            .get(Uri.parse('$baseUrl$endpoint'), headers: headers)
+            .timeout(_defaultTimeout);
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return json.decode(response.body);
+        } else {
+          throw Exception(
+            'GET $endpoint failed with ${response.statusCode}: ${response.body}',
+          );
+        }
+      } catch (e) {
+        if (e is TimeoutException ||
+            (e.toString().contains('SocketException') ||
+                e.toString().contains('Connection refused'))) {
+          if (retryCount < _maxRetries) {
+            retryCount++;
+            debugPrint(
+              'Request timed out, retrying ($retryCount/$_maxRetries): $endpoint',
+            );
+            await Future.delayed(
+              Duration(seconds: retryCount),
+            ); // Exponential backoff
+            continue;
+          }
+        }
+        debugPrint('Error in GET request to $endpoint: $e');
+        rethrow;
+      }
     }
   }
 
-  /// Makes a DELETE request to the specified endpoint.
+  /// Makes a DELETE request to the specified endpoint with retry logic.
   Future<void> delete(String endpoint) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token is missing.');
     }
-    
+
     final url = Uri.parse('$baseUrl$endpoint');
-    
+
     final headers = {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
     };
 
-    final response = await http.delete(url, headers: headers)
-        .timeout(const Duration(seconds: 10));
+    int retryCount = 0;
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('DELETE $endpoint failed with ${response.statusCode}');
+    while (true) {
+      try {
+        final response = await http
+            .delete(url, headers: headers)
+            .timeout(_defaultTimeout);
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return;
+        } else {
+          throw Exception(
+            'DELETE $endpoint failed with ${response.statusCode}: ${response.body}',
+          );
+        }
+      } catch (e) {
+        if (e is TimeoutException ||
+            (e.toString().contains('SocketException') ||
+                e.toString().contains('Connection refused'))) {
+          if (retryCount < _maxRetries) {
+            retryCount++;
+            debugPrint(
+              'Request timed out, retrying ($retryCount/$_maxRetries): $endpoint',
+            );
+            await Future.delayed(
+              Duration(seconds: retryCount),
+            ); // Exponential backoff
+            continue;
+          }
+        }
+        debugPrint('Error in DELETE request to $endpoint: $e');
+        rethrow;
+      }
     }
   }
 
-  /// Makes a PATCH request to the specified endpoint with a JSON body.
-  Future<void> patch(String endpoint, Map<String, dynamic> body) async {
+  /// Makes a PATCH request to the specified endpoint with retry logic.
+  Future<Map<String, dynamic>> patch(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token is missing.');
     }
 
-    final response = await http.patch(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(body),
-    );
+    int retryCount = 0;
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('PATCH $endpoint failed with ${response.statusCode}');
+    while (true) {
+      try {
+        final response = await http
+            .patch(
+              Uri.parse('$baseUrl$endpoint'),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+              },
+              body: json.encode(body),
+            )
+            .timeout(_defaultTimeout);
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          try {
+            if (response.body.isNotEmpty) {
+              return json.decode(response.body);
+            }
+            return {}; // Return empty map for empty responses
+          } catch (e) {
+            debugPrint('Error parsing response body: ${response.body}');
+            return {}; // Return empty map on parse failure
+          }
+        } else {
+          throw Exception(
+            'PATCH $endpoint failed with ${response.statusCode}: ${response.body}',
+          );
+        }
+      } catch (e) {
+        if (e is TimeoutException ||
+            (e.toString().contains('SocketException') ||
+                e.toString().contains('Connection refused'))) {
+          if (retryCount < _maxRetries) {
+            retryCount++;
+            debugPrint(
+              'Request timed out, retrying ($retryCount/$_maxRetries): $endpoint',
+            );
+            await Future.delayed(
+              Duration(seconds: retryCount),
+            ); // Exponential backoff
+            continue;
+          }
+        }
+        debugPrint('Error in PATCH request to $endpoint: $e');
+        rethrow;
+      }
     }
   }
 
@@ -116,9 +212,10 @@ class AdminApiClient {
     return response['count'] ?? 0;
   }
 
-  /// Fetches reported posts with pagination.
+  /// Fetches reported posts with pagination and error handling.
   Future<Map<String, dynamic>> getReportedPosts(int page) async {
     try {
+      debugPrint('Fetching reported posts for page $page');
       final response = await get('/posts/reported?page=$page');
       return response;
     } catch (e) {
@@ -127,24 +224,48 @@ class AdminApiClient {
     }
   }
 
-  /// Fetches reports for a specific post with pagination.
+  /// Fetches reports for a specific post with pagination and error handling.
   Future<Map<String, dynamic>> getPostReports(String postId, int page) async {
-    return await get('/posts/$postId/reports?page=$page');
+    try {
+      debugPrint('Fetching reports for post $postId, page $page');
+      final response = await get('/posts/$postId/reports?page=$page');
+      return response;
+    } catch (e) {
+      debugPrint('Error in getPostReports: $e');
+      rethrow;
+    }
   }
 
-  /// Deletes a specific post by its ID.
+  /// Deletes a specific post by its ID with error handling.
   Future<void> deletePost(String postId) async {
-    await delete('/posts/$postId');
+    try {
+      debugPrint('Deleting post $postId');
+      await delete('/posts/$postId');
+    } catch (e) {
+      debugPrint('Error in deletePost: $e');
+      rethrow;
+    }
   }
 
-  /// Updates a specific report by its ID.
-  Future<void> updateReport(String reportId, Map<String, dynamic> data) async {
-    await patch('/posts/reports/$reportId', data);
+  /// Updates a specific report by its ID with error handling.
+  Future<Map<String, dynamic>> updateReport(
+    String reportId,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      debugPrint('Updating report $reportId with data: $data');
+      final response = await patch('/posts/reports/$reportId', data);
+      return response;
+    } catch (e) {
+      debugPrint('Error in updateReport: $e');
+      rethrow;
+    }
   }
 
-  /// Fetches reported jobs with pagination.
+  /// Fetches reported jobs with pagination and error handling.
   Future<Map<String, dynamic>> getReportedJobs({int page = 1}) async {
     try {
+      debugPrint('Fetching reported jobs for page $page');
       final response = await get('/jobs/reported?page=$page');
       return response;
     } catch (e) {
@@ -153,9 +274,10 @@ class AdminApiClient {
     }
   }
 
-  /// Fetches reports for a specific job with pagination.
+  /// Fetches reports for a specific job with pagination and error handling.
   Future<Map<String, dynamic>> getJobReports(int jobId, {int page = 1}) async {
     try {
+      debugPrint('Fetching reports for job $jobId, page $page');
       final response = await get('/jobs/$jobId/reports?page=$page');
       return response;
     } catch (e) {
@@ -164,9 +286,10 @@ class AdminApiClient {
     }
   }
 
-  /// Deletes a specific job by its ID.
-  Future<void> deleteJob(String jobId) async {  // Changed parameter type from int to String
+  /// Deletes a specific job by its ID with error handling.
+  Future<void> deleteJob(String jobId) async {
     try {
+      debugPrint('Deleting job $jobId');
       await delete('/jobs/$jobId');
     } catch (e) {
       debugPrint('Error in deleteJob: $e');
@@ -174,10 +297,17 @@ class AdminApiClient {
     }
   }
 
-  /// Updates the status of a specific job report.
-  Future<void> updateJobReportStatus(int reportId, String status) async {
+  /// Updates the status of a specific job report with error handling.
+  Future<Map<String, dynamic>> updateJobReportStatus(
+    int reportId,
+    String status,
+  ) async {
     try {
-      await patch('/jobs/reports/$reportId', {'status': status});
+      debugPrint('Updating job report $reportId status to: $status');
+      final response = await patch('/jobs/reports/$reportId', {
+        'status': status,
+      });
+      return response;
     } catch (e) {
       debugPrint('Error in updateJobReportStatus: $e');
       rethrow;

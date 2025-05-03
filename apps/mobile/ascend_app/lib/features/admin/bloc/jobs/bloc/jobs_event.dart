@@ -36,3 +36,14 @@ class UpdateJobReportStatusEvent extends JobsEvent {
 
   UpdateJobReportStatusEvent(this.reportId, this.status);
 }
+
+// Event to update the status of a specific job report
+class UpdateJobReportStatus extends JobsEvent {
+  final String reportId;
+  final String status;
+
+  UpdateJobReportStatus({required this.reportId, required this.status});
+  
+  @override
+  List<Object?> get props => [reportId, status];
+}
