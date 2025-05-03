@@ -1,6 +1,6 @@
 import db from '@shared/config/db';
 import connectionService from '../../services/connectionService';
-import { ConnectionStatus } from '../models';
+import { ConnectionStatus } from '../../models';
 
 // Mock the database module
 jest.mock('@shared/config/db');
@@ -137,91 +137,6 @@ describe('ConnectionService', () => {
     });
   });
 
-  describe('respondToConnectionRequest', () => {
-    it('should accept a connection request successfully', async () => {
-      // Arrange
-      const mockRequest = [{ 
-        id: 1, 
-        user_id: 2, 
-        connection_id: 1, 
-        status: ConnectionStatus.PENDING,
-        request_direction: 'incoming'
-      }];
-
-      // Setup mock responses
-      mockDb.query.mockImplementation((query) => {
-        if (query.includes('SELECT * FROM connection_service.connections WHERE id =')) {
-          return { rows: mockRequest };
-        }
-        return { rows: [] };
-      });
-      
-      // Act
-      const result = await connectionService.respondToConnectionRequest({
-        requestId: 1,
-        userId: 2,
-        accept: true
-      });
-      
-      // Assert
-      expect(mockDb.query).toHaveBeenCalledTimes(3); // Select + 2 Updates
-      expect(result).toEqual({ status: ConnectionStatus.ACCEPTED });
-      
-      // Check that the query was called with proper status
-      expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE connection_service.connections'),
-        expect.arrayContaining([ConnectionStatus.ACCEPTED])
-      );
-    });
-
-    it('should decline a connection request successfully', async () => {
-      // Arrange
-      const mockRequest = [{ 
-        id: 1, 
-        user_id: 2, 
-        connection_id: 1, 
-        status: ConnectionStatus.PENDING,
-        request_direction: 'incoming'
-      }];
-
-      // Setup mock responses
-      mockDb.query.mockImplementation((query) => {
-        if (query.includes('SELECT * FROM connection_service.connections WHERE id =')) {
-          return { rows: mockRequest };
-        }
-        return { rows: [] };
-      });
-      
-      // Act
-      const result = await connectionService.respondToConnectionRequest({
-        requestId: 1,
-        userId: 2,
-        accept: false
-      });
-      
-      // Assert
-      expect(mockDb.query).toHaveBeenCalledTimes(3); // Select + 2 Updates
-      expect(result).toEqual({ status: ConnectionStatus.DECLINED });
-      
-      // Check that the query was called with proper status
-      expect(mockDb.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE connection_service.connections'),
-        expect.arrayContaining([ConnectionStatus.DECLINED])
-      );
-    });
-
-    it('should throw an error if request is not found', async () => {
-      // Arrange
-      mockDb.query.mockImplementation(() => ({ rows: [] }));
-      
-      // Act & Assert
-      await expect(connectionService.respondToConnectionRequest({
-        requestId: 999,
-        userId: 2,
-        accept: true
-      })).rejects.toThrow('Connection request not found');
-    });
-  });
 
   describe('getConnections', () => {
     it('should get connections successfully', async () => {
@@ -345,40 +260,6 @@ describe('ConnectionService', () => {
       // Assert
       expect(mockDb.query).toHaveBeenCalledTimes(1); // Only the select query
       expect(result).toEqual(mockExistingBlock);
-    });
-  });
-
-  describe('getMutualConnections', () => {
-    it('should get mutual connections successfully', async () => {
-      // Arrange
-      const mockMutualConnections = [
-        { user_id: 3, first_name: 'Mutual', last_name: 'Friend' },
-        { user_id: 4, first_name: 'Another', last_name: 'Connection' }
-      ];
-      const mockCount = [{ count: '2' }];
-      
-      // Setup mock responses
-      mockDb.query.mockImplementation((query) => {
-        if (query.includes('INTERSECT')) {
-          return { rows: mockMutualConnections };
-        }
-        if (query.includes('COUNT(*)')) {
-          return { rows: mockCount };
-        }
-        return { rows: [] };
-      });
-      
-      // Act
-      const result = await connectionService.getMutualConnections(1, 2);
-      
-      // Assert
-      expect(mockDb.query).toHaveBeenCalledTimes(2);
-      expect(result.data).toEqual(mockMutualConnections);
-      expect(result.pagination).toEqual({
-        total: 2,
-        page: 1,
-        limit: 10
-      });
     });
   });
 

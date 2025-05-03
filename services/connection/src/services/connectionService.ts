@@ -1,5 +1,6 @@
 import db from "@shared/config/db";
 
+// Use local models for testing compatibility
 import {
   Connection,
   Follow,
@@ -7,7 +8,7 @@ import {
   MessageRequest,
   UserPreferences,
   ConnectionStatus,
-} from "@shared/models";
+} from "../models";
 
 class ConnectionService {
   // Search for users

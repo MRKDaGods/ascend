@@ -7,7 +7,7 @@ import {
   preferencesValidationRules,
 } from "../validations/connectionValidation";
 import validate from "@shared/middleware/validationMiddleware";
-import { ConnectionStatus } from "../__tests__/models";
+import { ConnectionStatus } from "../models";
 import { GetUserUsageConnections } from "@shared/rabbitMQ/payloads";
 import { callRPC } from "@shared/rabbitMQ/mq";
 import { Events, getRPCQueueName } from "@shared/rabbitMQ";
