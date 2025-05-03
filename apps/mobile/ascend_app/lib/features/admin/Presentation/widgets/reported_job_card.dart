@@ -119,7 +119,7 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
               label: Text(
                 _isExpanded
                     ? 'Hide Reports'
-                    : 'Show Reports (${reports.length})',
+                    : 'Show Reports', // No changes needed here after adding the field
               ),
             ),
 
