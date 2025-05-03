@@ -466,6 +466,87 @@ class PostRepository {
     }
   }
 
+  // Toggle Comment Reaction via API
+  Future<bool> toggleCommentReaction(
+    String commentId,
+    String? reactionType,
+  ) async {
+    // Try capitalizing 'Engagement'
+    final String reactionUrl = '$baseUrl/post/comments/$commentId/react'; // Capitalized Engagement
+    debugPrint(
+      '🔄 [PostRepository] Toggling reaction for comment $commentId: Type=$reactionType, URL=$reactionUrl',
+    );
+
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        throw Exception('Authentication token not found.');
+      }
+
+      http.Response response;
+      final headers = {
+        'Authorization': 'Bearer $authToken',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+
+      // If reactionType is provided, send it in the body
+      if (reactionType != null) {
+        debugPrint(
+          '  [PostRepository] Sending POST with body: {"type": "$reactionType"}',
+        );
+        response = await _client.post(
+          Uri.parse(reactionUrl),
+          headers: headers,
+          body: jsonEncode({'type': reactionType}),
+        );
+      } else {
+        // If reactionType is null, attempt to remove the reaction via POST without body
+        debugPrint(
+          '  [PostRepository] Sending POST without body (attempting removal)',
+        );
+        response = await _client.post(
+          Uri.parse(reactionUrl),
+          headers: headers,
+        );
+        // Alternative: Try DELETE if POST without body fails
+        // debugPrint(' Sending DELETE request for removal');
+        // response = await _client.delete(Uri.parse(reactionUrl), headers: headers);
+      }
+
+      debugPrint(
+        '  [PostRepository] Toggle Comment Reaction Response Status Code: ${response.statusCode}',
+      );
+      // debugPrint('Toggle Comment Reaction Response Body: ${response.body}');
+
+      // Check for successful status codes (200 OK, 201 Created, potentially 204 No Content for removal)
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        final responseBody = response.body;
+        final message =
+            (responseBody.isNotEmpty && response.statusCode != 204)
+                ? (jsonDecode(responseBody)['data']?['message'] ??
+                    'Comment reaction updated')
+                : 'Comment reaction updated/removed'; // Default message for success/204
+        debugPrint(
+          '✅ [PostRepository] Reaction toggled successfully for comment $commentId. Message: $message',
+        );
+        return true;
+      } else {
+        debugPrint(
+          '❌ [PostRepository] Failed to toggle reaction for comment $commentId. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception(
+          'Failed to toggle comment reaction: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error in toggleCommentReaction: $e');
+      rethrow; // Rethrow the exception to be caught by the BLoC
+    }
+  }
+
   /// Adds a comment to a specific post via the API.
   Future<Comment> addComment(
     String postId,
@@ -650,7 +731,7 @@ class PostRepository {
           'Content-Type':
               'application/json; charset=UTF-8', // Keep content type if needed by API
         },
-        // Add body if the API requires it for unsaving via POST, otherwise remove/empty it
+        // Add body if the API requires it for unsaving via
         // body: jsonEncode({}), // Example: Empty body
       );
       // --- MODIFICATION END ---
