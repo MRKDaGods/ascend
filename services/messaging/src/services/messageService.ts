@@ -214,6 +214,10 @@ export const isMessageLimitReached = async (
     const messagesPerDay = parseInt(result.rows[0].messages_per_day);
     const messagesPerDayLimit = parseInt(result.rows[0].messages_per_day_limit);
 
+    if (messagesPerDayLimit === -1) {
+      return false;
+    }
+
     if (messagesPerDay >= messagesPerDayLimit && diffInHours <= 24) {
       return true;
     }
