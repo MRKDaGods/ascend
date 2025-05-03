@@ -1,10 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
-// import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -46,62 +48,74 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     }
   }
 
-  // Future<void> _pickFile() async {
-  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
-  //     type: FileType.custom,
-  //     allowedExtensions: ['pdf'],
-  //   );
+  Future<void> _pickFile() async {
+    print("Picking file...");
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-  //   if (result != null) {
-  //     if (kIsWeb) {
-  //       setState(() {
-  //         _selectedFileBytes = result.files.single.bytes;
-  //       });
-  //     } else {
-  //       String filePath = result.files.single.path!;
-  //       if (filePath.endsWith('.pdf')) {
-  //         setState(() {
-  //           _selectedFile = File(filePath);
-  //         });
-  //       } else {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(content: Text('Please select a valid PDF file.')),
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text('No file selected')));
-  //   }
-  // }
+      if (pickedFile != null) {
+        setState(() {
+          _selectedFile = File(pickedFile.path);
+        });
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No file selected')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+    }
+  }
 
   Future<void> _uploadFile() async {
-    if (_selectedFile == null) return;
+    final String baseUrl = 'https://api.ascendx.tech';
+    final String endpoint = '/job/${widget.job.jobID}/applications';
 
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('https://api.ascendx.tech/job/User'),
-    );
+    Map<String, dynamic> resumeData = {};
+    if (_selectedFile != null) {
+      final bytes = await _selectedFile!.readAsBytes();
+      resumeData = {
+        "buffer": base64Encode(bytes),
+        "file_name": _selectedFile!.path.split('/').last,
+        "file_size": bytes.length.toString(),
+        "mime_type": "application/pdf",
+      };
+    }
 
-    request.headers['Authorization'] = 'Bearer YOUR_AUTHORIZATION_KEY';
-    request.files.add(
-      await http.MultipartFile.fromPath('resume', _selectedFile!.path),
-    );
-    request.fields['email'] = email;
-    request.fields['phone'] = phone;
+    final data = {"email": email, "phone": phone, "resume": resumeData};
 
-    var response = await request.send();
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${await response.stream.bytesToString()}');
-    if (response.statusCode == 200) {
+    try {
+      final token = await SecureStorageHelper.getAuthToken();
+      final headers = {
+        if (token != null) 'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+      final url = Uri.parse('$baseUrl$endpoint');
+
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Applied for job successfully!')),
+        );
+        Navigator.pop(context);
+      } else {
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to apply');
+      }
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('File uploaded successfully')));
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('File upload failed')));
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -189,27 +203,33 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (_selectedFile != null)
+        if (_selectedFileBytes != null)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              'Selected File: ${_selectedFile!.path.split('/').last}',
+              'Selected File: resume.pdf',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ElevatedButton.icon(
-          // onPressed: _pickFile,
-          onPressed: () {},
-          icon: Icon(Icons.upload_file),
-          label: Text("Pick File"),
+          onPressed: _pickFile,
+          icon: const Icon(Icons.upload_file),
+          label: const Text("Pick File"),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {
-            _uploadFile();
+          onPressed: () async {
+            if (_selectedFileBytes == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please upload a PDF file.')),
+              );
+              return;
+            }
+
+            await _uploadFile();
             applyForJob();
           },
-          child: Text("Submit Application"),
+          child: const Text("Submit Application"),
         ),
       ],
     );
