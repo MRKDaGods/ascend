@@ -1,8 +1,10 @@
 import 'dart:convert';
-import 'package:ascend_app/features/StartPages/Model/auth_response.dart';
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+
+import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
-import 'package:bloc/bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_event.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
 import 'package:ascend_app/features/StartPages/repository/auth_repository.dart';
@@ -117,12 +119,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      final response = await authRepository.forgotPassword(event.emailOrPhone);
-      if (response['success'] == true) {
-        emit(AuthForgetPasswordSuccess(message: response['message']));
-      } else {
-        emit(AuthForgetPasswordFaliure(error: response['message']));
-      }
+      final res = await sl.apiClient.post(
+        "/auth/forget-password",
+        data: {"email": event.emailOrPhone, "send_code": true},
+      );
+
+      final response = jsonDecode(res.body);
+      emit(AuthForgetPasswordSuccess(message: response['message']));
     } catch (error) {
       _logger.e('ForgotPassword failed: $error'); // Log the error
       emit(AuthForgetPasswordFaliure(error: error.toString()));
@@ -138,18 +141,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthVerificationCodeLoading());
     try {
+      debugPrint("xemail: ${event.emailOrPhone}");
       // Call the repository method to verify the code
-      final token = await authRepository.verifyCode(
-        emailOrPhone: event.emailOrPhone,
-        verificationCode: event.verificationCode,
+      await sl.apiClient.post(
+        "/auth/verify-code",
+        data: {
+          "code": int.parse(event.verificationCode),
+          "xemail": event.emailOrPhone,
+        },
       );
+
       emit(
         AuthVerificationCodeSuccess(
-          token: token,
+          token: "${event.emailOrPhone}~${event.verificationCode}",
           message: "Code verified successfully!",
         ),
       );
-
     } catch (error) {
       _logger.e('Verification failed: $error'); // Log the error
       emit(AuthVerificationCodeFailure(error: error.toString()));
@@ -162,15 +169,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthResetPasswordLoading());
     try {
-      // Call the repository method to reset the password
-      final message = await authRepository.resetPassword(
-        token: event.token,
-        newPassword: event.newPassword,
+      final xemail = event.token.split("~")[0];
+      final code = event.token.split("~")[1];
+
+      final res = await sl.apiClient.post(
+        "/auth/reset-password",
+        data: {
+          "code": code,
+          "xemail": xemail,
+          "new_password": event.newPassword,
+        },
       );
+      final response = jsonDecode(res.body);
+      final message = response['message'] ?? "Password reset successfully!";
+
       emit(AuthResetPasswordSuccess(message: message));
       // Log the full response for debugging
       _logger.i('Reset Password Response: $message');
-
     } catch (error) {
       _logger.e('Password reset failed: $error'); // Log the error
       emit(AuthResetPasswordFailure(error: error.toString()));

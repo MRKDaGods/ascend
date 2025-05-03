@@ -1,21 +1,24 @@
 part of 'follow_bloc.dart';
 
-@immutable
-sealed class FollowEvent {}
+abstract class FollowEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class FetchFollowing extends FollowEvent {}
 
 class FollowUser extends FollowEvent {
   final String userId;
   FollowUser({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
 }
 
 class UnfollowUser extends FollowEvent {
   final String userId;
   UnfollowUser({required this.userId});
-}
 
-class HideUser extends FollowEvent {
-  final String userId;
-  HideUser({required this.userId});
+  @override
+  List<Object?> get props => [userId];
 }

@@ -1,8 +1,9 @@
+import 'package:ascend_app/features/home/presentation/pages/create_post_page.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/presentation/pages/home.dart';
 import 'package:ascend_app/features/Jobs/jobapp.dart';
 import 'package:ascend_app/features/networks/pages/networks.dart';
-import 'package:ascend_app/features/UserPage/user_page.dart';
+
 import 'package:ascend_app/features/notifications/presentation/pages/notifications_page.dart'; // Add this import
 
 class MainNavigation extends StatefulWidget {
@@ -22,10 +23,8 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _pages = [
       Home(),
-      //Center(child: Text("Video")),
-      UserProfilePage(),
-      //CompanyPage(sections: csections),
       Networks(),
+      CreatePostPage(), // Replace with your actual CreatePostPage widget
       NotificationsPage(), // Replace the placeholder with your actual notifications page
       JobApp(isDarkMode: isDarkMode),
     ];
@@ -47,11 +46,11 @@ class _MainNavigationState extends State<MainNavigation> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.video_library),
-            label: 'Video',
-          ),
           BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Networks'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_rounded),
+            label: 'Post',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
             label: 'Notifications',

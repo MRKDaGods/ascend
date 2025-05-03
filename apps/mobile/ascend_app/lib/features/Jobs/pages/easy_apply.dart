@@ -14,8 +14,10 @@ class EasyApplyPage extends StatefulWidget {
   const EasyApplyPage({super.key, required this.job});
 
   @override
+
   // ignore: library_private_types_in_public_api
   _EasyApplyPageState createState() => _EasyApplyPageState();
+
 }
 
 class _EasyApplyPageState extends State<EasyApplyPage> {
@@ -131,6 +133,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
+
         child: Column(
           children: [
             StepProgressIndicator(
