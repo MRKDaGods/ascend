@@ -22,7 +22,10 @@ class _JobsPageState extends State<JobsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reported Jobs')),
+      appBar: AppBar(
+        automaticallyImplyLeading: false, // This removes the back button
+        title: const Text('Reported Jobs'),
+      ),
       body: BlocConsumer<JobsBloc, JobsState>(
         listener: (context, state) {
           if (state is JobReportStatusUpdatedState) {
