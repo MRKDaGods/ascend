@@ -10,7 +10,7 @@ import {
   Grid,
   CircularProgress,
   useTheme,
-    Paper,
+  Paper,
 } from "@mui/material";
 import { getCompanyJobsAPI } from "@/api/company";
 import { useCompanyStore } from "@/app/stores/useCreateCompanyStore";
@@ -52,8 +52,8 @@ const CompanyJobsLists = () => {
 
   if (!companyId) {
     return (
-      <Box textAlign="center" py={4}>
-        <Typography variant="body1" color="text.secondary">
+      <Box id="no-company-id-container" textAlign="center" py={4}>
+        <Typography id="no-company-id-message" variant="body1" color="text.secondary">
           Company ID not available. Please select a company first.
         </Typography>
       </Box>
@@ -62,9 +62,9 @@ const CompanyJobsLists = () => {
 
   if (loading) {
     return (
-      <Box textAlign="center" py={4}>
-        <CircularProgress />
-        <Typography variant="body2" mt={2}>
+      <Box id="loading-jobs-container" textAlign="center" py={4}>
+        <CircularProgress id="loading-jobs-spinner" />
+        <Typography id="loading-jobs-message" variant="body2" mt={2}>
           Loading jobs...
         </Typography>
       </Box>
@@ -73,16 +73,15 @@ const CompanyJobsLists = () => {
 
   if (jobs.length === 0) {
     return (
-      <Box>
-        {  /* Header */}
-        <Paper id="page-posts-header" variant="outlined" sx={{ p: 2, borderRadius: 2, maxWidth: "32%" }}>
-          <Typography id="page-posts-title" variant="h5" fontWeight={600} mb={0.5}>
+      <Box id="no-jobs-container">
+        <Paper id="no-jobs-header" variant="outlined" sx={{ p: 2, borderRadius: 2, maxWidth: "32%" }}>
+          <Typography id="no-jobs-title" variant="h5" fontWeight={600} mb={0.5}>
             Company Jobs
           </Typography>
         </Paper>
 
-        <Box textAlign="center" py={4}>
-          <Typography variant="body1" color="text.secondary">
+        <Box id="no-jobs-message-container" textAlign="center" py={4}>
+          <Typography id="no-jobs-message" variant="body1" color="text.secondary">
             No jobs found for this company.
           </Typography>
         </Box>
@@ -91,19 +90,18 @@ const CompanyJobsLists = () => {
   }
 
   return (
-    
-    <Box>
-        {  /* Header */}
-        <Paper id="page-posts-header" variant="outlined" sx={{ p: 2, borderRadius: 2, maxWidth: "32%" }}>
-          <Typography id="page-posts-title" variant="h5" fontWeight={600} mb={0.5}>
-            Company Jobs
-          </Typography>
-        </Paper>
-      {/* Job Cards */}
-      <Grid container spacing={3} mt={1}>
+    <Box id="jobs-container">
+      <Paper id="jobs-header" variant="outlined" sx={{ p: 2, borderRadius: 2, maxWidth: "32%" }}>
+        <Typography id="jobs-title" variant="h5" fontWeight={600} mb={0.5}>
+          Company Jobs
+        </Typography>
+      </Paper>
+
+      <Grid id="jobs-grid" container spacing={3} mt={1}>
         {jobs.map((job) => (
-          <Grid item xs={12} sm={6} md={4} key={job.job_id}>
+          <Grid id={`job-card-grid-${job.job_id}`} item xs={12} sm={6} md={4} key={job.job_id}>
             <Card
+              id={`job-card-${job.job_id}`}
               sx={{
                 height: "100%",
                 display: "flex",
@@ -117,30 +115,66 @@ const CompanyJobsLists = () => {
                 },
               }}
             >
-              <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                  <Typography variant="h6" fontWeight={600}>
+              <CardContent id={`job-card-content-${job.job_id}`}>
+                <Box
+                  id={`job-card-header-${job.job_id}`}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={1}
+                >
+                  <Typography id={`job-title-${job.job_id}`} variant="h6" fontWeight={600}>
                     {job.title}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography id={`job-date-${job.job_id}`} variant="caption" color="text.secondary">
                     {new Date(job.created_at).toLocaleDateString()}
                   </Typography>
                 </Box>
 
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography
+                  id={`job-description-${job.job_id}`}
+                  variant="body2"
+                  color="text.secondary"
+                  paragraph
+                >
                   {job.description.length > 100
                     ? job.description.slice(0, 100) + "..."
                     : job.description}
                 </Typography>
 
-                <Box display="flex" flexWrap="wrap" gap={1} mb={1}>
-                  <Chip label={job.type} size="small" color="primary" />
-                  <Chip label={job.experience_level} size="small" color="success" />
-                  <Chip label={job.workplace_type} size="small" color="info" />
-                  <Chip label={job.location} size="small" color="secondary" />
+                <Box
+                  id={`job-tags-${job.job_id}`}
+                  display="flex"
+                  flexWrap="wrap"
+                  gap={1}
+                  mb={1}
+                >
+                  <Chip id={`job-type-${job.job_id}`} label={job.type} size="small" color="primary" />
+                  <Chip
+                    id={`job-experience-${job.job_id}`}
+                    label={job.experience_level}
+                    size="small"
+                    color="success"
+                  />
+                  <Chip
+                    id={`job-workplace-${job.job_id}`}
+                    label={job.workplace_type}
+                    size="small"
+                    color="info"
+                  />
+                  <Chip
+                    id={`job-location-${job.job_id}`}
+                    label={job.location}
+                    size="small"
+                    color="secondary"
+                  />
                 </Box>
 
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  id={`job-salary-${job.job_id}`}
+                  variant="body2"
+                  color="text.secondary"
+                >
                   Salary: ${job.salary_min_range.toLocaleString()} - $
                   {job.salary_max_range.toLocaleString()}
                 </Typography>
