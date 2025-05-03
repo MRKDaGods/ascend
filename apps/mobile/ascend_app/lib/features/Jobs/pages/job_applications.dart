@@ -28,6 +28,8 @@ class _JobApplicationsState extends State<JobApplications> {
     final job = widget.jobId;
     try {
       final response = await apiClient.get('/job/$job/applications?page=1');
+      print("response: ${response.body}");
+      print("status code: ${response.statusCode}");
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -66,17 +68,27 @@ class _JobApplicationsState extends State<JobApplications> {
                       vertical: 8,
                     ),
                     child: ListTile(
-                      title: Text(application['name']),
-                      subtitle: Text(application['email']),
+                      title: Text(
+                        application['user_full_name'] ?? 'No Name Provided',
+                      ),
+                      subtitle: Text(
+                        application['email'] ?? 'No Email Provided',
+                      ),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => ApplicationDetails(
-                                  name: application['name'],
-                                  email: application['email'],
-                                  resumeUrl: application['resume_url'],
+                                  name:
+                                      application['user_full_name'] ??
+                                      'No Name Provided',
+                                  email:
+                                      application['email'] ??
+                                      'No Email Provided',
+                                  resumeUrl: application['resume_url'] ?? '',
+                                  applicationId:
+                                      application['application_id'] ?? 0,
                                 ),
                           ),
                         );
