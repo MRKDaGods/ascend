@@ -107,4 +107,23 @@ class FollowRepoistory {
       return []; // Return an empty list in case of an error
     }
   }
+
+  Future<bool> isUserFollowed(String userId) async {
+    try {
+      final int userIdInt = int.parse(userId);
+      final response = await _client.get(
+        '/connection/follows/status/$userIdInt',
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return data['data']['isFollowing'] ?? false;
+      } else {
+        debugPrint('Failed to check if user is followed: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error checking if user is followed: $e');
+      return false; // Return false in case of an error
+    }
+  }
 }

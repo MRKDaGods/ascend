@@ -21,11 +21,13 @@ import '../../features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import '../../features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import '../../features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
 import '../../features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import '../../features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 import '../../features/networks/Repositories/block_repoistory.dart';
 import '../../features/networks/Repositories/connection_preferences_repoistory.dart';
 import '../../features/networks/Repositories/connection_request_repoistory.dart';
 import '../../features/networks/Repositories/follow_repoistory.dart';
 import '../../features/networks/Repositories/messaging_requests_repository.dart';
+import '../../features/networks/Repositories/user_search_repoistory.dart';
 
 /// Service locator for dependency injection
 class ServiceLocator {
@@ -67,6 +69,7 @@ class ServiceLocator {
   late final BlockBloc blockBloc;
   late final ConnectionPreferencesBloc connectionPreferencesBloc;
   late final MessagingRequestsBloc messagingRequestsBloc;
+  late final UserSearchBloc userSearchBloc;
 
   /// Initialize all dependencies
   Future<void> init() async {
@@ -152,6 +155,10 @@ class ServiceLocator {
     connectionPreferencesBloc = ConnectionPreferencesBloc(
       connectionPreferencesRepository: connectionPreferencesRepo,
     );
+
+    // User Search Bloc
+    final userSearchRepo = UserSearchRepoistory(client: apiClient);
+    userSearchBloc = UserSearchBloc(userRepository: userSearchRepo);
 
     // Intia
 

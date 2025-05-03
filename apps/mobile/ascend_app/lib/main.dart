@@ -23,6 +23,7 @@ import 'features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
 import 'features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import 'features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 
 void main() async {
   // Ensure Flutter binding is initialized FIRST
@@ -159,6 +160,7 @@ class _MainAppState extends State<MainApp> {
         BlocProvider<ConnectionPreferencesBloc>.value(
           value: sl.connectionPreferencesBloc,
         ),
+        BlocProvider<UserSearchBloc>.value(value: sl.userSearchBloc),
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, authState) {
