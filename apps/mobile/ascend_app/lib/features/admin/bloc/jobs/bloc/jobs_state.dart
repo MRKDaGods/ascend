@@ -41,7 +41,10 @@ final class JobReportStatusUpdatedState extends JobsState {
   final String reportId;
   final String status;
 
-  JobReportStatusUpdatedState(this.reportId, this.status);
+  JobReportStatusUpdatedState({required this.reportId, required this.status});
+
+  @override
+  List<Object?> get props => [reportId, status];
 }
 
 final class JobsErrorState extends JobsState {
@@ -55,3 +58,22 @@ final class EndOfDataReachedState extends JobsState {}
 
 // For deleting jobs
 final class JobsDeletingState extends JobsState {}
+
+// Add the UpdatingJobReportState class
+final class UpdatingJobReportState extends JobsState {}
+
+// Add this state class
+final class JobReportUpdateFailedState extends JobsState {
+  final String reportId;
+  final String status;
+  final String error;
+
+  JobReportUpdateFailedState({
+    required this.reportId,
+    required this.status,
+    required this.error,
+  });
+  
+  @override
+  List<Object?> get props => [reportId, status, error];
+}
