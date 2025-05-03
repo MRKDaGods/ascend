@@ -513,15 +513,18 @@ const JobCard: React.FC<JobCardProps> = ({
           </Box>
         )}
 
-        <Box display="flex" justifyContent="flex-end" mt={1}>
-          <IconButton 
-            onClick={handleDelete}
-            size="small"
-            data-testid="job-card-delete-button"
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
+        {/* Only show delete icon if not Applied status */}
+        {status && status !== 'Applied' && (
+          <Box display="flex" justifyContent="flex-end" mt={1}>
+            <IconButton 
+              onClick={handleDelete}
+              size="small"
+              data-testid="job-card-delete-button"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Box>
+        )}
       </Card>
       
       {/* Updated Job Details Modal with edit functionality */}
