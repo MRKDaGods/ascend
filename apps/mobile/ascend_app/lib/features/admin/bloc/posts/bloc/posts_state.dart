@@ -99,3 +99,13 @@ final class PostReportsVisibilityState extends PostsState {
     required this.isVisible,
   });
 }
+
+/// State to indicate loading more posts without overriding existing ones.
+class FetchingMorePostsState extends PostsState {
+  final List<ReportedPost> currentPosts;
+  
+  FetchingMorePostsState({required this.currentPosts});
+  
+  @override
+  List<Object?> get props => [currentPosts];
+}
