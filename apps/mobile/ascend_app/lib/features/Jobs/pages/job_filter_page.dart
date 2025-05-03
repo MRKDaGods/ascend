@@ -4,7 +4,7 @@ import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/job_search_page.dart';
 
 class JobFilterScreen extends StatefulWidget {
-  JobFilterScreen({
+  const JobFilterScreen({
     super.key,
     required this.chosenCategory,
     required this.jobs,
@@ -13,12 +13,12 @@ class JobFilterScreen extends StatefulWidget {
   final String chosenCategory; // Category selected by the user
 
   @override
-  State<JobFilterScreen> createState() => _JobFilterScreenState();
+
+  // ignore: library_private_types_in_public_api
+  _JobFilterScreenState createState() => _JobFilterScreenState();
 }
 
 class _JobFilterScreenState extends State<JobFilterScreen> {
-
-  double _sliderValue = 0;
 
   final List<String> jobCategories = [
     "Easy Apply",

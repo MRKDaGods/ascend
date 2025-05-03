@@ -20,7 +20,10 @@ class SearchJobsPage extends StatefulWidget {
   final String locationtext;
 
   @override
-  State<SearchJobsPage> createState() => _SearchJobsPageState();
+
+  // ignore: library_private_types_in_public_api
+  _SearchJobsPageState createState() => _SearchJobsPageState();
+
 }
 
 class _SearchJobsPageState extends State<SearchJobsPage> {
@@ -33,6 +36,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
   List<Jobsattributes> initialFilteredJobs =
       []; // List of initial filtered jobs
   bool reset = false; // Flag to check if reset is needed
+  bool isLoading = false; // Flag to show loading indicator
   final TextEditingController locationController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   Duration? selectedTimeFilter;
@@ -118,6 +122,10 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     String salaryMin = "",
     String salaryMax = "",
   }) async {
+    setState(() {
+      isLoading = true; // Show loading indicator
+    });
+
     // Deduplicate filter parameters
     experienceLevels = experienceLevels.split(',').toSet().join(',');
     companies = companies.split(',').toSet().join(',');
@@ -163,18 +171,16 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       'https://api.ascendx.tech/job?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
     );
 
-    debugPrint('Fetching data from: $url');
 
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      debugPrint('Response body: ${response.body}');
 
       if (response.body.isNotEmpty) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         if (jsonResponse.containsKey('data')) {
           final List<dynamic> jobData = jsonResponse['data'];
-          debugPrint('Job data received: $jobData');
+
 
           if (jobData.isNotEmpty) {
             setState(() {
@@ -184,7 +190,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                         try {
                           return Jobsattributes.fromJson(data);
                         } catch (e) {
-                          debugPrint('Error parsing job data: $e');
+
                           return null;
                         }
                       })
@@ -209,10 +215,13 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       }
     } else {
 
-      debugPrint('Request failed with status: ${response.statusCode}');
       filteredJobs = []; // Reset filtered jobs on error
 
     }
+
+    setState(() {
+      isLoading = false; // Hide loading indicator
+    });
   }
 
   List<Jobsattributes> filterDummyJobs({
@@ -290,6 +299,10 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
 
   void updateFilters(List<String> selectedFilters, String filterName) {
     setState(() {
+
+      selectedFilters = selectedFilters;
+
+
       // Determine added and removed filters
       if (filterName.toLowerCase() == 'experience level') {
         experienceLevels = selectedFilters;
@@ -401,39 +414,6 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 50.0),
-              child: SizedBox(
-                height: searchBoxHeight,
-                child: TextField(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => JobSearchPage(
-                              false,
-                              onBackPressed: () {},
-                              jobs: jobs,
-                            ),
-                      ),
-                    );
-                  },
-                  controller: locationController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.location_on),
-                    hintText: 'City, state, or zip code',
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -459,44 +439,53 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-                horizontal: 16.0,
-              ),
-              child: Text(
-                '${filteredJobs.length} results',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else ...[
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8.0,
+                  horizontal: 16.0,
+                ),
+                child: Text(
+                  '${filteredJobs.length} results',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredJobs.length,
-                itemBuilder: (context, index) {
-                  if (index >= filteredJobs.length) {
-                    return const SizedBox(); // Prevent out-of-range access
-                  }
-                  final job = filteredJobs[index];
-                  return jobCard(
-                    context: context,
-                    job: job,
-                    isDarkMode: false,
-                    onRemove: (removedJob) {
-                      setState(() {
-                        jobs.remove(removedJob);
-                      });
+              const SizedBox(height: 10),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    fetchData();
+                  },
+                  child: ListView.builder(
+                    itemCount: filteredJobs.length,
+                    itemBuilder: (context, index) {
+                      if (index >= filteredJobs.length) {
+                        return const SizedBox(); // Prevent out-of-range access
+                      }
+                      final job = filteredJobs[index];
+                      return jobCard(
+                        context: context,
+                        job: job,
+                        isDarkMode: false,
+                        onRemove: (removedJob) {
+                          setState(() {
+                            jobs.remove(removedJob);
+                          });
+                        },
+                        onTap: () {
+                          // Handle job card tap
+                        },
+                      );
                     },
-                    onTap: () {
-                      // Handle job card tap
-                    },
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

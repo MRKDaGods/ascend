@@ -6,13 +6,18 @@ import 'package:url_launcher/url_launcher.dart'; // Import url_launcher package
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http; // Import http package
 
+import 'package:ascend_app/features/Jobs/pages/report_page.dart'; // Import the new ReportPage
+
 
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
-  const JobDetailsPage({Key? key, required this.job}) : super(key: key);
+  const JobDetailsPage({super.key, required this.job});
 
   @override
-  State<JobDetailsPage> createState() => _JobDetailsPageState();
+
+  // ignore: library_private_types_in_public_api
+  _JobDetailsPageState createState() => _JobDetailsPageState();
+
 }
 
 class _JobDetailsPageState extends State<JobDetailsPage> {
@@ -64,7 +69,6 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
 
       final url = Uri.parse('$baseUrl$endpoint/$jobId');
 
-      print("whole url is $url");
       final response = await http.post(url, headers: headers);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -73,18 +77,20 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
           widget.job.isBookmarked = true;
         });
         ScaffoldMessenger.of(
+          // ignore: use_build_context_synchronously
           context,
         ).showSnackBar(SnackBar(content: Text('Job saved successfully!')));
       } else {
-        print("response is ${response.body}");
         if (response.body == '{"error":"Job already saved"}') {
           setState(() {
             widget.job.isBookmarked = true;
           });
           ScaffoldMessenger.of(
+            // ignore: use_build_context_synchronously
             context,
           ).showSnackBar(SnackBar(content: Text('Job already saved!')));
         } else {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to save the job: ${response.body}')),
           );
@@ -92,6 +98,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(
+        // ignore: use_build_context_synchronously
         context,
       ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
     }
@@ -117,15 +124,18 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
         widget.job.isBookmarked = false; // Update the job's bookmark status
         setState(() {}); // Refresh the UI
         ScaffoldMessenger.of(
+          // ignore: use_build_context_synchronously
           context,
         ).showSnackBar(SnackBar(content: Text('Job unsaved successfully!')));
       } else {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to unsave the job: ${response.body}')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(
+        // ignore: use_build_context_synchronously
         context,
       ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
     }
@@ -213,6 +223,26 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             ),
           ],
         ),
+        // Add a report icon at the top right of the job details page
+        actions: [
+          IconButton(
+            icon: Icon(Icons.report, color: Colors.red),
+            onPressed: () {
+              if (widget.job.jobID != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ReportPage(jobId: widget.job.jobID!),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Job ID is not available.')),
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
