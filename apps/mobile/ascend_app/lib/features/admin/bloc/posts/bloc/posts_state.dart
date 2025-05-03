@@ -11,14 +11,17 @@ final class FetchingReportedPostsState extends PostsState {}
 
 /// State when reported posts are successfully fetched.
 final class ReportedPostsFetchedState extends PostsState {
-  final List<ReportedPost> reportedPosts; // Updated to use the ReportedPost model
+  final List<ReportedPost>
+  reportedPosts; // Updated to use the ReportedPost model
   final int currentPage;
   final int totalPages;
+  final bool hasReachedMax;
 
   ReportedPostsFetchedState({
     required this.reportedPosts,
     required this.currentPage,
     required this.totalPages,
+    this.hasReachedMax = false,
   });
 }
 
