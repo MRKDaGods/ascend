@@ -289,26 +289,28 @@ export const searchJobs = async ({
     }
 
     if (location && location.length > 0) {
-      conditions.push(`j.location = ANY($${values.length + 1}::text[])`);
+      conditions.push(`j.location ILIKE ANY($${values.length + 1}::text[])`);
       const locationSearchTerms = location.map((loc) => `%${loc}%`);
       values.push(locationSearchTerms);
     }
 
     if (industry && industry.length > 0) {
-      conditions.push(`j.industry = ANY($${values.length + 1}::text[])`);
+      conditions.push(`j.industry ILIKE  ANY($${values.length + 1}::text[])`);
       const industrySearchTerms = industry.map((ind) => `%${ind}%`);
       values.push(industrySearchTerms);
     }
 
     if (experience_level && experience_level.length > 0) {
       conditions.push(
-        `j.experience_level = ANY($${values.length + 1}::text[])`
+        `j.experience_level ILIKE ANY($${values.length + 1}::text[])`
       );
       values.push(experience_level);
     }
 
     if (company && company.length > 0) {
-      conditions.push(`c.company_name = ANY($${values.length + 1}::text[])`);
+      conditions.push(
+        `c.company_name ILIKE ANY($${values.length + 1}::text[])`
+      );
       const companySearchTerms = company.map((name) => `%${name}%`);
       values.push(companySearchTerms);
     }
