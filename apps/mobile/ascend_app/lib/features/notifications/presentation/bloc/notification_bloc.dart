@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:ascend_app/features/StartPages/repository/ApiClient.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import './notification_event.dart';
@@ -49,24 +50,30 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   }
 
   Future<void> markAsRead(int id) async {
-    final res = await apiClient.patch("/notifications/$id",data: {"is_read": true});
-    
-    // Print response for debugging
-    print('Mark as read response: Status ${res.statusCode}, Body: ${res.body}');
-    
+    final res = await apiClient.patch(
+      "/notifications/$id",
+      data: {"is_read": true},
+    );
+
+    // debugPrint response for debugging
+    debugPrint(
+      'Mark as read response: Status ${res.statusCode}, Body: ${res.body}',
+    );
+
     // Allow 200 or 204 status codes for success
     if (res.statusCode != 200 && res.statusCode != 204) {
       throw Fail('Failed to mark notification as read: ${res.statusCode}');
     }
-    
+
     // Don't try to parse the response if it's empty or not JSON
-    if (res.body.isNotEmpty && res.headers['content-type']?.contains('application/json') == true) {
+    if (res.body.isNotEmpty &&
+        res.headers['content-type']?.contains('application/json') == true) {
       try {
         // Only parse if needed - you might not need this if the server just returns empty success
         final jsonResponse = jsonDecode(res.body);
-        print('Parsed response: $jsonResponse');
+        debugPrint('Parsed response: $jsonResponse');
       } catch (e) {
-        print('Warning: Could not parse response as JSON: $e');
+        debugPrint('Warning: Could not parse response as JSON: $e');
         // Continue anyway since status code indicates success
       }
     }
@@ -74,10 +81,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   Future<void> deleteNotification(int id) async {
     final res = await apiClient.delete("/notifications/$id");
-    
-    // Print response for debugging
-    print('Delete response: Status ${res.statusCode}, Body: ${res.body}');
-    
+
+    // debugPrint response for debugging
+    debugPrint('Delete response: Status ${res.statusCode}, Body: ${res.body}');
+
     // Allow 200 or 204 status codes for success
     if (res.statusCode != 200 && res.statusCode != 204) {
       throw Fail('Failed to delete notification: ${res.statusCode}');
@@ -381,7 +388,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       );
     } catch (e) {
       // Don't emit error state for stream updates - just log it
-      print('Error updating notifications from stream: $e');
+      debugPrint('Error updating notifications from stream: $e');
     }
   }
 
@@ -393,7 +400,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     //   },
     //   onError: (error) {
     //     // Just log stream errors, don't emit new states
-    //     print('Error from notification stream: $error');
+    //     debugPrint('Error from notification stream: $error');
     //   },
     // );
   }

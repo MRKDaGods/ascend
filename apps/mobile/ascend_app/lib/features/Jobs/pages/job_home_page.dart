@@ -228,6 +228,7 @@ class _JobHomePageState extends State<JobHomePage> {
     );
   }
 
+
   @override
   void dispose() {
     searchController.dispose();
