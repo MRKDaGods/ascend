@@ -15,10 +15,10 @@ export default function ManageUsers() {
   return (
     <Box p={4}>
       <h1>Manage Users</h1>
-      <Tabs value={tabIndex} onChange={handleTabChange} variant="fullWidth">
-        <Tab label="Create User" />
-        <Tab label="Banned Users" />
-        <Tab label="Manage User Reports" />
+      <Tabs value={tabIndex} onChange={handleTabChange} variant="fullWidth" aria-label="User management tabs">
+        <Tab label="Create User" aria-label="Create admin user tab" />
+        <Tab label="Banned Users" aria-label="Banned users tab"/>
+        <Tab label="Manage User Reports" aria-label="Manage user reports tab" />
       </Tabs>
       <Box p={2}>
         {tabIndex === 0 && <AdminCreateUser />}

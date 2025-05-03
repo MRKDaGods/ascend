@@ -32,6 +32,7 @@ export default function ReportedJobCard({
       <Card sx={{ display: "flex", p: 2 }}>
         <Button
           onClick={() => fetchReportDetails(report.job_id)}
+          aria-label={`View reports for ${report.title}`}
           sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
           size="small"
           variant="outlined"

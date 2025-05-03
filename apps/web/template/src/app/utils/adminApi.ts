@@ -34,11 +34,16 @@ export const getReportedJobsCount = (duration="day")=>{
 export const getFollowsCount = (duration="day")=>{
     return extApi.get("/admin/follows/count", {params: {duration}})
 }
+export const getSubscriptionsCount = (duration="day")=>{
+    return extApi.get("/admin/subscriptions/count", {params: {duration}})
+}
 
 {/*gets reported posts without report info*/}
 export const getReportedPosts = (page: number =1) => {
     return extApi.get("/admin/posts/reported", {params: {page}})
 }
+
+
 
 export const deletePost = (postId: number) => {
     return extApi.delete(`/admin/posts/${postId}`)

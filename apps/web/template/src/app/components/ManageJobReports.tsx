@@ -151,6 +151,7 @@ export default function ManageReportedJobs() {
                       <Stack direction="row" spacing={2} mt={2}>
                         <Button
                           variant="outlined"
+                          aria-label={`Delete job ${report.job_id}`}
                           color="error"
                           onClick={() => handleDeleteJob(report.job_id)}
                         >
@@ -162,6 +163,7 @@ export default function ManageReportedJobs() {
                           <Select
                             value={r.status}
                             label="Status"
+                            aria-label={`Change status of report ${r.id}`}
                             onChange={(e) =>
                               handleUpdateStatus(r.id, e.target.value as Status)
                             }
@@ -179,6 +181,7 @@ export default function ManageReportedJobs() {
 
                   <Pagination
                     page={reportPages[report.job_id]?.currentPage || 1}
+                    aria-label={`Pagination for job ${report.job_id}`}
                     count={reportPages[report.job_id]?.totalPages || 1}
                     onChange={(_, newPage) =>
                       fetchReportDetails(report.job_id, newPage)

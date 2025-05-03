@@ -155,6 +155,7 @@ export default function ManageReportedPosts() {
                       <Stack direction="row" spacing={2} mt={2}>
                         <Button
                           variant="outlined"
+                          aria-label={`Delete post with ID ${report.id}`}
                           color="error"
                           onClick={() => handleDeletePost(report.id)}
                         >
@@ -166,6 +167,7 @@ export default function ManageReportedPosts() {
                           <Select
                             value={r.status}
                             label="Status"
+                            aria-label={`Change status of report ${r.id}`}
                             onChange={(e) =>
                               handleUpdateStatus(r.id, e.target.value as Status)
                             }
