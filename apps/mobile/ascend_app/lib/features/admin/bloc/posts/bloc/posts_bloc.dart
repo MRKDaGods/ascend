@@ -12,6 +12,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   bool _hasReachedMax = false; // Flag to track if we've reached the end
   int _totalPages = 1; // Track total available pages
 
+  List<ReportedPost> get posts => _posts;
+  bool get hasReachedMax => _hasReachedMax;
+  int get currentPage => _posts.isEmpty ? 1 : _totalPages;
+
   PostsBloc({required this.apiClient}) : super(PostsInitial()) {
     // Handle fetching reported posts
     on<FetchReportedPosts>((event, emit) async {
@@ -47,6 +51,7 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         // If we got fewer items than expected or reached the last page, mark as reached max
         if (newPosts.isEmpty || event.page >= _totalPages) {
           _hasReachedMax = true;
+            emit(EndOfPostsReachedState());  // Add this to notify UI
         }
 
         // Append new posts to existing list
