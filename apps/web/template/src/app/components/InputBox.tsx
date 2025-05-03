@@ -14,51 +14,63 @@ export default function InputBox() {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const theme = useTheme();
+  const { appendMessageToConversation, updateLastMessage } =
+    useChatStore.getState();
 
-  const {
-    appendMessageToConversation,
-    updateLastMessage,
-  } = useChatStore.getState();
-
-  const selectedConversationId = useChatStore((state) => state.selectedConversationId);
+  const selectedConversationId = useChatStore(
+    (state) => state.selectedConversationId
+  );
   const convos = useChatStore((state) => state.conversations);
   const localUser = useChatStore((state) => state.localUser);
-  const forceRefreshConversations = useChatStore((state) => state.forceRefreshConvos);
+  const forceRefreshConversations = useChatStore(
+    (state) => state.forceRefreshConvos
+  );
 
-
-  //useEffect + setState -> rerender when said state changes 
+  //useEffect + setState -> rerender when said state changes
   //clear input when selected conv changes
   useEffect(() => {
     setMessageText("");
-  }, [selectedConversationId])
+  }, [selectedConversationId]);
 
   //handle send when user clicks send
   const handleSend = async () => {
     if (selectedConversationId === null) return;
 
     try {
-      const receiverId = convos.find((c) => c.conversationId == selectedConversationId)?.otherUserId;
+      const receiverId = convos.find(
+        (c) => c.conversationId == selectedConversationId
+      )?.otherUserId;
 
-      const res = await extApi.postForm("/messaging", {
-        receiverId,
-        content: messageText.trim(),
-        file: selectedFiles.length > 0 ? selectedFiles[0] : undefined,
-      }, {
-        headers: {
-          "x-no-parse-body": 1
+      const res = await extApi.postForm(
+        "/messaging",
+        {
+          receiverId,
+          content: messageText.trim(),
+          file: selectedFiles.length > 0 ? selectedFiles[0] : undefined,
+        },
+        {
+          headers: {
+            "x-no-parse-body": 1,
+          },
         }
-      });
+      );
 
       console.log("Send message response:", res);
 
       const newMessage: Message = res.data;
       newMessage.senderId = localUser!.user_id;
-      console.log("Appending message to convo:", selectedConversationId, newMessage);
+      console.log(
+        "Appending message to convo:",
+        selectedConversationId,
+        newMessage
+      );
 
       if (newMessage) {
         appendMessageToConversation(selectedConversationId, newMessage);
-        updateLastMessage(selectedConversationId, newMessage.content || "[Media]");
+        updateLastMessage(
+          selectedConversationId,
+          newMessage.content || "[Media]"
+        );
 
         // Manually scroll to bottom
         const chatWindowBottom = document.getElementById("chat-bottom");
@@ -75,6 +87,11 @@ export default function InputBox() {
       setselectedFiles([]);
     } catch (error) {
       console.error("Failed to send message:", error);
+      if ((error as any)?.response?.status === 403) {
+        alert(
+          "Conversation limit reached, please subscribe to the premium plan to continue chatting, or connection lost."
+        );
+      }
     }
   };
 
@@ -88,12 +105,20 @@ export default function InputBox() {
     socket.emit("typing", { conversationId });
 
     console.log("Typing event for conversation", conversationId);
-
   }, [messageText]);
 
   return (
     <>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, padding: 1, borderTop: "1px solid #ccc", backgroundColor: theme.palette.background.default }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          padding: 1,
+          borderTop: "1px solid #ccc",
+          backgroundColor: "#fff",
+        }}
+      >
         <input
           data-testid="upload"
           type="file"
@@ -105,7 +130,7 @@ export default function InputBox() {
             const files = e.target.files;
             if (!files) return;
             const newFiles = Array.from(files); //convert the file list to arr
-            setselectedFiles((prev) => [...prev, ...newFiles])
+            setselectedFiles((prev) => [...prev, ...newFiles]);
           }}
         />
 
@@ -118,14 +143,20 @@ export default function InputBox() {
             const files = e.target.files;
             if (!files) return;
             const newFiles = Array.from(files); //convert the file list to arr
-            setselectedFiles((prev) => [...prev, ...newFiles])
+            setselectedFiles((prev) => [...prev, ...newFiles]);
           }}
         />
-        <IconButton id="upload-image-button" onClick={() => imageInputRef.current?.click()}>
+        <IconButton
+          id="upload-image-button"
+          onClick={() => imageInputRef.current?.click()}
+        >
           📷
         </IconButton>
 
-        <IconButton id="upload-file-button-attachment" onClick={() => fileInputRef.current?.click()}>
+        <IconButton
+          id="upload-file-button-attachment"
+          onClick={() => fileInputRef.current?.click()}
+        >
           📎
         </IconButton>
 
@@ -146,60 +177,59 @@ export default function InputBox() {
         >
           Send
         </Button>
-
       </Box>
 
       {/*remove and preview files*/}
       {selectedFiles.length > 0 && (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-          {
-            selectedFiles.map((file, index) => {
-              const isImage = file.type.startsWith("image/");
-              return (
-                <Box
-                  key={index}
+          {selectedFiles.map((file, index) => {
+            const isImage = file.type.startsWith("image/");
+            return (
+              <Box
+                key={index}
+                sx={{
+                  border: "1px solid #ddd",
+                  width: isImage ? 100 : "auto",
+                  position: "relative",
+                  borderRadius: 2,
+                  padding: 1,
+                }}
+              >
+                {/*remove button */}
+                <Button
+                  size="small"
+                  onClick={() =>
+                    setselectedFiles((prev) =>
+                      prev.filter((_, i) => i !== index)
+                    )
+                  }
                   sx={{
-                    border: "1px solid #ddd",
-                    width: isImage ? 100 : "auto",
-                    position: "relative",
-                    borderRadius: 2,
-                    padding: 1
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    color: "black",
+                    minWidth: "unset", //shrink naturally
+                    padding: "2px 6px",
+                    fontSize: 15,
+                    lineHeight: 1,
                   }}
                 >
-                  {/*remove button */}
-                  <Button size="small"
-                    onClick={() => setselectedFiles((prev) => prev.filter((_, i) => i !== index))}
-                    sx={{
-                      position: "absolute",
-                      top: 0,
-                      right: 0,
-                      color: theme.palette.text.primary,
-                      minWidth: "unset", //shrink naturally
-                      padding: "2px 6px",
-                      fontSize: 15,
-                      lineHeight: 1
-                    }}
-                  >
-                    X
-                  </Button>
+                  X
+                </Button>
 
-                  {/*preview */}
-                  {
-                    isImage ? (
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={file.name}
-                        style={{ width: "100%", borderRadius: 4 }}
-                      />
-                    ) :
-                      <Typography fontSize="0.8rem">
-                        {file.name}
-                      </Typography>
-                  }
-                </Box>
-              );
-            })
-          }
+                {/*preview */}
+                {isImage ? (
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    style={{ width: "100%", borderRadius: 4 }}
+                  />
+                ) : (
+                  <Typography fontSize="0.8rem">{file.name}</Typography>
+                )}
+              </Box>
+            );
+          })}
         </Box>
       )}
     </>
