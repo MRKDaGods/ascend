@@ -1,6 +1,10 @@
 import 'dart:async';
 
 import 'package:ascend_app/features/home/bloc/search/search_bloc.dart';
+import 'package:ascend_app/features/home/presentation/widgets/search/post_search_result_model.dart';
+import 'package:ascend_app/features/home/presentation/widgets/search/post_search_result_tile.dart';
+import 'package:ascend_app/features/home/presentation/widgets/search/user_search_result_model.dart';
+import 'package:ascend_app/features/home/presentation/widgets/search/user_search_result_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -123,19 +127,31 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
                   );
                 }
                 final item = state.results[index];
-                // *** Render different list tiles based on item type ***
-                // This requires parsing 'item' based on its structure/type
-                // Example:
-                // if (item['type'] == 'user') {
-                //   return UserSearchResultTile(user: UserProfile.fromJson(item['data']));
-                // } else if (item['type'] == 'post') {
-                //   return PostSearchResultTile(post: PostModel.fromJson(item['data']));
-                // } ... etc.
-                // For now, just display raw data
-                return ListTile(
-                  title: Text(item.toString()), // Placeholder
-                  // Add onTap to navigate to details page based on type
-                );
+
+                // --- Render based on type ---
+                try {
+                  if (item is Map<String, dynamic> && item['type'] == 'user') {
+                    final user = UserSearchResult.fromJson(item['data'] as Map<String, dynamic>);
+                    return UserSearchResultTile(user: user);
+                  } else if (item is Map<String, dynamic> && item['type'] == 'post') {
+                    final post = PostSearchResult.fromJson(item['data'] as Map<String, dynamic>);
+                    return PostSearchResultTile(post: post);
+                  } else {
+                    // Fallback for unknown types or structure issues
+                    return ListTile(
+                      title: Text('Unknown item type: ${item.toString()}'),
+                    );
+                  }
+                } catch (e) {
+                   // Handle potential parsing errors
+                   print("Error parsing search result item: $e \nItem: $item");
+                   return ListTile(
+                     leading: Icon(Icons.error_outline, color: Colors.red),
+                     title: Text('Error displaying this item'),
+                     subtitle: Text(e.toString()),
+                   );
+                }
+                // --- End of rendering logic ---
               },
             );
           } else {
