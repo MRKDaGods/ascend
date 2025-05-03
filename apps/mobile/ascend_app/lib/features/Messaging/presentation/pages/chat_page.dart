@@ -405,30 +405,6 @@ class _ChatPageState extends State<ChatPage> {
                 _scrollToBottom(animate: false);
               }
 
-              if (state.sendingStatus != null) {
-                // Handle sending status if needed
-                debugPrint('[ChatPage] Sending status: ${state.sendingStatus}');
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Typing Status Error'),
-                      content: Text(
-                        'Failed to update typing status: ${state.sendingStatus!['error']}',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
-
               // Use your method instead
               _updateTypingStatus(state.isTyping);
             } else if (state is MessagesLoading &&
