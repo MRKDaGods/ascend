@@ -14,7 +14,7 @@ import {
   Alert,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';    
-import Navbar from '@/app/components/Jobsnavbar';
+import MergeJobsNavbar from '@/app/components/MergeJobsNavbar';
 import ApplicationCard from '@/app/components/ApplicationCard';
 import API from '@/api/api';
 
@@ -86,11 +86,10 @@ const ApplicationsPage = () => {
       try {
         setLoading(true);
         
-        // Only fetch job details if we don't have them from query params
+        // Fetch job details first
         if (!jobTitle) {
           try {
             const jobResponse = await API.get(`/job/${jobId}`);
-            
             if (jobResponse.data && jobResponse.data.data) {
               setJobDetails(jobResponse.data.data);
             }
@@ -99,10 +98,8 @@ const ApplicationsPage = () => {
             if (isApiError(err)) {
               console.error(`Status: ${err.response?.status}, Message: ${err.response?.data?.error}`);
             }
-            // Continue anyway as we can still show applications
           }
         } else {
-          // Use the information from query params
           setJobDetails({
             title: jobTitle,
             company_name: companyName,
@@ -110,40 +107,37 @@ const ApplicationsPage = () => {
           });
         }
         
-        // Fetch applications for this job
+        // Fetch applications with improved error handling
         try {
           const response = await API.get(`/job/${jobId}/applications?page=1`);
-          console.log('Application fetch response:', response);
           
-          const result = response.data;
-          
-          if (!result) {
-            throw new Error('No data returned from API');
+          // Success case
+          if (response.data?.data) {
+            setApplications(response.data.data);
+            setError(null);
+            return;
           }
           
-          if (result.error) {
-            throw new Error(result.error);
-          }
-
-          setApplications(result.data || []);
+          // No applications case
+          setApplications([]);
+          setError(null);
+          
         } catch (err: unknown) {
-          console.error('Error fetching applications:', err);
+          // Handle 404 gracefully
+          if (isApiError(err) && err.response?.status === 404) {
+            setApplications([]);
+            setError(null);
+            return;
+          }
           
+          // Handle other errors
+          console.error('Error fetching applications:', err);
           let errorMessage = 'Failed to fetch applications';
           if (isApiError(err)) {
-            errorMessage += ` (Status: ${err.response?.status})`;
-            if (err.response?.data?.error) {
-              errorMessage += `: ${err.response.data.error}`;
-            }
-            
-            // Check if it's a "no applications" response
-            if (err.response?.status === 404) {
-              setApplications([]);
-              setError(null);
-              return;
-            }
+            errorMessage += err.response?.data?.message 
+              ? `: ${err.response.data.message}`
+              : ` (Status: ${err.response?.status})`;
           }
-          
           setError(errorMessage);
         }
       } catch (err: unknown) {
@@ -210,7 +204,7 @@ const ApplicationsPage = () => {
 
   return (
     <>
-      <Navbar />
+      <MergeJobsNavbar />
       <Box
         sx={{
           background: 'linear-gradient(to bottom, #f4f6f8, #ffffff)',

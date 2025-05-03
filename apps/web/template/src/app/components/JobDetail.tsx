@@ -33,6 +33,15 @@ const JobDetails = () => {
     setIsReady(true);
   }, []);
 
+  // Add console logs to debug the received values
+  useEffect(() => {
+    if (isReady) {
+      console.log('Received workplace_type:', searchParams.get('workplace_type'));
+      console.log('Received salary_min:', searchParams.get('salary_min_range'));
+      console.log('Received salary_max:', searchParams.get('salary_max_range'));
+    }
+  }, [isReady, searchParams]);
+
   if (!isReady) return null;
 
   const id = parseInt(searchParams.get('id') || '0');
@@ -45,7 +54,7 @@ const JobDetails = () => {
   const requirements = searchParams.get('requirements')?.split(',') || [];
   const industry = searchParams.get('industry') || '';
   const experience_level = searchParams.get('experience_level') || '';
-  const workplace_type = searchParams.get('workplace_type') || '';
+  const workplace_type = searchParams.get('workplace_type') || 'Not specified';
   const salary_min_range = searchParams.get('salary_min_range') ? parseInt(searchParams.get('salary_min_range') || '0') : null;
   const salary_max_range = searchParams.get('salary_max_range') ? parseInt(searchParams.get('salary_max_range') || '0') : null;
 
@@ -53,10 +62,6 @@ const JobDetails = () => {
   const formatSalary = () => {
     if (salary_min_range && salary_max_range) {
       return `$${salary_min_range.toLocaleString()} - $${salary_max_range.toLocaleString()}`;
-    } else if (salary_min_range) {
-      return `From $${salary_min_range.toLocaleString()}`;
-    } else if (salary_max_range) {
-      return `Up to $${salary_max_range.toLocaleString()}`;
     }
     return 'Not specified';
   };
@@ -154,47 +159,43 @@ const JobDetails = () => {
         
         {/* Job metadata */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          {salary_min_range || salary_max_range ? (
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="body2" color="text.secondary">Salary</Typography>
-              <Typography variant="body1" fontWeight="500">{formatSalary()}</Typography>
-            </Grid>
-          ) : null}
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Type:</strong> {type}
+            </Typography>
+          </Grid>
           
-          {industry ? (
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="body2" color="text.secondary">Industry</Typography>
-              <Typography variant="body1" fontWeight="500">{industry}</Typography>
-            </Grid>
-          ) : null}
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Experience Level:</strong> {experience_level}
+            </Typography>
+          </Grid>
           
-          {experience_level ? (
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="body2" color="text.secondary">Experience Level</Typography>
-              <Typography variant="body1" fontWeight="500">{experience_level}</Typography>
-            </Grid>
-          ) : null}
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Workplace Type:</strong> {workplace_type}
+            </Typography>
+          </Grid>
           
-          {workplace_type ? (
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="body2" color="text.secondary">Workplace</Typography>
-              <Typography variant="body1" fontWeight="500">{workplace_type}</Typography>
-            </Grid>
-          ) : null}
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Salary:</strong> {formatSalary()}
+            </Typography>
+          </Grid>
           
-          {type ? (
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="body2" color="text.secondary">Job Type</Typography>
-              <Typography variant="body1" fontWeight="500">{type}</Typography>
-            </Grid>
-          ) : null}
+          <Grid item xs={12} sm={6} md={4}>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Location:</strong> {location}
+            </Typography>
+          </Grid>
           
-          {location ? (
+          {industry && (
             <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="body2" color="text.secondary">Location</Typography>
-              <Typography variant="body1" fontWeight="500">{location}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Industry:</strong> {industry}
+              </Typography>
             </Grid>
-          ) : null}
+          )}
         </Grid>
 
         <Divider sx={{ my: 3 }} />

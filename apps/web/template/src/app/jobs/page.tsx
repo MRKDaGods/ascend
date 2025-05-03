@@ -1,80 +1,79 @@
-"use client"; // only if you're using Next.js App Router
+"use client";
 
-import { Box, Grid, Stack } from "@mui/material";
-// import Jobsnavbar from "../components/Jobsnavbar";
+import { Box, Container, Stack } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import MergeJobsNavbar from "../components/MergeJobsNavbar";
 import ProfileCard from "../components/ProfileCard";
 import ListCard from "../components/ListCard";
 import JobPreferences from "../components/lookingfor";
 import JobList from "../components/JobsList";
 import Recommends from "../components/FinalRecommends";
-import { useTheme } from "@mui/material/styles";  
 
 function JobsPage() {
-  const theme = useTheme(); // Access the current theme
+  const theme = useTheme();
+  
   return (
-    <>
-      {/* <Jobsnavbar /> */}
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+      }}
+    >
       <MergeJobsNavbar />
 
-      {/* Main Content Area */}
-      <Box
+      <Container
         sx={{
-          bgcolor: theme.palette.background.default,
-          color: theme.palette.text.primary,
+          mt: 2,
           display: "flex",
-          flexDirection: { xs: "column", md: "row" }, // column on mobile, row on desktop
-          alignItems: "flex-start", // Align items at the top
-          gap: 3, // 24px gap
-          pl: { xs: 2, md: 7 }, // padding-left: 16px on mobile, 56px on desktop
-          pr: { xs: 2, md: 2 }, // padding-right: 16px
-          minHeight: "100vh",
+          flexDirection: { xs: "column", md: "row" },
+          justifyContent: "center",
+          alignItems: { xs: "stretch", md: "flex-start" },
+          gap: 7,
+          px: { xs: 1, sm: 2 },
+          maxWidth: "1400px",
+          pb: 5,
         }}
       >
-        {/* Left Column: ProfileCard + ListCard */}
-        <Stack
-          spacing={3}
-          sx={{
-            flexShrink: 0,
-            width: { xs: "100%", md: "300px" },
-            alignItems: { xs: "center", md: "flex-start" }, // center on mobile, left on desktop
-            mt: "30px", // Adjust the margin-top to reduce spacing
-            textAlign: { xs: "center", md: "left" }, // optional: center the text inside too
-          }}
-        >
-          <Box sx={{ width: { xs: "90%", md: "100%" } }}>
-            <ProfileCard />
-          </Box>
-          <Box sx={{ width: { xs: "90%", md: "100%" } }}>
-            <ListCard />
-          </Box>
-        </Stack>
-
-        {/* Right Column: JobPreferences + JobList */}
+        {/* Left Panel */}
         <Box
           sx={{
-            flex: 1,
             width: "100%",
+            maxWidth: { xs: "100%", md: "280px" },
             display: "flex",
             flexDirection: "column",
-            alignItems: { xs: "center", md: "flex-start" },
-            justifyContent: "flex-start", // Align content at the top
+            gap: 2, // Changed from 3 to 2 to match ProfileCard spacing
+            position: { md: "sticky" },
+            top: { md: "80px" },
+            alignSelf: "flex-start",
+            "& > *": { // Add this to ensure both cards have same width
+              width: "100%",
+            }
           }}
         >
-          <Box sx={{ width: "100%", maxWidth: "700px" }}>
-            <Stack spacing={3}
-            sx={{
-              mt: "30px", // Adjust the margin-top to reduce spacing
-
-            }}>
-              <JobPreferences />
-              <JobList />
-              <Recommends />
-            </Stack>
-          </Box>
+          <ProfileCard />
+          <ListCard />
         </Box>
-      </Box>
-    </>
+
+        {/* Center Panel */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: "700px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          <Stack spacing={3} sx={{ width: "100%" }}>
+            <JobPreferences />
+            <JobList />
+            <Recommends />
+          </Stack>
+        </Box>
+      </Container>
+    </Box>
   );
 }
 

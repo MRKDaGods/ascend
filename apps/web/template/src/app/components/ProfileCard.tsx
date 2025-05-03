@@ -58,7 +58,6 @@ const ProfileCard: React.FC = () => {
       <Card
         sx={{
           width: "100%",
-          maxWidth: "280px",
           minHeight: 180,
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,

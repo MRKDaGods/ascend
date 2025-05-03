@@ -1,5 +1,6 @@
 'use client';
 
+import API from '@/api/api';
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -110,22 +111,20 @@ const SearchResultsPage = () => {
     }
 
     try {
-      const response = await fetch(`https://api.ascendx.tech/job/${id}/report`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ reason: reportReason }),
+
+      const response = await API.post(`/job/${id}/report`, {
+        reason: reportReason,
+        job_id: id,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (!response.ok) {
-        let errorMessage = 'Unknown error';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || 'Unknown error';
-        } catch (e) {
-          console.error('No JSON body in failed report response.');
-        }
-        console.error('Report failed:', errorMessage);
-        alert(`Failed to submit the report: ${errorMessage}`);
+      if (!response.data) {
+        const errorText = await response.data;
+        console.error("Report failed:", errorText);
+        alert(`Failed to submit the report: ${response.status} ${response.statusText}`);
         return;
       }
 
@@ -141,7 +140,6 @@ const SearchResultsPage = () => {
 
   return (
     <>
-      {/* <Jobsnavbar /> */}
       <MergeJobsNavbar />
 
       <Box

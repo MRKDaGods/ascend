@@ -147,6 +147,9 @@ const JobForm = () => {
       // Also add to the shared job store
       addPostedJobToSharedStore(fullJob);
       
+      // Clear the form
+      resetForm();
+      
       setOpenModal(false);
     } catch (error: unknown) { // Explicitly type the error
       console.error("Failed to post job:", error);
@@ -168,6 +171,20 @@ const JobForm = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setIndustry('');
+    setJobType('');
+    setExperienceLevel('');
+    setLocation('');
+    setWorkplaceType('');
+    setSalaryMin('');
+    setSalaryMax('');
+    setVerifiedEmail('');
+    setErrorMessage('');
   };
 
   const isClient = useIsClient();

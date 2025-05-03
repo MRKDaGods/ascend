@@ -237,7 +237,7 @@ export default function LoginBox() {
             variant="outlined"
             margin="normal"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value.toLowerCase())}
             sx={{ borderRadius: 5 }}
             id="email-input"
           />

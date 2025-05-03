@@ -1,27 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
   IconButton,
   Avatar,
-  Menu,
-  MenuItem,
-  Typography,
   Box,
   Button,
-  Paper,
-  InputBase,
   Badge,
   useMediaQuery,
-  Divider,
   Tooltip,
-  List,
-  ListItem,
+  Typography,
+  Divider,
+  MenuItem,
+  Drawer,
+  Menu,
   ListItemText,
-  ListSubheader,
   ListItemIcon,
+  Popover,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import {
@@ -29,84 +26,25 @@ import {
   Work,
   People,
   Message,
-  Chat,
   Notifications,
-  Search,
   DarkMode,
   LightMode,
-  Logout,
-  Settings,
-  History,
-  Bookmark,
   ExpandMore,
+  Menu as MenuIcon,
+  Close,
+  Search as SearchIcon,
 } from "@mui/icons-material";
-import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useSearchStore } from "../stores/useSearchStore";
 import { useThemeStore } from "../stores/useThemeStore";
 import { useProfileStore } from "../stores/useProfileStore";
 import { useNotificationStore } from "../stores/useNotificationStore";
 import { useMenuStore } from "../stores/useMenuStore";
+import SearchBar from "./SearchBar";
 import { api, refreshAuthState } from "@/api";
-
-const SearchContainer = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: "30px",
-  padding: "4px 10px",
-}));
-
-const SearchDropdown = styled(Paper)(({ theme }) => ({
-  width: "300px",
-  maxHeight: "400px",
-  overflow: "auto",
-  marginTop: "5px",
-  borderRadius: "8px",
-  boxShadow: theme.shadows[3],
-}));
-
-const SearchListItem = styled(ListItem)(({ theme }) => ({
-  padding: "8px 16px",
-  "&:hover": {
-    backgroundColor: theme.palette.action.hover,
-    cursor: "pointer",
-  },
-}));
-
-const SearchListHeader = styled(ListSubheader)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  color: theme.palette.text.secondary,
-  fontWeight: 600,
-  padding: "8px 16px",
-  lineHeight: "32px",
-}));
-
-const jobTitles = [
-  "Software Engineer",
-  "Product Manager",
-  "Data Scientist",
-  "UX Designer",
-  "Full Stack Developer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Project Manager",
-  "QA Engineer",
-  "DevOps Engineer",
-  "Sales Manager",
-  "Marketing Manager",
-  "Business Analyst",
-  "Graphic Designer",
-  "Data Analyst",
-  "System Administrator",
-  "Network Engineer",
-  "Database Administrator",
-  "Web Developer",
-  "Mobile Developer",
-];
+import BusinessMenu from "./BusinessMenu";
 
 // 🎯 Active nav highlight
 const NavIconButton = styled(IconButton, {
@@ -133,18 +71,16 @@ const MergeJobsNavbar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobileScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { theme: appTheme, toggleTheme } = useThemeStore();
   const { notifications } = useNotificationStore();
   const unseenCount = notifications.filter((n) => !n.is_read).length;
-  const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
-  const { recentSearches, addSearch, setRecentSearches } = useSearchStore();
-  const [searchParams, setSearchParams] = useState({ title: "", location: "" });
-  const [filteredTitles, setFilteredTitles] = useState<string[]>([]);
-  const [showTitleDropdown, setShowTitleDropdown] = useState(false);
+  const { setAnchorEl, anchorEl } = useMenuStore();
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchDrawerOpen, setSearchDrawerOpen] = useState(false);
 
   const userData = useProfileStore((state) => state.userData);
   const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
@@ -152,71 +88,203 @@ const MergeJobsNavbar: React.FC = () => {
     ? `${userData.first_name} ${userData.last_name}`
     : "User";
 
-  useEffect(() => {
-    const stored = localStorage.getItem("recentJobSearches");
-    if (stored) {
-      setRecentSearches(JSON.parse(stored));
+  const navigationItems = [
+    { icon: <Home />, route: "/feed", label: "Home" },
+    { icon: <People />, route: "/network", label: "My Network" },
+    { icon: <Work />, route: "/jobs", label: "Jobs" },
+    { icon: <Message />, route: "/chat", label: "Messaging" },
+    {
+      icon: <Notifications />,
+      route: "/notif",
+      label: "Notifications",
+      badge: unseenCount,
+    },
+  ];
+
+  const handleNavigation = (route: string) => {
+    router.push(route);
+    if (mobileMenuOpen) {
+      setMobileMenuOpen(false);
     }
-  }, [setRecentSearches]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSearchParams((prev) => ({ ...prev, [name]: value }));
-
-    if (name === "title") {
-      const filtered = jobTitles.filter((title) =>
-        title.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredTitles(filtered);
-      setShowTitleDropdown(true); // Show dropdown when typing
-    }
   };
 
-  const handleSearch = () => {
-    addSearch({ job: searchParams.title, location: searchParams.location });
-    router.push(
-      `/jobs/search?keyword=${encodeURIComponent(
-        searchParams.title
-      )}&location=${encodeURIComponent(searchParams.location)}`
-    );
+  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(null);
+  const businessMenuOpen = Boolean(businessAnchorEl);
+
+  const handleBusinessClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setBusinessAnchorEl(event.currentTarget);
   };
 
-  const handleTitleClick = (title: string) => {
-    setSearchParams((prev) => ({ ...prev, title }));
-    setShowTitleDropdown(false);
+  const handleBusinessClose = () => {
+    setBusinessAnchorEl(null);
   };
 
-  const getRecommendedTitles = (): string[] => {
-    if (!searchParams.title) {
-      return jobTitles.slice(0, 5); // Show top 5 job titles when empty
-    }
-    return filteredTitles.slice(0, 5); // Show top 5 filtered results
+  const handleLogout = () => {
+    api.auth
+      .logout()
+      .then(() => {
+        console.log("Logout successful");
+        refreshAuthState();
+        router.push("/authen");
+      })
+      .catch((error) => {
+        console.error("Logout error:", error);
+      });
   };
 
-  const getRecentTitleSearches = (): string[] => {
-    return recentSearches
-      .map((search) => search.job)
-      .filter((job, index, self) => job && self.indexOf(job) === index)
-      .slice(0, 5); // Only show the 5 most recent unique job searches
-  };
+  const renderUserProfileArea = () => (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Tooltip title="Me">
+        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+          <Avatar
+            src={profilePicture}
+            alt={fullName}
+            sx={{
+              transition: "0.3s",
+              "&:hover": { transform: "scale(1.1)" },
+            }}
+          />
+        </IconButton>
+      </Tooltip>
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        searchInputRef.current &&
-        !searchInputRef.current.contains(event.target as Node)
-      ) {
-        setShowTitleDropdown(false);
-      }
-    };
+      {/* User Dropdown Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        PaperProps={{
+          elevation: 6,
+          sx: {
+            mt: 1.5,
+            borderRadius: 3,
+            background: muiTheme.palette.background.paper,
+            color: muiTheme.palette.text.primary,
+          },
+        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Box px={2} py={2} textAlign="center">
+          <Avatar
+            src={profilePicture}
+            sx={{ width: 58, height: 58, mx: "auto" }}
+          />
+          <Typography fontWeight={600} mt={1}>
+            {fullName}
+          </Typography>
+          <Button
+            onClick={() => {
+              setAnchorEl(null);
+              router.push("/profile");
+            }}
+            variant="outlined"
+            fullWidth
+            sx={{ mt: 1.5, borderRadius: "999px", textTransform: "none" }}
+          >
+            View Profile
+          </Button>
+        </Box>
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef, searchInputRef]);
+        <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+          Account
+        </Typography>
+        <MenuItem>
+          <ListItemText>Try Premium</ListItemText>
+        </MenuItem>
+        <MenuItem>
+          <ListItemText onClick={() => router.push("/Settings")}>
+            Settings & Privacy
+          </ListItemText>
+          <ListItemIcon>
+            <SettingsIcon fontSize="small" />
+          </ListItemIcon>
+        </MenuItem>
+
+        <Divider />
+        <Typography px={2} mt={1} fontSize="0.75rem" fontWeight={700} color="gray">
+          Manage
+        </Typography>
+        <MenuItem>
+          <ListItemText>Posts & Activity</ListItemText>
+        </MenuItem>
+        <MenuItem>
+          <ListItemText>Job Posting Account</ListItemText>
+        </MenuItem>
+
+        <Divider />
+        <MenuItem onClick={() => setAnchorEl(null)}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText onClick={handleLogout}>Sign Out</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      {/* Theme Toggle */}
+      <Tooltip
+        title={appTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        <IconButton onClick={toggleTheme}>
+          {appTheme === "dark" ? (
+            <LightMode sx={{ color: "#ffeb3b" }} />
+          ) : (
+            <DarkMode sx={{ color: "#333" }} />
+          )}
+        </IconButton>
+      </Tooltip>
+
+      {/* Business Button and Menu */}
+      <Button
+        sx={{
+          color: muiTheme.palette.text.primary,
+          textTransform: "none",
+          fontWeight: 500,
+        }}
+        endIcon={<ExpandMore />}
+        onClick={handleBusinessClick}
+      >
+        For Business
+      </Button>
+
+      {/* Business Popover */}
+      <Popover
+        open={businessMenuOpen}
+        anchorEl={businessAnchorEl}
+        onClose={handleBusinessClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        PaperProps={{ 
+          sx: { 
+            width: { xs: "95%", sm: "90%", md: 700 },
+            mt: 1,
+            maxHeight: "80vh",
+            overflowY: "auto" 
+          } 
+        }}
+      >
+        <BusinessMenu />
+      </Popover>
+
+      {/* Premium Button */}
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: "#FFC107",
+          color: "#000",
+          textTransform: "none",
+          borderRadius: "999px",
+          fontWeight: 600,
+          px: 2.5,
+          whiteSpace: "nowrap", // Add this to prevent text wrapping
+          "&:hover": {
+            backgroundColor: "#D4AF37",
+          },
+        }}
+      >
+        Try Premium Free
+      </Button>
+    </Box>
+  );
 
   return (
     <AppBar
@@ -226,7 +294,7 @@ const MergeJobsNavbar: React.FC = () => {
         color: muiTheme.palette.text.primary,
         borderBottom: `1px solid ${muiTheme.palette.divider}`,
         position: "sticky",
-        height: 80,
+        height: { xs: "auto", md: 80 },
       }}
     >
       <Toolbar
@@ -235,214 +303,238 @@ const MergeJobsNavbar: React.FC = () => {
           justifyContent: "space-between",
           py: 1,
           minHeight: 64,
+          flexDirection: { xs: "column", md: "row" },
+          gap: { xs: 1, md: 0 },
         }}
       >
-        {/* LEFT: Logo and Search Bars */}
-        <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    flexGrow: 2,
-    gap: 1,
-    marginY: 1,
-    flexDirection: isSmallScreen ? "column" : "row",
-  }}
->
-  {/* Logo */}
-  <img
-      src="/logoIcon.png"
-      alt="Ascend"
-      style={{ height: 36, borderRadius: 6, cursor: "pointer" }}
-      onClick={() => router.push("/feed")}
-    />
-  {/* Job Title Search */}
-  <Box sx={{ position: "relative", width: "270px" }}>
-    <SearchContainer>
-      <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-      <InputBase
-        name="title"
-        placeholder="Job title"
-        value={searchParams.title}
-        onChange={handleSearchChange}
-        onFocus={() => setShowTitleDropdown(true)}
-        inputRef={searchInputRef}
-        sx={{ fontSize: "0.85rem", width: "100%" }}
-      />
-    </SearchContainer>
-
-    {showTitleDropdown && (
-      <Box
-        sx={{ position: "absolute", width: "100%", zIndex: 1000 }}
-        ref={dropdownRef}
-      >
-        <SearchDropdown>
-          {getRecentTitleSearches().length > 0 && (
-            <>
-              <SearchListHeader>Recent Searches</SearchListHeader>
-              <List disablePadding>
-                {getRecentTitleSearches().map((title, index) => (
-                  <SearchListItem
-                    key={`recent-${index}`}
-                    onClick={() => handleTitleClick(title)}
-                  >
-                    <History fontSize="small" color="action" sx={{ marginRight: 1 }} />
-                    <ListItemText primary={title} />
-                  </SearchListItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          <SearchListHeader>Recommended</SearchListHeader>
-          <List disablePadding>
-            {getRecommendedTitles().map((title, index) => (
-              <SearchListItem
-                key={`recommended-${index}`}
-                onClick={() => handleTitleClick(title)}
-              >
-                <Bookmark fontSize="small" color="primary" sx={{ marginRight: 1 }} />
-                <ListItemText primary={title} />
-              </SearchListItem>
-            ))}
-          </List>
-        </SearchDropdown>
-      </Box>
-    )}
-  </Box>
-
-  {/* Location Search */}
-  <SearchContainer sx={{ width: "270px" }}>
-    <Search sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-    <InputBase
-      name="location"
-      placeholder="Location"
-      value={searchParams.location}
-      onChange={handleSearchChange}
-      sx={{ fontSize: "0.85rem", width: "100%" }}
-    />
-  </SearchContainer>
-
-  {/* Search Button */}
-  <Button
-    variant="contained"
-    onClick={handleSearch}
-    sx={{
-      borderRadius: "20px",
-      backgroundColor: muiTheme.palette.primary.main,
-      color: muiTheme.palette.primary.contrastText,
-      textTransform: "none",
-      fontWeight: 600,
-      px: 2.5,
-      "&:hover": {
-        backgroundColor: muiTheme.palette.primary.dark,
-      },
-    }}
-  >
-    Search
-  </Button>
-</Box>
-
-        {/* CENTER: Navigation Icons */}
         <Box
           sx={{
             display: "flex",
+            width: "100%",
+            justifyContent: "space-between",
             alignItems: "center",
-            gap: 3,
           }}
         >
-          {[
-            { icon: <Home />, route: "/feed", label: "Home" },
-            { icon: <People />, route: "/network", label: "My Network" },
-            { icon: <Work />, route: "/jobs", label: "Jobs" },
-            { icon: <Message />, route: "/chat", label: "Messaging" },
-            {
-              icon: <Notifications />,
-              route: "/notif",
-              label: "Notifications",
-            },
-          ].map(({ icon, route, label }, i) => (
-            <Tooltip key={i} title={label}>
-              <NavIconButton
-                onClick={() => router.push(route)}
-                active={pathname === route}
+          {/* Logo */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <img
+              src="/logoIcon.png"
+              alt="Ascend"
+              style={{ height: 36, borderRadius: 6, cursor: "pointer" }}
+              onClick={() => router.push("/feed")}
+            />
+          </Box>
+
+          {/* Desktop Navigation and Search */}
+          {!isSmallScreen && (
+            <Box sx={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              gap: 3,
+              width: "100%",
+              mx: "auto"
+            }}>
+              {/* Left Group: SearchBar Component with Navigation Icons */}
+              <Box sx={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "flex-end",
+                gap: 2,
+                flex: 1
+              }}>
+                {/* SearchBar Component */}
+                <SearchBar isSmallScreen={isSmallScreen} />
+
+                {/* Navigation Icons */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  {navigationItems.map(({ icon, route, label, badge }, i) => (
+                    <Tooltip key={i} title={label}>
+                      <NavIconButton
+                        onClick={() => handleNavigation(route)}
+                        active={pathname === route}
+                      >
+                        {badge && badge > 0 ? (
+                          <Badge badgeContent={badge} color="error">
+                            {React.cloneElement(icon, {
+                              sx: { color: muiTheme.palette.text.secondary },
+                            })}
+                          </Badge>
+                        ) : (
+                          React.cloneElement(icon, {
+                            sx: { color: muiTheme.palette.text.secondary },
+                          })
+                        )}
+                      </NavIconButton>
+                    </Tooltip>
+                  ))}
+                </Box>
+              </Box>
+
+              {/* Right Group: User Profile Area */}
+              <Box sx={{ flex: 1 }}>
+                {renderUserProfileArea()}
+              </Box>
+            </Box>
+          )}
+
+          {/* Mobile Controls */}
+          {isSmallScreen && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {/* Search Icon for Mobile */}
+              <IconButton
+                color="inherit"
+                onClick={() => setSearchDrawerOpen(true)}
               >
-                {label === "Notifications" && unseenCount > 0 ? (
-                  <Badge badgeContent={unseenCount} color="error">
-                    {React.cloneElement(icon, {
-                      sx: { color: muiTheme.palette.text.secondary },
-                    })}
-                  </Badge>
+                <SearchIcon />
+              </IconButton>
+
+              {/* Theme Toggle */}
+              <IconButton onClick={toggleTheme}>
+                {appTheme === "dark" ? (
+                  <LightMode sx={{ color: "#ffeb3b" }} />
                 ) : (
-                  React.cloneElement(icon, {
-                    sx: { color: muiTheme.palette.text.secondary },
-                  })
+                  <DarkMode sx={{ color: "#333" }} />
                 )}
-              </NavIconButton>
-            </Tooltip>
-          ))}
+              </IconButton>
+              
+              {/* Avatar for Mobile */}
+              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                <Avatar
+                  src={profilePicture}
+                  alt={fullName}
+                  sx={{ width: 32, height: 32 }}
+                />
+              </IconButton>
+
+              {/* Menu Button for Mobile */}
+              <IconButton
+                color="inherit"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <MenuIcon />
+              </IconButton>
+            </Box>
+          )}
         </Box>
 
-        {/* RIGHT: User Avatar and Buttons */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Tooltip title="Me">
-            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-              <Avatar
-                src={profilePicture}
-                alt={fullName}
-                sx={{
-                  transition: "0.3s",
-                  "&:hover": { transform: "scale(1.1)" },
-                }}
-              />
-            </IconButton>
-          </Tooltip>
-          <Tooltip
-            title={
-              appTheme === "dark"
-                ? "Switch to Light Mode"
-                : "Switch to Dark Mode"
-            }
-          >
-            <IconButton onClick={toggleTheme}>
-              {appTheme === "dark" ? (
-                <LightMode sx={{ color: "#ffeb3b" }} />
-              ) : (
-                <DarkMode sx={{ color: "#333" }} />
-              )}
-            </IconButton>
-          </Tooltip>
-
-          {/* Business Button */}
-          <Button
-            sx={{
-              color: muiTheme.palette.text.primary,
-              textTransform: "none",
-              fontWeight: 500,
-            }}
-            endIcon={<ExpandMore />}
-          >
-            For Business
-          </Button>
-
-          {/* Premium Button */}
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#FFC107",
-              color: "#000",
-              textTransform: "none",
-              borderRadius: "999px",
-              fontWeight: 600,
-              px: 2.5,
-              "&:hover": {
-                backgroundColor: "#D4AF37",
-              },
-            }}
-          >
-            Try Premium Free
-          </Button>
-        </Box>
+        {/* Mobile Search Bar - For when screen is small but not too small */}
+        {isSmallScreen && !isMobileScreen && (
+          <Box sx={{ width: "100%", py: 1 }}>
+            <SearchBar isSmallScreen={true} />
+          </Box>
+        )}
       </Toolbar>
+
+      {/* Mobile Navigation Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      >
+        <Box sx={{ width: 250, pt: 2, px: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">Menu</Typography>
+            <IconButton onClick={() => setMobileMenuOpen(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+          
+          <Divider sx={{ mb: 2 }} />
+          
+          {navigationItems.map(({ icon, route, label, badge }, i) => (
+            <MenuItem 
+              key={i} 
+              onClick={() => handleNavigation(route)}
+              selected={pathname === route}
+              sx={{ 
+                borderRadius: 1,
+                mb: 1,
+                py: 1.5
+              }}
+            >
+              {badge && badge > 0 ? (
+                <Badge badgeContent={badge} color="error" sx={{ mr: 2 }}>
+                  {icon}
+                </Badge>
+              ) : (
+                <Box sx={{ mr: 2 }}>{icon}</Box>
+              )}
+              {label}
+            </MenuItem>
+          ))}
+          
+          <Divider sx={{ my: 2 }} />
+          
+          <MenuItem>
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                backgroundColor: "#FFC107",
+                color: "#000",
+                textTransform: "none",
+                borderRadius: "999px",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                "&:hover": {
+                  backgroundColor: "#D4AF37",
+                },
+              }}
+            >
+              Try Premium Free
+            </Button>
+          </MenuItem>
+          
+          <MenuItem>
+            <Button
+              fullWidth
+              sx={{
+                color: muiTheme.palette.text.primary,
+                textTransform: "none",
+                fontWeight: 500,
+              }}
+              endIcon={<ExpandMore />}
+              onClick={(e) => {
+                setMobileMenuOpen(false);
+                setBusinessAnchorEl(e.currentTarget);
+              }}
+            >
+              For Business
+            </Button>
+          </MenuItem>
+          
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon>
+              <LogoutIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Sign Out</ListItemText>
+          </MenuItem>
+        </Box>
+      </Drawer>
+
+      {/* Mobile Search Drawer - For Very Small Screens */}
+      <Drawer
+        anchor="top"
+        open={searchDrawerOpen && isMobileScreen}
+        onClose={() => setSearchDrawerOpen(false)}
+      >
+        <Box sx={{ p: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+            <IconButton onClick={() => setSearchDrawerOpen(false)}>
+              <Close />
+            </IconButton>
+          </Box>
+          <SearchBar isSmallScreen={true} />
+        </Box>
+      </Drawer>
     </AppBar>
   );
 };

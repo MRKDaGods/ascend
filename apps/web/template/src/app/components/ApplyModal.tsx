@@ -71,26 +71,36 @@ export default function ApplyModal({ job, open, onClose }: any) {
       formData.append('resume', resumeFile, resumeFile.name);
       formData.append('email', userData.email.trim());
       formData.append('phone', userData.fullPhone.trim());
-      console.log('************');
-      console.log('FormData:', userData.fullPhone.trim()); // Debugging line
-      const response = await API.post(`/job/${job.id}/applications`, {
-        method: 'POST',
-        body: formData,
+      
+      const response = await API.post(`/job/${job.id}/applications`, formData, {
         headers: {
-        'x-no-parse-body': '1'
+          'Content-Type': 'multipart/form-data',
+          'x-no-parse-body': '1',
         },
       });
 
       if (!response.data) {
-        throw new Error(`Failed to submit application (${response.status})`);
+        throw new Error('Failed to submit application');
       }
 
-      const result = await response.data;
+      // Check for 403 error specifically
+      if (response.status === 403) {
+        throw new Error('You have exceeded the application limit for this job');
+      }
+
+      // Apply the job to local state
       applyJob({ ...job, status: 'Applied' });
-      alert(result.message);
+      
+      // Navigate to MyJobs
       router.push('/jobs/MyJobs');
     } catch (error) {
-      alert(`Application failed: ${(error as Error).message}`);
+      // Improved error handling
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: { message?: string, error?: string }, status?: number } };
+        alert(apiError.response?.data?.message || apiError.response?.data?.error || 'Application failed. Please try again.');
+      } else {
+        alert((error as Error).message || 'Application failed. Please try again.');
+      }
     }
   };
 
