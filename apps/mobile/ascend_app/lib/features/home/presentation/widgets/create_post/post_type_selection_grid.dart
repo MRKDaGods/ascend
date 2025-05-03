@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 class PostTypeSelectionGrid extends StatelessWidget {
   const PostTypeSelectionGrid({super.key});
 
-  Widget _buildIconButton(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  Widget _buildIconButton(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(40), // For splash effect
@@ -33,37 +38,44 @@ class PostTypeSelectionGrid extends StatelessWidget {
         alignment: WrapAlignment.spaceAround, // Adjust alignment
         children: <Widget>[
           _buildIconButton(context, Icons.photo_library_outlined, 'Media', () {
-            // TODO: Implement Media action - Cannot directly open local Windows paths.
             // This should typically open an image picker.
-            print('Media tapped - Intended action: Open image picker');
+            debugPrint('Media tapped - Intended action: Open image picker');
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Media button tapped - Implement image picker here.')),
+              const SnackBar(
+                content: Text(
+                  'Media button tapped - Implement image picker here.',
+                ),
+              ),
             );
           }),
           _buildIconButton(context, Icons.calendar_today_outlined, 'Event', () {
-            // TODO: Implement Event action
-            print('Event tapped');
+            debugPrint('Event tapped');
           }),
-          _buildIconButton(context, Icons.celebration_outlined, 'Celebrate', () {
-            // TODO: Implement Celebrate action
-            print('Celebrate tapped');
-          }),
+          _buildIconButton(
+            context,
+            Icons.celebration_outlined,
+            'Celebrate',
+            () {
+              debugPrint('Celebrate tapped');
+            },
+          ),
           _buildIconButton(context, Icons.work_outline, 'Job', () {
-            // TODO: Implement Job action
-            print('Job tapped');
+            debugPrint('Job tapped');
           }),
           _buildIconButton(context, Icons.poll_outlined, 'Poll', () {
-            // TODO: Implement Poll action
-            print('Poll tapped');
+            debugPrint('Poll tapped');
           }),
           _buildIconButton(context, Icons.description_outlined, 'Document', () {
-            // TODO: Implement Document action
-            print('Document tapped');
+            debugPrint('Document tapped');
           }),
-          _buildIconButton(context, Icons.business_center_outlined, 'Services', () {
-            // TODO: Implement Services action
-            print('Services tapped');
-          }),
+          _buildIconButton(
+            context,
+            Icons.business_center_outlined,
+            'Services',
+            () {
+              debugPrint('Services tapped');
+            },
+          ),
           // Add more buttons if needed
         ],
       ),

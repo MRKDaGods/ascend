@@ -1,31 +1,26 @@
-import 'package:ascend_app/features/networks/Mock%20Data/users.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/widgets/connection_request_recieved_list_partial.dart';
-import 'package:ascend_app/features/networks/model/connection_request_model.dart';
-import 'package:ascend_app/features/networks/Repositories/user_repoistory.dart';
 import 'package:ascend_app/features/networks/pages/connection_requests_page.dart';
 import 'package:ascend_app/features/networks/pages/manage_my_network.dart';
-import 'package:ascend_app/features/networks/model/follow_model.dart';
-import 'package:ascend_app/features/networks/widgets/single_follow.dart';
-import 'package:ascend_app/features/networks/Mock Data/follow.dart';
 import 'package:ascend_app/features/networks/pages/recommended_to_follow.dart';
-import 'package:ascend_app/features/networks/Mock%20Data/connections_request.dart';
-import 'package:ascend_app/features/networks/managers/follow_manager.dart';
-import 'package:ascend_app/features/networks/managers/connection_manager.dart';
 import 'package:ascend_app/features/networks/widgets/connection_suggestions.dart';
-import 'package:uuid/uuid.dart';
 import 'package:ascend_app/features/networks/pages/suggested_connections_page.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 
 class Grow extends StatefulWidget {
   const Grow({super.key});
 
   @override
-  _GrowState createState() => _GrowState();
+  State<Grow> createState() => _GrowState();
 }
 
 class _GrowState extends State<Grow> {
@@ -35,6 +30,25 @@ class _GrowState extends State<Grow> {
   void initState() {
     super.initState();
     _scrollController = ScrollController(); // Initialize the ScrollController
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Check current auth state
+      final authState = context.read<AuthBloc>().state;
+
+      debugPrint('[Grow] Current auth state: ${authState.runtimeType}');
+
+      if (authState is AuthSuccess) {
+        debugPrint('[Grow] User is authenticated, fetching connection data');
+        context.read<ConnectionRequestBloc>().add(FetchConnectionRequests());
+        context.read<FollowBloc>().add(FetchFollowing());
+        context.read<BlockBloc>().add(FetchBlockedUsersEvent());
+        context.read<MessagingRequestsBloc>().add(
+          FetchReceivedMessagingRequests(),
+        );
+      } else {
+        debugPrint('[Grow] User not authenticated, cannot fetch data');
+      }
+    });
   }
 
   @override
@@ -46,6 +60,14 @@ class _GrowState extends State<Grow> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    debugPrint('[Grow] Current auth state: ${authState.runtimeType}');
+    if (authState is AuthSuccess) {
+      debugPrint('[Grow] User is authenticated, building UI');
+    } else {
+      debugPrint('[Grow] User not authenticated, showing empty container');
+      return const SizedBox.shrink(); // Return an empty widget if not authenticated
+    }
     return BlocBuilder<ConnectionRequestBloc, ConnectionRequestState>(
       builder: (context, connectionState) {
         return BlocBuilder<FollowBloc, FollowState>(
@@ -56,45 +78,12 @@ class _GrowState extends State<Grow> {
             } else if (connectionState is ConnectionRequestSuccess &&
                 followState is FollowSuccess) {
               final invitationsReceived =
-                  connectionState.pendingRequestsReceived
-                      .map((request) => getUser(request.senderId))
-                      .toList();
-
-              final connections =
-                  connectionState.acceptedConnections.map((request) {
-                    return request.senderId == "1"
-                        ? getUser(request.receiverId)
-                        : getUser(request.senderId);
-                  }).toList();
-
-              final followedUsers =
-                  followState.following
-                      .map((followModel) => getUser(followModel.followingId))
-                      .toList();
-
-              final suggestedUserstoFollow = getSuggestedUsersforFollow(
-                connections,
-                followedUsers,
-                invitationsReceived,
-                connectionState.pendingRequestsSent
-                    .map((request) => getUser(request.receiverId))
-                    .toList(),
-              );
-
-              final mutualConnectionsforFollowSuggestions =
-                  getallconnectionsforMutualFollow(connections);
-
-              final getSuggestedConnections = getSuggestedUsersforConnection(
-                connections,
-                connectionState.pendingRequestsSent
-                    .map((request) => getUser(request.receiverId))
-                    .toList(),
-                invitationsReceived,
-              );
-
-              final getAllconnections = getAllconnectionsforEachUser(
-                ConnectionRequests(),
-              );
+                  connectionState.pendingRequestsReceived;
+              final connections = connectionState.acceptedConnections;
+              final invitationsSent = connectionState.pendingRequestsSent;
+              final suggestedUserstoConnect =
+                  connectionState.suggestedToConnect;
+              final followedUsers = followState.following;
 
               return SingleChildScrollView(
                 controller: _scrollController, // Add scroll controller
@@ -107,9 +96,11 @@ class _GrowState extends State<Grow> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
-                          'Invitations (${invitationsReceived.length})',
+                          invitationsReceived.isNotEmpty
+                              ? 'Invitations (${invitationsReceived.length})'
+                              : 'Invitations',
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -125,18 +116,8 @@ class _GrowState extends State<Grow> {
                                 return BlocProvider.value(
                                   value: bloc,
                                   child: ConnectionRequestsPage(
-                                    invitationsReceived: invitationsReceived,
-                                    pendingRequestsReceived:
-                                        connectionState.pendingRequestsReceived,
-                                    invitationsSent:
-                                        connectionState.pendingRequestsSent
-                                            .map(
-                                              (request) =>
-                                                  getUser(request.receiverId),
-                                            )
-                                            .toList(),
-                                    pendingRequestsSent:
-                                        connectionState.pendingRequestsSent,
+                                    sentUsers: invitationsSent,
+                                    receivedUsers: invitationsReceived,
                                   ),
                                 );
                               },
@@ -144,9 +125,8 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 1),
+                      const Divider(thickness: 3, height: 0),
                       ConnectionRequestsReceivedListPartial(
-                        invitations: invitationsReceived,
                         pendingRequestsReceived:
                             connectionState.pendingRequestsReceived,
                         onAccept: (requestId) {
@@ -160,7 +140,9 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 1, height: 16),
+                      if (invitationsReceived.isNotEmpty)
+                        const SizedBox(height: 20),
+                      const Divider(thickness: 3, height: 0),
                       // Manage Your Network Section
                       ListTile(
                         contentPadding: EdgeInsets.zero,
@@ -188,6 +170,28 @@ class _GrowState extends State<Grow> {
                                           context,
                                         ),
                                       ),
+
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<
+                                          ConnectionPreferencesBloc
+                                        >(context),
+                                      ),
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<BlockBloc>(
+                                          context,
+                                        ),
+                                      ),
+                                      // Add missing MessagingRequestsBloc provider
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<
+                                          MessagingRequestsBloc
+                                        >(context),
+                                      ),
+                                      BlocProvider.value(
+                                        value: BlocProvider.of<UserSearchBloc>(
+                                          context,
+                                        ),
+                                      ),
                                     ],
                                     child: ManageMyNetwork(
                                       connections: connections,
@@ -198,7 +202,9 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 1, height: 16),
+                      const Divider(thickness: 3, height: 0),
+                      SizedBox(height: 20),
+                      const Divider(thickness: 3, height: 0),
                       // People to Follow Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,15 +214,19 @@ class _GrowState extends State<Grow> {
                             child: Text(
                               'People to follow based on your activity',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                           const SizedBox(height: 5),
                           PeopleToFollow(
-                            users: suggestedUserstoFollow,
-                            mutualUsers: mutualConnectionsforFollowSuggestions,
+                            users: [],
+                            onSentMessageRequest: (userId) {
+                              context.read<MessagingRequestsBloc>().add(
+                                SendMessageRequest(receiverId: userId),
+                              );
+                            },
                             onFollow: (userId) {
                               context.read<FollowBloc>().add(
                                 FollowUser(userId: userId),
@@ -227,32 +237,34 @@ class _GrowState extends State<Grow> {
                                 UnfollowUser(userId: userId),
                               );
                             },
-                            onHide: (userId) {
-                              context.read<FollowBloc>().add(
-                                HideUser(userId: userId),
-                              );
-                            },
                             showAll: false,
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
+                      //See All button
                       ListTile(
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) {
-                                final bloc = BlocProvider.of<FollowBloc>(
-                                  context,
-                                );
-                                return BlocProvider.value(
-                                  value: bloc,
+                                return MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<FollowBloc>(
+                                        context,
+                                      ),
+                                    ),
+                                    BlocProvider.value(
+                                      value: BlocProvider.of<
+                                        MessagingRequestsBloc
+                                      >(context),
+                                    ),
+                                  ],
                                   child: RecommendedToFollow(
-                                    Message:
+                                    message:
                                         'People to follow based on your activity',
-                                    users: suggestedUserstoFollow,
-                                    mutualUsers:
-                                        mutualConnectionsforFollowSuggestions,
+                                    users: [],
                                     onFollow: (userId) {
                                       context.read<FollowBloc>().add(
                                         FollowUser(userId: userId),
@@ -263,9 +275,9 @@ class _GrowState extends State<Grow> {
                                         UnfollowUser(userId: userId),
                                       );
                                     },
-                                    onHide: (userId) {
-                                      context.read<FollowBloc>().add(
-                                        HideUser(userId: userId),
+                                    onSentMessageRequest: (userId) {
+                                      context.read<MessagingRequestsBloc>().add(
+                                        SendMessageRequest(receiverId: userId),
                                       );
                                     },
                                     showAll: true,
@@ -286,7 +298,9 @@ class _GrowState extends State<Grow> {
                           ),
                         ),
                       ),
-                      const Divider(thickness: 1, height: 16),
+                      const Divider(thickness: 3, height: 16),
+                      const SizedBox(height: 20),
+                      const Divider(thickness: 3, height: 0),
                       // Suggested Users Section
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,63 +308,57 @@ class _GrowState extends State<Grow> {
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 4),
                             child: Text(
-                              'Suggested Connections',
+                              'People to connect based on your activity',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
+
+                          // Connection Suggestions widget
                           ConnectionSuggestions(
-                            suggestedUsers: getSuggestedConnections,
-                            connectionsMap: getAllconnections,
-                            onSend: (userId) {
-                              final requestId = Uuid().v4();
-                              context.read<ConnectionRequestBloc>().add(
-                                SendConnectionRequest(
-                                  connectionRequest: ConnectionRequestModel(
-                                    requestId: requestId,
-                                    senderId: "1",
-                                    receiverId: userId,
-                                    status: "pending",
-                                    timestamp: DateTime.now().toIso8601String(),
-                                  ),
-                                ),
+                            suggestedUsers: suggestedUserstoConnect,
+                            onSentMessageRequest: (userId) {
+                              context.read<MessagingRequestsBloc>().add(
+                                SendMessageRequest(receiverId: userId),
                               );
                             },
-                            ShowAll: false,
+                            onSend: (userId) {
+                              context.read<ConnectionRequestBloc>().add(
+                                SendConnectionRequest(connctionId: userId),
+                              );
+                            },
+                            showAll: false,
                           ),
                           ListTile(
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) {
-                                    final bloc =
-                                        BlocProvider.of<ConnectionRequestBloc>(
-                                          context,
-                                        );
-                                    return BlocProvider.value(
-                                      value: bloc,
+                                    return MultiBlocProvider(
+                                      providers: [
+                                        BlocProvider.value(
+                                          value: BlocProvider.of<
+                                            ConnectionRequestBloc
+                                          >(context),
+                                        ),
+                                        BlocProvider.value(
+                                          value: BlocProvider.of<
+                                            MessagingRequestsBloc
+                                          >(context),
+                                        ),
+                                      ],
                                       child: SuggestedConnectionsPage(
-                                        Message:
+                                        message:
                                             'People to Connect based on your activity',
-                                        users: getSuggestedConnections,
-                                        mutualUsers: getAllconnections,
+                                        users: suggestedUserstoConnect,
                                         onSend: (userId) {
                                           context
                                               .read<ConnectionRequestBloc>()
                                               .add(
                                                 SendConnectionRequest(
-                                                  connectionRequest:
-                                                      ConnectionRequestModel(
-                                                        requestId: Uuid().v4(),
-                                                        senderId: "1",
-                                                        receiverId: userId,
-                                                        status: "pending",
-                                                        timestamp:
-                                                            DateTime.now()
-                                                                .toIso8601String(),
-                                                      ),
+                                                  connctionId: userId,
                                                 ),
                                               );
                                         },

@@ -122,7 +122,7 @@ class HidePostFeedbackOptions extends PostEvent {
 
 class AddCommentReply extends PostEvent {
   final String postId;
-  final String parentId;
+  final String parentCommentId;
   final String text;
   final String authorId;
   final String authorName;
@@ -130,7 +130,7 @@ class AddCommentReply extends PostEvent {
 
   const AddCommentReply(
     this.postId,
-    this.parentId,
+    this.parentCommentId,
     this.text,
     this.authorId,
     this.authorName,
@@ -139,13 +139,13 @@ class AddCommentReply extends PostEvent {
 
   @override
   List<Object?> get props => [
-    postId,
-    parentId,
-    text,
-    authorId,
-    authorName,
-    authorImageUrl,
-  ];
+        postId,
+        parentCommentId,
+        text,
+        authorId,
+        authorName,
+        authorImageUrl,
+      ];
 }
 
 // Event to save a post
@@ -187,4 +187,14 @@ class AddNewPost extends PostEvent {
 
   @override
   List<Object?> get props => [newPost];
+}
+
+// Event to load comments for a specific post
+class LoadComments extends PostEvent {
+  final String postId;
+
+  const LoadComments(this.postId);
+
+  @override
+  List<Object?> get props => [postId];
 }

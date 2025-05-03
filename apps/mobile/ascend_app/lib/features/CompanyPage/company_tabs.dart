@@ -4,7 +4,7 @@ class CompanyTabs extends StatefulWidget {
   const CompanyTabs({super.key});
 
   @override
-  _CompanyTabsState createState() => _CompanyTabsState();
+  State<CompanyTabs> createState() => _CompanyTabsState();
 }
 
 class _CompanyTabsState extends State<CompanyTabs>
