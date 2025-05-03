@@ -16,6 +16,7 @@ import {
   Application,
   JobApplicationForUser,
 } from "packages/shared/src/models/job";
+import { parse } from "path";
 
 /**
  * Parameters for searching jobs with various filters
@@ -196,6 +197,9 @@ export const hasUserExceededApplicationLimit = async (
     `;
     const values = [userId];
     const result = await db.query(query, values);
+    if (parseInt(result.rows[0].job_applications_limit) === -1) {
+      return false;
+    }
     return (
       result.rows[0].job_applications_per_month >=
       result.rows[0].job_applications_limit
