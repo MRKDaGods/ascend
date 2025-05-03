@@ -8,30 +8,77 @@ part 'posts_state.dart';
 
 class PostsBloc extends Bloc<PostsEvent, PostsState> {
   final AdminApiClient apiClient;
+  List<ReportedPost> _posts = []; // Accumulated posts list
+  bool _hasReachedMax = false; // Flag to track if we've reached the end
+  int _totalPages = 1; // Track total available pages
 
   PostsBloc({required this.apiClient}) : super(PostsInitial()) {
     // Handle fetching reported posts
     on<FetchReportedPosts>((event, emit) async {
-      emit(FetchingReportedPostsState());
+      // If we've already reached max and not refreshing, do nothing
+      if (_hasReachedMax && event.page > 1) {
+        return;
+      }
+
+      if (event.page == 1) {
+        emit(FetchingReportedPostsState());
+        _posts = []; // Reset posts list on first page
+        _hasReachedMax = false; // Reset max flag on refresh
+      }
+
+      // Don't request pages beyond what's available
+      if (_totalPages < event.page) {
+        debugPrint(
+          'Skipping fetch for page ${event.page} as total pages is $_totalPages',
+        );
+        return;
+      }
+
       try {
         final response = await apiClient.getReportedPosts(event.page);
-        final reportedPosts =
+        final newPosts =
             (response['data'] as List)
                 .map((postJson) => ReportedPost.fromJson(postJson))
                 .toList();
+
+        // Store total pages for reference
+        _totalPages = response['pagination']['totalPages'] ?? 1;
+
+        // If we got fewer items than expected or reached the last page, mark as reached max
+        if (newPosts.isEmpty || event.page >= _totalPages) {
+          _hasReachedMax = true;
+        }
+
+        // Append new posts to existing list
+        _posts.addAll(newPosts);
+
         final currentPage = response['pagination']['currentPage'] ?? 1;
-        final totalPages = response['pagination']['totalPages'] ?? 1;
 
         emit(
           ReportedPostsFetchedState(
-            reportedPosts: reportedPosts,
+            reportedPosts: _posts, // Use accumulated posts
             currentPage: currentPage,
-            totalPages: totalPages,
+            totalPages: _totalPages,
+            hasReachedMax: _hasReachedMax,
           ),
         );
       } catch (e) {
-        debugPrint('Error in FetchReportedPostsEvent: $e');
-        emit(PostsErrorState(errorMessage: e.toString()));
+        if (e.toString().contains('404') && event.page > 1) {
+          // This is likely just the end of available pages
+          _hasReachedMax = true;
+          emit(
+            ReportedPostsFetchedState(
+              reportedPosts: _posts,
+              currentPage: event.page - 1,
+              totalPages: event.page - 1,
+              hasReachedMax: true,
+            ),
+          );
+          debugPrint('Reached end of posts at page ${event.page - 1}');
+        } else {
+          debugPrint('Error in FetchReportedPostsEvent: $e');
+          emit(PostsErrorState(errorMessage: e.toString()));
+        }
       }
     });
 

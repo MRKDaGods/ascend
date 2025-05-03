@@ -225,7 +225,8 @@ class _ChatPageState extends State<ChatPage> {
 
     final bloc = context.read<MessagingBloc>();
     if (bloc.state is MessagesLoaded &&
-        (bloc.state as MessagesLoaded).sendingStatus != null) {
+        (bloc.state as MessagesLoaded).sendingStatus != null &&
+        (bloc.state as MessagesLoaded).sendingStatus!['status'] != 'success') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
