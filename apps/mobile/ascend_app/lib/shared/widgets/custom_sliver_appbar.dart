@@ -19,6 +19,7 @@ class CustomSliverAppBar extends StatefulWidget {
   final bool jobs;
   final bool showAppBar;
   final VoidCallback? onJobAction;
+  final VoidCallback? onSearchAction; // New callback for general search activation
   final bool showProfileAvatar; // Added property to show/hide QR code button
   final BuildContext? contextin;
   const CustomSliverAppBar({
@@ -31,6 +32,7 @@ class CustomSliverAppBar extends StatefulWidget {
     this.jobs = false,
     this.showAppBar = false,
     this.onJobAction, // To detetct the job action
+    this.onSearchAction, // Initialize the new callback
     this.showProfileAvatar = true, // To show/hide profile avatar
     this.contextin, // To show/hide context
   });
@@ -87,14 +89,13 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
         builder: (context, state) {
           return Card.outlined(
             child: TextField(
+              readOnly: true, // Make TextField read-only to act as a button
               onTap: () {
-                // Handle the tap event
-                if (widget.onJobAction != null) {
-                  widget.onJobAction!();
+                if (widget.jobs && widget.onJobAction != null) {
+                  widget.onJobAction!(); // Call job action if it's for jobs
+                } else if (!widget.jobs && widget.onSearchAction != null) {
+                  widget.onSearchAction!(); // Call general search action otherwise
                 }
-              },
-              onChanged: (value) {
-                context.read<SearchBloc>().add(SearchTextChanged(value));
               },
               decoration: InputDecoration(
                 prefixIcon:

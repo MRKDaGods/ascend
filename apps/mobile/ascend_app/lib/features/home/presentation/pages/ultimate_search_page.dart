@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class UltimateSearchPage extends StatefulWidget {
-  const UltimateSearchPage({super.key});
+  final VoidCallback? onBackPressed; // Add callback for back navigation
+
+  const UltimateSearchPage({super.key, this.onBackPressed}); // Initialize callback
 
   @override
   State<UltimateSearchPage> createState() => _UltimateSearchPageState();
@@ -72,6 +74,10 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton( // Add back button
+          icon: const Icon(Icons.arrow_back),
+          onPressed: widget.onBackPressed, // Trigger the callback
+        ),
         title: TextField(
           controller: _searchController,
           autofocus: true,
