@@ -1,5 +1,5 @@
 "use client";
-
+import API from "@/api/api";
 import React, { useState } from "react";
 import {
   Box,
@@ -15,10 +15,11 @@ import {
   Divider,
 } from "@mui/material";
 import { deepOrange, green } from "@mui/material/colors";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 const question1 = {
-  question: "Which of these best describes your primary goal for using Premium?",
+  question:
+    "Which of these best describes your primary goal for using Premium?",
   options: [
     "I'd use Premium for my personal goals",
     "I'd use Premium as part of my job",
@@ -48,10 +49,10 @@ const PremiumSurvey = () => {
   const [step, setStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [subOptions, setSubOptions] = useState<string[]>([]);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const totalSteps = 2;
 
-  const progress = ((step + 1) / (totalSteps + 1)) * 100; // Adjust progress calculation
+  const progress = ((step + 1) / (totalSteps + 1)) * 100;
 
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
@@ -68,11 +69,20 @@ const PremiumSurvey = () => {
         setStep(1);
         setSelectedOption("");
       } else if (selectedOption === "Other") {
-        router.push("/premium"); // Navigate directly to the premium page
+        router.push("/prem/premium");
       }
     } else if (step === 1) {
-      // Navigate to the premium page after completing the survey
-      router.push("/premium");
+      API.post("/payment/payments/survey", {
+        question: "What do you hope to achieve with Premium?",
+        answers: subOptions,
+        user_choice: subOptions.findIndex((opt) => opt === selectedOption),
+      })
+        .then(() => {
+          router.push("/prem/premium");
+        })
+        .catch((e) => {
+          console.error(e);
+        });
     }
   };
 
@@ -97,19 +107,30 @@ const PremiumSurvey = () => {
   const currentQuestion = renderQuestion();
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f3f2ef", minHeight: "100vh" }}>
-      {/* Top Info */}
-      <Box sx={{ maxWidth: 900, mx: "auto", mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          The average career is 42 years. Drive sales and boost your success with Sales Navigator.
+    <Box
+      sx={{ p: 4, backgroundColor: "#f3f2ef", minHeight: "100vh" }}
+      id="premium-survey-container"
+    >
+      <Box sx={{ maxWidth: 900, mx: "auto", mb: 4 }} id="premium-survey-header">
+        <Typography variant="h6" gutterBottom id="survey-header-title">
+          The average career is 42 years. Drive sales and boost your success
+          with Sales Navigator.
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          id="survey-header-subtitle"
+        >
           Millions of members use Premium
         </Typography>
-        <Typography variant="body2">
-          Claim your 1-month free trial today. Cancel anytime. We’ll send you a reminder 7 days before your trial ends.
+        <Typography variant="body2" id="survey-header-description">
+          Claim your 1-month free trial today. Cancel anytime. We’ll send you a
+          reminder 7 days before your trial ends.
         </Typography>
-        <Box sx={{ mt: 2, position: "relative" }}>
+        <Box
+          sx={{ mt: 2, position: "relative" }}
+          id="survey-progress-container"
+        >
           <LinearProgress
             variant="determinate"
             value={progress}
@@ -120,6 +141,7 @@ const PremiumSurvey = () => {
                 backgroundColor: green[500],
               },
             }}
+            id="survey-progress-bar"
           />
           <Typography
             variant="caption"
@@ -130,73 +152,73 @@ const PremiumSurvey = () => {
               color: green[500],
               fontWeight: "bold",
             }}
+            id="survey-progress-percentage"
           >
             {Math.round(progress)}%
           </Typography>
         </Box>
       </Box>
 
-      {/* Testimonial */}
-      <Box
-        sx={{
-          maxWidth: 900,
-          mx: "auto",
-          mb: 4,
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ width: "60%" }}></Box>
-        <Paper sx={{ p: 2, width: 250, bgcolor: "#fafafa" }}>
-          <Typography variant="body2" gutterBottom>
-            "With Premium, I grew my followers to 14,000, landed two jobs, and made hundreds of connections."
-          </Typography>
-          <Typography variant="caption" display="block">
-            Vugar Rustamli
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Program Consultant
-          </Typography>
-        </Paper>
-      </Box>
-
-      {/* Main Survey Box */}
-      <Box sx={{ maxWidth: 600, mx: "auto" }}>
-        <Paper elevation={1} sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <Avatar sx={{ bgcolor: deepOrange[500], mr: 2 }}>N</Avatar>
+      <Box sx={{ maxWidth: 600, mx: "auto" }} id="survey-question-container">
+        <Paper elevation={1} sx={{ p: 3 }} id="survey-question-paper">
+          <Box
+            sx={{ display: "flex", alignItems: "center", mb: 2 }}
+            id="survey-question-header"
+          >
+            <Avatar sx={{ bgcolor: deepOrange[500], mr: 2 }} id="survey-avatar">
+              N
+            </Avatar>
             <Box>
-              <Typography variant="subtitle1" fontWeight={600}>
+              <Typography
+                variant="subtitle1"
+                fontWeight={600}
+                id="survey-question-title"
+              >
                 USER, {currentQuestion.question}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                id="survey-question-subtitle"
+              >
                 We'll recommend the right plan for you.
               </Typography>
             </Box>
           </Box>
 
-          <FormControl component="fieldset">
-            <RadioGroup value={selectedOption} onChange={handleOptionChange}>
+          <FormControl component="fieldset" id="survey-options-container">
+            <RadioGroup
+              value={selectedOption}
+              onChange={handleOptionChange}
+              id="survey-options-group"
+            >
               {currentQuestion.options.map((opt, idx) => (
                 <FormControlLabel
                   key={idx}
                   value={opt}
-                  control={<Radio />}
+                  control={<Radio id={`survey-option-radio-${idx}`} />}
                   label={opt}
                   sx={{ mb: 1 }}
+                  id={`survey-option-${idx}`}
                 />
               ))}
             </RadioGroup>
           </FormControl>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2 }} id="survey-divider" />
 
-          <Box textAlign="right" display="flex" justifyContent="space-between">
+          <Box
+            textAlign="right"
+            display="flex"
+            justifyContent="space-between"
+            id="survey-navigation-buttons"
+          >
             <Button
               variant="outlined"
               disabled={step === 0}
               onClick={handleBack}
               sx={{ textTransform: "none", borderRadius: 20, px: 4 }}
+              id="survey-back-button"
             >
               Back
             </Button>
@@ -205,6 +227,7 @@ const PremiumSurvey = () => {
               disabled={!selectedOption}
               onClick={handleNext}
               sx={{ textTransform: "none", borderRadius: 20, px: 4 }}
+              id="survey-next-button"
             >
               Next
             </Button>

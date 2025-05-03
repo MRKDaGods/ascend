@@ -43,7 +43,7 @@ import { useProfileStore } from "../stores/useProfileStore";
 import { usePostStore } from "../stores/usePostStore";
 
 import LogoutIcon from "@mui/icons-material/Logout";
-import SettingsIcon from "@mui/icons-material/Settings";
+// import SettingsIcon from "@mui/icons-material/Settings";
 import SearchResults from "./SearchResults";
 import { api, refreshAuthState } from "@/api";
 import BusinessMenu from "./BusinessMenu";
@@ -93,7 +93,7 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { userData, setUserData } = useProfileStore();
-  
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const { ultimateSearch } = usePostStore();
   const { anchorEl, setAnchorEl, closeMenu } = useMenuStore();
@@ -108,14 +108,16 @@ const Navbar: React.FC = () => {
   const [searchDrawerOpen, setSearchDrawerOpen] = useState(false);
 
   // Safely derive profile picture and full name
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; 
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
   const fullName = userData
     ? `${userData.first_name} ${userData.last_name}`
     : "User";
 
-  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(null);
+  const [businessAnchorEl, setBusinessAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
   const businessMenuOpen = Boolean(businessAnchorEl);
-  
+
   const handleBusinessClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setBusinessAnchorEl(event.currentTarget);
   };
@@ -185,30 +187,32 @@ const Navbar: React.FC = () => {
         position: "sticky",
       }}
     >
-      <Toolbar 
-        sx={{ 
-          display: "flex", 
-          justifyContent: "space-between", 
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
           py: 1,
           flexDirection: { xs: "column", md: "row" },
           gap: { xs: 1, md: 0 },
         }}
       >
         {/* TOP BAR - Logo, Search/Menu Icons */}
-        <Box 
-          sx={{ 
-            display: "flex", 
+        <Box
+          sx={{
+            display: "flex",
             width: "100%",
-            alignItems: "center", 
-            justifyContent: "space-between" 
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
           {/* LEFT: Logo and Search */}
-          <Box sx={{ 
-            display: "flex", 
-            alignItems: "center", 
-            flexGrow: isSmallScreen ? 0 : 1
-          }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexGrow: isSmallScreen ? 0 : 1,
+            }}
+          >
             {/* Logo */}
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <img
@@ -225,17 +229,21 @@ const Navbar: React.FC = () => {
                 </Typography>
               </Box>
             </Box>
-            
+
             {/* Desktop Search with Navigation Icons */}
             {!isSmallScreen && (
-              <Box sx={{ 
-                display: "flex", 
-                alignItems: "center",
-                flexGrow: 1,
-                justifyContent: "center"
-              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexGrow: 1,
+                  justifyContent: "center",
+                }}
+              >
                 <SearchBar>
-                  <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
+                  <Search
+                    sx={{ color: muiTheme.palette.text.secondary, mr: 1 }}
+                  />
                   <InputBase
                     placeholder="Search for jobs, people..."
                     value={searchQuery}
@@ -252,9 +260,16 @@ const Navbar: React.FC = () => {
                     }}
                   />
                 </SearchBar>
-                
+
                 {/* Desktop Navigation Icons - Now next to search bar */}
-                <Box sx={{ display: "flex", alignItems: "center", ml: 3, gap: 3.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    ml: 3,
+                    gap: 3.5,
+                  }}
+                >
                   {navigationItems.map(({ icon, route, label, badge }, i) => (
                     <Tooltip key={i} title={label}>
                       <NavIconButton
@@ -368,11 +383,13 @@ const Navbar: React.FC = () => {
 
         {/* DESKTOP: User Controls */}
         {!isSmallScreen && (
-          <Box sx={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: 2,
-          }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
             {/* User Avatar */}
             <Tooltip title="Me">
               <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
@@ -390,7 +407,9 @@ const Navbar: React.FC = () => {
             {/* Theme Toggle */}
             <Tooltip
               title={
-                theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"
+                theme === "dark"
+                  ? "Switch to Light Mode"
+                  : "Switch to Dark Mode"
               }
             >
               <IconButton onClick={toggleTheme}>
@@ -417,6 +436,7 @@ const Navbar: React.FC = () => {
 
             {/* Premium Button */}
             <Button
+              onClick={() => router.push("/prem")}
               variant="contained"
               sx={{
                 backgroundColor: "#FFC107",
@@ -492,9 +512,7 @@ const Navbar: React.FC = () => {
           <ListItemText onClick={() => router.push("/Settings")}>
             Settings & Privacy
           </ListItemText>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" />
-          </ListItemIcon>
+          <ListItemIcon>{/* <SettingsIcon fontSize="small" /> */}</ListItemIcon>
         </MenuItem>
 
         <Divider />
@@ -530,13 +548,13 @@ const Navbar: React.FC = () => {
         onClose={handleBusinessClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        PaperProps={{ 
-          sx: { 
-            width: { xs: "95%", sm: "90%", md: 700 }, 
+        PaperProps={{
+          sx: {
+            width: { xs: "95%", sm: "90%", md: 700 },
             mt: 1,
             maxHeight: "80vh",
-            overflowY: "auto"
-          } 
+            overflowY: "auto",
+          },
         }}
       >
         <BusinessMenu />
@@ -562,18 +580,18 @@ const Navbar: React.FC = () => {
               <Close />
             </IconButton>
           </Box>
-          
+
           <Divider sx={{ mb: 2 }} />
-          
+
           {navigationItems.map(({ icon, route, label, badge }, i) => (
-            <MenuItem 
-              key={i} 
+            <MenuItem
+              key={i}
               onClick={() => handleNavigation(route)}
               selected={pathname === route}
-              sx={{ 
+              sx={{
                 borderRadius: 1,
                 mb: 1,
-                py: 1.5
+                py: 1.5,
               }}
             >
               {badge && badge > 0 ? (
@@ -586,9 +604,9 @@ const Navbar: React.FC = () => {
               {label}
             </MenuItem>
           ))}
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           <MenuItem>
             <Button
               variant="contained"
@@ -608,7 +626,7 @@ const Navbar: React.FC = () => {
               Try Premium Free
             </Button>
           </MenuItem>
-          
+
           <MenuItem>
             <Button
               fullWidth
@@ -648,7 +666,7 @@ const Navbar: React.FC = () => {
               <Close />
             </IconButton>
           </Box>
-          
+
           <Box sx={{ display: "flex", gap: 1 }}>
             <SearchBar>
               <Search sx={{ color: muiTheme.palette.text.secondary, mr: 1 }} />
@@ -669,9 +687,9 @@ const Navbar: React.FC = () => {
                 }}
               />
             </SearchBar>
-            
-            <Button 
-              variant="contained" 
+
+            <Button
+              variant="contained"
               onClick={handleSearch}
               sx={{ minWidth: "80px" }}
             >
