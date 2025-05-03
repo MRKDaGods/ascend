@@ -843,20 +843,26 @@ export class PostService {
 
 // Check if post is saved by user
 async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
+  // Use a more explicit check that actually fetches the row
   const result = await db.query(
-    "SELECT COUNT(*) > 0 as is_saved FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2",
+    "SELECT id FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2 LIMIT 1",
     [postId, userId]
   );
-  return result.rows[0].is_saved;
+  
+  // Check if any rows were actually returned
+  return result.rows.length > 0;
 }
 
 // Check if post is shared by user
 async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
+  // Use a more explicit check that actually fetches the row
   const result = await db.query(
-    "SELECT COUNT(*) > 0 as is_shared FROM post_service.shares WHERE post_id = $1 AND user_id = $2",
+    "SELECT id FROM post_service.shares WHERE post_id = $1 AND user_id = $2 LIMIT 1",
     [postId, userId]
   );
-  return result.rows[0].is_shared;
+  
+  // Check if any rows were actually returned
+  return result.rows.length > 0;
 }
 
   async updatePrivacy(
