@@ -95,7 +95,6 @@ class _VisibilityOptionsSheetState extends State<VisibilityOptionsSheet> {
             value: 'Group',
             groupValue: _selectedVisibility,
             onChanged: (String? value) {
-              // TODO: Implement group selection logic
               // Potentially call a specific callback or navigate
             },
             activeColor: Colors.green,
@@ -112,7 +111,8 @@ class _VisibilityOptionsSheetState extends State<VisibilityOptionsSheet> {
             ),
             onTap: () {
               Navigator.pop(context); // Close this sheet first
-              widget.onCommentControlTap(); // Then trigger opening the other sheet
+              widget
+                  .onCommentControlTap(); // Then trigger opening the other sheet
             },
           ),
           ListTile(

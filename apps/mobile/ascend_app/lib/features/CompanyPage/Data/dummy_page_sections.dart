@@ -1,6 +1,5 @@
 import '../Models/profile_section.dart';
 import '../profile_entry.dart';
-import 'package:flutter/material.dart';
 
 List<ProfileSection> csections = [
   // About Section
@@ -15,28 +14,28 @@ List<ProfileSection> csections = [
       ),
     ],
   ),
-  if (false)
-    ProfileSection(
-      title: 'Analytics',
-      content: [
-        ProfileEntryWidget(
-          title: '5 profile views',
-          subtitle: 'Discover who\'s viewed your profile.',
-          icon: Icon(Icons.people), // Use an appropriate icon
-        ),
-        ProfileEntryWidget(
-          title: '0 post impressions',
-          subtitle: 'Start a post to increase engagement.',
-          description: "Past 7 days",
-          icon: Icon(Icons.bar_chart), // Use an appropriate icon
-        ),
-        ProfileEntryWidget(
-          title: '8 search appearances',
-          subtitle: 'See how often you appear in search results.',
-          icon: Icon(Icons.search), // Use an appropriate icon,
-        ),
-      ],
-    ),
+  // if (false)
+  //   ProfileSection(
+  //     title: 'Analytics',
+  //     content: [
+  //       ProfileEntryWidget(
+  //         title: '5 profile views',
+  //         subtitle: 'Discover who\'s viewed your profile.',
+  //         icon: Icon(Icons.people), // Use an appropriate icon
+  //       ),
+  //       ProfileEntryWidget(
+  //         title: '0 post impressions',
+  //         subtitle: 'Start a post to increase engagement.',
+  //         description: "Past 7 days",
+  //         icon: Icon(Icons.bar_chart), // Use an appropriate icon
+  //       ),
+  //       ProfileEntryWidget(
+  //         title: '8 search appearances',
+  //         subtitle: 'See how often you appear in search results.',
+  //         icon: Icon(Icons.search), // Use an appropriate icon,
+  //       ),
+  //     ],
+  //   ),
 
   // Education Section
   ProfileSection(

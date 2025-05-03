@@ -1,6 +1,5 @@
 part of 'invitation_bloc.dart';
 
-@immutable
 class InvitationState {
   final List<InvitationModel> invitations;
   final List<InvitationModel> accepted;

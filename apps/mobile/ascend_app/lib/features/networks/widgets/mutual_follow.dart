@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/managers/follow_manager.dart';
 
 class MutualFollow extends StatelessWidget {
-  final List<UserModel> mutualUsers;
+  final List<ConnectedUser> mutualUsers;
   final int numFollowers;
 
   const MutualFollow({

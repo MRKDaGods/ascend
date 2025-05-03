@@ -1,14 +1,19 @@
+import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
+import 'package:ascend_app/features/networks/model/followed_user.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/networks/model/user_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
+import 'package:ascend_app/features/networks/model/connected_user.dart';
 
 class ManageMyNetwork extends StatelessWidget {
-  final List<UserModel> connections;
-  final List<UserModel> followed;
+  final List<ConnectedUser> connections;
+  final List<FollowedUser> followed;
 
   const ManageMyNetwork({
     super.key,
@@ -22,15 +27,11 @@ class ManageMyNetwork extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Manage My Network',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: ListView.separated(
-        itemCount: 7, // Number of ListTiles
+        itemCount: 6, // Number of ListTiles
         itemBuilder: (context, index) {
           if (index == 0) {
             return ListTile(
@@ -44,10 +45,33 @@ class ManageMyNetwork extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder:
-                        (_) => BlocProvider.value(
-                          value: BlocProvider.of<ConnectionRequestBloc>(
-                            context,
-                          ),
+                        (_) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider.value(
+                              value: BlocProvider.of<ConnectionRequestBloc>(
+                                context,
+                              ),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<UserSearchBloc>(context),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<ConnectionPreferencesBloc>(
+                                context,
+                              ),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<FollowBloc>(context),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<BlockBloc>(context),
+                            ),
+                            BlocProvider.value(
+                              value: BlocProvider.of<MessagingRequestsBloc>(
+                                context,
+                              ),
+                            ),
+                          ],
                           child: Connections(
                             connections: connections,
                             onRemove: (requestId) {
@@ -130,16 +154,12 @@ class ManageMyNetwork extends StatelessWidget {
               onTap: () {},
             );
           } else {
-            return SizedBox.shrink();
+            return SizedBox.shrink(); // Return an empty widget for other indices
           }
         },
         separatorBuilder:
-            (context, index) => Divider(
-              color: Colors.grey,
-              thickness: 1,
-              indent: 16,
-              endIndent: 16,
-            ),
+            (context, index) =>
+                Divider(color: Colors.grey[300], thickness: 1, height: 1),
       ),
     );
   }

@@ -7,7 +7,7 @@ class AddInterestPage extends StatefulWidget {
   const AddInterestPage({super.key, required this.onSave});
 
   @override
-  _AddInterestPageState createState() => _AddInterestPageState();
+  State<AddInterestPage> createState() => _AddInterestPageState();
 }
 
 class _AddInterestPageState extends State<AddInterestPage> {
