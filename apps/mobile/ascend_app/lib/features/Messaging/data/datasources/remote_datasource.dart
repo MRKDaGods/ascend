@@ -187,7 +187,7 @@ class MessagingRepoistoryImpl implements MessagingRepository {
   }
 
   @override
-  Future<void> sendMessage(
+  Future<String> sendMessage(
     String receiverId,
     String content, {
     String contentType = 'text',
@@ -203,14 +203,14 @@ class MessagingRepoistoryImpl implements MessagingRepository {
     if (response.statusCode == 200) {
       // Handle successful message sending if needed
       debugPrint('[MessagingRepoistoryImpl] Message sent successfully');
+      return 'success';
     } else {
       // Handle error response
       debugPrint(
         '[MessagingRepoistoryImpl] Error sending message: ${response.statusCode}',
       );
-    }
-    if (response.statusCode != 200) {
-      throw Exception('Failed to send message');
+      final Map<String, dynamic> errorResponse = json.decode(response.body);
+      return errorResponse['error'] ?? 'Error sending message';
     }
   }
 

@@ -1,64 +1,89 @@
 // ignore_for_file: non_constant_identifier_names
-
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 
 class UserPendingModel {
+  String? id;
+  String? message;
+  DateTime? created_at;
   String? user_id;
   String? first_name;
   String? last_name;
   String? profile_image_id;
   String? bio;
-  DateTime? requestedAt;
-  String? request_id;
+  List<ConnectedUser>? connected_users;
+  int? connected_users_count;
 
   UserPendingModel({
-    required this.user_id,
-    required this.first_name,
-    required this.last_name,
-    required this.profile_image_id,
-    required this.bio,
-    required this.requestedAt,
-    String? request_id,
+    this.id,
+    this.message,
+    this.created_at,
+    this.user_id,
+    this.first_name,
+    this.last_name,
+    this.profile_image_id,
+    this.bio,
+    this.connected_users,
+    this.connected_users_count,
   });
 
   UserPendingModel.fromJson(Map<String, dynamic> json) {
-    user_id = json['user_id'];
-    first_name = json['first_name'];
-    last_name = json['last_name'];
-    profile_image_id = json['profile_image_id'];
-    bio = json['bio'];
-    requestedAt = DateTime.parse(json['requestedAt']);
-    request_id = json['request_id'];
+    id = json["id"].toString();
+    message = json["message"];
+    created_at = DateTime.parse(json["created_at"]);
+    user_id = json["user_id"].toString();
+    first_name = json["first_name"];
+    last_name = json["last_name"];
+    profile_image_id = json["profilePictureUrl"];
+    bio = json["bio"];
+    connected_users =
+        json["connected_users"] != null
+            ? (json["connected_users"] as List)
+                .map((e) => ConnectedUser.fromJson(e))
+                .toList()
+            : null;
+    connected_users_count =
+        json["connected_users_count"] != null
+            ? int.parse(json["connected_users_count"].toString())
+            : null;
   }
 
   UserPendingModel copyWith({
+    String? id,
+    String? message,
+    DateTime? created_at,
     String? user_id,
     String? first_name,
     String? last_name,
     String? profile_image_id,
     String? bio,
-    DateTime? requestedAt,
-    List<ConnectedUser>? MutualUsers,
-    int? numConnections,
-    String? request_id,
+    List<ConnectedUser>? connected_users,
+    int? connected_users_count,
   }) {
     return UserPendingModel(
+      id: id ?? this.id,
+      message: message ?? this.message,
+      created_at: created_at ?? this.created_at,
       user_id: user_id ?? this.user_id,
       first_name: first_name ?? this.first_name,
       last_name: last_name ?? this.last_name,
       profile_image_id: profile_image_id ?? this.profile_image_id,
       bio: bio ?? this.bio,
-      requestedAt: requestedAt ?? this.requestedAt,
-      request_id: request_id ?? this.request_id,
+      connected_users: connected_users ?? this.connected_users,
+      connected_users_count:
+          connected_users_count ?? this.connected_users_count,
     );
   }
 
   Map<String, dynamic> toJson() => {
+    "id": id,
+    "message": message,
+    "created_at": created_at?.toIso8601String(),
     "user_id": user_id,
     "first_name": first_name,
     "last_name": last_name,
     "profilePictureUrl": profile_image_id,
     "bio": bio,
-    "requestedAt": requestedAt?.toIso8601String(),
+    "connected_users": connected_users?.map((e) => e.toJson()).toList(),
+    "connected_users_count": connected_users_count,
   };
 }

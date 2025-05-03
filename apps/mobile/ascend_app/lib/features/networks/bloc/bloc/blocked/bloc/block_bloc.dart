@@ -2,13 +2,15 @@ import 'package:ascend_app/features/networks/model/blocked_user_model.dart';
 import 'package:ascend_app/features/networks/Repositories/block_repoistory.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 part 'block_event.dart';
 part 'block_state.dart';
 
 class BlockBloc extends Bloc<BlockEvent, BlockState> {
-  final BlockRepository _repository = BlockRepository();
-  BlockBloc() : super(BlockInitial()) {
+  final BlockRepository _repository;
+
+  BlockBloc({required BlockRepository repository})
+    : _repository = repository,
+      super(BlockInitial()) {
     on<BlockUserEvent>(_onBlockUserEvent);
     on<UnblockUserEvent>(_onUnblockUserEvent);
     on<FetchBlockedUsersEvent>(_onFetchBlockedUsersEvent);

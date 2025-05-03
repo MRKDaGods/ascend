@@ -96,6 +96,7 @@ class MessagesLoaded extends MessagingBlocState {
   final bool isTyping;
   final bool isNewMessage;
   final DateTime? typingUpdatedAt; // For typing status
+  final Map<String, dynamic>? sendingStatus; // For sending status
 
   MessagesLoaded(
     this.messages,
@@ -105,6 +106,7 @@ class MessagesLoaded extends MessagingBlocState {
     this.isTyping = false,
     this.isNewMessage = false,
     this.typingUpdatedAt,
+    this.sendingStatus,
   });
 
   MessagesLoaded copyWith({
@@ -115,6 +117,7 @@ class MessagesLoaded extends MessagingBlocState {
     bool? isTyping,
     bool? isNewMessage,
     DateTime? typingUpdatedAt,
+    Map<String, dynamic>? sendingStatus,
   }) {
     return MessagesLoaded(
       messages ?? this.messages,
@@ -124,6 +127,7 @@ class MessagesLoaded extends MessagingBlocState {
       isTyping: isTyping ?? this.isTyping,
       isNewMessage: isNewMessage ?? this.isNewMessage,
       typingUpdatedAt: typingUpdatedAt ?? this.typingUpdatedAt,
+      sendingStatus: sendingStatus ?? this.sendingStatus,
     );
   }
 
@@ -136,5 +140,6 @@ class MessagesLoaded extends MessagingBlocState {
     isTyping,
     isNewMessage,
     typingUpdatedAt,
+    sendingStatus,
   ];
 }

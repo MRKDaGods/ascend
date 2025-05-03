@@ -1,52 +1,51 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/networks/model/connection_preferences.dart';
 import 'package:ascend_app/core/constants/api_endpoints.dart';
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+import 'package:flutter/material.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 
 class ConnectionPreferencesRepository {
-  final http.Client _client;
-  final String baseUrl;
-  final Map<String, String> headers;
-  final bool useMockData;
+  final ApiClient _client;
   //final AuthService _authService;
 
   ConnectionPreferencesRepository({
-    this.baseUrl = 'https://api.ascendx.tech',
-    this.headers = const {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    this.useMockData = false,
-  }) : _client = http.Client();
-  // _authService = authService ?? AuthService();
+    required ApiClient client,
+    //required AuthService authService,
+  }) : _client = client;
 
   /// Fetch connection preferences from the server
   Future<ConnectionPreferences> fetchConnectionPreferences() async {
+    final String? userId = await SecureStorageHelper.getUserId();
+    final int userIdInt = int.tryParse(userId!) ?? 0;
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.preferences}');
       final response = await _client.get(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        '${ApiEndpoints.preferences}/$userIdInt',
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to unblock user: ${response.body}');
+      if (response.statusCode == 200) {
+        // Successfully fetched the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        return ConnectionPreferences.fromJson(data['data']);
+      } else {
+        debugPrint(
+          'Failed to fetch connection preferences: ${response.statusCode}',
+        );
+        return ConnectionPreferences(
+          user_id: userId,
+          allow_connection_requests: true,
+          allow_messages_from: 'all',
+          visible_to_public: true,
+          visible_to_connections: true,
+          visible_to_network: true,
+          show_followers: true,
+        );
       }
-      return ConnectionPreferences.fromJson(jsonDecode(response.body));
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
-      return ConnectionPreferences(
-        allow_connection_requests: true,
-        allow_message_requests: 'all',
-        visible_to_public: true,
-        visible_to_connections: true,
-        visible_to_network: true,
-      );
+      print('Error: $e');
+      rethrow; // Rethrow the error for further handling if needed
     }
   }
 
@@ -54,23 +53,62 @@ class ConnectionPreferencesRepository {
     ConnectionPreferences connectionPreference,
   ) async {
     try {
-      final token = 'your_token_here';
-      final uri = Uri.parse('$baseUrl${ApiEndpoints.preferences}');
       final response = await _client.put(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(connectionPreference.toJson()),
+        ApiEndpoints.preferences,
+        data: connectionPreference.toJson(),
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to unblock user: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Successfully updated the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> updatedData = data['data'];
+        debugPrint(
+          'Updated connection preferences for user : $updatedData["user_id"] with preferences: $updatedData',
+        );
+      } else {
+        throw Exception(
+          'Failed to update connection preferences: ${response.body}',
+        );
       }
     } catch (e) {
-      // For now, print the error
+      // For now, debugPrint the error
       await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      rethrow; // Rethrow the error for further handling if needed
+    }
+  }
+
+  Future<Map<String, bool>> canConnect(String userId) async {
+    try {
+      final int userIdInt = int.tryParse(userId) ?? 0;
+      final response = await _client.get(
+        '${ApiEndpoints.preferences}/$userIdInt',
+      );
+
+      if (response.statusCode == 200) {
+        // Successfully fetched the connection preferences
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = data['data'];
+        final Map<String, bool> canConnect = {
+          'canConnect': responseData['allow_connection_requests'] ?? false,
+          'canReceiveMessageRequests':
+              responseData['allow_messages_from'] == 'all' ? true : false,
+        };
+        return canConnect;
+      } else {
+        debugPrint(
+          'Failed to fetch connection preferences: ${response.statusCode}',
+        );
+        return {'canConnect': false, 'canReceiveMessageRequests': false};
+      }
+    } catch (e) {
+      // For now, debugPrint the error
+      await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('Error: $e');
+      return {
+        'canConnect': false,
+        'canReceiveMessageRequests': false,
+      }; // Return default values in case of error
     }
   }
 }

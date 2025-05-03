@@ -8,6 +8,7 @@ class ApiEndpoints {
   static const String notifications = '/notifications';
   static const String deviceTokens = '/device-tokens';
   static const String messaging = '/messaging';
+  static const String connections = '/connection';
 
   // Auth endpoints
   static const String login = '$auth/login';
@@ -25,31 +26,34 @@ class ApiEndpoints {
   static const String readAll = '$notifications/read-all';
 
   // Connection endpoints
-  static const String sendconnectionRequest = '/request';
-  static const String acceptConnectionRequest = '/respond';
-  static const String rejectConnectionRequest = '/respond';
-  static const String fetchconnections = '/connections';
-  static const String connectionPending = '/connections/pending';
-  static const String cancelConnectionRequest = '/cancel-request';
-  static const String fetchConnectionRecommendations = '/recommendations';
-  static const String fetchMutualConnections = '/mutual-connections';
-  static const String fetchConnections = '/connections';
+  static const String sendconnectionRequest = '$connections/request';
+  static const String respondConnectionRequest = '$connections/respond';
+  static const String fetchconnections = '$connections/connections';
+  static const String connectionPending = '$connections/connections/pending';
+  static const String cancelConnectionRequest = '$connections/cancel-request';
+  static const String fetchConnectionRecommendations =
+      '$connections/connections/network';
+  static const String fetchMutualConnections =
+      '$connections/connections/mutual';
 
   // Follow endpoints
-  static const String follow = '/follow';
-  static const String followed = '/followed';
+  static const String follow = '$connections/follow';
+  static const String unfollow = '$connections/follow';
+  static const String followed = '$connections/followers';
+  static const String followedRecommendations =
+      '$connections/followers/recommendations';
 
   // Block endpoints
-  static const String block = '/block';
-  static const String fetchBlockedUsers = '/blocked';
+  static const String block = '$connections/block';
+  static const String unblock = '$connections/block';
+  static const String fetchBlockedUsers = '$connections/blocked';
 
   // Message Request endpoints
-  static const String sendMessageRequest = '/message-request';
-  static const String acceptMessageRequest = '/message-request';
-  static const String rejectMessageRequest = '/message-request';
+  static const String sendMessageRequest = '$connections/message-request';
+  static const String respondMessageRequest = '$connections/message-request';
 
   // Preference endpoints
-  static const String preferences = '/preferences';
+  static const String preferences = '$connections/preferences';
 
   //messaging endpoints
   static const String conversations = '$messaging/conversations';
@@ -57,7 +61,7 @@ class ApiEndpoints {
   static const String message = messaging;
 
   // Search endpoints
-  static const String search = '/search';
+  static const String search = '$connections/search';
 
   // Constructor is private to prevent instantiation
   ApiEndpoints._();

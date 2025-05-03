@@ -16,6 +16,18 @@ import '../../core/network/network_info.dart';
 import '../../features/StartPages/Bloc/bloc/auth_bloc.dart';
 import '../../features/StartPages/repository/auth_repository.dart';
 import '../../features/StartPages/repository/api_client.dart';
+import '../../features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import '../../features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
+import '../../features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
+import '../../features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
+import '../../features/networks/bloc/bloc/messaging_requests/bloc/messaging_requests_bloc.dart';
+import '../../features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
+import '../../features/networks/Repositories/block_repoistory.dart';
+import '../../features/networks/Repositories/connection_preferences_repoistory.dart';
+import '../../features/networks/Repositories/connection_request_repoistory.dart';
+import '../../features/networks/Repositories/follow_repoistory.dart';
+import '../../features/networks/Repositories/messaging_requests_repository.dart';
+import '../../features/networks/Repositories/user_search_repoistory.dart';
 
 /// Service locator for dependency injection
 class ServiceLocator {
@@ -52,6 +64,12 @@ class ServiceLocator {
   late final NotificationBloc notificationBloc;
   late final SearchBloc searchBloc;
   late final MessagingBloc messagingBloc;
+  late final ConnectionRequestBloc connectionRequestBloc;
+  late final FollowBloc followBloc;
+  late final BlockBloc blockBloc;
+  late final ConnectionPreferencesBloc connectionPreferencesBloc;
+  late final MessagingRequestsBloc messagingRequestsBloc;
+  late final UserSearchBloc userSearchBloc;
 
   /// Initialize all dependencies
   Future<void> init() async {
@@ -107,6 +125,42 @@ class ServiceLocator {
 
     // Create it here instead of in the BlocProvider
     messagingBloc = MessagingBloc(repository: messagingRepo);
+
+    //Messaging Requests Bloc
+    final messagingRequestRepo = MessageRequestRepository(client: apiClient);
+    messagingRequestsBloc = MessagingRequestsBloc(
+      repoistory: messagingRequestRepo,
+    );
+
+    // Connection Request Bloc
+    final connectionRequestRepo = ConnectionRequestRepository(
+      client: apiClient,
+    );
+    connectionRequestBloc = ConnectionRequestBloc(
+      repository: connectionRequestRepo,
+    );
+
+    // Follow Bloc
+    final followRepo = FollowRepoistory(client: apiClient);
+    followBloc = FollowBloc(followRepoistory: followRepo);
+
+    // Block Bloc
+    final blockRepo = BlockRepository(client: apiClient);
+    blockBloc = BlockBloc(repository: blockRepo);
+
+    // Connection Preferences Bloc
+    final connectionPreferencesRepo = ConnectionPreferencesRepository(
+      client: apiClient,
+    );
+    connectionPreferencesBloc = ConnectionPreferencesBloc(
+      connectionPreferencesRepository: connectionPreferencesRepo,
+    );
+
+    // User Search Bloc
+    final userSearchRepo = UserSearchRepoistory(client: apiClient);
+    userSearchBloc = UserSearchBloc(userRepository: userSearchRepo);
+
+    // Intia
 
     // Set flag to true after successful initialization
     _isInitialized = true;

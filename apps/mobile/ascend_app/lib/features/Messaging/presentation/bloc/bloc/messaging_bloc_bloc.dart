@@ -349,40 +349,76 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         return;
       }
 
-      // Create optimistic message
-      final String currentUserId = await SecureStorageHelper.getUserId() ?? '';
-      final newMessage = MessageModel(
-        messageId: DateTime.now().millisecondsSinceEpoch.toString(), // Temp ID
-        senderId: currentUserId,
-        conversationId: event.conversationId, // Use conversationId consistently
-        content: event.content,
-        fileUrl: null,
-        fileType: null,
-        sentAt: DateTime.now(),
-        isRead: false,
-        readAt: null,
-      );
-
-      // Update UI with optimistic message
-      final updatedMessages = [...currentState.messages, newMessage];
-
+      // Set state to sending
       emit(
-        MessagesLoaded(
-          updatedMessages,
-          event.conversationId,
-          currentState.page,
-          currentState.hasReachedMax,
-          isTyping: currentState.isTyping,
+        currentState.copyWith(
+          sendingStatus: {'status': 'sending', 'error': null},
         ),
       );
 
       // Attempt to send to server
-      await _repository.sendMessage(event.receiverId, event.content);
+      final String result = await _repository.sendMessage(
+        event.receiverId,
+        event.content,
+      );
 
-      // No need to update UI again unless you get a server response with ID
+      if (result == 'success') {
+        // Create optimistic message
+        final String currentUserId =
+            await SecureStorageHelper.getUserId() ?? '';
+        final newMessage = MessageModel(
+          messageId:
+              DateTime.now().millisecondsSinceEpoch.toString(), // Temp ID
+          senderId: currentUserId,
+          conversationId: event.conversationId,
+          content: event.content,
+          fileUrl: null,
+          fileType: null,
+          sentAt: DateTime.now(),
+          isRead: false,
+          readAt: null,
+        );
+
+        // Update UI with optimistic message
+        final updatedMessages = [...currentState.messages, newMessage];
+
+        emit(
+          MessagesLoaded(
+            updatedMessages,
+            event.conversationId,
+            currentState.page,
+            currentState.hasReachedMax,
+            isTyping: currentState.isTyping,
+            sendingStatus: {
+              'status': 'success',
+              'error': null,
+            }, // Clear error status
+          ),
+        );
+      } else {
+        debugPrint('[MessagingBloc] Failed to send message: $result');
+
+        // Emit error status
+        emit(
+          currentState.copyWith(
+            sendingStatus: {'status': 'error', 'error': result},
+          ),
+        );
+      }
     } catch (e) {
-      // Handle error, possibly revert optimistic update
       debugPrint('[MessagingBloc] Error sending message: $e');
+
+      // Get current state and update with error
+      final currentState = state;
+      if (currentState is MessagesLoaded) {
+        emit(
+          currentState.copyWith(
+            sendingStatus: {'status': 'error', 'error': e.toString()},
+          ),
+        );
+      } else {
+        emit(MessagingError('Failed to send message: $e'));
+      }
     }
   }
 
