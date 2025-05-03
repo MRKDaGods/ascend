@@ -50,7 +50,7 @@ export class PostService {
           'id', u.user_id,
           'first_name', u.first_name,
           'last_name', u.last_name,
-          'profile_picture_url', u.profile_picture_id
+          'profile_picture_id', u.profile_picture_id
         ) as user
        FROM post_service.posts p
        JOIN user_service.profiles u ON p.user_id = u.user_id
@@ -81,11 +81,10 @@ export class PostService {
       }
     }
 
-  // Process user profile picture 
-  if (post.user && post.user.profile_picture_id) {
-    post.user.original_profile_picture_id = post.user.profile_picture_id;
-    post.user.profile_picture_url = await this.getFileUrl(post.user.profile_picture_id);
-  }
+    // Process user profile picture 
+    if (post.user && post.user.profile_picture_id) {
+      post.user.profile_picture_url = await this.getFileUrl(post.user.profile_picture_id);
+    }
 
     return post;
   }
