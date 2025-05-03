@@ -15,7 +15,11 @@ class MyJobsPage extends StatefulWidget {
 }
 
 class _MyJobsPageState extends State<MyJobsPage> {
-  List<Jobsattributes> savedJobs = [];
+  List<Jobsattributes> savedJobs = []; // List to store saved jobs
+  List<Jobsattributes> pendingJobs = [];
+  List<Jobsattributes> viewedJobs = [];
+  List<Jobsattributes> rejectedJobs = [];
+  List<Jobsattributes> acceptedJobs = [];
 
   @override
   void initState() {
@@ -65,28 +69,37 @@ class _MyJobsPageState extends State<MyJobsPage> {
     final apiClient = ApiClient();
     try {
       final response = await apiClient.get('/job/applications');
-      print(
-        "nooooooooooooooooooooooooooooooooooooooooooooasdsdaasdasdasdasdsadasdasdasdasdsa",
-      );
-      print("response: ${response.body}");
-      print("status code: ${response.statusCode}");
       if (response.statusCode == 200) {
         final List<dynamic> applicationsData =
             jsonDecode(response.body)['data'];
         setState(() {
-          savedJobs =
-              applicationsData
-                  .map((data) {
-                    try {
-                      return Jobsattributes.fromJson(data);
-                    } catch (e) {
-                      print('Error parsing application data: $e');
-                      return null;
-                    }
-                  })
-                  .where((job) => job != null)
-                  .cast<Jobsattributes>()
-                  .toList();
+          pendingJobs = [];
+          viewedJobs = [];
+          rejectedJobs = [];
+          acceptedJobs = [];
+
+          applicationsData.forEach((data) {
+            try {
+              final job = Jobsattributes.fromJson(data['job']);
+              final status = data['status']; // Use the correct field for status
+              switch (status) {
+                case 'Pending':
+                  pendingJobs.add(job);
+                  break;
+                case 'Viewed':
+                  viewedJobs.add(job);
+                  break;
+                case 'Rejected':
+                  rejectedJobs.add(job);
+                  break;
+                case 'Accepted':
+                  acceptedJobs.add(job);
+                  break;
+              }
+            } catch (e) {
+              print('Error parsing application data: $e');
+            }
+          });
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -141,8 +154,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
             // Pending Jobs Tab
             ListView(
               children:
-                  jobsDummy
-                      .where((job) => job.applicationStatus == 'Pending')
+                  pendingJobs
                       .map(
                         (job) => jobCard(
                           context: context,
@@ -157,8 +169,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
             // Viewed Jobs Tab
             ListView(
               children:
-                  jobsDummy
-                      .where((job) => job.viewed == true)
+                  viewedJobs
                       .map(
                         (job) => jobCard(
                           context: context,
@@ -173,8 +184,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
             // Rejected Jobs Tab
             ListView(
               children:
-                  jobsDummy
-                      .where((job) => job.applicationStatus == 'Rejected')
+                  rejectedJobs
                       .map(
                         (job) => jobCard(
                           context: context,
@@ -189,8 +199,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
             // Accepted Jobs Tab
             ListView(
               children:
-                  jobsDummy
-                      .where((job) => job.applicationStatus == 'Accepted')
+                  acceptedJobs
                       .map(
                         (job) => jobCard(
                           context: context,

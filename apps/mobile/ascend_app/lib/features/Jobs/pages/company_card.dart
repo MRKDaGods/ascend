@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/Jobs/pages/create_company.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/company_details.dart';
 
@@ -7,6 +8,9 @@ class CompanyCard extends StatelessWidget {
   final String location;
   final String? logoUrl;
   final int companyId;
+  final bool isFromCompanyDetails; // Added flag
+  final String? description;
+  final String? domainName;
 
   const CompanyCard({
     super.key,
@@ -15,6 +19,9 @@ class CompanyCard extends StatelessWidget {
     required this.location,
     this.logoUrl,
     required this.companyId,
+    this.isFromCompanyDetails = false, // Default value
+    this.description,
+    this.domainName,
   });
 
   @override
@@ -100,6 +107,55 @@ class CompanyCard extends StatelessWidget {
                 ],
               ),
             ),
+            if (isFromCompanyDetails) ...[
+              PopupMenuButton(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => CreateCompany(
+                              isEditMode: true,
+                              companyId: companyId,
+                              companyName: companyName,
+                              description: description,
+                              industry: industry,
+                              location: location,
+                              logoUrl: logoUrl,
+                            ),
+                      ),
+                    );
+                  } else if (value == 'delete') {
+                    // DELETE request logic here
+                  }
+                },
+                itemBuilder:
+                    (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: const [
+                            Icon(Icons.edit, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Text('Edit Company'),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: const [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete Company'),
+                          ],
+                        ),
+                      ),
+                    ],
+              ),
+            ],
           ],
         ),
       ),

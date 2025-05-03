@@ -246,7 +246,7 @@ Widget jobCard({
                     );
                   }
                 },
-                child: Icon(Icons.report, color: Colors.red),
+                child: Icon(Icons.report),
               ),
             ],
             if (isFromCompanyDetails) ...[
