@@ -268,6 +268,13 @@ export const searchJobs = async ({
       WHERE 1=1
     `;
 
+    let countQuery = `
+      SELECT COUNT(*) AS total
+      FROM job_service.jobs AS j
+      JOIN company_service.company AS c ON j.company_id = c.company_id
+      WHERE 1=1
+    `;
+
     const conditions: string[] = [];
     const values: any[] = [];
 
@@ -282,18 +289,20 @@ export const searchJobs = async ({
     }
 
     if (location && location.length > 0) {
-      conditions.push(`j.location = ANY($${values.length + 1}::text[])`);
-      values.push(location);
+      conditions.push(`j.location ILIKE ANY($${values.length + 1}::text[])`);
+      const locationSearchTerms = location.map((loc) => `%${loc}%`);
+      values.push(locationSearchTerms);
     }
 
     if (industry && industry.length > 0) {
-      conditions.push(`j.industry = ANY($${values.length + 1}::text[])`);
-      values.push(industry);
+      conditions.push(`j.industry ILIKE  ANY($${values.length + 1}::text[])`);
+      const industrySearchTerms = industry.map((ind) => `%${ind}%`);
+      values.push(industrySearchTerms);
     }
 
     if (experience_level && experience_level.length > 0) {
       conditions.push(
-        `j.experience_level = ANY($${values.length + 1}::text[])`
+        `j.experience_level ILIKE ANY($${values.length + 1}::text[])`
       );
       values.push(experience_level);
     }
@@ -318,10 +327,11 @@ export const searchJobs = async ({
 
     if (conditions.length > 0) {
       query += " AND " + conditions.join(" AND ");
+      countQuery += " AND " + conditions.join(" AND ");
     }
 
-    // Execute the query without pagination parameters to get the total count
-    const countResult = await db.query(query, values);
+    // Execute count query to get total records
+    const countResult = await db.query(countQuery, values);
 
     // Add pagination parameters to the query
     query += ` ORDER BY j.created_at DESC LIMIT $${values.length + 1} OFFSET $${
