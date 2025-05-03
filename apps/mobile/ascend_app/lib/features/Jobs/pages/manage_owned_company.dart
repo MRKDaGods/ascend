@@ -66,6 +66,9 @@ class _ManageOwnedCompanyState extends State<ManageOwnedCompany> {
                     location: company['location'],
                     logoUrl: company['profile_photo_url'],
                     companyId: company['company_id'],
+                    isFromCompanyDetails: true,
+                    description: company['description'],
+                    domainName: company['company_domain_name'],
                   );
                 },
               ),

@@ -8,7 +8,26 @@ import 'dart:io';
 import 'dart:convert';
 
 class CreateCompany extends StatefulWidget {
-  const CreateCompany({super.key});
+  final bool isEditMode; // Added flag for edit mode
+  final int? companyId;
+  final String? companyName;
+  final String? industry;
+  final String? location;
+  final String? logoUrl;
+  final String? description;
+  final String? domainName;
+
+  const CreateCompany({
+    super.key,
+    this.isEditMode = false, // Default value
+    this.companyId,
+    this.companyName,
+    this.industry,
+    this.location,
+    this.logoUrl,
+    this.description,
+    this.domainName,
+  });
 
   @override
   // ignore: library_private_types_in_public_api
@@ -17,11 +36,11 @@ class CreateCompany extends StatefulWidget {
 
 class _CreateCompanyState extends State<CreateCompany> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _industryController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _domainController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _industryController;
+  late TextEditingController _locationController;
+  late TextEditingController _domainController;
   String? _profilePhotoBase64;
   String? _coverPhotoBase64;
   Map<String, String>? _profilePhotoMeta;
@@ -32,6 +51,29 @@ class _CreateCompanyState extends State<CreateCompany> {
   String coverPhotoFileName = 'cover_photo.jpg';
   int profilefileSize = 5 * 1024 * 1024; // 5MB
   int coverfileSize = 5 * 1024 * 1024; // 5MB
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.companyName ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.description ?? '',
+    );
+    _domainController = TextEditingController(text: widget.domainName ?? '');
+    _industryController = TextEditingController(text: widget.industry ?? '');
+    _locationController = TextEditingController(text: widget.location ?? '');
+    _domainController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _industryController.dispose();
+    _locationController.dispose();
+    _domainController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(bool isProfilePhoto) async {
     final picker = ImagePicker();
@@ -111,7 +153,10 @@ class _CreateCompanyState extends State<CreateCompany> {
         },
       };
       final String baseUrl = 'https://api.ascendx.tech';
-      final String endpoint = '/company/companies';
+      final String endpoint =
+          widget.isEditMode
+              ? '/company/${widget.companyId}' // Edit endpoint
+              : '/company/companies'; // Create endpoint
 
       try {
         final token = await SecureStorageHelper.getAuthToken();
@@ -122,28 +167,40 @@ class _CreateCompanyState extends State<CreateCompany> {
         };
         final url = Uri.parse('$baseUrl$endpoint');
 
-        final response = await http.post(
-          url,
-          headers: headers,
-          body: jsonEncode(data),
-        );
+        final response =
+            widget.isEditMode
+                ? await http.patch(
+                  url,
+                  headers: headers,
+                  body: jsonEncode(data),
+                )
+                : await http.post(
+                  url,
+                  headers: headers,
+                  body: jsonEncode(data),
+                );
 
-        if (response.statusCode == 200) {
-          // ignore: use_build_context_synchronously
+        if (response.statusCode == 200 || response.statusCode == 201) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Company created successfully!')),
+            SnackBar(
+              content: Text(
+                widget.isEditMode
+                    ? 'Company updated successfully!'
+                    : 'Company created successfully!',
+              ),
+            ),
           );
-          // ignore: use_build_context_synchronously
           Navigator.pop(context);
         } else {
           print('Response status: ${response.statusCode}');
           print('Response body: ${response.body}');
-          throw Exception('Failed to create company');
+          throw Exception(
+            'Failed to ${widget.isEditMode ? 'update' : 'create'} company',
+          );
         }
       } catch (e) {
         print('Error: $e');
         ScaffoldMessenger.of(
-          // ignore: use_build_context_synchronously
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
@@ -153,7 +210,9 @@ class _CreateCompanyState extends State<CreateCompany> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create New Company')),
+      appBar: AppBar(
+        title: Text(widget.isEditMode ? 'Edit Company' : 'Create New Company'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -205,7 +264,9 @@ class _CreateCompanyState extends State<CreateCompany> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _submitForm,
-                child: const Text('Create Company'),
+                child: Text(
+                  widget.isEditMode ? 'Update Company' : 'Create Company',
+                ),
               ),
             ],
           ),
