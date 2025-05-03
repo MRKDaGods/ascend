@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/Jobs/pages/manage_owned_company.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/job_picks_section.dart';
@@ -19,6 +20,7 @@ class JobHomePage extends StatefulWidget {
 class _JobHomePageState extends State<JobHomePage> {
   final TextEditingController searchController = TextEditingController();
   late List<Jobsattributes> jobsList; // Create a mutable copy of jobs
+  @override
   void initState() {
     super.initState();
     jobsList = List.from(widget.jobs); // Initialize jobsList in initState
@@ -66,11 +68,9 @@ class _JobHomePageState extends State<JobHomePage> {
                                 Axis.horizontal, // Allow horizontal scrolling
                             child: Column(
                               children: [
-                                _filterButton("Preferences"),
-                                SizedBox(height: 5),
                                 _filterButton("My jobs"),
                                 SizedBox(height: 5),
-                                _filterButton("Post a free job"),
+                                _filterButton("Manage Company"),
                               ],
                             ),
                           );
@@ -79,14 +79,8 @@ class _JobHomePageState extends State<JobHomePage> {
                           return Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: _filterButton("Preferences"),
-                                  ),
-                                ),
                                 Expanded(
                                   child: Align(
                                     alignment: Alignment.center,
@@ -95,8 +89,8 @@ class _JobHomePageState extends State<JobHomePage> {
                                 ),
                                 Expanded(
                                   child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: _filterButton("Post a free job"),
+                                    alignment: Alignment.center,
+                                    child: _filterButton("Manage Company"),
                                   ),
                                 ),
                               ],
@@ -182,10 +176,18 @@ class _JobHomePageState extends State<JobHomePage> {
         } else if (title == "Post a free job") {
           // Handle Post a free job button press
         } else if (title == "My jobs") {
-          // Handle My jobs button press
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MyJobsPage()),
+          );
+        } else if (title == "Manage Company") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) =>
+                      Scaffold(body: Center(child: ManageOwnedCompany())),
+            ),
           );
         }
       },
