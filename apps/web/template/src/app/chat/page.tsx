@@ -3,9 +3,9 @@
 import Sidebar from "@/app/components/Sidebar";
 import { Box } from "@mui/material";
 import ChatWindow from "@/app/components/ChatWindow";
-import CreateIcon from '@mui/icons-material/Create';
+import CreateIcon from "@mui/icons-material/Create";
 import Navbar from "@/app/components/Navbar";
-import NewConversationDropdown from '@/app/components/NewConversationDropdown';
+import NewConversationDropdown from "@/app/components/NewConversationDropdown";
 import { useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import React from "react";
@@ -24,7 +24,14 @@ export default function Page() {
 
   return (
     <ChatSocketContainer>
-      <Box sx={{ display: "flex", height: "100vh", flexDirection: "column", width: "100vw" }}>
+      <Box
+        sx={{
+          display: "flex",
+          height: "100vh",
+          flexDirection: "column",
+          width: "100vw",
+        }}
+      >
         <Navbar />
 
         {/* spacing for UI polish */}
@@ -57,9 +64,9 @@ export default function Page() {
             justifyContent: "flex-end",
           }}
         >
-            <IconButton id="new-conversation-button" onClick={handleOpenDropdown}>
+          <IconButton id="new-conversation-button" onClick={handleOpenDropdown}>
             <CreateIcon />
-            </IconButton>
+          </IconButton>
         </Box>
 
         {/* Main layout */}
@@ -87,7 +94,10 @@ export default function Page() {
         </Box>
       </Box>
 
-      <NewConversationDropdown anchorEl={anchorEl} onClose={handleCloseDropdown} />
+      <NewConversationDropdown
+        anchorEl={anchorEl}
+        onClose={handleCloseDropdown}
+      />
     </ChatSocketContainer>
   );
 }
