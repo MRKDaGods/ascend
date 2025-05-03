@@ -7,6 +7,8 @@ abstract class ConnectionPreferencesEvent extends Equatable {
 
 final class ConnectionPreferencesLoadEvent extends ConnectionPreferencesEvent {
   ConnectionPreferencesLoadEvent();
+  @override
+  List<Object?> get props => [];
 }
 
 final class ConnectionPreferencesUpdateEvent

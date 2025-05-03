@@ -41,9 +41,6 @@ class _GrowState extends State<Grow> {
         context.read<ConnectionRequestBloc>().add(FetchConnectionRequests());
         context.read<FollowBloc>().add(FetchFollowing());
         context.read<BlockBloc>().add(FetchBlockedUsersEvent());
-        context.read<ConnectionPreferencesBloc>().add(
-          ConnectionPreferencesLoadEvent(),
-        );
         context.read<MessagingRequestsBloc>().add(
           FetchReceivedMessagingRequests(),
         );

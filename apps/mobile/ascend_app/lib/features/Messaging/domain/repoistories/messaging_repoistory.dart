@@ -19,7 +19,7 @@ abstract class MessagingRepository {
   Future<List<MessageModel>> getMessages(String conversationId, {int page = 1});
 
   //send Message
-  Future<void> sendMessage(
+  Future<String> sendMessage(
     String receiverId,
     String content, {
     String contentType = 'text',

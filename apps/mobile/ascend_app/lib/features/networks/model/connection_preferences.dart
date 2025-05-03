@@ -43,7 +43,7 @@ class ConnectionPreferences {
 
   factory ConnectionPreferences.fromJson(Map<String, dynamic> json) {
     return ConnectionPreferences(
-      user_id: json['user_id'],
+      user_id: json['user_id'].toString(),
       allow_connection_requests: json['allow_connection_requests'],
       allow_messages_from: json['allow_messages_from'],
       visible_to_public: json['visible_to_public'],
@@ -55,7 +55,6 @@ class ConnectionPreferences {
 
   Map<String, dynamic> toJson() {
     return {
-      'user_id': user_id,
       'allow_connection_requests': allow_connection_requests,
       'allow_messages_from': allow_messages_from,
       'visible_to_public': visible_to_public,

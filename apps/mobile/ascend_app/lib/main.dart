@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:ascend_app/features/notifications/presentation/bloc/notification_event.dart';
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
@@ -190,7 +191,6 @@ class _MainAppState extends State<MainApp> {
               context.read<BlockBloc>().add(FetchBlockedUsersEvent());
               debugPrint("[MainApp] Initialized BlockBloc");
 
-              // Initialize ConnectionPreferencesBloc
               context.read<ConnectionPreferencesBloc>().add(
                 ConnectionPreferencesLoadEvent(),
               );
