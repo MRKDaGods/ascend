@@ -200,7 +200,7 @@ export const fetchPost = async (
 // NEW VERSION - handles all cases
 export const createPostNew = async (
   content: string,
-  mediaFile?: File,
+  mediaFiles?: File[],
   mediaType?: "image" | "video" | "file",
   fileTitle?: string,
   fileDescription?: string
@@ -209,24 +209,30 @@ export const createPostNew = async (
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  if (mediaFile && mediaType === "file") {
-    formData.append("media", mediaFile);
-    formData.append("type", "document");
-    formData.append("title", fileTitle ?? "Untitled Document");
-    formData.append("description", fileDescription ?? "PDF file");
-    console.log("📄 Document being uploaded:", mediaFile.name);
-  } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
-    formData.append("media", mediaFile);
-    formData.append("type", mediaType);
-    formData.append("title", "Uploaded Media");
-    formData.append("description", `${mediaType} file`);
-    console.log("🖼️ Media being uploaded:", mediaFile.name);
+  const hasMedia = mediaFiles && mediaFiles.length > 0;
+
+  if (hasMedia && mediaType) {
+    // ✅ Append all files
+    mediaFiles.forEach((file) => {
+      formData.append("media", file);
+    });
+
+    const normalizedType = mediaType === "file" ? "document" : mediaType;
+    formData.append("type", normalizedType);
+    formData.append("title", fileTitle ?? "Uploaded Media");
+    formData.append("description", fileDescription ?? `${normalizedType} file`);
+
+    console.log(`📁 Uploading ${mediaFiles.length} files as ${normalizedType}`);
   } else {
-    formData.append("title", "text only");
-    formData.append("description", "no media");
+    // For text-only post
+    formData.append("title", "Text Post");
+    formData.append("description", "No media attached");
+  
+    // ✅ Add an empty blob to "media" to satisfy the backend's expectations
+    formData.append("media", new Blob([]), "");
+  
     console.log("📝 Text-only post");
   }
-
   return await API.post("/post", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -234,8 +240,6 @@ export const createPostNew = async (
     },
   });
 };
-
-
 
 // ==== DELETE POST ====
 
@@ -374,6 +378,28 @@ export const reactToPostAPI = async (postId: number, type: string) => {
     headers: {
       "Content-Type": "application/json",
     },
+  });
+  return response.data;
+};
+
+// ==== REPORT POST ====
+
+export const reportPostAPI = async (
+  postId: number,
+  reason: "harassment" | "violence" | "hate_speech" | "misinformation" | "other",
+  description: string
+): Promise<{
+  success: boolean;
+  data: {
+    id: number;
+    post_id: number;
+    reason: string;
+    description: string;
+  };
+}> => {
+  const response = await API.post(`/post/${postId}/report`, {
+    reason,
+    description,
   });
   return response.data;
 };

@@ -82,11 +82,14 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
 
   const userData = useProfileStore((state) => state.userData);
   const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
+  const fullName = userData
+    ? `${userData.first_name} ${userData.last_name}`
+    : "User";
 
   const totalMedia = post.media?.length || 0;
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) =>
+    setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
   const handleEditPost = () => {
     setEditingPost(post);
@@ -120,7 +123,11 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
               <IconButton onClick={handleMenuOpen}>
                 <MoreHoriz />
               </IconButton>
-              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
                 <MenuItem onClick={handleEditPost}>
                   <Edit fontSize="small" sx={{ mr: 1 }} /> Edit Post
                 </MenuItem>
@@ -134,7 +141,9 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
 
         {/* Post Text */}
         <CardContent>
-          <Typography variant="body1">{renderTextWithLinks(post.content)}</Typography>
+          <Typography variant="body1">
+            {renderTextWithLinks(post.content)}
+          </Typography>
         </CardContent>
 
         {/* Media Section */}
@@ -160,7 +169,9 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
             {totalMedia > 1 && (
               <>
                 <Box
-                  onClick={() => currentIndex > 0 && setCurrentIndex((prev) => prev - 1)}
+                  onClick={() =>
+                    currentIndex > 0 && setCurrentIndex((prev) => prev - 1)
+                  }
                   sx={arrowStyle("left")}
                   style={{
                     opacity: currentIndex > 0 ? 1 : 0.4,
@@ -170,11 +181,15 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
                   {"<"}
                 </Box>
                 <Box
-                  onClick={() => currentIndex < totalMedia - 1 && setCurrentIndex((prev) => prev + 1)}
+                  onClick={() =>
+                    currentIndex < totalMedia - 1 &&
+                    setCurrentIndex((prev) => prev + 1)
+                  }
                   sx={arrowStyle("right")}
                   style={{
                     opacity: currentIndex < totalMedia - 1 ? 1 : 0.4,
-                    pointerEvents: currentIndex < totalMedia - 1 ? "auto" : "none",
+                    pointerEvents:
+                      currentIndex < totalMedia - 1 ? "auto" : "none",
                   }}
                 >
                   {">"}
@@ -219,7 +234,12 @@ const UserPost: React.FC<UserPostProps> = ({ post }) => {
         )}
 
         {/* Actions */}
-        <Stack direction="row" justifyContent="center" spacing={4} sx={{ pt: 1 }}>
+        <Stack
+          direction="row"
+          justifyContent="center"
+          spacing={4}
+          sx={{ pt: 1 }}
+        >
           <Button startIcon={<ThumbUp />} sx={buttonStyle(theme)}>
             Like
           </Button>

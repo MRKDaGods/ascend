@@ -79,7 +79,8 @@ const arrowStyle = (side: "left" | "right") => ({
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { repostFromAPI, postReactions, fetchCommentsForPostFromAPI } = usePostStore();
+  const { repostFromAPI, postReactions, fetchCommentsForPostFromAPI } =
+    usePostStore();
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [showCommentInput, setShowCommentInput] = useState(false);
@@ -128,78 +129,82 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       </CardContent>
 
       {/* Media Section */}
-      {post.media && post.media.length > 0 && !post.file && post.media[currentMediaIndex] && (        <Box sx={{ position: "relative", mt: 2 }}>
-          {post.media[currentMediaIndex].type === "video" ? (
-            <video
-              src={post.media[currentMediaIndex].url}
-              controls
-              style={{
-                width: "100%",
-                objectFit: "cover",
-                borderRadius: 10,
-                maxHeight: "500px",
-              }}
-            />
-          ) : (
-            <img
-              src={post.media[currentMediaIndex].url}
-              alt={`Post media ${currentMediaIndex + 1}`}
-              style={{
-                width: "100%",
-                objectFit: "cover",
-                borderRadius: 10,
-                maxHeight: "500px",
-              }}
-            />
-          )}
-
-          {/* Arrows */}
-          {post.media.length > 1 && (
-            <>
-              {currentMediaIndex > 0 && (
-                <Box
-                  onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
-                  sx={arrowStyle("left")}
-                  role="button"
-                  aria-label="Previous media"
-                >
-                  {"<"}
-                </Box>
-              )}
-              {currentMediaIndex < post.media.length - 1 && (
-                <Box
-                  onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
-                  sx={arrowStyle("right")}
-                  role="button"
-                  aria-label="Next media"
-                >
-                  {">"}
-                </Box>
-              )}
-
-              {/* Media Counter */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  bottom: 8,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  bgcolor: "rgba(0,0,0,0.6)",
-                  color: "white",
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "16px",
-                  fontSize: "0.75rem",
-                  fontWeight: "bold",
-                  zIndex: 5,
+      {post.media &&
+        post.media.length > 0 &&
+        !post.file &&
+        post.media[currentMediaIndex] && (
+          <Box sx={{ position: "relative", mt: 2 }}>
+            {post.media[currentMediaIndex].type === "video" ? (
+              <video
+                src={post.media[currentMediaIndex].url}
+                controls
+                style={{
+                  width: "100%",
+                  objectFit: "cover",
+                  borderRadius: 10,
+                  maxHeight: "700px",
                 }}
-              >
-                {`${currentMediaIndex + 1}/${post.media.length}`}
-              </Box>
-            </>
-          )}
-        </Box>
-      )}
+              />
+            ) : (
+              <img
+                src={post.media[currentMediaIndex].url}
+                alt={`Post media ${currentMediaIndex + 1}`}
+                style={{
+                  width: "100%",
+                  objectFit: "cover",
+                  borderRadius: 10,
+                  maxHeight: "500px",
+                }}
+              />
+            )}
+
+            {/* Arrows */}
+            {post.media.length > 1 && (
+              <>
+                {currentMediaIndex > 0 && (
+                  <Box
+                    onClick={() => setCurrentMediaIndex((prev) => prev - 1)}
+                    sx={arrowStyle("left")}
+                    role="button"
+                    aria-label="Previous media"
+                  >
+                    {"<"}
+                  </Box>
+                )}
+                {currentMediaIndex < post.media.length - 1 && (
+                  <Box
+                    onClick={() => setCurrentMediaIndex((prev) => prev + 1)}
+                    sx={arrowStyle("right")}
+                    role="button"
+                    aria-label="Next media"
+                  >
+                    {">"}
+                  </Box>
+                )}
+
+                {/* Media Counter */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: 8,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    bgcolor: "rgba(0,0,0,0.6)",
+                    color: "white",
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "16px",
+                    fontSize: "0.75rem",
+                    fontWeight: "bold",
+                    zIndex: 5,
+                  }}
+                >
+                  {`${currentMediaIndex + 1}/${post.media.length}`}
+                </Box>
+              </>
+            )}
+          </Box>
+        )}
 
       {/* PDF Document Preview */}
       {post.file && post.fileTitle && (
@@ -233,7 +238,14 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       )}
 
       {/* Engagement Summary */}
-      <Box sx={{ px: 2, py: 1, color: theme.palette.text.secondary, fontSize: "0.875rem" }}>
+      <Box
+        sx={{
+          px: 2,
+          py: 1,
+          color: theme.palette.text.secondary,
+          fontSize: "0.875rem",
+        }}
+      >
         <Typography variant="body2">
           👍 {post.likes} •{" "}
           <span
