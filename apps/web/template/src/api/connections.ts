@@ -182,3 +182,21 @@ export const upsertConnectionPreferencesAPI = async (
   const res = await API.put("/connection/preferences", preferences);
   return res.data;
 };
+
+// Type for the response
+export interface GetConnectionStatusResponse {
+  success: boolean;
+  data: {
+    status: "connected" | "pending" | "notConnected";
+  };
+}
+
+// API function
+export const getConnectionStatusAPI = async (
+  userId: number
+): Promise<GetConnectionStatusResponse> => {
+  const res = await API.get(`/connection/connections/status/${userId}`);
+  console.log("Fetching connection status for userId:", userId, res.data);
+  return res.data;
+};
+

@@ -15,7 +15,8 @@ import {
     Follower,
     ConnectionPreferences,
     upsertConnectionPreferencesAPI,
-    
+    getConnectionStatusAPI, 
+    GetConnectionStatusResponse,    
   } from "@/api/connections";
 
 interface ConnectionStore {
@@ -49,6 +50,8 @@ interface ConnectionStore {
   setConnectionPreferences: (prefs: ConnectionPreferences) => void;
   saveConnectionPreferences: (prefs: ConnectionPreferences) => Promise<void>;
 
+  connectionStatuses: Record<number, "connected" | "pending" | "notConnected">;
+  fetchConnectionStatus: (userId: number) => Promise<void>;
 
 }
 
@@ -153,16 +156,31 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
 
   connectionPreferences: null,
 
-setConnectionPreferences: (prefs) => set({ connectionPreferences: prefs }),
+  setConnectionPreferences: (prefs) => set({ connectionPreferences: prefs }),
 
-saveConnectionPreferences: async (prefs) => {
-  try {
-    const res = await upsertConnectionPreferencesAPI(prefs);
-    set({ connectionPreferences: res.data });
-    console.log("✅ Preferences saved");
-  } catch (err) {
-    console.error("❌ Failed to save preferences", err);
-  }
-},
+  saveConnectionPreferences: async (prefs) => {
+    try {
+      const res = await upsertConnectionPreferencesAPI(prefs);
+      set({ connectionPreferences: res.data });
+      console.log("✅ Preferences saved");
+    } catch (err) {
+      console.error("❌ Failed to save preferences", err);
+    }
+  },
+
+  connectionStatuses: {} as Record<number, "connected" | "pending" | "notConnected">,
+  fetchConnectionStatus: async (userId: number) => {
+    try {
+      const res = await getConnectionStatusAPI(userId);
+      set((state) => ({
+        connectionStatuses: {
+          ...state.connectionStatuses,
+          [userId]: res.data.status,
+        },
+      }));
+    } catch (err) {
+      console.error(`❌ Failed to fetch connection status for user ${userId}`, err);
+    }
+  },
 
 }));
