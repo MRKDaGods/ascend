@@ -1,4 +1,26 @@
-// Page: Main Feed
+// // Page: Main Feed
+
+// "use client";
+
+// import React, { useEffect } from "react";
+// import { Box, Container, CircularProgress, Divider } from "@mui/material";
+// import { useTheme } from "@mui/material/styles";
+
+// import Navbar from "../components/Navbar";
+// import CreatePost from "../components/CreatePost";
+// import ConnectionPost from "../components/ConnectionPost";
+// import FeedbackAcknowledgement from "../components/FeedbackAcknowledgement";
+// import ProfileCard from "../components/ProfileCard";
+// import WhosHiringCard from "../components/WhosHiringCard";
+// import Footer from "../components/Footer";
+// import TryPremCard from "../components/TryPremCard";
+// import ManageFeedCard from "../components/ManageFeedCard";
+
+// import { usePostStore } from "../stores/usePostStore";
+// import { useProfileStore } from "../stores/useProfileStore";
+
+// import {api} from "@/api/";
+// import SidebarPreview from "../components/SidebarPreview";
 
 "use client";
 
@@ -57,6 +79,7 @@ const SavePage: React.FC = () => {
             alignSelf: "flex-start",
           }}
         >
+          <></>
         </Box>
 
         {/* Center Feed */}
@@ -70,7 +93,9 @@ const SavePage: React.FC = () => {
             top: { md: "80px" },
           }}
         >
-          <SavedPosts />
+          <Box sx={{ width: "100%", maxWidth: "600px" }}>
+            <SavedPosts />
+          </Box>
         </Box>
 
         {/* Right Panel */}
@@ -86,11 +111,11 @@ const SavePage: React.FC = () => {
             alignSelf: "flex-start",
           }}
         >
-        <WhosHiringCard />
-        <Footer />
+          <WhosHiringCard />
+          <Footer />
         </Box>
-        </Container>
-      </Box>
+      </Container>
+    </Box>
   );
 };
 
