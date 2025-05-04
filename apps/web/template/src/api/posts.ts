@@ -371,17 +371,6 @@ export const tagUsersOnContentAPI = async (contentType: "post" | "comment", cont
   return res.data;
 };
 
-// ==== CREATE REACTION ON POST ====
-
-export const reactToPostAPI = async (postId: number, type: string) => {
-  const response = await API.post(`/post/${postId}/react`, { type }, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  return response.data;
-};
-
 // ==== REPORT POST ====
 
 export const reportPostAPI = async (
@@ -401,5 +390,27 @@ export const reportPostAPI = async (
     reason,
     description,
   });
+  return response.data;
+};
+
+// ==== REACT TO A POST ====
+export interface ReactToPostResponse {
+  success: boolean;
+  data: {
+    reacted: boolean;
+    type: string;
+    message: string;
+  };
+}
+
+export const sendReactionAPI = async (
+  postId: number,
+  type: "like" | "love" | "support" | "celebrate" | "funny" | "curious" | "insightful"
+): Promise<ReactToPostResponse> => {
+  const response = await API.post<ReactToPostResponse>(
+    `/post/${postId}/react`,
+    { type },
+    { headers: { "Content-Type": "application/json" } }
+  );
   return response.data;
 };

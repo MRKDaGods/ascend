@@ -79,8 +79,7 @@ const arrowStyle = (side: "left" | "right") => ({
 const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { repostFromAPI, postReactions, fetchCommentsForPostFromAPI } =
-    usePostStore();
+  const { repostFromAPI, fetchCommentsForPostFromAPI } = usePostStore();
 
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [showCommentInput, setShowCommentInput] = useState(false);
@@ -272,10 +271,6 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
       {/* Action Buttons */}
       <PostActions
         postId={post.id}
-        liked={!!postReactions[post.id]}
-        reposted={false}
-        onLike={() => {}}
-        onRepost={handleRepost}
         onCommentClick={() => setShowCommentInput((prev) => !prev)}
       />
 
