@@ -60,7 +60,7 @@ class JobReport {
   final String reporterFullName;
   final String? reporterProfilePicture;
   final String reason;
-  int totalRecords;
+  final int totalRecords;
   String status;
   final DateTime createdAt;
 
@@ -70,10 +70,33 @@ class JobReport {
     required this.reporterFullName,
     this.reporterProfilePicture,
     required this.reason,
+    required this.totalRecords,
     required this.status,
     required this.createdAt,
-    this.totalRecords = 0,
   });
+
+  JobReport copyWith({
+    int? id,
+    int? reporterId,
+    String? reporterFullName,
+    String? reporterProfilePicture,
+    String? reason,
+    int? totalRecords,
+    String? status,
+    DateTime? createdAt,
+  }) {
+    return JobReport(
+      id: id ?? this.id,
+      reporterId: reporterId ?? this.reporterId,
+      reporterFullName: reporterFullName ?? this.reporterFullName,
+      reporterProfilePicture:
+          reporterProfilePicture ?? this.reporterProfilePicture,
+      reason: reason ?? this.reason,
+      totalRecords: totalRecords ?? this.totalRecords,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 
   factory JobReport.fromJson(Map<String, dynamic> json) {
     return JobReport(
@@ -82,12 +105,16 @@ class JobReport {
       reporterFullName: json['reporter_full_name'] ?? '',
       reporterProfilePicture: json['reporter_profile_picture'],
       reason: json['reason'] ?? '',
-      status: json['status'] ?? '',
       totalRecords: json['total_records'] ?? 0,
+      status: json['status'] ?? 'pending',
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'])
               : DateTime.now(),
     );
+  }
+
+  static List<JobReport> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((json) => JobReport.fromJson(json)).toList();
   }
 }
