@@ -47,7 +47,7 @@ interface ConnectionStore {
   connections: Connection[];
   fetchConnections: (search?: string) => Promise<void>;
 
-  fetchTopConnections: (limit?: number) => Promise<void>;
+  fetchTopInvitations: (limit?: number) => Promise<void>;
   removeConnection: (connectionId: number) => Promise<void>;
 
   connectionStatuses: Record<number, "connected" | "pending" | "notConnected">;
@@ -131,14 +131,15 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     }
   },
   
-  fetchTopConnections: async (limit = 5) => {
+  fetchTopInvitations: async (limit = 5) => {
     try {
-      const res = await getConnectionsAPI("", 1, limit);
-      set({ connections: res.data.data }); // reuse connections field
+      const all = await getReceivedInvitationsAPI();
+      set({ receivedInvitations: all.slice(0, limit) });
     } catch (err) {
-      console.error("❌ Failed to fetch top connections", err);
+      console.error("❌ Failed to fetch top invitations", err);
     }
   },
+  
   removeConnection: async (connectionId) => {
     try {
       await removeConnectionAPI(connectionId);

@@ -10,6 +10,7 @@ import Navbar from "../components/Navbar";
 import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
 import ManageNetworkCard from "../components/ManageNetworkCard";
+import ManageInvitationsCard from "../components/ManageInvitationsCard";
 import InvitationsCard from "../components/InvitationsCard";
 import PremiumAdCard from "../components/PremiumAdCard";
 
