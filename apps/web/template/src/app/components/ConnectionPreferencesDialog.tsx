@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,109 +8,124 @@ import {
   DialogActions,
   FormControlLabel,
   Switch,
-  Button,
-  MenuItem,
   Select,
-  Typography,
+  MenuItem,
+  Button,
+  Box,
 } from "@mui/material";
-import { useState, useEffect } from "react";
-import { useConnectionStore } from "../stores/useConnectionStore";
-import { ConnectionPreferences } from "@/api/connections";
 
-const ConnectionPreferencesDialog = ({
-  open,
-  onClose,
-}: {
+interface Props {
   open: boolean;
   onClose: () => void;
+  userId: number;
+}
+
+const ConnectionPreferencesDialog: React.FC<Props> = ({
+  open,
+  onClose,
+  userId,
 }) => {
-  const { connectionPreferences, saveConnectionPreferences } = useConnectionStore();
-  const [form, setForm] = useState<ConnectionPreferences>({
+  const [localPrefs, setLocalPrefs] = useState({
     allow_connection_requests: true,
     allow_messages_from: "all",
-    visible_to_public: true,
+    visible_to_public: false,
     visible_to_connections: true,
-    visible_to_network: true,
+    visible_to_network: false,
     show_followers: true,
   });
 
-  useEffect(() => {
-    if (connectionPreferences) {
-      setForm(connectionPreferences);
-    }
-  }, [connectionPreferences]);
-
-  const handleChange = (key: keyof ConnectionPreferences, value: any) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const handleToggle = (key: keyof typeof localPrefs) => {
+    setLocalPrefs((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
-  const handleSave = async () => {
-    await saveConnectionPreferences(form);
-    onClose();
+  const handleSelectChange = (
+    event: React.ChangeEvent<{ value: unknown }>
+  ) => {
+    setLocalPrefs((prev) => ({
+      ...prev,
+      allow_messages_from: event.target.value as string,
+    }));
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Connection Preferences</DialogTitle>
-      <DialogContent sx={{ display: "grid", gap: 2, mt: 1 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={form.allow_connection_requests}
-              onChange={(e) => handleChange("allow_connection_requests", e.target.checked)}
-            />
-          }
-          label="Allow connection requests"
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={form.visible_to_public}
-              onChange={(e) => handleChange("visible_to_public", e.target.checked)}
-            />
-          }
-          label="Visible to public"
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={form.visible_to_connections}
-              onChange={(e) => handleChange("visible_to_connections", e.target.checked)}
-            />
-          }
-          label="Visible to connections"
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={form.visible_to_network}
-              onChange={(e) => handleChange("visible_to_network", e.target.checked)}
-            />
-          }
-          label="Visible to network"
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={form.show_followers}
-              onChange={(e) => handleChange("show_followers", e.target.checked)}
-            />
-          }
-          label="Show followers"
-        />
-        <Typography variant="body2">Allow messages from:</Typography>
-        <Select
-          size="small"
-          value={form.allow_messages_from}
-          onChange={(e) => handleChange("allow_messages_from", e.target.value)}
-        >
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="connections-only">Connections Only</MenuItem>
-        </Select>
+
+      <DialogContent>
+        <Box display="flex" flexDirection="column" gap={2} mt={1}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localPrefs.allow_connection_requests}
+                onChange={() => handleToggle("allow_connection_requests")}
+              />
+            }
+            label="Allow connection requests"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localPrefs.visible_to_public}
+                onChange={() => handleToggle("visible_to_public")}
+              />
+            }
+            label="Visible to public"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localPrefs.visible_to_connections}
+                onChange={() => handleToggle("visible_to_connections")}
+              />
+            }
+            label="Visible to connections"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localPrefs.visible_to_network}
+                onChange={() => handleToggle("visible_to_network")}
+              />
+            }
+            label="Visible to network"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localPrefs.show_followers}
+                onChange={() => handleToggle("show_followers")}
+              />
+            }
+            label="Show followers"
+          />
+          <Box>
+            <span>Allow messages from:</span>
+            <Select
+              fullWidth
+              value={localPrefs.allow_messages_from}
+              onChange={handleSelectChange}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="connections-only">Connections only</MenuItem>
+            </Select>
+          </Box>
+        </Box>
       </DialogContent>
+
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSave}>
+        <Button onClick={onClose} color="inherit">
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            console.log("🧠 Mock saved preferences:", localPrefs);
+            onClose();
+          }}
+        >
           Save
         </Button>
       </DialogActions>

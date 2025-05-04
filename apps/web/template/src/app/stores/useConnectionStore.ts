@@ -10,8 +10,6 @@ import {
     getConnectionsAPI,
     Connection,    
     removeConnectionAPI,
-    ConnectionPreferences,
-    upsertConnectionPreferencesAPI,
     getConnectionStatusAPI, 
     GetConnectionStatusResponse,
     followUserAPI,
@@ -23,8 +21,12 @@ import {
     getBlockedUsersAPI,
     BlockedUser,
     GetBlockedUsersResponse, 
-    unblockUserAPI
-  } from "@/api/connections";
+    unblockUserAPI,
+    sendMessageRequestAPI,
+    SendMessageRequestPayload,
+    getMessageRequestsAPI, 
+    MessageRequest
+    } from "@/api/connections";
 
 interface ConnectionStore {
   isSending: boolean;
@@ -48,10 +50,6 @@ interface ConnectionStore {
   fetchTopConnections: (limit?: number) => Promise<void>;
   removeConnection: (connectionId: number) => Promise<void>;
 
-  connectionPreferences: ConnectionPreferences | null;
-  setConnectionPreferences: (prefs: ConnectionPreferences) => void;
-  saveConnectionPreferences: (prefs: ConnectionPreferences) => Promise<void>;
-
   connectionStatuses: Record<number, "connected" | "pending" | "notConnected">;
   fetchConnectionStatus: (userId: number) => Promise<void>;
 
@@ -67,6 +65,11 @@ interface ConnectionStore {
   blockedUsers: BlockedUser[];
   fetchBlockedUsers: (page?: number, limit?: number) => Promise<void>;
   unblockUser: (userId: number) => Promise<void>;
+
+  sendMessageRequest: (payload: SendMessageRequestPayload) => Promise<void>;
+  messageRequests: MessageRequest[];
+  fetchMessageRequests: () => Promise<void>;
+
 }
 
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
@@ -147,21 +150,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       console.error("❌ Failed to remove connection", err);
     }
   },
-
-  connectionPreferences: null,
-
-  setConnectionPreferences: (prefs) => set({ connectionPreferences: prefs }),
-
-  saveConnectionPreferences: async (prefs) => {
-    try {
-      const res = await upsertConnectionPreferencesAPI(prefs);
-      set({ connectionPreferences: res.data });
-      console.log("✅ Preferences saved");
-    } catch (err) {
-      console.error("❌ Failed to save preferences", err);
-    }
-  },
-
+  
   connectionStatuses: {} as Record<number, "connected" | "pending" | "notConnected">,
   fetchConnectionStatus: async (userId: number) => {
     try {
@@ -249,6 +238,26 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     } catch (err) {
       console.error(`❌ Failed to unblock user ${userId}`, err);
     }
-  },  
+  },
+  
+  sendMessageRequest: async (payload) => {
+    try {
+      const res = await sendMessageRequestAPI(payload);
+      console.log("✅ Message request sent:", res);
+    } catch (err) {
+      console.error("❌ Error sending message request:", err);
+    }
+  },
 
+  messageRequests: [],
+
+  fetchMessageRequests: async () => {
+    try {
+      const data = await getMessageRequestsAPI();
+      set({ messageRequests: data });
+    } catch (err) {
+      console.error("❌ Error fetching message requests:", err);
+    }
+  },
+  
 }));

@@ -63,11 +63,7 @@ export default function BlockedUsers() {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <BlockIcon sx={{ color: "text.secondary", fontSize: 20 }} />
               <Avatar
-                src={
-                  user.profile_picture_id
-                    ? `/api/media/${user.profile_picture_id}`
-                    : "/default-avatar.png"
-                }
+                src="/default-avatar.png"
                 sx={{ width: 36, height: 36 }}
               />
               <Box>
