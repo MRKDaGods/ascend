@@ -31,7 +31,7 @@ def appium_driver():
     
     # Get project root directory
     root_dir = os.path.dirname(os.path.abspath(__file__))  # Gets 'tests/' folder path
-    config_path = os.path.join(root_dir, "..", "config.json")  # Moves one level up #for ascend  choose config1.json
+    config_path = os.path.join(root_dir, "..", "config1.json")  # Moves one level up #for ascend  choose config1.json
     
     # Load capabilities from JSON
     with open(config_path, "r") as f:
@@ -43,16 +43,16 @@ def appium_driver():
     # Start Appium session
     driver = webdriver.Remote(command_executor="http://localhost:4723", options = options ) # Make sure 'options' is correctly set up
      # Explicitly activate the app in case Appium fails to launch it
-    driver.activate_app("com.linkedin.android")
-    # driver.activate_app("com.example.ascend_app") #adjust for linkedin ########################################################
+    # driver.activate_app("com.linkedin.android")
+    driver.activate_app("com.example.ascend_app") #adjust for linkedin ########################################################
 
     # Wait for LinkedIn to fully load (ensure activity is correct)
     # driver.wait_activity("com.linkedin.android.authenticator.LaunchActivityDefault", timeout=10)
-    # driver.wait_activity("com.example.ascend_app.MainActivity", timeout=10) #adjust for linkedin ########################################
-    driver.wait_activity("com.linkedin.android.infra.navigation.MainActivity", timeout=10)
+    driver.wait_activity("com.example.ascend_app.MainActivity", timeout=10) #adjust for linkedin ########################################
+    #driver.wait_activity("com.linkedin.android.infra.navigation.MainActivity", timeout=10) #USED for linkedin ########################################################
     yield driver  # Provide driver to tests
     
     logger.info("Tearing down Appium driver")
-    driver.terminate_app("com.linkedin.android")  # Ensure app is stopped
-    # driver.terminate_app("com.example.ascend_app") #adjust for linkedin #######################################################
+    #driver.terminate_app("com.linkedin.android")  # Ensure app is stopped
+    driver.terminate_app("com.example.ascend_app") #adjust for linkedin #######################################################
     driver.quit()  # Cleanup after test

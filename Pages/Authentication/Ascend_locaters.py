@@ -12,7 +12,7 @@ class AscendLoginLocaters:
     WRONG_PASSWORD_OR_EMAIL_MESSAGE = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.view.View").instance(8)')
     EMAIL_ADDRESS_IS_NOT_VALID = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Invalid email or phone number")')
     EMPTY_PASSWORD = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Password cannot be empty")')
-    WELCOME_MESSAGE = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
+    WELCOME_MESSAGE = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.view.View").instance(8)')
     JOIN_LINKEDIN = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("or  Join Ascend")')
     ALLOW_NOTIFICATIONS = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().resourceId("com.android.permissioncontroller:id/permission_allow_button")')
     FORGET_PASSWORD_EMAIL = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
