@@ -18,7 +18,8 @@ import {
     unfollowUserAPI,
     getFollowersAPI, 
     Follower,
-    getFollowStatusAPI 
+    getFollowStatusAPI,
+    blockUserAPI 
   } from "@/api/connections";
 
 interface ConnectionStore {
@@ -57,6 +58,9 @@ interface ConnectionStore {
 
   followStatuses: Record<number, boolean>; // userId -> isFollowing
   fetchFollowStatus: (userId: number) => Promise<void>;
+
+  blockUser: (userId: number) => Promise<void>;
+
 }
 
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
@@ -209,5 +213,15 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       console.error(`❌ Failed to fetch follow status for user ${userId}`, err);
     }
   },
+
+  blockUser: async (userId) => {
+    try {
+      const res = await blockUserAPI(userId);
+      console.log(`✅ User ${userId} blocked:`, res.message);
+    } catch (err) {
+      console.error(`❌ Failed to block user ${userId}`, err);
+    }
+  },
+  
 
 }));
