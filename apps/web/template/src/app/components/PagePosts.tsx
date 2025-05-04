@@ -1,20 +1,38 @@
 import {
-  Avatar, Box, Button, Divider, Grid, Paper, Tab, Tabs, TextField, Typography,
-  Modal, IconButton, Menu, MenuItem
-} from '@mui/material';
-import OndemandVideoIcon from '@mui/icons-material/OndemandVideo';
-import ImageIcon from '@mui/icons-material/Image';
-import ArticleIcon from '@mui/icons-material/Article';
-import CloseIcon from '@mui/icons-material/Close';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useEffect, useState } from 'react';
-import { useCompanyPostStore, MediaFile, CompanyPost } from '@/app/stores/useCompanyPostStore';
-import { useCompanyStore } from '@/app/stores/useCreateCompanyStore';
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  Grid,
+  Paper,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+  Modal,
+  IconButton,
+  Menu,
+  MenuItem,
+} from "@mui/material";
+import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
+import { useTheme } from "@mui/material/styles";
+import ImageIcon from "@mui/icons-material/Image";
+import ArticleIcon from "@mui/icons-material/Article";
+import CloseIcon from "@mui/icons-material/Close";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { useEffect, useState } from "react";
+import {
+  useCompanyPostStore,
+  MediaFile,
+  CompanyPost,
+} from "@/app/stores/useCompanyPostStore";
+import { useCompanyStore } from "@/app/stores/useCreateCompanyStore";
 
 export default function PagePosts() {
+  const theme = useTheme();
   const [tabIndex, setTabIndex] = useState(0);
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,7 +40,9 @@ export default function PagePosts() {
 
   const companyId = useCompanyStore((state) => state.companyId);
   const announcements = useCompanyStore((state) => state.announcements || []);
-  const getCompanyAnnouncements = useCompanyStore((state) => state.getCompanyAnnouncements);
+  const getCompanyAnnouncements = useCompanyStore(
+    (state) => state.getCompanyAnnouncements
+  );
   const { setCompanyAnnouncementsToPosts } = useCompanyPostStore();
 
   useEffect(() => {
@@ -44,47 +64,56 @@ export default function PagePosts() {
     deletePost,
     setDraftPostContent,
     clearDraftPost,
-    removedImageIds
+    removedImageIds,
   } = useCompanyPostStore();
 
   const companyName = useCompanyStore((state) => state.name);
   const companyProfileImage = useCompanyStore((state) => state.profileImage);
-  const [selectedReactions, setSelectedReactions] = useState<{ [postId: string]: string | null }>({});
+  const [selectedReactions, setSelectedReactions] = useState<{
+    [postId: string]: string | null;
+  }>({});
 
-  const handleFileUpload = (type: 'image' | 'video') => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handleFileUpload =
+    (type: "image" | "video") => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files) return;
 
-    const fileArray: File[] = Array.from(files);
-    const mediaArray: MediaFile[] = [];
+      const fileArray: File[] = Array.from(files);
+      const mediaArray: MediaFile[] = [];
 
-    fileArray.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        useCompanyPostStore.getState().addDraftMedia([
-          {
-            type,
-            file,
-            preview: base64, // ✅ MUST be base64 for uploading
-          },
-        ]);
-      };
-      reader.readAsDataURL(file); // ✅ This ensures base64, not blob
-    });
-  };
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          useCompanyPostStore.getState().addDraftMedia([
+            {
+              type,
+              file,
+              preview: base64, // ✅ MUST be base64 for uploading
+            },
+          ]);
+        };
+        reader.readAsDataURL(file); // ✅ This ensures base64, not blob
+      });
+    };
 
   const handleSubmit = async () => {
     const { draftPost, editingPost } = useCompanyPostStore.getState();
 
     if (isEditing && editingPostId && editingPost) {
-      const hasContentChanged = draftPost.content.trim() !== editingPost.content.trim();
+      const hasContentChanged =
+        draftPost.content.trim() !== editingPost.content.trim();
 
       const draftPreviews = draftPost.media.map((m) => m.preview);
       const originalPreviews = editingPost.media.map((m) => m.preview);
-      const hasMediaChanged = JSON.stringify(draftPreviews) !== JSON.stringify(originalPreviews);
+      const hasMediaChanged =
+        JSON.stringify(draftPreviews) !== JSON.stringify(originalPreviews);
 
-      if (!hasContentChanged && !hasMediaChanged && removedImageIds.length === 0) {
+      if (
+        !hasContentChanged &&
+        !hasMediaChanged &&
+        removedImageIds.length === 0
+      ) {
         console.log("⚠️ No changes detected. Skipping update.");
         setOpen(false);
         setIsEditing(false);
@@ -101,7 +130,7 @@ export default function PagePosts() {
       if (!success) return;
     }
 
-    setText('');
+    setText("");
     clearDraftPost();
     setOpen(false);
   };
@@ -125,11 +154,25 @@ export default function PagePosts() {
   return (
     <Grid container spacing={3} id="page-posts-container">
       <Grid item xs={12} md={8} id="page-posts-main">
-        <Paper id="page-posts-header" variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-          <Typography id="page-posts-title" variant="h5" fontWeight={600} mb={0.5}>
+        <Paper
+          id="page-posts-header"
+          variant="outlined"
+          sx={{ p: 2, borderRadius: 2 }}
+        >
+          <Typography
+            id="page-posts-title"
+            variant="h5"
+            fontWeight={600}
+            mb={0.5}
+          >
             Page posts
           </Typography>
-          <Typography id="page-posts-subtitle" variant="body2" color="text.secondary" mb={2}>
+          <Typography
+            id="page-posts-subtitle"
+            variant="body2"
+            color="text.secondary"
+            mb={2}
+          >
             Manage your Page’s organic and paid content
           </Typography>
 
@@ -137,15 +180,27 @@ export default function PagePosts() {
             id="page-posts-tabs"
             value={tabIndex}
             onChange={(_, newValue) => setTabIndex(newValue)}
-            sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+            sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}
           >
             <Tab id="page-posts-tab-published" label="Published" />
           </Tabs>
         </Paper>
 
-        <Paper id="create-post-section" variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-          <Box id="create-post-input-container" display="flex" alignItems="center" gap={2}>
-            <Avatar id="company-avatar" src={companyProfileImage || undefined} />
+        <Paper
+          id="create-post-section"
+          variant="outlined"
+          sx={{ p: 2, borderRadius: 2 }}
+        >
+          <Box
+            id="create-post-input-container"
+            display="flex"
+            alignItems="center"
+            gap={2}
+          >
+            <Avatar
+              id="company-avatar"
+              src={companyProfileImage || undefined}
+            />
             <TextField
               id="create-post-input"
               placeholder="Start a post"
@@ -157,49 +212,44 @@ export default function PagePosts() {
                 clearDraftPost();
               }}
               sx={{
-                backgroundColor: '#f3f2ef',
+                backgroundColor: theme.palette.background.default,
                 borderRadius: 5,
-                '& .MuiInputBase-root': { borderRadius: 5 },
+                "& .MuiInputBase-root": { borderRadius: 5 },
               }}
             />
-          </Box>
-
-          <Divider id="create-post-divider" sx={{ my: 2 }} />
-
-          <Box id="create-post-actions" display="flex" justifyContent="space-around">
-            <Button
-              id="create-post-photo-button"
-              component="label"
-              startIcon={<ImageIcon color="success" />}
-              sx={{ textTransform: 'none' }}
-            >
-              Photo
-              <input type="file" accept="image/*" hidden multiple onChange={handleFileUpload('image')} />
-            </Button>
-            <Button
-              id="create-post-video-button"
-              component="label"
-              startIcon={<OndemandVideoIcon color="primary" />}
-              sx={{ textTransform: 'none' }}
-            >
-              Video
-              <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
-            </Button>
           </Box>
         </Paper>
 
         {posts.map((post) => (
-          <Paper id={`post-${post.id}`} key={post.id} sx={{ mt: 3, p: 2, borderRadius: 3 }}>
-            <Box id={`post-header-${post.id}`} display="flex" justifyContent="space-between" alignItems="center">
-              <Box id={`post-header-info-${post.id}`} display="flex" alignItems="center" gap={1}>
+          <Paper
+            id={`post-${post.id}`}
+            key={post.id}
+            sx={{ mt: 3, p: 2, borderRadius: 3 }}
+          >
+            <Box
+              id={`post-header-${post.id}`}
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Box
+                id={`post-header-info-${post.id}`}
+                display="flex"
+                alignItems="center"
+                gap={1}
+              >
                 {companyProfileImage && (
-                  <Avatar id={`post-avatar-${post.id}`} src={companyProfileImage} sx={{ width: 28, height: 28 }} />
+                  <Avatar
+                    id={`post-avatar-${post.id}`}
+                    src={companyProfileImage}
+                    sx={{ width: 28, height: 28 }}
+                  />
                 )}
                 <Typography
                   id={`post-company-name-${post.id}`}
                   variant="subtitle2"
                   color="text.secondary"
-                  sx={{ fontWeight: 'bold' }}
+                  sx={{ fontWeight: "bold" }}
                 >
                   {companyName}
                 </Typography>
@@ -207,7 +257,9 @@ export default function PagePosts() {
               <IconButton
                 id={`post-menu-button-${post.id}`}
                 onClick={(e) => {
-                  setSelectedPostId((prev) => (prev === post.id ? null : post.id));
+                  setSelectedPostId((prev) =>
+                    prev === post.id ? null : post.id
+                  );
                   setAnchorEl(e.currentTarget);
                 }}
               >
@@ -219,49 +271,57 @@ export default function PagePosts() {
                 open={selectedPostId === post.id}
                 onClose={() => setSelectedPostId(null)}
               >
-                <MenuItem id={`post-edit-button-${post.id}`} onClick={() => handleEditPost(post)}>
+                <MenuItem
+                  id={`post-edit-button-${post.id}`}
+                  onClick={() => handleEditPost(post)}
+                >
                   Edit
                 </MenuItem>
                 <MenuItem
                   id={`post-delete-button-${post.id}`}
                   onClick={() => handleDeletePost(post.id)}
-                  sx={{ color: 'error.main' }}
+                  sx={{ color: "error.main" }}
                 >
                   Delete
                 </MenuItem>
               </Menu>
             </Box>
 
-            <Typography id={`post-content-${post.id}`} variant="body1" mt={2} mb={2}>
+            <Typography
+              id={`post-content-${post.id}`}
+              variant="body1"
+              mt={2}
+              mb={2}
+            >
               {post.content}
             </Typography>
 
             <Grid id={`post-media-${post.id}`} container spacing={1}>
               {post.media.map((media, index) => (
                 <Grid item xs={12} key={index}>
-                  {media.type === 'image' && (media.url || media.preview) && (
+                  {media.type === "image" && (media.url || media.preview) && (
                     <Box
                       id={`post-image-${post.id}-${index}`}
                       component="img"
                       src={media.url || media.preview}
                       alt="image"
                       sx={{
-                        width: '100%',
+                        width: "100%",
                         maxHeight: 400,
-                        objectFit: 'cover',
+                        objectFit: "cover",
                         borderRadius: 2,
                         my: 1,
                       }}
                     />
                   )}
-                  {media.type === 'video' && (media.url || media.preview) && (
+                  {media.type === "video" && (media.url || media.preview) && (
                     <Box
                       id={`post-video-${post.id}-${index}`}
                       component="video"
                       controls
                       src={media.url || media.preview}
                       sx={{
-                        width: '100%',
+                        width: "100%",
                         maxHeight: 500,
                         borderRadius: 2,
                         my: 1,
@@ -272,32 +332,44 @@ export default function PagePosts() {
               ))}
             </Grid>
 
-            <Box id={`post-reactions-${post.id}`} display="flex" alignItems="center" gap={1} mt={1}>
-              {['🧠', '🌿', '❤️'].map((emoji) => {
+            <Box
+              id={`post-reactions-${post.id}`}
+              display="flex"
+              alignItems="center"
+              gap={1}
+              mt={1}
+            >
+              {["🧠", "🌿", "❤️"].map((emoji) => {
                 const selected = selectedReactions[post.id] === emoji;
                 return (
                   <Button
                     id={`post-reaction-${post.id}-${emoji}`}
                     key={emoji}
                     size="small"
-                    variant={selected ? 'contained' : 'text'}
+                    variant={selected ? "contained" : "text"}
                     onClick={() =>
                       setSelectedReactions((prev) => ({
                         ...prev,
-                        [post.id]: prev[post.id] === emoji ? null : emoji
-                      }))                    }
+                        [post.id]: prev[post.id] === emoji ? null : emoji,
+                      }))
+                    }
                     sx={{
-                      minWidth: '32px',
+                      minWidth: "32px",
                       px: 1,
-                      backgroundColor: selected ? '#e0f7fa' : 'transparent',
-                      color: selected ? 'primary.main' : 'text.primary',
+                      backgroundColor: selected ? "#e0f7fa" : "transparent",
+                      color: selected ? "primary.main" : "text.primary",
                     }}
                   >
                     {emoji}
                   </Button>
                 );
               })}
-              <Typography id={`post-comments-reposts-${post.id}`} variant="caption" color="text.secondary" ml={2}>
+              <Typography
+                id={`post-comments-reposts-${post.id}`}
+                variant="caption"
+                color="text.secondary"
+                ml={2}
+              >
                 comments · reposts
               </Typography>
             </Box>
@@ -305,15 +377,35 @@ export default function PagePosts() {
         ))}
 
         {posts.length === 0 && (
-          <Paper id="no-posts-section" elevation={0} sx={{ textAlign: 'center', py: 5, px: 2, mt: 4 }}>
-            <img id="no-posts-image" src="/NoPostsyet.png" alt="No posts" width={200} style={{ marginBottom: 16 }} />
+          <Paper
+            id="no-posts-section"
+            elevation={0}
+            sx={{ textAlign: "center", py: 5, px: 2, mt: 4 }}
+          >
+            <img
+              id="no-posts-image"
+              src="/NoPostsyet.png"
+              alt="No posts"
+              width={200}
+              style={{ marginBottom: 16 }}
+            />
             <Typography id="no-posts-title" variant="h6" fontWeight={600}>
               Your Page doesn’t have any posts yet
             </Typography>
-            <Typography id="no-posts-subtitle" variant="body2" color="text.secondary" mt={1}>
+            <Typography
+              id="no-posts-subtitle"
+              variant="body2"
+              color="text.secondary"
+              mt={1}
+            >
               Pages that post 2x a week grow 5x faster
             </Typography>
-            <Button id="start-post-button" variant="outlined" sx={{ mt: 2 }} onClick={() => setOpen(true)}>
+            <Button
+              id="start-post-button"
+              variant="outlined"
+              sx={{ mt: 2 }}
+              onClick={() => setOpen(true)}
+            >
               Start a post
             </Button>
           </Paper>
@@ -321,20 +413,43 @@ export default function PagePosts() {
       </Grid>
 
       <Grid item xs={12} md={4} id="post-highlights-section">
-        <Paper id="post-highlights-container" variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
-          <Typography id="post-highlights-title" variant="subtitle1" fontWeight={600}>
+        <Paper
+          id="post-highlights-container"
+          variant="outlined"
+          sx={{ p: 2, borderRadius: 2 }}
+        >
+          <Typography
+            id="post-highlights-title"
+            variant="subtitle1"
+            fontWeight={600}
+          >
             Post highlights
           </Typography>
-          <Typography id="post-highlights-subtitle" variant="body2" color="text.secondary" mb={2}>
+          <Typography
+            id="post-highlights-subtitle"
+            variant="body2"
+            color="text.secondary"
+            mb={2}
+          >
             In the last 30 days
           </Typography>
 
           <Box id="post-highlights-content" textAlign="center">
-            <img id="post-highlights-image" src="/highlights.png" alt="No highlights" width={200} style={{ marginBottom: 16 }} />
+            <img
+              id="post-highlights-image"
+              src="/highlights.png"
+              alt="No highlights"
+              width={200}
+              style={{ marginBottom: 16 }}
+            />
             <Typography id="post-highlights-no-highlights" fontWeight={600}>
               No highlights
             </Typography>
-            <Typography id="post-highlights-description" variant="body2" color="text.secondary">
+            <Typography
+              id="post-highlights-description"
+              variant="body2"
+              color="text.secondary"
+            >
               No recent post to highlight.
             </Typography>
           </Box>
@@ -342,12 +457,35 @@ export default function PagePosts() {
       </Grid>
 
       <Modal id="create-post-modal" open={open} onClose={() => setOpen(false)}>
-        <Paper id="create-post-modal-container" sx={{ width: 500, mx: 'auto', mt: 10, p: 3, borderRadius: 2, outline: 'none' }}>
-          <Box id="create-post-modal-header" display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography id="create-post-modal-title" variant="h6" fontWeight={600}>
-              {isEditing ? 'Edit post' : 'Create a post'}
+        <Paper
+          id="create-post-modal-container"
+          sx={{
+            width: 500,
+            mx: "auto",
+            mt: 10,
+            p: 3,
+            borderRadius: 2,
+            outline: "none",
+          }}
+        >
+          <Box
+            id="create-post-modal-header"
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
+            <Typography
+              id="create-post-modal-title"
+              variant="h6"
+              fontWeight={600}
+            >
+              {isEditing ? "Edit post" : "Create a post"}
             </Typography>
-            <IconButton id="create-post-modal-close-button" onClick={() => setOpen(false)}>
+            <IconButton
+              id="create-post-modal-close-button"
+              onClick={() => setOpen(false)}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
@@ -367,45 +505,84 @@ export default function PagePosts() {
             sx={{ mb: 2 }}
           />
 
-          <Box id="create-post-modal-actions" display="flex" justifyContent="space-around" mb={2}>
+          <Box
+            id="create-post-modal-actions"
+            display="flex"
+            justifyContent="space-around"
+            mb={2}
+          >
             <Button
               id="create-post-modal-photo-button"
               component="label"
               startIcon={<ImageIcon color="success" />}
-              sx={{ textTransform: 'none' }}
+              sx={{ textTransform: "none" }}
             >
               Photo
-              <input type="file" accept="image/*" hidden multiple onChange={handleFileUpload('image')} />
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                multiple
+                onChange={handleFileUpload("image")}
+              />
             </Button>
             <Button
               id="create-post-modal-video-button"
               component="label"
               startIcon={<OndemandVideoIcon color="primary" />}
-              sx={{ textTransform: 'none' }}
+              sx={{ textTransform: "none" }}
             >
               Video
-              <input type="file" accept="video/*" hidden multiple onChange={handleFileUpload('video')} />
+              <input
+                type="file"
+                accept="video/*"
+                hidden
+                multiple
+                onChange={handleFileUpload("video")}
+              />
             </Button>
           </Box>
 
-          <Box id="create-post-modal-media" display="flex" flexDirection="column" gap={2} mb={2}>
+          <Box
+            id="create-post-modal-media"
+            display="flex"
+            flexDirection="column"
+            gap={2}
+            mb={2}
+          >
             {draftPost.media.length === 0 ? (
-              <Typography id="create-post-modal-no-media" variant="body2" color="text.secondary" textAlign="center">
+              <Typography
+                id="create-post-modal-no-media"
+                variant="body2"
+                color="text.secondary"
+                textAlign="center"
+              >
                 No media attached.
               </Typography>
             ) : (
               draftPost.media.map((media: MediaFile, i: number) => (
-                <Box id={`create-post-modal-media-item-${i}`} key={i} display="flex" alignItems="center" gap={2}>
-                  {media.type === 'image' && (
+                <Box
+                  id={`create-post-modal-media-item-${i}`}
+                  key={i}
+                  display="flex"
+                  alignItems="center"
+                  gap={2}
+                >
+                  {media.type === "image" && (
                     <Box
                       id={`create-post-modal-media-image-${i}`}
                       component="img"
                       src={media.url || media.preview}
                       alt="preview"
-                      sx={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 1 }}
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        objectFit: "cover",
+                        borderRadius: 1,
+                      }}
                     />
                   )}
-                  {media.type === 'video' && (
+                  {media.type === "video" && (
                     <Box
                       id={`create-post-modal-media-video-${i}`}
                       component="video"
@@ -419,13 +596,15 @@ export default function PagePosts() {
                     variant="body2"
                     sx={{
                       flex: 1,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
                     {media.file?.name ??
-                      decodeURIComponent(media.url?.split('/view?')[1]?.split('&')[0] || 'media')}
+                      decodeURIComponent(
+                        media.url?.split("/view?")[1]?.split("&")[0] || "media"
+                      )}
                   </Typography>
                   <Button
                     id={`create-post-modal-media-remove-${i}`}
@@ -440,8 +619,13 @@ export default function PagePosts() {
             )}
           </Box>
 
-          <Button id="create-post-modal-submit-button" fullWidth variant="contained" onClick={handleSubmit}>
-            {isEditing ? 'Save Changes' : 'Post'}
+          <Button
+            id="create-post-modal-submit-button"
+            fullWidth
+            variant="contained"
+            onClick={handleSubmit}
+          >
+            {isEditing ? "Save Changes" : "Post"}
           </Button>
         </Paper>
       </Modal>
