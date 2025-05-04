@@ -107,34 +107,22 @@ const CreatePostDialog: React.FC = () => {
         await repostFromAPI(repostSourcePost.id, postText.trim());
         setRepostPopupOpen(true);
       } else {
-        // Determine file info
         const isDocument = !!documentPreview && !!documentFile;
-        const isMedia = mediaFiles.length > 0;
 
-        if (isDocument) {
-          await createPostNewFromAPI(
-            postText.trim(),
-            [documentFile!],
-            "file",
-            documentPreview?.title || "Untitled Document",
-            "PDF file"
-          );
-        } else if (isMedia) {
-          await createPostNewFromAPI(
-            postText.trim(),
-            mediaFiles,
-            mediaType || "image",
-            "Uploaded Media",
-            `${mediaType || "media"} file`
-          );
-        } else {
-          await createPostNewFromAPI(postText.trim());
-        }
+        await createPostNewFromAPI(
+          postText.trim(),
+          isDocument ? [documentFile!] : mediaFiles,
+          isDocument ? "file" : mediaType ?? undefined, // ✅ FIXED
+          isDocument
+            ? documentPreview?.title || "Untitled Document"
+            : "Uploaded Media",
+          isDocument ? "PDF file" : `${mediaType || "media"} file`
+        );
 
         postId = usePostStore.getState().lastUserPostId;
       }
 
-      // Handle tagging users
+      // Tagging
       if (postId && taggedUsers.length > 0 && postText.includes("@")) {
         const tags = taggedUsers
           .map((tag) => {
@@ -158,7 +146,7 @@ const CreatePostDialog: React.FC = () => {
         }
       }
 
-      // Reset state
+      // Cleanup
       setDraftText("");
       setPostText("");
       resetPost();
