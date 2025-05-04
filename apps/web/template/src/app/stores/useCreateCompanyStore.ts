@@ -13,6 +13,7 @@ import {
   getAllCompanyProfilesAPI,
   CompanyResponse,
   searchForCompaniesAPI,
+  getCompanyAnalyticsAPI,
 } from "@/api/company";
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -53,6 +54,12 @@ interface CompanyState {
   exploreCompanies: Company[];
   followerCounts: Record<number, number>;
   followingStatus: Record<number, boolean>;
+  analytics: {
+    number_of_job_posts: number;
+    number_of_followrs: number;
+    number_of_announcements: number;
+  } | null;
+  
 
   setCompanyInfo: (data: Partial<CompanyState>) => void;
   fetchCompanyProfile: (companyId: number) => Promise<void>;
@@ -64,7 +71,10 @@ interface CompanyState {
   updateCompanyProfile: (fieldsToUpdate: Partial<CompanyState>) => Promise<void>;
   deleteCompanyProfile: () => Promise<void>;
   getCompanyAnnouncements: (companyId: number) => Promise<void>;
+  getCompanyAnalytics: (companyId: number) => Promise<void>;
 }
+
+
 
 export const useCompanyStore = create<CompanyState>()(
   persist(
@@ -119,6 +129,18 @@ export const useCompanyStore = create<CompanyState>()(
           console.log(`❌ Failed to fetch followers for company ${companyId}:`, err);
         }
       },
+
+      analytics: null,
+
+      getCompanyAnalytics: async (companyId) => {
+        try {
+          const analytics = await getCompanyAnalyticsAPI(companyId);
+          set({ analytics });
+        } catch (err) {
+          console.error("❌ Failed to fetch company analytics:", err);
+        }
+      },
+
 
       toggleFollowCompany: async (companyId, userId) => {
         await get().fetchCompanyFollowers(companyId, userId);
