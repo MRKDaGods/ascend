@@ -17,7 +17,7 @@ import { useConnectionStore } from "../stores/useConnectionStore";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 
-const NetworkTabs = () => {
+const MyFollowers = () => {
   const theme = useTheme();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"followers" | "following">("followers");
@@ -27,6 +27,8 @@ const NetworkTabs = () => {
     fetchFollowers,
     connections,
     fetchConnections,
+    followUser,
+    unfollowUser,
   } = useConnectionStore();
 
   const userId = Cookies.get("linkup_user_id");
@@ -43,6 +45,35 @@ const NetworkTabs = () => {
       ? followers
       : connections.filter((c) => c.user_id !== Number(userId));
 
+  const [followingStatus, setFollowingStatus] = useState<
+    Record<number, boolean>
+  >({});
+
+  useEffect(() => {
+    const initial: Record<number, boolean> = {};
+    connections.forEach((c) => {
+      initial[c.user_id] = true;
+    });
+    setFollowingStatus(initial);
+  }, [connections]);
+
+  const handleToggleFollow = async (personId: number) => {
+    const currentlyFollowing = followingStatus[personId] ?? false;
+    try {
+      if (currentlyFollowing) {
+        await unfollowUser(personId);
+      } else {
+        await followUser(personId);
+      }
+      setFollowingStatus((prev) => ({
+        ...prev,
+        [personId]: !currentlyFollowing,
+      }));
+    } catch (err) {
+      console.error("❌ Failed to toggle follow status", err);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -57,11 +88,7 @@ const NetworkTabs = () => {
         My Network
       </Typography>
 
-      <Tabs
-        value={tab}
-        onChange={(_, value) => setTab(value)}
-        sx={{ mb: 2 }}
-      >
+      <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 2 }}>
         <Tab value="following" label="Following" />
         <Tab value="followers" label="Followers" />
       </Tabs>
@@ -128,8 +155,15 @@ const NetworkTabs = () => {
                 </Typography>
               </Box>
               <Box ml="auto">
-                <Button variant="outlined" size="small" sx={{ borderRadius: 99 }}>
-                  Following
+                <Button
+                  variant={
+                    followingStatus[person.user_id] ? "outlined" : "contained"
+                  }
+                  size="small"
+                  sx={{ borderRadius: 99 }}
+                  onClick={() => handleToggleFollow(person.user_id)}
+                >
+                  {followingStatus[person.user_id] ? "Following" : "Follow"}
                 </Button>
               </Box>
             </Stack>
@@ -140,4 +174,4 @@ const NetworkTabs = () => {
   );
 };
 
-export default NetworkTabs;
+export default MyFollowers;

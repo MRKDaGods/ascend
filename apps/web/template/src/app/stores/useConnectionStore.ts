@@ -10,13 +10,15 @@ import {
     getConnectionsAPI,
     Connection,    
     removeConnectionAPI,
-    followUserAPI,
-    getFollowersAPI,
-    Follower,
     ConnectionPreferences,
     upsertConnectionPreferencesAPI,
     getConnectionStatusAPI, 
-    GetConnectionStatusResponse,    
+    GetConnectionStatusResponse,
+    followUserAPI,
+    unfollowUserAPI,
+    getFollowersAPI, 
+    Follower,
+    getFollowStatusAPI 
   } from "@/api/connections";
 
 interface ConnectionStore {
@@ -41,11 +43,6 @@ interface ConnectionStore {
   fetchTopConnections: (limit?: number) => Promise<void>;
   removeConnection: (connectionId: number) => Promise<void>;
 
-  followUser: (userId: number) => Promise<void>;
-
-  followers: Follower[];
-  fetchFollowers: (userId: number, page?: number, limit?: number) => Promise<void>;
-
   connectionPreferences: ConnectionPreferences | null;
   setConnectionPreferences: (prefs: ConnectionPreferences) => void;
   saveConnectionPreferences: (prefs: ConnectionPreferences) => Promise<void>;
@@ -53,6 +50,13 @@ interface ConnectionStore {
   connectionStatuses: Record<number, "connected" | "pending" | "notConnected">;
   fetchConnectionStatus: (userId: number) => Promise<void>;
 
+  followUser: (userId: number) => Promise<void>;
+  unfollowUser: (userId: number) => Promise<void>;
+  followers: Follower[];
+  fetchFollowers: (userId: number, page?: number, limit?: number) => Promise<void>;
+
+  followStatuses: Record<number, boolean>; // userId -> isFollowing
+  fetchFollowStatus: (userId: number) => Promise<void>;
 }
 
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
@@ -134,26 +138,6 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     }
   },
 
-  followUser: async (userId) => {
-    try {
-      const res = await followUserAPI(userId);
-      console.log("✅ Followed user:", res.message);
-    } catch (err) {
-      console.error("❌ Failed to follow user", err);
-    }
-  },
-
-  followers: [],
-
-  fetchFollowers: async (userId, page = 1, limit = 10) => {
-    try {
-      const res = await getFollowersAPI(userId, page, limit);
-      set({ followers: res.data.data });
-    } catch (err) {
-      console.error("❌ Failed to fetch followers", err);
-    }
-  },
-
   connectionPreferences: null,
 
   setConnectionPreferences: (prefs) => set({ connectionPreferences: prefs }),
@@ -180,6 +164,49 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       }));
     } catch (err) {
       console.error(`❌ Failed to fetch connection status for user ${userId}`, err);
+    }
+  },
+
+  followUser: async (userId) => {
+    try {
+      const res = await followUserAPI(userId);
+      console.log("✅ Followed user:", res.message);
+    } catch (err) {
+      console.error("❌ Failed to follow user", err);
+    }
+  },  
+  unfollowUser: async (userId) => {
+    try {
+      const res = await unfollowUserAPI(userId);
+      console.log("✅ Unfollowed user:", res.message);
+    } catch (err) {
+      console.error("❌ Failed to unfollow user", err);
+    }
+  },
+  followers: [],
+
+  fetchFollowers: async (userId, page = 1, limit = 15) => {
+    try {
+      const res = await getFollowersAPI(userId, page, limit);
+      set({ followers: res.data.data });
+    } catch (err) {
+      console.error(`❌ Failed to fetch followers for user ${userId}`, err);
+    }
+  },
+
+  followStatuses: {},
+
+  fetchFollowStatus: async (userId: number) => {
+    try {
+      const res = await getFollowStatusAPI(userId);
+      set((state) => ({
+        followStatuses: {
+          ...state.followStatuses,
+          [userId]: res.data.isFollowing,
+        },
+      }));
+    } catch (err) {
+      console.error(`❌ Failed to fetch follow status for user ${userId}`, err);
     }
   },
 
