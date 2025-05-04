@@ -43,7 +43,7 @@ import { useProfileStore } from "../stores/useProfileStore";
 import { usePostStore } from "../stores/usePostStore";
 
 import LogoutIcon from "@mui/icons-material/Logout";
-// import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsIcon from "@mui/icons-material/Settings";
 import SearchResults from "./SearchResults";
 import { api, refreshAuthState } from "@/api";
 import BusinessMenu from "./BusinessMenu";
@@ -426,7 +426,13 @@ const Navbar: React.FC = () => {
               sx={{
                 color: muiTheme.palette.text.primary,
                 textTransform: "none",
-                fontWeight: 500,
+                borderRadius: "999px",
+                fontWeight: 600,
+                px: 2.5,
+                whiteSpace: "nowrap",
+                "&:hover": {
+                  backgroundColor: muiTheme.palette.action.hover,
+                },
               }}
               endIcon={<ExpandMore />}
               onClick={handleBusinessClick}
@@ -508,11 +514,13 @@ const Navbar: React.FC = () => {
         <MenuItem>
           <ListItemText>Try Premium</ListItemText>
         </MenuItem>
-        <MenuItem>
-          <ListItemText onClick={() => router.push("/Settings")}>
-            Settings & Privacy
-          </ListItemText>
-          <ListItemIcon>{/* <SettingsIcon fontSize="small" /> */}</ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            closeMenu();
+            router.push("/Settings");
+          }}
+        >
+          <ListItemText>Settings & Privacy</ListItemText>
         </MenuItem>
 
         <Divider />
