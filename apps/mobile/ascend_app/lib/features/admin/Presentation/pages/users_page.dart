@@ -1,4 +1,9 @@
+import 'package:ascend_app/features/admin/bloc/users/bloc/users_bloc.dart';
+import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../widgets/reported_user_card.dart'; // Import the ReportedUserCard widget
+import '../widgets/banned_user_card.dart'; // Import the new BannedUserCard widget
 
 class UsersPage extends StatefulWidget {
   const UsersPage({Key? key}) : super(key: key);
@@ -10,6 +15,21 @@ class UsersPage extends StatefulWidget {
 class _UsersPageState extends State<UsersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final Map<String, bool> _expandedReports = {};
+  final List<Map<String, String>> _bannedUsers = [
+    {
+      'id': 'user3',
+      'name': 'Alice Johnson',
+      'email': 'alice.johnson@example.com',
+      'date': 'Banned: 2023-04-10',
+    },
+    {
+      'id': 'user4',
+      'name': 'Bob Brown',
+      'email': 'bob.brown@example.com',
+      'date': 'Banned: 2023-03-25',
+    },
+  ];
 
   @override
   void initState() {
@@ -23,161 +43,28 @@ class _UsersPageState extends State<UsersPage>
     super.dispose();
   }
 
-  void _showAddUserModal() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final TextEditingController firstNameController =
-            TextEditingController();
-        final TextEditingController lastNameController =
-            TextEditingController();
-        final TextEditingController emailController = TextEditingController();
-        final TextEditingController passwordController =
-            TextEditingController();
-
-        return AlertDialog(
-          title: const Text(
-            'Add New User',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 16),
-                TextField(
-                  controller: firstNameController,
-                  decoration: InputDecoration(
-                    labelText: 'First Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: lastNameController,
-                  decoration: InputDecoration(
-                    labelText: 'Last Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  obscureText: true,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontSize: 18, color: Colors.red),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Handle user creation logic here
-                    final newUser = {
-                      "first_name": firstNameController.text,
-                      "last_name": lastNameController.text,
-                      "email": emailController.text,
-                      "password": passwordController.text,
-                    };
-                    print(newUser); // Replace with actual API call
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text('Add', style: TextStyle(fontSize: 18)),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
+  void _toggleReportsVisibility(String userId) {
+    setState(() {
+      _expandedReports[userId] = !(_expandedReports[userId] ?? false);
+    });
   }
 
-  Widget _buildUserCard({
-    required String name,
-    required String email,
-    String? date,
-    int? reports,
-    required List<Widget> actions,
-  }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              email,
-              style: const TextStyle(color: Colors.black87, fontSize: 16),
-            ),
-            if (date != null)
-              Text(
-                'Date: $date',
-                style: const TextStyle(color: Colors.black87, fontSize: 16),
-              ),
-            if (reports != null)
-              Text(
-                'Reports: $reports',
-                style: const TextStyle(color: Colors.black87, fontSize: 16),
-              ),
-            const SizedBox(height: 8),
-            Row(children: actions),
-          ],
-        ),
-      ),
-    );
+  void _handleDeleteUser(BuildContext context, String userId) {
+    // Add logic to delete the user
+    print('Delete user with ID: $userId');
+  }
+
+  void _handleBanUser(BuildContext context, String userId) {
+    // Add logic to ban the user
+    print('Ban user with ID: $userId');
+  }
+
+  void _handleUnbanUser(BuildContext context, String userId) {
+    // Add logic to unban the user
+    print('Unban user with ID: $userId');
+    setState(() {
+      _bannedUsers.removeWhere((user) => user['id'] == userId);
+    });
   }
 
   @override
@@ -190,7 +77,7 @@ class _UsersPageState extends State<UsersPage>
             child: TabBar(
               controller: _tabController,
               tabs: const [
-                Tab(text: 'Active Users'),
+                Tab(text: 'Reported Users'),
                 Tab(text: 'Banned Users'),
               ],
               labelColor: Colors.black,
@@ -203,93 +90,54 @@ class _UsersPageState extends State<UsersPage>
             child: TabBarView(
               controller: _tabController,
               children: [
-                // Active Users Tab
-                ListView(
-                  children: [
-                    _buildUserCard(
-                      name: 'John Doe',
-                      email: 'john.doe@example.com',
-                      date: 'Joined: 2023-01-15',
-                      reports: 2,
-                      actions: [
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Ban User',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                // Reported Users Section
+                BlocProvider(
+                  create:
+                      (context) => UsersBloc(
+                        adminApiClient: AdminApiClient(
+                          baseUrl: 'https://your-backend-url.com',
                         ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Delete User',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'View Reports',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                    _buildUserCard(
-                      name: 'Jane Smith',
-                      email: 'jane.smith@example.com',
-                      date: 'Joined: 2023-02-20',
-                      actions: [
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Ban User',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Delete User',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'View Reports',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      )..add(FetchReportedUsersEvent()),
+                  child: BlocBuilder<UsersBloc, UsersState>(
+                    builder: (context, state) {
+                      if (state is UsersLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is UsersLoaded) {
+                        return ListView(
+                          children:
+                              state.reportedUsers.map((user) {
+                                return ReportedUserCard(
+                                  name:
+                                      '${user['reported']['first_name']} ${user['reported']['last_name']}',
+                                  email:
+                                      user['reported']['contact_info']['email'],
+                                  date: user['created_at'],
+                                  reports: 1, // Assuming 1 report per user
+                                  showReports: false,
+                                  onToggleReports: () {},
+                                  onDelete: () {},
+                                  onBan: () {},
+                                );
+                              }).toList(),
+                        );
+                      } else if (state is UsersError) {
+                        return Center(child: Text(state.message));
+                      }
+                      return const Center(child: Text('No data available'));
+                    },
+                  ),
                 ),
-                // Banned Users Tab
+                // Banned Users Section
                 ListView(
-                  children: [
-                    _buildUserCard(
-                      name: 'Alice Johnson',
-                      email: 'alice.johnson@example.com',
-                      date: 'Banned: 2023-04-10',
-                      actions: [
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Unban User',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Delete User',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  children:
+                      _bannedUsers.map((user) {
+                        return BannedUserCard(
+                          name: user['name']!,
+                          email: user['email']!,
+                          date: user['date']!,
+                          onUnban: () => _handleUnbanUser(context, user['id']!),
+                        );
+                      }).toList(),
                 ),
               ],
             ),
@@ -297,7 +145,9 @@ class _UsersPageState extends State<UsersPage>
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddUserModal,
+        onPressed: () {
+          // Add user modal logic
+        },
         child: const Icon(Icons.add),
       ),
     );
