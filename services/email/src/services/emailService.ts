@@ -24,10 +24,14 @@ export const sendEmail = async (
   subject: string,
   content: string
 ) => {
+  console.log(`Sending email from ${sender} to ${email}: ${subject} - ${content}`);
+
   const existingEmail = await db.query(
     "SELECT * FROM email_service.users WHERE email = $1",
     [email]
   );
+
+  console.log("Existing email:", existingEmail.rows);
 
   if (existingEmail.rows.length === 0) {
     throw new Error("Email not found.");
