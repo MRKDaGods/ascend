@@ -51,7 +51,8 @@ class _ManageOwnedCompanyState extends State<ManageOwnedCompany> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Manage Owned Companies')),
-      body:
+      body: Stack(
+        children: [
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : companies.isEmpty
@@ -72,15 +73,22 @@ class _ManageOwnedCompanyState extends State<ManageOwnedCompany> {
                   );
                 },
               ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to the create company page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreateCompany()),
-          );
-        },
-        child: const Icon(Icons.add),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateCompany(),
+                  ),
+                );
+              },
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
   }

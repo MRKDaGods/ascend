@@ -1,3 +1,5 @@
+import 'package:ascend_app/features/CompanyPage/company_page.dart';
+import 'package:ascend_app/features/Jobs/pages/company_details.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
@@ -8,16 +10,13 @@ import 'package:http/http.dart' as http; // Import http package
 
 import 'package:ascend_app/features/Jobs/pages/report_page.dart'; // Import the new ReportPage
 
-
 class JobDetailsPage extends StatefulWidget {
   final Jobsattributes job;
   const JobDetailsPage({super.key, required this.job});
 
   @override
-
   // ignore: library_private_types_in_public_api
   _JobDetailsPageState createState() => _JobDetailsPageState();
-
 }
 
 class _JobDetailsPageState extends State<JobDetailsPage> {
@@ -142,79 +141,139 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(4.0), // Padding around the image
-                child:
-                    widget.job.companyPhoto != null
-                        ? (Uri.tryParse(
-                                  widget.job.companyPhoto!,
-                                )?.hasAbsolutePath ??
-                                false
-                            ? (widget.job.companyPhoto!.endsWith('.svg')
-                                ? SvgPicture.network(
-                                  widget.job.companyPhoto!,
-                                  width: 40,
-                                  height: 40,
-                                  fit:
-                                      BoxFit
-                                          .contain, // Shrink and resize the image
-                                  placeholderBuilder:
-                                      (context) => Icon(
+        title: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => CompanyPage(
+                      name: widget.job.company,
+                      profileImageUrl: widget.job.companyPhoto ?? '',
+                      coverImageUrl: '',
+                      location: widget.job.location,
+                      industry: widget.job.industry ?? 'Unknown Industry',
+                      connections: 0,
+                      verified: false,
+                      bio: '',
+                      sections: [],
+                      isconnect: false,
+                      isfollow: false,
+                      isPending: false,
+                      mutualConnections: [],
+                      webSiteExists: false,
+                      links: [],
+                      badges: [],
+                    ),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(
+                    4.0,
+                  ), // Padding around the image
+                  child:
+                      widget.job.companyPhoto != null
+                          ? (Uri.tryParse(
+                                    widget.job.companyPhoto!,
+                                  )?.hasAbsolutePath ??
+                                  false
+                              ? (widget.job.companyPhoto!.endsWith('.svg')
+                                  ? SvgPicture.network(
+                                    widget.job.companyPhoto!,
+                                    width: 40,
+                                    height: 40,
+                                    fit:
+                                        BoxFit
+                                            .contain, // Shrink and resize the image
+                                    placeholderBuilder:
+                                        (context) => Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
+                                  )
+                                  : Image.network(
+                                    widget.job.companyPhoto!,
+                                    headers: {'User-Agent': 'Mozilla/5.0'},
+                                    fit:
+                                        BoxFit
+                                            .contain, // Shrink and resize the image
+                                    width: 40,
+                                    height: 40,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Icon(
                                         Icons.image_not_supported,
                                         size: 40,
                                         color: Colors.grey,
-                                      ),
-                                )
-                                : Image.network(
-                                  widget.job.companyPhoto!,
-                                  headers: {'User-Agent': 'Mozilla/5.0'},
-                                  fit:
-                                      BoxFit
-                                          .contain, // Shrink and resize the image
-                                  width: 40,
-                                  height: 40,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Icon(
-                                      Icons.image_not_supported,
-                                      size: 40,
-                                      color: Colors.grey,
-                                    );
-                                  },
-                                ))
-                            : Image.asset(
-                              widget.job.companyPhoto!,
-                              fit:
-                                  BoxFit.contain, // Shrink and resize the image
-                              width: 40,
-                              height: 40,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.image_not_supported,
-                                  size: 40,
-                                  color: Colors.grey,
-                                );
-                              },
-                            ))
-                        : Icon(
-                          Icons.image_not_supported,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
+                                      );
+                                    },
+                                  ))
+                              : Image.asset(
+                                widget.job.companyPhoto!,
+                                fit:
+                                    BoxFit
+                                        .contain, // Shrink and resize the image
+                                width: 40,
+                                height: 40,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  );
+                                },
+                              ))
+                          : Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                ),
               ),
-            ),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                widget.job.company,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => CompanyPage(
+                              name: widget.job.company,
+                              profileImageUrl: widget.job.companyPhoto ?? '',
+                              coverImageUrl: '',
+                              location: widget.job.location,
+                              industry:
+                                  widget.job.industry ?? 'Unknown Industry',
+                              connections: 0,
+                              verified: false,
+                              bio: '',
+                              sections: [],
+                              isconnect: false,
+                              isfollow: false,
+                              isPending: false,
+                              mutualConnections: [],
+                              webSiteExists: false,
+                              links: [],
+                              badges: [],
+                            ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    widget.job.company,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         // Add a report icon at the top right of the job details page
         actions: [

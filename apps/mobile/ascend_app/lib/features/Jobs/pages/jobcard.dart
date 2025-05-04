@@ -84,7 +84,10 @@ Widget jobCard({
                                   )
                                   : Image.network(
                                     job.companyPhoto!,
-                                    headers: {'User-Agent': 'Mozilla/5.0'},
+                                    headers: {
+                                      'User-Agent': 'Mozilla/5.0',
+                                      'Authorization': 'Bearer YOUR_TOKEN_HERE',
+                                    },
                                     fit:
                                         BoxFit
                                             .cover, // Ensure the image fits properly

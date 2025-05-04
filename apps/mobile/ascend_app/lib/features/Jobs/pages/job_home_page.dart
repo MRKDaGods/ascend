@@ -192,7 +192,7 @@ class _JobHomePageState extends State<JobHomePage> {
                                   .where((job) => job.isBookmarked)
                                   .toList(),
                         ),
-                        if (!profile.isPremium)
+                        if (profile.isPremium)
                           PremiumSection(isDarkMode: widget.isDarkMode),
                         const SizedBox(height: 10),
                         ExploreScreen(
