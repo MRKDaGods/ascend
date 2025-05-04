@@ -124,27 +124,6 @@ export const removeConnectionAPI = async (connectionId: number): Promise<{
   return res.data;
 };
 
-export interface ConnectionPreferences {
-  allow_connection_requests: boolean;
-  allow_messages_from: "all" | "connections-only";
-  visible_to_public: boolean;
-  visible_to_connections: boolean;
-  visible_to_network: boolean;
-  show_followers: boolean;
-}
-
-export interface ConnectionPreferencesResponse {
-  success: boolean;
-  data: ConnectionPreferences & { user_id: number; updated_at: string };
-}
-
-export const upsertConnectionPreferencesAPI = async (
-  preferences: ConnectionPreferences
-): Promise<ConnectionPreferencesResponse> => {
-  const res = await API.put("/connection/preferences", preferences);
-  return res.data;
-};
-
 // Type for the response
 export interface GetConnectionStatusResponse {
   success: boolean;
@@ -265,4 +244,50 @@ export const getBlockedUsersAPI = async (
 export const unblockUserAPI = async (userId: number): Promise<{ success: boolean; message: string }> => {
   const res = await API.delete(`/connection/block/${userId}`);
   return res.data;
+};
+
+export interface SendMessageRequestPayload {
+  userId: number;
+  message: string;
+}
+
+export interface SendMessageRequestResponse {
+  success: boolean;
+  data: {
+    id: number;
+    sender_id: number;
+    recipient_id: number;
+    message: string;
+    status: "pending";
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+export const sendMessageRequestAPI = async (
+  payload: SendMessageRequestPayload
+): Promise<SendMessageRequestResponse> => {
+  const res = await API.post("/connection/message-request", payload);
+  return res.data;
+};
+
+// Add type
+export interface MessageRequest {
+  id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  profile_picture_id: number | null;
+  bio: string | null;
+  message: string;
+  created_at: string;
+  status: "pending";
+}
+
+// Add API function
+export const getMessageRequestsAPI = async (): Promise<MessageRequest[]> => {
+  const res = await API.get<{ success: boolean; data: MessageRequest[] }>(
+    "/connection/message-requests"
+  );
+  return res.data.data;
 };

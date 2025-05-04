@@ -56,7 +56,7 @@ export default function SettingsPage() {
             {selectedSection === "Visibility" && (
               <>
                 <BlockedUsers />
-                <VisibilitySettings />
+                {/* <VisibilitySettings /> */}
               </>
             )}
           </Container>

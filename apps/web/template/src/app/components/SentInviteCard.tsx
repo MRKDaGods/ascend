@@ -42,7 +42,6 @@ const SentInviteCard = ({
     >
       <Stack direction="row" spacing={2} alignItems="center">
         <Avatar src={profilePicture || ""} sx={{ width: 48, height: 48 }} />
-
         <Box>
           <Typography fontWeight={600}>{fullName}</Typography>
           <Typography variant="body2" color="text.secondary">
