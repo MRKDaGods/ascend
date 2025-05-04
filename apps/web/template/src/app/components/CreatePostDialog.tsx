@@ -359,9 +359,7 @@ const CreatePostDialog: React.FC = () => {
             id="submit-post-button"
             variant="contained"
             onClick={handleSubmit}
-            disabled={
-              !postText.trim() && mediaFiles.length === 0 && !documentPreview
-            }
+            disabled={!postText.trim()}
             sx={{ textTransform: "none", px: 4 }}
           >
             Post
