@@ -19,7 +19,11 @@ import {
     getFollowersAPI, 
     Follower,
     getFollowStatusAPI,
-    blockUserAPI 
+    blockUserAPI,
+    getBlockedUsersAPI,
+    BlockedUser,
+    GetBlockedUsersResponse, 
+    unblockUserAPI
   } from "@/api/connections";
 
 interface ConnectionStore {
@@ -60,7 +64,9 @@ interface ConnectionStore {
   fetchFollowStatus: (userId: number) => Promise<void>;
 
   blockUser: (userId: number) => Promise<void>;
-
+  blockedUsers: BlockedUser[];
+  fetchBlockedUsers: (page?: number, limit?: number) => Promise<void>;
+  unblockUser: (userId: number) => Promise<void>;
 }
 
 export const useConnectionStore = create<ConnectionStore>((set, get) => ({
@@ -222,6 +228,27 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       console.error(`❌ Failed to block user ${userId}`, err);
     }
   },
-  
+
+  blockedUsers: [],
+
+  fetchBlockedUsers: async (page = 1, limit = 10) => {
+    try {
+      const res = await getBlockedUsersAPI(page, limit);
+      set({ blockedUsers: res.data.data });
+    } catch (err) {
+      console.error("❌ Failed to fetch blocked users:", err);
+    }
+  },
+
+  unblockUser: async (userId) => {
+    try {
+      const res = await unblockUserAPI(userId);
+      console.log(`✅ User ${userId} unblocked:`, res.message);
+      const updated = get().blockedUsers.filter((u) => u.user_id !== userId);
+      set({ blockedUsers: updated });
+    } catch (err) {
+      console.error(`❌ Failed to unblock user ${userId}`, err);
+    }
+  },  
 
 }));

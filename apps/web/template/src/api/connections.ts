@@ -231,3 +231,38 @@ export const blockUserAPI = async (userId: number): Promise<BlockUserResponse> =
   const res = await API.post(`/connection/block/${userId}`);
   return res.data;
 };
+
+export interface BlockedUser {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  profile_picture_id: number;
+  blocked_at: string;
+}
+
+export interface GetBlockedUsersResponse {
+  success: boolean;
+  data: {
+    data: BlockedUser[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+    };
+  };
+}
+
+export const getBlockedUsersAPI = async (
+  page = 1,
+  limit = 10
+): Promise<GetBlockedUsersResponse> => {
+  const res = await API.get("/connection/blocked", {
+    params: { page, limit },
+  });
+  return res.data;
+};
+
+export const unblockUserAPI = async (userId: number): Promise<{ success: boolean; message: string }> => {
+  const res = await API.delete(`/connection/block/${userId}`);
+  return res.data;
+};
