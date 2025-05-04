@@ -99,6 +99,34 @@ export interface UltimateSearchResponse {
   };
 }
 
+interface TagUserRequest {
+  contentType: "post" | "comment";
+  contentId: number;
+  tags: {
+    userId: number;
+    startIndex: number;
+    endIndex: number;
+  }[];
+}
+
+interface TagUserResponse {
+  success: boolean;
+  data: {
+    contentType: "post" | "comment";
+    contentId: number;
+    tags: {
+      id: number;
+      tagged_user_id: number;
+      tagger_user_id: number;
+      post_id: number | null;
+      comment_id: number | null;
+      start_index: number;
+      end_index: number;
+      created_at: string;
+    }[];
+  };
+}
+
 // ================================================================================================= //
 
 // ==== FETCH FEED ====
@@ -128,9 +156,51 @@ export const fetchPost = async (
 };
 
 // ==== CREATE POST ====
+// export const createPost = async (
+//   content: string,
+//   mediaFiles?: File[],                                      // accepts multiple files
+//   mediaType?: "image" | "video" | "file" | "text",          // includes 'text'
+//   fileTitle?: string,
+//   fileDescription?: string
+// ): Promise<AxiosResponse<CreatePostResponse>> => {
+//   const formData = new FormData();
+//   formData.append("content", content);
+//   formData.append("privacy", "public");
+
+//   const hasMedia = mediaFiles && mediaFiles.length > 0;
+
+//   if (hasMedia && mediaType) {
+//     mediaFiles.forEach((file) => {
+//       formData.append("media", file);
+//     });
+
+//     const normalizedType = mediaType === "file" ? "document" : mediaType;
+//     formData.append("type", normalizedType);
+//     formData.append("title", fileTitle ?? "Uploaded Media");
+//     formData.append("description", fileDescription ?? `${normalizedType} file`);
+
+//     console.log(`📁 Uploading ${mediaFiles.length} files as ${normalizedType}`);
+//   } else {
+//     // ✅ Text-only fallback
+//     formData.append("type", "text");
+//     formData.append("title", "Text Post");
+//     formData.append("description", "No media attached");
+
+//     console.log("📝 Creating text-only post");
+//   }
+
+//   return await API.post("/post", formData, {
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//       "x-no-parse-body": "1",
+//     },
+//   });
+// };
+
+// NEW VERSION - handles all cases
 export const createPostNew = async (
   content: string,
-  mediaFiles?: File[],
+  mediaFile?: File,
   mediaType?: "image" | "video" | "file",
   fileTitle?: string,
   fileDescription?: string
@@ -139,28 +209,21 @@ export const createPostNew = async (
   formData.append("content", content);
   formData.append("privacy", "public");
 
-  const hasMedia = mediaFiles && mediaFiles.length > 0;
-
-  if (hasMedia && mediaType) {
-    // ✅ Append all files
-    mediaFiles.forEach((file) => {
-      formData.append("media", file);
-    });
-
-    const normalizedType = mediaType === "file" ? "document" : mediaType;
-    formData.append("type", normalizedType);
-    formData.append("title", fileTitle ?? "Uploaded Media");
-    formData.append("description", fileDescription ?? `${normalizedType} file`);
-
-    console.log(`📁 Uploading ${mediaFiles.length} files as ${normalizedType}`);
+  if (mediaFile && mediaType === "file") {
+    formData.append("media", mediaFile);
+    formData.append("type", "document");
+    formData.append("title", fileTitle ?? "Untitled Document");
+    formData.append("description", fileDescription ?? "PDF file");
+    console.log("📄 Document being uploaded:", mediaFile.name);
+  } else if (mediaFile && (mediaType === "image" || mediaType === "video")) {
+    formData.append("media", mediaFile);
+    formData.append("type", mediaType);
+    formData.append("title", "Uploaded Media");
+    formData.append("description", `${mediaType} file`);
+    console.log("🖼️ Media being uploaded:", mediaFile.name);
   } else {
-    // For text-only post
-    formData.append("title", "Text Post");
-    formData.append("description", "No media attached");
-  
-    // ✅ Add an empty blob to "media" to satisfy the backend's expectations
-    formData.append("media", new Blob([]), "");
-  
+    formData.append("title", "text only");
+    formData.append("description", "no media");
     console.log("📝 Text-only post");
   }
 
@@ -171,6 +234,8 @@ export const createPostNew = async (
     },
   });
 };
+
+
 
 // ==== DELETE POST ====
 
@@ -286,6 +351,22 @@ export const ultimateSearchAPI = async (
   return response.data;
 };
 
+// ==== TAG USERS ON POST OR COMMENT ====
+
+export const tagUsersAPI = async (payload: TagUserRequest): Promise<TagUserResponse> => {
+  const response = await API.post<TagUserResponse>("/post/tags", payload);
+  return response.data;
+};
+
+export const tagUsersOnContentAPI = async (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number }[]) => {
+  const res = await API.post(`/tags`, {
+    contentType,
+    contentId,
+    tags,
+  });
+  return res.data;
+};
+
 // ==== CREATE REACTION ON POST ====
 
 export const reactToPostAPI = async (postId: number, type: string) => {
@@ -295,42 +376,4 @@ export const reactToPostAPI = async (postId: number, type: string) => {
     },
   });
   return response.data;
-};
-
-// ==== REPORT POST ====
-
-export const reportPostAPI = async (
-  postId: number,
-  reason: "harassment" | "violence" | "hate_speech" | "misinformation" | "other",
-  description: string
-): Promise<{
-  success: boolean;
-  data: {
-    id: number;
-    post_id: number;
-    reason: string;
-    description: string;
-  };
-}> => {
-  const response = await API.post(`/post/${postId}/report`, {
-    reason,
-    description,
-  });
-  return response.data;
-};
-
-// ==== TAG USERS ====
-export interface TagPayload {
-  contentType: "post" | "comment";
-  contentId: number;
-  tags: {
-    userId: number;
-    startIndex: number;
-    endIndex: number;
-  }[];
-}
-
-export const tagUsersAPI = async (payload: TagPayload): Promise<{ success: boolean; data: any }> => {
-  const res = await API.post("/post/tags", payload); // ✅ Correct endpoint
-  return res.data;
 };
