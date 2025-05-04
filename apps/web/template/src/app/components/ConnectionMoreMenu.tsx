@@ -47,7 +47,6 @@ const ConnectionMoreMenu: React.FC<ConnectionMoreMenuProps> = ({
   lastName,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [blockSnackbarOpen, setBlockSnackbarOpen] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -168,7 +167,7 @@ const ConnectionMoreMenu: React.FC<ConnectionMoreMenuProps> = ({
 
         <MenuItem
           onClick={() => {
-            setReportDialogOpen(true);
+            setBlockDialogOpen(true);
             handleMenuClose();
           }}
         >
@@ -219,12 +218,21 @@ const ConnectionMoreMenu: React.FC<ConnectionMoreMenuProps> = ({
         fullWidth
         maxWidth="xs"
       >
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h6">Block</Typography>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h6" component="span">
+            Block
+          </Typography>
           <IconButton onClick={() => setBlockDialogOpen(false)}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
+
         <DialogContent>
           <Typography fontWeight={600} gutterBottom>
             You’re about to block {firstName} {lastName}
@@ -237,7 +245,6 @@ const ConnectionMoreMenu: React.FC<ConnectionMoreMenuProps> = ({
           <Button
             onClick={() => {
               setBlockDialogOpen(false);
-              setReportDialogOpen(true);
             }}
             variant="outlined"
           >

@@ -17,10 +17,10 @@ import { useConnectionStore } from "../stores/useConnectionStore";
 const InvitationsCard = () => {
   const theme = useTheme();
   const router = useRouter();
-  const { connections, fetchTopConnections } = useConnectionStore();
+  const { receivedInvitations, fetchTopInvitations, respondToConnectionRequest } = useConnectionStore();
 
   useEffect(() => {
-    fetchTopConnections(5);
+    fetchTopInvitations(5);
   }, []);
 
   return (
@@ -42,7 +42,7 @@ const InvitationsCard = () => {
         }}
       >
         <Typography variant="subtitle1" fontWeight={600}>
-          Invitations ({connections.length})
+          Invitations ({receivedInvitations.length})
         </Typography>
 
         <Typography
@@ -64,7 +64,7 @@ const InvitationsCard = () => {
         </Typography>
       </Box>
 
-      {connections.length === 0 ? (
+      {receivedInvitations.length === 0 ? (
         <Typography
           variant="body2"
           color="text.secondary"
@@ -74,8 +74,8 @@ const InvitationsCard = () => {
           You have no invitations yet.
         </Typography>
       ) : (
-        connections.map((conn, index) => (
-          <Box key={conn.user_id}>
+        receivedInvitations.map((invite, index) => (
+          <Box key={invite.id}>
             <Box
               sx={{
                 display: "flex",
@@ -87,45 +87,39 @@ const InvitationsCard = () => {
             >
               <Avatar
                 src={
-                  conn.profile_picture_id
-                    ? `https://api.ascendx.tech/files/${conn.profile_picture_id}`
+                  invite.profile_picture_id
+                    ? `https://api.ascendx.tech/files/${invite.profile_picture_id}`
                     : undefined
                 }
                 sx={{ width: 48, height: 48 }}
               />
               <Box sx={{ flexGrow: 1 }}>
                 <Typography fontWeight={600}>
-                  {conn.first_name} {conn.last_name}
+                  {invite.first_name} {invite.last_name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Mutual connection
+                  {invite.bio || "No bio available"}
                 </Typography>
-                <Stack direction="row" alignItems="center" spacing={0.5} mt={0.5}>
-                  <Diversity3Icon sx={{ fontSize: 16 }} />
-                  <Typography variant="caption" color="text.secondary">
-                    1 mutual connection
-                  </Typography>
-                </Stack>
               </Box>
               <Stack direction="row" spacing={1}>
                 <Button
                   variant="outlined"
                   size="small"
-                  sx={{
-                    color: theme.palette.text.secondary,
-                    cursor: "pointer",
-                    border: "0px",
-                  }}
+                  onClick={() => respondToConnectionRequest(invite.id, false)}
                 >
                   Ignore
                 </Button>
-                <Button variant="outlined" size="small">
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => respondToConnectionRequest(invite.id, true)}
+                >
                   Accept
                 </Button>
               </Stack>
             </Box>
-            {index < connections.length - 1 && <Divider sx={{ mb: 2 }} />}
-          </Box>
+            {index < receivedInvitations.length - 1 && <Divider sx={{ mb: 2 }} />}
+          </Box>        
         ))
       )}
     </Box>

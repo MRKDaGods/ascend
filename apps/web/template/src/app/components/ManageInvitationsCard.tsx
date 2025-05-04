@@ -82,7 +82,12 @@ const ManageInvitationsCard = () => {
       {tab === 0 && (
         <>
           {receivedInvitations.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
+              py={2}
+            >
               You have no received invitations.
             </Typography>
           ) : (
@@ -110,7 +115,12 @@ const ManageInvitationsCard = () => {
       {tab === 1 && (
         <>
           {sentInvitations.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
+              py={2}
+            >
               You have not sent any invitations yet.
             </Typography>
           ) : (
@@ -133,7 +143,11 @@ const ManageInvitationsCard = () => {
       )}
 
       {/* Settings Dialog */}
-      <ConnectionPreferencesDialog open={openSettings} onClose={() => setOpenSettings(false)} />
+      <ConnectionPreferencesDialog
+        open={openSettings}
+        onClose={() => setOpenSettings(false)}
+        userId={0}
+      />
     </Box>
   );
 };
