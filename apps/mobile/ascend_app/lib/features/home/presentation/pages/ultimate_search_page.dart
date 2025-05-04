@@ -7,6 +7,7 @@ import 'package:ascend_app/features/home/presentation/widgets/search/user_search
 import 'package:ascend_app/features/home/presentation/widgets/search/user_search_result_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../widgets/post/post.dart' as post_widget; // Alias Post widget
 
 class UltimateSearchPage extends StatefulWidget {
   final VoidCallback? onBackPressed; // Add callback for back navigation
@@ -134,8 +135,10 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
                     final user = UserSearchResult.fromJson(item['data'] as Map<String, dynamic>);
                     return UserSearchResultTile(user: user);
                   } else if (item is Map<String, dynamic> && item['type'] == 'post') {
-                    final post = PostSearchResult.fromJson(item['data'] as Map<String, dynamic>);
-                    return PostSearchResultTile(post: post);
+                    // Extract just the post ID instead of creating the full PostSearchResult
+                    final postId = item['data']['id'] as int;
+                    // Return your post widget that takes just an ID
+                    return post_widget.Post(postId: postId.toString());
                   } else {
                     // Fallback for unknown types or structure issues
                     return ListTile(
