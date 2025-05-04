@@ -13,19 +13,24 @@ import {
   fetchCommentsForPost,
   ultimateSearchAPI,
   tagUsersOnContentAPI,
-  reactToPostAPI,
   createPostNew,
-  reportPostAPI
+  reportPostAPI,
+  sendReactionAPI
 } from "@/api/posts";
 
 
 export type ReactionType =
-  | "Like"
-  | "Celebrate"
-  | "Support"
-  | "Love"
-  | "Insightful"
-  | "Funny";
+  | "like"
+  | "love"
+  | "support"
+  | "celebrate"
+  | "funny"
+  | "curious"
+  | "insightful";
+
+type ReactionCounts = {
+  [key in ReactionType]?: number;
+};
 
 export interface Tag {
   id: number;
@@ -45,7 +50,6 @@ export type PostType = {
   comments: number;
   commentsList: string[];
   isUserPost?: boolean;
-  reaction?: ReactionType;
   tags?: Tag[];
   commentTags?: { [commentIndex: number]: Tag[] };
   fileDescription?: string;
@@ -60,7 +64,10 @@ export type PostType = {
   }[];
   isReported?: boolean;
   reportReason?: string; 
-};
+
+  reaction?: ReactionType;
+  reactionCounts?: ReactionCounts;
+}; 
 
 interface PostStoreState {
   posts: PostType[];
@@ -83,7 +90,6 @@ interface PostStoreState {
   discardRepostDialogOpen: boolean;
   isLastPostDeleted: boolean;
   repostSourcePost: PostType | null;
-  postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
   savedPosts: number[];
   taggedUsers: Tag[]; 
@@ -129,17 +135,6 @@ interface PostStoreState {
   fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
   toggleSavePostAPI: (postId: number) => Promise<void>;
   fetchCommentsForPostFromAPI: (postId: number, page?: number, limit?: number) => Promise<any>;
-  reactToPostFromAPI: (
-    postId: number, 
-    type: 
-    "like" | 
-    "love" | 
-    "support" | 
-    "celebrate" | 
-    "funny" | 
-    "insightful"
-  ) => Promise<void>;
-
   searchResults: {
     users: {
       id: number;
@@ -165,9 +160,6 @@ interface PostStoreState {
   } | null) => void;  
 
   tagUsersOnContent: (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number; }[]) => Promise<void>;
-
-  setReaction: (postId: number, reaction: ReactionType) => void;
-  clearReaction: (postId: number) => void;
   
   commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<{ id: number }>;
 
@@ -204,6 +196,11 @@ interface PostStoreState {
   setReportDialogReason: (reason: string) => void;  // Sets the reason for reporting
 
   selectedReportReason: string | null;
+
+  reactToPostAPI: (postId: number, reaction: ReactionType) => Promise<void>;
+  removeReactionFromPost: (postId: number) => void;
+  setReactionOnPost: (postId: number, reaction: ReactionType) => void;
+
   }
 
 export const usePostStore = create<PostStoreState>()(
@@ -229,7 +226,6 @@ export const usePostStore = create<PostStoreState>()(
       discardRepostDialogOpen: false,
 
       isLastPostDeleted: false,
-      postReactions: {},
       repostedPosts: [],
       savedPosts: [],
 
@@ -541,41 +537,6 @@ export const usePostStore = create<PostStoreState>()(
           console.error("❌ Failed to tag users:", err?.response?.data || err.message);
         }
       },
-
-      reactToPostFromAPI: async (postId, type) => {
-        try {
-          const response = await reactToPostAPI(postId, type);
-          const { reacted, type: reactionType } = response.data;
-      
-          if (reacted) {
-            set((state) => ({
-              postReactions: {
-                ...state.postReactions,
-                [postId]: reactionType,
-              },
-              posts: state.posts, // don't touch likes locally
-            }));
-            console.log(`✅ Added '${reactionType}' reaction to post ${postId}`);
-          }
-        } catch (err: any) {
-          console.error("❌ Failed to react to post:", err?.response?.data || err.message);
-        }
-      },      
-      
-      setReaction: (postId, reaction) =>
-        set((state) => ({
-          postReactions: { ...state.postReactions, [postId]: reaction },
-          posts: state.posts,
-        })),
-        
-        clearReaction: (postId) =>
-          set((state) => {
-            const { [postId]: _, ...rest } = state.postReactions;
-            return {
-              postReactions: rest,
-              posts: state.posts,
-            };
-          }),          
       
         commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
           try {
@@ -679,6 +640,57 @@ export const usePostStore = create<PostStoreState>()(
           reportThisPostDialogOpen: false,
         }));
       },
+
+      reactToPostAPI: async (postId, reaction) => {
+        try {
+          // 🟢 You’ll replace this with your actual API function
+          const response = await sendReactionAPI(postId, reaction); // implement this
+      
+          set((s) => ({
+            posts: s.posts.map((p) => {
+              if (p.id !== postId) return p;
+      
+              const currentReaction = p.reaction;
+              const updatedCounts = { ...(p.reactionCounts || {}) };
+      
+              // Remove old reaction
+              if (currentReaction) {
+                updatedCounts[currentReaction] = Math.max((updatedCounts[currentReaction] || 1) - 1, 0);
+              }
+      
+              // Set new reaction
+              updatedCounts[reaction] = (updatedCounts[reaction] || 0) + 1;
+      
+              return {
+                ...p,
+                reaction,
+                reactionCounts: updatedCounts,
+              };
+            }),
+          }));
+        } catch (err: any) {
+          console.error("❌ Failed to react to post:", err?.response?.data || err.message);
+        }
+      },
+      
+      removeReactionFromPost: (postId) => {
+        set((s) => ({
+          posts: s.posts.map((p) => {
+            if (p.id !== postId || !p.reaction) return p;
+            const updatedCounts = { ...(p.reactionCounts || {}) };
+            updatedCounts[p.reaction] = Math.max((updatedCounts[p.reaction] || 1) - 1, 0);
+            return { ...p, reaction: undefined, reactionCounts: updatedCounts };
+          }),
+        }));
+      },
+      
+      setReactionOnPost: (postId, reaction) => {
+        set((s) => ({
+          posts: s.posts.map((p) =>
+            p.id === postId ? { ...p, reaction } : p
+          ),
+        }));
+      },      
       
       closeReportThisPostDialog: () => set({ reportThisPostDialogOpen: false }),
       
