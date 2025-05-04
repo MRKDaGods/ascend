@@ -8,6 +8,7 @@ import { socket } from "../utils/socketHandler";
 import { useTheme } from "@mui/material/styles";
 
 export default function InputBox() {
+  const theme = useTheme();
   const [messageText, setMessageText] = useState("");
   const [selectedFiles, setselectedFiles] = useState<File[]>([]);
 
@@ -116,7 +117,8 @@ export default function InputBox() {
           gap: 1,
           padding: 1,
           borderTop: "1px solid #ccc",
-          backgroundColor: "#fff",
+          bgcolor: theme.palette.background.default,
+          color: theme.palette.text.primary,
         }}
       >
         <input
@@ -207,7 +209,6 @@ export default function InputBox() {
                     position: "absolute",
                     top: 0,
                     right: 0,
-                    color: "black",
                     minWidth: "unset", //shrink naturally
                     padding: "2px 6px",
                     fontSize: 15,
