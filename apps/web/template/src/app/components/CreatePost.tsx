@@ -46,7 +46,6 @@ const CreatePost: React.FC = () => {
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           width: "100%",
-          maxWidth: "600px",
           backgroundColor: theme.palette.background.paper,
           display: "flex",
           flexDirection: "column",

@@ -12,16 +12,18 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useTheme } from "@mui/material/styles";
 
 const ViewPost = () => {
   const { postedJob } = usepJobStore();
   const router = useRouter();
+  const theme = useTheme();
 
   useEffect(() => {
     if (!postedJob) {
       router.push("/"); // fallback if accessed directly
     }
-  }, [postedJob]);
+  }, [postedJob, router]);
 
   if (!postedJob) {
     return (
@@ -48,13 +50,20 @@ const ViewPost = () => {
         sx={{
           p: 4,
           borderRadius: 4,
-          border: "1px solid #e0e0e0",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          border: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: theme.shadows[4],
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center" mb={2}>
           <Avatar
-            sx={{ width: 60, height: 60, bgcolor: "primary.main", fontWeight: "bold" }}
+            sx={{
+              width: 60,
+              height: 60,
+              bgcolor: theme.palette.primary.main,
+              fontWeight: "bold",
+              color: theme.palette.getContrastText(theme.palette.primary.main),
+            }}
           >
             {postedJob.companyName?.[0]}
           </Avatar>

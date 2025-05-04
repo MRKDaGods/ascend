@@ -101,7 +101,6 @@ const ConnectionPost: React.FC<{ post: PostType }> = ({ post }) => {
         bgcolor: theme.palette.background.paper,
         color: theme.palette.text.primary,
         width: "100%",
-        maxWidth: "600px",
         mx: "auto",
       }}
     >

@@ -6,7 +6,7 @@ import MergeJobsNavbar from "../components/MergeJobsNavbar";
 import ProfileCard from "../components/ProfileCard";
 import ListCard from "../components/ListCard";
 import JobPreferences from "../components/lookingfor";
-import JobList from "../components/JobsList";
+import JobList from "../components/JobsList"; 
 import Recommends from "../components/FinalRecommends";
 
 function JobsPage() {

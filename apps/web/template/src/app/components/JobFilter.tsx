@@ -14,32 +14,17 @@ import {
   Autocomplete,
 } from '@mui/material';
 import { RestartAlt as ResetIcon } from '@mui/icons-material';
+import { useTheme } from '@mui/material/styles';
 import { useJobFilterStore } from '../stores/useJobFilterStore';
 
-// Constants for dropdown options
 const experienceLevels = ['Internship', 'Entry', 'Associate', 'Mid', 'Director'];
 const industries = ['Technology', 'Finance', 'Healthcare', 'Education', 'Retail', 'Creative'];
 const locations = ['New York', 'San Francisco', 'London', 'Egypt'];
 const workplaceTypes = ['Remote', 'On-site', 'Hybrid'];
 
-// Enhanced style for text fields to make them rounded and compact
-const textFieldStyle = {
-  backgroundColor: 'white',
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '20px',
-  },
-  '& .MuiInputBase-input': {
-    padding: '10px 14px', // Reduced padding for height
-  },
-  '& .MuiInputLabel-root': {
-    transform: 'translate(14px, 12px) scale(1)', // Adjust label position
-  },
-  '& .MuiInputLabel-shrink': {
-    transform: 'translate(14px, -6px) scale(0.75)', // Adjust shrunk label position
-  }
-};
-
 export default function JobFilter() {
+  const theme = useTheme();
+
   const {
     keyword,
     location,
@@ -61,18 +46,33 @@ export default function JobFilter() {
     setFilter('experience_level', updated);
   };
 
+  const textFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '20px',
+      backgroundColor: 'transparent',
+      border: 'none',
+      '& fieldset': {
+        borderColor: theme.palette.divider,
+      },
+      '&:hover fieldset': {
+        borderColor: theme.palette.primary.main,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: theme.palette.primary.main,
+      },
+    },
+    '& .MuiInputBase-input': {
+      padding: '10px 14px',
+      color: theme.palette.text.primary,
+    },
+    '& .MuiInputLabel-root': {
+      color: theme.palette.text.secondary,
+    },
+  };
+
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        p: 1.5, // Reduced padding
-        borderRadius: 3,
-        mb: 2,
-        backgroundColor: '#f9fafb',
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      <Grid container spacing={1.5}> {/* Reduced spacing */}
+    <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, backgroundColor: 'transparent' }}>
+      <Grid container spacing={2}>
         {/* Keyword */}
         <Grid item xs={12} sm={6} md={4}>
           <TextField
@@ -80,43 +80,42 @@ export default function JobFilter() {
             value={keyword}
             onChange={(e) => setFilter('keyword', e.target.value)}
             fullWidth
-            margin="dense" // Changed from normal to dense
-            data-testid="job-filter-keyword"
             sx={textFieldStyle}
-            size="small" // Added small size
+            size="small"
           />
         </Grid>
 
-        {/* Location - Modified to allow free text input with error handling */}
+        {/* Location */}
         <Grid item xs={12} sm={6} md={4}>
           <Autocomplete
             freeSolo
             options={locations}
             value={location}
             inputValue={location}
-            onInputChange={(event, newInputValue) => {
-              // Sanitize input to prevent API errors
-              const sanitizedValue = newInputValue.replace(/[^\w\s,-]/g, '');
-              setFilter('location', sanitizedValue);
-            }}
-            onChange={(event, newValue) => {
-              // Sanitize selected value as well
-              const sanitizedValue = newValue ? newValue.replace(/[^\w\s,-]/g, '') : '';
-              setFilter('location', sanitizedValue);
-            }}
+            onInputChange={(e, value) =>
+              setFilter('location', value.replace(/[^\w\s,-]/g, ''))
+            }
+            onChange={(e, value) =>
+              setFilter('location', value ? value.replace(/[^\w\s,-]/g, '') : '')
+            }
             renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="Location" 
-                margin="dense" 
+              <TextField
+                {...params}
+                label="Location"
+                placeholder="Enter locations (e.g. Cairo, Dubai)"
+                helperText="For multiple locations, use commas"
                 sx={textFieldStyle}
                 size="small"
-                placeholder="Enter locations (separate multiple with commas)"
-                helperText="For multiple locations, use commas: New York, London"
               />
             )}
-            data-testid="job-filter-location"
-            size="small"
+            componentsProps={{
+              paper: {
+                sx: {
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                },
+              },
+            }}
           />
         </Grid>
 
@@ -127,8 +126,6 @@ export default function JobFilter() {
             value={industry}
             onChange={(e) => setFilter('industry', e.target.value)}
             fullWidth
-            margin="dense"
-            data-testid="job-filter-industry"
             sx={textFieldStyle}
             size="small"
           />
@@ -141,8 +138,6 @@ export default function JobFilter() {
             value={company}
             onChange={(e) => setFilter('company', e.target.value)}
             fullWidth
-            margin="dense"
-            data-testid="job-filter-company"
             sx={textFieldStyle}
             size="small"
           />
@@ -153,53 +148,60 @@ export default function JobFilter() {
           <Autocomplete
             options={workplaceTypes}
             value={workplace_type}
-            onChange={(e, newValue) => setFilter('workplace_type', newValue || '')}
+            onChange={(e, value) => setFilter('workplace_type', value || '')}
             renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="Workplace Type" 
-                margin="dense" 
+              <TextField
+                {...params}
+                label="Workplace Type"
                 sx={textFieldStyle}
                 size="small"
               />
             )}
-            data-testid="job-filter-workplace-type"
-            size="small"
+            componentsProps={{
+              paper: {
+                sx: {
+                  backgroundColor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                },
+              },
+            }}
           />
         </Grid>
 
-        {/* Salary Range - Min */}
+        {/* Salary Min */}
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Minimum Salary"
+            type="number"
             value={salary_range_min || ''}
-            onChange={(e) => setFilter('salary_range_min', e.target.value === '' ? 0 : parseInt(e.target.value))}
+            onChange={(e) =>
+              setFilter('salary_range_min', e.target.value === '' ? 0 : parseInt(e.target.value))
+            }
             fullWidth
-            margin="dense"
-            data-testid="job-filter-salary-min"
             sx={textFieldStyle}
             size="small"
           />
         </Grid>
 
-        {/* Salary Range - Max */}
+        {/* Salary Max */}
         <Grid item xs={12} sm={6} md={4}>
           <TextField
             label="Maximum Salary"
+            type="number"
             value={salary_range_max || ''}
-            onChange={(e) => setFilter('salary_range_max', e.target.value === '' ? 0 : parseInt(e.target.value))}
+            onChange={(e) =>
+              setFilter('salary_range_max', e.target.value === '' ? 0 : parseInt(e.target.value))
+            }
             fullWidth
-            margin="dense"
-            data-testid="job-filter-salary-max"
             sx={textFieldStyle}
             size="small"
           />
         </Grid>
 
-        {/* Experience Level - Made more compact */}
+        {/* Experience Level */}
         <Grid item xs={12}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0, alignItems: 'center', mt: 0.5 }}>
-            <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, mr: 1 }}>
+          <Box display="flex" flexWrap="wrap" alignItems="center" gap={1}>
+            <Typography variant="body2" fontWeight={600}>
               Experience:
             </Typography>
             {experienceLevels.map((level) => (
@@ -207,15 +209,12 @@ export default function JobFilter() {
                 key={level}
                 control={
                   <Checkbox
-                    size="small"
                     checked={experience_level.includes(level)}
                     onChange={() => handleExperienceChange(level)}
-                    data-testid={`job-filter-exp-${level.toLowerCase()}`}
-                    sx={{ p: 0.5 }} // Reduced padding
+                    size="small"
                   />
                 }
                 label={<Typography variant="body2">{level}</Typography>}
-                sx={{ m: 0, mr: 1 }}
               />
             ))}
           </Box>
@@ -223,15 +222,14 @@ export default function JobFilter() {
 
         {/* Reset Button */}
         <Grid item xs={12}>
-          <Divider sx={{ my: 1 }} /> {/* Reduced margin */}
+          <Divider sx={{ my: 1 }} />
           <Box display="flex" justifyContent="flex-end">
-            <Button 
-              onClick={resetFilters} 
-              variant="outlined" 
-              color="primary"
-              data-testid="job-filter-reset-button"
-              size="small" // Smaller button
-              sx={{ borderRadius: '20px' }} // Rounded button
+            <Button
+              onClick={resetFilters}
+              variant="outlined"
+              startIcon={<ResetIcon />}
+              sx={{ borderRadius: '20px' }}
+              size="small"
             >
               Reset Filters
             </Button>
