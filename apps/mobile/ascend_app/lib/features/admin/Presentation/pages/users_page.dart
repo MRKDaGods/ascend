@@ -1,7 +1,4 @@
-import 'package:ascend_app/features/admin/bloc/users/bloc/users_bloc.dart';
-import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/reported_user_card.dart'; // Import the ReportedUserCard widget
 import '../widgets/banned_user_card.dart'; // Import the new BannedUserCard widget
 
@@ -91,41 +88,29 @@ class _UsersPageState extends State<UsersPage>
               controller: _tabController,
               children: [
                 // Reported Users Section
-                BlocProvider(
-                  create:
-                      (context) => UsersBloc(
-                        adminApiClient: AdminApiClient(
-                          baseUrl: 'https://your-backend-url.com',
-                        ),
-                      )..add(FetchReportedUsersEvent()),
-                  child: BlocBuilder<UsersBloc, UsersState>(
-                    builder: (context, state) {
-                      if (state is UsersLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is UsersLoaded) {
-                        return ListView(
-                          children:
-                              state.reportedUsers.map((user) {
-                                return ReportedUserCard(
-                                  name:
-                                      '${user['reported']['first_name']} ${user['reported']['last_name']}',
-                                  email:
-                                      user['reported']['contact_info']['email'],
-                                  date: user['created_at'],
-                                  reports: 1, // Assuming 1 report per user
-                                  showReports: false,
-                                  onToggleReports: () {},
-                                  onDelete: () {},
-                                  onBan: () {},
-                                );
-                              }).toList(),
-                        );
-                      } else if (state is UsersError) {
-                        return Center(child: Text(state.message));
-                      }
-                      return const Center(child: Text('No data available'));
-                    },
-                  ),
+                ListView(
+                  children: [
+                    ReportedUserCard(
+                      name: 'John Doe',
+                      email: 'john.doe@example.com',
+                      date: 'Joined: 2023-01-15',
+                      reports: 2,
+                      showReports: _expandedReports['user1'] ?? false,
+                      onToggleReports: () => _toggleReportsVisibility('user1'),
+                      onDelete: () => _handleDeleteUser(context, 'user1'),
+                      onBan: () => _handleBanUser(context, 'user1'),
+                    ),
+                    ReportedUserCard(
+                      name: 'Jane Smith',
+                      email: 'jane.smith@example.com',
+                      date: 'Joined: 2023-02-20',
+                      reports: 3,
+                      showReports: _expandedReports['user2'] ?? false,
+                      onToggleReports: () => _toggleReportsVisibility('user2'),
+                      onDelete: () => _handleDeleteUser(context, 'user2'),
+                      onBan: () => _handleBanUser(context, 'user2'),
+                    ),
+                  ],
                 ),
                 // Banned Users Section
                 ListView(
