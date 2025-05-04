@@ -15,12 +15,12 @@ import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
 import TryPremCard from "../components/TryPremCard";
 import ManageFeedCard from "../components/ManageFeedCard";
+import SidebarPreview from "../components/SidebarPreview";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useProfileStore } from "../stores/useProfileStore";
 
-import {api} from "@/api/";
-import SidebarPreview from "../components/SidebarPreview";
+import { api } from "@/api/";
 
 const Feed: React.FC = () => {
   const theme = useTheme();
@@ -32,7 +32,7 @@ const Feed: React.FC = () => {
 
   useEffect(() => {
     fetchNewsFeed();
-  
+
     if (!userData) {
       api.user.getLocalUserProfile().then(setUserData).catch(console.error);
     }
@@ -47,6 +47,7 @@ const Feed: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{
@@ -76,9 +77,9 @@ const Feed: React.FC = () => {
         >
           {userData ? (
             <>
-              <ProfileCard  />
+              <ProfileCard />
               <TryPremCard />
-              </>
+            </>
           ) : (
             <CircularProgress />
           )}
@@ -99,7 +100,14 @@ const Feed: React.FC = () => {
             <CreatePost />
           </Box>
 
-          <Divider sx={{ borderColor: theme.palette.divider, borderWidth: "1px", width: "100%", maxWidth: "600px" }} />
+          <Divider
+            sx={{
+              borderColor: theme.palette.divider,
+              borderWidth: "1px",
+              width: "100%",
+              maxWidth: "600px",
+            }}
+          />
 
           {visiblePosts.map((post) => (
             <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
