@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
+  Box,
   Container,
   Typography,
   Grid,
@@ -14,6 +15,7 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useCompanyStore } from "@/app/stores/useCreateCompanyStore";
+import { useTheme } from "@mui/material/styles";
 import Navbar from "@/app/components/Navbar";
 
 function getLoggedInUserId(): number | null {
@@ -29,6 +31,7 @@ function getLoggedInUserId(): number | null {
 }
 
 export default function ExploreCompaniesPage() {
+  const theme = useTheme();
   const router = useRouter();
   const userId = getLoggedInUserId();
   const [tab, setTab] = useState(0);
@@ -164,7 +167,13 @@ export default function ExploreCompaniesPage() {
   };
 
   return (
-    <>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+      }}
+    >
       <Navbar />
       <Container id="explore-companies-container" maxWidth="lg" sx={{ py: 6 }}>
         <Tabs
@@ -190,6 +199,6 @@ export default function ExploreCompaniesPage() {
         {tab === 0 && renderCompanyCards(companies)}
         {tab === 1 && renderCompanyCards(exploreCompanies)}
       </Container>
-    </>
+    </Box>
   );
 }

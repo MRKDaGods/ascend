@@ -241,4 +241,7 @@ export const getCompanyJobsAPI = async (companyId: number, page = 1) => {
   return response.data.data; // contains { data: [...jobs], pagination: {...} }
 };
 
-
+export const getCompanyAnalyticsAPI = async (companyId: number) => {
+  const response = await API.get(`${COMPANY_BASE}/companies/${companyId}/analytics`);
+  return response.data.data.analytics;
+};
