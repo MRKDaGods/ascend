@@ -21,9 +21,9 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  useTheme,
 } from '@mui/material';
 import ReportIcon from '@mui/icons-material/Report';
-// import Jobsnavbar from '@/app/components/Jobsnavbar';
 import MergeJobsNavbar from '@/app/components/MergeJobsNavbar';
 
 interface Job {
@@ -44,6 +44,7 @@ interface Job {
 }
 
 const SearchResultsPage = () => {
+  const theme = useTheme();
   const searchParams = useSearchParams();
   const router = useRouter();
   const job = searchParams.get('keyword') || '';
@@ -111,7 +112,6 @@ const SearchResultsPage = () => {
     }
 
     try {
-
       const response = await API.post(`/job/${id}/report`, {
         reason: reportReason,
         job_id: id,
@@ -122,9 +122,7 @@ const SearchResultsPage = () => {
       });
 
       if (!response.data) {
-        const errorText = await response.data;
-        console.error("Report failed:", errorText);
-        alert(`Failed to submit the report: ${response.status} ${response.statusText}`);
+        alert(`Failed to submit the report`);
         return;
       }
 
@@ -141,17 +139,22 @@ const SearchResultsPage = () => {
   return (
     <>
       <MergeJobsNavbar />
-
       <Box
         sx={{
           pt: { xs: 10, sm: 12 },
           pb: 6,
           minHeight: '100vh',
-          backgroundColor: '#f9fafb',
+          bgcolor: theme.palette.background.default,
         }}
       >
         <Container maxWidth="md">
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 4, mb: 4 }}>
+          <Paper elevation={2} sx={{
+            p: 4,
+            borderRadius: 4,
+            mb: 4,
+            bgcolor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+          }}>
             <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
               Search Results
             </Typography>
@@ -171,13 +174,14 @@ const SearchResultsPage = () => {
                 p: 4,
                 borderRadius: 4,
                 textAlign: 'center',
-                backgroundColor: '#ffffff',
+                bgcolor: theme.palette.background.paper,
+                color: theme.palette.text.secondary,
               }}
             >
               <Typography variant="h6" gutterBottom>
                 No results found
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2">
                 Try different keywords or locations to see more opportunities.
               </Typography>
             </Paper>
@@ -189,7 +193,7 @@ const SearchResultsPage = () => {
                     sx={{
                       borderRadius: 3,
                       boxShadow: 2,
-                      backgroundColor: 'white',
+                      bgcolor: theme.palette.background.paper,
                       p: 2,
                       transition: 'transform 0.2s ease',
                       '&:hover': {
@@ -213,11 +217,11 @@ const SearchResultsPage = () => {
                           </Typography>
                         </Box>
                         <IconButton onClick={() => openReportDialog(job)}>
-                          <ReportIcon fontSize="small" sx={{ color: 'red' }} />
+                          <ReportIcon fontSize="small" sx={{ color: theme.palette.error.main }} />
                         </IconButton>
                       </Box>
 
-                      <Typography variant="body2" sx={{ mb: 2, color: '#444' }}>
+                      <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
                         {job.description.length > 100
                           ? job.description.slice(0, 100) + '...'
                           : job.description}
@@ -237,9 +241,9 @@ const SearchResultsPage = () => {
                           borderRadius: '999px',
                           textTransform: 'none',
                           fontWeight: 500,
-                          backgroundColor: '#0073b1',
+                          bgcolor: theme.palette.primary.main,
                           '&:hover': {
-                            backgroundColor: '#005f94',
+                            bgcolor: theme.palette.primary.dark,
                           },
                         }}
                       >

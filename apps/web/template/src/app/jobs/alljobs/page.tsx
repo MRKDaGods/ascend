@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Box, Typography, CircularProgress, Grid, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  Grid,
+  Paper,
+  useTheme,
+} from "@mui/material";
 import JobFilter from "@/app/components/JobFilter";
 import { useJobFilterStore } from "@/app/stores/useJobFilterStore";
 import JobItem from "@/app/components/JobItem";
@@ -10,8 +17,6 @@ import MergeJobsNavbar from "@/app/components/MergeJobsNavbar";
 
 const buildQuery = (filters: Record<string, any>) => {
   const query = new URLSearchParams();
-
-  // Map the filter keys to the API expected keys
   const keyMapping: Record<string, string> = {
     salary_range_min: "salary_min_range",
     salary_range_max: "salary_max_range",
@@ -26,43 +31,32 @@ const buildQuery = (filters: Record<string, any>) => {
     )
       continue;
 
-    // Use the mapped key if it exists, otherwise use the original key
     const apiKey = keyMapping[key] || key;
-
-    // Format value properly based on type
     if (Array.isArray(value)) {
       query.append(apiKey, value.join(","));
-    } else if (typeof value === "number") {
-      query.append(apiKey, value.toString());
-    } else if (typeof value === "string") {
-      // Encode special characters
-      query.append(apiKey, encodeURIComponent(value.trim()));
     } else {
-      query.append(apiKey, String(value));
+      query.append(apiKey, String(value).trim());
     }
   }
   return query.toString();
 };
 
-const cleanFilters = (filters: Record<string, any>) => {
-  return Object.fromEntries(
+const cleanFilters = (filters: Record<string, any>) =>
+  Object.fromEntries(
     Object.entries(filters).filter(([key, value]) => {
-      // Handle different value types
-      if (value === undefined || value === null) return false;
-      if (value === "") return false;
+      if (value === undefined || value === null || value === "") return false;
       if (Array.isArray(value) && value.length === 0) return false;
       if (
-        (key === "salary_range_min" || key === "salary_range_max") &&
+        ["salary_range_min", "salary_range_max"].includes(key) &&
         (value <= 0 || isNaN(value))
       )
         return false;
-
       return true;
     })
   );
-};
 
 export default function JobsPage() {
+  const theme = useTheme();
   const {
     keyword,
     location,
@@ -83,33 +77,23 @@ export default function JobsPage() {
     setLoading(true);
 
     const filters = cleanFilters({
-      keyword: keyword || undefined,
-      location: location || undefined,
-      industry: industry || undefined,
-      experience_level:
-        experience_level.length > 0 ? experience_level : undefined,
-      company: company || undefined,
-      workplace_type: workplace_type || undefined,
-      salary_range_min:
-        salary_range_min && salary_range_min > 0 ? salary_range_min : undefined,
-      salary_range_max:
-        salary_range_max && salary_range_max > 0 ? salary_range_max : undefined,
-      page: 1,
+      keyword,
+      location,
+      industry,
+      experience_level: experience_level.length ? experience_level : undefined,
+      company,
+      workplace_type,
+      salary_range_min: typeof salary_range_min === "number" && salary_range_min > 0
+      ? salary_range_min
+      : undefined,
+    
+    salary_range_max: typeof salary_range_max === "number" && salary_range_max > 0
+      ? salary_range_max
+      : undefined,
     });
 
-    console.log("Filters:", filters);
-
-    // Provide default empty results even with no filters
-    if (Object.keys(filters).length === 0) {
-      console.log("No filters provided, fetching all jobs");
-      // Continue with the API call to get all jobs instead of skipping
-    }
-
     const queryString = buildQuery(filters);
-    const url = `https://api.ascendx.tech/job/${
-      queryString ? `?${queryString}` : ""
-    }`;
-    console.log("Fetching URL:", url);
+    const url = `https://api.ascendx.tech/job/${queryString ? `?${queryString}` : ""}`;
 
     try {
       const response = await fetch(url, {
@@ -118,48 +102,19 @@ export default function JobsPage() {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        // Add a timeout to prevent hanging requests
-        signal: AbortSignal.timeout(10000), // 10 second timeout
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`API Error (${response.status}):`, errorText);
-
-        // Handle common HTTP errors
-        if (response.status === 429) {
-          console.error("Rate limit exceeded. Please try again later.");
-        } else if (response.status >= 500) {
-          console.error("Server error. Please try again later.");
-        }
-
+        console.error(`API Error (${response.status})`);
         setJobs([]);
         return;
       }
 
       const data = await response.json();
-      console.log("API Response:", data);
-
-      if (data && Array.isArray(data.data)) {
-        setJobs(data.data);
-      } else {
-        console.error("Unexpected data format:", data);
-        setJobs([]);
-      }
-    } catch (error: unknown) {
-      // TypeScript-safe error handling
-      const err = error as Error; // Cast to Error type
-
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "name" in err &&
-        err.name === "AbortError"
-      ) {
-        console.error("Request timed out");
-      } else {
-        console.error("Failed to fetch jobs:", err);
-      }
+      setJobs(Array.isArray(data?.data) ? data.data : []);
+    } catch (err) {
+      console.error("Failed to fetch jobs:", err);
       setJobs([]);
     } finally {
       setLoading(false);
@@ -177,17 +132,11 @@ export default function JobsPage() {
     workplace_type,
     salary_range_min,
     salary_range_max,
-    setJobs,
   ]);
 
   if (!hasHydrated) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <CircularProgress />
       </Box>
     );
@@ -198,7 +147,11 @@ export default function JobsPage() {
       <MergeJobsNavbar />
       <Box
         p={{ xs: 2, md: 4 }}
-        sx={{ backgroundColor: "#f3f6f9", minHeight: "100vh" }}
+        sx={{
+          backgroundColor: theme.palette.background.default,
+          color: theme.palette.text.primary,
+          minHeight: "100vh",
+        }}
       >
         <Paper
           elevation={4}
@@ -206,36 +159,37 @@ export default function JobsPage() {
             p: { xs: 3, md: 5 },
             mb: 5,
             borderRadius: 4,
-            backgroundColor: "#ffffff",
-            boxShadow: "0px 6px 20px rgba(0, 0, 0, 0.08)",
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[6],
           }}
         >
           <Typography
             variant="h3"
             fontWeight="bold"
             gutterBottom
-            sx={{ color: "#1a237e", fontSize: { xs: "2rem", md: "2.8rem" } }}
+            sx={{
+              color: theme.palette.text.primary,
+              fontSize: { xs: "2rem", md: "2.8rem" },
+            }}
           >
             Find Your Next Opportunity
           </Typography>
           <Typography
             variant="body1"
-            sx={{ color: "#5f6368", mb: 4, maxWidth: "600px" }}
+            sx={{
+              color: theme.palette.text.secondary,
+              mb: 4,
+              maxWidth: "600px",
+            }}
           >
-            Use filters to refine your search and discover opportunities
-            tailored to your skills and preferences.
+            Use filters to refine your search and discover opportunities tailored to your skills and preferences.
           </Typography>
 
           <JobFilter />
         </Paper>
 
         {loading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="40vh"
-          >
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
             <CircularProgress />
           </Box>
         ) : jobs && jobs.length > 0 ? (

@@ -1,4 +1,5 @@
 "use client";
+
 import API from "@/api/api";
 import React, { useState } from "react";
 import {
@@ -13,13 +14,12 @@ import {
   Button,
   Paper,
   Divider,
+  useTheme,
 } from "@mui/material";
-import { deepOrange, green } from "@mui/material/colors";
 import { useRouter } from "next/navigation";
 
 const question1 = {
-  question:
-    "Which of these best describes your primary goal for using Premium?",
+  question: "Which of these best describes your primary goal for using Premium?",
   options: [
     "I'd use Premium for my personal goals",
     "I'd use Premium as part of my job",
@@ -46,6 +46,7 @@ const jobGoalsOptions = [
 ];
 
 const PremiumSurvey = () => {
+  const theme = useTheme();
   const [step, setStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [subOptions, setSubOptions] = useState<string[]>([]);
@@ -80,9 +81,7 @@ const PremiumSurvey = () => {
         .then(() => {
           router.push("/prem/premium");
         })
-        .catch((e) => {
-          console.error(e);
-        });
+        .catch((e) => console.error(e));
     }
   };
 
@@ -94,43 +93,36 @@ const PremiumSurvey = () => {
   };
 
   const renderQuestion = () => {
-    if (step === 0) {
-      return question1;
-    } else {
-      return {
-        question: "What do you hope to achieve with Premium?",
-        options: subOptions,
-      };
-    }
+    return step === 0
+      ? question1
+      : {
+          question: "What do you hope to achieve with Premium?",
+          options: subOptions,
+        };
   };
 
   const currentQuestion = renderQuestion();
 
   return (
     <Box
-      sx={{ p: 4, backgroundColor: "#f3f2ef", minHeight: "100vh" }}
-      id="premium-survey-container"
+      sx={{
+        p: 4,
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        minHeight: "100vh",
+      }}
     >
-      <Box sx={{ maxWidth: 900, mx: "auto", mb: 4 }} id="premium-survey-header">
-        <Typography variant="h6" gutterBottom id="survey-header-title">
-          The average career is 42 years. Drive sales and boost your success
-          with Sales Navigator.
+      <Box sx={{ maxWidth: 900, mx: "auto", mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          The average career is 42 years. Drive sales and boost your success with Sales Navigator.
         </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          id="survey-header-subtitle"
-        >
+        <Typography variant="body2" color="text.secondary">
           Millions of members use Premium
         </Typography>
-        <Typography variant="body2" id="survey-header-description">
-          Claim your 1-month free trial today. Cancel anytime. We’ll send you a
-          reminder 7 days before your trial ends.
+        <Typography variant="body2">
+          Claim your 1-month free trial today. Cancel anytime. We’ll send you a reminder 7 days before your trial ends.
         </Typography>
-        <Box
-          sx={{ mt: 2, position: "relative" }}
-          id="survey-progress-container"
-        >
+        <Box sx={{ mt: 2, position: "relative" }}>
           <LinearProgress
             variant="determinate"
             value={progress}
@@ -138,10 +130,9 @@ const PremiumSurvey = () => {
               height: 10,
               borderRadius: 5,
               "& .MuiLinearProgress-bar": {
-                backgroundColor: green[500],
+                backgroundColor: theme.palette.success.main,
               },
             }}
-            id="survey-progress-bar"
           />
           <Typography
             variant="caption"
@@ -149,76 +140,64 @@ const PremiumSurvey = () => {
               position: "absolute",
               top: -20,
               right: 0,
-              color: green[500],
+              color: theme.palette.success.main,
               fontWeight: "bold",
             }}
-            id="survey-progress-percentage"
           >
             {Math.round(progress)}%
           </Typography>
         </Box>
       </Box>
 
-      <Box sx={{ maxWidth: 600, mx: "auto" }} id="survey-question-container">
-        <Paper elevation={1} sx={{ p: 3 }} id="survey-question-paper">
-          <Box
-            sx={{ display: "flex", alignItems: "center", mb: 2 }}
-            id="survey-question-header"
-          >
-            <Avatar sx={{ bgcolor: deepOrange[500], mr: 2 }} id="survey-avatar">
-              N
-            </Avatar>
+      <Box sx={{ maxWidth: 600, mx: "auto" }}>
+        <Paper
+          elevation={1}
+          sx={{
+            p: 3,
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+            <Avatar sx={{ bgcolor: theme.palette.primary.main, mr: 2 }}>N</Avatar>
             <Box>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                id="survey-question-title"
-              >
+              <Typography variant="subtitle1" fontWeight={600}>
                 USER, {currentQuestion.question}
               </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                id="survey-question-subtitle"
-              >
+              <Typography variant="body2" color="text.secondary">
                 We'll recommend the right plan for you.
               </Typography>
             </Box>
           </Box>
 
-          <FormControl component="fieldset" id="survey-options-container">
-            <RadioGroup
-              value={selectedOption}
-              onChange={handleOptionChange}
-              id="survey-options-group"
-            >
+          <FormControl component="fieldset">
+            <RadioGroup value={selectedOption} onChange={handleOptionChange}>
               {currentQuestion.options.map((opt, idx) => (
                 <FormControlLabel
                   key={idx}
                   value={opt}
-                  control={<Radio id={`survey-option-radio-${idx}`} />}
+                  control={<Radio />}
                   label={opt}
                   sx={{ mb: 1 }}
-                  id={`survey-option-${idx}`}
                 />
               ))}
             </RadioGroup>
           </FormControl>
 
-          <Divider sx={{ my: 2 }} id="survey-divider" />
+          <Divider sx={{ my: 2 }} />
 
-          <Box
-            textAlign="right"
-            display="flex"
-            justifyContent="space-between"
-            id="survey-navigation-buttons"
-          >
+          <Box display="flex" justifyContent="space-between">
             <Button
               variant="outlined"
               disabled={step === 0}
               onClick={handleBack}
-              sx={{ textTransform: "none", borderRadius: 20, px: 4 }}
-              id="survey-back-button"
+              sx={{
+                textTransform: "none",
+                borderRadius: 20,
+                px: 4,
+                borderColor: theme.palette.divider,
+              }}
             >
               Back
             </Button>
@@ -226,8 +205,11 @@ const PremiumSurvey = () => {
               variant="contained"
               disabled={!selectedOption}
               onClick={handleNext}
-              sx={{ textTransform: "none", borderRadius: 20, px: 4 }}
-              id="survey-next-button"
+              sx={{
+                textTransform: "none",
+                borderRadius: 20,
+                px: 4,
+              }}
             >
               Next
             </Button>

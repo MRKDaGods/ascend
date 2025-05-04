@@ -4,6 +4,7 @@ import { handleIncomingMessage, handleIncomingMessageRead, socket } from "../uti
 import { api } from "@/api";
 import { Box, Typography } from "@mui/material";
 import { UserProfile } from "firebase/auth";
+import LoadingPage from "./LoadingPage";
 
 export default function ChatSocketContainer({ children }: { children: React.ReactNode }) {
     const [fetchingUserData, setFetchingUserData] = useState(true);
@@ -114,7 +115,7 @@ export default function ChatSocketContainer({ children }: { children: React.Reac
     if (fetchingUserData) {
         return (
             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-                <Typography variant="h6">Fetching user data...</Typography>
+            <LoadingPage />
             </Box>
         );
     }

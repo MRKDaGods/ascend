@@ -39,7 +39,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
 import { useJobStore, JobStatus, ApplicationStatus } from '../stores/useJobStore';
 import { styled } from '@mui/material/styles';
-
+import { useTheme } from '@mui/material/styles';
 // Define rounded style constants for reuse throughout the component
 const roundedButtonStyle = {
   borderRadius: '20px',
@@ -117,6 +117,7 @@ const JobCard: React.FC<JobCardProps> = ({
   company_location,
 }) => {
   const router = useRouter();
+  const theme = useTheme();
   const { deletePostedJob } = useJobStore();
   
   // Add states for UI feedback and modals
@@ -406,7 +407,7 @@ const JobCard: React.FC<JobCardProps> = ({
           </Avatar>
 
           <Box flexGrow={1}>
-            <Typography variant="h6" fontWeight={600} color="#0a66c2">
+            <Typography variant="h6" fontWeight={600} color="primary.main">
               {displayValues.title}
             </Typography>
             <Typography variant="body2" color="text.secondary">

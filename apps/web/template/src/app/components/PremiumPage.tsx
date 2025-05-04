@@ -11,6 +11,7 @@ import {
   Grid,
 } from "@mui/material";
 import API from "@/api/api"; // Import your API instance
+import { useTheme } from "@mui/material/styles";
 
 interface Feature {
   id: string;
@@ -47,6 +48,7 @@ interface PurchasedSubscription {
 }
 
 const PremiumPage = () => {
+  const theme = useTheme();
   const [features, setFeatures] = useState<Feature[]>([]);
   const [subscriptions, setSubscriptions] = useState<SubscriptionPlan[]>([]);
   const [purchasedFeatures, setPurchasedFeatures] = useState<
@@ -174,7 +176,8 @@ const PremiumPage = () => {
   }
 
   return (
-    <Box sx={{ padding: "2rem", bgcolor: "#f4f4f4" }}>
+    <Box sx={{ padding: "2rem", bgcolor: theme.palette.background.default,
+      color: theme.palette.text.primary, }}>
       <Typography
         variant="h4"
         gutterBottom
@@ -187,8 +190,7 @@ const PremiumPage = () => {
       {error && (
         <Box
           sx={{
-            bgcolor: "error.light",
-            color: "error.contrastText",
+           
             p: 2,
             mb: 3,
             borderRadius: 1,
