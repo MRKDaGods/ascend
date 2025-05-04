@@ -52,6 +52,7 @@ export type PostType = {
   file?: string | null;
   fileTitle?: string | null;
   isEdited?: boolean;
+  type?: "media" | "document" | null;
 
   media?: {
     url: string;
