@@ -124,44 +124,6 @@ export const removeConnectionAPI = async (connectionId: number): Promise<{
   return res.data;
 };
 
-export const followUserAPI = async (userId: number): Promise<{
-  success: boolean;
-  message: string;
-}> => {
-  const res = await API.post(`/follow/${userId}`);
-  return res.data;
-};
-
-export interface Follower {
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  profile_picture_id: number | null;
-  bio: string | null;
-  followed_at: string;
-}
-
-export const getFollowersAPI = async (
-  userId: number,
-  page = 1,
-  limit = 10
-): Promise<{
-  success: boolean;
-  data: {
-    data: Follower[];
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-    };
-  };
-}> => {
-  const res = await API.get(`/followers/${userId}`, {
-    params: { page, limit },
-  });
-  return res.data;
-};
-
 export interface ConnectionPreferences {
   allow_connection_requests: boolean;
   allow_messages_from: "all" | "connections-only";
@@ -191,7 +153,6 @@ export interface GetConnectionStatusResponse {
   };
 }
 
-// API function
 export const getConnectionStatusAPI = async (
   userId: number
 ): Promise<GetConnectionStatusResponse> => {
@@ -200,3 +161,63 @@ export const getConnectionStatusAPI = async (
   return res.data;
 };
 
+export const followUserAPI = async (userId: number): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  const res = await API.post(`/connection/follow/${userId}`);
+  return res.data;
+};
+export const unfollowUserAPI = async (userId: number): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  const res = await API.delete(`/connection/follow/${userId}`);
+  return res.data;
+};
+
+export interface Follower {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  profile_picture_id: number | null;
+  bio: string | null;
+}
+
+export interface GetFollowersResponse {
+  success: boolean;
+  data: {
+    data: Follower[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+    };
+  };
+}
+
+export const getFollowersAPI = async (
+  userId: number,
+  page = 1,
+  limit = 15
+): Promise<GetFollowersResponse> => {
+  const res = await API.get(`/connection/followers/${userId}`, {
+    params: { page, limit },
+  });
+  return res.data;
+};
+
+// API: Check if the logged-in user is following the specified user
+export interface GetFollowStatusResponse {
+  success: boolean;
+  data: {
+    isFollowing: boolean;
+  };
+}
+
+export const getFollowStatusAPI = async (
+  userId: number
+): Promise<GetFollowStatusResponse> => {
+  const res = await API.get(`/follows/status/${userId}`);
+  return res.data;
+};

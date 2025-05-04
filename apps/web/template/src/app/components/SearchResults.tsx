@@ -18,6 +18,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { usePostStore } from "../stores/usePostStore";
 import { useRouter } from "next/navigation";
 import ConnectionUI from "./ConnectionUI";
+import ConnectionMoreMenu from "./ConnectionMoreMenu";
+import { useConnectionStore } from "../stores/useConnectionStore";
 
 const SearchResults: React.FC = () => {
   const { searchResults, setSearchResults } = usePostStore();
@@ -25,6 +27,13 @@ const SearchResults: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+
+  const connectionStatuses = useConnectionStore(
+    (state) => state.connectionStatuses
+  );
+  const fetchConnectionStatus = useConnectionStore(
+    (state) => state.fetchConnectionStatus
+  );
 
   if (!searchResults) return null;
 
@@ -51,7 +60,7 @@ const SearchResults: React.FC = () => {
       }
     : {
         top: "64px",
-        left: "30%", 
+        left: "30%",
         transform: "translateX(-50%)",
         width: "min(600px, 90%)",
         maxHeight: "70vh",
@@ -73,8 +82,15 @@ const SearchResults: React.FC = () => {
           p: 2,
         }}
       >
-        {/* ❌ Close Button */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, alignItems: "center" }}>
+        {/* Close Button */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            mb: 1,
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Search Results
           </Typography>
@@ -89,74 +105,91 @@ const SearchResults: React.FC = () => {
             <Typography variant="h6" mb={1}>
               Users
             </Typography>
-            {users.map((user) => (
-              <Box
-                key={user.id}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  mb: 2,
-                  p: 1,
-                  borderRadius: 2,
-                  flexDirection: isMobile ? "column" : "row",
-                  "&:hover": {
-                    backgroundColor: "action.hover",
-                  },
-                }}
-              >
-                {/* Left: avatar + name (clickable) */}
+            {users.map((user) => {
+              const status = connectionStatuses[user.id] || "notConnected";
+
+              // Pre-fetch status if missing
+              if (!connectionStatuses[user.id]) {
+                fetchConnectionStatus(user.id);
+              }
+
+              return (
                 <Box
-                  sx={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 2, 
-                    flex: 1, 
-                    cursor: "pointer",
-                    width: isMobile ? "100%" : "auto",
-                  }}
-                  onClick={() => {
-                    router.push(`/profile?id=${user.id}`);
-                    setSearchResults(null);
+                  key={user.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    mb: 2,
+                    p: 1,
+                    borderRadius: 2,
+                    flexDirection: isMobile ? "column" : "row",
+                    "&:hover": {
+                      backgroundColor: "action.hover",
+                    },
                   }}
                 >
-                  <Avatar
-                    src={
-                      typeof user.profile_picture_url === "string" &&
-                      user.profile_picture_url.startsWith("http")
-                        ? user.profile_picture_url
-                        : undefined
-                    }
-                  />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography fontWeight="bold" noWrap>
-                      {user.first_name} {user.last_name}
-                    </Typography>
-                    {user.bio && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                        }}
-                      >
-                        {user.bio}
+                  {/* Left: avatar + name */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      flex: 1,
+                      cursor: "pointer",
+                      width: isMobile ? "100%" : "auto",
+                    }}
+                    onClick={() => {
+                      router.push(`/profile?id=${user.id}`);
+                      setSearchResults(null);
+                    }}
+                  >
+                    <Avatar
+                      src={
+                        typeof user.profile_picture_url === "string" &&
+                        user.profile_picture_url.startsWith("http")
+                          ? user.profile_picture_url
+                          : undefined
+                      }
+                    />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography fontWeight="bold" noWrap>
+                        {user.first_name} {user.last_name}
                       </Typography>
-                    )}
+                      {user.bio && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {user.bio}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+
+                  {/* Right: Connect + More */}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <ConnectionUI userId={user.id} />
+                    <ConnectionMoreMenu
+                      userId={user.id}
+                      isFollowing={false}
+                      connectionStatus={status}
+                      onRemoveConnection={() => {
+                        useConnectionStore.getState().removeConnection(user.id);
+                      }}
+                    />
                   </Box>
                 </Box>
-
-                {/* Right: Connect button */}
-                <Box sx={{ mt: isMobile ? 1 : 0, width: isMobile ? "100%" : "auto" }}>
-                  <ConnectionUI userId={user.id} />
-                </Box>
-              </Box>
-            ))}
+              );
+            })}
             <Divider sx={{ my: 2 }} />
           </>
         )}
@@ -190,7 +223,9 @@ const SearchResults: React.FC = () => {
                       }
                     />
                   }
-                  title={<Typography fontWeight="bold">{post.username}</Typography>}
+                  title={
+                    <Typography fontWeight="bold">{post.username}</Typography>
+                  }
                   subheader={
                     <Typography fontSize="0.75rem" color="text.secondary">
                       {post.timestamp}
@@ -198,9 +233,9 @@ const SearchResults: React.FC = () => {
                   }
                 />
                 <CardContent sx={{ pt: 0, p: { xs: 1, sm: 2 } }}>
-                  <Typography 
-                    fontSize="1rem" 
-                    sx={{ 
+                  <Typography
+                    fontSize="1rem"
+                    sx={{
                       wordBreak: "break-word",
                       overflow: "hidden",
                       textOverflow: "ellipsis",

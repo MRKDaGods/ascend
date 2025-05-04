@@ -5,8 +5,7 @@ import { Box, Container } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../../components/Navbar";
-// import FollowersList from "../../components/FollowersList";
-import NetworksTab from "../../components/NetworksTab";
+import MyFollowers from "../../components/MyFollowers";
 import PremiumAdCard from "../../components/PremiumAdCard";
 import Footer from "../../components/Footer";
 
@@ -43,7 +42,7 @@ const FollowingPage: React.FC = () => {
           }}
         >
           {/* <FollowersList /> */}
-          <NetworksTab />
+          <MyFollowers />
         </Box>
 
         {/* Right Panel: Premium Ad */}
