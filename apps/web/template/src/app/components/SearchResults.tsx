@@ -180,6 +180,8 @@ const SearchResults: React.FC = () => {
                     <ConnectionUI userId={user.id} />
                     <ConnectionMoreMenu
                       userId={user.id}
+                      firstName={user.first_name}
+                      lastName={user.last_name}
                       isFollowing={false}
                       connectionStatus={status}
                       onRemoveConnection={() => {

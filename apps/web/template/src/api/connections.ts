@@ -218,6 +218,16 @@ export interface GetFollowStatusResponse {
 export const getFollowStatusAPI = async (
   userId: number
 ): Promise<GetFollowStatusResponse> => {
-  const res = await API.get(`/follows/status/${userId}`);
+  const res = await API.get(`/connection/follows/status/${userId}`);
+  return res.data;
+};
+
+export interface BlockUserResponse {
+  success: boolean;
+  message: string;
+}
+
+export const blockUserAPI = async (userId: number): Promise<BlockUserResponse> => {
+  const res = await API.post(`/connection/block/${userId}`);
   return res.data;
 };
