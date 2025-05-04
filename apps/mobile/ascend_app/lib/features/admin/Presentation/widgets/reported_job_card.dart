@@ -78,8 +78,35 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
                 children: [
                   if (job.companyLogoUrl != null)
                     CircleAvatar(
-                      backgroundImage: NetworkImage(job.companyLogoUrl!),
                       radius: 24,
+                      backgroundColor: Colors.grey[200],
+                      child: ClipOval(
+                        child: Image.network(
+                          job.companyLogoUrl!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            debugPrint('Error loading image: $error');
+                            return const Icon(
+                              Icons.business,
+                              color: Colors.grey,
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     )
                   else
                     CircleAvatar(
@@ -183,7 +210,8 @@ class _ReportedJobCardState extends State<ReportedJobCard> {
               if (_isExpanded)
                 Column(
                   children:
-                      reports.map((report) => _buildReportCard(context, report))
+                      reports
+                          .map((report) => _buildReportCard(context, report))
                           .toList(),
                 ),
             ],

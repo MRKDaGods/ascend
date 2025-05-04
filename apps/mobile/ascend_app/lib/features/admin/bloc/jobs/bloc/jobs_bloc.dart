@@ -238,8 +238,9 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
             for (int i = 0; i < reports.length; i++) {
               if (reports[i].id.toString() == event.reportId) {
                 // Update report using copyWith for better immutability
-                jobReports[jobId]![i] =
-                    reports[i].copyWith(status: event.status);
+                jobReports[jobId]![i] = reports[i].copyWith(
+                  status: event.status,
+                );
                 reportUpdated = true;
                 break;
               }
