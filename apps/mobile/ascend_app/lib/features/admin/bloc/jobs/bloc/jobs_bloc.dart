@@ -2,6 +2,7 @@ import 'package:ascend_app/features/admin/data/models/jobs_model.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as apiClient;
 import 'package:meta/meta.dart';
 
 part 'jobs_event.dart';
@@ -166,15 +167,30 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
 
     // Handle UpdateJobReportStatusEvent
     on<UpdateJobReportStatusEvent>((event, emit) async {
-      emit(ReportedJobsLoadingState());
+      emit(UpdatingJobReportState()); // You may need to create this state
       try {
-        await adminRepository.updateJobReportStatus(
+        // Make the API request to update the report status
+        debugPrint(
+          'Updating job report ${event.reportId} status to ${event.status}',
+        );
+
+        final response = await adminRepository.updateJobReportStatus(
           int.parse(event.reportId),
           event.status,
         );
-        emit(JobReportStatusUpdatedState(event.reportId, event.status));
 
-        // After successful update, refresh the current state
+        // Emit success state
+        emit(
+          JobReportStatusUpdatedState(
+            reportId: event.reportId,
+            status: event.status,
+          ),
+        );
+
+        // Update the local cache if needed
+        // This depends on how you're storing job reports
+
+        // Re-emit the main state to update UI
         emit(
           ReportedJobsLoadedState(
             jobs: allJobs,
@@ -183,7 +199,88 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
           ),
         );
       } catch (e) {
+        debugPrint('Error updating job report status: $e');
         emit(JobsErrorState(e.toString()));
+      }
+    });
+
+    // Handle UpdateJobReportStatus
+    on<UpdateJobReportStatus>((event, emit) async {
+      emit(UpdatingJobReportState());
+      try {
+        // Make the API request to update the report status
+        debugPrint(
+          'Updating job report ${event.reportId} status to ${event.status}',
+        );
+
+        // Use the AdminRepository instead of direct HTTP client
+        final success = await adminRepository.updateJobReportStatus(
+          int.parse(event.reportId),
+          event.status,
+        );
+
+        if (success) {
+          // Emit success state
+          emit(
+            JobReportStatusUpdatedState(
+              reportId: event.reportId,
+              status: event.status,
+            ),
+          );
+
+          // Update the report status in local cache
+          bool reportUpdated = false;
+
+          for (var entry in jobReports.entries) {
+            final jobId = entry.key;
+            final reports = entry.value;
+
+            for (int i = 0; i < reports.length; i++) {
+              if (reports[i].id.toString() == event.reportId) {
+                // Update report using copyWith for better immutability
+                jobReports[jobId]![i] =
+                    reports[i].copyWith(status: event.status);
+                reportUpdated = true;
+                break;
+              }
+            }
+            if (reportUpdated) break;
+          }
+
+          // Re-emit the main state to update UI
+          emit(
+            ReportedJobsLoadedState(
+              jobs: allJobs,
+              hasReachedEnd: hasReachedEnd,
+              jobReports: jobReports,
+            ),
+          );
+        } else {
+          throw Exception('Failed to update report status');
+        }
+      } catch (e) {
+        debugPrint('Error updating job report status: $e');
+
+        // Emit a specific "update failed" state that can be handled more gracefully
+        emit(
+          JobReportUpdateFailedState(
+            reportId: event.reportId,
+            status: event.status,
+            error: e.toString(),
+          ),
+        );
+
+        // After a short delay, go back to the loaded state to maintain UI consistency
+        await Future.delayed(const Duration(seconds: 1));
+
+        // Re-emit the main state to keep UI consistent
+        emit(
+          ReportedJobsLoadedState(
+            jobs: allJobs,
+            hasReachedEnd: hasReachedEnd,
+            jobReports: jobReports,
+          ),
+        );
       }
     });
   }
