@@ -11,8 +11,11 @@ class AdminApiClient {
 
   AdminApiClient({required this.baseUrl});
 
-  /// Makes a GET request to the specified endpoint with retry logic.
-  Future<Map<String, dynamic>> get(String endpoint) async {
+  Future<Map<String, dynamic>> _makeRequest(
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null || token.isEmpty) {
       throw Exception('Authentication token is missing.');
@@ -27,290 +30,127 @@ class AdminApiClient {
 
     while (true) {
       try {
-        final response = await http
-            .get(Uri.parse('$baseUrl$endpoint'), headers: headers)
-            .timeout(_defaultTimeout);
+        final uri = Uri.parse('$baseUrl$endpoint');
+        final response = await _sendRequest(
+          method,
+          uri,
+          headers,
+          body,
+        ).timeout(_defaultTimeout);
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
-          return json.decode(response.body);
+          return response.body.isNotEmpty ? json.decode(response.body) : {};
         } else {
           throw Exception(
-            'GET $endpoint failed with ${response.statusCode}: ${response.body}',
+            '$method $endpoint failed with ${response.statusCode}: ${response.body}',
           );
         }
       } catch (e) {
-        if (e is TimeoutException ||
-            (e.toString().contains('SocketException') ||
-                e.toString().contains('Connection refused'))) {
-          if (retryCount < _maxRetries) {
-            retryCount++;
-            debugPrint(
-              'Request timed out, retrying ($retryCount/$_maxRetries): $endpoint',
-            );
-            await Future.delayed(
-              Duration(seconds: retryCount),
-            ); // Exponential backoff
-            continue;
-          }
+        if (_shouldRetry(e) && retryCount < _maxRetries) {
+          retryCount++;
+          await Future.delayed(Duration(seconds: retryCount));
+          continue;
         }
-        debugPrint('Error in GET request to $endpoint: $e');
         rethrow;
       }
     }
   }
 
-  /// Makes a DELETE request to the specified endpoint with retry logic.
+  Future<http.Response> _sendRequest(
+    String method,
+    Uri uri,
+    Map<String, String> headers,
+    Map<String, dynamic>? body,
+  ) {
+    switch (method) {
+      case 'GET':
+        return http.get(uri, headers: headers);
+      case 'POST':
+        return http.post(uri, headers: headers, body: json.encode(body));
+      case 'PATCH':
+        return http.patch(uri, headers: headers, body: json.encode(body));
+      case 'DELETE':
+        return http.delete(uri, headers: headers);
+      default:
+        throw Exception('Unsupported HTTP method: $method');
+    }
+  }
+
+  bool _shouldRetry(dynamic error) {
+    return error is TimeoutException ||
+        error.toString().contains('SocketException') ||
+        error.toString().contains('Connection refused');
+  }
+
+  Future<Map<String, dynamic>> get(String endpoint) =>
+      _makeRequest('GET', endpoint);
+
   Future<void> delete(String endpoint) async {
-    final token = await SecureStorageHelper.getAuthToken();
-    if (token == null || token.isEmpty) {
-      throw Exception('Authentication token is missing.');
-    }
-
-    final url = Uri.parse('$baseUrl$endpoint');
-
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
-
-    int retryCount = 0;
-
-    while (true) {
-      try {
-        final response = await http
-            .delete(url, headers: headers)
-            .timeout(_defaultTimeout);
-
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          return;
-        } else {
-          throw Exception(
-            'DELETE $endpoint failed with ${response.statusCode}: ${response.body}',
-          );
-        }
-      } catch (e) {
-        if (e is TimeoutException ||
-            (e.toString().contains('SocketException') ||
-                e.toString().contains('Connection refused'))) {
-          if (retryCount < _maxRetries) {
-            retryCount++;
-            debugPrint(
-              'Request timed out, retrying ($retryCount/$_maxRetries): $endpoint',
-            );
-            await Future.delayed(
-              Duration(seconds: retryCount),
-            ); // Exponential backoff
-            continue;
-          }
-        }
-        debugPrint('Error in DELETE request to $endpoint: $e');
-        rethrow;
-      }
-    }
+    await _makeRequest('DELETE', endpoint);
   }
 
-  /// Makes a PATCH request to the specified endpoint with retry logic.
   Future<Map<String, dynamic>> patch(
     String endpoint,
     Map<String, dynamic> body,
-  ) async {
-    final token = await SecureStorageHelper.getAuthToken();
-    if (token == null || token.isEmpty) {
-      throw Exception('Authentication token is missing.');
-    }
+  ) => _makeRequest('PATCH', endpoint, body: body);
 
-    int retryCount = 0;
-
-    while (true) {
-      try {
-        final response = await http
-            .patch(
-              Uri.parse('$baseUrl$endpoint'),
-              headers: {
-                'Authorization': 'Bearer $token',
-                'Content-Type': 'application/json',
-              },
-              body: json.encode(body),
-            )
-            .timeout(_defaultTimeout);
-
-        if (response.statusCode >= 200 && response.statusCode < 300) {
-          try {
-            if (response.body.isNotEmpty) {
-              return json.decode(response.body);
-            }
-            return {}; // Return empty map for empty responses
-          } catch (e) {
-            debugPrint('Error parsing response body: ${response.body}');
-            return {}; // Return empty map on parse failure
-          }
-        } else {
-          throw Exception(
-            'PATCH $endpoint failed with ${response.statusCode}: ${response.body}',
-          );
-        }
-      } catch (e) {
-        if (e is TimeoutException ||
-            (e.toString().contains('SocketException') ||
-                e.toString().contains('Connection refused'))) {
-          if (retryCount < _maxRetries) {
-            retryCount++;
-            debugPrint(
-              'Request timed out, retrying ($retryCount/$_maxRetries): $endpoint',
-            );
-            await Future.delayed(
-              Duration(seconds: retryCount),
-            ); // Exponential backoff
-            continue;
-          }
-        }
-        debugPrint('Error in PATCH request to $endpoint: $e');
-        rethrow;
-      }
-    }
+  Future<void> post(String endpoint, Map<String, dynamic> body) async {
+    await _makeRequest('POST', endpoint, body: body);
   }
 
-  /// Fetches the count of jobs based on the specified duration.
-  Future<int> getJobsCount(String duration) async {
-    final response = await get('/jobs/count?duration=$duration');
+  Future<int> _getCount(String endpoint) async {
+    final response = await get(endpoint);
     return response['count'] ?? 0;
   }
 
-  /// Fetches the count of posts based on the specified duration.
-  Future<int> getPostsCount(String duration) async {
-    final response = await get('/posts/count?duration=$duration');
-    return response['count'] ?? 0;
-  }
+  Future<int> getJobsCount(String duration) =>
+      _getCount('/jobs/count?duration=$duration');
 
-  /// Fetches the count of users based on the specified duration.
-  Future<int> getUsersCount(String duration) async {
-    final response = await get('/users/count?duration=$duration');
-    return response['count'] ?? 0;
-  }
+  Future<int> getPostsCount(String duration) =>
+      _getCount('/posts/count?duration=$duration');
 
-  /// Fetches the count of follows based on the specified duration.
-  Future<int> getFollowsCount(String duration) async {
-    final response = await get('/follows/count?duration=$duration');
-    return response['count'] ?? 0;
-  }
+  Future<int> getUsersCount(String duration) =>
+      _getCount('/users/count?duration=$duration');
 
-  /// Fetches the count of connections based on the specified duration.
-  Future<int> getConnectionsCount(String duration) async {
-    final response = await get('/connections/count?duration=$duration');
-    return response['count'] ?? 0;
-  }
+  Future<int> getFollowsCount(String duration) =>
+      _getCount('/follows/count?duration=$duration');
 
-  /// Fetches the count of reported jobs based on the specified duration.
-  Future<int> getReportedJobsCount(String duration) async {
-    final response = await get('/jobs/reports/count?duration=$duration');
-    return response['count'] ?? 0;
-  }
+  Future<int> getConnectionsCount(String duration) =>
+      _getCount('/connections/count?duration=$duration');
 
-  /// Fetches the count of reported posts based on the specified duration.
-  Future<int> getReportedPostsCount(String duration) async {
-    final response = await get('/posts/reports/count?duration=$duration');
-    return response['count'] ?? 0;
-  }
+  Future<int> getReportedJobsCount(String duration) =>
+      _getCount('/jobs/reports/count?duration=$duration');
 
-  /// Fetches reported posts with pagination and error handling.
-  Future<Map<String, dynamic>> getReportedPosts(int page) async {
-    try {
-      debugPrint('Fetching reported posts for page $page');
-      final response = await get('/posts/reported?page=$page');
-      return response;
-    } catch (e) {
-      debugPrint('Error in getReportedPosts: $e');
-      rethrow;
-    }
-  }
+  Future<int> getReportedPostsCount(String duration) =>
+      _getCount('/posts/reports/count?duration=$duration');
 
-  /// Fetches reports for a specific post with pagination and error handling.
-  Future<Map<String, dynamic>> getPostReports(String postId, int page) async {
-    try {
-      debugPrint('Fetching reports for post $postId, page $page');
-      final response = await get('/posts/$postId/reports?page=$page');
-      return response;
-    } catch (e) {
-      debugPrint('Error in getPostReports: $e');
-      rethrow;
-    }
-  }
+  Future<Map<String, dynamic>> getReportedPosts(int page) =>
+      get('/posts/reported?page=$page');
 
-  /// Deletes a specific post by its ID with error handling.
+  Future<Map<String, dynamic>> getPostReports(String postId, int page) =>
+      get('/posts/$postId/reports?page=$page');
+
   Future<void> deletePost(String postId) async {
-    try {
-      debugPrint('Deleting post $postId');
-      await delete('/posts/$postId');
-    } catch (e) {
-      debugPrint('Error in deletePost: $e');
-      rethrow;
-    }
+    await delete('/posts/$postId');
   }
 
-  /// Updates a specific report by its ID with error handling.
   Future<Map<String, dynamic>> updateReport(
     String reportId,
     Map<String, dynamic> data,
-  ) async {
-    try {
-      debugPrint('Updating report $reportId with data: $data');
-      final response = await patch('/posts/reports/$reportId', data);
-      return response;
-    } catch (e) {
-      debugPrint('Error in updateReport: $e');
-      rethrow;
-    }
-  }
+  ) => patch('/posts/reports/$reportId', data);
 
-  /// Fetches reported jobs with pagination and error handling.
-  Future<Map<String, dynamic>> getReportedJobs({int page = 1}) async {
-    try {
-      debugPrint('Fetching reported jobs for page $page');
-      final response = await get('/jobs/reported?page=$page');
-      return response;
-    } catch (e) {
-      debugPrint('Error in getReportedJobs: $e');
-      rethrow;
-    }
-  }
+  Future<Map<String, dynamic>> getReportedJobs({int page = 1}) =>
+      get('/jobs/reported?page=$page');
 
-  /// Fetches reports for a specific job with pagination and error handling.
-  Future<Map<String, dynamic>> getJobReports(int jobId, {int page = 1}) async {
-    try {
-      debugPrint('Fetching reports for job $jobId, page $page');
-      final response = await get('/jobs/$jobId/reports?page=$page');
-      return response;
-    } catch (e) {
-      debugPrint('Error in getJobReports: $e');
-      rethrow;
-    }
-  }
+  Future<Map<String, dynamic>> getJobReports(int jobId, {int page = 1}) =>
+      get('/jobs/$jobId/reports?page=$page');
 
-  /// Deletes a specific job by its ID with error handling.
   Future<void> deleteJob(String jobId) async {
-    try {
-      debugPrint('Deleting job $jobId');
-      await delete('/jobs/$jobId');
-    } catch (e) {
-      debugPrint('Error in deleteJob: $e');
-      rethrow;
-    }
+    await delete('/jobs/$jobId');
   }
 
-  /// Updates the status of a specific job report with error handling.
   Future<Map<String, dynamic>> updateJobReportStatus(
     int reportId,
     String status,
-  ) async {
-    try {
-      debugPrint('Updating job report $reportId status to: $status');
-      final response = await patch('/jobs/reports/$reportId', {
-        'status': status,
-      });
-      return response;
-    } catch (e) {
-      debugPrint('Error in updateJobReportStatus: $e');
-      rethrow;
-    }
-  }
+  ) => patch('/jobs/reports/$reportId', {'status': status});
 }
