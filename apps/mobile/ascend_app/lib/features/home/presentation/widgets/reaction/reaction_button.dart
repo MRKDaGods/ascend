@@ -55,9 +55,11 @@ class _ReactionButtonState extends State<ReactionButton>
           // Check if we need to remove current reaction or toggle to default
           if (widget.manager.isLiked) {
             // If already has a reaction, remove it
+            debugPrint('🔄 ReactionButton: Removing reaction');
             widget.manager.removeReaction();
           } else {
             // If no reaction, add the default one
+            debugPrint('🔄 ReactionButton: Adding default reaction');
             widget.manager.toggleReaction();
           }
           setState(() {}); // Force a rebuild with the new state

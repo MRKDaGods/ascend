@@ -152,24 +152,46 @@ class PostModel extends Equatable {
     );
   }
 
-  // Updated to return PostModel
+  // Updated to handle toggling same reaction correctly
   PostModel toggleReaction(String? reactionType) {
-    // If removing reaction (reactionType is null)
+    // Get current reaction state
+    final currentReactionType = isLiked?.reactionType;
+    final hasReaction = isLiked?.reacted ?? false;
+    
+    // Debug the state change
+    debugPrint('🔄 [PostModel] Toggle reaction on post $id: Current=$currentReactionType, New=$reactionType');
+    
     if (reactionType == null) {
-      // If currently liked, decrement like count
-      final newLikesCount = isLiked.reacted ? likesCount - 1 : likesCount;
+      // REMOVING reaction - explicitly set reacted to false and reactionType to null
+      debugPrint('⛔ [PostModel] Removing reaction from post $id');
       return copyWith(
-        isLiked: const ReactionInfo(reacted: false, reactionType: null),
-        likesCount: newLikesCount,
+        isLiked: ReactionInfo(reacted: false, reactionType: null),
+        likesCount: hasReaction ? likesCount - 1 : likesCount, // Decrease only if there was a reaction
       );
+    } else {
+      // ADDING or CHANGING reaction
+      if (!hasReaction) {
+        // Adding new reaction
+        debugPrint('➕ [PostModel] Adding new reaction to post $id: $reactionType');
+        return copyWith(
+          isLiked: ReactionInfo(reacted: true, reactionType: reactionType),
+          likesCount: likesCount + 1,
+        );
+      } else if (currentReactionType != reactionType) {
+        // Changing reaction type (count stays the same)
+        debugPrint('🔄 [PostModel] Changing reaction type on post $id: $currentReactionType -> $reactionType');
+        return copyWith(
+          isLiked: ReactionInfo(reacted: true, reactionType: reactionType),
+        );
+      } else {
+        // Same reaction type - REMOVE THE REACTION instead of no change
+        debugPrint('⛔ [PostModel] Removing reaction (same type clicked again) from post $id');
+        return copyWith(
+          isLiked: ReactionInfo(reacted: false, reactionType: null),
+          likesCount: likesCount > 0 ? likesCount - 1 : 0, // Decrease count, prevent negative
+        );
+      }
     }
-
-    // If adding or changing reaction
-    final newLikesCount = isLiked.reacted ? likesCount : likesCount + 1;
-    return copyWith(
-      isLiked: ReactionInfo(reacted: true, reactionType: reactionType),
-      likesCount: newLikesCount,
-    );
   }
 
   // Updated to return PostModel

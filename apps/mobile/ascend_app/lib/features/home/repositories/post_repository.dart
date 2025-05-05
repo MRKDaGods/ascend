@@ -437,8 +437,7 @@ class PostRepository {
       final headers = {
         'Authorization': 'Bearer $authToken',
         'Accept': 'application/json',
-        'Content-Type':
-            'application/json', // Needed even for empty body sometimes
+        'Content-Type': 'application/json', // Needed even for empty body sometimes
       };
 
       // If reactionType is provided, send it in the body
@@ -450,25 +449,18 @@ class PostRepository {
           body: jsonEncode({'type': reactionType}),
         );
       } else {
-        // If reactionType is null, attempt to remove the reaction.
-        // Assuming POST without body or DELETE might work. Let's try POST without body first.
-        debugPrint('  Sending POST without body (attempting removal)');
-        response = await _client.post(
+        // If reactionType is null, explicitly use DELETE to remove the reaction
+        debugPrint('  Sending DELETE request to remove reaction');
+        response = await _client.delete(
           Uri.parse(reactionUrl),
           headers: headers,
-          // body: jsonEncode({}), // Or send empty JSON object? Test required.
         );
-        // Alternative: Try DELETE if POST without body fails
-        // debugPrint(' Sending DELETE request for removal');
-        // response = await _client.delete(Uri.parse(reactionUrl), headers: headers);
       }
 
-      debugPrint(
-        'Toggle Reaction Response Status Code: ${response.statusCode}',
-      );
-      // debugPrint('Toggle Reaction Response Body: ${response.body}');
+      debugPrint('Toggle Reaction Response Status Code: ${response.statusCode}');
+      debugPrint('Toggle Reaction Response Body: ${response.body}'); // Log full response body for debugging
 
-      // Check for successful status codes (200 OK, 201 Created, potentially 204 No Content for removal)
+      // Check for successful status codes
       if (response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 204) {
@@ -479,9 +471,16 @@ class PostRepository {
                 ? (jsonDecode(responseBody)['data']?['message'] ??
                     'Reaction updated')
                 : 'Reaction updated/removed'; // Default message for success/204
+        
         debugPrint(
           '✅ Reaction toggled successfully for post $postId. Message: $message',
         );
+        
+        // For removal specifically, log it explicitly
+        if (reactionType == null) {
+          debugPrint('✅ Reaction REMOVED successfully for post $postId.');
+        }
+        
         return true;
       } else {
         debugPrint(
