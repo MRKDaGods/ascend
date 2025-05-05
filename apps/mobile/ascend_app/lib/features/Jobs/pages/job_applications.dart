@@ -80,6 +80,7 @@ class _JobApplicationsState extends State<JobApplications> {
                           MaterialPageRoute(
                             builder:
                                 (context) => ApplicationDetails(
+                                  status: application['status'] ?? 'No Status',
                                   name:
                                       application['user_full_name'] ??
                                       'No Name Provided',
