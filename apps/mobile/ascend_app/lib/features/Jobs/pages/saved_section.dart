@@ -70,9 +70,9 @@ class _SavedPageState extends State<SavedPage> {
         // );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
+      // ScaffoldMessenger.of(
+      //   context,
+      // ).showSnackBar(SnackBar(content: Text('An error occurred: $e')));
     }
   }
 
@@ -88,46 +88,47 @@ class _SavedPageState extends State<SavedPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title and "Show all" button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  "Apply to your saved job",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    //color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Handle "Show all" button press
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MyJobsPage()),
-                  );
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      "Show all",
-                      style: TextStyle(
-                        //color: isDarkMode ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward,
+          if (firstSavedJob != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    "Apply to your saved job",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                       //color: isDarkMode ? Colors.white : Colors.black,
-                      size: 16,
                     ),
-                  ],
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                TextButton(
+                  onPressed: () {
+                    // Handle "Show all" button press
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyJobsPage()),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        "Show all",
+                        style: TextStyle(
+                          //color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward,
+                        //color: isDarkMode ? Colors.white : Colors.black,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 10),
 
           // Display the first saved job

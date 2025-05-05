@@ -10,16 +10,17 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Add this import for PDF rendering
+
+
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
 
   const EasyApplyPage({super.key, required this.job});
 
   @override
-
   // ignore: library_private_types_in_public_api
   _EasyApplyPageState createState() => _EasyApplyPageState();
-
 }
 
 class _EasyApplyPageState extends State<EasyApplyPage> {
@@ -51,28 +52,34 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
   }
 
   Future<void> _pickFile() async {
-    print("Picking file...");
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
+        type: FileType.any, // Allow any file type temporarily for testing
       );
 
       if (result != null && result.files.single.path != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('File uploaded')));
-        setState(() {
-          _selectedFile = File(result.files.single.path!);
-        });
+
+        final filePath = result.files.single.path!;
+        if (filePath.endsWith('.pdf')) {
+          // Validate the file extension manually
+
+          setState(() {
+            _selectedFile = File(filePath);
+            _selectedFileBytes = File(filePath).readAsBytesSync();
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a valid PDF file.')),
+          );
+        }
+
       } else {
         ScaffoldMessenger.of(
           // ignore: use_build_context_synchronously
           context,
-        ).showSnackBar(const SnackBar(content: Text('No file selected')));
+        ).showSnackBar(const SnackBar(content: Text('No file selected.')));
       }
     } catch (e) {
-      print("Error picking file: $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
@@ -106,24 +113,30 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     try {
       final token = await SecureStorageHelper.getAuthToken();
       final url = Uri.parse('$baseUrl$endpoint');
-      print('Uploading file to: $url');
-      var request =
-          http.MultipartRequest('POST', url)
-            ..fields['email'] = email
-            ..fields['phone'] = phone
-            ..headers.addAll({
-              if (token != null) 'Authorization': 'Bearer $token',
-              'Accept': 'application/json',
-            })
-            ..files.add(
-              await http.MultipartFile.fromPath(
-                'resume', // <-- The key expected by your backend
-                _selectedFile!.path,
-                contentType: MediaType('application', 'pdf'),
-              ),
-            );
 
-      var response = await request.send();
+      final headers = {
+        if (token != null) 'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      };
+
+      final request = http.MultipartRequest('POST', url);
+      request.headers.addAll(headers);
+      // Attach the file as a multipart field
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'resume',
+          _selectedFile!.path,
+          contentType: MediaType('application', 'pdf'),
+        ),
+      );
+
+
+      // Add other form fields
+      request.fields['email'] = email;
+      request.fields['phone'] = phone;
+
+      print('Uploading file to: $url');
+      final response = await request.send();
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -134,7 +147,9 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         final responseBody = await response.stream.bytesToString();
         print('Response status: ${response.statusCode}');
         print('Response body: $responseBody');
-        throw Exception('Failed to apply');
+
+        throw Exception('Failed to apply. Server response: $responseBody');
+
       }
     } catch (e) {
       print('Error: $e');
@@ -232,13 +247,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (_selectedFileBytes != null)
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Selected File: resume.pdf',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
+          Expanded(child: SfPdfViewer.memory(_selectedFileBytes!)),
         ElevatedButton.icon(
           onPressed: _pickFile,
           icon: const Icon(Icons.upload_file),
@@ -247,12 +256,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () async {
-            // if (_selectedFileBytes == null) {
-            //   ScaffoldMessenger.of(context).showSnackBar(
-            //     const SnackBar(content: Text('Please upload a PDF file.')),
-            //   );
-            //   return;
-            // }
 
             _uploadFile();
           },
