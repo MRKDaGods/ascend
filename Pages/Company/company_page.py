@@ -26,6 +26,9 @@ class CompanyPage(BasePage):
     UPDATE_COMPANY_BUTTON = CompanyPageLocators.UPDATE_COMPANY_BUTTON
     FAILED_TO_CREATE_COMPANY_MESSAGE = CompanyPageLocators.FAILED_TO_CREATE_COMPANY_MESSAGE
     COMPANY_CREATED_MESSAGE = CompanyPageLocators.COMPANY_CREATED_MESSAGE
+    COMPANY_UPDATED_MESSAGE = CompanyPageLocators.COMPANY_UPDATED_MESSAGE
+    EDIT_DESCRIPTION_TEXT_BOX_AFTER_CLICK  = CompanyPageLocators.EDIT_DESCRIPTION_TEXT_BOX_AFTER_CLICK
+    EDIT_INDUSTRY_TEXT_BOX_AFTER_CLICK = CompanyPageLocators.EDIT_INDUSTRY_TEXT_BOX_AFTER_CLICK
     #######################################################################################################################
     # Locaters for add job on the Company page on Ascend
     CHOSEN_COMPANY_TO_ADD_JOB_BUTTON = CompanyPageLocators.CHOSEN_COMPANY_TO_ADD_JOB_BUTTON
@@ -49,18 +52,24 @@ class CompanyPage(BasePage):
         self.click(self.CREATE_NEW_COMPANY_BUTTON)
     
     def enter_Company_Name_Text_Box(self, text):
+        self.click(self.COMPANY_NAME_TEXT_BOX)
         self.send_keys(self.COMPANY_NAME_TEXT_BOX, text)
+        
     
-    def enter_Description_Text_Box(self, text):
+    def enter_Description_Text_Box(self, text): #Edoted from description_text_box
+        self.click(self.DESCRIPTION_TEXT_BOX)
         self.send_keys(self.DESCRIPTION_TEXT_BOX, text)
     
     def enter_Industry_Text_Box(self, text):
+        self.click(self.INDUSTRY_TEXT_BOX)
         self.send_keys(self.INDUSTRY_TEXT_BOX, text)
     
     def enter_Location_Text_Box(self, text):
+        self.click(self.LOCATION_TEXT_BOX)
         self.send_keys(self.LOCATION_TEXT_BOX, text)
     
     def enter_Domain_Name_Text_Box(self, text):
+        self.click(self.DOMAIN_NAME_TEXT_BOX)
         self.send_keys(self.DOMAIN_NAME_TEXT_BOX, text)
     
     def click_Upload_Profile_Photo_Button(self):
@@ -88,15 +97,19 @@ class CompanyPage(BasePage):
         self.click(self.DELETE_COMPANY_BUTTON)
     
     def enter_Edit_Company_Name_Text_Box(self, text):
+        self.click(self.EDIT_COMPANY_NAME_TEXT_BOX)
         self.send_keys(self.EDIT_COMPANY_NAME_TEXT_BOX, text)
     
     def enter_Edit_Description_Text_Box(self, text):
-        self.send_keys(self.EDIT_DESCRIPTION_TEXT_BOX, text)
+        self.click(self.EDIT_DESCRIPTION_TEXT_BOX)
+        self.send_keys(self.EDIT_DESCRIPTION_TEXT_BOX_AFTER_CLICK, text)
     
     def enter_Edit_Industry_Text_Box(self, text):
-        self.send_keys(self.EDIT_INDUSTRY_TEXT_BOX, text)
+        self.click(self.EDIT_INDUSTRY_TEXT_BOX)
+        self.send_keys(self.EDIT_INDUSTRY_TEXT_BOX_AFTER_CLICK, text)
     
     def enter_Edit_Location_Text_Box(self, text):
+        self.click(self.EDIT_LOCATION_TEXT_BOX)
         self.send_keys(self.EDIT_LOCATION_TEXT_BOX, text)
     
     def click_Update_Company_Button(self):
@@ -110,15 +123,19 @@ class CompanyPage(BasePage):
         self.click(self.ADD_JOB_BUTTON)
     
     def enter_Job_Title_Text_Box(self, text):
+        self.click(self.JOB_TITLE_TEXT_BOX)
         self.send_keys(self.JOB_TITLE_TEXT_BOX, text)
     
     def enter_Job_Description_Text_Box(self, text):
+        self.click(self.JOB_DESCRIPTION_TEXT_BOX)
         self.send_keys(self.JOB_DESCRIPTION_TEXT_BOX, text)
     
     def enter_Job_Industry_Text_Box(self, text):
+        self.click(self.JOB_INDUSTRY_TEXT_BOX)
         self.send_keys(self.JOB_INDUSTRY_TEXT_BOX, text)
     
     def enter_Job_Location_Text_Box(self, text):
+        self.click(self.JOB_LOCATION_TEXT_BOX)
         self.send_keys(self.JOB_LOCATION_TEXT_BOX, text)
     
     def click_Create_Job_Button(self):

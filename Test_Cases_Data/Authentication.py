@@ -18,6 +18,8 @@ class SignupTestCasesData:
 
 class  AscendLoginTestCasesData:
     TEST_EMAIL = "tests@mail.com"
+    TEST_ADMIN_EMAIL = "sys@ascendx.tech"
+    TEST_ADMIN_PASSWORD = "123"
     TEST_CASE_SENSTIVE_MAIL = "testS@Mail.com"
     TEST_VALID_PASSWORD = "123456789A"
     TEST_INVALID_PASSWORD = "123456789"

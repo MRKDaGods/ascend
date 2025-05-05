@@ -3,6 +3,7 @@ import pytest
 from Pages.Company.company_page import CompanyPage
 from Pages.Authentication.Ascend_login import AscendLoginPage
 import time
+from utility import UtilityFunctions
 ###############################################################
 # to import enter key
 from appium import webdriver
@@ -12,13 +13,18 @@ from appium.webdriver.extensions.android.nativekey import AndroidKey
 def setup_test(appium_driver):
     company_page = CompanyPage(appium_driver)
     login_page = AscendLoginPage(appium_driver)
-    
-    if login_page.is_visible(login_page.WELCOME_MESSAGE):
+    utils = UtilityFunctions(appium_driver)
+    time.sleep(2)
+    try:
+        if login_page.is_visible(login_page.WELCOME_MESSAGE):
+            company_page.click_Jobs_Button()
+            time.sleep(2)
+            return company_page
+    except Exception as e:
+        logger.info(f"error here {e}")
+        utils.ascend_login()
         company_page.click_Jobs_Button()
-        time.sleep(2)
         return company_page
-    else:
-        pass
     
 
 def test_create_company(appium_driver, setup_test):
@@ -29,14 +35,19 @@ def test_create_company(appium_driver, setup_test):
     company_page.click_Create_New_Company_Button()
     time.sleep(2)
     company_page.enter_Company_Name_Text_Box("cross testing trial")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Description_Text_Box("testing trial")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Industry_Text_Box("testing")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Location_Text_Box("egypt")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Domain_Name_Text_Box("cross.com")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.click_Upload_Profile_Photo_Button()
     time.sleep(1)
@@ -47,10 +58,10 @@ def test_create_company(appium_driver, setup_test):
     company_page.click_Valid_Cover_Photo_Button()
     time.sleep(1)
     company_page.click_Create_Company_Button()
-    time.sleep(1)
+    time.sleep(4)
     
     try:
-        assert not company_page.is_visible(company_page.FAILED_TO_CREATE_COMPANY_MESSAGE), "Company creation failed!"
+        assert  company_page.is_visible(company_page.COMPANY_CREATED_MESSAGE), "Company creation failed!"
         logger.info("Company created successfully")
     except Exception as e:
         logger.error(f"Company creation failed: {e}")
@@ -61,7 +72,7 @@ def test_edit_company_image(appium_driver, setup_test):
     logger.info("Test: Edit Company Image")
     company_page.click_Manage_Company_Button()
     time.sleep(2)
-    company_page.click_CHOSEN_COMPANY_TO_EDIT_BUTTON()
+    company_page.click_Chosen_Company_To_Edit_Button()
     time.sleep(1)
     company_page.click_Edit_Company_Button()
     time.sleep(1)
@@ -70,11 +81,12 @@ def test_edit_company_image(appium_driver, setup_test):
     company_page.click_Valid_Profile_Photo_Button()
     time.sleep(1)
     company_page.enter_Domain_Name_Text_Box("cross.com")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.click_Update_Company_Button()
     time.sleep(1)
     try:
-        assert not company_page.is_visible(company_page.FAILED_TO_CREATE_COMPANY_MESSAGE), "Company image update failed!"
+        assert  company_page.is_visible(company_page.COMPANY_UPDATED_MESSAGE), "Company image update failed!"
         logger.info("Company image updated successfully")
     except Exception as e:
         logger.error(f"Company image update failed: {e}")
@@ -84,21 +96,23 @@ def test_edit_company_image(appium_driver, setup_test):
 def test_edit_company_description(appium_driver, setup_test):
     company_page = setup_test
     logger.info("Test: Edit Company Description")
-    company_page.click_Manage_Company_Button()
     time.sleep(2)
-    company_page.click_CHOSEN_COMPANY_TO_EDIT_BUTTON()
+    company_page.click_Manage_Company_Button()
+    time.sleep(3)
+    company_page.click_Chosen_Company_To_Edit_Button()
     time.sleep(1)
     company_page.click_Edit_Company_Button()
-    time.sleep(1)
+    time.sleep(2)
     company_page.enter_Edit_Description_Text_Box("made by Sasa cross")
     time.sleep(1)
     company_page.enter_Domain_Name_Text_Box("cross.com")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.click_Update_Company_Button()
     time.sleep(1)
     
     try:
-        assert not company_page.is_visible(company_page.FAILED_TO_CREATE_COMPANY_MESSAGE), "Company description update failed!"
+        assert company_page.is_visible(company_page.COMPANY_UPDATED_MESSAGE), "Company description update failed!"
         logger.info("Company description updated successfully")
     except Exception as e:
         logger.error(f"Company description update failed: {e}")
@@ -110,20 +124,22 @@ def test_edit_company_industry(appium_driver, setup_test):
     company_page = setup_test
     logger.info("Test: Edit Company Industry")
     company_page.click_Manage_Company_Button()
-    time.sleep(2)
-    company_page.click_CHOSEN_COMPANY_TO_EDIT_BUTTON()
+    time.sleep(3)
+    company_page.click_Chosen_Company_To_Edit_Button()
     time.sleep(1)
     company_page.click_Edit_Company_Button()
-    time.sleep(1)
-    company_page.enter_Edit_Industry_Text_Box("Testing")
+    time.sleep(2)
+    company_page.enter_Edit_Industry_Text_Box("anime")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Domain_Name_Text_Box("cross.com")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.click_Update_Company_Button()
     time.sleep(1)
     
     try:
-        assert not company_page.is_visible(company_page.FAILED_TO_CREATE_COMPANY_MESSAGE), "Company industry update failed!"
+        assert company_page.is_visible(company_page.COMPANY_UPDATED_MESSAGE), "Company industry update failed!"
         logger.info("Company industry updated successfully")
     except Exception as e:
         logger.error(f"Company industry update failed: {e}")
@@ -138,13 +154,17 @@ def test_post_job(appium_driver, setup_test):
     time.sleep(1)
     company_page.click_Add_Job_Button()
     time.sleep(1)
-    company_page.enter_Job_Title_Text_Box("Software Engineer")
+    company_page.enter_Job_Title_Text_Box("QA Tester")
+    appium_driver.hide_keyboard()
     time.sleep(1)
-    company_page.enter_Job_Description_Text_Box("Develop and maintain software applications.")
+    company_page.enter_Job_Description_Text_Box("Test and maintain software applications.")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Job_Industry_Text_Box("Software Development")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     company_page.enter_Job_Location_Text_Box("Remote")
+    appium_driver.hide_keyboard()
     time.sleep(1)
     appium_driver.swipe(500, 1400, 500, 300 , 1000)
     company_page.click_Create_Job_Button()
@@ -164,8 +184,8 @@ def test_track_job_applicants(appium_driver, setup_test):
     time.sleep(2)
     company_page.click_Chosen_Company_To_Add_Job_Button()
     time.sleep(1)
-    company_page.click_CHOSEN_JOB()
-    time.sleep(1)
+    company_page.click_Chosen_Job()
+    time.sleep(2)
     
     try:
         assert company_page.is_visible(company_page.ASSERT_JOB_APPLICANTS), "Job applicants tracking failed!"
