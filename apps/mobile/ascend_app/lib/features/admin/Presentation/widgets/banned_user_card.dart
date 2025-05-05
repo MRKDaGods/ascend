@@ -7,12 +7,12 @@ class BannedUserCard extends StatelessWidget {
   final VoidCallback onUnban;
 
   const BannedUserCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.email,
     required this.date,
     required this.onUnban,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

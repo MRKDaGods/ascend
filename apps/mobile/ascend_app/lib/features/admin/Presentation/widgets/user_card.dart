@@ -8,13 +8,13 @@ class UserCard extends StatelessWidget {
   final List<Widget> actions;
 
   const UserCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.email,
     this.date,
     this.reports,
     required this.actions,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

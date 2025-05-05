@@ -11,18 +11,18 @@ class ReportedJobCard extends StatefulWidget {
   final VoidCallback? onDelete;
 
   const ReportedJobCard({
-    Key? key,
+    super.key,
     required this.job,
     required this.reports,
     required this.onExpand,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
-  _ReportedJobCardState createState() => _ReportedJobCardState();
+  ReportedJobCardState createState() => ReportedJobCardState();
 }
 
-class _ReportedJobCardState extends State<ReportedJobCard> {
+class ReportedJobCardState extends State<ReportedJobCard> {
   bool _isExpanded = false;
 
   @override

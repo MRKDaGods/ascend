@@ -2,7 +2,6 @@ import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_event.dart';
 import 'package:ascend_app/features/admin/data/models/posts_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
 import 'dart:async';
 part 'posts_state.dart';
@@ -298,10 +297,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         debugPrint(
           'Updating report ${event.reportId} status to ${event.status}',
         );
-        final response = await apiClient.patch(
-          '/posts/reports/${event.reportId}',
-          {'status': event.status},
-        );
+        // final response = await apiClient.patch(
+        //   '/posts/reports/${event.reportId}',
+        //   {'status': event.status},
+        // );
 
         // Debug print the response
         // debugPrint('Status update response: $response');

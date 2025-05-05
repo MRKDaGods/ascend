@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as path;
 import '../../data/models/posts_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/posts/bloc/posts_bloc.dart';
@@ -36,8 +35,8 @@ class _ReportedPostCardState extends State<ReportedPostCard> {
     final createdAt = DateFormat(
       'yyyy-MM-dd – kk:mm',
     ).format(widget.post.createdAt);
-    final hasImage = widget.post.mediaUrls.isNotEmpty;
-    final imageUrl = hasImage ? widget.post.mediaUrls.first : null;
+    // final hasImage = widget.post.mediaUrls.isNotEmpty;
+    // final imageUrl = hasImage ? widget.post.mediaUrls.first : null;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 12),

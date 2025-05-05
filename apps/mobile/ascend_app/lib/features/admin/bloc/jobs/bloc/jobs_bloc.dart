@@ -2,9 +2,6 @@ import 'package:ascend_app/features/admin/data/models/jobs_model.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as apiClient;
-import 'package:meta/meta.dart';
-
 part 'jobs_event.dart';
 part 'jobs_state.dart';
 
@@ -174,10 +171,10 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
           'Updating job report ${event.reportId} status to ${event.status}',
         );
 
-        final response = await adminRepository.updateJobReportStatus(
-          int.parse(event.reportId),
-          event.status,
-        );
+        // final response = await adminRepository.updateJobReportStatus(
+        //   int.parse(event.reportId),
+        //   event.status,
+        // );
 
         // Emit success state
         emit(

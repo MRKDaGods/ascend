@@ -1,7 +1,9 @@
 part of 'posts_bloc.dart';
 
 @immutable
-sealed class PostsState {}
+sealed class PostsState {
+  List<Object?> get props => [];
+}
 
 /// Initial state of the PostsBloc.
 final class PostsInitial extends PostsState {}

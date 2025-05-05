@@ -11,7 +11,7 @@ class ReportedUserCard extends StatefulWidget {
   final VoidCallback onBan; // Add a callback for the Ban button
 
   const ReportedUserCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.email,
     required this.date,
@@ -20,7 +20,7 @@ class ReportedUserCard extends StatefulWidget {
     required this.onToggleReports,
     required this.onDelete,
     required this.onBan, // Pass the Ban callback
-  }) : super(key: key);
+  });
 
   @override
   State<ReportedUserCard> createState() => _ReportedUserCardState();
