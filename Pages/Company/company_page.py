@@ -41,6 +41,11 @@ class CompanyPage(BasePage):
     JOB_CREATED_MESSAGE = CompanyPageLocators.JOB_CREATED_MESSAGE
     CHOSEN_JOB = CompanyPageLocators.CHOSEN_JOB
     ASSERT_JOB_APPLICANTS = CompanyPageLocators.ASSERT_JOB_APPLICANTS
+    ####################################################################################################################
+    JOB_SEARCH_BAR = CompanyPageLocators.JOB_SEARCH_BAR
+    JOB_SEARCH_BAR_TEXT = CompanyPageLocators.JOB_SEARCH_BAR_TEXT
+    FILTER_BY_SLAARY = CompanyPageLocators.FILTER_BY_SLAARY
+    SHOW_RESULTS_BUTTON = CompanyPageLocators.SHOW_RESULTS_BUTTON
     
     def click_Jobs_Button(self):
         self.click(self.JOBS_BUTTON)
@@ -143,3 +148,16 @@ class CompanyPage(BasePage):
     
     def click_Chosen_Job(self):
         self.click(self.CHOSEN_JOB)
+    
+    ##########################################################
+    def click_Jobs_Search_Bar(self):
+        self.click(self.JOB_SEARCH_BAR)
+    
+    def click_Jobs_Search_Bar_Text(self):
+        self.click(self.JOB_SEARCH_BAR_TEXT)
+    
+    def click_Filter_By_Salary(self):
+        self.click(self.FILTER_BY_SLAARY)
+    
+    def click_Show_Results_Button(self):
+        self.click(self.SHOW_RESULTS_BUTTON)

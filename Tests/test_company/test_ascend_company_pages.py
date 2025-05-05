@@ -194,3 +194,27 @@ def test_track_job_applicants(appium_driver, setup_test):
         logger.error(f"Job applicants tracking failed: {e}")
         assert False, "Job applicants tracking failed"
 
+def test_filter_by_salary(appium_driver, setup_test):
+    company_page = setup_test
+    logger.info("Test: Filter by Salary")
+    company_page.click_Jobs_Search_Bar()
+    time.sleep(1)
+    company_page.click_Jobs_Search_Bar_Text()
+    time.sleep(1)
+    appium_driver.press_keycode(AndroidKey.ENTER)
+    time.sleep(1)
+    appium_driver.swipe(800, 300, 100, 300 , 1000)
+    time.sleep(1)
+    company_page.click_Filter_By_Salary()
+    time.sleep(1)
+    appium_driver.swipe(110, 1716, 330, 1716 , 1000)
+    time.sleep(1)
+    company_page.click_Show_Results_Button()
+    time.sleep(2)
+    
+    try:
+        assert company_page.is_visible(company_page.JOB_SEARCH_BAR), "Salary filter failed!"
+        logger.info("Salary filter is working")
+    except Exception as e:
+        logger.error(f"Salary filter failed: {e}")
+        assert False, "Salary filter failed"

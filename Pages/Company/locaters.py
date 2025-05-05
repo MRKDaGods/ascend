@@ -40,3 +40,10 @@ class CompanyPageLocators:
     JOB_CREATED_MESSAGE = (By.ACCESSIBILITY_ID, 'Job created successfully!')
     CHOSEN_JOB = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.ImageView").instance(0)')
     ASSERT_JOB_APPLICANTS = (By.ACCESSIBILITY_ID,'Job Applications')
+    
+    # locaters to test salary filter in job module
+    JOB_SEARCH_BAR = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
+    JOB_SEARCH_BAR_TEXT = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
+    FILTER_BY_SLAARY = (By.ACCESSIBILITY_ID, 'Salary')
+    SHOW_RESULTS_BUTTON = (By.ACCESSIBILITY_ID, 'Show Results')
+    
