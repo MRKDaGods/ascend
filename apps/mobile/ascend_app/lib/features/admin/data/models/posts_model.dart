@@ -177,19 +177,6 @@ class ReportedPost {
     }).toList();
   }
 
-  // Keep this for backward compatibility
-  static List<String> _parseMediaUrls(List media) {
-    return media
-        .map((m) {
-          if (m is Map && m.containsKey('url')) {
-            return m['url']?.toString() ?? '';
-          }
-          return '';
-        })
-        .where((url) => url.isNotEmpty)
-        .toList();
-  }
-
   static List<PostReport> _parseReports(Map<String, dynamic> json) {
     if (json.containsKey('reports') && json['reports'] is List) {
       return (json['reports'] as List)
@@ -201,20 +188,16 @@ class ReportedPost {
 
   static String _parseProfilePic(Map<String, dynamic> user) {
     // Handle the changes in profile picture structure
-    // Check if profile_picture_id exists and is not null
     if (user.containsKey('profile_picture_id') &&
         user['profile_picture_id'] != null) {
-      // If you have a way to construct the URL from ID, implement it here
       return 'https://api.ascendx.tech/files/view?token=${user['profile_picture_id']}';
     }
 
-    // Check for backward compatibility
     if (user.containsKey('profile_picture_url') &&
         user['profile_picture_url'] != null) {
       return user['profile_picture_url'];
     }
 
-    // Return empty string as fallback
     return '';
   }
 }

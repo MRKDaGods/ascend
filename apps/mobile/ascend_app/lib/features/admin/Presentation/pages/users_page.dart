@@ -3,7 +3,7 @@ import '../widgets/reported_user_card.dart'; // Import the ReportedUserCard widg
 import '../widgets/banned_user_card.dart'; // Import the new BannedUserCard widget
 
 class UsersPage extends StatefulWidget {
-  const UsersPage({Key? key}) : super(key: key);
+  const UsersPage({super.key});
 
   @override
   State<UsersPage> createState() => _UsersPageState();
@@ -48,17 +48,17 @@ class _UsersPageState extends State<UsersPage>
 
   void _handleDeleteUser(BuildContext context, String userId) {
     // Add logic to delete the user
-    print('Delete user with ID: $userId');
+    debugPrint('Delete user with ID: $userId');
   }
 
   void _handleBanUser(BuildContext context, String userId) {
     // Add logic to ban the user
-    print('Ban user with ID: $userId');
+    debugPrint('Ban user with ID: $userId');
   }
 
   void _handleUnbanUser(BuildContext context, String userId) {
     // Add logic to unban the user
-    print('Unban user with ID: $userId');
+    debugPrint('Unban user with ID: $userId');
     setState(() {
       _bannedUsers.removeWhere((user) => user['id'] == userId);
     });

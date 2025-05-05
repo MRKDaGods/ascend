@@ -43,7 +43,9 @@ class CompanyCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withAlpha(
+                (0.2 * 255).toInt(),
+              ), // Updated to use withAlpha
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
