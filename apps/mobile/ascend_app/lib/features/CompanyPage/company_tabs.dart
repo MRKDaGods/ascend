@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
+import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
 
 class CompanyTabs extends StatefulWidget {
-  const CompanyTabs({super.key});
+  final String companyName; // Company name to fetch jobs for
+  const CompanyTabs({super.key, required this.companyName});
 
   @override
   State<CompanyTabs> createState() => _CompanyTabsState();
@@ -10,11 +15,44 @@ class CompanyTabs extends StatefulWidget {
 class _CompanyTabsState extends State<CompanyTabs>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<Jobsattributes> companyJobs = [];
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this); // 5 tabs
+    fetchCompanyJobs();
+  }
+
+  Future<void> fetchCompanyJobs() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final url = Uri.parse(
+      'https://api.ascendx.tech/job?company=${widget.companyName}',
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse.containsKey('data')) {
+          final List<dynamic> jobData = jsonResponse['data'];
+          setState(() {
+            companyJobs =
+                jobData.map((data) => Jobsattributes.fromJson(data)).toList();
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching company jobs: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -91,7 +129,33 @@ class _CompanyTabsState extends State<CompanyTabs>
   }
 
   Widget _buildJobsTab() {
-    return Center(child: Text("Jobs Section"));
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (companyJobs.isEmpty) {
+      return Center(child: Text("No jobs available for this company."));
+    }
+
+    return ListView.builder(
+      itemCount: companyJobs.length,
+      itemBuilder: (context, index) {
+        final job = companyJobs[index];
+        return jobCard(
+          context: context,
+          job: job,
+          isDarkMode: false,
+          onRemove: (removedJob) {
+            setState(() {
+              companyJobs.remove(removedJob);
+            });
+          },
+          onTap: () {
+            // Handle job card tap
+          },
+        );
+      },
+    );
   }
 
   Widget _buildPeopleTab() {
