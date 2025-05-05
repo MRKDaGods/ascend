@@ -6,11 +6,14 @@ from Pages.Feed.home_page import HomePage
 from Pages.Profile.profile_page import ProfiePage
 from Pages.Navigation.searchbar_page import SearchBarPage
 from Test_Cases_Data.Authentication import LoginTestCasesData as TC
+from Test_Cases_Data.Authentication import AscendLoginTestCasesData as TC1
 from logger import logger
 import time
 from Pages.Jobs.jobs_page import JobPage
+from Pages.Authentication.Ascend_login import AscendLoginPage
 from appium import webdriver
 from appium.webdriver.extensions.android.nativekey import AndroidKey
+
 
 class UtilityFunctions:
     def __init__(self, appium_driver):
@@ -22,6 +25,7 @@ class UtilityFunctions:
         self.search_bar_page = SearchBarPage(appium_driver)
         self.profile_page = ProfiePage(appium_driver)# if needed
         self.job_page = JobPage(appium_driver)
+        self.ascend_login_page = AscendLoginPage(appium_driver)
 
     def signout(self):
         self.home_page.click_sidebar()
@@ -99,3 +103,23 @@ class UtilityFunctions:
         time.sleep(1)
         self.driver.press_keycode(AndroidKey.ENTER)
         time.sleep(3)
+    
+    def ascend_login(self):
+        # try:
+        #     self.ascend_login_page.click_allow_notifications()
+        # except Exception as e:
+        #     logger.info(e)
+        logger.info("Ascend Login")
+        try:
+            self.ascend_login_page.click_sign_in()
+        except Exception as e:
+            logger.info(f"user is not in landing page  {e}")
+            pass
+        self.ascend_login_page.enter_email(TC1.TEST_ADMIN_EMAIL)
+        self.driver.hide_keyboard()
+        time.sleep(2)
+        self.ascend_login_page.enter_password(TC1.TEST_ADMIN_PASSWORD)
+        self.driver.hide_keyboard()
+        time.sleep(2)
+        self.ascend_login_page.click_continue()
+        time.sleep(5)
