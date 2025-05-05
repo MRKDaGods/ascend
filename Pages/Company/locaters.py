@@ -31,7 +31,7 @@ class CompanyPageLocators:
     #######################################################################################################################
     # Locaters for add job on the Company page on Ascend
     CHOSEN_COMPANY_TO_ADD_JOB_BUTTON = (By.ACCESSIBILITY_ID, 'anime\njapan')
-    ADD_JOB_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.Button").instance(5)')
+    ADD_JOB_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.Button").instance(2)')
     JOB_TITLE_TEXT_BOX = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(0)')
     JOB_DESCRIPTION_TEXT_BOX = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(1)')
     JOB_INDUSTRY_TEXT_BOX = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(2)')
