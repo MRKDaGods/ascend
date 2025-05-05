@@ -43,11 +43,11 @@ Future<void> postFeedback(
 class ReportPage extends StatelessWidget {
   final int jobId;
 
-  const ReportPage({Key? key, required this.jobId}) : super(key: key);
+  const ReportPage({super.key, required this.jobId});
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _controller = TextEditingController();
+    final TextEditingController controller = TextEditingController();
 
     return Scaffold(
       resizeToAvoidBottomInset:
@@ -64,7 +64,7 @@ class ReportPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextField(
-              controller: _controller,
+              controller: controller,
               maxLines: 5,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
@@ -74,7 +74,7 @@ class ReportPage extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                final reason = _controller.text;
+                final reason = controller.text;
                 if (reason.isNotEmpty) {
                   // Call the postFeedback method or handle the report submission
                   postFeedback(context, jobId, reason);

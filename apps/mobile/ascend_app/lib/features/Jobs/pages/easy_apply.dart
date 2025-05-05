@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/foundation.dart';
@@ -11,7 +10,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Add this import for PDF rendering
-
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -58,7 +56,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
       );
 
       if (result != null && result.files.single.path != null) {
-
         final filePath = result.files.single.path!;
         if (filePath.endsWith('.pdf')) {
           // Validate the file extension manually
@@ -72,7 +69,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
             const SnackBar(content: Text('Please select a valid PDF file.')),
           );
         }
-
       } else {
         ScaffoldMessenger.of(
           // ignore: use_build_context_synchronously
@@ -130,7 +126,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         ),
       );
 
-
       // Add other form fields
       request.fields['email'] = email;
       request.fields['phone'] = phone;
@@ -149,7 +144,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         print('Response body: $responseBody');
 
         throw Exception('Failed to apply. Server response: $responseBody');
-
       }
     } catch (e) {
       print('Error: $e');
@@ -256,7 +250,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () async {
-
             _uploadFile();
           },
           child: const Text("Submit Application"),
