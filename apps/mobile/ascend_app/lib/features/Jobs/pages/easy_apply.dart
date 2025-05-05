@@ -9,7 +9,9 @@ import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
+
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Add this import for PDF rendering
+
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -56,6 +58,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
       );
 
       if (result != null && result.files.single.path != null) {
+
         final filePath = result.files.single.path!;
         if (filePath.endsWith('.pdf')) {
           // Validate the file extension manually
@@ -69,8 +72,10 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
             const SnackBar(content: Text('Please select a valid PDF file.')),
           );
         }
+
       } else {
         ScaffoldMessenger.of(
+          // ignore: use_build_context_synchronously
           context,
         ).showSnackBar(const SnackBar(content: Text('No file selected.')));
       }
@@ -108,6 +113,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     try {
       final token = await SecureStorageHelper.getAuthToken();
       final url = Uri.parse('$baseUrl$endpoint');
+
       final headers = {
         if (token != null) 'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -123,6 +129,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
           contentType: MediaType('application', 'pdf'),
         ),
       );
+
 
       // Add other form fields
       request.fields['email'] = email;
@@ -140,7 +147,9 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         final responseBody = await response.stream.bytesToString();
         print('Response status: ${response.statusCode}');
         print('Response body: $responseBody');
+
         throw Exception('Failed to apply. Server response: $responseBody');
+
       }
     } catch (e) {
       print('Error: $e');
@@ -247,6 +256,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () async {
+
             _uploadFile();
           },
           child: const Text("Submit Application"),

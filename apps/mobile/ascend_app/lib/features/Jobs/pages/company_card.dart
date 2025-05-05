@@ -1,6 +1,8 @@
+
 import 'package:ascend_app/features/CompanyPage/company_page.dart';
 import 'package:ascend_app/features/Jobs/pages/create_company.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/company_details.dart';
 import 'package:http/http.dart' as http;
@@ -159,6 +161,7 @@ class CompanyCard extends StatelessWidget {
                       ),
                     );
                   } else if (value == 'delete') {
+
                     final confirmDelete = await showDialog<bool>(
                       context: context,
                       builder: (BuildContext context) {
@@ -204,6 +207,7 @@ class CompanyCard extends StatelessWidget {
                         );
                       }
                     }
+
                   }
                 },
                 itemBuilder:
