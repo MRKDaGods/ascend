@@ -339,17 +339,14 @@ class PostRepository {
 
   // Get User's Reaction for a Post via API
   Future<String?> getPostReaction(String postId) async {
-    final String reactionUrl =
-        '$baseUrl/post/$postId/reactions'; // Endpoint from user image
+    final String reactionUrl = '$baseUrl/post/$postId/reactions';
     debugPrint('❓ Fetching user reaction for post $postId: URL=$reactionUrl');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
       if (authToken == null) {
         // Don't throw, just return null as we might not be logged in or allowed to see reactions
-        debugPrint(
-          '⚠️ Auth token null, cannot fetch reaction for post $postId.',
-        );
+        debugPrint('⚠️ Auth token null, cannot fetch reaction for post $postId.');
         return null;
       }
 
@@ -364,23 +361,47 @@ class PostRepository {
       );
 
       debugPrint('Get Reaction Response Status Code: ${response.statusCode}');
-      // debugPrint('Get Reaction Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        // *** Adjust parsing based on your actual API response structure ***
-        // Assuming response is like: {"data": {"user_reaction": "like"}} or {"data": {"user_reaction": null}}
-        final reactionData = responseData['data'];
-        if (reactionData is Map<String, dynamic>) {
-          final userReaction = reactionData['user_reaction'] as String?;
-          debugPrint('✅ Fetched reaction for post $postId: $userReaction');
-          return userReaction;
-        } else {
-          debugPrint(
-            '⚠️ Unexpected reaction data format for post $postId: $reactionData',
-          );
-          return null; // Return null if format is wrong
+        
+        // Handle new API format with success and data array
+        if (responseData['success'] == true) {
+          final dataList = responseData['data'] as List;
+          
+          if (dataList.isEmpty) {
+            debugPrint('✅ No reaction found for post $postId (empty data array)');
+            return null;
+          }
+          
+          // Get the first reaction from the array
+          if (dataList.isNotEmpty && dataList[0] is Map<String, dynamic> && dataList[0]['reaction_type'] != null) {
+            final reactionType = dataList[0]['reaction_type'] as String;
+            debugPrint('✅ Fetched reaction for post $postId: $reactionType');
+            return reactionType;
+          }
         }
+        
+        // Handle case when API returns empty array directly
+        if (responseData is List) {
+          if (responseData.isEmpty) {
+            debugPrint('✅ No reaction found for post $postId (direct empty array)');
+            return null;
+          }
+        }
+        
+        // Handle older format as fallback
+        if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+          final reactionData = responseData['data'];
+          if (reactionData is Map<String, dynamic>) {
+            final userReaction = reactionData['user_reaction'] as String?;
+            debugPrint('✅ Fetched reaction for post $postId: $userReaction');
+            return userReaction;
+          }
+        }
+        
+        debugPrint('⚠️ Unexpected reaction data format for post $postId: $responseData');
+        return null; // Return null if format is wrong
       } else if (response.statusCode == 404) {
         debugPrint(
           'ℹ️ No specific reaction found for user on post $postId (404).',
