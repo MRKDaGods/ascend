@@ -1,12 +1,15 @@
 import 'package:ascend_app/features/admin/data/models/jobs_model.dart';
+import 'package:ascend_app/features/admin/data/models/users_model.dart';
 import 'package:flutter/material.dart';
 import '../data/services/admin_api_client.dart';
 import '../data/models/posts_model.dart';
+import 'package:ascend_app/features/admin/data/services/user_api_client.dart';
 
 class AdminRepository {
   final AdminApiClient apiClient;
+  final UserApiClient userApiClient;
 
-  AdminRepository({required this.apiClient});
+  AdminRepository({required this.apiClient, required this.userApiClient});
 
   /// Fetches analytics data from the backend for the specified duration.
   Future<Map<String, int>> fetchAnalytics(String duration) async {
@@ -196,6 +199,17 @@ class AdminRepository {
       endpoint: '/posts/reports/$reportId',
       data: {'status': status},
     );
+  }
+
+  /// Fetches a list of reported users.
+  Future<List<UserReport>> getReportedUsers() async {
+    try {
+      final response = await userApiClient.getList('/admin-get-user-reports');
+      return response.map((json) => UserReport.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching reported users: $e');
+      throw Exception('Failed to fetch reported users');
+    }
   }
 
   /// Generic method to fetch a list of items.
