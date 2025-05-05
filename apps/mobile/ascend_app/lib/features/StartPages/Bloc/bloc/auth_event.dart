@@ -65,3 +65,12 @@ class ResetPasswordRequested extends AuthEvent {
 }
 
 class SignOutRequested extends AuthEvent {}
+
+class AuthTokenUpdated extends AuthEvent {
+  final String token;
+
+  AuthTokenUpdated({required this.token});
+
+  @override
+  List<Object?> get props => [token];
+}

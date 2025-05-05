@@ -609,7 +609,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pushReplacementNamed(RouteNames.home),
+          onPressed:
+              () => Navigator.of(context).pushReplacementNamed(RouteNames.home),
         ),
         title: BlocBuilder<UserProfileBloc, UserProfileState>(
           builder: (context, state) {
@@ -617,7 +618,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                UserAvatar(imageUrl: profile?.avatarUrl, radius: 18),
+                UserAvatar(imageUrl: profile?.profilePictureUrl, radius: 18),
                 const SizedBox(width: 8),
                 Flexible(
                   child: TextButton(

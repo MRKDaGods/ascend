@@ -12,7 +12,8 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
   List<ReportedPost> _posts = []; // Accumulated posts list
   bool _hasReachedMax = false; // Flag to track if we've reached the end
   int _totalPages = 1; // Track total available pages
-  Map<String, List<PostReport>> _postReports = {}; // Store reports by post ID
+  final Map<String, List<PostReport>> _postReports =
+      {}; // Store reports by post ID
 
   List<ReportedPost> get posts => _posts;
   bool get hasReachedMax => _hasReachedMax;
@@ -25,13 +26,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       // If we've already reached max and not refreshing, do nothing
       if (_hasReachedMax && event.page > 1) {
         // Important: Emit the current state with hasReachedMax=true so UI knows to stop loading
-        emit(ReportedPostsFetchedState(
-          reportedPosts: _posts,
-          currentPage: currentPage,
-          totalPages: _totalPages,
-          hasReachedMax: true,
-          postReports: _postReports,
-        ));
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: true,
+            postReports: _postReports,
+          ),
+        );
         return;
       }
 
@@ -50,30 +53,35 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           'Skipping fetch for page ${event.page} as total pages is $_totalPages',
         );
         _hasReachedMax = true;
-        emit(ReportedPostsFetchedState(
-          reportedPosts: _posts,
-          currentPage: currentPage,
-          totalPages: _totalPages,
-          hasReachedMax: true,
-          postReports: _postReports,
-        ));
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: true,
+            postReports: _postReports,
+          ),
+        );
         return;
       }
 
       try {
         // Add timeout to the API call
-        final response = await apiClient.getReportedPosts(event.page).timeout(
-          const Duration(seconds: 15),
-          onTimeout: () {
-            throw TimeoutException(
-              'The connection timed out. Please check your internet connection and try again.',
+        final response = await apiClient
+            .getReportedPosts(event.page)
+            .timeout(
+              const Duration(seconds: 15),
+              onTimeout: () {
+                throw TimeoutException(
+                  'The connection timed out. Please check your internet connection and try again.',
+                );
+              },
             );
-          },
-        );
 
-        final newPosts = (response['data'] as List)
-            .map((postJson) => ReportedPost.fromJson(postJson))
-            .toList();
+        final newPosts =
+            (response['data'] as List)
+                .map((postJson) => ReportedPost.fromJson(postJson))
+                .toList();
 
         // Store total pages for reference
         _totalPages = response['pagination']['totalPages'] ?? 1;
@@ -106,10 +114,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         // Add specific handling for timeout exceptions
         if (e is TimeoutException) {
           debugPrint('Timeout fetching reported posts: $e');
-          emit(PostsErrorState(
-            errorMessage:
-                'Request timed out. Please check your connection and try again.',
-          ));
+          emit(
+            PostsErrorState(
+              errorMessage:
+                  'Request timed out. Please check your connection and try again.',
+            ),
+          );
         } else if (e.toString().contains('404') && event.page > 1) {
           // This is likely just the end of available pages
           _hasReachedMax = true;
@@ -140,9 +150,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         );
         debugPrint('Fetched reports response: $response'); // Debug print
 
-        final postReportsList = (response['data'] as List)
-            .map((reportJson) => PostReport.fromJson(reportJson))
-            .toList();
+        final postReportsList =
+            (response['data'] as List)
+                .map((reportJson) => PostReport.fromJson(reportJson))
+                .toList();
         final currentPage = response['pagination']['currentPage'] ?? 1;
         final totalPages = response['pagination']['totalPages'] ?? 1;
 

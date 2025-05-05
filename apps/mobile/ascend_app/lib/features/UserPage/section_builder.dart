@@ -66,8 +66,9 @@ class _SectionBuilderState extends State<SectionBuilder> {
           onConfirm: () {
             Navigator.pop(context); // Close the dialog
             print(widget.deleteResume?.toString());
-            if (widget.deleteResume != null)
+            if (widget.deleteResume != null) {
               widget.deleteResume!(); // Safely call the deleteResume callback
+            }
           },
         );
       },

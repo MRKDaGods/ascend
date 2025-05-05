@@ -1,27 +1,42 @@
+import 'dart:convert';
+
+import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'package:ascend_app/shared/models/profile.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../data/mock_user_profile.dart';
 import 'user_profile_event.dart';
 import 'user_profile_state.dart';
 
 class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
+  Profile? profile;
+
   UserProfileBloc() : super(UserProfileInitial()) {
     on<LoadUserProfile>(_onLoadUserProfile);
     on<UpdateUserProfile>(_onUpdateUserProfile);
   }
 
-  void _onLoadUserProfile(LoadUserProfile event, Emitter<UserProfileState> emit) async {
+  void _onLoadUserProfile(
+    LoadUserProfile event,
+    Emitter<UserProfileState> emit,
+  ) async {
     emit(UserProfileLoading());
     try {
-      // In a real app, you would fetch from API or local storage
-      // For now, we'll use the mock data
-      final profile = MockUserProfile.getMockProfile();
+      debugPrint("XMRK Loading user profile...");
+      final res = await sl.apiClient.get("/user/profile");
+      final profile = Profile.fromJson(jsonDecode(res.body));
+      debugPrint("XMRK User profile loaded: ${profile.toJson()}");
+
       emit(UserProfileLoaded(profile));
     } catch (e) {
+      profile = null;
       emit(UserProfileError('Failed to load user profile: ${e.toString()}'));
     }
   }
 
-  void _onUpdateUserProfile(UpdateUserProfile event, Emitter<UserProfileState> emit) {
+  void _onUpdateUserProfile(
+    UpdateUserProfile event,
+    Emitter<UserProfileState> emit,
+  ) {
     try {
       emit(UserProfileLoaded(event.profile));
     } catch (e) {
