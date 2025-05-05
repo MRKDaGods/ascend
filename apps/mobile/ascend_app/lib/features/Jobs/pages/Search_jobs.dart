@@ -20,10 +20,8 @@ class SearchJobsPage extends StatefulWidget {
   final String locationtext;
 
   @override
-
   // ignore: library_private_types_in_public_api
   _SearchJobsPageState createState() => _SearchJobsPageState();
-
 }
 
 class _SearchJobsPageState extends State<SearchJobsPage> {
@@ -149,6 +147,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     if (industries.map((e) => e.toLowerCase()).contains(searchInput)) {
       industry = searchInput;
     } else if (companyList.map((e) => e.toLowerCase()).contains(searchInput)) {
+      companies = searchInput;
       if (!companies.split(',').contains(searchInput)) {
         companies = companies.isEmpty ? searchInput : "$companies,$searchInput";
       }
@@ -171,25 +170,20 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       'https://api.ascendx.tech/job?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
     );
 
-
     final response = await http.get(url);
-
+    print("response: ${response.body}");
     if (response.statusCode == 200) {
-
       if (response.body.isNotEmpty) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         if (jsonResponse.containsKey('data')) {
           final List<dynamic> jobData = jsonResponse['data'];
 
-
           if (jobData.isNotEmpty) {
             setState(() {
               filteredJobs =
-
                   jobData.map((data) => Jobsattributes.fromJson(data)).toList();
               _updateIndustriesAndCompanies();
               filteredJobs.shuffle();
-
             });
           } else {
             setState(() {
@@ -207,9 +201,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         });
       }
     } else {
-
       filteredJobs = []; // Reset filtered jobs on error
-
     }
 
     setState(() {
@@ -309,9 +301,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
 
   void updateFilters(List<String> selectedFilters, String filterName) {
     setState(() {
-
       selectedFilters = selectedFilters;
-
 
       // Determine added and removed filters
       if (filterName.toLowerCase() == 'experience level') {

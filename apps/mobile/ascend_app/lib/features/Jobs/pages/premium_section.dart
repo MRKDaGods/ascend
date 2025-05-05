@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/Jobs/pages/premium_apply_page.dart';
+import 'package:ascend_app/features/premium/premium_apply_page.dart';
 
 class PremiumSection extends StatelessWidget {
   final bool isDarkMode;
   const PremiumSection({super.key, required this.isDarkMode});
+
   @override
   Widget build(BuildContext context) {
     return Container(

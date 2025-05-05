@@ -235,7 +235,7 @@ class _CompanyPageState extends State<CompanyPage> {
                 height:
                     MediaQuery.of(context).size.height -
                     200, // Adjust height as needed
-                child: CompanyTabs(),
+                child: CompanyTabs(companyName: widget.name),
               ),
             ],
           ),

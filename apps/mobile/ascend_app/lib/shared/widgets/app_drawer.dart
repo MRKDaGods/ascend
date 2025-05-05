@@ -1,3 +1,5 @@
+import 'package:ascend_app/features/premium/manage_purchase_page.dart';
+import 'package:ascend_app/features/premium/premium_apply_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/profile/bloc/user_profile_bloc.dart';
@@ -166,6 +168,35 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigate to premium subscription
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PremiumApplyPage(),
+                      ),
+                    );
+                  },
+                ),
+              if (profile.isPremium)
+                ListTile(
+                  dense: true,
+                  leading: const Icon(
+                    Icons.subscriptions_rounded,
+                    color: Colors.amber,
+                  ),
+                  horizontalTitleGap: 5,
+                  title: const Text(
+                    'Manage Subscription',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigate to premium subscription
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManagePurchasePage(),
+                      ),
+                    );
                   },
                 ),
               ListTile(
