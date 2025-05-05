@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ascend_app/features/admin/bloc/users/bloc/users_bloc.dart';
 
 class ReportedUserCard extends StatefulWidget {
   final String name;
   final String email;
   final String date;
-  final List<String> reports; // Updated to accept a list of report reasons
+  final List<String> reports; // List of report reasons
   final bool showReports;
   final VoidCallback onToggleReports;
-  final VoidCallback onDelete;
+  final String userId; // User ID for delete functionality
+  final VoidCallback handleDeleteUser;
   final VoidCallback onBan;
 
   const ReportedUserCard({
@@ -15,10 +18,11 @@ class ReportedUserCard extends StatefulWidget {
     required this.name,
     required this.email,
     required this.date,
-    required this.reports, // Updated to accept a list
+    required this.reports,
     required this.showReports,
     required this.onToggleReports,
-    required this.onDelete,
+    required this.userId,
+    required this.handleDeleteUser,
     required this.onBan,
   });
 
@@ -27,6 +31,36 @@ class ReportedUserCard extends StatefulWidget {
 }
 
 class _ReportedUserCardState extends State<ReportedUserCard> {
+  /// Handles the delete user action with a confirmation dialog.
+  void _handleDeleteUser(BuildContext context, String userId) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Delete User'),
+            content: const Text(
+              'Are you sure you want to delete this reported user?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<UsersBloc>().add(
+                    DeleteUserEvent(userId: int.parse(userId)),
+                  );
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -36,97 +70,90 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 6),
-            // User details
-            Text(
-              widget.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              widget.email,
-              style: const TextStyle(color: Colors.black87, fontSize: 16),
-            ),
-            Text(
-              'Date: ${widget.date}',
-              style: const TextStyle(color: Colors.black87, fontSize: 16),
-            ),
-            Text(
-              'Reports: ${widget.reports.length}',
-              style: const TextStyle(color: Colors.black87, fontSize: 16),
-            ),
+            _buildUserDetails(),
             const SizedBox(height: 8),
-
-            // Actions
-            Row(
-              children: [
-                // Toggle reports button
-                TextButton.icon(
-                  onPressed: widget.onToggleReports,
-                  icon: Icon(
-                    widget.showReports ? Icons.expand_less : Icons.expand_more,
-                  ),
-                  label: Text(
-                    widget.showReports ? 'Hide Reports' : 'Show Reports',
-                  ),
-                ),
-                const Spacer(), // Push buttons to the right
-                // Ban button
-                ElevatedButton.icon(
-                  onPressed: widget.onBan,
-                  icon: const Icon(Icons.block, color: Colors.white),
-                  label: const Text(
-                    'Ban',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 8), // Add spacing between buttons
-                // Delete button
-                ElevatedButton.icon(
-                  onPressed: widget.onDelete,
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  label: const Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-
-            // Reports section (conditionally visible)
-            if (widget.showReports)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Reports:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    ...widget.reports.map(
-                      (report) => Text(
-                        '- $report',
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _buildActions(context),
+            if (widget.showReports) _buildReportsSection(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.name,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          widget.email,
+          style: const TextStyle(color: Colors.black87, fontSize: 16),
+        ),
+        Text(
+          'Date: ${widget.date}',
+          style: const TextStyle(color: Colors.black87, fontSize: 16),
+        ),
+        Text(
+          'Reports: ${widget.reports.length}',
+          style: const TextStyle(color: Colors.black87, fontSize: 16),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActions(BuildContext context) {
+    return Row(
+      children: [
+        TextButton.icon(
+          onPressed: widget.onToggleReports,
+          icon: Icon(
+            widget.showReports ? Icons.expand_less : Icons.expand_more,
+          ),
+          label: Text(widget.showReports ? 'Hide Reports' : 'Show Reports'),
+        ),
+        const Spacer(),
+        ElevatedButton.icon(
+          onPressed: widget.onBan,
+          icon: const Icon(Icons.block, color: Colors.white),
+          label: const Text('Ban', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton.icon(
+          onPressed: () => _handleDeleteUser(context, widget.userId),
+          icon: const Icon(Icons.delete, color: Colors.white),
+          label: const Text('Delete', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReportsSection() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Reports:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          ...widget.reports.map(
+            (report) => Text('- $report', style: const TextStyle(fontSize: 14)),
+          ),
+        ],
       ),
     );
   }

@@ -24,7 +24,11 @@ class UserReport {
       reportedById: json['reported_by_id'],
       reason: json['reason'],
       createdAt: DateTime.parse(json['created_at']),
-      reported: ReportedUser.fromJson(json['reported']),
+      reported: ReportedUser.fromJson({
+        ...json['reported'],
+        'user_id':
+            json['reported_id'], // Dynamically pass the reportedId as userId
+      }),
       reportedBy: ReporterUser.fromJson(json['reported_by']),
     );
   }

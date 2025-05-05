@@ -35,3 +35,10 @@ final class UserUnbanned extends UsersState {
 
   UserUnbanned(this.userId);
 }
+
+/// State for when a user is deleted
+final class UserDeletedState extends UsersState {
+  final int userId;
+
+  UserDeletedState(this.userId);
+}

@@ -1,6 +1,5 @@
 part of 'users_bloc.dart';
 
-
 sealed class UsersEvent {}
 
 /// Event to fetch reported users
@@ -21,4 +20,11 @@ final class UnbanUser extends UsersEvent {
   final String userId;
 
   UnbanUser(this.userId);
+}
+
+/// Event to delete a specific user
+final class DeleteUserEvent extends UsersEvent {
+  final int userId;
+
+  DeleteUserEvent({required this.userId});
 }
