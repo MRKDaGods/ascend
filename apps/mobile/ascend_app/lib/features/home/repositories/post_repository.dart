@@ -339,17 +339,14 @@ class PostRepository {
 
   // Get User's Reaction for a Post via API
   Future<String?> getPostReaction(String postId) async {
-    final String reactionUrl =
-        '$baseUrl/post/$postId/reactions'; // Endpoint from user image
+    final String reactionUrl = '$baseUrl/post/$postId/reactions';
     debugPrint('❓ Fetching user reaction for post $postId: URL=$reactionUrl');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
       if (authToken == null) {
         // Don't throw, just return null as we might not be logged in or allowed to see reactions
-        debugPrint(
-          '⚠️ Auth token null, cannot fetch reaction for post $postId.',
-        );
+        debugPrint('⚠️ Auth token null, cannot fetch reaction for post $postId.');
         return null;
       }
 
@@ -364,23 +361,47 @@ class PostRepository {
       );
 
       debugPrint('Get Reaction Response Status Code: ${response.statusCode}');
-      // debugPrint('Get Reaction Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        // *** Adjust parsing based on your actual API response structure ***
-        // Assuming response is like: {"data": {"user_reaction": "like"}} or {"data": {"user_reaction": null}}
-        final reactionData = responseData['data'];
-        if (reactionData is Map<String, dynamic>) {
-          final userReaction = reactionData['user_reaction'] as String?;
-          debugPrint('✅ Fetched reaction for post $postId: $userReaction');
-          return userReaction;
-        } else {
-          debugPrint(
-            '⚠️ Unexpected reaction data format for post $postId: $reactionData',
-          );
-          return null; // Return null if format is wrong
+        
+        // Handle new API format with success and data array
+        if (responseData['success'] == true) {
+          final dataList = responseData['data'] as List;
+          
+          if (dataList.isEmpty) {
+            debugPrint('✅ No reaction found for post $postId (empty data array)');
+            return null;
+          }
+          
+          // Get the first reaction from the array
+          if (dataList.isNotEmpty && dataList[0] is Map<String, dynamic> && dataList[0]['reaction_type'] != null) {
+            final reactionType = dataList[0]['reaction_type'] as String;
+            debugPrint('✅ Fetched reaction for post $postId: $reactionType');
+            return reactionType;
+          }
         }
+        
+        // Handle case when API returns empty array directly
+        if (responseData is List) {
+          if (responseData.isEmpty) {
+            debugPrint('✅ No reaction found for post $postId (direct empty array)');
+            return null;
+          }
+        }
+        
+        // Handle older format as fallback
+        if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+          final reactionData = responseData['data'];
+          if (reactionData is Map<String, dynamic>) {
+            final userReaction = reactionData['user_reaction'] as String?;
+            debugPrint('✅ Fetched reaction for post $postId: $userReaction');
+            return userReaction;
+          }
+        }
+        
+        debugPrint('⚠️ Unexpected reaction data format for post $postId: $responseData');
+        return null; // Return null if format is wrong
       } else if (response.statusCode == 404) {
         debugPrint(
           'ℹ️ No specific reaction found for user on post $postId (404).',
@@ -416,8 +437,7 @@ class PostRepository {
       final headers = {
         'Authorization': 'Bearer $authToken',
         'Accept': 'application/json',
-        'Content-Type':
-            'application/json', // Needed even for empty body sometimes
+        'Content-Type': 'application/json', // Needed even for empty body sometimes
       };
 
       // If reactionType is provided, send it in the body
@@ -429,25 +449,18 @@ class PostRepository {
           body: jsonEncode({'type': reactionType}),
         );
       } else {
-        // If reactionType is null, attempt to remove the reaction.
-        // Assuming POST without body or DELETE might work. Let's try POST without body first.
-        debugPrint('  Sending POST without body (attempting removal)');
-        response = await _client.post(
+        // If reactionType is null, explicitly use DELETE to remove the reaction
+        debugPrint('  Sending DELETE request to remove reaction');
+        response = await _client.delete(
           Uri.parse(reactionUrl),
           headers: headers,
-          // body: jsonEncode({}), // Or send empty JSON object? Test required.
         );
-        // Alternative: Try DELETE if POST without body fails
-        // debugPrint(' Sending DELETE request for removal');
-        // response = await _client.delete(Uri.parse(reactionUrl), headers: headers);
       }
 
-      debugPrint(
-        'Toggle Reaction Response Status Code: ${response.statusCode}',
-      );
-      // debugPrint('Toggle Reaction Response Body: ${response.body}');
+      debugPrint('Toggle Reaction Response Status Code: ${response.statusCode}');
+      debugPrint('Toggle Reaction Response Body: ${response.body}'); // Log full response body for debugging
 
-      // Check for successful status codes (200 OK, 201 Created, potentially 204 No Content for removal)
+      // Check for successful status codes
       if (response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 204) {
@@ -458,9 +471,16 @@ class PostRepository {
                 ? (jsonDecode(responseBody)['data']?['message'] ??
                     'Reaction updated')
                 : 'Reaction updated/removed'; // Default message for success/204
+        
         debugPrint(
           '✅ Reaction toggled successfully for post $postId. Message: $message',
         );
+        
+        // For removal specifically, log it explicitly
+        if (reactionType == null) {
+          debugPrint('✅ Reaction REMOVED successfully for post $postId.');
+        }
+        
         return true;
       } else {
         debugPrint(

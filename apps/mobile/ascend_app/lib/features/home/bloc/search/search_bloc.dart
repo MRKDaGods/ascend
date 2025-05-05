@@ -21,6 +21,26 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<ClearSearch>(_onClearSearch);
   }
 
+  // Extract a unique identifier from a search result item
+  String _getItemId(dynamic item) {
+    if (item is Map<String, dynamic>) {
+      // For user type results
+      if (item['type'] == 'user' && item['data'] != null) {
+        return 'user_${item['data']['id']}';
+      }
+      // For post type results
+      else if (item['type'] == 'post' && item['data'] != null) {
+        return 'post_${item['data']['id']}';
+      }
+      // For job type results (if added in future)
+      else if (item['type'] == 'job' && item['data'] != null) {
+        return 'job_${item['data']['id']}';
+      }
+    }
+    // Fallback to using the hashCode when no clear ID is available
+    return item.hashCode.toString();
+  }
+
   Future<void> _onPerformSearch(
     PerformSearch event,
     Emitter<SearchState> emit,
@@ -43,29 +63,36 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     try {
-      final results = await searchRepository.searchUltimate(
+      final newResults = await searchRepository.searchUltimate(
         query: event.query,
         limit: event.limit,
         offset: event.offset,
       );
 
       if (currentState is SearchLoaded && event.offset > 0) {
-        // Append results if loading more
+        // Create a set of existing IDs to track duplicates
+        final existingIds = currentState.results.map(_getItemId).toSet();
+        
+        // Filter out duplicates from new results
+        final uniqueNewResults = newResults.where(
+          (item) => !existingIds.contains(_getItemId(item))
+        ).toList();
+        
+        // Append only unique new results
         emit(
           currentState.copyWith(
-            results: currentState.results + results,
-            hasReachedMax: results.isEmpty, // Assume end if API returns empty
+            results: currentState.results + uniqueNewResults,
+            hasReachedMax: newResults.isEmpty, // Assume end if API returns empty
             currentQuery: event.query,
             currentOffset: event.offset,
-            // isLoadingMore: false, // Reset loading more indicator
           ),
         );
       } else {
-        // Replace results for a new search
+        // For new searches, just use the results as is
         emit(
           SearchLoaded(
-            results: results,
-            hasReachedMax: results.length < event.limit, // Check if less than limit
+            results: newResults,
+            hasReachedMax: newResults.length < event.limit, // Check if less than limit
             currentQuery: event.query,
             currentOffset: event.offset,
           ),
