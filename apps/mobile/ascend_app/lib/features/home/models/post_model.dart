@@ -3,6 +3,38 @@ import 'package:ascend_app/features/home/models/comment_model.dart';
 import 'package:ascend_app/features/home/managers/post_manager.dart';
 import 'package:flutter/material.dart';
 
+// New class to represent reaction information
+class ReactionInfo extends Equatable {
+  final bool reacted;
+  final String? reactionType;
+  
+  const ReactionInfo({
+    this.reacted = false,
+    this.reactionType,
+  });
+  
+  @override
+  List<Object?> get props => [reacted, reactionType];
+  
+  factory ReactionInfo.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return const ReactionInfo();
+    return ReactionInfo(
+      reacted: json['reacted'] as bool? ?? false,
+      reactionType: json['reactionType'] as String?,
+    );
+  }
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'reacted': reacted,
+      'reactionType': reactionType,
+    };
+  }
+  
+  // Helper to check if there's any reaction
+  bool get hasReaction => reacted && reactionType != null;
+}
+
 // Renamed from Post to PostModel for consistency
 class PostModel extends Equatable {
   final String id;
@@ -20,11 +52,11 @@ class PostModel extends Equatable {
   final int commentsCount;
   final int sharedCount;
   final int followers;
-  final bool isLiked;
-  final String? currentReaction;
+  final ReactionInfo isLiked;
   final List<Comment> comments;
   final bool showFeedbackOptions;
-  final bool isSaved; // Add this field
+  final bool isSaved; // Existing field
+  final bool isShared; // Add new field to track shared status
 
   const PostModel({
     required this.id,
@@ -42,11 +74,11 @@ class PostModel extends Equatable {
     this.commentsCount = 0,
     this.sharedCount = 0,
     this.followers = 0,
-    this.isLiked = false,
-    this.currentReaction,
+    this.isLiked = const ReactionInfo(), // Default to no reaction
     this.comments = const [],
     this.showFeedbackOptions = false,
     this.isSaved = false, // Initialize with default value
+    this.isShared = false, // Add to constructor with default value
   });
 
   @override
@@ -67,10 +99,10 @@ class PostModel extends Equatable {
     sharedCount,
     followers,
     isLiked,
-    currentReaction,
     comments,
     showFeedbackOptions,
-    isSaved, // Add to props
+    isSaved,
+    isShared, // Add to props
   ];
 
   // Updated to return PostModel
@@ -90,11 +122,11 @@ class PostModel extends Equatable {
     int? commentsCount,
     int? sharedCount,
     int? followers,
-    bool? isLiked,
-    String? currentReaction,
+    ReactionInfo? isLiked,
     List<Comment>? comments,
     bool? showFeedbackOptions,
-    bool? isSaved, // Add to copyWith parameters
+    bool? isSaved,
+    bool? isShared, // Add to copyWith parameters
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -113,10 +145,10 @@ class PostModel extends Equatable {
       sharedCount: sharedCount ?? this.sharedCount,
       followers: followers ?? this.followers,
       isLiked: isLiked ?? this.isLiked,
-      currentReaction: currentReaction ?? this.currentReaction,
       comments: comments ?? this.comments,
       showFeedbackOptions: showFeedbackOptions ?? this.showFeedbackOptions,
-      isSaved: isSaved ?? this.isSaved, // Add to copyWith logic
+      isSaved: isSaved ?? this.isSaved,
+      isShared: isShared ?? this.isShared, // Add to copyWith logic
     );
   }
 
@@ -125,19 +157,17 @@ class PostModel extends Equatable {
     // If removing reaction (reactionType is null)
     if (reactionType == null) {
       // If currently liked, decrement like count
-      final newLikesCount = isLiked ? likesCount - 1 : likesCount;
+      final newLikesCount = isLiked.reacted ? likesCount - 1 : likesCount;
       return copyWith(
-        isLiked: false,
-        currentReaction: null,
+        isLiked: const ReactionInfo(reacted: false, reactionType: null),
         likesCount: newLikesCount,
       );
     }
 
     // If adding or changing reaction
-    final newLikesCount = isLiked ? likesCount : likesCount + 1;
+    final newLikesCount = isLiked.reacted ? likesCount : likesCount + 1;
     return copyWith(
-      isLiked: true,
-      currentReaction: reactionType,
+      isLiked: ReactionInfo(reacted: true, reactionType: reactionType),
       likesCount: newLikesCount,
     );
   }
@@ -169,11 +199,11 @@ class PostModel extends Equatable {
       'commentsCount': commentsCount,
       'shares_count': sharedCount, // Change to match API naming convention
       'followers': followers,
-      'isLiked': isLiked,
-      'currentReaction': currentReaction,
+      'isLiked': isLiked.toJson(),
       'comments': comments.map((comment) => comment.toJson()).toList(),
       'showFeedbackOptions': showFeedbackOptions,
-      'isSaved': isSaved, // Add to toJson
+      'isSaved': isSaved,
+      'isShared': isShared, // Add to toJson
     };
   }
 
@@ -184,6 +214,12 @@ class PostModel extends Equatable {
     final userIdString =
         userIdValue?.toString() ??
         'unknown_user'; // Convert to string, provide default
+
+    // Parse isLiked as an object instead of a boolean
+    final isLikedData = json['isLiked'];
+    final ReactionInfo isLiked = isLikedData is Map<String, dynamic> 
+        ? ReactionInfo.fromJson(isLikedData)
+        : ReactionInfo(reacted: json['isLiked'] as bool? ?? false);
 
     return PostModel(
       id: (json['id'] ?? '').toString(), // Ensure id is string
@@ -201,8 +237,7 @@ class PostModel extends Equatable {
       commentsCount: json['commentsCount'] as int? ?? 0,
       sharedCount: json['sharedCount'] as int? ?? 0,
       followers: json['followers'] as int? ?? 0,
-      isLiked: json['isLiked'] as bool? ?? false,
-      currentReaction: json['currentReaction'] as String?,
+      isLiked: isLiked,
       comments:
           json['comments'] != null
               ? List<Comment>.from(
@@ -213,11 +248,12 @@ class PostModel extends Equatable {
               )
               : const [],
       showFeedbackOptions: json['showFeedbackOptions'] as bool? ?? false,
-      isSaved: json['isSaved'] as bool? ?? false, // Add fromJson logic
+      isSaved: json['isSaved'] as bool? ?? json['is_saved'] as bool? ?? false, // Check both formats
+      isShared: json['isShared'] as bool? ?? json['is_shared'] as bool? ?? false, // Add isShared with both formats
     );
   }
 
-  // Updated factory constructor
+  // Updated fromLegacyModel
   factory PostModel.fromLegacyModel(Map<String, dynamic> oldModel) {
     return PostModel(
       id: oldModel['id'] ?? 'post_${DateTime.now().millisecondsSinceEpoch}',
@@ -244,7 +280,8 @@ class PostModel extends Equatable {
       isLiked: oldModel['isLiked'] ?? false,
       comments: const [],
       showFeedbackOptions: oldModel['showFeedbackOptions'] ?? false,
-      isSaved: false, // Add default value
+      isSaved: false,
+      isShared: false, // Add default value
     );
   }
 
@@ -263,14 +300,15 @@ class PostModel extends Equatable {
       commentsCount: 0,
       sharedCount: 0,
       followers: 0,
-      isLiked: false,
+      isLiked: const ReactionInfo(),
       comments: [],
       images: [],
-      isSaved: false, // Add default value
+      isSaved: false,
+      isShared: false, // Add default value
     );
   }
 
-  // Add this factory constructor to your PostModel class
+  // Update the fromApiResponse constructor to properly extract metadata flags
   factory PostModel.fromApiResponse(Map<String, dynamic> apiPost) {
     try {
       // Debug what we're receiving
@@ -313,6 +351,16 @@ class PostModel extends Equatable {
               ? profilePicUrl
               : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
 
+      // Extract saved and shared flags
+      final bool isSaved = apiPost['is_saved'] as bool? ?? false;
+      final bool isShared = apiPost['is_shared'] as bool? ?? false;
+
+      // Parse the isLiked object structure from API
+      final isLikedData = apiPost['isLiked'] ?? apiPost['is_liked'];
+      final ReactionInfo reactionInfo = isLikedData is Map<String, dynamic>
+          ? ReactionInfo.fromJson(isLikedData)
+          : ReactionInfo(reacted: apiPost['is_liked'] as bool? ?? false);
+
       return PostModel(
         // Convert numeric ID to string
         id: (apiPost['id'] ?? '').toString(),
@@ -340,14 +388,14 @@ class PostModel extends Equatable {
             apiPost['shares_count'] as int? ??
             0, // Make sure to use the correct API field
         followers: 0, // Not provided by API
-        // Default values for fields not in API
-        isLiked: false,
-        currentReaction: null,
+        
+        // Reaction info
+        isLiked: reactionInfo, // Use the ReactionInfo object
+        
         comments: [],
         isSponsored: false,
-        isSaved:
-            apiPost['is_saved'] as bool? ??
-            false, // Assuming API provides 'is_saved'
+        isSaved: isSaved,
+        isShared: isShared,
       );
     } catch (e) {
       debugPrint('Error creating PostModel from API data: $e');
