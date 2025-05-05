@@ -331,14 +331,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   ReactionButton(
                                     key: _reactionButtonKey,
                                     manager: ReactionManager(
-                                      currentReaction: post.currentReaction,
+                                      currentReaction: post.isLiked.reactionType, // Updated to use isLiked.reactionType
                                       postId: post.id, // Keep for Bloc updates
                                       context: context, // Keep for Bloc updates
                                     ),
                                     onTap: () {
                                       // Determine next state based on current reaction
                                       final nextReaction =
-                                          post.currentReaction == null
+                                          post.isLiked.reactionType == null
                                               ? 'like'
                                               : null;
                                       context.read<PostBloc>().add(
