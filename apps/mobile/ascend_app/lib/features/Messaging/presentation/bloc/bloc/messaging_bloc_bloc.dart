@@ -360,6 +360,8 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
       final String result = await _repository.sendMessage(
         event.receiverId,
         event.content,
+        contentType: event.contentType,
+        file: event.file,
       );
 
       if (result == 'success') {
@@ -372,8 +374,8 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
           senderId: currentUserId,
           conversationId: event.conversationId,
           content: event.content,
-          fileUrl: null,
-          fileType: null,
+          fileUrl: event.file?.path,
+          fileType: event.contentType,
           sentAt: DateTime.now(),
           isRead: false,
           readAt: null,

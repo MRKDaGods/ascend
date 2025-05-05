@@ -18,34 +18,27 @@ class ConnectionPreferencesRepository {
   Future<ConnectionPreferences> fetchConnectionPreferences() async {
     final String? userId = await SecureStorageHelper.getUserId();
     final int userIdInt = int.tryParse(userId!) ?? 0;
-    try {
-      final response = await _client.get(
-        '${ApiEndpoints.preferences}/$userIdInt',
-      );
+    final response = await _client.get(
+      '${ApiEndpoints.preferences}/$userIdInt',
+    );
 
-      if (response.statusCode == 200) {
-        // Successfully fetched the connection preferences
-        final Map<String, dynamic> data = json.decode(response.body);
-        return ConnectionPreferences.fromJson(data['data']);
-      } else {
-        debugPrint(
-          'Failed to fetch connection preferences: ${response.statusCode}',
-        );
-        return ConnectionPreferences(
-          user_id: userId,
-          allow_connection_requests: true,
-          allow_messages_from: 'all',
-          visible_to_public: true,
-          visible_to_connections: true,
-          visible_to_network: true,
-          show_followers: true,
-        );
-      }
-    } catch (e) {
-      // For now, debugPrint the error
-      await Future.delayed(const Duration(milliseconds: 500));
-      print('Error: $e');
-      rethrow; // Rethrow the error for further handling if needed
+    if (response.statusCode == 200) {
+      // Successfully fetched the connection preferences
+      final Map<String, dynamic> data = json.decode(response.body);
+      return ConnectionPreferences.fromJson(data['data']);
+    } else {
+      debugPrint(
+        'Failed to fetch connection preferences: ${response.statusCode}',
+      );
+      return ConnectionPreferences(
+        user_id: userId,
+        allow_connection_requests: true,
+        allow_messages_from: 'all',
+        visible_to_public: true,
+        visible_to_connections: true,
+        visible_to_network: true,
+        show_followers: true,
+      );
     }
   }
 
@@ -106,8 +99,8 @@ class ConnectionPreferencesRepository {
       await Future.delayed(const Duration(milliseconds: 500));
       debugPrint('Error: $e');
       return {
-        'canConnect': false,
-        'canReceiveMessageRequests': false,
+        'canConnect': true,
+        'canReceiveMessageRequests': true,
       }; // Return default values in case of error
     }
   }

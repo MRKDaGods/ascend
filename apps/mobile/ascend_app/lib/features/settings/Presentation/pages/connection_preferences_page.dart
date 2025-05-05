@@ -18,20 +18,14 @@ class _ConnectionPreferencesPageState extends State<ConnectionPreferencesPage> {
   @override
   void initState() {
     super.initState();
-    final connectionPreferencesBloc = context.read<ConnectionPreferencesBloc>();
-    connectionPreferencesBloc.add(ConnectionPreferencesLoadEvent());
+    _isLoading = true;
 
-    final state = connectionPreferencesBloc.state;
-    if (state is ConnectionPreferencesLoaded) {
-      _preferences = state.connectionPreferences;
-      _isLoading = false;
-    } else if (state is ConnectionPreferencesError) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${state.error}')));
-    } else {
-      _preferences = ConnectionPreferences(); // Default preferences
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load initial preferences
+      context.read<ConnectionPreferencesBloc>().add(
+        ConnectionPreferencesLoadEvent(),
+      );
+    });
   }
 
   @override
@@ -58,7 +52,6 @@ class _ConnectionPreferencesPageState extends State<ConnectionPreferencesPage> {
               _preferences = (state).connectionPreferences;
               _isLoading = false;
             });
-          } else if (state is ConnectionPreferencesLoaded) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Preferences saved successfully')),
             );

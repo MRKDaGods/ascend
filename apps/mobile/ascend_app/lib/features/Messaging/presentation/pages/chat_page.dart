@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/chat_app_bar.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/chat_box.dart';
-import 'package:ascend_app/features/Messaging/presentation/widgets/messages_input.dart';
+import 'package:ascend_app/features/Messaging/presentation/widgets/Messages_Input.dart';
 import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
 import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart' as path;
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -203,13 +206,17 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   // Send message when the send button is pressed
-  void _sendMessage() {
+  void _sendTextMessage() {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    debugPrint('DEBUG: [_sendTextMessage] Text: $text');
+    if (text.isEmpty) {
+      debugPrint('DEBUG: [_sendTextMessage] Message is empty, not sending.');
+      return;
+    }
 
     // send Message through Bloc
     debugPrint(
-      'DEBUG: [_sendMessage] Dispatching SendMessage event. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
+      'DEBUG: [_sendTextMessage] Dispatching SendMessage event. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
     );
     context.read<MessagingBloc>().add(
       SendMessage(
@@ -220,7 +227,7 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     debugPrint(
-      'DEBUG: [_sendMessage] Message sent. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
+      'DEBUG: [_sendTextMessage] Message sent. ConversationId: ${widget.conversationId}, OtherUserId: ${widget.otherUserId}, Text: $text',
     );
 
     final bloc = context.read<MessagingBloc>();
@@ -256,6 +263,31 @@ class _ChatPageState extends State<ChatPage> {
         _scrollToBottom();
       });
     }
+  }
+
+  // send Media message through Bloc
+  void _sendMediaMessage(File file) {
+    final String text = _messageController.text.trim();
+    final String? mimeType = lookupMimeType(file.path);
+
+    // Send the file
+    context.read<MessagingBloc>().add(
+      SendMessage(
+        widget.conversationId,
+        widget.otherUserId!,
+        text,
+        contentType: mimeType!,
+        file: file,
+      ),
+    );
+
+    // Clear input
+    _messageController.clear();
+
+    // Stop typing indicator
+    setState(() {
+      _isLocalUserTyping = false;
+    });
   }
 
   @override
@@ -468,7 +500,8 @@ class _ChatPageState extends State<ChatPage> {
                   messageController: _messageController,
                   focusNode: _focusNode,
                   onSendMessage: (text) {
-                    _sendMessage();
+                    debugPrint('Send button pressed with text: $text');
+                    _sendTextMessage();
                   },
                   onAttachmentPressed: () {
                     setState(() {
@@ -485,6 +518,10 @@ class _ChatPageState extends State<ChatPage> {
                   },
                   onCameraPressed: () {
                     debugPrint('Camera button pressed');
+                  },
+                  onFileSelected: (file) {
+                    debugPrint('File selected: ${file.path}');
+                    _sendMediaMessage(file);
                   },
                   conversationId: widget.conversationId,
                 ),

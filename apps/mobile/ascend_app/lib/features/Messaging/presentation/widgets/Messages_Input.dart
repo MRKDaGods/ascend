@@ -1,5 +1,8 @@
 import 'dart:async';
-
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +15,7 @@ class MessageInput extends StatefulWidget {
   final Function() onCameraPressed;
   final Function() onEmojiPressed;
   final Function(bool) onTypingStatusChanged;
+  final Function(File) onFileSelected;
   final String conversationId;
 
   const MessageInput({
@@ -23,6 +27,7 @@ class MessageInput extends StatefulWidget {
     required this.onCameraPressed,
     required this.onEmojiPressed,
     required this.onTypingStatusChanged,
+    required this.onFileSelected,
     required this.conversationId,
   });
 
@@ -39,6 +44,12 @@ class _MessageInputState extends State<MessageInput>
   // Animation controllers
   late AnimationController _attachmentController;
   late Animation<double> _attachmentAnimation;
+
+  // Media
+  File? _selectedFile;
+  String? _selectedFileType;
+  bool _showMediaPreview = false;
+  final _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -88,12 +99,158 @@ class _MessageInputState extends State<MessageInput>
     });
   }
 
-  void _sendMessage() {
+  void _sendTextMessage() {
     final messageText = widget.messageController.text.trim();
     if (messageText.isEmpty) return;
 
     widget.onSendMessage(messageText);
     widget.messageController.clear();
+  }
+
+  void _sendFile() {
+    if (_selectedFile != null) {
+      widget.onFileSelected(_selectedFile!);
+      widget.messageController.clear();
+    }
+  }
+
+  Future<void> _pickDocument() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final file = File(result.files.first.path!);
+        setState(() {
+          _selectedFile = File(result.files.single.path!);
+          _selectedFileType = path.extension(file.path);
+          _showMediaPreview = true;
+          _showAttachments = false;
+        });
+        _attachmentController.reverse();
+      }
+    } catch (e) {
+      // Handle error
+      debugPrint('Error picking document: $e');
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedFile = File(pickedFile.path);
+          _selectedFileType = 'image';
+          _showMediaPreview = true;
+          _showAttachments = false;
+        });
+        _attachmentController.reverse();
+      }
+    } catch (e) {
+      // Handle error
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    try {
+      final pickedFile = await _imagePicker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(minutes: 5),
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedFile = File(pickedFile.path);
+          _selectedFileType = 'video';
+          _showMediaPreview = true;
+          _showAttachments = false;
+        });
+        _attachmentController.reverse();
+      }
+    } catch (e) {
+      // Handle error
+      debugPrint('Error picking video: $e');
+    }
+  }
+
+  void _clearSelectedMedia() {
+    setState(() {
+      _selectedFile = null;
+      _selectedFileType = null;
+      _showMediaPreview = false;
+    });
+  }
+
+  Widget _buildMediaPreview() {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      color: Colors.grey[100],
+      child: Row(
+        children: [
+          // Media preview
+          if (_selectedFileType == 'image')
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                _selectedFile!,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                _selectedFileType == 'video'
+                    ? Icons.video_file
+                    : Icons.insert_drive_file,
+                color: _selectedFileType == 'video' ? Colors.red : Colors.blue,
+                size: 30,
+              ),
+            ),
+
+          // File details
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    path.basename(_selectedFile!.path),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _selectedFileType?.toUpperCase() ?? 'FILE',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Remove button
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: _clearSelectedMedia,
+          ),
+        ],
+      ),
+    );
   }
 
   void _toggleAttachments() {
@@ -126,6 +283,9 @@ class _MessageInputState extends State<MessageInput>
             sizeFactor: _attachmentAnimation,
             child: _buildAttachmentsSection(),
           ),
+
+        // Media preview
+        if (_showMediaPreview && _selectedFile != null) _buildMediaPreview(),
 
         // Message input field
         Container(
@@ -176,7 +336,10 @@ class _MessageInputState extends State<MessageInput>
                           minLines: 1,
                           textCapitalization: TextCapitalization.sentences,
                           decoration: InputDecoration(
-                            hintText: 'Message',
+                            hintText:
+                                _selectedFile != null
+                                    ? 'Caption'
+                                    : 'Type a message...',
                             hintStyle: TextStyle(color: Colors.grey[500]),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -195,19 +358,14 @@ class _MessageInputState extends State<MessageInput>
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          icon: Icon(
-                            widget.messageController.text.isNotEmpty
-                                ? Icons.send
-                                : Icons.mic,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                          onPressed:
-                              widget.messageController.text.isNotEmpty
-                                  ? _sendMessage
-                                  : () {
-                                    // Handle voice recording
-                                  },
+                          icon: Icon(Icons.send, color: Colors.white, size: 22),
+                          onPressed: () {
+                            if (_selectedFile != null) {
+                              _sendFile();
+                            } else {
+                              _sendTextMessage();
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -232,21 +390,21 @@ class _MessageInputState extends State<MessageInput>
         children: [
           _buildAttachmentOption(
             icon: Icons.insert_drive_file,
-            label: 'Send a document',
+            label: 'Document',
             color: Colors.grey,
-            onTap: () => widget.onAttachmentPressed(),
+            onTap: () => _pickDocument(),
           ),
           _buildAttachmentOption(
             icon: Icons.camera_alt,
-            label: 'Take a photo or video',
+            label: 'Photo',
             color: Colors.green,
-            onTap: () => widget.onCameraPressed(),
+            onTap: () => _pickImage(),
           ),
           _buildAttachmentOption(
             icon: Icons.image,
             label: 'Video',
             color: Colors.red,
-            onTap: () {},
+            onTap: _pickVideo,
           ),
           _buildAttachmentOption(
             icon: Icons.gif,

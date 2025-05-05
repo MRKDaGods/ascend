@@ -10,6 +10,10 @@ import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/services/web_socket_service.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:math';
+
+import 'package:http_parser/http_parser.dart';
 
 class MessagingRepoistoryImpl implements MessagingRepository {
   final WebSocketService _webSocketService;
@@ -196,21 +200,152 @@ class MessagingRepoistoryImpl implements MessagingRepository {
     debugPrint(
       '[MessagingRepoistoryImpl] Sending message: receiverId=$receiverId, content=$content, contentType=$contentType',
     );
-    final response = await _apiClient.post(
-      ApiEndpoints.message,
-      data: {'receiverId': receiverId, 'content': content, 'file': file},
-    );
-    if (response.statusCode == 200) {
-      // Handle successful message sending if needed
-      debugPrint('[MessagingRepoistoryImpl] Message sent successfully');
-      return 'success';
-    } else {
-      // Handle error response
-      debugPrint(
-        '[MessagingRepoistoryImpl] Error sending message: ${response.statusCode}',
+    if (file == null) {
+      // Text-only message handling - this part is working fine
+      final response = await _apiClient.post(
+        ApiEndpoints.message,
+        data: {'receiverId': receiverId, 'content': content},
       );
-      final Map<String, dynamic> errorResponse = json.decode(response.body);
-      return errorResponse['error'] ?? 'Error sending message';
+      if (response.statusCode == 200) {
+        // Parse the response body and return success message
+        final Map<String, dynamic> data = json.decode(response.body);
+        return 'success';
+      } else {
+        // Handle error response
+        try {
+          final Map<String, dynamic> errorResponse = json.decode(response.body);
+          return errorResponse['error'] ?? 'Error sending message';
+        } catch (e) {
+          return 'Error: ${response.statusCode} - ${response.body}';
+        }
+      }
+    } else {
+      // File message handling - this needs fixing
+      final uriNew = 'https://api.ascendx.tech/messaging';
+      final request = http.MultipartRequest('POST', Uri.parse(uriNew));
+
+      // IMPORTANT: Keep headers minimal - only what's absolutely needed
+      final authToken = await SecureStorageHelper.getAuthToken();
+      request.headers['Authorization'] = 'Bearer $authToken';
+
+      // Don't set these headers - they might be causing problems
+      // request.headers['Accept'] = '*/*';
+      // request.headers['User-Agent'] = 'AscendApp/1.0';
+      // request.headers['Accept-Encoding'] = 'gzip, deflate, br';
+      // request.headers['Connection'] = 'keep-alive';
+
+      // Add fields - keep these simple
+      request.fields['receiverId'] = receiverId;
+
+      // Add content only if it's not empty
+      if (content.isNotEmpty) {
+        request.fields['content'] = content;
+      }
+
+      // Make sure contentType is sent
+      request.fields['contentType'] = contentType;
+
+      debugPrint('[MessagingRepoistoryImpl] File path: ${file.path}');
+
+      try {
+        // Check if file exists
+        if (!await file.exists()) {
+          return 'Error: File not found at path: ${file.path}';
+        }
+
+        // Get file size for debug
+        final fileSize = await file.length();
+        debugPrint('[MessagingRepoistoryImpl] File size: $fileSize bytes');
+
+        // Add file to the request - try with explicit content type
+        final fileName = file.path.split('/').last;
+        String? mimeType;
+
+        // Try to determine mime type
+        final fileExt = fileName.toLowerCase().split('.').last;
+        if (['jpg', 'jpeg'].contains(fileExt)) {
+          mimeType = 'image/jpeg';
+        } else if (fileExt == 'png') {
+          mimeType = 'image/png';
+        } else if (fileExt == 'pdf') {
+          mimeType = 'application/pdf';
+        } else if (fileExt == 'mp4') {
+          mimeType = 'video/mp4';
+        } else if (fileExt == 'doc' || fileExt == 'docx') {
+          mimeType = 'application/msword';
+        }
+
+        // Use http_parser for content type if available
+        final fileStream = http.ByteStream(file.openRead());
+        final multipartFile = http.MultipartFile(
+          'file', // Field name expected by server
+          fileStream,
+          await file.length(),
+          filename: fileName,
+          // Only set contentType if we could determine it
+          contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+        );
+
+        request.files.add(multipartFile);
+
+        debugPrint(
+          '[MessagingRepoistoryImpl] Added file: $fileName (${mimeType ?? 'unknown type'})',
+        );
+        debugPrint(
+          '[MessagingRepoistoryImpl] Request fields: ${request.fields}',
+        );
+
+        // Log the request for debugging
+        debugPrint('------ REQUEST DETAILS ------');
+        debugPrint('URL: $uriNew');
+        debugPrint('Method: POST');
+        debugPrint('Headers: ${request.headers}');
+        debugPrint('Fields: ${request.fields}');
+        debugPrint('Files: ${request.files.length} ($fileName)');
+        debugPrint('--------------------------');
+
+        // Send the request with a timeout
+        final streamedResponse = await request.send().timeout(
+          const Duration(seconds: 60),
+          onTimeout: () {
+            throw TimeoutException('Request timed out after 60 seconds');
+          },
+        );
+
+        final responseBody = await http.Response.fromStream(streamedResponse);
+
+        debugPrint(
+          '[MessagingRepoistoryImpl] Response status: ${responseBody.statusCode}',
+        );
+        debugPrint(
+          '[MessagingRepoistoryImpl] Response body: ${responseBody.body}',
+        );
+
+        if (responseBody.statusCode == 200) {
+          return 'success';
+        } else {
+          // Try to parse error response
+          try {
+            if (responseBody.body.trim().isNotEmpty) {
+              final Map<String, dynamic> errorResponse = json.decode(
+                responseBody.body,
+              );
+              return errorResponse['error'] ?? 'Error sending message';
+            } else {
+              return 'Error: Empty response with status ${responseBody.statusCode}';
+            }
+          } catch (e) {
+            // If can't parse JSON
+            if (responseBody.body.contains('<!DOCTYPE html>')) {
+              return 'Server error: ${responseBody.statusCode}. Please try again.';
+            }
+            return 'Error: ${responseBody.statusCode}';
+          }
+        }
+      } catch (e) {
+        debugPrint('[MessagingRepoistoryImpl] Exception sending file: $e');
+        return 'Error: $e';
+      }
     }
   }
 

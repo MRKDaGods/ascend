@@ -17,7 +17,7 @@ class ConnectionRequestRepository {
   Future<void> sendConnectionRequest(String connectionId) async {
     try {
       final response = await _client.post(
-        '$ApiEndpoints.sendconnectionRequest',
+        ApiEndpoints.sendconnectionRequest,
         data: {
           'userId': connectionId,
           'message': "Hi, I'd like to connect with you.",
