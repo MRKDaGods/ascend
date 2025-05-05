@@ -4,22 +4,22 @@ class ReportedUserCard extends StatefulWidget {
   final String name;
   final String email;
   final String date;
-  final int reports;
+  final List<String> reports; // Updated to accept a list of report reasons
   final bool showReports;
   final VoidCallback onToggleReports;
   final VoidCallback onDelete;
-  final VoidCallback onBan; // Add a callback for the Ban button
+  final VoidCallback onBan;
 
   const ReportedUserCard({
     super.key,
     required this.name,
     required this.email,
     required this.date,
-    required this.reports,
+    required this.reports, // Updated to accept a list
     required this.showReports,
     required this.onToggleReports,
     required this.onDelete,
-    required this.onBan, // Pass the Ban callback
+    required this.onBan,
   });
 
   @override
@@ -52,7 +52,7 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
               style: const TextStyle(color: Colors.black87, fontSize: 16),
             ),
             Text(
-              'Reports: ${widget.reports}',
+              'Reports: ${widget.reports.length}',
               style: const TextStyle(color: Colors.black87, fontSize: 16),
             ),
             const SizedBox(height: 8),
@@ -116,13 +116,11 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '- Report 1: Inappropriate behavior',
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    Text(
-                      '- Report 2: Spamming',
-                      style: const TextStyle(fontSize: 14),
+                    ...widget.reports.map(
+                      (report) => Text(
+                        '- $report',
+                        style: const TextStyle(fontSize: 14),
+                      ),
                     ),
                   ],
                 ),
