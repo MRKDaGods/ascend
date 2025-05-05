@@ -95,7 +95,6 @@ class Jobsattributes {
       location: json['location'] as String? ?? 'Unknown Location',
       experienceLevel: json['experience_level'] as String? ?? 'Unknown Level',
       salaryMinRange: json['salary_min_range'] as int? ?? 0,
-
       easyapply: json['easyapply'] as bool? ?? true,
       salaryMaxRange:
           (json['salary_max_range'] is int)
