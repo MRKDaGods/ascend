@@ -44,11 +44,11 @@ class PostEngagementStats extends StatelessWidget {
 
           if (prevPost == null || currPost == null) return false;
 
-          // Rebuild if counts OR currentReaction changed
+          // Rebuild if counts OR reaction changed - use isLiked.reactionType now
           return prevPost.likesCount != currPost.likesCount ||
               prevPost.sharedCount != currPost.sharedCount ||
               prevPost.commentsCount != currPost.commentsCount ||
-              prevPost.currentReaction != currPost.currentReaction; // Add reaction check
+              prevPost.isLiked.reactionType != currPost.isLiked.reactionType; // Updated to use isLiked structure
         }
         return false;
       },
@@ -58,7 +58,7 @@ class PostEngagementStats extends StatelessWidget {
           final currentLikesCount = post?.likesCount ?? likesCount;
           final currentSharesCount = post?.sharedCount ?? sharesCount;
           final currentCommentsCount = post?.commentsCount ?? commentsCount;
-          final currentReaction = post?.currentReaction; // Get the reaction string
+          final currentReaction = post?.isLiked.reactionType; // Updated to use isLiked.reactionType
 
           return _buildStatsRow(
             currentLikesCount,

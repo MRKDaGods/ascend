@@ -41,6 +41,10 @@ class ReactionManager {
     this.context,
   }) {
     _currentReaction = currentReaction;
+    // Log the passed-in reaction for debugging
+    if (currentReaction != null) {
+      debugPrint('👍 ReactionManager initialized with reaction: $currentReaction');
+    }
   }
 
   // Toggle the default reaction with Bloc integration
@@ -70,6 +74,9 @@ class ReactionManager {
 
   // Remove reaction
   void removeReaction() {
+    // Log that we're explicitly removing the reaction
+    debugPrint('⛔ ReactionManager: Explicitly removing reaction (was: $_currentReaction)');
+    
     _currentReaction = null;
     _updateBloc();
   }
@@ -77,26 +84,37 @@ class ReactionManager {
   // Private method to update the Bloc when reactions change
   void _updateBloc() {
     if (context != null && postId != null) {
+      debugPrint('📢 ReactionManager: Updating bloc with reaction: $_currentReaction');
       context!.read<PostBloc>().add(
         TogglePostReaction(postId!, _currentReaction)
       );
+    } else {
+      debugPrint('⚠️ ReactionManager: Cannot update bloc - missing context or postId');
     }
   }
 
   // Get current reaction icon
   IconData getCurrentReactionIcon() {
     if (!isLiked) {
-      return Icons.thumb_up_outlined;
+      return Icons.thumb_up_outlined; // Empty outline icon when no reaction
     }
-    return reactionIcons[_currentReaction!] ?? Icons.thumb_up;
+    
+    // Use specific reaction icon or default to filled thumb up
+    final icon = reactionIcons[_currentReaction!];
+    debugPrint('🔍 Using reaction icon for type: $_currentReaction');
+    return icon ?? Icons.thumb_up;
   }
 
   // Get current reaction color
   Color getCurrentReactionColor() {
     if (!isLiked) {
-      return Colors.grey;
+      return Colors.grey; // Grey when no reaction
     }
-    return reactionColors[_currentReaction!] ?? Colors.blue;
+    
+    // Use specific reaction color or default to blue
+    final color = reactionColors[_currentReaction!];
+    debugPrint('🎨 Using reaction color for type: $_currentReaction');
+    return color ?? Colors.blue;
   }
 
   // Get current reaction label - Updated
