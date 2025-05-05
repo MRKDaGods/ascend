@@ -1,4 +1,7 @@
 import 'package:ascend_app/features/Jobs/pages/manage_owned_company.dart';
+import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
+import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
+import 'package:ascend_app/features/profile/models/user_profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/job_picks_section.dart';
@@ -7,6 +10,7 @@ import 'package:ascend_app/features/Jobs/pages/explore_section.dart';
 import 'package:ascend_app/features/Jobs/pages/more_jobs_section.dart';
 import 'package:ascend_app/features/Jobs/pages/saved_section.dart';
 import 'package:ascend_app/features/Jobs/pages/my_jobs_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -121,93 +125,107 @@ class _JobHomePageState extends State<JobHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                onRefresh: () => fetchJobs(page: 1),
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth < 300) {
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Column(
-                              children: [
-                                _filterButton("My jobs"),
-                                const SizedBox(height: 5),
-                                _filterButton("Manage Company"),
-                              ],
-                            ),
-                          );
-                        } else {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: _filterButton("My jobs"),
-                                  ),
+    return BlocBuilder<UserProfileBloc, UserProfileState>(
+      builder: (context, state) {
+        // Extract profile from state or use empty profile if not loaded
+        final profile =
+            state is UserProfileLoaded
+                ? state.profile
+                : UserProfileModel.empty();
+        return Scaffold(
+          body:
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                    onRefresh: () => fetchJobs(page: 1),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            if (constraints.maxWidth < 300) {
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Column(
+                                  children: [
+                                    _filterButton("My jobs"),
+                                    const SizedBox(height: 5),
+                                    _filterButton("Manage Company"),
+                                  ],
                                 ),
-                                Expanded(
-                                  child: Align(
-                                    alignment: Alignment.center,
-                                    child: _filterButton("Manage Company"),
-                                  ),
+                              );
+                            } else {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: _filterButton("My jobs"),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: _filterButton("Manage Company"),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        JobPicksSection(
+                          isDarkMode: widget.isDarkMode,
+                          jobs: jobsList,
+                          onRemove: removeJob,
+                        ),
+
+                        SavedPage(
+                          isDarkMode: widget.isDarkMode,
+                          jobs:
+                              jobsList
+                                  .where((job) => job.isBookmarked)
+                                  .toList(),
+                        ),
+                        if (profile.isPremium)
+                          PremiumSection(isDarkMode: widget.isDarkMode),
+                        const SizedBox(height: 10),
+                        ExploreScreen(
+                          isDarkMode: widget.isDarkMode,
+                          jobs: jobsList,
+                        ),
+                        const SizedBox(height: 10),
+                        MoreJobsSection(
+                          isDarkMode: widget.isDarkMode,
+                          jobs: jobsList,
+                          onRemove: removeJob,
+                        ),
+                        if (isLoadingMore)
+                          const Center(child: CircularProgressIndicator())
+                        else if (currentPage > 1 &&
+                            jobsList.length < (currentPage * 20))
+                          Center(
+                            child: Text(
+                              "No more jobs to load",
+                              style: TextStyle(),
                             ),
-                          );
-                        }
-                      },
+                          )
+                        else
+                          TextButton(
+                            onPressed:
+                                () => fetchMoreJobs(page: currentPage + 1),
+                            child: const Text("Load More"),
+                          ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    JobPicksSection(
-                      isDarkMode: widget.isDarkMode,
-                      jobs: jobsList,
-                      onRemove: removeJob,
-                    ),
-                    const SizedBox(height: 10),
-
-                    SavedPage(
-                      isDarkMode: widget.isDarkMode,
-                      jobs: jobsList.where((job) => job.isBookmarked).toList(),
-                    ),
-                    const SizedBox(height: 10),
-
-                    PremiumSection(isDarkMode: widget.isDarkMode),
-                    const SizedBox(height: 10),
-                    ExploreScreen(
-                      isDarkMode: widget.isDarkMode,
-                      jobs: jobsList,
-                    ),
-                    const SizedBox(height: 10),
-                    MoreJobsSection(
-                      isDarkMode: widget.isDarkMode,
-                      jobs: jobsList,
-                      onRemove: removeJob,
-                    ),
-                    if (isLoadingMore)
-                      const Center(child: CircularProgressIndicator())
-                    else if (currentPage > 1 &&
-                        jobsList.length < (currentPage * 20))
-                      Center(
-                        child: Text("No more jobs to load", style: TextStyle()),
-                      )
-                    else
-                      TextButton(
-                        onPressed: () => fetchMoreJobs(page: currentPage + 1),
-                        child: const Text("Load More"),
-                      ),
-                  ],
-                ),
-              ),
+                  ),
+        );
+      },
     );
   }
 
@@ -240,7 +258,6 @@ class _JobHomePageState extends State<JobHomePage> {
       ),
     );
   }
-
 
   @override
   void dispose() {

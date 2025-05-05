@@ -1,5 +1,6 @@
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -9,12 +10,14 @@ class ApplicationDetails extends StatefulWidget {
   final String email;
   final String resumeUrl;
   final int applicationId;
+  final String status;
   const ApplicationDetails({
     super.key,
     required this.name,
     required this.email,
     required this.resumeUrl,
     required this.applicationId,
+    required this.status,
   });
 
   @override
@@ -27,36 +30,36 @@ class _ApplicationDetailsState extends State<ApplicationDetails> {
   @override
   void initState() {
     super.initState();
-    _fetchApplicationStatus();
+    _selectedStatus = widget.status; // Default status
   }
 
-  Future<void> _fetchApplicationStatus() async {
-    try {
-      final token = await SecureStorageHelper.getAuthToken();
-      final appId = widget.applicationId.toString();
-      final response = await http.get(
-        Uri.parse('https://api.ascendx.tech/job/applications/$appId/status'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _selectedStatus = data['status'];
-        });
-      } else {
-        throw Exception('Failed to fetch application status');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error fetching status: $e')));
-    }
-  }
+  // Future<void> _fetchApplicationStatus() async {
+  //   try {
+  //     final token = await SecureStorageHelper.getAuthToken();
+  //     final appId = widget.applicationId.toString();
+  //     final response = await http.get(
+  //       Uri.parse('https://api.ascendx.tech/job/applications/$appId/status'),
+  //       headers: {
+  //         'Authorization': 'Bearer $token',
+  //         'Accept': 'application/json',
+  //       },
+  //     );
+  //     print('Response status: ${response.statusCode}');
+  //     print('Response body: ${response.body}');
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         _selectedStatus = data['status'];
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch application status');
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Error fetching status: $e')));
+  //   }
+  // }
 
   Future<void> _downloadResume(BuildContext context, String url) async {
     if (await canLaunch(url)) {

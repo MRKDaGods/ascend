@@ -1,6 +1,11 @@
+
+import 'package:ascend_app/features/CompanyPage/company_page.dart';
 import 'package:ascend_app/features/Jobs/pages/create_company.dart';
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/company_details.dart';
+import 'package:http/http.dart' as http;
 
 class CompanyCard extends StatelessWidget {
   final String companyName;
@@ -87,11 +92,39 @@ class CompanyCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    companyName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => CompanyPage(
+                                name: companyName,
+                                profileImageUrl: logoUrl ?? '',
+                                coverImageUrl: '',
+                                location: location,
+                                industry: industry,
+                                connections: 0,
+                                verified: false,
+                                bio: description ?? '',
+                                sections: [],
+                                isconnect: false,
+                                isfollow: false,
+                                isPending: false,
+                                mutualConnections: [],
+                                webSiteExists: false,
+                                links: [],
+                                badges: [],
+                              ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      companyName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -128,7 +161,53 @@ class CompanyCard extends StatelessWidget {
                       ),
                     );
                   } else if (value == 'delete') {
-                    // DELETE request logic here
+
+                    final confirmDelete = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirm Deletion'),
+                          content: const Text('Are you sure you want to delete this company?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (confirmDelete == true) {
+                      final token = await SecureStorageHelper.getAuthToken();
+                      final headers = {
+                        if (token != null) 'Authorization': 'Bearer $token',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                      };
+                      final String _baseUrl = 'https://api.ascendx.tech';
+                      final endpoint = '/company/companies/$companyId';
+                      final url = Uri.parse('$_baseUrl$endpoint');
+                      final response = await http.delete(url, headers: headers);
+                      if (response.statusCode == 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Company deleted successfully.')),
+                        );
+                        print('DELETE request successful: ${response.body}');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to delete company: ${response.body}')),
+                        );
+                        print(
+                          'DELETE request failed: ${response.statusCode}, ${response.body}',
+                        );
+                      }
+                    }
+
                   }
                 },
                 itemBuilder:
