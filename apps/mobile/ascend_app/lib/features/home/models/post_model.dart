@@ -374,8 +374,8 @@ class PostModel extends Equatable {
               : 'assets/images/profile/EmptyUser.png'; // Use a known valid asset
 
       // Extract saved and shared flags
-      final bool isSaved = apiPost['is_saved'] as bool? ?? false;
-      final bool isShared = apiPost['is_shared'] as bool? ?? false;
+      final bool isSaved = (apiPost['isSaved'] ?? apiPost['is_saved']) as bool? ?? false;
+      final bool isShared = apiPost['isShared'] as bool? ?? false;
 
       // Parse the isLiked object structure from API
       final isLikedData = apiPost['isLiked'] ?? apiPost['is_liked'];
