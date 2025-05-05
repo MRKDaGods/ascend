@@ -16,6 +16,7 @@ class AscendPrivacyAndSecurityPage(BasePage):
     UNBLOCK_USER_BUTTON = AscendPrivacyAndSecurityLocators.UNBLOCK_USER_BUTTON
     SAVE_BUTTON = AscendPrivacyAndSecurityLocators.SAVE_BUTTON
     REPORT_BLOCK_MESSAGE = AscendPrivacyAndSecurityLocators.REPORT_BLOCK_MESSAGE
+    FIRST_USER2 = AscendPrivacyAndSecurityLocators.FIRST_USER2
     
     def click_Side_Bar_Button(self):
         self.click(self.SIDE_BAR_BUTOTN)
@@ -33,7 +34,10 @@ class AscendPrivacyAndSecurityPage(BasePage):
         self.click(self.SAVE_BUTTON)
         
     def click_First_User(self):
-        self.click(self.FIRST_USER)
+        try:
+            self.click(self.FIRST_USER)
+        except:
+            self.click(self.FIRST_USER2)
     
     def click_More_Options_Button(self):
         self.click(self.MORE_OPTIONS_BUTTON)

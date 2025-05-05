@@ -10,6 +10,7 @@ class AscendPrivacyAndSecurityLocators:
    #######################
    #Report user locaters
    FIRST_USER = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Habiba isDeveloping").instance(0)')
+   FIRST_USER2 = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Ascend System").instance(0)')
    MORE_OPTIONS_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.Button").instance(6)')
    REPORT_BLOCK_BUTOTN = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().description("Report or block")')
    REPORT_BLOCK_MESSAGE = (By.ACCESSIBILITY_ID, 'This feature is not available yet')
