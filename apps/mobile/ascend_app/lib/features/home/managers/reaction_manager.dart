@@ -74,6 +74,9 @@ class ReactionManager {
 
   // Remove reaction
   void removeReaction() {
+    // Log that we're explicitly removing the reaction
+    debugPrint('⛔ ReactionManager: Explicitly removing reaction (was: $_currentReaction)');
+    
     _currentReaction = null;
     _updateBloc();
   }
@@ -81,9 +84,12 @@ class ReactionManager {
   // Private method to update the Bloc when reactions change
   void _updateBloc() {
     if (context != null && postId != null) {
+      debugPrint('📢 ReactionManager: Updating bloc with reaction: $_currentReaction');
       context!.read<PostBloc>().add(
         TogglePostReaction(postId!, _currentReaction)
       );
+    } else {
+      debugPrint('⚠️ ReactionManager: Cannot update bloc - missing context or postId');
     }
   }
 
