@@ -134,28 +134,42 @@ class _CreateCompanyState extends State<CreateCompany> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final data = {
-        "name": _nameController.text,
+        widget.isEditMode ? "company_name" : "name": _nameController.text,
         "description": _descriptionController.text,
         "industry": _industryController.text,
         "location": _locationController.text,
         "company_domain_name": _domainController.text,
-        "profile_photo": {
-          "buffer": _profilePhotoBase64,
-          "file_name": profilePhotoFileName,
-          "file_size": profilefileSize.toString(),
-          "mime_type": profilePhotoMimeType,
-        },
-        "cover_photo": {
-          "buffer": _coverPhotoBase64,
-          "file_name": coverPhotoFileName,
-          "file_size": coverfileSize.toString(),
-          "mime_type": coverPhotoMimeType,
-        },
+        "profile_photo":
+            _profilePhotoBase64 != null
+                ? {
+                  "buffer": _profilePhotoBase64,
+                  "file_name": profilePhotoFileName,
+                  "file_size": profilefileSize.toString(),
+                  "mime_type": profilePhotoMimeType,
+                }
+                : null,
+        "cover_photo":
+            _coverPhotoBase64 != null
+                ? {
+                  "buffer": _coverPhotoBase64,
+                  "file_name": coverPhotoFileName,
+                  "file_size": coverfileSize.toString(),
+                  "mime_type": coverPhotoMimeType,
+                }
+                : null,
       };
+
+      // Remove null entries from the data object
+      final cleanedData = Map.fromEntries(
+        data.entries.where((entry) => entry.value != null),
+      );
+
       final String baseUrl = 'https://api.ascendx.tech';
       final String endpoint =
           widget.isEditMode
-              ? '/company/${widget.companyId}' // Edit endpoint
+
+              ? '/company/companies/${widget.companyId}' // Edit endpoint
+
               : '/company/companies'; // Create endpoint
 
       try {
@@ -172,12 +186,16 @@ class _CreateCompanyState extends State<CreateCompany> {
                 ? await http.patch(
                   url,
                   headers: headers,
-                  body: jsonEncode(data),
+
+                  body: jsonEncode(cleanedData),
+
                 )
                 : await http.post(
                   url,
                   headers: headers,
-                  body: jsonEncode(data),
+
+                  body: jsonEncode(cleanedData),
+
                 );
 
         if (response.statusCode == 200 || response.statusCode == 201) {

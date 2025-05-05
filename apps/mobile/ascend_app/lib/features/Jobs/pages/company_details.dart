@@ -60,7 +60,8 @@ class _CompanyDetailsState extends State<CompanyDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Company Details')),
-      body:
+      body: Stack(
+        children: [
           isLoading
               ? const Center(child: CircularProgressIndicator())
               : jobs.isEmpty
@@ -78,17 +79,14 @@ class _CompanyDetailsState extends State<CompanyDetails> {
                       location: job['location'],
                       companyPhoto: job['company_logo_url'],
                       createdAt: DateTime.parse(job['created_at']),
-                      alumniCount: 0, // Placeholder value
-                      isPromoted: false, // Placeholder value
-                      isBookmarked: false, // Placeholder value
-                      viewed: false, // Placeholder value
-                      easyapply: true, // Placeholder value
+                      alumniCount: 0,
+                      isPromoted: false,
+                      isBookmarked: false,
+                      viewed: false,
+                      easyapply: true,
                       experienceLevel: job['experience_level'],
-                      salaryMinRange:
-                          job['salary_min_range'] ?? 0, // Default to 0 if null
-                      salaryMaxRange:
-                          job['salary_max_range'] ??
-                          200000, // Default to 0 if null
+                      salaryMinRange: job['salary_min_range'] ?? 0,
+                      salaryMaxRange: job['salary_max_range'] ?? 200000,
                     ),
                     description: job['description'],
                     experienceLevel: job['experience_level'],
@@ -99,7 +97,7 @@ class _CompanyDetailsState extends State<CompanyDetails> {
                     title: job['title'],
                     type: job['type'],
                     workplaceType: job['workplace_type'],
-                    isDarkMode: false, // Adjust based on your app's theme
+                    isDarkMode: false,
                     onRemove: (job) {},
                     onTap: () {
                       Navigator.push(
@@ -111,26 +109,30 @@ class _CompanyDetailsState extends State<CompanyDetails> {
                         ),
                       );
                     },
-                    isFromCompanyDetails:
-                        true, // Indicate that this is from company details
+                    isFromCompanyDetails: true,
                   );
                 },
               ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to the create job page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => CreateNewJob(
-                    companyId: widget.companyId,
-                    isEditMode: false,
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => CreateNewJob(
+                          companyId: widget.companyId,
+                          isEditMode: false,
+                        ),
                   ),
+                );
+              },
+              child: const Icon(Icons.add),
             ),
-          );
-        },
-        child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

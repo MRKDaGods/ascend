@@ -104,7 +104,7 @@ class Jobsattributes {
                   ? double.maxFinite.toInt()
                   : 9223372036854775807),
       jobDescription: json['description'] as String? ?? 'No Description',
-      isPartTime: json['is_part_tixzce'] as bool? ?? partTime,
+      isPartTime: json['is_part_time'] as bool? ?? partTime,
       isRemote: json['is_remote'] as bool? ?? remote,
       isHybrid: json['is_hybrid'] as bool? ?? hybrid,
       isConstruction: json['is_construction'] as bool? ?? false,
@@ -112,6 +112,7 @@ class Jobsattributes {
       isSmallBusiness: json['is_small_business'] as bool? ?? false,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       jobID: json['job_id'] as int?,
+      companyPhoto: json['company_logo_url'] as String? ?? 'No Logo',
       industry: json['industry'] as String? ?? 'Unknown Industry',
       fullTime: json['is_full_time'] as bool? ?? fullTime,
       contract: json['is_contract'] as bool? ?? contract,
