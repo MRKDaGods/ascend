@@ -52,8 +52,32 @@ class _UsersPageState extends State<UsersPage>
   }
 
   void _handleDeleteUser(BuildContext context, String userId) {
-    // Add logic to delete the user
-    debugPrint('Delete user with ID: $userId');
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Delete User'),
+            content: const Text(
+              'Are you sure you want to delete this reported user?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  context.read<UsersBloc>().add(
+                    DeleteUserEvent(userId: int.parse(userId)),
+                  );
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+    );
   }
 
   void _handleBanUser(BuildContext context, String userId) {
@@ -121,7 +145,10 @@ class _UsersPageState extends State<UsersPage>
                                 () => _toggleReportsVisibility(
                                   reportedUser.userId.toString(),
                                 ),
-                            onDelete:
+                            userId:
+                                reportedUser.userId
+                                    .toString(), // Pass the userId here
+                            handleDeleteUser:
                                 () => _handleDeleteUser(
                                   context,
                                   reportedUser.userId.toString(),
@@ -163,11 +190,33 @@ class _UsersPageState extends State<UsersPage>
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add user modal logic
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Stack(
+        children: [
+          // Positive Action Button
+          Positioned(
+            bottom: 16,
+            right: 80, // Adjust spacing between buttons
+            child: FloatingActionButton(
+              onPressed: () {
+                // Negative action logic
+                debugPrint('Negative action triggered');
+              },
+              backgroundColor: Colors.red,
+              child: const Icon(Icons.remove),
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                // Add user modal logic
+              },
+              child: const Icon(Icons.add),
+            ),
+          ),
+          // Negative Action Button
+        ],
       ),
     );
   }

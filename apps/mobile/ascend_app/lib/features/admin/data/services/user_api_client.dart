@@ -61,4 +61,25 @@ class UserApiClient {
       }
     }
   }
+
+  /// Deletes a user by their ID.
+  Future<void> deleteUser(int userId) async {
+    final token = await SecureStorageHelper.getAuthToken();
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token is missing.');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/admin-delete-user'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete user: ${response.body}');
+    }
+  }
 }

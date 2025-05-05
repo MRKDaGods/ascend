@@ -201,6 +201,17 @@ class AdminRepository {
     );
   }
 
+  /// Deletes a specific user by their ID.
+  Future<void> deleteUser(int userId) async {
+    try {
+      await userApiClient.deleteUser(userId);
+      debugPrint('Successfully deleted user with ID: $userId');
+    } catch (e) {
+      debugPrint('Error deleting user with ID $userId: $e');
+      throw Exception('Failed to delete user: $e');
+    }
+  }
+
   /// Fetches a list of reported users.
   Future<List<UserReport>> getReportedUsers() async {
     try {

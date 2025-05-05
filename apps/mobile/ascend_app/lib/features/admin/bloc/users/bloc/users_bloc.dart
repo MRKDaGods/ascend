@@ -9,6 +9,7 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
   final AdminRepository adminRepository;
 
   UsersBloc({required this.adminRepository}) : super(UsersInitial()) {
+    // Handle FetchReportedUsers event
     on<FetchReportedUsers>((event, emit) async {
       emit(UsersLoading());
       try {
@@ -16,6 +17,16 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
         emit(UsersLoaded(reports));
       } catch (e) {
         emit(UsersError(e.toString()));
+      }
+    });
+
+    // Handle DeleteUserEvent
+    on<DeleteUserEvent>((event, emit) async {
+      try {
+        await adminRepository.deleteUser(event.userId);
+        emit(UserDeletedState(event.userId));
+      } catch (e) {
+        emit(UsersError('Failed to delete user: $e'));
       }
     });
   }
