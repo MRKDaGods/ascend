@@ -13,7 +13,11 @@ class BlockRepository {
   /// Block a user by their ID
   Future<void> blockUser(String userId) async {
     try {
-      final response = await _client.post('${ApiEndpoints.block}/:$userId');
+      int userIdInt = int.parse(userId);
+      final response = await _client.post(
+        '${ApiEndpoints.block}/$userIdInt',
+        data: {},
+      );
 
       if (response.statusCode == 200) {
         // Successfully blocked the user

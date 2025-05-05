@@ -1,8 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
+import 'package:ascend_app/services/file_viewer_service.dart';
+import 'package:ascend_app/features/Messaging/presentation/pages/image_viewer_screen.dart';
 
 class ChatBox extends StatefulWidget {
   final String messageId;
@@ -142,9 +146,157 @@ class _ChatBoxState extends State<ChatBox> {
     }
   }
 
+  Widget _buildFileContent(String fileUrl, String fileType) {
+    // Debugging
+    debugPrint('Processing file: $fileUrl with type: $fileType');
+
+    // Handle uploading state
+    if (fileUrl == 'uploading') {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 10),
+            Text('Uploading $fileType...'),
+          ],
+        ),
+      );
+    }
+
+    // Standardize image type detection
+    final normalizedType = fileType.toLowerCase();
+    final isImage =
+        normalizedType.contains('image') ||
+        [
+          'jpg',
+          'jpeg',
+          'png',
+          'gif',
+        ].any((ext) => normalizedType.contains(ext));
+    final isVideo =
+        normalizedType.contains('video') ||
+        [
+          'mp4',
+          'mov',
+          'webm',
+          'avi',
+        ].any((ext) => normalizedType.contains(ext));
+
+    // Regular file content handling with improved type detection
+    if (isImage) {
+      return _buildImageContent(fileUrl);
+    } else if (isVideo) {
+      return _buildVideoContent(fileUrl);
+    } else {
+      return _buildFileSection(fileUrl, fileType);
+    }
+  }
+
+  Widget _buildImageContent(String imageUrl) {
+    return GestureDetector(
+      onTap: () => FileViewerService.openFile(context, imageUrl, 'image'),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 250, maxHeight: 300),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                height: 150,
+                width: 150,
+                color: Colors.grey[200],
+                child: Center(
+                  child: CircularProgressIndicator(
+                    value:
+                        loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              debugPrint('Error loading image: $error');
+              return Container(
+                height: 150,
+                width: 150,
+                color: Colors.grey[200],
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.broken_image, color: Colors.grey),
+                    SizedBox(height: 8),
+                    Text(
+                      'Failed to load image',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoContent(String videoUrl) {
+    return GestureDetector(
+      onTap: () => FileViewerService.openFile(context, videoUrl, 'video'),
+      child: Container(
+        height: 180,
+        width: double.infinity, // Make it take the available width
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Play button
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildFileSection(String fileUrl, String fileType) {
     // Extract filename from URL
-    final filename = fileUrl.split('/').last;
+    String fileName = 'File';
+    try {
+      fileName = fileUrl.split('/').last;
+      if (fileName.isEmpty) {
+        fileName = 'Document';
+      }
+    } catch (e) {
+      debugPrint('Error parsing filename: $e');
+    }
 
     return Container(
       padding: const EdgeInsets.all(8.0),
@@ -157,22 +309,12 @@ class _ChatBoxState extends State<ChatBox> {
         children: [
           _buildFileTypeIcon(fileType),
           const SizedBox(width: 8),
-          Flexible(child: Text(filename, overflow: TextOverflow.ellipsis)),
+          Flexible(child: Text(fileName, overflow: TextOverflow.ellipsis)),
           const SizedBox(width: 8),
           TextButton(
-            onPressed: () {
-              // Handle file download using BLoC
-              /*context.read<MessagingBloc>().add(
-                DownloadFile(
-                  fileUrl: fileUrl,
-                  fileName: filename,
-                  fileType: fileType,
-                ),
-              );*/
-              // For now, just print the file URL
-              debugPrint('Downloading file: $fileUrl');
-            },
-            child: const Text('Download'),
+            onPressed:
+                () => FileViewerService.openFile(context, fileUrl, fileType),
+            child: const Text('Open'),
           ),
         ],
       ),
@@ -195,75 +337,6 @@ class _ChatBoxState extends State<ChatBox> {
     );
   }
 
-  /*
-  Widget _showSuggestedReplies() {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Suggested Replies:', style: TextStyle(fontSize: 16)),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _sendSuggestedReply("How are you?");
-                },
-                child: const Text(
-                  'How are you?',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _sendSuggestedReply("Hello!");
-                },
-                child: const Text(
-                  'Hello!',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _sendSuggestedReply("Thanks!");
-                },
-                child: const Text(
-                  'Thanks!',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSuggestedReplyButton(String text) {
-    return OutlinedButton(
-      onPressed: () => _sendSuggestedReply(text),
-      style: OutlinedButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      child: Text(text),
-    );
-  }
-
-  void _sendSuggestedReply(String text) {
-    // Use BLoC to send the suggested reply
-    if (mounted) {
-      context.read<MessagingBloc>().add(
-        SendMessage(widget.conversationId, widget.conversationId, text),
-      );
-    }
-  }
-*/
   Widget _buildMessageBubble(
     bool isSent,
     bool isReceived,
@@ -289,25 +362,18 @@ class _ChatBoxState extends State<ChatBox> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Content and file handling
-                if (hasContent && hasFile) ...[
-                  Text(
-                    widget.content!,
-                    style: TextStyle(
-                      color: isSent ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildFileSection(widget.fileUrl!, widget.fileType!),
-                ] else if (hasContent) ...[
-                  Text(
-                    widget.content!,
-                    style: TextStyle(
-                      color: isSent ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ] else if (hasFile) ...[
-                  _buildFileSection(widget.fileUrl!, widget.fileType!),
+                if (hasFile) ...[
+                  // Use _buildFileContent which handles different file types properly
+                  _buildFileContent(widget.fileUrl!, widget.fileType!),
+                  if (hasContent) const SizedBox(height: 8),
                 ],
+                if (hasContent)
+                  Text(
+                    widget.content!,
+                    style: TextStyle(
+                      color: isSent ? Colors.white : Colors.black,
+                    ),
+                  ),
               ],
             ),
           ),

@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/blocked/bloc/block_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_preferences/bloc/connection_preferences_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.dart';
@@ -5,9 +6,11 @@ import 'package:ascend_app/features/networks/bloc/bloc/messaging_requests/bloc/m
 import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
 import 'package:ascend_app/features/networks/pages/search_users_page.dart';
+import 'package:ascend_app/services/web_socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/connection_request/bloc/connection_request_bloc.dart';
+import 'package:ascend_app/features/Messaging/data/datasources/remote_datasource.dart';
 
 class Connections extends StatelessWidget {
   final List<ConnectedUser> connections;
@@ -174,7 +177,12 @@ class Connections extends StatelessWidget {
                                     Icons.send,
                                     color: Colors.grey,
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    _showMessagingAlert(
+                                      context,
+                                      state.acceptedConnections[index].user_id!,
+                                    );
+                                  },
                                   tooltip: 'Message',
                                 ),
                               ),
@@ -232,6 +240,48 @@ class Connections extends StatelessWidget {
               onRemove(requestId); // Call the remove function
             },
           ),
+        );
+      },
+    );
+  }
+
+  void _showMessagingAlert(BuildContext context, String receiverId) {
+    final TextEditingController messageController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Send Message'),
+          content: TextField(
+            controller: messageController,
+            decoration: const InputDecoration(
+              hintText: 'Type your message here',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Send'),
+              onPressed: () async {
+                // Handle sending the message
+                final message = messageController.text;
+                if (message.isNotEmpty) {
+                  // ignore: unused_local_variable
+                  final messagingRepo = MessagingRepoistoryImpl(
+                    webSocketService: WebSocketService(),
+                    apiClient: ApiClient(),
+                  );
+                  final response = await messagingRepo.sendMessage(
+                    receiverId,
+                    message,
+                  );
+                }
+                Future.delayed(Duration.zero, () {
+                  // ignore: use_build_context_synchronously
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+          ],
         );
       },
     );

@@ -14,7 +14,10 @@ class FollowRepoistory {
   Future<void> followUser(String userId) async {
     try {
       final int userIdInt = int.parse(userId);
-      final response = await _client.post('${ApiEndpoints.follow}/$userIdInt');
+      final response = await _client.post(
+        '${ApiEndpoints.follow}/$userIdInt',
+        data: {},
+      );
 
       if (response.statusCode == 200) {
         // Successfully followed the user
@@ -33,8 +36,9 @@ class FollowRepoistory {
   /// Unfollow a user by their ID
   Future<void> unfollowUser(String userId) async {
     try {
+      final int userIdInt = int.parse(userId);
       final response = await _client.delete(
-        '${ApiEndpoints.unfollow}/:$userId',
+        '${ApiEndpoints.unfollow}/$userIdInt',
       );
 
       if (response.statusCode == 200) {
