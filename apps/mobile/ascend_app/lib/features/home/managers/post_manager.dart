@@ -4,19 +4,17 @@ import '../models/comment_model.dart';
 class PostManager {
   // Toggle reaction on a post
   static PostModel toggleReaction(PostModel post, String? reactionType) {
-    if (post.isLiked && reactionType == post.currentReaction) {
+    if (post.isLiked.reacted && reactionType == post.isLiked.reactionType) {
       // Remove reaction
       return post.copyWith(
-        isLiked: false,
-        currentReaction: null,
+        isLiked: const ReactionInfo(reacted: false, reactionType: null),
         likesCount: post.likesCount > 0 ? post.likesCount - 1 : 0,
       );
     } else {
       // Add or change reaction
-      final newLikesCount = !post.isLiked ? post.likesCount + 1 : post.likesCount;
+      final newLikesCount = !post.isLiked.reacted ? post.likesCount + 1 : post.likesCount;
       return post.copyWith(
-        isLiked: true,
-        currentReaction: reactionType,
+        isLiked: ReactionInfo(reacted: true, reactionType: reactionType),
         likesCount: newLikesCount,
       );
     }
