@@ -46,11 +46,10 @@ dependencies:
   mime: ^2.0.0
   http_parser: ^4.1.2
   firebase_core: ^3.13.0
-  get: ^4.7.2
+  get: ^4.7.1
   flutter_slidable: ^4.0.0
   file_picker: ^10.1.2
   bloc_concurrency: ^0.3.0
-
 
 dev_dependencies:
   flutter_test:
