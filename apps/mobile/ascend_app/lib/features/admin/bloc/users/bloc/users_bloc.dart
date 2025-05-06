@@ -9,6 +9,7 @@ part 'users_state.dart';
 
 class UsersBloc extends Bloc<UsersEvent, UsersState> {
   final AdminRepository adminRepository;
+  AdminRepository get repository => adminRepository;
 
   // Keep track of cached data to preserve across tab switches
   List<UserReport> _reportedUsers = [];

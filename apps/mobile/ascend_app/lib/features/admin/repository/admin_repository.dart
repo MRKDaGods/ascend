@@ -342,15 +342,20 @@ class AdminRepository {
   }
 
   // Add this if it doesn't exist already:
-  Future<void> createUser(Map<String, String> userData) async {
+  Future<Map<String, dynamic>> createUser(Map<String, String> userData) async {
     try {
-      debugPrint('Creating user with data: $userData');
-      final reponse = await apiClient.post('/admin/create-user', userData,
-      );
-      debugPrint('User created successfully');
-      return reponse;
+      // Using the correct endpoint from your API documentation
+      final response = await userApiClient.post('/admin-create-user', userData);
+      debugPrint('User created successfully: $response');
+      return response;
     } catch (e) {
       debugPrint('Error creating user: $e');
+
+      // Check for specific error messages and rethrow with more user-friendly messages
+      if (e.toString().contains('Email address already in use')) {
+        throw Exception('This email address is already registered');
+      }
+
       throw Exception('Failed to create user: $e');
     }
   }
