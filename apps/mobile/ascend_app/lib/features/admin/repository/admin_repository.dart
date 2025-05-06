@@ -226,17 +226,24 @@ class AdminRepository {
   /// Bans a user by their ID.
   Future<void> banUser({
     required int userId,
-    String? expiresAt, // Optional expiration date for temporary bans
-    String? reason, // Optional reason for the ban
+    String? expiresAt,
+    String? reason,
   }) async {
     try {
+      // Modify the request format to match what your API expects
       final Map<String, dynamic> body = {
         'user_id': userId,
-        if (expiresAt != null) 'expires_at': expiresAt,
-        if (reason != null) 'reason': reason,
+        // Make sure these field names exactly match what your API expects
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+        if (expiresAt != null && expiresAt.isNotEmpty) 'expires_at': expiresAt,
       };
 
+      debugPrint('Sending ban user request with body: $body');
+
+      // Use the endpoint format that matches your API
+      // You might need to adjust this based on your API structure
       await userApiClient.post('/ban-user', body);
+
       debugPrint('Successfully banned user with ID: $userId');
     } catch (e) {
       debugPrint('Error banning user with ID $userId: $e');
