@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 class ApplicationDetails extends StatefulWidget {
   final String name;
   final String email;
+  final String phone; // Added phone number
   final String resumeUrl;
   final int applicationId;
   final String status;
@@ -14,6 +15,7 @@ class ApplicationDetails extends StatefulWidget {
     super.key,
     required this.name,
     required this.email,
+    required this.phone, // Added phone number
     required this.resumeUrl,
     required this.applicationId,
     required this.status,
@@ -115,6 +117,11 @@ class _ApplicationDetailsState extends State<ApplicationDetails> {
             const SizedBox(height: 8),
             Text(
               'Email: ${widget.email}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Phone: ${widget.phone}', // Show phone number
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
