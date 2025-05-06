@@ -62,7 +62,10 @@ class UserApiClient {
     }
   }
 
-  Future<void> post(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
     try {
       final token = await SecureStorageHelper.getAuthToken();
       if (token == null || token.isEmpty) {
@@ -85,12 +88,42 @@ class UserApiClient {
       debugPrint('Response status code: ${response.statusCode}');
       debugPrint('Response body: ${response.body}');
 
-      if (response.statusCode != 200) {
+      // Accept both 200 OK and 201 Created as successful responses
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse and return the response body as a Map
+        try {
+          return jsonDecode(response.body);
+        } catch (e) {
+          // If response is not valid JSON, return empty success response
+          return {'success': true};
+        }
+      } else {
+        // Try to parse the error response
+        Map<String, dynamic> errorData = {};
+        try {
+          errorData = jsonDecode(response.body);
+        } catch (e) {
+          // If we can't parse the response body, use default error
+        }
+
+        // Check for specific error cases
+        if (response.statusCode == 500 &&
+            errorData['error'] != null &&
+            errorData['error']['code'] == '23505') {
+          // Email already exists error
+          if (errorData['error']['constraint'] == 'users_email_key') {
+            throw Exception('Email address already in use');
+          }
+
+          // Other unique constraint violations
+          throw Exception('This record already exists');
+        }
+
         throw Exception('Failed to post to $endpoint: ${response.body}');
       }
     } catch (e) {
       debugPrint('Error in POST request to $endpoint: $e');
-      throw Exception('POST request failed: $e');
+      rethrow;
     }
   }
 
