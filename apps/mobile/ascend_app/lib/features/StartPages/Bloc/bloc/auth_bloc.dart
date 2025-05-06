@@ -31,6 +31,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // Add this to the constructor to handle the new event
     on<VerifyCodeSubmitted>(_onVerifyCodeSubmitted);
+
+    on<AuthTokenUpdated>(_onAuthTokenUpdated);
   }
   // Handle Sign-In
   Future<void> _onSignInRequested(
@@ -59,6 +61,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthSuccess(token: response['token'], signUpMode: false));
     } catch (error) {
       _logger.e('SignIn failed: $error'); // Log the error
+      emit(AuthFailure(error: error.toString()));
+    }
+  }
+
+  Future<void> _onAuthTokenUpdated(
+    AuthTokenUpdated event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      _logger.i('Auth token updated successfully: ${event.token}');
+      emit(AuthSuccess(token: event.token, signUpMode: false));
+    } catch (error) {
       emit(AuthFailure(error: error.toString()));
     }
   }

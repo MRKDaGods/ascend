@@ -340,7 +340,7 @@ class _AddSectionPageState extends State<AddSectionPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Non-scrollable PDF preview
-                        Container(
+                        SizedBox(
                           height: 200, // Fixed height for the preview
                           child: SfPdfViewer.network(
                             featuredUrl,

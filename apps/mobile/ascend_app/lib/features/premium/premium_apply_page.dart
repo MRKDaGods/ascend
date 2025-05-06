@@ -7,6 +7,8 @@ import 'package:step_progress_indicator/step_progress_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PremiumApplyPage extends StatefulWidget {
+  const PremiumApplyPage({super.key});
+
   @override
   _PremiumApplyPageState createState() => _PremiumApplyPageState();
 }

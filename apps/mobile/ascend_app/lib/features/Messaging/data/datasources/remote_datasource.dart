@@ -286,4 +286,28 @@ class MessagingRepoistoryImpl implements MessagingRepository {
   bool isAnyoneTyping(String conversationId) {
     return _webSocketService.isAnyoneTyping(conversationId);
   }
+
+  @override
+  Future<bool> sendFileMessage({
+    required String conversationId,
+    required String receiverId,
+    required File file,
+    required String content,
+    required String fileType,
+  }) async {
+    try {
+      final body = {'receiverId': receiverId, 'content': content};
+      final response = await _apiClient.uploadFile(
+        ApiEndpoints.message,
+        file,
+        'message', // context
+        body: body,
+      );
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      debugPrint('Error sending file message: $e');
+      return false;
+    }
+  }
 }

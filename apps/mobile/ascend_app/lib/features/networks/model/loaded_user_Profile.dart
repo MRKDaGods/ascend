@@ -5,7 +5,7 @@ class LoadedUserProfile {
   String user_id;
   String first_name;
   String last_name;
-  String? profile_image_id;
+  String? profile_image_url;
   String? bio;
   String? industry;
   String? location;
@@ -21,7 +21,7 @@ class LoadedUserProfile {
     required this.user_id,
     required this.first_name,
     required this.last_name,
-    this.profile_image_id,
+    this.profile_image_url,
     this.bio,
     this.industry,
     this.location,
@@ -39,7 +39,7 @@ class LoadedUserProfile {
       user_id: json["user_id"].toString(),
       first_name: json["first_name"],
       last_name: json["last_name"],
-      profile_image_id: json["profile_image_id"],
+      profile_image_url: json["profile_image_url"],
       bio: json["bio"],
       industry: json["industry"],
       location: json["location"],
@@ -52,7 +52,7 @@ class LoadedUserProfile {
       "user_id": user_id,
       "first_name": first_name,
       "last_name": last_name,
-      "profile_image_id": profile_image_id,
+      "profile_image_url": profile_image_url,
       "bio": bio,
       "industry": industry,
       "location": location,
@@ -64,7 +64,7 @@ class LoadedUserProfile {
     String? user_id,
     String? first_name,
     String? last_name,
-    String? profile_image_id,
+    String? profile_image_url,
     String? bio,
     String? industry,
     String? location,
@@ -80,7 +80,7 @@ class LoadedUserProfile {
       user_id: user_id ?? this.user_id,
       first_name: first_name ?? this.first_name,
       last_name: last_name ?? this.last_name,
-      profile_image_id: profile_image_id ?? this.profile_image_id,
+      profile_image_url: profile_image_url ?? this.profile_image_url,
       bio: bio ?? this.bio,
       industry: industry ?? this.industry,
       location: location ?? this.location,

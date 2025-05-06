@@ -1,12 +1,10 @@
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
-import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:ascend_app/features/notifications/presentation/bloc/notification_event.dart';
 import 'package:ascend_app/shared/widgets/bloc/search_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
 import 'core/app/app_initializer.dart';
 import 'core/di/dependency_injection.dart';
@@ -140,10 +138,12 @@ class _MainAppState extends State<MainApp> {
         ),
         BlocProvider<SavedPostsBloc>(
           // Add SavedPostsBloc here
-          create: (context) => SavedPostsBloc(
-            postRepository: sl.postRepository, // Assuming sl.postRepository is available
-            postBloc: BlocProvider.of<PostBloc>(context),
-          ),
+          create:
+              (context) => SavedPostsBloc(
+                postRepository:
+                    sl.postRepository, // Assuming sl.postRepository is available
+                postBloc: BlocProvider.of<PostBloc>(context),
+              ),
         ),
         BlocProvider<NotificationBloc>(
           // Restore original creation logic (likely fetches immediately or handled elsewhere)

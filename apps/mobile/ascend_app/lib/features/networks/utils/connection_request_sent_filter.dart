@@ -18,10 +18,11 @@ Widget buildSent(
             return Column(
               children: [
                 ListTile(
+                  tileColor: Colors.white,
                   leading: CircleAvatar(
                     backgroundImage:
-                        invitation.profile_image_id != null
-                            ? NetworkImage(invitation.profile_image_id!)
+                        invitation.profile_picture_url != null
+                            ? NetworkImage(invitation.profile_picture_url!)
                             : AssetImage('assets/EmptyUser.png')
                                 as ImageProvider,
                   ),
@@ -54,7 +55,7 @@ Widget buildSent(
                     child: const Text('Withdraw'),
                   ),
                 ),
-                const Divider(thickness: 3, height: 16),
+                const Divider(color: Colors.grey, height: 1),
               ],
             );
           },

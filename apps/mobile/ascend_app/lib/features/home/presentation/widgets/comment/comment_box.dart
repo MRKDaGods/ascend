@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/home/managers/reaction_manager.dart';
 import 'package:ascend_app/features/home/presentation/widgets/reaction/reaction_button.dart';
 import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
-import 'package:ascend_app/features/home/presentation/utils/reaction_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CommentBox extends StatelessWidget {
@@ -42,8 +41,10 @@ class CommentBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reactionIcon = ReactionManager.reactionIcons[reaction] ?? Icons.thumb_up_alt_outlined;
-    final reactionColor = ReactionManager.reactionColors[reaction] ?? Colors.grey;
+    final reactionIcon =
+        ReactionManager.reactionIcons[reaction] ?? Icons.thumb_up_alt_outlined;
+    final reactionColor =
+        ReactionManager.reactionColors[reaction] ?? Colors.grey;
     final bool isLiked = reaction != null;
 
     // Determine if avatarImage is a network URL or a local asset path
@@ -56,15 +57,28 @@ class CommentBox extends StatelessWidget {
         CircleAvatar(
           radius: 20,
           // Use Network image if URL, otherwise use Asset image
-          backgroundImage: isNetworkImage
-              ? CachedNetworkImageProvider(avatarImage!) // Use CachedNetworkImageProvider
-              : AssetImage(avatarImage ?? 'assets/images/profile/EmptyUser.png') as ImageProvider, // Fallback asset
-          onBackgroundImageError: isNetworkImage ? (_, __) { // Add error handling for network images
-            debugPrint('Error loading network image: $avatarImage');
-          } : null,
-          child: !isNetworkImage && avatarImage == null // Show icon only if it's truly fallback asset
-              ? const Icon(Icons.person, size: 20)
-              : null,
+          backgroundImage:
+              isNetworkImage
+                  ? CachedNetworkImageProvider(
+                    avatarImage!,
+                  ) // Use CachedNetworkImageProvider
+                  : AssetImage(
+                        avatarImage ?? 'assets/images/profile/EmptyUser.png',
+                      )
+                      as ImageProvider, // Fallback asset
+          onBackgroundImageError:
+              isNetworkImage
+                  ? (_, __) {
+                    // Add error handling for network images
+                    debugPrint('Error loading network image: $avatarImage');
+                  }
+                  : null,
+          child:
+              !isNetworkImage &&
+                      avatarImage ==
+                          null // Show icon only if it's truly fallback asset
+                  ? const Icon(Icons.person, size: 20)
+                  : null,
         ),
 
         const SizedBox(width: 8),
@@ -162,9 +176,7 @@ class CommentBox extends StatelessWidget {
                         children: [
                           ReactionButton(
                             // Create a manager with the current state
-                            manager: ReactionManager(
-                              currentReaction: reaction,
-                            ),
+                            manager: ReactionManager(currentReaction: reaction),
                             // Connect callbacks
                             onTap: onReactionTap,
                             onLongPressStart: onReactionLongPress ?? () {},

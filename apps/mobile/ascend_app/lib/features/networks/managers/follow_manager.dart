@@ -11,8 +11,8 @@ List<Widget> buildAvatarStack(List<ConnectedUser> mutualUsers) {
       CircleAvatar(
         radius: 15,
         backgroundImage:
-            mutualUsers[0].profile_image_id!.isNotEmpty
-                ? NetworkImage(mutualUsers[0].profile_image_id!)
+            mutualUsers[0].profile_image_url!.isNotEmpty
+                ? NetworkImage(mutualUsers[0].profile_image_url!)
                 : const AssetImage('assets/placeholder.png'),
       ),
     ];
@@ -25,8 +25,8 @@ List<Widget> buildAvatarStack(List<ConnectedUser> mutualUsers) {
           child: CircleAvatar(
             radius: 15,
             backgroundImage:
-                mutualUsers[index].profile_image_id!.isNotEmpty
-                    ? AssetImage(mutualUsers[index].profile_image_id!)
+                mutualUsers[index].profile_image_url!.isNotEmpty
+                    ? AssetImage(mutualUsers[index].profile_image_url!)
                     : const AssetImage('assets/placeholder.png'),
           ),
         );
