@@ -367,6 +367,7 @@ class Profile {
   final ContactInfo? contactInfo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final bool isAdmin;
 
   Profile({
     required this.userId,
@@ -397,6 +398,7 @@ class Profile {
     this.contactInfo,
     this.createdAt,
     this.updatedAt,
+    this.isAdmin = false,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -509,6 +511,8 @@ class Profile {
               : null,
       createdAt: createdAtValue, // Use the validated value
       updatedAt: updatedAtValue, // Use the validated value
+
+      isAdmin: json['is_admin'] ?? false,
     );
   }
 
@@ -542,6 +546,7 @@ class Profile {
       'contact_info': contactInfo?.toJson(),
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'is_admin': isAdmin,
     };
   }
 
@@ -566,6 +571,7 @@ class Profile {
     List<Interest>? interests,
     List<Course>? courses,
     ContactInfo? contactInfo,
+    bool? isAdmin,
   }) {
     return Profile(
       // ignore: unnecessary_this
@@ -597,6 +603,7 @@ class Profile {
       skills: skills ?? this.skills,
       interests: interests ?? this.interests,
       courses: courses ?? this.courses,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 
