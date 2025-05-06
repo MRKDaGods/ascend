@@ -821,7 +821,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     onProfileUpdated: _onRefresh,
                                   ),
                                   // Edit button (if my profile)
-                                  if (_isMyProfile)
+                                  if (_isMyProfile) ...[
                                     Padding(
                                       padding: const EdgeInsets.only(
                                         right: 16,
@@ -866,6 +866,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                         ],
                                       ),
                                     ),
+                                  ] else ...[
+                                    const SizedBox(height: 40),
+                                  ],
 
                                   // Profile header information
                                   Padding(
@@ -895,7 +898,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                       .education!
                                                       .first
                                                       .school
-                                                  : 'Cairo University',
+                                                  : '',
                                           connections: 15, // Dummy data
                                           isconnect: _isConnect,
                                           isPending: _isPending,
@@ -908,7 +911,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                       .experience!
                                                       .first
                                                       .company
-                                                  : 'Google',
+                                                  : '',
                                           mutualConnections: [
                                             "Ahmed Hassan",
                                             "Sarah Ali",
