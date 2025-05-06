@@ -4,8 +4,14 @@ import 'package:ascend_app/features/UserPage/degree_selection_page.dart';
 
 class AddEducationPage extends StatefulWidget {
   final void Function(Education) onSave;
+  final Education?
+  education; // Add this parameter for editing existing education
 
-  const AddEducationPage({super.key, required this.onSave});
+  const AddEducationPage({
+    super.key,
+    required this.onSave,
+    this.education, // Optional parameter for editing
+  });
 
   @override
   State<AddEducationPage> createState() => _AddEducationPageState();
@@ -13,19 +19,61 @@ class AddEducationPage extends StatefulWidget {
 
 class _AddEducationPageState extends State<AddEducationPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _schoolController = TextEditingController();
-  final TextEditingController _degreeController = TextEditingController();
-  final TextEditingController _fieldOfStudyController = TextEditingController();
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _gradeController = TextEditingController();
+  late TextEditingController _schoolController;
+  late TextEditingController _degreeController;
+  late TextEditingController _fieldOfStudyController;
+  late TextEditingController _startDateController;
+  late TextEditingController _endDateController;
+  late TextEditingController _gradeController;
   bool _notifyNetwork = false;
+  late bool _isEditing;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditing = widget.education != null;
+
+    // Initialize controllers with existing data if in edit mode
+    _schoolController = TextEditingController(
+      text: _isEditing ? widget.education!.school : '',
+    );
+    _degreeController = TextEditingController(
+      text: _isEditing ? widget.education!.degree : '',
+    );
+    _fieldOfStudyController = TextEditingController(
+      text: _isEditing ? widget.education!.fieldOfStudy : '',
+    );
+    _startDateController = TextEditingController(
+      text:
+          _isEditing
+              ? widget.education!.startDate.toString().split(' ')[0]
+              : '',
+    );
+    _endDateController = TextEditingController(
+      text:
+          _isEditing && widget.education!.endDate != null
+              ? widget.education!.endDate
+              : '',
+    );
+    _gradeController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _schoolController.dispose();
+    _degreeController.dispose();
+    _fieldOfStudyController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();
+    _gradeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Education"),
+        title: Text(_isEditing ? "Edit Education" : "Add Education"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -46,8 +94,8 @@ class _AddEducationPageState extends State<AddEducationPage> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 16),
-              _buildNotifyNetworkToggle(),
-              const SizedBox(height: 16),
+              if (!_isEditing) _buildNotifyNetworkToggle(),
+              if (!_isEditing) const SizedBox(height: 16),
               _buildLabeledTextField(
                 label: "School*",
                 controller: _schoolController,
@@ -97,10 +145,10 @@ class _AddEducationPageState extends State<AddEducationPage> {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 3),
+                  padding: const EdgeInsets.symmetric(vertical: 3),
                   backgroundColor: const Color.fromARGB(255, 0, 123, 255),
                 ),
-                child: const Text("Save"),
+                child: Text(_isEditing ? "Update" : "Save"),
               ),
             ],
           ),
@@ -230,15 +278,21 @@ class _AddEducationPageState extends State<AddEducationPage> {
   void _saveEducation() {
     if (_formKey.currentState!.validate()) {
       final education = Education(
-        id: 0, // Dummy ID, replace with actual logic
-        userId: 0, // Dummy user ID, replace with actual logic
+        id:
+            _isEditing
+                ? widget.education!.id
+                : 0, // Keep existing ID if editing
+        userId:
+            _isEditing
+                ? widget.education!.userId
+                : 0, // Keep existing userId if editing
         school: _schoolController.text,
         degree: _degreeController.text,
         fieldOfStudy: _fieldOfStudyController.text,
         startDate: DateTime.parse(_startDateController.text),
         endDate:
             _endDateController.text.isNotEmpty ? _endDateController.text : null,
-        createdAt: DateTime.now(),
+        createdAt: _isEditing ? widget.education!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
       widget.onSave(education);

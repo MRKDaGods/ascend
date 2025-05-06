@@ -1,6 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'full_screen_image.dart';
 import 'bottom_options_sheet.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'dart:convert';
+import 'package:get/get.dart';
 
 class ProfileMainImages extends StatelessWidget {
   const ProfileMainImages({
@@ -12,18 +19,17 @@ class ProfileMainImages extends StatelessWidget {
     this.coverImageProvider,
     this.deleteCover,
     this.deleteProfile,
+    this.onProfileUpdated,
   });
   final String profilePic;
   final String coverPic;
   final bool isMyProfile;
-  final ImageProvider? profileImageProvider; //= AssetImage(
-  //   'assets/company_placeholder.png',
-  // ); // Add this for testing
-  final ImageProvider? coverImageProvider; // = AssetImage(
-  //   'assets/company_placeholder.png',
-  // ); // Add this for testing
+  final ImageProvider? profileImageProvider;
+  final ImageProvider? coverImageProvider;
   final void Function()? deleteCover;
-  final void Function()? deleteProfile; // Add this for testing
+  final void Function()? deleteProfile;
+  final void Function()? onProfileUpdated;
+
   void _showFullScreenImage(
     BuildContext context,
     String imageUrl,
@@ -36,13 +42,67 @@ class ProfileMainImages extends StatelessWidget {
             (context) => FullScreenImage(
               imageUrl: imageUrl,
               isMyProfile: isMyProfile,
-              delete:
-                  isProfilePic!
-                      ? deleteProfile
-                      : deleteCover, // Pass the correct delete function
+              delete: isProfilePic! ? deleteProfile : deleteCover,
+              onImageUpdated: onProfileUpdated,
+              isProfilePic: isProfilePic,
             ),
       ),
     );
+  }
+
+  Future<void> _uploadImage(BuildContext context, bool isProfilePic) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: isProfilePic ? 500 : 1500,
+      maxHeight: isProfilePic ? 500 : 500,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      try {
+        // Show loading indicator
+        ScaffoldMessenger.of(
+          Get.context!,
+        ).showSnackBar(const SnackBar(content: Text("Uploading image...")));
+
+        final String endpoint =
+            isProfilePic ? "/user/profile/picture" : "/user/profile/cover";
+
+        final File file = File(image.path);
+        final String uploadContext =
+            isProfilePic ? 'profile_picture' : 'cover_photo';
+
+        // Upload file using ApiClient
+        final response = await ServiceLocator().apiClient.uploadFile(
+          endpoint,
+          file,
+          uploadContext,
+        );
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text(
+                "${isProfilePic ? 'Profile picture' : 'Cover photo'} updated successfully",
+              ),
+            ),
+          );
+
+          // Refresh profile
+          if (onProfileUpdated != null) {
+            onProfileUpdated!();
+          }
+        } else {
+          final responseData = jsonDecode(response.body);
+          throw Exception(responseData['message'] ?? "Failed to upload image");
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(
+          Get.context!,
+        ).showSnackBar(SnackBar(content: Text("Error uploading image: $e")));
+      }
+    }
   }
 
   void _showOptionsSheet(
@@ -52,16 +112,20 @@ class ProfileMainImages extends StatelessWidget {
   ) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      isScrollControlled: true, // Allows the sheet to expand properly
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return ProfileOptionsSheet(
           isImageSheet: true,
-          showImage: _showFullScreenImage, // Go full screen
+          showImage: _showFullScreenImage,
           imageUrl: imageUrl,
           imageType: isProfilePic ? 'profile' : 'cover',
+          onUpload: () {
+            //Navigator.pop(context);
+            _uploadImage(context, isProfilePic);
+          },
         );
       },
     );
@@ -84,7 +148,8 @@ class ProfileMainImages extends StatelessWidget {
             } else {
               _showFullScreenImage(
                 context,
-                coverPic,null
+                coverPic,
+                null,
               ); // Go full screen directly
             }
           },
@@ -112,7 +177,8 @@ class ProfileMainImages extends StatelessWidget {
               } else {
                 _showFullScreenImage(
                   context,
-                  profilePic,null
+                  profilePic,
+                  null,
                 ); // Go full screen directly
               }
             },
