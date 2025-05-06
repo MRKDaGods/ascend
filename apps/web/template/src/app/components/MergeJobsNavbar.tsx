@@ -201,7 +201,9 @@ const MergeJobsNavbar: React.FC = () => {
         >
           Account
         </Typography>
-        <MenuItem id="try-premium-menu-item">
+        <MenuItem
+          onClick={() => router.push("/prem")}
+          id="try-premium-menu-item">
           <ListItemText>Try Premium</ListItemText>
         </MenuItem>
         <MenuItem id="settings-menu-item">

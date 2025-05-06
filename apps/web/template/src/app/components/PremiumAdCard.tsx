@@ -11,9 +11,12 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 
 const PremiumAdCard = () => {
   const theme = useTheme();
+  const router = useRouter();
   const [visible, setVisible] = useState(true);
 
   if (!visible) return null;
@@ -76,6 +79,7 @@ const PremiumAdCard = () => {
       {/* Button and Text */}
       <Stack spacing={1} mt={1} width="100%">
         <Button
+          onClick={() => router.push("/prem")}
           variant="contained"
           size="large"
           fullWidth

@@ -10,6 +10,7 @@ import Navbar from "@/app/components/Navbar";
 import WhosHiringCard from "@/app/components/WhosHiringCard";
 import Footer from "@/app/components/Footer";
 import ConnectionsList from "@/app/components/ConnectionsList";
+import SidebarPreview from "@/app/components/SidebarPreview";
 
 const ConnectionsPage: React.FC = () => {
   const theme = useTheme();
@@ -23,6 +24,7 @@ const ConnectionsPage: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{

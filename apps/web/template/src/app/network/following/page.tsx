@@ -8,6 +8,7 @@ import Navbar from "../../components/Navbar";
 import MyFollowers from "../../components/MyFollowers";
 import PremiumAdCard from "../../components/PremiumAdCard";
 import Footer from "../../components/Footer";
+import SidebarPreview from "../../components/SidebarPreview";
 
 const FollowingPage: React.FC = () => {
   const theme = useTheme();
@@ -21,6 +22,7 @@ const FollowingPage: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{

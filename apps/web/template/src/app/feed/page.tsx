@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Box, Container, CircularProgress, Divider } from "@mui/material";
+import { Box, Container, CircularProgress, Divider, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../components/Navbar";
@@ -78,7 +78,7 @@ const Feed: React.FC = () => {
           {userData ? (
             <>
               <ProfileCard />
-              <TryPremCard />
+              <ManageFeedCard />
             </>
           ) : (
             <CircularProgress />
@@ -109,15 +109,21 @@ const Feed: React.FC = () => {
             }}
           />
 
-          {visiblePosts.map((post) => (
-            <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
-              {post.isReported ? (
-                <FeedbackAcknowledgement />
-              ) : (
-                <ConnectionPost post={post} />
-              )}
-            </Box>
-          ))}
+          {visiblePosts.length === 0 ? (
+            <Typography sx={{ mt: 2, color: "text.secondary" }}>
+              Connect with Ascend users to display their posts here!
+            </Typography>
+          ) : (
+            visiblePosts.map((post) => (
+              <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
+                {post.isReported ? (
+                  <FeedbackAcknowledgement />
+                ) : (
+                  <ConnectionPost post={post} />
+                )}
+              </Box>
+            ))
+          )}
         </Box>
 
         {/* Right Panel */}
@@ -134,7 +140,7 @@ const Feed: React.FC = () => {
           }}
         >
           <WhosHiringCard />
-          <ManageFeedCard />
+          <TryPremCard />
           <Footer />
         </Box>
       </Container>

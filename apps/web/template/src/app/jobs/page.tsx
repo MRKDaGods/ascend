@@ -8,6 +8,7 @@ import ListCard from "../components/ListCard";
 import JobPreferences from "../components/lookingfor";
 import JobList from "../components/JobsList"; 
 import Recommends from "../components/FinalRecommends";
+import SidebarPreview from "../components/SidebarPreview";
 
 function JobsPage() {
   const theme = useTheme();
@@ -21,6 +22,7 @@ function JobsPage() {
       }}
     >
       <MergeJobsNavbar />
+      <SidebarPreview />
 
       <Container
         sx={{

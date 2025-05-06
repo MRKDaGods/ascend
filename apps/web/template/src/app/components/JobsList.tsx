@@ -8,7 +8,6 @@ import {
   TextField, Button
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import ReportIcon from "@mui/icons-material/Report";
 import { fetchJobs } from "@/api/jobs"
 import { useDeletedJobsStore } from "../stores/useDeletedJobsStore";
@@ -169,7 +168,6 @@ const JobList = () => {
                     {job.company_name} - {job.location} ({job.type})
                   </Typography>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-                    <LinkedInIcon fontSize="small" sx={{ color: "#0077b5" }} />
                     <Typography
                       variant="caption"
                       sx={{ color: "#0077b5", fontWeight: "bold", cursor: "pointer" }}
@@ -205,7 +203,7 @@ const JobList = () => {
           sx={{ mt: 2, textAlign: "center", cursor: "pointer", fontWeight: "bold" }}
           onClick={() => router.push("/jobs/alljobs")}
         >
-          Show more →
+          Filter and Show More →
         </Typography>
       </CardContent>
 

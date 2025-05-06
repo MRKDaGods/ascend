@@ -511,7 +511,9 @@ const Navbar: React.FC = () => {
         >
           Account
         </Typography>
-        <MenuItem>
+        <MenuItem
+        onClick={() => router.push("/prem")}
+        >
           <ListItemText>Try Premium</ListItemText>
         </MenuItem>
         <MenuItem
@@ -520,7 +522,13 @@ const Navbar: React.FC = () => {
             router.push("/Settings");
           }}
         >
-          <ListItemText>Settings & Privacy</ListItemText>
+          <ListItemText>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <SettingsIcon />
+              Settings & Privacy
+            </Box>
+          </ListItemText>
+
         </MenuItem>
 
         <Divider />

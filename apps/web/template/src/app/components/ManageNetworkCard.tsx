@@ -41,7 +41,13 @@ const ManageNetworkCard = () => {
         {items.map((item) => (
           <ListItem
             key={item.text}
-            sx={{ cursor: "pointer" }}
+            sx={{
+              cursor: "pointer",
+              borderRadius: 2,
+              "&:hover": {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }}
             onClick={() => router.push(item.route)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>

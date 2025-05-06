@@ -9,6 +9,17 @@ export interface NewsFeedResponse {
   data: Post[];
 }
 
+export interface UserPostsResponse {
+  success: boolean;
+  data: Post[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    order: string;
+  };
+}
+
 export interface GetPostResponse {
   success: boolean;
   data: Post;
@@ -137,6 +148,20 @@ export const fetchNewsFeed = async (
 ): Promise<NewsFeedResponse> => {
   const response = await API.get<NewsFeedResponse>("/post/feed", {
     params: { page, limit },
+  });
+  return response.data;
+};
+
+// ==== FETCH USER'S OWN POSTS IN FEED ====
+
+export const fetchUserPosts = async (
+  userId: number,
+  limit = 25,
+  offset = 0,
+  order: "asc" | "desc" = "desc"
+): Promise<UserPostsResponse> => {
+  const response = await API.get<UserPostsResponse>(`/post/user/${userId}`, {
+    params: { limit, offset, order },
   });
   return response.data;
 };

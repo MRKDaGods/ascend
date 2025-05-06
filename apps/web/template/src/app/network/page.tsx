@@ -13,6 +13,7 @@ import ManageNetworkCard from "../components/ManageNetworkCard";
 import ManageInvitationsCard from "../components/ManageInvitationsCard";
 import InvitationsCard from "../components/InvitationsCard";
 import PremiumAdCard from "../components/PremiumAdCard";
+import SidebarPreview from "../components/SidebarPreview";
 
 const NetworkPage: React.FC = () => {
   const theme = useTheme();
@@ -26,6 +27,7 @@ const NetworkPage: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{

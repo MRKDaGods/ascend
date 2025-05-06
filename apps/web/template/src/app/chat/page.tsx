@@ -7,6 +7,7 @@ import ChatSocketContainer from "@/app/components/ChatSocketContainer";
 
 import { Box, useTheme } from "@mui/material";
 import React from "react";
+import SidebarPreview from "../components/SidebarPreview";
 
 export default function Page() {
   const theme = useTheme();
@@ -36,6 +37,7 @@ export default function Page() {
             overflow: "hidden", // prevents Sidebar or ChatWindow from spilling
           }}
         >
+          {/* <SidebarPreview /> */}
           <Sidebar />
 
           <Box

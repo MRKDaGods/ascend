@@ -56,7 +56,6 @@ export default function SidebarPreview() {
         onClose={() => setOpen(false)}
         variant="temporary"
         sx={{
-          zIndex: 1301,
           "& .MuiDrawer-paper": {
             width: 250,
             pt: 8,

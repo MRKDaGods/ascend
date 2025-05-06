@@ -22,7 +22,7 @@ const AuthButtons = () => {
           textTransform: "none",
         }}
       >
-        Continue as Mehrati
+        Continue with Google
       </Button>
 
       <Button
