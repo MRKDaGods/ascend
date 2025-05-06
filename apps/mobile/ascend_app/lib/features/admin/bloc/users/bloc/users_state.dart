@@ -15,6 +15,13 @@ final class UsersLoaded extends UsersState {
   UsersLoaded(this.reports);
 }
 
+/// Loaded state with a list of banned users
+final class BannedUsersLoaded extends UsersState {
+  final List<BannedUser> bannedUsers;
+
+  BannedUsersLoaded(this.bannedUsers);
+}
+
 /// Error state with an error message
 final class UsersError extends UsersState {
   final String message;
@@ -41,4 +48,11 @@ final class UserDeletedState extends UsersState {
   final int userId;
 
   UserDeletedState(this.userId);
+}
+
+/// State for when a user is unbanned
+final class UserUnbannedState extends UsersState {
+  final int userId;
+
+  UserUnbannedState(this.userId);
 }

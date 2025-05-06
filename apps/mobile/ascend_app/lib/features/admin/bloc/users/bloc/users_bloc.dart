@@ -1,4 +1,5 @@
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:ascend_app/features/admin/data/models/users_model.dart';
@@ -9,13 +10,51 @@ part 'users_state.dart';
 class UsersBloc extends Bloc<UsersEvent, UsersState> {
   final AdminRepository adminRepository;
 
+  // Keep track of cached data to preserve across tab switches
+  List<UserReport> _reportedUsers = [];
+  List<BannedUser> _bannedUsers = [];
+
   UsersBloc({required this.adminRepository}) : super(UsersInitial()) {
     // Handle FetchReportedUsers event
     on<FetchReportedUsers>((event, emit) async {
-      emit(UsersLoading());
+      // Only show loading if we don't have cached data
+      if (_reportedUsers.isEmpty) {
+        emit(UsersLoading());
+      }
+
       try {
-        final reports = await adminRepository.getReportedUsers();
-        emit(UsersLoaded(reports));
+        _reportedUsers = await adminRepository.getReportedUsers();
+        emit(UsersLoaded(_reportedUsers));
+
+        // If we already have cached banned users, we can update the combined state
+        // This ensures both tabs have data available
+        if (_bannedUsers.isNotEmpty) {
+          // Log for debugging
+          debugPrint('Cached banned users available: ${_bannedUsers.length}');
+        }
+      } catch (e) {
+        emit(UsersError(e.toString()));
+      }
+    });
+
+    // Handle FetchBannedUsers event
+    on<FetchBannedUsers>((event, emit) async {
+      // Only show loading if we don't have cached data
+      if (_bannedUsers.isEmpty) {
+        emit(UsersLoading());
+      }
+
+      try {
+        _bannedUsers = await adminRepository.getBannedUsers();
+        emit(BannedUsersLoaded(_bannedUsers));
+
+        // If we already have cached reported users, update for awareness
+        if (_reportedUsers.isNotEmpty) {
+          // Log for debugging
+          debugPrint(
+            'Cached reported users available: ${_reportedUsers.length}',
+          );
+        }
       } catch (e) {
         emit(UsersError(e.toString()));
       }
@@ -26,14 +65,18 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       try {
         await adminRepository.deleteUser(event.userId);
         emit(UserDeletedState(event.userId));
+
+        // Update our cache to reflect the deleted user
+        _reportedUsers =
+            _reportedUsers
+                .where((report) => report.reportedId != event.userId)
+                .toList();
       } catch (e) {
         emit(UsersError('Failed to delete user: $e'));
       }
     });
 
-    // Handle banUser event
-    // First, add the import
-    // Then update the BanUserEvent handler
+    // Handle BanUserEvent
     on<BanUserEvent>((event, emit) async {
       try {
         // Get the authentication token from SecureStorageHelper
@@ -50,12 +93,50 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
           expiresAt: event.expiresAt,
         );
 
-        // Refresh the user list after banning
-        final reports = await adminRepository.getReportedUsers();
-        emit(UsersLoaded(reports));
+        // Temporary success state
+        emit(UserBannedState(event.userId));
+
+        // Refresh both caches to ensure consistency
+        _reportedUsers = await adminRepository.getReportedUsers();
+        _bannedUsers = await adminRepository.getBannedUsers();
+
+        // Update UI based on current tab
+        emit(UsersLoaded(_reportedUsers));
       } catch (e) {
         emit(UsersError('Error banning user with ID ${event.userId}: $e'));
       }
     });
+
+    // Handle UnbanUserEvent
+    on<UnbanUser>((event, emit) async {
+      try {
+        final userId = int.parse(event.userId);
+        await adminRepository.unbanUser(userId: userId);
+
+        // Signal that a user has been unbanned
+        emit(UserUnbannedState(userId));
+
+        // Refresh banned users cache
+        _bannedUsers = await adminRepository.getBannedUsers();
+        emit(BannedUsersLoaded(_bannedUsers));
+      } catch (e) {
+        emit(UsersError('Failed to unban user: $e'));
+      }
+    });
+
+    // Listen for RefreshReportedUsers event to force refresh
+    on<RefreshReportedUsers>((event, emit) async {
+      emit(UsersLoading());
+      try {
+        _reportedUsers = await adminRepository.getReportedUsers();
+        emit(UsersLoaded(_reportedUsers));
+      } catch (e) {
+        emit(UsersError(e.toString()));
+      }
+    });
   }
+
+  // Helper methods to access cached data
+  List<UserReport> get reportedUsers => _reportedUsers;
+  List<BannedUser> get bannedUsers => _bannedUsers;
 }

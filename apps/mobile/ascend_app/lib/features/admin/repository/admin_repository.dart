@@ -223,6 +223,17 @@ class AdminRepository {
     }
   }
 
+  /// Fetches a list of banned users.
+  Future<List<BannedUser>> getBannedUsers() async {
+    try {
+      final response = await userApiClient.getList('/banned');
+      return response.map((json) => BannedUser.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching banned users: $e');
+      throw Exception('Failed to fetch banned users');
+    }
+  }
+
   /// Bans a user by their ID.
   Future<void> banUser({
     required int userId,
@@ -230,24 +241,32 @@ class AdminRepository {
     String? reason,
   }) async {
     try {
-      // Modify the request format to match what your API expects
       final Map<String, dynamic> body = {
         'user_id': userId,
-        // Make sure these field names exactly match what your API expects
         if (reason != null && reason.isNotEmpty) 'reason': reason,
         if (expiresAt != null && expiresAt.isNotEmpty) 'expires_at': expiresAt,
       };
 
       debugPrint('Sending ban user request with body: $body');
-
-      // Use the endpoint format that matches your API
-      // You might need to adjust this based on your API structure
       await userApiClient.post('/ban-user', body);
-
       debugPrint('Successfully banned user with ID: $userId');
     } catch (e) {
       debugPrint('Error banning user with ID $userId: $e');
       throw Exception('Failed to ban user: $e');
+    }
+  }
+
+  /// Unbans a user by their ID.
+  Future<void> unbanUser({required int userId}) async {
+    try {
+      final Map<String, dynamic> body = {'user_id': userId};
+
+      debugPrint('Sending unban user request with body: $body');
+      await userApiClient.post('/unban-user', body);
+      debugPrint('Successfully unbanned user with ID: $userId');
+    } catch (e) {
+      debugPrint('Error unbanning user with ID $userId: $e');
+      throw Exception('Failed to unban user: $e');
     }
   }
 
