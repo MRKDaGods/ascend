@@ -67,16 +67,32 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
         await adminRepository.deleteUser(event.userId);
         emit(UserDeletedState(event.userId));
 
-        // Update our cache to reflect the deleted user
-        _reportedUsers =
-            _reportedUsers
-                .where((report) => report.reportedId != event.userId)
-                .toList();
+        // Refresh the lists after successful deletion
+        add(FetchReportedUsers());
+        add(FetchBannedUsers());
       } catch (e) {
-        emit(UsersError('Failed to delete user: $e'));
+        String errorMessage = e.toString();
+        debugPrint('Delete user error: $errorMessage');
+
+        // Check for specific error patterns
+        if (errorMessage.contains('User not found') ||
+            errorMessage.contains('"error": "User not found"')) {
+          // This is a cleaner message for the admin
+          emit(
+            UsersError(
+              'User with ID ${event.userId} was not found in the system',
+            ),
+          );
+        } else if (errorMessage.contains('Cannot DELETE')) {
+          emit(
+            UsersError('User with ID ${event.userId} does not exist on server'),
+          );
+        } else {
+          emit(UsersError('Error deleting user with ID ${event.userId}: $e'));
+        }
       }
     });
-
+    
     // Handle BanUserEvent
     on<BanUserEvent>((event, emit) async {
       try {
