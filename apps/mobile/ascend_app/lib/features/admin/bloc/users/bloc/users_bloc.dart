@@ -96,12 +96,22 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
         // Temporary success state
         emit(UserBannedState(event.userId));
 
-        // Refresh both caches to ensure consistency
-        _reportedUsers = await adminRepository.getReportedUsers();
+        // Filter out the banned user's reports locally
+        // This way they won't reappear even if they get unbanned later
+        _reportedUsers =
+            _reportedUsers
+                .where((report) => report.reportedId != event.userId)
+                .toList();
+
+        // Fetch only banned users to update the banned list
         _bannedUsers = await adminRepository.getBannedUsers();
 
-        // Update UI based on current tab
+        // Update UI based on current tab with filtered data
         emit(UsersLoaded(_reportedUsers));
+
+        debugPrint(
+          'User with ID ${event.userId} banned and reports filtered out',
+        );
       } catch (e) {
         emit(UsersError('Error banning user with ID ${event.userId}: $e'));
       }
@@ -116,9 +126,12 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
         // Signal that a user has been unbanned
         emit(UserUnbannedState(userId));
 
-        // Refresh banned users cache
+        // Only refresh banned users cache - do NOT refresh reported users
+        // This ensures the reports remain filtered out even after unbanning
         _bannedUsers = await adminRepository.getBannedUsers();
         emit(BannedUsersLoaded(_bannedUsers));
+
+        debugPrint('User with ID $userId unbanned successfully');
       } catch (e) {
         emit(UsersError('Failed to unban user: $e'));
       }
