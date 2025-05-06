@@ -24,13 +24,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
       // If we've already reached max and not refreshing, do nothing
       if (_hasReachedMax && event.page > 1) {
         // Important: Emit the current state with hasReachedMax=true so UI knows to stop loading
-        emit(ReportedPostsFetchedState(
-          reportedPosts: _posts,
-          currentPage: currentPage,
-          totalPages: _totalPages,
-          hasReachedMax: true,
-          postReports: _postReports,
-        ));
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: true,
+            postReports: _postReports,
+          ),
+        );
         return;
       }
 
@@ -49,30 +51,35 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           'Skipping fetch for page ${event.page} as total pages is $_totalPages',
         );
         _hasReachedMax = true;
-        emit(ReportedPostsFetchedState(
-          reportedPosts: _posts,
-          currentPage: currentPage,
-          totalPages: _totalPages,
-          hasReachedMax: true,
-          postReports: _postReports,
-        ));
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: true,
+            postReports: _postReports,
+          ),
+        );
         return;
       }
 
       try {
         // Add timeout to the API call
-        final response = await apiClient.getReportedPosts(event.page).timeout(
-          const Duration(seconds: 15),
-          onTimeout: () {
-            throw TimeoutException(
-              'The connection timed out. Please check your internet connection and try again.',
+        final response = await apiClient
+            .getReportedPosts(event.page)
+            .timeout(
+              const Duration(seconds: 15),
+              onTimeout: () {
+                throw TimeoutException(
+                  'The connection timed out. Please check your internet connection and try again.',
+                );
+              },
             );
-          },
-        );
 
-        final newPosts = (response['data'] as List)
-            .map((postJson) => ReportedPost.fromJson(postJson))
-            .toList();
+        final newPosts =
+            (response['data'] as List)
+                .map((postJson) => ReportedPost.fromJson(postJson))
+                .toList();
 
         // Store total pages for reference
         _totalPages = response['pagination']['totalPages'] ?? 1;
@@ -105,10 +112,12 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         // Add specific handling for timeout exceptions
         if (e is TimeoutException) {
           debugPrint('Timeout fetching reported posts: $e');
-          emit(PostsErrorState(
-            errorMessage:
-                'Request timed out. Please check your connection and try again.',
-          ));
+          emit(
+            PostsErrorState(
+              errorMessage:
+                  'Request timed out. Please check your connection and try again.',
+            ),
+          );
         } else if (e.toString().contains('404') && event.page > 1) {
           // This is likely just the end of available pages
           _hasReachedMax = true;
@@ -139,9 +148,10 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         );
         debugPrint('Fetched reports response: $response'); // Debug print
 
-        final postReportsList = (response['data'] as List)
-            .map((reportJson) => PostReport.fromJson(reportJson))
-            .toList();
+        final postReportsList =
+            (response['data'] as List)
+                .map((reportJson) => PostReport.fromJson(reportJson))
+                .toList();
         final currentPage = response['pagination']['currentPage'] ?? 1;
         final totalPages = response['pagination']['totalPages'] ?? 1;
 
@@ -297,13 +307,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         debugPrint(
           'Updating report ${event.reportId} status to ${event.status}',
         );
-        // final response = await apiClient.patch(
-        //   '/posts/reports/${event.reportId}',
-        //   {'status': event.status},
-        // );
 
-        // Debug print the response
-        // debugPrint('Status update response: $response');
+        // The API call will now handle "OK" responses properly
+        final response = await apiClient.patch(
+          '/posts/reports/${event.reportId}',
+          {'status': event.status},
+        );
+
+        // Debug print the response - this could be a map with "success": true
+        debugPrint('Status update response: $response');
 
         // Emit success state
         emit(
@@ -313,9 +325,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           ),
         );
 
+        // Rest of your code remains the same...
         // Update the report status in our local cache
-        // Find which post this report belongs to
         String? updatedPostId;
+        bool reportUpdated = false;
+
         for (var entry in _postReports.entries) {
           final postId = entry.key;
           final reports = entry.value;
@@ -329,19 +343,22 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
                 status: event.status,
                 updatedAt: DateTime.now(),
               );
+              reportUpdated = true;
               break;
             }
           }
           if (updatedPostId != null) break;
         }
 
-        // Update the reports in the posts list if needed
-        if (updatedPostId != null) {
+        // If we found and updated the post, also update it in the _posts list
+        if (updatedPostId != null && reportUpdated) {
           for (int i = 0; i < _posts.length; i++) {
             if (_posts[i].id == updatedPostId) {
-              // Fix: Don't try to do anything with the return value of add()
-              // Just call it directly
-              add(FetchPostReports(postId: updatedPostId));
+              // Get the updated reports for this post
+              final updatedReports = _postReports[updatedPostId] ?? [];
+
+              // Update the post with the new reports
+              _posts[i] = _posts[i].copyWith(reports: updatedReports);
               break;
             }
           }
@@ -357,9 +374,42 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
             postReports: _postReports,
           ),
         );
+
+        // Display a success message state
+        emit(
+          PostStatusActionSuccessState(
+            message: "Report status updated successfully to ${event.status}",
+          ),
+        );
+
+        // Re-emit the posts state again to maintain UI consistency
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: _hasReachedMax,
+            postReports: _postReports,
+          ),
+        );
       } catch (e) {
         debugPrint('Error updating report status: $e');
-        emit(PostsErrorState(errorMessage: e.toString()));
+        emit(
+          PostsErrorState(
+            errorMessage: "Failed to update status: ${e.toString()}",
+          ),
+        );
+
+        // Re-emit the previous state to keep UI consistent
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: _hasReachedMax,
+            postReports: _postReports,
+          ),
+        );
       }
     });
   }

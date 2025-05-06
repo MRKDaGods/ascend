@@ -10,6 +10,8 @@ class AdminApiClient {
 
   AdminApiClient({required this.baseUrl});
 
+  // Update your _makeRequest method to handle empty or non-JSON responses
+
   Future<Map<String, dynamic>> _makeRequest(
     String method,
     String endpoint, {
@@ -37,8 +39,31 @@ class AdminApiClient {
           body,
         ).timeout(_defaultTimeout);
 
+        // Debug logging for better troubleshooting
+        print(
+          '$method response from $endpoint: ${response.statusCode} - ${response.body}',
+        );
+
         if (response.statusCode >= 200 && response.statusCode < 300) {
-          return response.body.isNotEmpty ? json.decode(response.body) : {};
+          // Handle empty body or non-JSON responses (like "OK")
+          if (response.body.isEmpty || response.body.trim() == "OK") {
+            return {'success': true, 'statusCode': response.statusCode};
+          }
+
+          // Try to parse as JSON
+          try {
+            return response.body.isNotEmpty
+                ? json.decode(response.body)
+                : {'success': true};
+          } catch (e) {
+            // If JSON parsing fails, return a success object with the raw response
+            print('Warning: Non-JSON response received: ${response.body}');
+            return {
+              'success': true,
+              'rawResponse': response.body,
+              'statusCode': response.statusCode,
+            };
+          }
         } else {
           throw Exception(
             '$method $endpoint failed with ${response.statusCode}: ${response.body}',
