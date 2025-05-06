@@ -287,6 +287,17 @@ class ConnectionService {
       [userId, targetUserId]
     );
 
+    // Inject profile picture URL
+    for (const user of result.rows) {
+      if (user.profile_picture_id) {
+        user.profile_picture_url = await getPresignedUrl(
+          user.profile_picture_id
+        );
+      } else {
+        user.profile_picture_url = null;
+      }
+    }
+
     return {
       data: result.rows,
       pagination: {
