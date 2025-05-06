@@ -11,7 +11,7 @@ class UserApiClient {
 
   UserApiClient({required this.baseUrl});
 
-  /// Makes a GET request to the specified endpoint and expects a List<dynamic> response.
+  // / Makes a GET request to the specified endpoint and expects a List<dynamic> response.
   Future<List<dynamic>> getList(String endpoint) async {
     final token = await SecureStorageHelper.getAuthToken();
     if (token == null || token.isEmpty) {
@@ -59,6 +59,23 @@ class UserApiClient {
         debugPrint('Error in GET request to $endpoint: $e');
         rethrow;
       }
+    }
+  }
+
+  Future<void> post(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl + endpoint),
+        body: jsonEncode(body),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to post to $endpoint: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error in POST request to $endpoint: $e');
+      throw Exception('POST request failed: $e');
     }
   }
 
