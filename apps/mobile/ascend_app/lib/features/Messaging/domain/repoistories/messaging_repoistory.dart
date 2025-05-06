@@ -47,4 +47,12 @@ abstract class MessagingRepository {
 
   // isAnyOne Typing
   bool isAnyoneTyping(String conversationId);
+
+  Future<bool> sendFileMessage({
+    required String conversationId,
+    required String receiverId,
+    required File file,
+    required String content,
+    required String fileType,
+  });
 }

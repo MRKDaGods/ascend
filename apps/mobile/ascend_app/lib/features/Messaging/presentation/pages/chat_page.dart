@@ -9,6 +9,7 @@ import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
 import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'dart:io';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -262,6 +263,56 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  // Send message with file
+  void _sendMessageWithFile(File file, String fileType) async {
+    final text = _messageController.text.trim();
+
+    // Show loading indicator or notification
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Uploading file...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    try {
+      // Dispatch file upload event through bloc
+      context.read<MessagingBloc>().add(
+        SendFileMessage(
+          conversationId: widget.conversationId,
+          receiverId: widget.otherUserId!,
+          file: file,
+          content: text,
+          fileType: fileType,
+        ),
+      );
+
+      // Clear input
+      _messageController.clear();
+
+      // Stop typing indicator
+      setState(() {
+        _isLocalUserTyping = false;
+      });
+
+      // Cancel any pending timers
+      _localTypingTimer?.cancel();
+
+      // Scroll to show new message
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      // Show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to upload file: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     // Cancel timers first
@@ -501,6 +552,9 @@ class _ChatPageState extends State<ChatPage> {
                     debugPrint('Camera button pressed');
                   },
                   conversationId: widget.conversationId,
+                  onFileSelected: (file, fileType) {
+                    _sendMessageWithFile(file, fileType);
+                  },
                 ),
               ],
             );
