@@ -560,7 +560,9 @@ class ConnectionService {
     // Inject pfp url
     for (const user of result.rows) {
       if (user.profile_picture_id) {
-        user.profile_picture_url = await getPresignedUrl(user.profile_picture_id);
+        user.profile_picture_url = await getPresignedUrl(
+          user.profile_picture_id
+        );
       } else {
         user.profile_picture_url = null;
       }
@@ -1105,6 +1107,50 @@ class ConnectionService {
         page,
         limit,
       },
+    };
+  }
+
+  async getConnectionRels(userId: number, targetUserId: number) {
+    // 1- Get how many connections the targer user has
+    // 2- If userid sent a connection request to target user, return req id
+
+    const result = await db.query(
+      `
+        SELECT 
+          COUNT(c.connection_id) AS connection_count
+        FROM user_service.profiles u
+        LEFT JOIN connection_service.connections c ON c.connection_id = u.user_id AND c.status = 'accepted'
+        WHERE u.user_id = $1
+        GROUP BY u.user_id
+      `,
+      [targetUserId]
+    );
+    const connectionCount = result.rows[0].connection_count || 0;
+
+    const connectionRequest = await db.query(
+      `
+        SELECT id FROM connection_service.connections
+        WHERE user_id = $1 AND connection_id = $2 AND status = 'pending'
+      `,
+      [targetUserId, userId]
+    );
+
+    let connectionRequestId = connectionRequest.rows.length > 0 ? connectionRequest.rows[0].id : null;
+    if (connectionRequestId == null) {
+      // Try the other way around
+      const connectionRequest2 = await db.query(
+        `
+          SELECT id FROM connection_service.connections
+          WHERE user_id = $1 AND connection_id = $2 AND status = 'pending'
+        `,
+        [userId, targetUserId]
+      );
+      connectionRequestId = connectionRequest2.rows.length > 0 ? connectionRequest2.rows[0].id : null;
+    }
+
+    return {
+      connection_count: connectionCount,
+      connection_request_id: connectionRequestId,
     };
   }
 }
