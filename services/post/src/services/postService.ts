@@ -476,10 +476,10 @@ export class PostService {
              AND EXISTS (
                SELECT 1 FROM connection_service.follows f
                WHERE f.follower_id = $1 AND f.following_id = p.user_id
-             ))
-         -- User's own posts (including private ones)
-         OR p.user_id = $1
+              ))
        )
+       -- Exclude user's own posts
+       AND p.user_id != $1
        -- Exclude posts from blocked users
        AND NOT EXISTS (
          SELECT 1 FROM connection_service.blocked_users b
