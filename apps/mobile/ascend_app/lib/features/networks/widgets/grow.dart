@@ -86,14 +86,16 @@ class _GrowState extends State<Grow> {
               final followedUsers = followState.following;
 
               return SingleChildScrollView(
-                controller: _scrollController, // Add scroll controller
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Invitations Section
-                      ListTile(
+                controller: _scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Invitations Section
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ListTile(
+                        tileColor: Colors.white,
                         contentPadding: EdgeInsets.zero,
                         title: Text(
                           invitationsReceived.isNotEmpty
@@ -125,31 +127,36 @@ class _GrowState extends State<Grow> {
                           );
                         },
                       ),
-                      const Divider(thickness: 3, height: 0),
-                      ConnectionRequestsReceivedListPartial(
-                        pendingRequestsReceived:
-                            connectionState.pendingRequestsReceived,
-                        onAccept: (requestId) {
-                          context.read<ConnectionRequestBloc>().add(
-                            AcceptConnectionRequest(requestId: requestId),
-                          );
-                        },
-                        onDecline: (requestId) {
-                          context.read<ConnectionRequestBloc>().add(
-                            DeclineConnectionRequest(requestId: requestId),
-                          );
-                        },
-                      ),
-                      if (invitationsReceived.isNotEmpty)
-                        const SizedBox(height: 20),
-                      const Divider(thickness: 3, height: 0),
-                      // Manage Your Network Section
-                      ListTile(
+                    ),
+                    const Divider(thickness: 3, height: 0),
+                    ConnectionRequestsReceivedListPartial(
+                      pendingRequestsReceived:
+                          connectionState.pendingRequestsReceived,
+                      onAccept: (requestId) {
+                        context.read<ConnectionRequestBloc>().add(
+                          AcceptConnectionRequest(requestId: requestId),
+                        );
+                      },
+                      onDecline: (requestId) {
+                        context.read<ConnectionRequestBloc>().add(
+                          DeclineConnectionRequest(requestId: requestId),
+                        );
+                      },
+                    ),
+                    if (invitationsReceived.isNotEmpty)
+                      const SizedBox(height: 20),
+                    const Divider(thickness: 3, height: 0),
+                    // Manage Your Network Section
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ListTile(
+                        tileColor: Colors.white,
                         contentPadding: EdgeInsets.zero,
                         title: const Text(
                           'Manage your network',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -158,63 +165,31 @@ class _GrowState extends State<Grow> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder:
-                                  (_) => MultiBlocProvider(
-                                    providers: [
-                                      BlocProvider.value(
-                                        value: BlocProvider.of<
-                                          ConnectionRequestBloc
-                                        >(context),
-                                      ),
-                                      BlocProvider.value(
-                                        value: BlocProvider.of<FollowBloc>(
-                                          context,
-                                        ),
-                                      ),
-
-                                      BlocProvider.value(
-                                        value: BlocProvider.of<
-                                          ConnectionPreferencesBloc
-                                        >(context),
-                                      ),
-                                      BlocProvider.value(
-                                        value: BlocProvider.of<BlockBloc>(
-                                          context,
-                                        ),
-                                      ),
-                                      // Add missing MessagingRequestsBloc provider
-                                      BlocProvider.value(
-                                        value: BlocProvider.of<
-                                          MessagingRequestsBloc
-                                        >(context),
-                                      ),
-                                      BlocProvider.value(
-                                        value: BlocProvider.of<UserSearchBloc>(
-                                          context,
-                                        ),
-                                      ),
-                                    ],
-                                    child: ManageMyNetwork(
-                                      connections: connections,
-                                      followed: followedUsers,
-                                    ),
+                                  (_) => ManageMyNetwork(
+                                    connections: connections,
+                                    followed: followedUsers,
                                   ),
                             ),
                           );
                         },
                       ),
-                      const Divider(thickness: 3, height: 0),
-                      SizedBox(height: 20),
-                      const Divider(thickness: 3, height: 0),
-                      // People to Follow Section
-                      Column(
+                    ),
+                    const Divider(thickness: 3, height: 0),
+                    SizedBox(height: 20),
+                    const Divider(thickness: 3, height: 0),
+                    // People to Follow Section
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4),
+                            padding: EdgeInsets.symmetric(vertical: 12),
                             child: Text(
                               'People to follow based on your activity',
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: 25,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -241,9 +216,13 @@ class _GrowState extends State<Grow> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      //See All button
-                      ListTile(
+                    ),
+                    const SizedBox(height: 10),
+                    //See All button
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ListTile(
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -298,19 +277,23 @@ class _GrowState extends State<Grow> {
                           ),
                         ),
                       ),
-                      const Divider(thickness: 3, height: 16),
-                      const SizedBox(height: 20),
-                      const Divider(thickness: 3, height: 0),
-                      // Suggested Users Section
-                      Column(
+                    ),
+                    const Divider(thickness: 3, height: 16),
+                    const SizedBox(height: 20),
+                    const Divider(thickness: 3, height: 0),
+                    // Suggested Users Section
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4),
+                            padding: EdgeInsets.symmetric(vertical: 12),
                             child: Text(
                               'People to connect based on your activity',
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: 25,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -380,11 +363,12 @@ class _GrowState extends State<Grow> {
                               ),
                             ),
                           ),
-                          const Divider(thickness: 1, height: 16),
+                          const SizedBox(height: 8),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const Divider(thickness: 3, height: 0),
+                  ],
                 ),
               );
             } else if (connectionState is ConnectionRequestError) {

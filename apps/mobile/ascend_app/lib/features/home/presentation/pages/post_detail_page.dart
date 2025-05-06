@@ -2,7 +2,6 @@ import 'package:ascend_app/features/home/bloc/post_bloc/post_event.dart'; // Imp
 import 'package:ascend_app/features/home/presentation/utils/full_screen_image_viewer.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
-import 'package:ascend_app/features/profile/models/user_profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/post_bloc/post_bloc.dart';
@@ -338,7 +337,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   ReactionButton(
                                     key: _reactionButtonKey,
                                     manager: ReactionManager(
-                                      currentReaction: post.isLiked.reactionType, // Updated to use isLiked.reactionType
+                                      currentReaction:
+                                          post
+                                              .isLiked
+                                              .reactionType, // Updated to use isLiked.reactionType
                                       postId: post.id, // Keep for Bloc updates
                                       context: context, // Keep for Bloc updates
                                     ),
