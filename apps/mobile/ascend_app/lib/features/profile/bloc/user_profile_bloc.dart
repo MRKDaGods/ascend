@@ -36,9 +36,41 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
   void _onUpdateUserProfile(
     UpdateUserProfile event,
     Emitter<UserProfileState> emit,
-  ) {
+  ) async {
     try {
-      emit(UserProfileLoaded(event.profile));
+      emit(UserProfileLoading());
+
+      // Filter null values from the profile object
+      final profileAsJson = event.profile.toJson();
+
+      // Initial pass
+      profileAsJson.removeWhere(
+        (key, value) => value == null || key.endsWith("_url"),
+      );
+
+      processJsonVal(dynamic value) {
+        if (value is Map) {
+          value.removeWhere((k, v) => v == null);
+          value.forEach((k, v) => processJsonVal(v));
+        } else if (value is List) {
+          value.removeWhere((v) => v == null);
+          for (var v in value) {
+            processJsonVal(v);
+          }
+        }
+      }
+
+      // remove nulls recursively
+      profileAsJson.forEach((key, val) => processJsonVal(val));
+
+      debugPrint("XMRK Updating user profile: $profileAsJson");
+
+      final res = await sl.apiClient.put("/user/profile", data: profileAsJson);
+      final updatedProfile = Profile.fromJson(jsonDecode(res.body));
+      debugPrint("XMRK User profile updated: ${updatedProfile.toJson()}");
+
+      profile = updatedProfile;
+      emit(UserProfileLoaded(updatedProfile));
     } catch (e) {
       emit(UserProfileError('Failed to update user profile: ${e.toString()}'));
     }

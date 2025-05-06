@@ -23,10 +23,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _locationController;
   late TextEditingController _currentPositionController;
   late TextEditingController _currentEducationController;
-  late TextEditingController _websiteController; // New field
-  late TextEditingController _additionalNmae; // New field
-  bool _showSchool = false; // Checkbox state
-  bool _showCurrentCompany = false; // Checkbox state
+  late TextEditingController _websiteController;
+  late TextEditingController _additionalNmae;
+  late TextEditingController _industryController;
+  late TextEditingController _fullBioController;
+  late TextEditingController _namePronunciationController;
+  bool _showSchool = false;
+  bool _showCurrentCompany = false;
 
   @override
   void initState() {
@@ -56,7 +59,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
     _websiteController = TextEditingController(
       text: widget.profile.website ?? '',
-    ); // Initialize with existing website
+    );
+    _industryController = TextEditingController(
+      text: widget.profile.industry ?? '',
+    );
+    _fullBioController = TextEditingController(text: widget.profile.bio ?? '');
+    _namePronunciationController = TextEditingController(
+      text: widget.profile.namePronunciation ?? '',
+    );
     _showSchool = widget.profile.showSchool ?? false;
     _showCurrentCompany = widget.profile.showCurrentCompany ?? false;
   }
@@ -69,8 +79,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _locationController.dispose();
     _currentPositionController.dispose();
     _currentEducationController.dispose();
-    _additionalNmae.dispose(); // Dispose the new controller
-    _websiteController.dispose(); // Dispose the new controller
+    _additionalNmae.dispose();
+    _websiteController.dispose();
+    _industryController.dispose();
+    _fullBioController.dispose();
+    _namePronunciationController.dispose();
     super.dispose();
   }
 
@@ -104,7 +117,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 controller: _firstNameController,
                 placeholder: "Enter your first name",
               ),
-
               _buildLabeledTextField(
                 label: "Last Name*",
                 controller: _lastNameController,
@@ -116,16 +128,32 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 placeholder: "Enter your additional name",
               ),
               _buildLabeledTextField(
+                label: "Name Pronunciation",
+                controller: _namePronunciationController,
+                placeholder: "How to pronounce your name",
+              ),
+              _buildLabeledTextField(
                 label: "Headline*",
                 controller: _bioController,
                 placeholder: "Write a short bio about yourself",
                 maxLines: 3,
               ),
               _buildLabeledTextField(
-                label: "Current Position",
-                controller: _currentPositionController,
-                placeholder: "Enter your current position",
+                label: "Industry",
+                controller: _industryController,
+                placeholder: "Enter your industry",
               ),
+              _buildLabeledTextField(
+                label: "Bio",
+                controller: _fullBioController,
+                placeholder: "Tell more about yourself",
+                maxLines: 5,
+              ),
+              // _buildLabeledTextField(
+              //   label: "Current Position",
+              //   controller: _currentPositionController,
+              //   placeholder: "Enter your current position",
+              // ),
               _buildCheckbox(
                 label: "Show Current Company",
                 value: _showCurrentCompany,
@@ -154,14 +182,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 controller: _locationController,
                 placeholder: "Enter your location",
               ),
-
               _buildLabeledTextField(
                 label: "Website",
                 controller: _websiteController,
                 placeholder: "Enter your website URL",
               ),
               const SizedBox(height: 16),
-
               ElevatedButton(
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
@@ -237,39 +263,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
         userId: widget.profile.userId,
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
+        additionalName:
+            _additionalNmae.text.isEmpty ? null : _additionalNmae.text,
         headline: _bioController.text,
         location: _locationController.text,
         profilePictureUrl: widget.profile.profilePictureUrl,
         coverPhotoUrl: widget.profile.coverPhotoUrl,
+        industry: _industryController.text,
+        bio: _fullBioController.text,
+        namePronunciation:
+            _namePronunciationController.text.isEmpty
+                ? null
+                : _namePronunciationController.text,
         createdAt: widget.profile.createdAt,
         updatedAt: DateTime.now(),
-        website: _websiteController.text, // Save website
-        showSchool: _showSchool, // Save checkbox state
-        showCurrentCompany: _showCurrentCompany, // Save checkbox state
-        experience:
-            widget.profile.experience != null &&
-                    widget.profile.experience!.isNotEmpty
-                ? [
-                  Experience(
-                    id: widget.profile.experience!.first.id,
-                    userId: widget.profile.userId,
-                    company: widget.profile.experience!.first.company,
-                    position: _currentPositionController.text,
-                    startDate: widget.profile.experience!.first.startDate,
-                    endDate: widget.profile.experience!.first.endDate,
-                    description: widget.profile.experience!.first.description,
-                    createdAt: widget.profile.experience!.first.createdAt,
-                    updatedAt: DateTime.now(),
-                  ),
-                  ...widget.profile.experience!.skip(1),
-                ]
-                : null,
-        // Keep other fields unchanged
-        education: widget.profile.education,
-        interests: widget.profile.interests,
-        projects: widget.profile.projects,
-        courses: widget.profile.courses,
-        contactInfo: widget.profile.contactInfo,
+        website: _websiteController.text,
+        showSchool: _showSchool,
+        showCurrentCompany: _showCurrentCompany,
+        experience: null,
+        education: null,
+        interests: null,
+        projects: null,
+        courses: null,
+        contactInfo: null,
       );
 
       widget.onSave(updatedProfile);

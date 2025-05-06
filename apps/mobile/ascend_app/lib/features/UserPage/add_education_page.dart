@@ -94,7 +94,6 @@ class _AddEducationPageState extends State<AddEducationPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveEducation,
-
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   foregroundColor: Colors.white,
