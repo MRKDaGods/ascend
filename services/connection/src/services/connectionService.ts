@@ -9,6 +9,7 @@ import {
   UserPreferences,
   ConnectionStatus,
 } from "../models";
+import { getPresignedUrl } from "@shared/utils/files";
 
 class ConnectionService {
   // Search for users
@@ -532,7 +533,7 @@ class ConnectionService {
     const offset = (page - 1) * limit;
     let query = `
       SELECT 
-        u.user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio,
+        u.user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio, u.headline,
         c.created_at as connected_at
       FROM connection_service.connections c
       JOIN user_service.profiles u ON c.connection_id = u.user_id
@@ -555,6 +556,17 @@ class ConnectionService {
       `SELECT COUNT(*) FROM connection_service.connections WHERE user_id = $1 AND status = 'accepted'`,
       [userId]
     );
+
+    // Inject pfp url
+    for (const user of result.rows) {
+      if (user.profile_picture_id) {
+        user.profile_picture_url = await getPresignedUrl(user.profile_picture_id);
+      } else {
+        user.profile_picture_url = null;
+      }
+
+      //delete user.profile_picture_id;
+    }
 
     return {
       data: result.rows,
