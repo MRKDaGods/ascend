@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/admin/Presentation/widgets/reporter_info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/admin/bloc/users/bloc/users_bloc.dart';
@@ -14,6 +15,10 @@ class ReportedUserCard extends StatefulWidget {
   final VoidCallback onBan;
   final String? profilePictureUrl; // Add profile picture URL
   final String? coverPhotoUrl; // Add cover photo URL
+  final int reporterId; // Add reporter info
+  final String reporterFirstName;
+  final String reporterLastName;
+  final String? reporterProfilePictureUrl;
 
   const ReportedUserCard({
     super.key,
@@ -28,6 +33,10 @@ class ReportedUserCard extends StatefulWidget {
     required this.onBan,
     this.profilePictureUrl, // Optional but available from API
     this.coverPhotoUrl, // Optional but available from API
+    required this.reporterId,
+    required this.reporterFirstName,
+    required this.reporterLastName,
+    this.reporterProfilePictureUrl,
   });
 
   @override
@@ -284,18 +293,34 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
 
   Widget _buildReportsSection() {
     return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Reports:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'Reports',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.red[700],
+              ),
+            ),
           ),
-          const SizedBox(height: 4),
-          ...widget.reports.map(
-            (report) => Text('- $report', style: const TextStyle(fontSize: 14)),
+          // Show only the reporter info card with the first reason
+          ReporterInfoCard(
+            userId: widget.reporterId,
+            firstName: widget.reporterFirstName,
+            lastName: widget.reporterLastName,
+            profilePictureUrl: widget.reporterProfilePictureUrl,
+            reason:
+                widget.reports.isNotEmpty
+                    ? widget.reports.first
+                    : 'No reason provided',
           ),
+          // The code for additional reports is now removed
         ],
       ),
     );

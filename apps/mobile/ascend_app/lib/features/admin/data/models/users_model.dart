@@ -70,11 +70,13 @@ class ReporterUser {
   final int userId;
   final String firstName;
   final String lastName;
+  final String? profilePictureUrl; // Added profile picture URL
 
   ReporterUser({
     required this.userId,
     required this.firstName,
     required this.lastName,
+    this.profilePictureUrl, // Added to constructor
   });
 
   factory ReporterUser.fromJson(Map<String, dynamic> json) {
@@ -82,6 +84,7 @@ class ReporterUser {
       userId: json['user_id'],
       firstName: json['first_name'],
       lastName: json['last_name'],
+      profilePictureUrl: json['profile_picture_url'], // Extract from JSON
     );
   }
 }
@@ -151,4 +154,3 @@ class BannedUser {
   // Helper method to get banner full name
   String get bannerFullName => '$bannerFirstName $bannerLastName';
 }
-

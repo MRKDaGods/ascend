@@ -240,6 +240,8 @@ class _UsersPageState extends State<UsersPage>
                         itemBuilder: (context, index) {
                           final report = state.reports[index];
                           final reportReasons = [report.reason];
+                          // In your ListView.builder, update the ReportedUserCard instantiation:
+
                           return ReportedUserCard(
                             name:
                                 '${report.reported.firstName} ${report.reported.lastName}',
@@ -270,6 +272,12 @@ class _UsersPageState extends State<UsersPage>
                             profilePictureUrl:
                                 report.reported.profilePictureUrl,
                             coverPhotoUrl: report.reported.coverPhotoUrl,
+                            // Add reporter information
+                            reporterId: report.reportedById,
+                            reporterFirstName: report.reportedBy.firstName,
+                            reporterLastName: report.reportedBy.lastName,
+                            reporterProfilePictureUrl:
+                                report.reportedBy.profilePictureUrl,
                           );
                         },
                       );
