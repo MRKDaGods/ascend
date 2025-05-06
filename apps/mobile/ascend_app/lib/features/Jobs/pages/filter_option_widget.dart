@@ -17,13 +17,9 @@ class FilterOptionWidget extends StatefulWidget {
     required this.isReset,
   });
 
-
-
   @override
-
   // ignore: library_private_types_in_public_api
   _FilterOptionWidgetState createState() => _FilterOptionWidgetState();
-
 }
 
 class _FilterOptionWidgetState extends State<FilterOptionWidget> {
@@ -52,7 +48,10 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
       widget.onFilterChanged([
         selectedSalaryRange.start.toString(),
         selectedSalaryRange.end.toString(),
-      ], "salary"); // Notify parent about filter change
+      ], widget.filterName); // Notify parent about filter change
+      setState(() {
+        chipColor = Colors.green; // Turn chip green when salary is selected
+      });
       return;
     }
 
@@ -75,7 +74,7 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
 
     widget.onFilterChanged(
       selectedOptions.toList(),
-      "salary",
+      widget.filterName,
     ); // Notify parent about filter change
   }
 

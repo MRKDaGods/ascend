@@ -10,6 +10,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Add this import for PDF rendering
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -47,6 +50,43 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
 
     //   Navigator.pop(context);
     // }
+  }
+  Future<void> _uploadDummyFile() async {
+    final String baseUrl = 'https://api.ascendx.tech';
+    final String endpoint = '/job/${widget.job.jobID}/applications';
+
+    try {
+      final token = await SecureStorageHelper.getAuthToken();
+      final url = Uri.parse('$baseUrl$endpoint');
+      final headers = {
+        if (token != null) 'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      };
+      final body = jsonEncode({
+        "email": email.toString(),
+        "phone": phone.toString(),
+        "resume": "${_selectedFile?.path}",
+      });
+      print('Request body: $body');
+      final request = http.post(url, headers: headers, body: body);
+      final response = await request;
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Applied for job successfully!')),
+        );
+        Navigator.pop(context);
+      } else {
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        throw Exception('Failed to apply. Server response: ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   Future<void> _pickFile() async {
@@ -107,29 +147,33 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
 
     try {
       final token = await SecureStorageHelper.getAuthToken();
-      final url = Uri.parse('$baseUrl$endpoint');
-      final headers = {
-        if (token != null) 'Authorization': 'Bearer $token',
+      final uri = Uri.parse('$baseUrl$endpoint');
+
+      final request = http.MultipartRequest('POST', uri);
+
+      // ✅ HEADERS
+      request.headers.addAll({
         'Accept': 'application/json',
-      };
+        if (token != null) 'Authorization': 'Bearer $token',
+        // ⚠️ DO NOT manually set Content-Type for multipart
+      });
 
-      final request = http.MultipartRequest('POST', url);
-      request.headers.addAll(headers);
-      // Attach the file as a multipart field
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'resume',
-          _selectedFile!.path,
-          contentType: MediaType('application', 'pdf'),
-        ),
-      );
-
-      // Add other form fields
+      // ✅ FIELDS
       request.fields['email'] = email;
       request.fields['phone'] = phone;
 
-      print('Uploading file to: $url');
-      final response = await request.send();
+      // ✅ FILE - Ensure this is awaited
+      final file = await http.MultipartFile.fromPath(
+        'resume',
+        _selectedFile!.path,
+        contentType: MediaType('application', 'pdf'),
+      );
+
+      request.files.add(file);
+
+      // ✅ SEND request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,13 +181,12 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         );
         Navigator.pop(context);
       } else {
-        final responseBody = await response.stream.bytesToString();
-        print('Response status: ${response.statusCode}');
-        print('Response body: $responseBody');
-        throw Exception('Failed to apply. Server response: $responseBody');
+        print('❌ Upload failed. Status: ${response.statusCode}');
+        print('❌ Response body: ${response.body}');
+        throw Exception('Upload failed. ${response.body}');
       }
     } catch (e) {
-      print('Error: $e');
+      print('🔥 Error: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -247,7 +290,7 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: () async {
-            _uploadFile();
+            await _uploadFile();
           },
           child: const Text("Submit Application"),
         ),

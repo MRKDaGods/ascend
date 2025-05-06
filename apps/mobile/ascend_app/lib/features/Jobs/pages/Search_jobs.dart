@@ -124,10 +124,21 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
       isLoading = true; // Show loading indicator
     });
 
-    // Deduplicate filter parameters
-    experienceLevels = experienceLevels.split(',').toSet().join(',');
-    companies = companies.split(',').toSet().join(',');
-    jobTypes = jobTypes.split(',').toSet().join(',');
+    // Preserve current filter selections
+    experienceLevels =
+        experienceLevels.isEmpty
+            ? originalSelectedExperienceLevels.join(',')
+            : experienceLevels.split(',').toSet().join(',');
+    companies =
+        companies.isEmpty
+            ? originalSelectedCompanies.join(',')
+            : companies.split(',').toSet().join(',');
+    jobTypes =
+        jobTypes.isEmpty
+            ? originalSelectedJobTypes.join(',')
+            : jobTypes.split(',').toSet().join(',');
+    salaryMin = salaryMin.isEmpty ? this.salaryMin : salaryMin;
+    salaryMax = salaryMax.isEmpty ? this.salaryMax : salaryMax;
 
     String keyword = "";
     String industry = "";
@@ -169,7 +180,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     final url = Uri.parse(
       'https://api.ascendx.tech/job?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
     );
-
+    print("URL: $url");
     final response = await http.get(url);
     print("response: ${response.body}");
     if (response.statusCode == 200) {
@@ -301,9 +312,7 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
 
   void updateFilters(List<String> selectedFilters, String filterName) {
     setState(() {
-      selectedFilters = selectedFilters;
-
-      // Determine added and removed filters
+      // Update filters based on the filter name
       if (filterName.toLowerCase() == 'experience level') {
         experienceLevels = selectedFilters;
         originalSelectedExperienceLevels = List.from(selectedFilters);
@@ -321,6 +330,12 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         }
       }
 
+      // Ensure salaryMin and salaryMax are valid numeric values
+      salaryMin =
+          int.tryParse(salaryMin)?.toString() ?? originalMinSalary.toString();
+      salaryMax =
+          int.tryParse(salaryMax)?.toString() ?? originalMaxSalary.toString();
+
       // Call fetchData immediately after updating filters
       fetchData(
         experienceLevels: originalSelectedExperienceLevels.join(','),
@@ -329,19 +344,6 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
         salaryMin: salaryMin,
         salaryMax: salaryMax,
       );
-      // setState(() {
-      //   filteredJobs = filterDummyJobs(
-      //     jobs: jobsDummy,
-      //     keyword: searchController.text,
-      //     location: locationController.text,
-      //     industry: "",
-      //     experienceLevels: originalSelectedExperienceLevels.join(','),
-      //     companies: originalSelectedCompanies.join(','),
-      //     jobTypes: originalSelectedJobTypes.join(','),
-      //     salaryMin: salaryMin,
-      //     salaryMax: salaryMax,
-      //   );
-      // });
     });
   }
 
