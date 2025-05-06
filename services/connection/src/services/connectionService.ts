@@ -467,6 +467,28 @@ class ConnectionService {
       ? ConnectionStatus.ACCEPTED
       : ConnectionStatus.DECLINED;
 
+    // AMMAR
+    // If declined, delete the request
+    if (!params.accept) {
+      await db.query(
+        `
+        DELETE FROM connection_service.connections
+        WHERE user_id = $1 AND connection_id = $2
+      `,
+        [params.userId, connection.connection_id]
+      );
+
+      await db.query(
+        `
+        DELETE FROM connection_service.connections
+        WHERE user_id = $1 AND connection_id = $2
+      `,
+        [connection.connection_id, params.userId]
+      );
+
+      return { status: newStatus };
+    }
+
     // Update recipient's connection record
     await db.query(
       `
