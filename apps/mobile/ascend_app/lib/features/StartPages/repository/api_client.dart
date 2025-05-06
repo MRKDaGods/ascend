@@ -43,7 +43,7 @@ class ApiClient {
   }) async {
     final headers = await _getHeaders();
     final url = Uri.parse('$_baseUrl$endpoint');
-    final body = jsonEncode(data);
+    final body = jsonEncode(data ?? {});
 
     final response = await http.post(url, headers: headers, body: body);
 
