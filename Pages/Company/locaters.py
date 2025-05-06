@@ -31,7 +31,7 @@ class CompanyPageLocators:
     #######################################################################################################################
     # Locaters for add job on the Company page on Ascend
     CHOSEN_COMPANY_TO_ADD_JOB_BUTTON = (By.ACCESSIBILITY_ID, 'anime\njapan')
-    ADD_JOB_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.Button").instance(5)')
+    ADD_JOB_BUTTON = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.Button").instance(2)')
     JOB_TITLE_TEXT_BOX = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(0)')
     JOB_DESCRIPTION_TEXT_BOX = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(1)')
     JOB_INDUSTRY_TEXT_BOX = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText").instance(2)')
@@ -40,3 +40,10 @@ class CompanyPageLocators:
     JOB_CREATED_MESSAGE = (By.ACCESSIBILITY_ID, 'Job created successfully!')
     CHOSEN_JOB = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.ImageView").instance(0)')
     ASSERT_JOB_APPLICANTS = (By.ACCESSIBILITY_ID,'Job Applications')
+    
+    # locaters to test salary filter in job module
+    JOB_SEARCH_BAR = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
+    JOB_SEARCH_BAR_TEXT = (By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.EditText")')
+    FILTER_BY_SLAARY = (By.ACCESSIBILITY_ID, 'Salary')
+    SHOW_RESULTS_BUTTON = (By.ACCESSIBILITY_ID, 'Show Results')
+    
