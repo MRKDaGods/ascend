@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
-import 'package:ascend_app/features/UserPage/Data/dummy_profile_sections.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
 import 'package:ascend_app/features/UserPage/add_featured_page.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
@@ -56,7 +55,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         _profile = profile;
         _sections = _buildSections(profile);
-        if (_sections.isEmpty) _sections = sections; // Assign sections here
+        //if (_sections.isEmpty) _sections = sections; // Assign sections here
       });
     });
     _isConnect = false; // Dummy data
@@ -902,6 +901,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         ProfileHeader(
+                                          profile: _profile!,
                                           name:
                                               "${_profile?.firstName} ${_profile?.additionalName != null && _profile!.additionalName!.isNotEmpty ? "(${_profile!.additionalName})" : ""} ${_profile?.lastName}",
                                           bio: _profile?.headline ?? "",
@@ -947,16 +947,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     },
                                                   ]
                                                   : [
-                                                    {
-                                                      "title": "My Portfolio",
-                                                      "url":
-                                                          "https://dartcode.org/docs/settings/",
-                                                    },
-                                                    {
-                                                      "title": "GitHub",
-                                                      "url":
-                                                          "https://github.com/MagedWadi",
-                                                    },
                                                   ], // Dummy data
 
                                           verified: true, // Dummy data

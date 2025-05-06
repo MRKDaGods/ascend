@@ -166,18 +166,21 @@ class AppDrawer extends StatelessWidget {
                       },
                     ),
                     // Admin Panel
-                    ListTile(
-                      leading: const Icon(Icons.admin_panel_settings_outlined),
-                      horizontalTitleGap: 5,
-                      title: const Text(
-                        'Admin Panel',
-                        style: TextStyle(fontSize: 18),
+                    if (profile.isAdmin)
+                      ListTile(
+                        leading: const Icon(
+                          Icons.admin_panel_settings_outlined,
+                        ),
+                        horizontalTitleGap: 5,
+                        title: const Text(
+                          'Admin Panel',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, RouteNames.adminHome);
+                        },
                       ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pushNamed(context, RouteNames.adminHome);
-                      },
-                    ),
                   ],
                 ),
               ),
