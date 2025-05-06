@@ -1,9 +1,9 @@
+import 'package:ascend_app/shared/models/profile.dart';
 import 'package:equatable/equatable.dart';
-import '../models/user_profile_model.dart';
 
 abstract class UserProfileEvent extends Equatable {
   const UserProfileEvent();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -13,10 +13,10 @@ class LoadUserProfile extends UserProfileEvent {
 }
 
 class UpdateUserProfile extends UserProfileEvent {
-  final UserProfileModel profile;
-  
+  final Profile profile;
+
   const UpdateUserProfile(this.profile);
-  
+
   @override
   List<Object?> get props => [profile];
 }

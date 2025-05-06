@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class PremiumPlansPage extends StatefulWidget {
+  const PremiumPlansPage({super.key});
+
   @override
   _PremiumPlansPageState createState() => _PremiumPlansPageState();
 }

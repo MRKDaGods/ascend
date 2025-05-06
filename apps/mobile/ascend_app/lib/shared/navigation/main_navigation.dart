@@ -16,18 +16,10 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   bool isDarkMode = false;
-  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      Home(),
-      Networks(),
-      CreatePostPage(), // Replace with your actual CreatePostPage widget
-      NotificationsPage(), // Replace the placeholder with your actual notifications page
-      JobApp(isDarkMode: isDarkMode),
-    ];
   }
 
   void _onItemTapped(int index) {
@@ -38,26 +30,101 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final pages = [
+      Home(),
+      Networks(),
+      CreatePostPage(),
+      NotificationsPage(),
+      JobApp(isDarkMode: isDarkMode),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _pages),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.groups), label: 'Networks'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_box_rounded),
-            label: 'Post',
+      body: IndexedStack(index: _selectedIndex, children: pages),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+              color: isDark ? Colors.black : Colors.white,
+            ),
+            child: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              type: BottomNavigationBarType.fixed,
+              onTap: _onItemTapped,
+              backgroundColor: isDark ? Colors.black : Colors.white,
+              selectedItemColor: const Color(
+                0xFF0077B5,
+              ), // Back to LinkedIn blue for text/icons
+              unselectedItemColor: isDark ? Colors.grey[400] : Colors.grey[600],
+              selectedFontSize: 11,
+              unselectedFontSize: 11,
+              iconSize: 24,
+              elevation: 0,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              items: [
+                _buildNavItem(
+                  Icons.home_filled,
+                  Icons.home_outlined,
+                  'Home',
+                  0,
+                ),
+                _buildNavItem(
+                  Icons.group,
+                  Icons.group_outlined,
+                  'My Network',
+                  1,
+                ),
+                _buildNavItem(Icons.add_box, Icons.add_box_outlined, 'Post', 2),
+                _buildNavItem(
+                  Icons.notifications,
+                  Icons.notifications_outlined,
+                  'Notifications',
+                  3,
+                ),
+                _buildNavItem(Icons.work, Icons.work_outline, 'Jobs', 4),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Jobs'),
         ],
       ),
+    );
+  }
+
+  BottomNavigationBarItem _buildNavItem(
+    IconData selectedIcon,
+    IconData unselectedIcon,
+    String label,
+    int index,
+  ) {
+    final isSelected = _selectedIndex == index;
+    return BottomNavigationBarItem(
+      icon: Container(
+        decoration: BoxDecoration(
+          border:
+              isSelected
+                  ? const Border(
+                    top: BorderSide(
+                      color: Color(0xFF0077B5),
+                      width: 2.5, // Slightly thicker line
+                    ),
+                  )
+                  : null,
+        ),
+        padding: const EdgeInsets.only(top: 5.0),
+        child: Icon(isSelected ? selectedIcon : unselectedIcon),
+      ),
+      label: label,
     );
   }
 }

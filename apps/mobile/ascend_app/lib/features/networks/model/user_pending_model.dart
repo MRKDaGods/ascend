@@ -8,7 +8,7 @@ class UserPendingModel {
   String? user_id;
   String? first_name;
   String? last_name;
-  String? profile_image_id;
+  String? profile_picture_url;
   String? bio;
   List<ConnectedUser>? connected_users;
   int? connected_users_count;
@@ -20,7 +20,7 @@ class UserPendingModel {
     this.user_id,
     this.first_name,
     this.last_name,
-    this.profile_image_id,
+    this.profile_picture_url,
     this.bio,
     this.connected_users,
     this.connected_users_count,
@@ -33,7 +33,7 @@ class UserPendingModel {
     user_id = json["user_id"].toString();
     first_name = json["first_name"];
     last_name = json["last_name"];
-    profile_image_id = json["profilePictureUrl"];
+    profile_picture_url = json["profilePictureUrl"];
     bio = json["bio"];
     connected_users =
         json["connected_users"] != null
@@ -66,7 +66,7 @@ class UserPendingModel {
       user_id: user_id ?? this.user_id,
       first_name: first_name ?? this.first_name,
       last_name: last_name ?? this.last_name,
-      profile_image_id: profile_image_id ?? this.profile_image_id,
+      profile_picture_url: profile_image_id ?? this.profile_picture_url,
       bio: bio ?? this.bio,
       connected_users: connected_users ?? this.connected_users,
       connected_users_count:
@@ -81,7 +81,7 @@ class UserPendingModel {
     "user_id": user_id,
     "first_name": first_name,
     "last_name": last_name,
-    "profilePictureUrl": profile_image_id,
+    "profilePictureUrl": profile_picture_url,
     "bio": bio,
     "connected_users": connected_users?.map((e) => e.toJson()).toList(),
     "connected_users_count": connected_users_count,

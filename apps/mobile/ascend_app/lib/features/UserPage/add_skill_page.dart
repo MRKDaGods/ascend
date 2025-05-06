@@ -3,8 +3,13 @@ import 'package:ascend_app/shared/models/profile.dart';
 
 class AddSkillPage extends StatefulWidget {
   final void Function(Skill) onSave;
+  final Skill? skill; // Add this parameter for editing
 
-  const AddSkillPage({super.key, required this.onSave});
+  const AddSkillPage({
+    super.key,
+    required this.onSave,
+    this.skill, // Optional parameter for editing
+  });
 
   @override
   State<AddSkillPage> createState() => _AddSkillPageState();
@@ -12,25 +17,29 @@ class AddSkillPage extends StatefulWidget {
 
 class _AddSkillPageState extends State<AddSkillPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _skillController = TextEditingController();
-  final List<String> _suggestedSkills = [
-    "C (Programming Language)",
-    "AngularJS",
-    "Node.js",
-    "Redux.js",
-    "Incident Management",
-    "C#",
-    "React Native",
-    "Software Development",
-    "IT Service Management",
-    "Embedded Systems",
-  ];
+  late TextEditingController _nameController;
+  late bool _isEditing;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditing = widget.skill != null;
+    _nameController = TextEditingController(
+      text: _isEditing ? widget.skill!.name : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add skill"),
+        title: Text(_isEditing ? "Edit Skill" : "Add Skill"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -53,11 +62,9 @@ class _AddSkillPageState extends State<AddSkillPage> {
               const SizedBox(height: 16),
               _buildLabeledTextField(
                 label: "Skill*",
-                controller: _skillController,
-                placeholder: "Skill (ex: Project Management)",
+                controller: _nameController,
+                placeholder: "Ex: JavaScript",
               ),
-              const SizedBox(height: 16),
-              _buildSuggestedSkills(),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveSkill,
@@ -66,7 +73,7 @@ class _AddSkillPageState extends State<AddSkillPage> {
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromARGB(255, 0, 123, 255),
                 ),
-                child: const Text("Save"),
+                child: Text(_isEditing ? "Update" : "Save"),
               ),
             ],
           ),
@@ -96,13 +103,9 @@ class _AddSkillPageState extends State<AddSkillPage> {
               hintText: placeholder,
               border: const OutlineInputBorder(),
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
+              if (label.endsWith("*") && (value == null || value.isEmpty)) {
                 return "This field is required";
               }
               return null;
@@ -113,52 +116,11 @@ class _AddSkillPageState extends State<AddSkillPage> {
     );
   }
 
-  Widget _buildSuggestedSkills() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Suggested based on your profile",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                setState(() {
-                  _suggestedSkills.clear();
-                });
-              },
-            ),
-          ],
-        ),
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children:
-              _suggestedSkills.map((skill) {
-                return GestureDetector(
-                  onTap: () {
-                    _skillController.text = skill;
-                  },
-                  child: Chip(
-                    label: Text(skill),
-                    backgroundColor: Colors.grey[200],
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
-    );
-  }
-
   void _saveSkill() {
     if (_formKey.currentState!.validate()) {
       final skill = Skill(
-        id: 0, // Dummy ID, replace with actual logic
-        name: _skillController.text,
+        id: _isEditing ? widget.skill!.id : 0,
+        name: _nameController.text,
       );
       widget.onSave(skill);
       Navigator.pop(context);

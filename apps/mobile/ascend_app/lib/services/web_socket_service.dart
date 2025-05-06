@@ -149,7 +149,10 @@ class WebSocketService {
 
       _socketClient!.once('connect_error', (error) {
         debugPrint('Socket.IO connect_error: $error');
-        connectionCompleter.complete(false);
+
+        if (!connectionCompleter.isCompleted) {
+          connectionCompleter.complete(false);
+        }
       });
 
       // Connect to the server

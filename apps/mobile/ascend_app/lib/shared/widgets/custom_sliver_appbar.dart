@@ -19,6 +19,8 @@ class CustomSliverAppBar extends StatefulWidget {
   final bool jobs;
   final bool showAppBar;
   final VoidCallback? onJobAction;
+  final VoidCallback?
+  onSearchAction; // New callback for general search activation
   final bool showProfileAvatar; // Added property to show/hide QR code button
   final BuildContext? contextin;
   const CustomSliverAppBar({
@@ -31,6 +33,7 @@ class CustomSliverAppBar extends StatefulWidget {
     this.jobs = false,
     this.showAppBar = false,
     this.onJobAction, // To detetct the job action
+    this.onSearchAction, // Initialize the new callback
     this.showProfileAvatar = true, // To show/hide profile avatar
     this.contextin, // To show/hide context
   });
@@ -47,74 +50,102 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
     return SliverAppBar(
       pinned: widget.pinned,
       floating: widget.floating,
+      //backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
       leading: Builder(
         builder:
-            (context) => GestureDetector(
-              onTap: () {
-                Scaffold.of(context).openDrawerWithAnimation(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
-                );
-              },
-              child: BlocBuilder<UserProfileBloc, UserProfileState>(
-                builder: (context, state) {
-                  final avatarUrl =
-                      state is UserProfileLoaded &&
-                              state.profile.avatarUrl.isNotEmpty
-                          ? state.profile.avatarUrl
-                          : null;
-
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child:
-                        widget.showProfileAvatar
-                            ? UserAvatar(
-                              imageUrl: avatarUrl,
-                              radius: 18, // Adjust radius as needed
-                            )
-                            : IconButton(
-                              icon: Icon(Icons.arrow_back),
-                              onPressed: () {
-                                Navigator.pop(widget.contextin!);
-                              },
-                            ), // Default icon if no avatar
+            (context) => Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: GestureDetector(
+                onTap: () {
+                  Scaffold.of(context).openDrawerWithAnimation(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
                   );
                 },
+                child: BlocBuilder<UserProfileBloc, UserProfileState>(
+                  builder: (context, state) {
+                    final avatarUrl =
+                        state is UserProfileLoaded
+                            ? state.profile.profilePictureUrl
+                            : null;
+
+                    return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child:
+                          widget.showProfileAvatar
+                              ? UserAvatar(imageUrl: avatarUrl, radius: 18)
+                              : IconButton(
+                                icon: Icon(Icons.arrow_back),
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  Navigator.pop(widget.contextin!);
+                                },
+                              ),
+                    );
+                  },
+                ),
               ),
             ),
       ),
       title: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
-          return Card.outlined(
-            child: TextField(
-              onTap: () {
-                // Handle the tap event
-                if (widget.onJobAction != null) {
-                  widget.onJobAction!();
-                }
-              },
-              onChanged: (value) {
-                context.read<SearchBloc>().add(SearchTextChanged(value));
-              },
-              decoration: InputDecoration(
-                prefixIcon:
-                    widget.jobs
-                        ? const Icon(Icons.work_rounded)
-                        : const Icon(Icons.search),
-                hintText: widget.jobs ? 'Search Jobs' : 'Search',
-                border: InputBorder.none,
-                suffixIcon:
-                    state.showDeleteButton
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
+          return Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5),
+                width: 1,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  if (widget.jobs && widget.onJobAction != null) {
+                    widget.onJobAction!();
+                  } else if (!widget.jobs && widget.onSearchAction != null) {
+                    widget.onSearchAction!();
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        widget.jobs ? Icons.work_rounded : Icons.search,
+                        size: 20,
+                        color: Theme.of(context).hintColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.jobs ? 'Search Jobs' : 'Search',
+                          style: TextStyle(
+                            color: Theme.of(context).hintColor,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      if (state.showDeleteButton)
+                        IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                           onPressed: () {
                             context.read<SearchBloc>().add(
                               SearchTextChanged(''),
                             );
                           },
                         )
-                        : IconButton(
-                          icon: const Icon(Icons.qr_code),
+                      else
+                        IconButton(
+                          icon: const Icon(Icons.qr_code, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                           onPressed: () {
                             showDialog(
                               context: context,
@@ -134,6 +165,9 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
                             );
                           },
                         ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );
@@ -145,80 +179,118 @@ class _CustomSliverAppBarState extends State<CustomSliverAppBar> {
           children: [
             if (widget.addpost)
               IconButton(
-                icon: const Icon(Icons.post_add_outlined),
+                icon: const Icon(Icons.post_add_outlined, size: 24),
                 onPressed: () {
-                  // Navigate to CreatePostPage
                   Navigator.pushNamed(context, RouteNames.createPost);
                 },
               ),
             if (widget.settings)
               IconButton(
-                icon: const Icon(Icons.settings_sharp),
+                icon: const Icon(Icons.settings_outlined, size: 24),
                 onPressed: () {},
               ),
-            IconButton(
-              icon: const Icon(Icons.message_outlined),
-              onPressed: () {
-                // Navigate to MessagingPage
-                Navigator.pushNamed(context, RouteNames.mainMessage);
-              },
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                icon: const Icon(Icons.message_outlined, size: 24),
+                onPressed: () {
+                  Navigator.pushNamed(context, RouteNames.mainMessage);
+                },
+              ),
             ),
           ],
         ),
       ],
       bottom:
           widget.showTabBar
-              ? TabBar(
-                tabs: const [Tab(text: "Grow"), Tab(text: "Catchup")],
-                indicatorColor: Theme.of(context).colorScheme.primary,
-                labelColor: Theme.of(context).colorScheme.primary,
+              ? PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).dividerColor.withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: TabBar(
+                    tabs: const [Tab(text: "Grow"), Tab(text: "Catchup")],
+                    indicatorColor: Theme.of(context).colorScheme.primary,
+                    labelColor: Theme.of(context).colorScheme.primary,
+                    indicatorWeight: 3,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    unselectedLabelStyle: const TextStyle(fontSize: 14),
+                  ),
+                ),
               )
               : (widget.showAppBar
                   ? PreferredSize(
                     preferredSize: const Size.fromHeight(50.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        FilledButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedButton = 'All';
-                            });
-                          },
-                          child: Text(
-                            'All',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterButton('All'),
+                            const SizedBox(width: 8),
+                            _buildFilterButton('Jobs'),
+                            const SizedBox(width: 8),
+                            _buildFilterButton('My posts'),
+                            const SizedBox(width: 8),
+                            _buildFilterButton('Mentions'),
+                          ],
                         ),
-                        FilledButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedButton = 'Jobs';
-                            });
-                          },
-                          child: Text('Jobs'),
-                        ),
-                        FilledButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedButton = 'My posts';
-                            });
-                          },
-                          style: ButtonStyle(),
-                          child: Text('My posts'),
-                        ),
-                        FilledButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedButton = 'Mentions';
-                            });
-                          },
-                          child: Text('Mentions'),
-                        ),
-                      ],
+                      ),
                     ),
                   )
                   : null),
+    );
+  }
+
+  Widget _buildFilterButton(String label) {
+    final isSelected = selectedButton == label;
+    return OutlinedButton(
+      onPressed: () {
+        setState(() {
+          selectedButton = label;
+        });
+      },
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(
+          isSelected
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              : Colors.transparent,
+        ),
+        side: MaterialStateProperty.all(
+          BorderSide(
+            color:
+                isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).dividerColor,
+          ),
+        ),
+        padding: MaterialStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color:
+              isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).textTheme.bodyMedium?.color,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
     );
   }
 }

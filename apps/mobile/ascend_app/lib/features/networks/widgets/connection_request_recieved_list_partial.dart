@@ -34,8 +34,12 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                     .map((invitation) {
                       return Column(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          Container(
+                            color: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 16.0,
+                            ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -43,9 +47,9 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                                 CircleAvatar(
                                   radius: 24,
                                   backgroundImage:
-                                      invitation.profile_image_id != null
+                                      invitation.profile_picture_url != null
                                           ? NetworkImage(
-                                            invitation.profile_image_id!,
+                                            invitation.profile_picture_url!,
                                           )
                                           : const AssetImage(
                                                 'assets/EmptyUser.png',
@@ -101,7 +105,7 @@ class ConnectionRequestsReceivedListPartial extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Divider(thickness: 3, height: 16),
+                          //const Divider(thickness: 3, height: 16),
                         ],
                       );
                     })

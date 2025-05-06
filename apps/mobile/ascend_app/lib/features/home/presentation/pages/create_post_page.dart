@@ -235,7 +235,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Success
         if (mounted) {
-          // Decode the response and create a PostModel
+          // Show success message first
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post created successfully!')),
+          );
+
+          // Try to process the response and update state, but don't let errors here stop navigation
           try {
             final responseData = jsonDecode(response.body);
             // Assuming the API returns the created post object directly or within a key like 'post'
@@ -260,15 +265,13 @@ class _CreatePostPageState extends State<CreatePostPage> {
             debugPrint(
               '[CreatePostPage] Error decoding response or creating PostModel: $e',
             );
-            // Optionally show a specific error, but still proceed
+            // Log the error, but proceed with navigation
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Post created successfully!')),
-          );
+          // Navigate back regardless of decoding success/failure
           Navigator.of(
             context,
-          ).pop(); // Go back after successful post and dispatching event
+          ).pushReplacementNamed(RouteNames.home); // Navigate to home screen
         }
       } else {
         // Handle error
@@ -606,7 +609,8 @@ class _CreatePostPageState extends State<CreatePostPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pushReplacementNamed(RouteNames.home),
+          onPressed:
+              () => Navigator.of(context).pushReplacementNamed(RouteNames.home),
         ),
         title: BlocBuilder<UserProfileBloc, UserProfileState>(
           builder: (context, state) {
@@ -614,7 +618,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                UserAvatar(imageUrl: profile?.avatarUrl, radius: 18),
+                UserAvatar(imageUrl: profile?.profilePictureUrl, radius: 18),
                 const SizedBox(width: 8),
                 Flexible(
                   child: TextButton(

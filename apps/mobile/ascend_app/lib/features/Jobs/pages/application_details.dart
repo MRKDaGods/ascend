@@ -1,6 +1,5 @@
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:get/route_manager.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;

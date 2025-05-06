@@ -1,5 +1,4 @@
 import 'package:ascend_app/features/CompanyPage/company_page.dart';
-import 'package:ascend_app/features/Jobs/pages/company_details.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';

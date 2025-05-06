@@ -17,7 +17,7 @@ class UserCard extends StatelessWidget {
   final VoidCallback? onsSendingMessagingRequest;
 
   const UserCard({
-    Key? key,
+    super.key,
     required this.user,
     required this.onTap,
     required this.onSendConnectionRequest,
@@ -31,7 +31,7 @@ class UserCard extends StatelessWidget {
     this.onFollowUser,
     this.onUnfollowUser,
     this.onsSendingMessagingRequest,
-  }) : super(key: key);
+  });
 
   bool get isConnected => connectionStatus == 'connected';
   bool get isPending => connectionStatus == 'pending';
@@ -53,8 +53,8 @@ class UserCard extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundImage:
-                    user.profile_image_id != null
-                        ? NetworkImage(user.profile_image_id!)
+                    user.profile_image_url != null
+                        ? NetworkImage(user.profile_image_url!)
                         : const AssetImage('assets/EmptyUser.png')
                             as ImageProvider,
               ),

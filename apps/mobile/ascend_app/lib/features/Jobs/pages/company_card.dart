@@ -1,6 +1,7 @@
 import 'package:ascend_app/features/CompanyPage/company_page.dart';
 import 'package:ascend_app/features/Jobs/pages/create_company.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/company_details.dart';
 import 'package:http/http.dart' as http;
@@ -175,9 +176,9 @@ class CompanyCard extends StatelessWidget {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                       };
-                      final String _baseUrl = 'https://api.ascendx.tech';
+                      final String baseUrl = 'https://api.ascendx.tech';
                       final endpoint = '/company/companies/$companyId';
-                      final url = Uri.parse('$_baseUrl$endpoint');
+                      final url = Uri.parse('$baseUrl$endpoint');
                       final response = await http.delete(url, headers: headers);
                       if (response.statusCode == 200) {
                         ScaffoldMessenger.of(context).showSnackBar(
