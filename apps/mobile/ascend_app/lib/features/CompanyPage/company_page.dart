@@ -10,6 +10,7 @@ import 'company_tabs.dart';
 import '../../core/di/dependency_injection.dart';
 import '../../features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/shared/models/profile.dart';
+import 'company_analytics_page.dart';
 
 enum ProfileType { myprofile, otherUserProfile }
 
@@ -41,6 +42,7 @@ class _CompanyPageState extends State<CompanyPage> {
   List<Map<String, String>> links = [];
   Profile? myUser;
   bool isLoading = true;
+  bool isAdminView = false;
 
   @override
   void initState() {
@@ -177,6 +179,23 @@ class _CompanyPageState extends State<CompanyPage> {
     }
   }
 
+  void _toggleAdminView() {
+    setState(() {
+      isAdminView = !isAdminView;
+    });
+    if (isAdminView) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => CompanyAnalyticsPage(companyId: widget.companyId),
+        ),
+      );
+    } else {
+      Navigator.pop(context); // Navigate back to the member view
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return name.isEmpty
@@ -249,7 +268,7 @@ class _CompanyPageState extends State<CompanyPage> {
                         SizedBox(height: 15),
                         ProfileButtons(
                           isfollowing: isFollow,
-                          isMyProfile: false,
+                          isMyProfile: true,
                           websiteExists: links.isNotEmpty,
                           isPending: isFollow,
                           toggleConnect: () {}, // Implement if needed
@@ -257,6 +276,8 @@ class _CompanyPageState extends State<CompanyPage> {
                           toggleFollow: _toggleFollow, // Implement if needed
                           unFollowPage:
                               _showWarningDialogForUnfollowingPage, // Implement if needed
+                          onToggleAdminView:
+                              _toggleAdminView, // Pass toggle function
                         ),
                       ],
                     ),
