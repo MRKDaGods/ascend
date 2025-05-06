@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/reported_user_card.dart'; // Import the ReportedUserCard widget
-import '../widgets/banned_user_card.dart'; // Import the new BannedUserCard widget
-import '../../bloc/users/bloc/users_bloc.dart'; // Import the UsersBloc
+import 'package:intl/intl.dart';
+import '../widgets/reported_user_card.dart';
+import '../widgets/banned_user_card.dart';
+import '../../bloc/users/bloc/users_bloc.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -35,16 +36,42 @@ class _UsersPageState extends State<UsersPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // Trigger the FetchReportedUsers event when the page loads
-    context.read<UsersBloc>().add(FetchReportedUsers());
+    // Add a small delay to ensure the widget tree is built
+    // This helps prevent state issues on initial load
+    Future.microtask(() {
+      // Initially load the active tab's data
+      if (_tabController.index == 0) {
+        context.read<UsersBloc>().add(FetchReportedUsers());
+      } else {
+        context.read<UsersBloc>().add(FetchBannedUsers());
+      }
+    });
+
+    // Listen for tab changes to refresh data if needed
+    _tabController.addListener(_handleTabChange);
+  }
+
+  void _handleTabChange() {
+    if (!_tabController.indexIsChanging) {
+      // Only trigger when tab change completes
+      if (_tabController.index == 0) {
+        // Reported Users tab is active
+        context.read<UsersBloc>().add(FetchReportedUsers());
+      } else {
+        // Banned Users tab is active
+        context.read<UsersBloc>().add(FetchBannedUsers());
+      }
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
 
+  // Existing methods preserved
   void _toggleReportsVisibility(String userId) {
     setState(() {
       _expandedReports[userId] = !(_expandedReports[userId] ?? false);
@@ -138,11 +165,32 @@ class _UsersPageState extends State<UsersPage>
   }
 
   void _handleUnbanUser(BuildContext context, String userId) {
-    // Add logic to unban the user
-    debugPrint('Unban user with ID: $userId');
-    setState(() {
-      _bannedUsers.removeWhere((user) => user['id'] == userId);
-    });
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Unban User'),
+            content: const Text('Are you sure you want to unban this user?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  // Use the bloc to handle the unban action
+                  context.read<UsersBloc>().add(UnbanUser(userId));
+
+                  // After unbanning, refresh the banned users list
+                  context.read<UsersBloc>().add(FetchBannedUsers());
+                },
+                style: TextButton.styleFrom(foregroundColor: Colors.green),
+                child: const Text('Unban'),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
@@ -162,6 +210,14 @@ class _UsersPageState extends State<UsersPage>
               unselectedLabelColor: Colors.grey,
               indicatorWeight: 4,
               labelStyle: const TextStyle(fontSize: 16),
+              onTap: (index) {
+                // Refresh data when tab is tapped
+                if (index == 0) {
+                  context.read<UsersBloc>().add(FetchReportedUsers());
+                } else {
+                  context.read<UsersBloc>().add(FetchBannedUsers());
+                }
+              },
             ),
           ),
           Expanded(
@@ -174,59 +230,67 @@ class _UsersPageState extends State<UsersPage>
                     if (state is UsersLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is UsersLoaded) {
+                      if (state.reports.isEmpty) {
+                        return const Center(
+                          child: Text('No reported users found.'),
+                        );
+                      }
                       return ListView.builder(
                         itemCount: state.reports.length,
                         itemBuilder: (context, index) {
-                          final reportedUser =
-                              state
-                                  .reports[index]
-                                  .reported; // Extract ReportedUser
+                          final report = state.reports[index];
+                          final reportReasons = [report.reason];
                           return ReportedUserCard(
                             name:
-                                '${reportedUser.firstName} ${reportedUser.lastName}',
-                            email: reportedUser.email,
-                            date: 'Joined: ${reportedUser.joinedAt.toLocal()}',
-                            reports: [
-                              state.reports[index].reason,
-                            ], // Optional: Display reason
+                                '${report.reported.firstName} ${report.reported.lastName}',
+                            email: report.reported.email,
+                            date: DateFormat(
+                              'MMM d, y',
+                            ).format(report.reported.joinedAt),
+                            reports: reportReasons,
                             showReports:
-                                _expandedReports[reportedUser.userId
+                                _expandedReports[report.reported.userId
                                     .toString()] ??
                                 false,
                             onToggleReports:
                                 () => _toggleReportsVisibility(
-                                  reportedUser.userId.toString(),
+                                  report.reported.userId.toString(),
                                 ),
-                            userId:
-                                reportedUser.userId
-                                    .toString(), // Pass the userId here
+                            userId: report.reported.userId.toString(),
                             handleDeleteUser:
                                 () => _handleDeleteUser(
                                   context,
-                                  reportedUser.userId.toString(),
+                                  report.reported.userId.toString(),
                                 ),
                             onBan:
                                 () => _handleBanUser(
                                   context,
-                                  reportedUser.userId.toString(),
+                                  report.reported.userId.toString(),
                                 ),
+                            profilePictureUrl:
+                                report.reported.profilePictureUrl,
+                            coverPhotoUrl: report.reported.coverPhotoUrl,
                           );
                         },
                       );
-                    } else if (state is UserBannedState) {
+                    } else if (state is UserBannedState ||
+                        state is UserDeletedState) {
+                      // Show success message and trigger refresh
+                      String message =
+                          state is UserBannedState
+                              ? 'User with ID ${(state as UserBannedState).userId} has been banned successfully!'
+                              : 'User with ID ${(state as UserDeletedState).userId} has been deleted successfully!';
+
+                      // After displaying success message, refresh the list
+                      Future.delayed(const Duration(seconds: 2), () {
+                        if (mounted) {
+                          context.read<UsersBloc>().add(FetchReportedUsers());
+                        }
+                      });
+
                       return Center(
                         child: Text(
-                          'User with ID ${state.userId} has been banned successfully!',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    } else if (state is UserDeletedState) {
-                      return Center(
-                        child: Text(
-                          'User with ID ${state.userId} has been deleted successfully!',
+                          message,
                           style: const TextStyle(
                             color: Colors.green,
                             fontSize: 16,
@@ -235,36 +299,133 @@ class _UsersPageState extends State<UsersPage>
                       );
                     } else if (state is UsersError) {
                       return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Error: ${state.message}',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<UsersBloc>().add(
+                                  FetchReportedUsers(),
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      // Critical fix: Always trigger a fetch if we don't have the right state
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.read<UsersBloc>().add(FetchReportedUsers());
+                      });
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
+
+                // Banned Users Section
+                BlocBuilder<UsersBloc, UsersState>(
+                  builder: (context, state) {
+                    if (state is UsersLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is BannedUsersLoaded) {
+                      if (state.bannedUsers.isEmpty) {
+                        return const Center(
+                          child: Text('No banned users found.'),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: state.bannedUsers.length,
+                        itemBuilder: (context, index) {
+                          final bannedUser = state.bannedUsers[index];
+                          return BannedUserCard(
+                            name: bannedUser.fullName,
+                            email: bannedUser.email,
+                            date:
+                                'Banned on ${DateFormat('MMM d, y').format(bannedUser.createdAt)}',
+                            onUnban:
+                                () => _handleUnbanUser(
+                                  context,
+                                  bannedUser.userId.toString(),
+                                ),
+                            profilePictureUrl: bannedUser.profilePictureUrl,
+                            coverPhotoUrl: bannedUser.coverPhotoUrl,
+                            bannedByName: bannedUser.bannerFullName,
+                            bannedById: bannedUser.bannedBy,
+                          );
+                        },
+                      );
+                    } else if (state is UserUnbannedState) {
+                      // After displaying success message, refresh the list
+                      Future.delayed(const Duration(seconds: 2), () {
+                        if (mounted) {
+                          context.read<UsersBloc>().add(FetchBannedUsers());
+                        }
+                      });
+
+                      return Center(
                         child: Text(
-                          'Error: ${state.message}',
+                          'User with ID ${state.userId} has been unbanned successfully!',
                           style: const TextStyle(
-                            color: Colors.red,
+                            color: Colors.green,
                             fontSize: 16,
                           ),
                         ),
                       );
+                    } else if (state is UsersError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Error: ${state.message}',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<UsersBloc>().add(
+                                  FetchBannedUsers(),
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      );
                     } else {
-                      return const Center(child: Text('No data available.'));
+                      // If we don't have data yet but not in loading state, trigger a fetch
+                      if (state is! UsersLoaded) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          context.read<UsersBloc>().add(FetchBannedUsers());
+                        });
+                      }
+                      return const Center(
+                        child: Text('Loading banned users...'),
+                      );
                     }
                   },
-                ),
-                // Banned Users Section
-                ListView(
-                  children:
-                      _bannedUsers.map((user) {
-                        return BannedUserCard(
-                          name: user['name']!,
-                          email: user['email']!,
-                          date: user['date']!,
-                          onUnban: () => _handleUnbanUser(context, user['id']!),
-                        );
-                      }).toList(),
                 ),
               ],
             ),
           ),
         ],
       ),
+      // Preserved floating action buttons
       floatingActionButton: Stack(
         children: [
           // Positive Action Button

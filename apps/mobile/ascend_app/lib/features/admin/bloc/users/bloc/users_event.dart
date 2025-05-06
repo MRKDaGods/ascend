@@ -5,6 +5,9 @@ sealed class UsersEvent {}
 /// Event to fetch reported users
 final class FetchReportedUsers extends UsersEvent {}
 
+/// Event to fetch banned users
+final class FetchBannedUsers extends UsersEvent {}
+
 /// Event to refresh the list of reported users
 final class RefreshReportedUsers extends UsersEvent {}
 

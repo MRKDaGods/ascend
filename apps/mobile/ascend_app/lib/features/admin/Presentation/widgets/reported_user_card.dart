@@ -12,6 +12,8 @@ class ReportedUserCard extends StatefulWidget {
   final String userId; // User ID for delete functionality
   final VoidCallback handleDeleteUser;
   final VoidCallback onBan;
+  final String? profilePictureUrl; // Add profile picture URL
+  final String? coverPhotoUrl; // Add cover photo URL
 
   const ReportedUserCard({
     super.key,
@@ -24,6 +26,8 @@ class ReportedUserCard extends StatefulWidget {
     required this.userId,
     required this.handleDeleteUser,
     required this.onBan,
+    this.profilePictureUrl, // Optional but available from API
+    this.coverPhotoUrl, // Optional but available from API
   });
 
   @override
@@ -123,17 +127,98 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildUserDetails(),
-            const SizedBox(height: 8),
-            _buildActions(context),
-            if (widget.showReports) _buildReportsSection(),
-          ],
-        ),
+      clipBehavior: Clip.antiAlias, // Ensures the cover photo doesn't overflow
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cover Photo (if available)
+          if (widget.coverPhotoUrl != null)
+            SizedBox(
+              width: double.infinity,
+              height: 120,
+              child: Image.network(
+                widget.coverPhotoUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey[200],
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                },
+              ),
+            ),
+
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Profile Picture (if available)
+                    if (widget.profilePictureUrl != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(40),
+                          child: SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: Image.network(
+                              widget.profilePictureUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (
+                                context,
+                                child,
+                                loadingProgress,
+                              ) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  color: Colors.grey[200],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // User details next to profile picture
+                    Expanded(child: _buildUserDetails()),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                _buildActions(context),
+                if (widget.showReports) _buildReportsSection(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
