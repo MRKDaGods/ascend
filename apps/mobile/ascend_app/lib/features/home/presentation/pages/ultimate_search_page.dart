@@ -78,30 +78,36 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          // Add back button
-          icon: const Icon(Icons.arrow_back),
-          onPressed: widget.onBackPressed, // Trigger the callback
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: widget.onBackPressed,
         ),
-        title: TextField(
-          controller: _searchController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Search users, posts, jobs...',
-            border: InputBorder.none,
-            suffixIcon:
-                _searchController.text.isNotEmpty
-                    ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        context.read<SearchBloc>().add(ClearSearch());
-                      },
-                    )
-                    : null,
+        leadingWidth: 35,
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
           ),
-          style: const TextStyle(fontSize: 18),
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Search users, posts, jobs...',
+              hintStyle: TextStyle(color: Colors.grey[600], fontSize: 16),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: 20),
+            ),
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
+          ),
         ),
       ),
       body: BlocBuilder<SearchBloc, SearchState>(

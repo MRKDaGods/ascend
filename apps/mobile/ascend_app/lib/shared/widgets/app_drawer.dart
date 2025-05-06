@@ -21,6 +21,7 @@ class AppDrawer extends StatelessWidget {
         }
 
         return Drawer(
+          shape: ContinuousRectangleBorder(),
           child: Column(
             children: [
               Expanded(
