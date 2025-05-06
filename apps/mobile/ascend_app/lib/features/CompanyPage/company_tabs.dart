@@ -21,6 +21,7 @@ class _CompanyTabsState extends State<CompanyTabs>
   @override
   void initState() {
     super.initState();
+    print(widget.companyName);
     _tabController = TabController(length: 5, vsync: this); // 5 tabs
     fetchCompanyJobs();
   }
@@ -29,7 +30,7 @@ class _CompanyTabsState extends State<CompanyTabs>
     setState(() {
       isLoading = true;
     });
-
+    print("Fetching jobs for company: ${widget.companyName}");
     final url = Uri.parse(
       'https://api.ascendx.tech/job?company=${widget.companyName}',
     );

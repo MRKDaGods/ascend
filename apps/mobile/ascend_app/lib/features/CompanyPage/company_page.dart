@@ -1,112 +1,70 @@
+import 'package:ascend_app/features/settings/Presentation/widgets/loading_indicator.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'Models/profile_section.dart';
 import 'buttons.dart';
 import 'custom_alert_dialog.dart';
 import 'page_main_images.dart';
 import 'page_header.dart';
 import 'company_tabs.dart';
+import '../../core/di/dependency_injection.dart';
+import '../../features/StartPages/repository/api_client.dart';
+import 'package:ascend_app/shared/models/profile.dart';
 
 enum ProfileType { myprofile, otherUserProfile }
 
 class CompanyPage extends StatefulWidget {
-  const CompanyPage({
-    this.profileType = ProfileType.otherUserProfile,
-    super.key,
-    this.name = 'Maged Amgad',
-    this.bio = "Computer engineering student at Cairo University",
-    this.profileImageUrl = 'https://picsum.photos/500',
-    this.coverImageUrl = 'https://picsum.photos/1500/500',
-    this.location = 'Cairo, Egypt',
-    this.industry = 'Software',
-    this.sections = const [],
-    this.isconnect = false,
-    this.isfollow = false,
-    this.isPending = true,
-    this.connections = 15,
-    this.verified = true,
-    this.degree = "1st",
-    this.mutualConnections = const ["Ahmed Hassan", "Sarah Ali"],
-    this.webSiteExists = true,
-    this.links = const [
-      {"title": "My Portfolio", "url": "https://dartcode.org/docs/settings/"},
-      {"title": "GitHub", "url": "https://github.com/MagedWadi"},
-      {"title": " ", "url": "https://example.com"}, // This will be ignored
-    ],
-    this.badges = const ["Open to Work", "Providing Services"],
-  });
-  final ProfileType profileType;
-  final String name;
-  final bool webSiteExists;
-  final bool isconnect;
-  final bool isfollow;
-  final bool isPending;
-  final int connections;
-  final String industry;
-  final String bio;
-  final String profileImageUrl;
-  final String coverImageUrl;
-  final String location;
-  final List<ProfileSection> sections;
-  final bool verified;
-  final String degree;
-  final List<String> mutualConnections;
-  final List<Map<String, String>> links;
-  final List<String> badges;
+  const CompanyPage({required this.companyId, super.key});
+
+  final int companyId;
 
   @override
   State<CompanyPage> createState() => _CompanyPageState();
 }
 
 class _CompanyPageState extends State<CompanyPage> {
-  late bool _isConnect;
-  late bool _isFollow;
-  late bool _isPending;
+  final ApiClient _apiClient = sl.apiClient;
+
+  String name = ''; // Default value
+  String bio = '';
+  String profileImageUrl = '';
+  String coverImageUrl = '';
+  String location = '';
+  ProfileType profiletype = ProfileType.otherUserProfile;
+  String industry = '';
+  bool isFollow = false;
+  int Followers = 0;
+  bool verified = false;
+  DateTime createdAt = DateTime.now();
+  int CreatedBy = 0;
+  String domainName = '';
+  List<Map<String, String>> links = [];
+  Profile? myUser;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _isConnect = widget.isconnect;
-    if (_isConnect) {
-      _isPending = false;
-    }
-    _isFollow = widget.isfollow;
-    _isPending = widget.isPending;
+    _fetchMyUser(); // Fetch the current user's profile
+    _fetchCompanyProfile();
+    _fetchCompanyFollowers();
+    isLoading = false;
   }
 
-  void _toggleConnect() {
-    setState(() {
-      if (!_isConnect && !_isPending) {
-        _isPending = true; // Change to "Pending"
-      } else if (_isPending) {
-        _isPending = false;
-        _isConnect = true; // Change to "Connected" //inv accepted
-      }
-      if (_isConnect) {
-        _isConnect = false; // remove connection
-      }
-    });
+  Future<void> _fetchMyUser() async {
+    final Uendpoint = "/user/profile";
+    final data = await ServiceLocator().apiClient.get(Uendpoint);
+    final json = jsonDecode(data.body);
+    myUser = Profile.fromJson(json);
   }
 
-  void _toggleFollow() {
-    setState(() {
-      _isFollow = !_isFollow;
-    });
-  }
-
-  void _toggleisPending() {
-    setState(() {
-      _isPending = !_isPending;
-    });
-  }
-
-  // Function to show withdraw confirmation dialog
   void _showWarningDialogForUnfollowingPage(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return CustomAlertDialog(
           title: "Unfollow page",
-          description: "You are about to unfollow ${widget.name}.",
+          description: "You are about to unfollow ${name}.",
           confirmText: "Unfollow",
           onConfirm: _toggleFollow,
         );
@@ -114,133 +72,203 @@ class _CompanyPageState extends State<CompanyPage> {
     );
   }
 
-  void _showWarningDialogForPending(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CustomAlertDialog(
-          title: "Withdraw invitation",
-          description:
-              "If you withdraw now, you won’t be able to resend to this person for up to 3 weeks.",
-          confirmText: "Withdraw",
-          onConfirm: _toggleisPending,
+  void _toggleFollow() async {
+    try {
+      if (isFollow) {
+        // Unfollow the company
+        final endpoint = '/company/companies/${widget.companyId}/unfollow';
+        final response = await ServiceLocator().apiClient.delete(endpoint);
+
+        if (response.statusCode == 200) {
+          setState(() {
+            isFollow = false;
+            Followers =
+                Followers > 0 ? Followers - 1 : 0; // Decrease follower count
+          });
+          debugPrint('Company unfollowed successfully.');
+        } else {
+          debugPrint('Failed to unfollow company: ${response.body}');
+        }
+      } else {
+        // Follow the company
+
+        final endpoint = '/company/companies/${widget.companyId}/follow';
+        print("h3mel following $endpoint");
+        final response = await ServiceLocator().apiClient.post(
+          endpoint,
+          data: {
+            "first_name":
+                "${myUser!.firstName}", // Replace with actual user data
+            "last_name": "${myUser!.lastName}", // Replace with actual user data
+          },
         );
-      },
-    );
+
+        if (response.statusCode == 200) {
+          setState(() {
+            isFollow = true;
+            Followers += 1; // Increase follower count
+          });
+          debugPrint('Company followed successfully.');
+        } else {
+          debugPrint('Failed to follow company: ${response.body}');
+        }
+      }
+    } catch (e) {
+      if (e.toString() ==
+          'Exception: Error: 400, {"error":"company already followed"}') {
+        setState(() {
+          isFollow = !isFollow;
+        });
+      }
+      print(e);
+      debugPrint('Error toggling follow status: $e');
+    }
   }
 
-  // Function to handle refresh
-  Future<void> _onRefresh() async {
-    // Simulate a network call or data refresh
-    await Future.delayed(Duration(seconds: 2));
+  Future<void> _fetchCompanyProfile() async {
+    try {
+      final endpoint = '/company/companies/${widget.companyId}';
+      final response = await ServiceLocator().apiClient.get(endpoint);
+      final data = jsonDecode(response.body)['data']['company'];
+      print(data);
+      setState(() {
+        name = data['company_name'] ?? ''; // Provide default value
+        bio = data['description'] ?? ''; // Provide default value
+        profileImageUrl =
+            data['profile_photo_url'] ?? ''; // Provide default value
+        coverImageUrl = data['cover_photo_url'] ?? ''; // Provide default value
+        location = data['location'] ?? ''; // Provide default value
+        industry = data['industry'] ?? ''; // Provide default value
+        createdAt =
+            data['created_at'] != null
+                ? DateTime.parse(data['created_at'])
+                : DateTime.now(); // Provide default value
+        CreatedBy = data['created_by'] ?? 0; // Provide default value
+        domainName = data['domain_name'] ?? ''; // Provide default value
+        isFollow = false; // Default value, update based on API if needed
+        Followers =
+            0; // Default value, will be updated by _fetchCompanyFollowers
+        verified = true; // Default value, update based on API if needed
+        links = []; // Default value, update based on API if needed
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching company profile: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchCompanyFollowers() async {
+    try {
+      final endpoint = '/company/companies/${widget.companyId}/followers';
+      final response = await ServiceLocator().apiClient.get(endpoint);
+      final data = jsonDecode(response.body)['data']['followers'];
+      print("a7aaa: $data");
+      setState(() {
+        Followers =
+            data.length; // Update Followers count based on the list size
+        print("Followers: $Followers");
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching company followers: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
-          child: TextField(
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              border: InputBorder.none,
-              hintText: 'Search',
+    return name.isEmpty
+        ? LoadingIndicator()
+        : Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              },
             ),
+            title: Text(name),
           ),
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProfileMainImages(
-                profilePic: widget.profileImageUrl,
-                coverPic: widget.coverImageUrl,
-                isMyProfile:
-                    widget.profileType == ProfileType.myprofile ? true : false,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await _fetchCompanyProfile();
+              await _fetchCompanyFollowers();
+            },
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (widget.profileType == ProfileType.myprofile || _isFollow)
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        widget.profileType == ProfileType.myprofile
-                            ? Icons.edit_outlined
-                            : _isFollow
-                            ? Icons.notifications
-                            : null,
-                      ),
+                  ProfileMainImages(
+                    profilePic: profileImageUrl,
+                    coverPic: coverImageUrl,
+                    isMyProfile: false,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (profiletype == ProfileType.myprofile || isFollow)
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            profiletype == ProfileType.myprofile
+                                ? Icons.edit_outlined
+                                : isFollow
+                                ? Icons.notifications
+                                : null,
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(
+                    height:
+                        (profiletype == ProfileType.myprofile || isFollow)
+                            ? 5
+                            : 50,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProfileHeader(
+                          name: name,
+                          verified: verified,
+                          bio: bio,
+                          location: location,
+                          industry: industry,
+                          followers: Followers,
+                          employeesCount: 0,
+                          isconnect: isFollow,
+                          mutualConnections: [], // Update if needed
+                          links: links,
+                          isMyProfile: false,
+                        ),
+                        SizedBox(height: 15),
+                        ProfileButtons(
+                          isfollowing: isFollow,
+                          isMyProfile: false,
+                          websiteExists: links.isNotEmpty,
+                          isPending: isFollow,
+                          toggleConnect: () {}, // Implement if needed
+                          withdrawRequest: (context) {}, // Implement if needed
+                          toggleFollow: _toggleFollow, // Implement if needed
+                          unFollowPage:
+                              _showWarningDialogForUnfollowingPage, // Implement if needed
+                        ),
+                      ],
                     ),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height - 200,
+                    child: CompanyTabs(companyName: name),
+                  ),
                 ],
               ),
-              SizedBox(
-                height:
-                    (widget.profileType == ProfileType.myprofile || _isFollow)
-                        ? 5
-                        : 50,
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ProfileHeader(
-                      name: widget.name,
-                      verified: widget.verified,
-                      bio: widget.bio,
-                      location: widget.location,
-                      industry: widget.industry,
-                      followers: widget.connections,
-                      employeesCount: widget.connections,
-                      isconnect: _isConnect,
-                      isPending: _isPending,
-                      mutualConnections: widget.mutualConnections,
-                      links: widget.links,
-                      isMyProfile:
-                          widget.profileType == ProfileType.myprofile
-                              ? true
-                              : false,
-                    ),
-                    SizedBox(height: 15),
-                    ProfileButtons(
-                      isfollowing: _isFollow,
-                      isMyProfile:
-                          widget.profileType == ProfileType.myprofile
-                              ? true
-                              : false,
-                      websiteExists: widget.webSiteExists,
-                      isPending: _isPending,
-                      toggleConnect: _toggleConnect,
-                      withdrawRequest: _showWarningDialogForPending,
-                      toggleFollow: _toggleFollow,
-                      unFollowPage: _showWarningDialogForUnfollowingPage,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height:
-                    MediaQuery.of(context).size.height -
-                    200, // Adjust height as needed
-                child: CompanyTabs(companyName: widget.name),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        );
   }
 }
