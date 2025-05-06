@@ -817,9 +817,9 @@ export const getConnectionRels = async (req: AuthenticatedRequest, res: Response
       });
     }
 
-    const { user_id } = req.params;
+    const { userId } = req.params;
 
-    const connectionRels = await connectionService.getConnectionRels(req.user.id, parseInt(user_id));
+    const connectionRels = await connectionService.getConnectionRels(req.user.id, parseInt(userId));
     res.json({ success: true, data: connectionRels });
   } catch (error) {
     console.error("Error in getConnectionRels:", error);
