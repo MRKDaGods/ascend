@@ -221,8 +221,8 @@ export const updateUserFCMToken = async (
   fcmToken: string
 ): Promise<void> => {
   await db.query("UPDATE auth_service.users SET fcm_token = $1 WHERE id = $2", [
-    id,
     fcmToken,
+    id,
   ]);
 };
 
