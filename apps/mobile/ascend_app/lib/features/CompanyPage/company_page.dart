@@ -1,31 +1,32 @@
 import 'package:ascend_app/features/settings/Presentation/widgets/loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'Models/profile_section.dart';
 import 'buttons.dart';
 import 'custom_alert_dialog.dart';
 import 'page_main_images.dart';
 import 'page_header.dart';
 import 'company_tabs.dart';
 import '../../core/di/dependency_injection.dart';
-import '../../features/StartPages/repository/api_client.dart';
 import 'package:ascend_app/shared/models/profile.dart';
+import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
 import 'company_analytics_page.dart';
 
 enum ProfileType { myprofile, otherUserProfile }
 
 class CompanyPage extends StatefulWidget {
-  const CompanyPage({required this.companyId, super.key});
+  const CompanyPage({
+    required this.companyId,
+    this.isMyCompany = false,
+    super.key,
+  });
 
   final int companyId;
-
+  final bool isMyCompany; // Default value
   @override
   State<CompanyPage> createState() => _CompanyPageState();
 }
 
 class _CompanyPageState extends State<CompanyPage> {
-  final ApiClient _apiClient = sl.apiClient;
-
   String name = ''; // Default value
   String bio = '';
   String profileImageUrl = '';
@@ -48,9 +49,9 @@ class _CompanyPageState extends State<CompanyPage> {
   void initState() {
     super.initState();
     _fetchMyUser(); // Fetch the current user's profile
-    _fetchCompanyProfile();
+    _fetchFollowedCompanies();
     _fetchCompanyFollowers();
-    isLoading = false;
+    _fetchCompanyProfile();
   }
 
   Future<void> _fetchMyUser() async {
@@ -58,6 +59,25 @@ class _CompanyPageState extends State<CompanyPage> {
     final data = await ServiceLocator().apiClient.get(Uendpoint);
     final json = jsonDecode(data.body);
     myUser = Profile.fromJson(json);
+  }
+
+  Future<void> _fetchFollowedCompanies() async {
+    try {
+      final endpoint = '/company/companies/user/followed';
+      final response = await ServiceLocator().apiClient.get(endpoint);
+      final data = jsonDecode(response.body)['data']['companies'];
+      if (data != null) {
+        final followedCompanies = List<Map<String, dynamic>>.from(data);
+        setState(() {
+          isFollow = followedCompanies.any(
+            (company) => company['company_id'] == widget.companyId,
+          );
+          print("isFollow: $isFollow");
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching followed companies: $e');
+    }
   }
 
   void _showWarningDialogForUnfollowingPage(BuildContext context) {
@@ -147,18 +167,13 @@ class _CompanyPageState extends State<CompanyPage> {
                 : DateTime.now(); // Provide default value
         CreatedBy = data['created_by'] ?? 0; // Provide default value
         domainName = data['domain_name'] ?? ''; // Provide default value
-        isFollow = false; // Default value, update based on API if needed
-        Followers =
-            0; // Default value, will be updated by _fetchCompanyFollowers
+
         verified = true; // Default value, update based on API if needed
         links = []; // Default value, update based on API if needed
         isLoading = false;
       });
     } catch (e) {
       debugPrint('Error fetching company profile: $e');
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
@@ -172,7 +187,6 @@ class _CompanyPageState extends State<CompanyPage> {
         Followers =
             data.length; // Update Followers count based on the list size
         print("Followers: $Followers");
-        isLoading = false;
       });
     } catch (e) {
       debugPrint('Error fetching company followers: $e');
@@ -198,96 +212,107 @@ class _CompanyPageState extends State<CompanyPage> {
 
   @override
   Widget build(BuildContext context) {
-    return name.isEmpty
+    return isLoading
         ? LoadingIndicator()
         : Scaffold(
-          appBar: AppBar(
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            title: Text(name),
-          ),
           body: RefreshIndicator(
             onRefresh: () async {
+              await _fetchFollowedCompanies();
               await _fetchCompanyProfile();
               await _fetchCompanyFollowers();
             },
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ProfileMainImages(
-                    profilePic: profileImageUrl,
-                    coverPic: coverImageUrl,
-                    isMyProfile: false,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (profiletype == ProfileType.myprofile || isFollow)
-                        IconButton(
-                          onPressed: () {},
-                          icon: Icon(
-                            profiletype == ProfileType.myprofile
-                                ? Icons.edit_outlined
-                                : isFollow
-                                ? Icons.notifications
-                                : null,
-                          ),
-                        ),
-                    ],
-                  ),
-                  SizedBox(
-                    height:
-                        (profiletype == ProfileType.myprofile || isFollow)
-                            ? 5
-                            : 50,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+            child: CustomScrollView(
+              slivers: [
+                CustomSliverAppBar(
+                  pinned: true,
+                  floating: true,
+                  showProfileAvatar: false,
+                  contextin: context,
+                ),
+                SliverToBoxAdapter(
+                  child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ProfileHeader(
-                          name: name,
-                          verified: verified,
-                          bio: bio,
-                          location: location,
-                          industry: industry,
-                          followers: Followers,
-                          employeesCount: 0,
-                          isconnect: isFollow,
-                          mutualConnections: [], // Update if needed
-                          links: links,
+                        ProfileMainImages(
+                          profilePic: profileImageUrl,
+                          coverPic: coverImageUrl,
                           isMyProfile: false,
                         ),
-                        SizedBox(height: 15),
-                        ProfileButtons(
-                          isfollowing: isFollow,
-                          isMyProfile: true,
-                          websiteExists: links.isNotEmpty,
-                          isPending: isFollow,
-                          toggleConnect: () {}, // Implement if needed
-                          withdrawRequest: (context) {}, // Implement if needed
-                          toggleFollow: _toggleFollow, // Implement if needed
-                          unFollowPage:
-                              _showWarningDialogForUnfollowingPage, // Implement if needed
-                          onToggleAdminView:
-                              _toggleAdminView, // Pass toggle function
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (profiletype == ProfileType.myprofile ||
+                                isFollow)
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(
+                                  profiletype == ProfileType.myprofile
+                                      ? Icons.edit_outlined
+                                      : isFollow
+                                      ? Icons.notifications
+                                      : null,
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(
+                          height:
+                              (profiletype == ProfileType.myprofile || isFollow)
+                                  ? 5
+                                  : 50,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ProfileHeader(
+                                name: name,
+                                verified: verified,
+                                bio: bio,
+                                location: location,
+                                industry: industry,
+                                followers: Followers,
+                                employeesCount: 0,
+                                isconnect: isFollow,
+                                mutualConnections: [], // Update if needed
+                                links: links,
+                                isMyProfile: false,
+                              ),
+                              SizedBox(height: 15),
+                              ProfileButtons(
+                                isfollowing: isFollow,
+                                isMyProfile: widget.isMyCompany,
+                                websiteExists: links.isNotEmpty,
+                                isPending: isFollow,
+                                toggleConnect: () {}, // Implement if needed
+                                withdrawRequest:
+                                    (context) {}, // Implement if needed
+                                toggleFollow:
+                                    _toggleFollow, // Implement if needed
+                                unFollowPage:
+                                    _showWarningDialogForUnfollowingPage,
+                                onToggleAdminView: _toggleAdminView,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height - 200,
+                          child: CompanyTabs(
+                            companyName: name,
+                            bio: bio,
+                            industry: industry,
+                            location: location,
+                            createdAt: createdAt,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height - 200,
-                    child: CompanyTabs(companyName: name),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );

@@ -3,8 +3,13 @@ import 'package:ascend_app/shared/models/profile.dart';
 
 class AddExperiencePage extends StatefulWidget {
   final void Function(Experience) onSave;
+  final Experience? experience; // Add this parameter for editing
 
-  const AddExperiencePage({super.key, required this.onSave});
+  const AddExperiencePage({
+    super.key,
+    required this.onSave,
+    this.experience, // Optional parameter for editing
+  });
 
   @override
   State<AddExperiencePage> createState() => _AddExperiencePageState();
@@ -12,18 +17,62 @@ class AddExperiencePage extends StatefulWidget {
 
 class _AddExperiencePageState extends State<AddExperiencePage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _companyController = TextEditingController();
-  final TextEditingController _positionController = TextEditingController();
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  late TextEditingController _companyController;
+  late TextEditingController _positionController;
+  late TextEditingController _startDateController;
+  late TextEditingController _endDateController;
+  late TextEditingController _descriptionController;
   bool _notifyNetwork = false;
+  bool _currentlyWorking = false;
+  late bool _isEditing;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditing = widget.experience != null;
+
+    // Initialize controllers with existing data if in edit mode
+    _companyController = TextEditingController(
+      text: _isEditing ? widget.experience!.company : '',
+    );
+    _positionController = TextEditingController(
+      text: _isEditing ? widget.experience!.position : '',
+    );
+    _startDateController = TextEditingController(
+      text:
+          _isEditing
+              ? widget.experience!.startDate.toString().split(' ')[0]
+              : '',
+    );
+    _endDateController = TextEditingController(
+      text:
+          _isEditing && widget.experience!.endDate != null
+              ? widget.experience!.endDate.toString().split(' ')[0]
+              : '',
+    );
+    _descriptionController = TextEditingController(
+      text: _isEditing ? widget.experience!.description ?? '' : '',
+    );
+
+    // Set current working status based on end date
+    _currentlyWorking = _isEditing && widget.experience!.endDate == null;
+  }
+
+  @override
+  void dispose() {
+    _companyController.dispose();
+    _positionController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Experience"),
+        title: Text(_isEditing ? "Edit Experience" : "Add Experience"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -44,31 +93,47 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 16),
-              _buildNotifyNetworkToggle(),
-              const SizedBox(height: 16),
+              if (!_isEditing) _buildNotifyNetworkToggle(),
+              if (!_isEditing) const SizedBox(height: 16),
               _buildLabeledTextField(
-                label: "Title*",
-                controller: _positionController,
-                placeholder: "Ex: Software Engineer",
-              ),
-              _buildLabeledTextField(
-                label: "Company or organization*",
+                label: "Company*",
                 controller: _companyController,
                 placeholder: "Ex: Google",
               ),
-
+              _buildLabeledTextField(
+                label: "Position*",
+                controller: _positionController,
+                placeholder: "Ex: Software Engineer",
+              ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _currentlyWorking,
+                    onChanged: (value) {
+                      setState(() {
+                        _currentlyWorking = value!;
+                        if (_currentlyWorking) {
+                          _endDateController.clear();
+                        }
+                      });
+                    },
+                  ),
+                  const Text("I currently work here"),
+                ],
+              ),
               _buildLabeledDateField(
-                label: "Start Date",
+                label: "Start Date*",
                 controller: _startDateController,
               ),
-              _buildLabeledDateField(
-                label: "End Date (or expected)",
-                controller: _endDateController,
-              ),
+              if (!_currentlyWorking)
+                _buildLabeledDateField(
+                  label: "End Date",
+                  controller: _endDateController,
+                ),
               _buildLabeledTextField(
                 label: "Description",
                 controller: _descriptionController,
-                placeholder: "Describe your role and responsibilities",
+                placeholder: "Describe your responsibilities",
                 maxLines: 5,
               ),
               const SizedBox(height: 20),
@@ -79,7 +144,7 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromARGB(255, 0, 123, 255),
                 ),
-                child: const Text("Save"),
+                child: Text(_isEditing ? "Update" : "Save"),
               ),
             ],
           ),
@@ -102,7 +167,7 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               ),
               SizedBox(height: 4),
               Text(
-                "Turn on to notify your network of key profile changes (such as new experience) and work anniversaries.",
+                "Turn on to notify your network of this career change",
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
@@ -144,7 +209,7 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
               border: const OutlineInputBorder(),
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 8, // Adjust vertical padding to reduce height
+                vertical: 8,
                 horizontal: 12,
               ),
             ),
@@ -178,12 +243,12 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
             controller: controller,
             readOnly: true,
             decoration: InputDecoration(
+              border: const OutlineInputBorder(),
               fillColor: Colors.white,
               hintText: "Date",
-              border: const OutlineInputBorder(),
               suffixIcon: const Icon(Icons.calendar_today),
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 8, // Adjust vertical padding to reduce height
+                vertical: 8,
                 horizontal: 12,
               ),
             ),
@@ -198,6 +263,12 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
                 controller.text = pickedDate.toIso8601String().split('T').first;
               }
             },
+            validator: (value) {
+              if (label.endsWith("*") && (value == null || value.isEmpty)) {
+                return "This field is required";
+              }
+              return null;
+            },
           ),
         ],
       ),
@@ -206,20 +277,29 @@ class _AddExperiencePageState extends State<AddExperiencePage> {
 
   void _saveExperience() {
     if (_formKey.currentState!.validate()) {
+      final DateTime startDate = DateTime.parse(_startDateController.text);
+      final DateTime? endDate =
+          _currentlyWorking
+              ? null
+              : _endDateController.text.isNotEmpty
+              ? DateTime.parse(_endDateController.text)
+              : null;
+
       final experience = Experience(
-        id: 0, // Dummy ID, replace with actual logic
-        userId: 0, // Dummy user ID, replace with actual logic
+        id: _isEditing ? widget.experience!.id : 0,
+        userId: _isEditing ? widget.experience!.userId : 0,
         company: _companyController.text,
         position: _positionController.text,
-        startDate: DateTime.parse(_startDateController.text),
-        endDate:
-            _endDateController.text.isNotEmpty
-                ? DateTime.parse(_endDateController.text)
+        startDate: startDate,
+        endDate: endDate,
+        description:
+            _descriptionController.text.isNotEmpty
+                ? _descriptionController.text
                 : null,
-        description: _descriptionController.text,
-        createdAt: DateTime.now(),
+        createdAt: _isEditing ? widget.experience!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
       widget.onSave(experience);
       Navigator.pop(context);
     }

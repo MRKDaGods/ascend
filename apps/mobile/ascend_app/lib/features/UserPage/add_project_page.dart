@@ -3,8 +3,13 @@ import 'package:ascend_app/shared/models/profile.dart';
 
 class AddProjectPage extends StatefulWidget {
   final void Function(Project) onSave;
+  final Project? project; // Add this parameter for editing
 
-  const AddProjectPage({super.key, required this.onSave});
+  const AddProjectPage({
+    super.key,
+    required this.onSave,
+    this.project, // Optional parameter for editing
+  });
 
   @override
   State<AddProjectPage> createState() => _AddProjectPageState();
@@ -12,18 +17,57 @@ class AddProjectPage extends StatefulWidget {
 
 class _AddProjectPageState extends State<AddProjectPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _startDateController = TextEditingController();
-  final TextEditingController _endDateController = TextEditingController();
-  final TextEditingController _urlController = TextEditingController();
-  bool _notifyNetwork = false;
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _startDateController;
+  late TextEditingController _endDateController;
+  late TextEditingController _urlController;
+  late bool _notifyNetwork;
+  late bool _isEditing;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditing = widget.project != null;
+    _nameController = TextEditingController(
+      text: _isEditing ? widget.project!.name : '',
+    );
+    _descriptionController = TextEditingController(
+      text: _isEditing ? widget.project!.description : '',
+    );
+    _startDateController = TextEditingController(
+      text:
+          _isEditing
+              ? widget.project!.startDate.toIso8601String().split('T').first
+              : '',
+    );
+    _endDateController = TextEditingController(
+      text:
+          _isEditing && widget.project!.endDate != null
+              ? widget.project!.endDate!.toIso8601String().split('T').first
+              : '',
+    );
+    _urlController = TextEditingController(
+      text: _isEditing ? widget.project!.url ?? '' : '',
+    );
+    _notifyNetwork = false;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();
+    _urlController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Project"),
+        title: Text(_isEditing ? "Edit Project" : "Add Project"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -77,7 +121,7 @@ class _AddProjectPageState extends State<AddProjectPage> {
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromARGB(255, 0, 123, 255),
                 ),
-                child: const Text("Save"),
+                child: Text(_isEditing ? "Update" : "Save"),
               ),
             ],
           ),
@@ -205,8 +249,11 @@ class _AddProjectPageState extends State<AddProjectPage> {
   void _saveProject() {
     if (_formKey.currentState!.validate()) {
       final project = Project(
-        id: 0, // Dummy ID, replace with actual logic
-        userId: 0, // Dummy user ID, replace with actual logic
+        id: _isEditing ? widget.project!.id : 0, // Use existing ID if editing
+        userId:
+            _isEditing
+                ? widget.project!.userId
+                : 0, // Use existing userId if editing
         name: _nameController.text,
         description: _descriptionController.text,
         startDate: DateTime.parse(_startDateController.text),
@@ -214,8 +261,8 @@ class _AddProjectPageState extends State<AddProjectPage> {
             _endDateController.text.isNotEmpty
                 ? DateTime.parse(_endDateController.text)
                 : null,
-        url: _urlController.text,
-        createdAt: DateTime.now(),
+        url: _urlController.text.isEmpty ? null : _urlController.text,
+        createdAt: _isEditing ? widget.project!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
       widget.onSave(project);

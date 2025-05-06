@@ -6,7 +6,6 @@ class ProfileOptionsSheet extends StatelessWidget {
     this.isConnect,
     this.isfollowing,
     this.isPending,
-    this.toggleConnect,
     this.withdrawRequest,
     this.toggleFollow,
     this.removeConnection,
@@ -25,7 +24,6 @@ class ProfileOptionsSheet extends StatelessWidget {
   final bool? isPending;
   final bool? isMyProfile;
   final bool isAdminView;
-  final void Function()? toggleConnect;
   final void Function()? toggleFollow;
   final void Function(BuildContext)? withdrawRequest;
   final void Function(BuildContext)? removeConnection;
@@ -67,134 +65,25 @@ class ProfileOptionsSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
           child: Wrap(
-            children:
-                isImageSheet == true
-                    ? [
-                      _buildSheetOption(
-                        context,
-                        Icons.photo_camera,
-                        'View or edit $imageType photo',
-                        showImage,
-                        imageUrl: imageUrl,
-                      ),
-                      _buildSheetOption(
-                        context,
-                        Icons.image_outlined,
-                        'Edit frame',
-                        null,
-                      ),
-                    ]
-                    : [
-                      _buildSheetOption(
-                        context,
-                        Icons.send,
-                        "Send profile in a message",
-                        null,
-                      ),
-                      _buildSheetOption(
-                        context,
-                        Icons.share,
-                        "Share via...",
-                        null,
-                      ),
-                      _buildSheetOption(
-                        context,
-                        Icons.perm_contact_calendar,
-                        "Contact info",
-                        null,
-                      ),
-                      if (isMyProfile!) ...[
-                        _buildSheetOption(
-                          context,
-                          Icons.newspaper,
-                          "Activity",
-                          null,
-                        ),
-                        _buildSheetOption(
-                          context,
-                          Icons.bookmark,
-                          "Saved Items",
-                          null,
-                        ),
-                        _buildSheetOption(
-                          context,
-                          Icons.analytics,
-                          isAdminView ? "View as Member" : "View as Admin",
-                          () {
-                            Navigator.pop(context);
-                            onToggleAdminView?.call();
-                          },
-                        ),
-                      ],
-                      if (!isMyProfile!) ...[
-                        if (isConnect!) ...[
-                          _buildSheetOption(
-                            context,
-                            Icons.request_page,
-                            "Request a recommendation",
-                            null,
-                          ),
-                          _buildSheetOption(
-                            context,
-                            Icons.thumb_up,
-                            "Recommend",
-                            null,
-                          ),
-                        ],
-                        isfollowing!
-                            ? _buildSheetOption(
-                              context,
-                              Icons.remove,
-                              "Unfollow",
-                              toggleFollow,
-                            )
-                            : _buildSheetOption(
-                              context,
-                              Icons.add,
-                              "Follow",
-                              toggleFollow,
-                            ),
-                        isConnect!
-                            ? _buildSheetOption(
-                              context,
-                              Icons.person_off,
-                              "Remove connection",
-                              removeConnection,
-                            )
-                            : isPending!
-                            ? _buildSheetOption(
-                              context,
-                              Icons.access_time,
-                              "Pending",
-                              withdrawRequest,
-                            )
-                            : _buildSheetOption(
-                              context,
-                              Icons.person_add,
-                              "Connect",
-                              toggleConnect,
-                            ),
-                        _buildSheetOption(
-                          context,
-                          Icons.edit_square,
-                          "Personalize invite",
-                          toggleConnect,
-                        ),
+            children: [
+              _buildSheetOption(context, Icons.share, "Share via...", null),
+              _buildSheetOption(context, Icons.send, "Send in a message", null),
 
-                        _buildSheetOption(
-                          context,
-                          Icons.flag,
-                          "Report or block",
-                          null,
-                        ),
-                      ],
-                      _buildSheetOption(
-                        context,
-                        Icons.info,
-                        "About this profile",
-                        null,
-                      ),
-                    ],
+              if (isMyProfile!) ...[
+                _buildSheetOption(
+                  context,
+                  Icons.analytics,
+                  isAdminView ? "View as Member" : "View as Admin",
+                  () {
+                    Navigator.pop(context);
+                    onToggleAdminView?.call();
+                  },
+                ),
+              ],
+              if (!isMyProfile!) ...[
+                _buildSheetOption(context, Icons.flag, "Report or block", null),
+              ],
+            ],
           ),
         ),
       ],
