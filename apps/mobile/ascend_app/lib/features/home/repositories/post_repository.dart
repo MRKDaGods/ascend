@@ -339,17 +339,14 @@ class PostRepository {
 
   // Get User's Reaction for a Post via API
   Future<String?> getPostReaction(String postId) async {
-    final String reactionUrl =
-        '$baseUrl/post/$postId/reactions'; // Endpoint from user image
+    final String reactionUrl = '$baseUrl/post/$postId/reactions';
     debugPrint('❓ Fetching user reaction for post $postId: URL=$reactionUrl');
 
     try {
       final authToken = await SecureStorageHelper.getAuthToken();
       if (authToken == null) {
         // Don't throw, just return null as we might not be logged in or allowed to see reactions
-        debugPrint(
-          '⚠️ Auth token null, cannot fetch reaction for post $postId.',
-        );
+        debugPrint('⚠️ Auth token null, cannot fetch reaction for post $postId.');
         return null;
       }
 
@@ -364,23 +361,47 @@ class PostRepository {
       );
 
       debugPrint('Get Reaction Response Status Code: ${response.statusCode}');
-      // debugPrint('Get Reaction Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        // *** Adjust parsing based on your actual API response structure ***
-        // Assuming response is like: {"data": {"user_reaction": "like"}} or {"data": {"user_reaction": null}}
-        final reactionData = responseData['data'];
-        if (reactionData is Map<String, dynamic>) {
-          final userReaction = reactionData['user_reaction'] as String?;
-          debugPrint('✅ Fetched reaction for post $postId: $userReaction');
-          return userReaction;
-        } else {
-          debugPrint(
-            '⚠️ Unexpected reaction data format for post $postId: $reactionData',
-          );
-          return null; // Return null if format is wrong
+        
+        // Handle new API format with success and data array
+        if (responseData['success'] == true) {
+          final dataList = responseData['data'] as List;
+          
+          if (dataList.isEmpty) {
+            debugPrint('✅ No reaction found for post $postId (empty data array)');
+            return null;
+          }
+          
+          // Get the first reaction from the array
+          if (dataList.isNotEmpty && dataList[0] is Map<String, dynamic> && dataList[0]['reaction_type'] != null) {
+            final reactionType = dataList[0]['reaction_type'] as String;
+            debugPrint('✅ Fetched reaction for post $postId: $reactionType');
+            return reactionType;
+          }
         }
+        
+        // Handle case when API returns empty array directly
+        if (responseData is List) {
+          if (responseData.isEmpty) {
+            debugPrint('✅ No reaction found for post $postId (direct empty array)');
+            return null;
+          }
+        }
+        
+        // Handle older format as fallback
+        if (responseData is Map<String, dynamic> && responseData.containsKey('data')) {
+          final reactionData = responseData['data'];
+          if (reactionData is Map<String, dynamic>) {
+            final userReaction = reactionData['user_reaction'] as String?;
+            debugPrint('✅ Fetched reaction for post $postId: $userReaction');
+            return userReaction;
+          }
+        }
+        
+        debugPrint('⚠️ Unexpected reaction data format for post $postId: $responseData');
+        return null; // Return null if format is wrong
       } else if (response.statusCode == 404) {
         debugPrint(
           'ℹ️ No specific reaction found for user on post $postId (404).',
@@ -416,8 +437,7 @@ class PostRepository {
       final headers = {
         'Authorization': 'Bearer $authToken',
         'Accept': 'application/json',
-        'Content-Type':
-            'application/json', // Needed even for empty body sometimes
+        'Content-Type': 'application/json', // Needed even for empty body sometimes
       };
 
       // If reactionType is provided, send it in the body
@@ -429,25 +449,18 @@ class PostRepository {
           body: jsonEncode({'type': reactionType}),
         );
       } else {
-        // If reactionType is null, attempt to remove the reaction.
-        // Assuming POST without body or DELETE might work. Let's try POST without body first.
-        debugPrint('  Sending POST without body (attempting removal)');
-        response = await _client.post(
+        // If reactionType is null, explicitly use DELETE to remove the reaction
+        debugPrint('  Sending DELETE request to remove reaction');
+        response = await _client.delete(
           Uri.parse(reactionUrl),
           headers: headers,
-          // body: jsonEncode({}), // Or send empty JSON object? Test required.
         );
-        // Alternative: Try DELETE if POST without body fails
-        // debugPrint(' Sending DELETE request for removal');
-        // response = await _client.delete(Uri.parse(reactionUrl), headers: headers);
       }
 
-      debugPrint(
-        'Toggle Reaction Response Status Code: ${response.statusCode}',
-      );
-      // debugPrint('Toggle Reaction Response Body: ${response.body}');
+      debugPrint('Toggle Reaction Response Status Code: ${response.statusCode}');
+      debugPrint('Toggle Reaction Response Body: ${response.body}'); // Log full response body for debugging
 
-      // Check for successful status codes (200 OK, 201 Created, potentially 204 No Content for removal)
+      // Check for successful status codes
       if (response.statusCode == 200 ||
           response.statusCode == 201 ||
           response.statusCode == 204) {
@@ -458,9 +471,16 @@ class PostRepository {
                 ? (jsonDecode(responseBody)['data']?['message'] ??
                     'Reaction updated')
                 : 'Reaction updated/removed'; // Default message for success/204
+        
         debugPrint(
           '✅ Reaction toggled successfully for post $postId. Message: $message',
         );
+        
+        // For removal specifically, log it explicitly
+        if (reactionType == null) {
+          debugPrint('✅ Reaction REMOVED successfully for post $postId.');
+        }
+        
         return true;
       } else {
         debugPrint(
@@ -902,9 +922,7 @@ class PostRepository {
     }
   }
 
-  // Fetch comments for a specific post
-  // This method correctly fetches the list as provided by the API.
-  // It should NOT be responsible for structuring replies.
+  // Fetch comments for a specific post - UPDATED FOR RECURSIVE COUNT FETCHING
   Future<List<Comment>> fetchComments(
     String postId, {
     int page = 1,
@@ -915,7 +933,6 @@ class PostRepository {
       throw Exception('Authentication token not found.');
     }
 
-    // The API endpoint provides comments for the post, potentially including parent_comment_id
     final url = Uri.parse(
       '$baseUrl/post/$postId/comments?page=$page&limit=$limit',
     );
@@ -935,24 +952,40 @@ class PostRepository {
       debugPrint(
         '📄 [PostRepository] Comments Response Status: ${response.statusCode}',
       );
-      // debugPrint('📄 [PostRepository] Comments Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // The API response (data['data'] or data['comments']) contains the list.
-        // Comment.fromJson handles parsing each comment, including its parent_comment_id and potentially nested replies if the API sends them.
         final List<dynamic> commentListJson =
-            data['comments'] ?? data['data'] ?? data;
+            data['comments'] ?? data['data'] ?? [];
 
-        final comments =
+        // Parse comments first (this might include nested replies from API)
+        List<Comment> comments =
             commentListJson
                 .map((json) => Comment.fromJson(json as Map<String, dynamic>))
                 .toList();
         debugPrint(
-          '✅ [PostRepository] Fetched ${comments.length} comments for post $postId.',
+          '✅ [PostRepository] Parsed ${comments.length} base comments for post $postId.',
         );
-        // Return the list as is. The BLoC will structure it.
-        return comments;
+
+        // Recursively fetch reaction counts for comments and their replies
+        List<Comment> commentsWithCounts = [];
+        for (var comment in comments) {
+          try {
+            // Call the recursive helper to fetch counts for the comment and its replies
+            final updatedComment = await _fetchCountsRecursively(comment);
+            commentsWithCounts.add(updatedComment);
+          } catch (e) {
+             debugPrint('⚠️ [PostRepository] Failed to fetch counts recursively for comment ${comment.id}: $e. Adding original comment.');
+             commentsWithCounts.add(comment); // Add original comment if recursive fetch fails
+          }
+        }
+
+        debugPrint(
+          '✅ [PostRepository] Finished fetching counts recursively. Returning ${commentsWithCounts.length} comments.',
+        );
+        // Return the list with updated counts. The BLoC will structure it.
+        return commentsWithCounts;
+
       } else {
         debugPrint(
           '❌ [PostRepository] Failed to load comments for post $postId. Status: ${response.statusCode}, Body: ${response.body}',
@@ -964,6 +997,84 @@ class PostRepository {
         '❌ [PostRepository] Error fetching comments for post $postId: $e',
       );
       throw Exception('Error fetching comments: $e');
+    }
+  }
+
+  // NEW HELPER: Recursively fetches counts for a comment and its replies
+  Future<Comment> _fetchCountsRecursively(Comment comment) async {
+    // Fetch count for the current comment
+    Map<String, int> countsData;
+    try {
+      countsData = await getCommentReactionCounts(comment.id);
+    } catch (e) {
+      debugPrint('⚠️ [_fetchCountsRecursively] Failed to fetch count for comment ${comment.id}: $e. Using 0.');
+      countsData = {'total': 0}; // Default to 0 on error
+    }
+    final totalCount = countsData['total'] ?? 0;
+    debugPrint('📊 [_fetchCountsRecursively] Fetched count for comment ${comment.id}: $totalCount');
+
+    // Update the current comment with its count
+    Comment updatedComment = comment.copyWith(likesCount: totalCount);
+
+    // Recursively fetch counts for replies
+    if (updatedComment.replies.isNotEmpty) {
+      List<Comment> updatedReplies = [];
+      for (var reply in updatedComment.replies) {
+        try {
+          // Recursive call for each reply
+          final updatedReply = await _fetchCountsRecursively(reply);
+          updatedReplies.add(updatedReply);
+        } catch (e) {
+          debugPrint('⚠️ [_fetchCountsRecursively] Failed recursive fetch for reply ${reply.id}. Adding original reply.');
+          updatedReplies.add(reply); // Add original reply if recursive call fails
+        }
+      }
+      // Update the comment with the updated replies list
+      updatedComment = updatedComment.copyWith(replies: updatedReplies);
+    }
+
+    return updatedComment;
+  }
+
+
+  // Get reaction counts for a specific comment - (Ensure it uses the correct client if needed)
+  Future<Map<String, int>> getCommentReactionCounts(String commentId) async {
+    final String countsUrl = '$baseUrl/post/comments/$commentId/reaction-counts';
+    debugPrint('🔄 [PostRepository] Fetching reaction counts for comment $commentId from $countsUrl');
+    try {
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('⚠️ [PostRepository] Auth token is null. Cannot fetch reaction counts for comment $commentId.');
+        return {'total': 0};
+      }
+
+      // Use _client if available and preferred, otherwise use http.get
+      final response = await _client.get(
+        Uri.parse(countsUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['success'] == true && responseData['data'] != null) {
+            final Map<String, dynamic> data = responseData['data'];
+            final int totalCount = data['total_reactions_count'] as int? ?? 0;
+            debugPrint('✅ [PostRepository] Received total reaction count for comment $commentId: $totalCount');
+            return {'total': totalCount};
+        } else {
+            debugPrint('❌ [PostRepository] API indicated failure or missing data for comment $commentId reaction counts. Response: ${response.body}');
+            return {'total': 0};
+        }
+      } else {
+        debugPrint('❌ [PostRepository] Failed to fetch reaction counts for comment $commentId. Status: ${response.statusCode}, Body: ${response.body}');
+        return {'total': 0};
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error in getCommentReactionCounts for comment $commentId: $e');
+      return {'total': 0};
     }
   }
 

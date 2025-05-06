@@ -229,9 +229,7 @@ class _ChatAppBarState extends State<ChatAppBar>
 
     return AppBar(
       elevation: 1,
-      leadingWidth: 32,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
+      leading: BackButton(
         onPressed: () {
           if (widget.onBackPressed != null) {
             widget.onBackPressed!();

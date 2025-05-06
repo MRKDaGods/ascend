@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/UserPage/user_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
@@ -260,27 +261,33 @@ class _SearchUsersPageState extends State<SearchUsersPage> {
             return UserCard(
               user: user,
               onTap: () {
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  '/profile/view',
-                  arguments: {'userId': user.user_id},
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            UserProfilePage(profileId: int.parse(user.user_id)),
+                  ),
                 );
               },
               onSendConnectionRequest: () {
                 context.read<ConnectionRequestBloc>().add(
-                  SendConnectionRequest(connctionId: user.user_id ?? ''),
+                  SendConnectionRequest(connctionId: user.user_id),
                 );
               },
               onRemoveConnection: () {
                 context.read<ConnectionRequestBloc>().add(
-                  RemoveConnection(connectionId: user.user_id ?? ''),
+                  RemoveConnection(connectionId: user.user_id),
                 );
               },
               onViewProfile: () {
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  '/profile/view',
-                  arguments: {'userId': user.user_id},
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            UserProfilePage(profileId: int.parse(user.user_id)),
+                  ),
                 );
               },
               onFollowUser: () {

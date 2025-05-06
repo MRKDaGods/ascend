@@ -167,7 +167,9 @@ class _CreateCompanyState extends State<CreateCompany> {
       final String baseUrl = 'https://api.ascendx.tech';
       final String endpoint =
           widget.isEditMode
+
               ? '/company/companies/${widget.companyId}' // Edit endpoint
+
               : '/company/companies'; // Create endpoint
 
       try {
@@ -184,12 +186,16 @@ class _CreateCompanyState extends State<CreateCompany> {
                 ? await http.patch(
                   url,
                   headers: headers,
+
                   body: jsonEncode(cleanedData),
+
                 )
                 : await http.post(
                   url,
                   headers: headers,
+
                   body: jsonEncode(cleanedData),
+
                 );
 
         if (response.statusCode == 200 || response.statusCode == 201) {

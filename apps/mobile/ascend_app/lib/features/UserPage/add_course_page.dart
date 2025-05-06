@@ -3,8 +3,13 @@ import 'package:ascend_app/shared/models/profile.dart';
 
 class AddCoursePage extends StatefulWidget {
   final void Function(Course) onSave;
+  final Course? course; // Add this parameter for editing
 
-  const AddCoursePage({super.key, required this.onSave});
+  const AddCoursePage({
+    super.key,
+    required this.onSave,
+    this.course, // Optional parameter for editing
+  });
 
   @override
   State<AddCoursePage> createState() => _AddCoursePageState();
@@ -12,17 +17,43 @@ class AddCoursePage extends StatefulWidget {
 
 class _AddCoursePageState extends State<AddCoursePage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _providerController = TextEditingController();
-  final TextEditingController _completionDateController =
-      TextEditingController();
-  bool _notifyNetwork = false;
+  late TextEditingController _nameController;
+  late TextEditingController _providerController;
+  late TextEditingController _completionDateController;
+  late bool _isEditing;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditing = widget.course != null;
+
+    _nameController = TextEditingController(
+      text: _isEditing ? widget.course!.name : '',
+    );
+    _providerController = TextEditingController(
+      text: _isEditing ? widget.course!.provider : '',
+    );
+    _completionDateController = TextEditingController(
+      text:
+          _isEditing && widget.course!.completionDate != null
+              ? widget.course!.completionDate.toString().split(' ')[0]
+              : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _providerController.dispose();
+    _completionDateController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Course"),
+        title: Text(_isEditing ? "Edit Course" : "Add Course"),
         centerTitle: true,
         actions: [
           IconButton(
@@ -43,14 +74,13 @@ class _AddCoursePageState extends State<AddCoursePage> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 16),
-              _buildNotifyNetworkToggle(),
               _buildLabeledTextField(
                 label: "Course Name*",
                 controller: _nameController,
-                placeholder: "Ex: Data Structures",
+                placeholder: "Ex: Machine Learning",
               ),
               _buildLabeledTextField(
-                label: "Provider",
+                label: "Provider*",
                 controller: _providerController,
                 placeholder: "Ex: Coursera",
               ),
@@ -66,7 +96,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromARGB(255, 0, 123, 255),
                 ),
-                child: const Text("Save"),
+                child: Text(_isEditing ? "Update" : "Save"),
               ),
             ],
           ),
@@ -96,10 +126,6 @@ class _AddCoursePageState extends State<AddCoursePage> {
               hintText: placeholder,
               border: const OutlineInputBorder(),
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
             ),
             validator: (value) {
               if (label.endsWith("*") && (value == null || value.isEmpty)) {
@@ -110,38 +136,6 @@ class _AddCoursePageState extends State<AddCoursePage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildNotifyNetworkToggle() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                "Notify network",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text(
-                "Turn on to notify your network of key profile changes (such as new education) and work anniversaries.",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-        Switch(
-          value: _notifyNetwork,
-          onChanged: (value) {
-            setState(() {
-              _notifyNetwork = value;
-            });
-          },
-        ),
-      ],
     );
   }
 
@@ -163,14 +157,10 @@ class _AddCoursePageState extends State<AddCoursePage> {
             controller: controller,
             readOnly: true,
             decoration: InputDecoration(
-              hintText: "Date",
-              fillColor: Colors.white,
               border: const OutlineInputBorder(),
+              fillColor: Colors.white,
+              hintText: "Date",
               suffixIcon: const Icon(Icons.calendar_today),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
             ),
             onTap: () async {
               final DateTime? pickedDate = await showDatePicker(
@@ -191,18 +181,21 @@ class _AddCoursePageState extends State<AddCoursePage> {
 
   void _saveCourse() {
     if (_formKey.currentState!.validate()) {
+      DateTime? completionDate;
+      if (_completionDateController.text.isNotEmpty) {
+        completionDate = DateTime.parse(_completionDateController.text);
+      }
+
       final course = Course(
-        id: 0, // Dummy ID, replace with actual logic
-        userId: 0, // Dummy user ID, replace with actual logic
+        id: _isEditing ? widget.course!.id : 0,
+        userId: _isEditing ? widget.course!.userId : 0,
         name: _nameController.text,
         provider: _providerController.text,
-        completionDate:
-            _completionDateController.text.isNotEmpty
-                ? DateTime.parse(_completionDateController.text)
-                : null,
-        createdAt: DateTime.now(),
+        completionDate: completionDate,
+        createdAt: _isEditing ? widget.course!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
       widget.onSave(course);
       Navigator.pop(context);
     }

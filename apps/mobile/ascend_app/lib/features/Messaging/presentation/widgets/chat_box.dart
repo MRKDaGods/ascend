@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
-import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
-import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:path/path.dart' as path;
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
-class ChatBox extends StatefulWidget {
+class ChatBox extends StatelessWidget {
   final String messageId;
-  final String receiverId;
   final String senderName;
-  final String? senderAvatar;
+  final String receiverId;
+  final String senderAvatar;
   final bool sentOrReceived;
   final DateTime sentAt;
   final DateTime receivedAt;
-  final String? content;
+  final String content;
   final String? fileUrl;
   final String? fileType;
   final String conversationId;
@@ -20,397 +23,623 @@ class ChatBox extends StatefulWidget {
   const ChatBox({
     super.key,
     required this.messageId,
-    required this.receiverId,
     required this.senderName,
+    required this.receiverId,
     required this.senderAvatar,
     required this.sentOrReceived,
     required this.sentAt,
     required this.receivedAt,
-    required this.conversationId,
-    this.content,
+    required this.content,
     this.fileUrl,
     this.fileType,
+    required this.conversationId,
   });
 
   @override
-  State<ChatBox> createState() => _ChatBoxState();
-}
+  Widget build(BuildContext context) {
+    final time = DateFormat('h:mm a').format(sentAt.toLocal());
+    final hasFile = fileUrl != null && fileUrl!.isNotEmpty;
+    final theme = Theme.of(context);
 
-class _ChatBoxState extends State<ChatBox> {
-  @override
-  void initState() {
-    super.initState();
-
-    // If this is a received message and hasn't been marked as read yet,
-    // trigger read receipt via BLoC
-    if (!widget.sentOrReceived && !_isMessageRead()) {
-      _updateMessageStatus(true);
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  bool _isMessageRead() {
-    // Use DateVerifier to check if the message has been read
-    return DateVerifier.isMessageRead(widget.receivedAt, widget.sentAt);
-  }
-
-  Widget _buildDateSeperator(DateTime date) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      alignment: Alignment.center,
       child: Row(
-        children: [
-          Expanded(child: Divider(color: Colors.grey[300])),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              DateVerifier.getFormattedDateString(date),
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-          Expanded(child: Divider(color: Colors.grey[300])),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNameandTimeSection(
-    String name,
-    DateTime date,
-    String? avatarUrl,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage:
-                  !_shouldShowFallbackIcon()
-                      ? NetworkImage(widget.senderAvatar!)
-                      : null, // Use NetworkImage for profile image
-              child:
-                  _shouldShowFallbackIcon()
-                      ? const Icon(Icons.person, size: 40, color: Colors.grey)
-                      : null,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              name,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        Text(
-          DateVerifier.formatTime(date),
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-      ],
-    );
-  }
-
-  bool _shouldShowFallbackIcon() {
-    final imageUrl = widget.senderAvatar;
-    return imageUrl == null ||
-        imageUrl.isEmpty ||
-        imageUrl == 'assets/EmptyUser.png';
-  }
-
-  Widget _buildFileTypeIcon(String fileType) {
-    switch (fileType) {
-      case 'image':
-        return const Icon(Icons.image, color: Colors.blue);
-      case 'video':
-        return const Icon(Icons.videocam, color: Colors.blue);
-      case 'audio':
-        return const Icon(Icons.audiotrack, color: Colors.blue);
-      case 'application/pdf':
-        return const Icon(Icons.picture_as_pdf, color: Colors.red);
-      case 'document':
-        return const Icon(Icons.description, color: Colors.blue);
-      default:
-        return const Icon(Icons.attach_file, color: Colors.blue);
-    }
-  }
-
-  Widget _buildFileSection(String fileUrl, String fileType) {
-    // Extract filename from URL
-    final filename = fileUrl.split('/').last;
-
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildFileTypeIcon(fileType),
-          const SizedBox(width: 8),
-          Flexible(child: Text(filename, overflow: TextOverflow.ellipsis)),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () {
-              // Handle file download using BLoC
-              /*context.read<MessagingBloc>().add(
-                DownloadFile(
-                  fileUrl: fileUrl,
-                  fileName: filename,
-                  fileType: fileType,
-                ),
-              );*/
-              // For now, just print the file URL
-              debugPrint('Downloading file: $fileUrl');
-            },
-            child: const Text('Download'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReadStatus(bool isRead) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          DateVerifier.formatTime(widget.sentAt),
-          style: TextStyle(fontSize: 10, color: Colors.grey),
-        ),
-        const SizedBox(width: 4),
-        isRead
-            ? const Icon(Icons.done_all, color: Colors.blue, size: 14)
-            : const Icon(Icons.done, color: Colors.grey, size: 14),
-      ],
-    );
-  }
-
-  /*
-  Widget _showSuggestedReplies() {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
+        mainAxisAlignment:
+            sentOrReceived ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Suggested Replies:', style: TextStyle(fontSize: 16)),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Avatar for received messages
+          if (!sentOrReceived) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundImage: NetworkImage(senderAvatar),
+              onBackgroundImageError: (_, __) {
+                // Handle error loading image
+              },
+            ),
+            SizedBox(width: 8),
+          ],
+
+          // Message content
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.7,
+              ),
+              decoration: BoxDecoration(
+                color:
+                    sentOrReceived
+                        ? theme.primaryColor.withOpacity(0.2)
+                        : Colors.grey[200],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // File content
+                    if (hasFile) _buildFileContent(context),
+
+                    // Text content (may appear with or without a file)
+                    if (content.isNotEmpty) ...[
+                      if (hasFile) SizedBox(height: 8),
+                      Text(
+                        content,
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                      ),
+                    ],
+
+                    // Time stamp
+                    SizedBox(height: 4),
+                    Text(
+                      time,
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Avatar for sent messages
+          if (sentOrReceived) ...[
+            SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundImage: NetworkImage(senderAvatar),
+              onBackgroundImageError: (_, __) {
+                // Handle error loading image
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileContent(BuildContext context) {
+    if (fileUrl == null || fileUrl!.isEmpty) return SizedBox.shrink();
+    final theme = Theme.of(context);
+
+    // Check if it's an image
+    if (_isImageFile(fileUrl!, fileType)) {
+      return InkWell(
+        onTap: () => _openFileFullScreen(context),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: CachedNetworkImage(
+            imageUrl: fileUrl!,
+            placeholder:
+                (context, url) => Container(
+                  height: 150,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+            errorWidget:
+                (context, url, error) => Container(
+                  height: 150,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                  child: Icon(Icons.error, color: Colors.red),
+                ),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 200,
+          ),
+        ),
+      );
+    }
+    // Check if it's a video
+    else if (_isVideoFile(fileUrl!, fileType)) {
+      return InkWell(
+        onTap: () => _openVideoPlayer(context),
+        child: Container(
+          height: 200,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.black87,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  _sendSuggestedReply("How are you?");
-                },
-                child: const Text(
-                  'How are you?',
-                  style: TextStyle(color: Colors.blue),
+              // Video thumbnail (could be a generated preview or a placeholder)
+              Center(
+                child: Icon(
+                  Icons.play_circle_fill,
+                  color: Colors.white,
+                  size: 50,
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  _sendSuggestedReply("Hello!");
-                },
-                child: const Text(
-                  'Hello!',
-                  style: TextStyle(color: Colors.blue),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _sendSuggestedReply("Thanks!");
-                },
-                child: const Text(
-                  'Thanks!',
-                  style: TextStyle(color: Colors.blue),
+              Positioned(
+                bottom: 8,
+                left: 8,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.videocam, color: Colors.white, size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Video',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSuggestedReplyButton(String text) {
-    return OutlinedButton(
-      onPressed: () => _sendSuggestedReply(text),
-      style: OutlinedButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      child: Text(text),
-    );
-  }
-
-  void _sendSuggestedReply(String text) {
-    // Use BLoC to send the suggested reply
-    if (mounted) {
-      context.read<MessagingBloc>().add(
-        SendMessage(widget.conversationId, widget.conversationId, text),
+        ),
+      );
+    }
+    // Handle PDF files
+    else if (_isPdfFile(fileUrl!, fileType)) {
+      final fileName = _getFileNameFromUrl(fileUrl!);
+      return InkWell(
+        onTap: () => _openPdfViewer(context),
+        child: Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(Icons.picture_as_pdf, color: Colors.red[700], size: 36),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.visibility,
+                        color: Colors.white,
+                        size: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fileName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'PDF - Tap to view',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    // Handle document files
+    else if (_isDocumentFile(fileUrl!, fileType)) {
+      final fileName = _getFileNameFromUrl(fileUrl!);
+      return InkWell(
+        onTap: () => _openFile(fileUrl!),
+        child: Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            children: [
+              Icon(_getFileIcon(), color: theme.primaryColor, size: 36),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fileName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Document - Tap to open',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    // Handle other file types
+    else {
+      final fileName = _getFileNameFromUrl(fileUrl!);
+      return InkWell(
+        onTap: () => _openFile(fileUrl!),
+        child: Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.insert_drive_file,
+                color: theme.primaryColor,
+                size: 36,
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fileName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'File - Tap to open',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
   }
-*/
-  Widget _buildMessageBubble(
-    bool isSent,
-    bool isReceived,
-    bool hasContent,
-    bool hasFile,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(
-        left: isSent ? 80.0 : 0,
-        right: isReceived ? 80.0 : 0,
-      ),
-      child: Column(
-        crossAxisAlignment:
-            isSent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: isSent ? Colors.blue[400] : Colors.grey[200],
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Content and file handling
-                if (hasContent && hasFile) ...[
-                  Text(
-                    widget.content!,
-                    style: TextStyle(
-                      color: isSent ? Colors.white : Colors.black,
+
+  bool _isImageFile(String url, String? fileType) {
+    if (fileType != null) {
+      if (fileType == 'image' ||
+          fileType.startsWith('image/') ||
+          [
+            'jpg',
+            'jpeg',
+            'png',
+            'gif',
+            'webp',
+          ].contains(fileType.toLowerCase())) {
+        return true;
+      }
+    }
+
+    final ext = path.extension(url).toLowerCase();
+    return [
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.bmp',
+      '.heic',
+    ].contains(ext);
+  }
+
+  bool _isVideoFile(String url, String? fileType) {
+    if (fileType != null) {
+      if (fileType == 'video' ||
+          fileType.startsWith('video/') ||
+          [
+            'mp4',
+            'mov',
+            'avi',
+            'webm',
+            'mkv',
+          ].contains(fileType.toLowerCase())) {
+        return true;
+      }
+    }
+
+    final ext = path.extension(url).toLowerCase();
+    return [
+      '.mp4',
+      '.mov',
+      '.avi',
+      '.webm',
+      '.mkv',
+      '.flv',
+      '.wmv',
+      '.3gp',
+    ].contains(ext);
+  }
+
+  bool _isPdfFile(String url, String? fileType) {
+    if (fileType != null) {
+      if (fileType == 'pdf' ||
+          fileType == 'application/pdf' ||
+          fileType.contains('pdf')) {
+        return true;
+      }
+    }
+
+    final ext = path.extension(url).toLowerCase();
+    return ext == '.pdf';
+  }
+
+  bool _isDocumentFile(String url, String? fileType) {
+    if (fileType != null) {
+      if (fileType == 'document' ||
+          fileType.contains('doc') ||
+          fileType.contains('xls') ||
+          fileType.contains('ppt') ||
+          [
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument',
+          ].any((t) => fileType.contains(t))) {
+        return true;
+      }
+    }
+
+    final ext = path.extension(url).toLowerCase();
+    final docExtensions = [
+      '.doc',
+      '.docx',
+      '.xls',
+      '.xlsx',
+      '.ppt',
+      '.pptx',
+      '.txt',
+      '.rtf',
+      '.odt',
+      '.ods',
+      '.odp',
+    ];
+    return docExtensions.contains(ext);
+  }
+
+  String _getFileNameFromUrl(String url) {
+    try {
+      return path.basename(Uri.parse(url).path);
+    } catch (e) {
+      return 'File';
+    }
+  }
+
+  IconData _getFileIcon() {
+    if (_isPdfFile(fileUrl ?? '', fileType)) {
+      return Icons.picture_as_pdf;
+    } else if (fileType?.contains('doc') == true ||
+        fileUrl?.toLowerCase().endsWith('.doc') == true ||
+        fileUrl?.toLowerCase().endsWith('.docx') == true) {
+      return Icons.description;
+    } else if (fileType?.contains('xls') == true ||
+        fileUrl?.toLowerCase().endsWith('.xls') == true ||
+        fileUrl?.toLowerCase().endsWith('.xlsx') == true) {
+      return Icons.table_chart;
+    } else if (fileType?.contains('ppt') == true ||
+        fileUrl?.toLowerCase().endsWith('.ppt') == true ||
+        fileUrl?.toLowerCase().endsWith('.pptx') == true) {
+      return Icons.slideshow;
+    } else {
+      return Icons.insert_drive_file;
+    }
+  }
+
+  void _openFile(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        debugPrint('Could not launch $url');
+      }
+    } catch (e) {
+      debugPrint('Error opening file: $e');
+    }
+  }
+
+  void _openFileFullScreen(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.black,
+                iconTheme: IconThemeData(color: Colors.white),
+                elevation: 0,
+              ),
+              body: Container(
+                color: Colors.black,
+                child: Center(
+                  child: InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: CachedNetworkImage(
+                      imageUrl: fileUrl!,
+                      placeholder:
+                          (context, url) =>
+                              Center(child: CircularProgressIndicator()),
+                      errorWidget:
+                          (context, url, error) =>
+                              Icon(Icons.error, color: Colors.red, size: 50),
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  _buildFileSection(widget.fileUrl!, widget.fileType!),
-                ] else if (hasContent) ...[
-                  Text(
-                    widget.content!,
-                    style: TextStyle(
-                      color: isSent ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ] else if (hasFile) ...[
-                  _buildFileSection(widget.fileUrl!, widget.fileType!),
-                ],
-              ],
+                ),
+              ),
             ),
-          ),
-        ],
       ),
     );
   }
 
-  void _updateMessageStatus(bool isRead) {
-    // Add mounted check before accessing context
-    if (mounted) {
-      context.read<MessagingBloc>().add(
-        MarkMessagesasRead(widget.conversationId),
+  void _openVideoPlayer(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _VideoPlayerScreen(videoUrl: fileUrl!),
+      ),
+    );
+  }
+
+  void _openPdfViewer(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => Scaffold(
+              appBar: AppBar(
+                title: Text(_getFileNameFromUrl(fileUrl!)),
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              body: SfPdfViewer.network(
+                fileUrl!,
+                canShowPaginationDialog: true,
+                canShowScrollHead: true,
+                canShowScrollStatus: true,
+                enableDoubleTapZooming: true,
+              ),
+            ),
+      ),
+    );
+  }
+}
+
+class _VideoPlayerScreen extends StatefulWidget {
+  final String videoUrl;
+
+  const _VideoPlayerScreen({Key? key, required this.videoUrl})
+    : super(key: key);
+
+  @override
+  State<_VideoPlayerScreen> createState() => _VideoPlayerScreenState();
+}
+
+class _VideoPlayerScreenState extends State<_VideoPlayerScreen> {
+  late VideoPlayerController _videoPlayerController;
+  ChewieController? _chewieController;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePlayer();
+  }
+
+  void _initializePlayer() async {
+    try {
+      _videoPlayerController = VideoPlayerController.network(widget.videoUrl);
+      await _videoPlayerController.initialize();
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoPlayerController,
+        autoPlay: true,
+        looping: false,
+        aspectRatio: _videoPlayerController.value.aspectRatio,
+        errorBuilder: (context, errorMessage) {
+          return Center(
+            child: Text(
+              'Error: $errorMessage',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        },
       );
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Could not play this video: ${error.toString()}';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Configure if chat box contains file or content
-    bool hasFile = widget.fileUrl != null && widget.fileUrl!.isNotEmpty;
-    bool hasContent = widget.content != null && widget.content!.isNotEmpty;
-    debugPrint(
-      '[ChatBox] Building message widget for messageId: ${widget.messageId}',
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
+      body: Center(
+        child:
+            _isLoading
+                ? CircularProgressIndicator()
+                : _errorMessage != null
+                ? Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                )
+                : Chewie(controller: _chewieController!),
+      ),
     );
+  }
 
-    // Determine if the message is sent or received
-    bool isSent = widget.sentOrReceived;
-    bool isReceived = !isSent;
-
-    // Determine the message date
-    DateTime messageDate = isSent ? widget.sentAt : widget.receivedAt;
-
-    // Check message read status using bloc state
-    bool isRead = false;
-
-    // Store the BlocProvider reference in initState
-    return BlocBuilder<MessagingBloc, MessagingBlocState>(
-      buildWhen: (previous, current) {
-        // Only rebuild if widget is still mounted
-        if (!mounted) return false;
-
-        // Only rebuild if the state contains updated message information
-        if (current is MessagesLoaded &&
-            current.conversationId == widget.conversationId) {
-          // Check if this message's read status has changed
-          return true;
-        }
-        return false;
-      },
-      builder: (context, state) {
-        // Update read status based on bloc state if available
-        if (state is MessagesLoaded) {
-          try {
-            final message = state.messages.firstWhere(
-              (m) => m.messageId == widget.messageId,
-              orElse:
-                  () => MessageModel(
-                    messageId: '',
-                    conversationId: '',
-                    content: '',
-                    sentAt: DateTime.now(),
-                    senderId: '',
-                  ),
-            );
-
-            if (message.messageId.isNotEmpty && isSent) {
-              isRead = message.isRead;
-            } else if (isSent) {
-              // Fall back to the widget's data if message is not found in state
-              isRead = DateVerifier.isMessageRead(
-                widget.receivedAt,
-                widget.sentAt,
-              );
-            }
-          } catch (e) {
-            // Handle any potential errors when searching for the message
-            debugPrint('Error finding message in state: $e');
-          }
-        } else if (isSent) {
-          // Fall back to the widget's data if no valid state
-          isRead = DateVerifier.isMessageRead(widget.receivedAt, widget.sentAt);
-        }
-
-        return Column(
-          crossAxisAlignment:
-              isSent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            // Only show date separator when needed (this should be controlled by parent widget)
-            _buildDateSeperator(messageDate),
-
-            _buildNameandTimeSection(
-              widget.senderName,
-              messageDate,
-              widget.senderAvatar,
-            ),
-            const SizedBox(height: 4),
-            _buildMessageBubble(isSent, isReceived, hasContent, hasFile),
-            // Show read status for sent messages only
-            if (isSent) ...[const SizedBox(width: 4), _buildReadStatus(isRead)],
-          ],
-        );
-      },
-    );
+  @override
+  void dispose() {
+    _videoPlayerController.dispose();
+    _chewieController?.dispose();
+    super.dispose();
   }
 }

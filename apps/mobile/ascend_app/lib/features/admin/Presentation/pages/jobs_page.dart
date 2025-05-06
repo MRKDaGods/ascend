@@ -5,7 +5,7 @@ import '../../bloc/jobs/bloc/jobs_bloc.dart';
 import '../../data/models/jobs_model.dart';
 
 class JobsPage extends StatefulWidget {
-  const JobsPage({Key? key}) : super(key: key);
+  const JobsPage({super.key});
 
   @override
   State<JobsPage> createState() => _JobsPageState();

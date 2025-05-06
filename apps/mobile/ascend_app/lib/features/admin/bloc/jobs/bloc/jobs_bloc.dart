@@ -2,8 +2,6 @@ import 'package:ascend_app/features/admin/data/models/jobs_model.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as apiClient;
-import 'package:meta/meta.dart';
 
 part 'jobs_event.dart';
 part 'jobs_state.dart';
@@ -238,8 +236,9 @@ class JobsBloc extends Bloc<JobsEvent, JobsState> {
             for (int i = 0; i < reports.length; i++) {
               if (reports[i].id.toString() == event.reportId) {
                 // Update report using copyWith for better immutability
-                jobReports[jobId]![i] =
-                    reports[i].copyWith(status: event.status);
+                jobReports[jobId]![i] = reports[i].copyWith(
+                  status: event.status,
+                );
                 reportUpdated = true;
                 break;
               }

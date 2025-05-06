@@ -67,6 +67,31 @@ class SendMessage extends MessagingBlocEvent {
   ];
 }
 
+class SendFileMessage extends MessagingBlocEvent {
+  final String conversationId;
+  final String receiverId;
+  final File file;
+  final String content;
+  final String fileType;
+
+  SendFileMessage({
+    required this.conversationId,
+    required this.receiverId,
+    required this.file,
+    required this.content,
+    required this.fileType,
+  });
+
+  @override
+  List<Object?> get props => [
+    conversationId,
+    receiverId,
+    file,
+    content,
+    fileType,
+  ];
+}
+
 class SetActiveConversation extends MessagingBlocEvent {
   final String conversationId;
   SetActiveConversation(this.conversationId);

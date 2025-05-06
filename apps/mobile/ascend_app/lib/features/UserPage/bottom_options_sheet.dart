@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/UserPage/contact_info_section.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/shared/models/profile.dart';
 
@@ -16,6 +17,7 @@ class ProfileOptionsSheet extends StatelessWidget {
     this.imageUrl,
     this.imageType,
     this.profile, // Pass the profile object
+    this.onUpload,
     super.key,
   });
 
@@ -32,6 +34,7 @@ class ProfileOptionsSheet extends StatelessWidget {
   final String? imageType; // 'profile' or 'cover'
   final String? imageUrl;
   final Profile? profile; // Profile object to fetch data
+  final VoidCallback? onUpload;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +44,6 @@ class ProfileOptionsSheet extends StatelessWidget {
         // Custom Drag Handle
         Stack(
           children: [
-
             SizedBox(width: double.infinity, height: 35),
 
             SizedBox(
@@ -84,6 +86,13 @@ class ProfileOptionsSheet extends StatelessWidget {
                         'Edit frame',
                         null,
                       ),
+                      if (onUpload != null)
+                        _buildSheetOption(
+                          context,
+                          Icons.upload_outlined,
+                          'Upload new $imageType image',
+                          onUpload,
+                        ),
                     ]
                     : [
                       _buildSheetOption(
@@ -102,7 +111,24 @@ class ProfileOptionsSheet extends StatelessWidget {
                         context,
                         Icons.perm_contact_calendar,
                         "Contact info",
-                        null,
+                        () => {
+                          // Display bottom sheet with contact info
+                          showModalBottomSheet(
+                            context: context,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(12),
+                              ),
+                            ),
+                            isScrollControlled: true,
+                            builder: (BuildContext context) {
+                              return ContactInfoSection(
+                                profile: profile!,
+                                isMyProfile: isMyProfile ?? false,
+                              );
+                            },
+                          ),
+                        },
                       ),
                       if (isMyProfile!) ...[
                         _buildSheetOption(
