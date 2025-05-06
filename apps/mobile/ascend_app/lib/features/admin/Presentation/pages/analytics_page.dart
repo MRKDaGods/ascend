@@ -1,6 +1,7 @@
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/admin/bloc/analytics/bloc/analytics_bloc.dart';
 import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
+import 'package:ascend_app/features/admin/data/services/user_api_client.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -82,6 +83,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             repository: AdminRepository(
               apiClient: AdminApiClient(
                 baseUrl: 'https://api.ascendx.tech/admin',
+              ),
+              userApiClient: UserApiClient(
+                baseUrl: 'https://api.ascendx.tech/user',
               ),
             ),
           )..add(const FetchAnalyticsEvent('day')), // Default duration
