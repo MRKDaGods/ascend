@@ -1,21 +1,23 @@
 part of 'jobs_bloc.dart';
 
 @immutable
-sealed class JobsEvent {}
+sealed class JobsEvent {
+  List<Object?> get props => [];
+}
 
 // Event to fetch all reported jobs
 class FetchReportedJobsEvent extends JobsEvent {
-   int page;
-   bool isRefresh;
+   final int page;
+   final bool isRefresh;
 
   FetchReportedJobsEvent({required this.page, this.isRefresh = false});
 }
 
 // Event to fetch reports for a specific job
 class FetchJobReportsEvent extends JobsEvent {
-   int jobId;
-   int page;
-  bool? isRefresh;
+   final int jobId;
+   final int page;
+   final bool? isRefresh;
 
   FetchJobReportsEvent(this.jobId, {this.page = 1, this.isRefresh = false});
 }
@@ -26,6 +28,7 @@ class DeleteJobEvent extends JobsEvent {
 
   DeleteJobEvent(this.jobId);
 
+  @override
   List<Object?> get props => [jobId];
 }
 

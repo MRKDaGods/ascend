@@ -4,8 +4,9 @@ import '../../data/models/posts_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/posts/bloc/posts_bloc.dart';
 import '../../bloc/posts/bloc/posts_event.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class ReportedPostCard extends StatelessWidget {
+class ReportedPostCard extends StatefulWidget {
   final ReportedPost post;
   final bool isExpanded;
   final bool showReports;
@@ -24,11 +25,18 @@ class ReportedPostCard extends StatelessWidget {
   });
 
   @override
+  State<ReportedPostCard> createState() => _ReportedPostCardState();
+}
+
+class _ReportedPostCardState extends State<ReportedPostCard> {
+  @override
   Widget build(BuildContext context) {
-    final fullName = post.authorFullName;
-    final createdAt = DateFormat('yyyy-MM-dd – kk:mm').format(post.createdAt);
-    final hasImage = post.mediaUrls.isNotEmpty;
-    final imageUrl = hasImage ? post.mediaUrls.first : null;
+    final fullName = widget.post.authorFullName;
+    final createdAt = DateFormat(
+      'yyyy-MM-dd – kk:mm',
+    ).format(widget.post.createdAt);
+    // final hasImage = widget.post.mediaUrls.isNotEmpty;
+    // final imageUrl = hasImage ? widget.post.mediaUrls.first : null;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 12),
@@ -48,8 +56,8 @@ class ReportedPostCard extends StatelessWidget {
                     CircleAvatar(
                       radius: 20,
                       backgroundImage:
-                          post.profilePictureUrl.isNotEmpty
-                              ? NetworkImage(post.profilePictureUrl)
+                          widget.post.profilePictureUrl.isNotEmpty
+                              ? NetworkImage(widget.post.profilePictureUrl)
                               : const AssetImage('assets/default_profile.png')
                                   as ImageProvider,
                     ),
@@ -72,32 +80,23 @@ class ReportedPostCard extends StatelessWidget {
             const SizedBox(height: 8),
 
             /// Post content
-            Text(post.content, style: const TextStyle(fontSize: 15)),
+            Text(widget.post.content, style: const TextStyle(fontSize: 15)),
             const SizedBox(height: 10),
 
-            /// Optional image
-            if (hasImage)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imageUrl!,
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            if (hasImage) const SizedBox(height: 10),
+            /// Media preview
+            _buildMediaPreview(widget.post),
+            const SizedBox(height: 10),
 
             /// Metadata row
             Row(
               children: [
-                _metaIcon(Icons.visibility, post.privacy),
+                _metaIcon(Icons.visibility, widget.post.privacy),
                 const SizedBox(width: 12),
-                _metaIcon(Icons.thumb_up, post.likesCount.toString()),
+                _metaIcon(Icons.thumb_up, widget.post.likesCount.toString()),
                 const SizedBox(width: 12),
-                _metaIcon(Icons.comment, post.commentsCount.toString()),
+                _metaIcon(Icons.comment, widget.post.commentsCount.toString()),
                 const SizedBox(width: 12),
-                _metaIcon(Icons.share, post.sharesCount.toString()),
+                _metaIcon(Icons.share, widget.post.sharesCount.toString()),
               ],
             ),
             const SizedBox(height: 16),
@@ -107,17 +106,19 @@ class ReportedPostCard extends StatelessWidget {
               children: [
                 // Toggle reports button with specific implementation
                 TextButton.icon(
-                  onPressed: onToggleReports,
+                  onPressed: widget.onToggleReports,
                   icon: Icon(
-                    showReports ? Icons.expand_less : Icons.expand_more,
+                    widget.showReports ? Icons.expand_less : Icons.expand_more,
                   ),
-                  label: Text(showReports ? 'Hide Reports' : 'Show Reports'),
+                  label: Text(
+                    widget.showReports ? 'Hide Reports' : 'Show Reports',
+                  ),
                 ),
 
                 const Spacer(), // Push delete button to the right
                 // Delete button
                 ElevatedButton.icon(
-                  onPressed: onDelete,
+                  onPressed: widget.onDelete,
                   icon: const Icon(Icons.delete, color: Colors.white),
                   label: const Text(
                     'Delete',
@@ -132,7 +133,7 @@ class ReportedPostCard extends StatelessWidget {
             ),
 
             // Show reports section when showReports is true
-            if (showReports) ...[
+            if (widget.showReports) ...[
               const SizedBox(height: 16),
               const Text(
                 'Reports:',
@@ -144,7 +145,7 @@ class ReportedPostCard extends StatelessWidget {
                   // Debug prints to see what's happening
                   debugPrint('Current state: $state');
                   debugPrint(
-                    'Post ID: ${post.id}, Reports count: ${post.reports.length}',
+                    'Post ID: ${widget.post.id}, Reports count: ${widget.post.reports.length}',
                   );
 
                   // Show loading indicator while fetching reports
@@ -159,7 +160,7 @@ class ReportedPostCard extends StatelessWidget {
 
                   // Add specific handling for PostReportsFetchedState
                   if (state is PostReportsFetchedState &&
-                      state.postId == post.id) {
+                      state.postId == widget.post.id) {
                     // Show reports from state if they're for this post
                     return Column(
                       children:
@@ -172,10 +173,10 @@ class ReportedPostCard extends StatelessWidget {
                   }
 
                   // Show reports from post object if available
-                  if (post.reports.isNotEmpty) {
+                  if (widget.post.reports.isNotEmpty) {
                     return Column(
                       children:
-                          post.reports
+                          widget.post.reports
                               .map<Widget>(
                                 (report) => _buildReportCard(context, report),
                               )
@@ -185,7 +186,7 @@ class ReportedPostCard extends StatelessWidget {
                     // If we get here and we don't have reports, but we know there should be reports
                     // Check if bloc has reports for this post
                     final reportsFromBloc =
-                        context.read<PostsBloc>().postReports[post.id];
+                        context.read<PostsBloc>().postReports[widget.post.id];
                     if (reportsFromBloc != null && reportsFromBloc.isNotEmpty) {
                       return Column(
                         children:
@@ -206,7 +207,7 @@ class ReportedPostCard extends StatelessWidget {
                           onPressed: () {
                             // Try to fetch reports again
                             context.read<PostsBloc>().add(
-                              FetchPostReports(postId: post.id),
+                              FetchPostReports(postId: widget.post.id),
                             );
                           },
                           child: const Text('Refresh Reports'),
@@ -408,5 +409,120 @@ class ReportedPostCard extends StatelessWidget {
         ),
       );
     }
+  }
+
+  Widget _buildMediaPreview(ReportedPost post) {
+    if (post.media.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children:
+          post.media.map((mediaItem) {
+            final type = mediaItem['type'] ?? 'image';
+            final url = mediaItem['url'] ?? '';
+            final title = mediaItem['title'] ?? '';
+
+            // Handle different media types
+            if (type == 'document') {
+              return Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.insert_drive_file, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Document',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new),
+                      onPressed: () async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                        try {
+                          final Uri uri = Uri.parse(url);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } else {
+                            scaffoldMessenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Unable to open document'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          debugPrint('Error launching URL: $e');
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Error opening document: ${e.toString()}',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              );
+            } else if (type == 'video') {
+              // Handle video type (you might want to use a video player package)
+              return Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                ),
+              );
+            } else {
+              // Default to image handling
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  url,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.grey.shade200,
+                      child: const Center(child: Text('Unable to load image')),
+                    );
+                  },
+                ),
+              );
+            }
+          }).toList(),
+    );
   }
 }

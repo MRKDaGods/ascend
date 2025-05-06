@@ -1,7 +1,15 @@
 part of 'jobs_bloc.dart';
 
 @immutable
-abstract class JobsState {}
+abstract class JobState {
+  List<Object?> get props => [];
+}
+
+@immutable
+abstract class JobsState extends JobState {
+  @override
+  List<Object?> get props => [];
+}
 
 final class JobsInitial extends JobsState {}
 
@@ -73,7 +81,7 @@ final class JobReportUpdateFailedState extends JobsState {
     required this.status,
     required this.error,
   });
-  
+
   @override
   List<Object?> get props => [reportId, status, error];
 }
