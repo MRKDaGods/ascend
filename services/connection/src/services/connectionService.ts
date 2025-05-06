@@ -1132,22 +1132,10 @@ class ConnectionService {
         SELECT id FROM connection_service.connections
         WHERE user_id = $1 AND connection_id = $2 AND status = 'pending'
       `,
-      [targetUserId, userId]
+      [userId, targetUserId]
     );
 
-    let connectionRequestId = connectionRequest.rows.length > 0 ? connectionRequest.rows[0].id : null;
-    if (connectionRequestId == null) {
-      // Try the other way around
-      const connectionRequest2 = await db.query(
-        `
-          SELECT id FROM connection_service.connections
-          WHERE user_id = $1 AND connection_id = $2 AND status = 'pending'
-        `,
-        [userId, targetUserId]
-      );
-      connectionRequestId = connectionRequest2.rows.length > 0 ? connectionRequest2.rows[0].id : null;
-    }
-
+    const connectionRequestId = connectionRequest.rows.length > 0 ? connectionRequest.rows[0].id : null;
     return {
       connection_count: connectionCount,
       connection_request_id: connectionRequestId,
