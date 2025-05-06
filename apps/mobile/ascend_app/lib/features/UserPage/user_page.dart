@@ -96,12 +96,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ResumeViewerPage(
-                      resumeUrl: profile.resumeUrl!,
-                      isMyProfile: _isMyProfile,
-                      profile: profile,
-                      onResumeUpdated: () => _onRefresh(),
-                    ),
+                    builder:
+                        (context) => ResumeViewerPage(
+                          resumeUrl: profile.resumeUrl!,
+                          isMyProfile: _isMyProfile,
+                          profile: profile,
+                          onResumeUpdated: () => _onRefresh(),
+                        ),
                   ),
                 );
               },
@@ -166,12 +167,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ResumeViewerPage(
-                                      resumeUrl: profile.resumeUrl!,
-                                      isMyProfile: _isMyProfile,
-                                      profile: profile,
-                                      onResumeUpdated: () => _onRefresh(),
-                                    ),
+                                    builder:
+                                        (context) => ResumeViewerPage(
+                                          resumeUrl: profile.resumeUrl!,
+                                          isMyProfile: _isMyProfile,
+                                          profile: profile,
+                                          onResumeUpdated: () => _onRefresh(),
+                                        ),
                                   ),
                                 );
                               },
@@ -223,34 +225,41 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ResumeViewerPage(
-                                        resumeUrl: profile.resumeUrl!,
-                                        isMyProfile: _isMyProfile,
-                                        profile: profile,
-                                        onResumeUpdated: () => _onRefresh(),
-                                      ),
+                                      builder:
+                                          (context) => ResumeViewerPage(
+                                            resumeUrl: profile.resumeUrl!,
+                                            isMyProfile: _isMyProfile,
+                                            profile: profile,
+                                            onResumeUpdated: () => _onRefresh(),
+                                          ),
                                     ),
                                   );
                                 } else if (value == 'replace') {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => AddFeaturedPage(
-                                        onSave: (resumeUrl) {
-                                          // Update the resumeUrl in the profile
-                                          final newProfile = profile.copyWith(
-                                            resumeUrl: resumeUrl,
-                                          );
+                                      builder:
+                                          (context) => AddFeaturedPage(
+                                            onSave: (resumeUrl) {
+                                              // Update the resumeUrl in the profile
+                                              final newProfile = profile
+                                                  .copyWith(
+                                                    resumeUrl: resumeUrl,
+                                                  );
 
-                                          // Update the profile using the bloc
-                                          context.read<UserProfileBloc>().add(
-                                                UpdateUserProfile(newProfile),
-                                              );
+                                              // Update the profile using the bloc
+                                              context
+                                                  .read<UserProfileBloc>()
+                                                  .add(
+                                                    UpdateUserProfile(
+                                                      newProfile,
+                                                    ),
+                                                  );
 
-                                          // Refresh the page
-                                          _onRefresh();
-                                        },
-                                      ),
+                                              // Refresh the page
+                                              _onRefresh();
+                                            },
+                                          ),
                                     ),
                                   );
                                 } else if (value == 'download') {
@@ -261,43 +270,56 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Could not open the link")),
+                                      const SnackBar(
+                                        content: Text(
+                                          "Could not open the link",
+                                        ),
+                                      ),
                                     );
                                   }
                                 } else if (value == 'delete') {
                                   _deleteResumeEntry();
                                 }
                               },
-                              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                const PopupMenuItem<String>(
-                                  value: 'view',
-                                  child: ListTile(
-                                    leading: Icon(Icons.visibility),
-                                    title: Text('View Resume'),
-                                  ),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'replace',
-                                  child: ListTile(
-                                    leading: Icon(Icons.upload_file),
-                                    title: Text('Replace Resume'),
-                                  ),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'download',
-                                  child: ListTile(
-                                    leading: Icon(Icons.download),
-                                    title: Text('Download'),
-                                  ),
-                                ),
-                                const PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: ListTile(
-                                    leading: Icon(Icons.delete, color: Colors.red),
-                                    title: Text('Delete Resume', style: TextStyle(color: Colors.red)),
-                                  ),
-                                ),
-                              ],
+                              itemBuilder:
+                                  (
+                                    BuildContext context,
+                                  ) => <PopupMenuEntry<String>>[
+                                    const PopupMenuItem<String>(
+                                      value: 'view',
+                                      child: ListTile(
+                                        leading: Icon(Icons.visibility),
+                                        title: Text('View Resume'),
+                                      ),
+                                    ),
+                                    const PopupMenuItem<String>(
+                                      value: 'replace',
+                                      child: ListTile(
+                                        leading: Icon(Icons.upload_file),
+                                        title: Text('Replace Resume'),
+                                      ),
+                                    ),
+                                    const PopupMenuItem<String>(
+                                      value: 'download',
+                                      child: ListTile(
+                                        leading: Icon(Icons.download),
+                                        title: Text('Download'),
+                                      ),
+                                    ),
+                                    const PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: ListTile(
+                                        leading: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        title: Text(
+                                          'Delete Resume',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                             ),
                         ],
                       ),
@@ -765,7 +787,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             _profile = state.profile;
             _sections = _buildSections(state.profile);
           });
-        } 
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.grey.shade100,
@@ -808,10 +830,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   // Cover photo and profile image
                                   ProfileMainImages(
                                     profilePic:
-                                        _profile?.profilePictureUrl ?? 
+                                        _profile?.profilePictureUrl ??
                                         'https://eqrp.com/wp-content/themes/blank-child/images/default.png',
                                     coverPic:
-                                        _profile?.coverPhotoUrl ?? 
+                                        _profile?.coverPhotoUrl ??
                                         'https://htmlcolorcodes.com/assets/images/colors/dark-gray-color-solid-background-1920x1080.png',
                                     isMyProfile: _isMyProfile,
                                     deleteCover:
@@ -884,15 +906,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                               "${_profile?.firstName} ${_profile?.additionalName != null && _profile!.additionalName!.isNotEmpty ? "(${_profile!.additionalName})" : ""} ${_profile?.lastName}",
                                           bio: _profile?.headline ?? "",
                                           location:
-                                              _profile?.location ?? 
+                                              _profile?.location ??
                                               'No location set',
                                           showSchool:
                                               _profile?.showSchool ?? true,
                                           showCurrentCompany:
-                                              _profile?.showCurrentCompany ?? 
+                                              _profile?.showCurrentCompany ??
                                               true,
                                           latestEducation:
-                                              _profile?.education?.isNotEmpty == 
+                                              _profile?.education?.isNotEmpty ==
                                                       true
                                                   ? _profile!
                                                       .education!
@@ -905,7 +927,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                           currentPosition:
                                               _profile
                                                           ?.experience
-                                                          ?.isNotEmpty == 
+                                                          ?.isNotEmpty ==
                                                       true
                                                   ? _profile!
                                                       .experience!
@@ -922,7 +944,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     {
                                                       "title": "My Website",
                                                       "url": _profile!.website!,
-                                                    }, 
+                                                    },
                                                   ]
                                                   : [
                                                     {
@@ -941,10 +963,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                           degree: _degree,
                                           isMyProfile: _isMyProfile,
                                           namePronunciation:
-                                              _profile?.namePronunciation != 
+                                              _profile?.namePronunciation !=
                                               null,
+                                          userId: widget.profileId?.toString(),
                                         ),
 
+                                        if (_isMyProfile) ...[
                                         ProfileButtons(
                                           isfollowing: _isFollow,
                                           isMyProfile: _isMyProfile,
@@ -956,10 +980,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                           toggleFollow: _toggleFollow,
                                           removeConnection:
                                               _showWarningDialogForRemovingConnection,
-                                          addOrUpdateSection: 
+                                          addOrUpdateSection:
                                               _addOrUpdateSection,
                                           profile: _profile,
                                         ),
+                                        ],
                                       ],
                                     ),
                                   ),
@@ -988,7 +1013,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
-                                    ), 
+                                    ),
                                   ),
                                 ),
                               )
@@ -1020,7 +1045,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                         // Use condensed view for certain sections
                                         useCondensedView: [
                                           "Skills",
-                                          "Projects", 
+                                          "Projects",
                                           "Courses",
                                           "Interests",
                                         ].contains(section.title),
@@ -1052,7 +1077,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                             >()
                                                             .add(
                                                               UpdateUserProfile(
-                                                                newProfile, 
+                                                                newProfile,
                                                               ),
                                                             );
                                                       },
@@ -1086,7 +1111,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                             >()
                                                             .add(
                                                               UpdateUserProfile(
-                                                                newProfile, 
+                                                                newProfile,
                                                               ),
                                                             );
                                                       },
@@ -1309,10 +1334,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                                       resumeUrl,
                                                                       canShowScrollHead:
                                                                           false,
-                                                                      canShowScrollStatus: 
+                                                                      canShowScrollStatus:
                                                                           false,
                                                                       enableDoubleTapZooming:
-                                                                          false, 
+                                                                          false,
                                                                     ),
                                                                   ),
                                                                 ),
@@ -1334,7 +1359,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                                             .description,
                                                                         size:
                                                                             28,
-                                                                        color: 
+                                                                        color:
                                                                             Colors.blue.shade700,
                                                                       ),
                                                                       const SizedBox(
@@ -1361,10 +1386,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                                             ),
                                                                             const SizedBox(
                                                                               height:
-                                                                                  2, 
+                                                                                  2,
                                                                             ),
                                                                             Text(
-                                                                              fileFormat, 
+                                                                              fileFormat,
                                                                               style: TextStyle(
                                                                                 fontSize:
                                                                                     14,
@@ -1387,7 +1412,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                         final newProfile =
                                                             _profile!.copyWith(
                                                               resumeUrl:
-                                                                  resumeUrl, 
+                                                                  resumeUrl,
                                                             );
 
                                                         // Use the bloc to update the profile
@@ -1412,10 +1437,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                       },
                                                     ),
                                               ),
-                                            ); 
+                                            );
                                           }
                                         },
-                                        onEditEntry: (index) { 
+                                        onEditEntry: (index) {
                                           // Add edit functionality for each section
                                           if (section.title == "About") {
                                             if (_profile != null) {
@@ -1430,7 +1455,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                         profile: _profile!,
                                                         //initialTabIndex: 0, // Assuming 0 is the tab for basic info including bio
                                                         onSave: (
-                                                          updatedProfile, 
+                                                          updatedProfile,
                                                         ) {
                                                           context
                                                               .read<
@@ -1455,10 +1480,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                 _profile!.education![index];
                                             Navigator.push(
                                               context,
-                                              MaterialPageRoute( 
+                                              MaterialPageRoute(
                                                 builder:
                                                     (
-                                                      context, 
+                                                      context,
                                                     ) => AddEducationPage(
                                                       education:
                                                           education, // Pass the existing education
@@ -1471,9 +1496,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                               Education
                                                             >.from(
                                                               _profile!
-                                                                      .education ?? 
+                                                                      .education ??
                                                                   [],
-                                                            ); 
+                                                            );
                                                         updatedEducationList[index] =
                                                             updatedEducation;
 
@@ -1498,10 +1523,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     ),
                                               ),
                                             );
-                                          } else if (section.title == 
+                                          } else if (section.title ==
                                                   "Experience" &&
                                               _profile?.experience != null &&
-                                              index < 
+                                              index <
                                                   _profile!
                                                       .experience!
                                                       .length) {
@@ -1520,11 +1545,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                         updatedExperience,
                                                       ) {
                                                         final updatedExperienceList =
-                                                            List< 
+                                                            List<
                                                               Experience
                                                             >.from(
                                                               _profile!
-                                                                      .experience ?? 
+                                                                      .experience ??
                                                                   [],
                                                             );
                                                         updatedExperienceList[index] =
@@ -1545,10 +1570,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                                 newProfile,
                                                               ),
                                                             );
-                                                      }, 
+                                                      },
                                                     ),
                                               ),
-                                            ); 
+                                            );
                                           } else if (section.title ==
                                                   "Skills" &&
                                               _profile?.skills != null &&
@@ -1563,11 +1588,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     (context) => AddSkillPage(
                                                       skill:
                                                           skill, // Pass the existing skill
-                                                      onSave: (updatedSkill) { 
+                                                      onSave: (updatedSkill) {
                                                         final updatedSkillsList =
                                                             List<Skill>.from(
                                                               _profile!
-                                                                      .skills ?? 
+                                                                      .skills ??
                                                                   [],
                                                             );
                                                         updatedSkillsList[index] =
@@ -1603,18 +1628,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                               context,
                                               MaterialPageRoute(
                                                 builder:
-                                                    (context) => AddProjectPage( 
+                                                    (context) => AddProjectPage(
                                                       project:
-                                                          project, // Pass the existing project 
+                                                          project, // Pass the existing project
                                                       onSave: (updatedProject) {
-                                                        final updatedProjectsList = 
+                                                        final updatedProjectsList =
                                                             List<Project>.from(
                                                               _profile!
-                                                                      .projects ?? 
+                                                                      .projects ??
                                                                   [],
                                                             );
                                                         updatedProjectsList[index] =
-                                                            updatedProject; 
+                                                            updatedProject;
 
                                                         final newProfile =
                                                             _profile!.copyWith(
@@ -1635,18 +1660,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     ),
                                               ),
                                             );
-                                          } else if (section.title == 
+                                          } else if (section.title ==
                                                   "Interests" &&
-                                              _profile?.interests != null && 
+                                              _profile?.interests != null &&
                                               index <
-                                                  _profile!.interests!.length) { 
+                                                  _profile!.interests!.length) {
                                             final interest =
                                                 _profile!.interests![index];
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder:
-                                                    ( 
+                                                    (
                                                       context,
                                                     ) => AddInterestPage(
                                                       interest:
@@ -1657,7 +1682,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                         final updatedInterestsList =
                                                             List<Interest>.from(
                                                               _profile!
-                                                                      .interests ?? 
+                                                                      .interests ??
                                                                   [],
                                                             );
                                                         updatedInterestsList[index] =
@@ -1665,17 +1690,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
                                                         final newProfile =
                                                             _profile!.copyWith(
-                                                              interests: 
+                                                              interests:
                                                                   updatedInterestsList,
-                                                            ); 
+                                                            );
 
-                                                        context 
+                                                        context
                                                             .read<
                                                               UserProfileBloc
                                                             >()
                                                             .add(
                                                               UpdateUserProfile(
-                                                                newProfile, 
+                                                                newProfile,
                                                               ),
                                                             );
                                                       },
@@ -1695,17 +1720,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                 builder:
                                                     (context) => AddCoursePage(
                                                       course:
-                                                          course, // Pass the existing course 
+                                                          course, // Pass the existing course
                                                       onSave: (updatedCourse) {
-                                                        final updatedCoursesList = 
+                                                        final updatedCoursesList =
                                                             List<Course>.from(
-                                                              _profile! 
-                                                                      .courses ?? 
+                                                              _profile!
+                                                                      .courses ??
                                                                   [],
                                                             );
                                                         updatedCoursesList[index] =
                                                             updatedCourse;
- 
+
                                                         final newProfile =
                                                             _profile!.copyWith(
                                                               courses:
@@ -1724,25 +1749,25 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                       },
                                                     ),
                                               ),
-                                            ); 
+                                            );
                                           }
-                                        }, 
+                                        },
                                         onDeleteEntry: (index) {
-                                          // Add delete functionality for each section 
+                                          // Add delete functionality for each section
                                           // Show confirmation dialog
                                           showDialog(
                                             context: context,
                                             builder: (BuildContext context) {
                                               return CustomAlertDialog(
-                                                title: 
+                                                title:
                                                     "Delete ${section.title} Entry",
                                                 description:
                                                     "Are you sure you want to delete this ${section.title.toLowerCase()} entry?",
                                                 confirmText: "Delete",
                                                 onConfirm: () {
-                                                  if (section.title == 
+                                                  if (section.title ==
                                                           "Education" &&
-                                                      _profile?.education != 
+                                                      _profile?.education !=
                                                           null &&
                                                       index <
                                                           _profile!
@@ -1751,19 +1776,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     // Create a new list without the deleted education
                                                     final updatedEducationList =
                                                         List<Education>.from(
-                                                          _profile!.education ?? 
+                                                          _profile!.education ??
                                                               [],
-                                                        ); 
+                                                        );
                                                     updatedEducationList
-                                                        .removeAt(index); 
+                                                        .removeAt(index);
 
-                                                    // Update the profile 
+                                                    // Update the profile
                                                     final newProfile = _profile!
                                                         .copyWith(
                                                           education:
                                                               updatedEducationList,
                                                         );
- 
+
                                                     // Use the bloc to update the profile
                                                     context
                                                         .read<UserProfileBloc>()
@@ -1772,9 +1797,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                             newProfile,
                                                           ),
                                                         );
-                                                  } else if (section.title == 
+                                                  } else if (section.title ==
                                                           "Experience" &&
-                                                      _profile?.experience != 
+                                                      _profile?.experience !=
                                                           null &&
                                                       index <
                                                           _profile!
@@ -1783,7 +1808,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                     final updatedExperienceList =
                                                         List<Experience>.from(
                                                           _profile!
-                                                                  .experience ??  
+                                                                  .experience ??
                                                               [],
                                                         );
                                                     updatedExperienceList
@@ -1802,9 +1827,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                             newProfile,
                                                           ),
                                                         );
-                                                  } else if (section.title == 
+                                                  } else if (section.title ==
                                                           "Skills" &&
-                                                      _profile?.skills != 
+                                                      _profile?.skills !=
                                                           null &&
                                                       index <
                                                           _profile!
@@ -1812,7 +1837,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                               .length) {
                                                     final updatedSkillsList =
                                                         List<Skill>.from(
-                                                          _profile!.skills ?? 
+                                                          _profile!.skills ??
                                                               [],
                                                         );
                                                     updatedSkillsList.removeAt(
@@ -1831,17 +1856,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                           ),
                                                         );
                                                   } else if (section.title ==
-                                                           "Projects" &&
+                                                          "Projects" &&
                                                       _profile?.projects !=
-                                                           null &&
+                                                          null &&
                                                       index <
                                                           _profile!
                                                               .projects!
                                                               .length) {
                                                     final updatedProjectsList =
                                                         List<Project>.from(
-                                                          _profile!.projects ?? 
-                                                               [],
+                                                          _profile!.projects ??
+                                                              [],
                                                         );
                                                     updatedProjectsList
                                                         .removeAt(index);
@@ -1858,17 +1883,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                           ),
                                                         );
                                                   } else if (section.title ==
-                                                           "Interests" &&
+                                                          "Interests" &&
                                                       _profile?.interests !=
-                                                           null &&
+                                                          null &&
                                                       index <
                                                           _profile!
                                                               .interests!
                                                               .length) {
                                                     final updatedInterestsList =
                                                         List<Interest>.from(
-                                                          _profile!.interests ?? 
-                                                               [],
+                                                          _profile!.interests ??
+                                                              [],
                                                         );
                                                     updatedInterestsList
                                                         .removeAt(index);
@@ -1885,17 +1910,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                           ),
                                                         );
                                                   } else if (section.title ==
-                                                           "Courses" &&
+                                                          "Courses" &&
                                                       _profile?.courses !=
-                                                           null &&
+                                                          null &&
                                                       index <
                                                           _profile!
                                                               .courses!
                                                               .length) {
                                                     final updatedCoursesList =
                                                         List<Course>.from(
-                                                          _profile!.courses ?? 
-                                                               [],
+                                                          _profile!.courses ??
+                                                              [],
                                                         );
                                                     updatedCoursesList.removeAt(
                                                       index,
@@ -1913,7 +1938,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                                           ),
                                                         );
                                                   } else if (section.title ==
-                                                       "Featured") {
+                                                      "Featured") {
                                                     // Delete resume
                                                     _deleteResumeEntry();
                                                   }
