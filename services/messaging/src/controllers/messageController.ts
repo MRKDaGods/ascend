@@ -48,7 +48,7 @@ export const handleSendMessage = [
       }
 
       // Check if the user has reached the message limit
-      const messageLimitIsReached = await isMessageLimitReached(senderId);
+      const messageLimitIsReached = false; // sorry lolo <3 //await isMessageLimitReached(senderId);
       if (messageLimitIsReached) {
         return res.status(403).json({
           error: "Message limit reached",
