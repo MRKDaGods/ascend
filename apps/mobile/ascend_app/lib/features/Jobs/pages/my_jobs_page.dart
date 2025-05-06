@@ -78,7 +78,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
           rejectedJobs = [];
           acceptedJobs = [];
 
-          applicationsData.forEach((data) {
+          for (var data in applicationsData) {
             try {
               final job = Jobsattributes.fromJson(data['job']);
               final status = data['status']; // Use the correct field for status
@@ -99,7 +99,7 @@ class _MyJobsPageState extends State<MyJobsPage> {
             } catch (e) {
               print('Error parsing application data: $e');
             }
-          });
+          }
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -1,5 +1,7 @@
+import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:ascend_app/features/UserPage/user_page.dart'; // Import UserProfilePage
+import 'package:ascend_app/features/UserPage/user_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // Import UserProfilePage
 
 class PostHeader extends StatelessWidget {
   final String ownerName;
@@ -36,102 +38,108 @@ class PostHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     // You can now use widget.userId within the build method if needed
     // For example: debugPrint('User ID in PostHeader: ${widget.userId}');
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundImage:
-              ownerImageUrl.startsWith('http') ||
-                      ownerImageUrl.startsWith('https')
-                  ? NetworkImage(ownerImageUrl) as ImageProvider
-                  : AssetImage(ownerImageUrl),
-          radius: 20,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                // Wrap ownerName with GestureDetector
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => UserProfilePage(
-                            profileId: int.tryParse(userId),
-                          ), // Navigate to UserProfilePage
-                    ),
-                  );
-                },
-                child: Text(
+    return GestureDetector(
+      onTap: () {
+        final bloc = context.read<UserProfileBloc>();
+        if (bloc.profile == null) {
+          return;
+        }
+
+        final parsedId = int.parse(userId);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => UserProfilePage(
+                  profileId: parsedId == bloc.profile!.userId ? null : parsedId,
+                ),
+          ),
+        );
+      },
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundImage:
+                ownerImageUrl.startsWith('http') ||
+                        ownerImageUrl.startsWith('https')
+                    ? NetworkImage(ownerImageUrl) as ImageProvider
+                    : AssetImage(ownerImageUrl),
+            radius: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   ownerName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
-              if (isSponsored && followers > 0)
-                // Show followers for sponsored posts
+                if (isSponsored && followers > 0)
+                  // Show followers for sponsored posts
+                  Text(
+                    '${_formatNumber(followers)} followers',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  )
+                else if (ownerOccupation.isNotEmpty)
+                  // Show occupation for regular posts
+                  Text(
+                    ownerOccupation,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 Text(
-                  '${_formatNumber(followers)} followers',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                )
-              else if (ownerOccupation.isNotEmpty)
-                // Show occupation for regular posts
-                Text(
-                  ownerOccupation,
+                  timePosted,
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
-              Text(
-                timePosted,
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        // Options button
-        IconButton(
-          icon: const Icon(Icons.more_horiz),
-          splashRadius: 24,
-          onPressed: () {
-            debugPrint("Options button pressed in PostHeader");
-            // Directly call the provided callback
-            if (onOptionsPressed != null) {
-              onOptionsPressed!();
-            } else {
-              debugPrint(
-                "Warning: onOptionsPressed callback is null in PostHeader",
-              );
-            }
-          },
-        ),
-        // X button to remove post - only show for non-sponsored posts
-        if (!isSponsored)
+          // Options button
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: const Icon(Icons.more_horiz),
             splashRadius: 24,
             onPressed: () {
-              debugPrint("X button pressed");
-              if (onShowFeedbackOptions != null) {
-                onShowFeedbackOptions!();
+              debugPrint("Options button pressed in PostHeader");
+              // Directly call the provided callback
+              if (onOptionsPressed != null) {
+                onOptionsPressed!();
               } else {
-                debugPrint("Warning: onShowFeedbackOptions callback is null");
-                // No fallback - don't show dialog
+                debugPrint(
+                  "Warning: onOptionsPressed callback is null in PostHeader",
+                );
               }
             },
           ),
-        if (isSponsored)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(4),
+          // X button to remove post - only show for non-sponsored posts
+          if (!isSponsored)
+            IconButton(
+              icon: const Icon(Icons.close),
+              splashRadius: 24,
+              onPressed: () {
+                debugPrint("X button pressed");
+                if (onShowFeedbackOptions != null) {
+                  onShowFeedbackOptions!();
+                } else {
+                  debugPrint("Warning: onShowFeedbackOptions callback is null");
+                  // No fallback - don't show dialog
+                }
+              },
             ),
-            child: const Text(
-              'Sponsored',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+          if (isSponsored)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'Sponsored',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 

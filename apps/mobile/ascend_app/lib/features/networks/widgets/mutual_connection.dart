@@ -26,7 +26,7 @@ class MutualConnections extends StatelessWidget {
                 radius: 15,
                 backgroundImage:
                     mutualUsers.isNotEmpty
-                        ? NetworkImage(mutualUsers[0].profile_image_id!)
+                        ? NetworkImage(mutualUsers[0].profile_image_url!)
                         : AssetImage('assets/EmptyUser.png') as ImageProvider,
               ),
             ),

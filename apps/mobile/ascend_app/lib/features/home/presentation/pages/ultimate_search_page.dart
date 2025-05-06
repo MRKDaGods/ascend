@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:ascend_app/features/home/bloc/search/search_bloc.dart';
-import 'package:ascend_app/features/home/presentation/widgets/search/post_search_result_model.dart';
-import 'package:ascend_app/features/home/presentation/widgets/search/post_search_result_tile.dart';
 import 'package:ascend_app/features/home/presentation/widgets/search/user_search_result_model.dart';
 import 'package:ascend_app/features/home/presentation/widgets/search/user_search_result_tile.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +10,10 @@ import '../widgets/post/post.dart' as post_widget; // Alias Post widget
 class UltimateSearchPage extends StatefulWidget {
   final VoidCallback? onBackPressed; // Add callback for back navigation
 
-  const UltimateSearchPage({super.key, this.onBackPressed}); // Initialize callback
+  const UltimateSearchPage({
+    super.key,
+    this.onBackPressed,
+  }); // Initialize callback
 
   @override
   State<UltimateSearchPage> createState() => _UltimateSearchPageState();
@@ -56,13 +57,12 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
       final currentState = context.read<SearchBloc>().state;
       if (currentState is SearchLoaded && !currentState.hasReachedMax) {
         context.read<SearchBloc>().add(
-              PerformSearch(
-                query: currentState.currentQuery,
-                offset: currentState.currentOffset +
-                    10, // Assuming limit is 10
-                limit: 10,
-              ),
-            );
+          PerformSearch(
+            query: currentState.currentQuery,
+            offset: currentState.currentOffset + 10, // Assuming limit is 10
+            limit: 10,
+          ),
+        );
       }
     }
   }
@@ -78,28 +78,36 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton( // Add back button
-          icon: const Icon(Icons.arrow_back),
-          onPressed: widget.onBackPressed, // Trigger the callback
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: widget.onBackPressed,
         ),
-        title: TextField(
-          controller: _searchController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Search users, posts, jobs...',
-            border: InputBorder.none,
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      context.read<SearchBloc>().add(ClearSearch());
-                    },
-                  )
-                : null,
+        leadingWidth: 35,
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
           ),
-          style: const TextStyle(fontSize: 18),
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Search users, posts, jobs...',
+              hintStyle: TextStyle(color: Colors.grey[600], fontSize: 16),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: 20),
+            ),
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
+          ),
         ),
       ),
       body: BlocBuilder<SearchBloc, SearchState>(
@@ -114,9 +122,10 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
             }
             return ListView.builder(
               controller: _scrollController,
-              itemCount: state.hasReachedMax
-                  ? state.results.length
-                  : state.results.length + 1, // +1 for loading indicator
+              itemCount:
+                  state.hasReachedMax
+                      ? state.results.length
+                      : state.results.length + 1, // +1 for loading indicator
               itemBuilder: (context, index) {
                 if (index >= state.results.length) {
                   // Loading indicator at the bottom
@@ -132,9 +141,12 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
                 // --- Render based on type ---
                 try {
                   if (item is Map<String, dynamic> && item['type'] == 'user') {
-                    final user = UserSearchResult.fromJson(item['data'] as Map<String, dynamic>);
+                    final user = UserSearchResult.fromJson(
+                      item['data'] as Map<String, dynamic>,
+                    );
                     return UserSearchResultTile(user: user);
-                  } else if (item is Map<String, dynamic> && item['type'] == 'post') {
+                  } else if (item is Map<String, dynamic> &&
+                      item['type'] == 'post') {
                     // Extract just the post ID instead of creating the full PostSearchResult
                     final postId = item['data']['id'] as int;
                     // Return your post widget that takes just an ID
@@ -146,13 +158,13 @@ class _UltimateSearchPageState extends State<UltimateSearchPage> {
                     );
                   }
                 } catch (e) {
-                   // Handle potential parsing errors
-                   print("Error parsing search result item: $e \nItem: $item");
-                   return ListTile(
-                     leading: Icon(Icons.error_outline, color: Colors.red),
-                     title: Text('Error displaying this item'),
-                     subtitle: Text(e.toString()),
-                   );
+                  // Handle potential parsing errors
+                  print("Error parsing search result item: $e \nItem: $item");
+                  return ListTile(
+                    leading: Icon(Icons.error_outline, color: Colors.red),
+                    title: Text('Error displaying this item'),
+                    subtitle: Text(e.toString()),
+                  );
                 }
                 // --- End of rendering logic ---
               },
@@ -186,5 +198,3 @@ class Debouncer {
     _timer?.cancel();
   }
 }
-
-

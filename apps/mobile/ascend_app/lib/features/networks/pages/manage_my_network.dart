@@ -33,66 +33,61 @@ class ManageMyNetwork extends StatelessWidget {
       body: ListView.separated(
         itemCount: 6, // Number of ListTiles
         itemBuilder: (context, index) {
+          Widget tileContent;
           if (index == 0) {
-            return ListTile(
-              leading: Icon(Icons.people),
-              title: Text(
-                'Connections',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            tileContent = ListTile(
+              leading: Icon(Icons.people, color: Colors.blue[700], size: 28),
+              title: Text('Connections', style: TextStyle(fontSize: 18)),
+              trailing: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "${connections.length}",
+                  style: TextStyle(color: Colors.blue[700]),
+                ),
               ),
-              trailing: Text("${connections.length}"),
               onTap: () {
+                context.read<ConnectionRequestBloc>().add(
+                  FetchConnectionRequests(),
+                );
+
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder:
-                        (_) => MultiBlocProvider(
-                          providers: [
-                            BlocProvider.value(
-                              value: BlocProvider.of<ConnectionRequestBloc>(
-                                context,
-                              ),
-                            ),
-                            BlocProvider.value(
-                              value: BlocProvider.of<UserSearchBloc>(context),
-                            ),
-                            BlocProvider.value(
-                              value: BlocProvider.of<ConnectionPreferencesBloc>(
-                                context,
-                              ),
-                            ),
-                            BlocProvider.value(
-                              value: BlocProvider.of<FollowBloc>(context),
-                            ),
-                            BlocProvider.value(
-                              value: BlocProvider.of<BlockBloc>(context),
-                            ),
-                            BlocProvider.value(
-                              value: BlocProvider.of<MessagingRequestsBloc>(
-                                context,
-                              ),
-                            ),
-                          ],
-                          child: Connections(
-                            connections: connections,
-                            onRemove: (requestId) {
-                              context.read<ConnectionRequestBloc>().add(
-                                RemoveConnection(connectionId: requestId),
-                              );
-                            },
-                          ),
+                        (_) => Connections(
+                          connections: connections,
+                          onRemove: (requestId) {
+                            context.read<ConnectionRequestBloc>().add(
+                              RemoveConnection(connectionId: requestId),
+                            );
+                          },
                         ),
                   ),
                 );
               },
             );
           } else if (index == 1) {
-            return ListTile(
-              leading: Icon(Icons.person_2_outlined),
-              title: Text(
-                'People I follow',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            tileContent = ListTile(
+              leading: Icon(
+                Icons.person_2_outlined,
+                color: Colors.green[700],
+                size: 28,
               ),
-              trailing: Text("${followed.length}"),
+              title: Text('People I follow', style: TextStyle(fontSize: 18)),
+              trailing: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "${followed.length}",
+                  style: TextStyle(color: Colors.green[700]),
+                ),
+              ),
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -118,48 +113,50 @@ class ManageMyNetwork extends StatelessWidget {
               },
             );
           } else if (index == 2) {
-            return ListTile(
-              leading: Icon(Icons.group),
-              title: Text(
-                'Groups',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+            tileContent = ListTile(
+              leading: Icon(Icons.group, color: Colors.purple[700], size: 28),
+              title: Text('Groups', style: TextStyle(fontSize: 18)),
+              trailing: Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {},
             );
           } else if (index == 3) {
-            return ListTile(
-              leading: Icon(Icons.calendar_today_outlined),
-              title: Text(
-                'Events',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            tileContent = ListTile(
+              leading: Icon(
+                Icons.calendar_today_outlined,
+                color: Colors.orange[700],
+                size: 28,
               ),
+              title: Text('Events', style: TextStyle(fontSize: 18)),
+              trailing: Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {},
             );
           } else if (index == 4) {
-            return ListTile(
-              leading: Icon(Icons.pages),
-              title: Text(
-                'Settings',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+            tileContent = ListTile(
+              leading: Icon(Icons.settings, color: Colors.grey[700], size: 28),
+              title: Text('Settings', style: TextStyle(fontSize: 18)),
+              trailing: Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {},
             );
           } else if (index == 5) {
-            return ListTile(
-              leading: Icon(Icons.newspaper_outlined),
-              title: Text(
-                'Newsletters',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            tileContent = ListTile(
+              leading: Icon(
+                Icons.newspaper_outlined,
+                color: Colors.teal[700],
+                size: 28,
               ),
+              title: Text('Newsletters', style: TextStyle(fontSize: 18)),
+              trailing: Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {},
             );
           } else {
             return SizedBox.shrink(); // Return an empty widget for other indices
           }
+
+          return Container(color: Colors.white, child: tileContent);
         },
         separatorBuilder:
             (context, index) =>
-                Divider(color: Colors.grey[300], thickness: 1, height: 1),
+                Divider(height: 1, thickness: 1, color: Colors.grey[200]),
       ),
     );
   }

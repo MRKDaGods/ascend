@@ -1,4 +1,3 @@
-
 import 'package:ascend_app/features/CompanyPage/company_page.dart';
 import 'package:ascend_app/features/Jobs/pages/create_company.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
@@ -161,13 +160,14 @@ class CompanyCard extends StatelessWidget {
                       ),
                     );
                   } else if (value == 'delete') {
-
                     final confirmDelete = await showDialog<bool>(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
                           title: const Text('Confirm Deletion'),
-                          content: const Text('Are you sure you want to delete this company?'),
+                          content: const Text(
+                            'Are you sure you want to delete this company?',
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(false),
@@ -189,25 +189,30 @@ class CompanyCard extends StatelessWidget {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                       };
-                      final String _baseUrl = 'https://api.ascendx.tech';
+                      final String baseUrl = 'https://api.ascendx.tech';
                       final endpoint = '/company/companies/$companyId';
-                      final url = Uri.parse('$_baseUrl$endpoint');
+                      final url = Uri.parse('$baseUrl$endpoint');
                       final response = await http.delete(url, headers: headers);
                       if (response.statusCode == 200) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Company deleted successfully.')),
+                          const SnackBar(
+                            content: Text('Company deleted successfully.'),
+                          ),
                         );
                         print('DELETE request successful: ${response.body}');
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to delete company: ${response.body}')),
+                          SnackBar(
+                            content: Text(
+                              'Failed to delete company: ${response.body}',
+                            ),
+                          ),
                         );
                         print(
                           'DELETE request failed: ${response.statusCode}, ${response.body}',
                         );
                       }
                     }
-
                   }
                 },
                 itemBuilder:

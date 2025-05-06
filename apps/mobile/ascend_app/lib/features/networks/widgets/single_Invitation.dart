@@ -13,6 +13,7 @@ class SingleInvitation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
+        tileColor: Colors.white,
         leading: CircleAvatar(backgroundImage: AssetImage(invitation.image)),
         title: Text(invitation.title),
         subtitle: Column(

@@ -20,8 +20,9 @@ class ConnectionRequestsPage extends StatefulWidget {
   State<ConnectionRequestsPage> createState() => _ConnectionRequestsPageState();
 }
 
-class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
-  bool isReceivedSelected = true;
+class _ConnectionRequestsPageState extends State<ConnectionRequestsPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
   void _showSettingsModal(BuildContext context) {
     showModalBottomSheet(
@@ -101,138 +102,189 @@ class _ConnectionRequestsPageState extends State<ConnectionRequestsPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
+    context.read<ConnectionRequestBloc>().add(FetchConnectionRequests());
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: ClipRRect(
-          borderRadius: BorderRadius.circular(
-            20,
-          ), // Rounded corners for the clipping effect
-          child: Container(
-            color: Colors.grey[200], // Background color for the tab container
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Received Tab
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isReceivedSelected = true;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          isReceivedSelected
-                              ? Colors.green
-                              : Colors.transparent,
-                    ),
-                    child: Text(
-                      "Received",
-                      style: TextStyle(
-                        color: isReceivedSelected ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.bold,
+    return BlocBuilder<ConnectionRequestBloc, ConnectionRequestState>(
+      builder: (context, state) {
+        int receivedCount = 0;
+        int sentCount = 0;
+
+        if (state is ConnectionRequestSuccess) {
+          receivedCount = state.pendingRequestsReceived.length;
+          sentCount = state.pendingRequestsSent.length;
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Invitations',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => _showSettingsModal(context),
+              ),
+            ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: false,
+                  labelColor: Colors.green,
+                  unselectedLabelColor: Colors.grey,
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  indicatorColor: Colors.green,
+                  indicatorWeight: 3,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Received'),
+                          if (receivedCount > 0)
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$receivedCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                // Sent Tab
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isReceivedSelected = false;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          isReceivedSelected
-                              ? Colors.transparent
-                              : Colors.green,
-                    ),
-                    child: Text(
-                      "Sent",
-                      style: TextStyle(
-                        color: isReceivedSelected ? Colors.black : Colors.white,
-                        fontWeight: FontWeight.bold,
+                    Tab(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Sent'),
+                          if (sentCount > 0)
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$sentCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () => _showSettingsModal(context),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // Received Tab
+              _buildReceivedTab(state),
+              // Sent Tab
+              _buildSentTab(state),
+            ],
           ),
-        ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1),
-        ),
-      ),
-
-      body: BlocBuilder<ConnectionRequestBloc, ConnectionRequestState>(
-        builder: (context, state) {
-          if (state is ConnectionRequestLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ConnectionRequestSuccess) {
-            return isReceivedSelected
-                ? state.pendingRequestsReceived.isNotEmpty
-                    ? ConnectionRequestsReceivedListFull(
-                      onAccept: (requestId) {
-                        context.read<ConnectionRequestBloc>().add(
-                          AcceptConnectionRequest(requestId: requestId),
-                        );
-                      },
-                      onDecline: (requestId) {
-                        context.read<ConnectionRequestBloc>().add(
-                          DeclineConnectionRequest(requestId: requestId),
-                        );
-                      },
-                    )
-                    : Center(
-                      child: Text(
-                        'No invitations here',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                : state.pendingRequestsSent.isNotEmpty
-                ? ConnectionRequestsSent(
-                  onRemove: (requestId) {
-                    context.read<ConnectionRequestBloc>().add(
-                      CancelConnectionRequest(requestId: requestId),
-                    );
-                  },
-                )
-                : Center(
-                  child: Text(
-                    'No Sent Invitations',
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                  ),
-                );
-          } else if (state is ConnectionRequestError) {
-            return Center(child: Text('Error: ${state.toString()}'));
-          } else {
-            return const Center(child: Text('No data available.'));
-          }
-        },
-      ),
+        );
+      },
     );
+  }
+
+  Widget _buildReceivedTab(ConnectionRequestState state) {
+    if (state is ConnectionRequestLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state is ConnectionRequestSuccess) {
+      return state.pendingRequestsReceived.isNotEmpty
+          ? ConnectionRequestsReceivedListFull(
+            onAccept: (requestId) {
+              context.read<ConnectionRequestBloc>().add(
+                AcceptConnectionRequest(requestId: requestId),
+              );
+            },
+            onDecline: (requestId) {
+              context.read<ConnectionRequestBloc>().add(
+                DeclineConnectionRequest(requestId: requestId),
+              );
+            },
+          )
+          : const Center(
+            child: Text(
+              'No invitations here',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+          );
+    } else if (state is ConnectionRequestError) {
+      return Center(child: Text('Error: ${state.toString()}'));
+    } else {
+      return const Center(child: Text('No data available.'));
+    }
+  }
+
+  Widget _buildSentTab(ConnectionRequestState state) {
+    if (state is ConnectionRequestLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state is ConnectionRequestSuccess) {
+      return state.pendingRequestsSent.isNotEmpty
+          ? ConnectionRequestsSent(
+            onRemove: (requestId) {
+              context.read<ConnectionRequestBloc>().add(
+                CancelConnectionRequest(requestId: requestId),
+              );
+            },
+          )
+          : const Center(
+            child: Text(
+              'No Sent Invitations',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+          );
+    } else if (state is ConnectionRequestError) {
+      return Center(child: Text('Error: ${state.toString()}'));
+    } else {
+      return const Center(child: Text('No data available.'));
+    }
   }
 }

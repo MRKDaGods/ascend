@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/Messaging/presentation/widgets/chat_app_bar.dart';
@@ -8,6 +9,7 @@ import 'package:ascend_app/features/Messaging/data/model/message_model.dart';
 import 'package:ascend_app/features/Messaging/utils/date_verifier.dart';
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
+import 'dart:io';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -92,13 +94,16 @@ class _ChatPageState extends State<ChatPage> {
       _loadMoreMessages();
     }
 
-    // Show or hide scroll to bottom button based on how far up we've scrolled
-    setState(() {
-      // Show if scrolled up more than a certain amount from the bottom
-      _showScrollToBottom =
-          _scrollController.position.pixels <
-          _scrollController.position.maxScrollExtent - 500;
-    });
+    // Show or hide scroll to bottom button based on scroll position
+    if (_scrollController.hasClients) {
+      setState(() {
+        // Show if scrolled up more than a threshold from the bottom
+        // Since the list is reversed, we check pixels > minScrollExtent
+        _showScrollToBottom =
+            _scrollController.position.pixels >
+            _scrollController.position.minScrollExtent + 200;
+      });
+    }
   }
 
   void _loadMoreMessages() {
@@ -258,6 +263,56 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  // Send message with file
+  void _sendMessageWithFile(File file, String fileType) async {
+    final text = _messageController.text.trim();
+
+    // Show loading indicator or notification
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Uploading file...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    try {
+      // Dispatch file upload event through bloc
+      context.read<MessagingBloc>().add(
+        SendFileMessage(
+          conversationId: widget.conversationId,
+          receiverId: widget.otherUserId!,
+          file: file,
+          content: text,
+          fileType: fileType,
+        ),
+      );
+
+      // Clear input
+      _messageController.clear();
+
+      // Stop typing indicator
+      setState(() {
+        _isLocalUserTyping = false;
+      });
+
+      // Cancel any pending timers
+      _localTypingTimer?.cancel();
+
+      // Scroll to show new message
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      // Show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to upload file: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     // Cancel timers first
@@ -406,30 +461,6 @@ class _ChatPageState extends State<ChatPage> {
                 _scrollToBottom(animate: false);
               }
 
-              if (state.sendingStatus != null) {
-                // Handle sending status if needed
-                debugPrint('[ChatPage] Sending status: ${state.sendingStatus}');
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Typing Status Error'),
-                      content: Text(
-                        'Failed to update typing status: ${state.sendingStatus!['error']}',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
-
               // Use your method instead
               _updateTypingStatus(state.isTyping);
             } else if (state is MessagesLoading &&
@@ -467,20 +498,30 @@ class _ChatPageState extends State<ChatPage> {
                           ? Center(child: CircularProgressIndicator())
                           : _buildMessagesList(currentMessages),
 
-                      // Scroll to bottom button
+                      // Scroll to bottom button - improved positioning and visibility
                       if (_showScrollToBottom)
                         Positioned(
                           right: 16,
                           bottom: 16,
-                          child: FloatingActionButton(
-                            mini: true,
-                            backgroundColor: Colors.white,
-                            elevation: 2,
-                            child: Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Colors.black87,
+                          child: Material(
+                            elevation: 4.0,
+                            borderRadius: BorderRadius.circular(24),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(24),
+                              onTap: () => _scrollToBottom(),
+                              child: Container(
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: Theme.of(context).primaryColor,
+                                  size: 24,
+                                ),
+                              ),
                             ),
-                            onPressed: () => _scrollToBottom(),
                           ),
                         ),
                     ],
@@ -511,6 +552,9 @@ class _ChatPageState extends State<ChatPage> {
                     debugPrint('Camera button pressed');
                   },
                   conversationId: widget.conversationId,
+                  onFileSelected: (file, fileType) {
+                    _sendMessageWithFile(file, fileType);
+                  },
                 ),
               ],
             );
@@ -581,7 +625,11 @@ class _ChatPageState extends State<ChatPage> {
               senderAvatar:
                   message.senderId == widget.otherUserId
                       ? widget.conversationAvatar ?? 'assets/EmptyUser.png'
-                      : 'assets/EmptyUser.png',
+                      : (context
+                              .read<UserProfileBloc>()
+                              .profile
+                              ?.profilePictureUrl ??
+                          'assets/EmptyUser.png'),
               sentOrReceived: message.senderId == widget.myUserId,
               sentAt: message.sentAt,
               receivedAt: message.sentAt,

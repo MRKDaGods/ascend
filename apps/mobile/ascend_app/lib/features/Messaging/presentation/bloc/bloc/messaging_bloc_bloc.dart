@@ -41,6 +41,7 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
     on<LoadMessages>(_onLoadMessages);
     on<LoadMoreMessages>(_onLoadMoreMessages);
     on<SendMessage>(_onSendMessage);
+    on<SendFileMessage>(_onSendFileMessage);
     on<SetActiveConversation>(_onSetActiveConversation);
     on<SendTypingNotification>(_onSendTypingNotification);
     on<MarkMessagesasRead>(_onMarkMessagesAsRead);
@@ -418,6 +419,54 @@ class MessagingBloc extends Bloc<MessagingBlocEvent, MessagingBlocState> {
         );
       } else {
         emit(MessagingError('Failed to send message: $e'));
+      }
+    }
+  }
+
+  Future<void> _onSendFileMessage(
+    SendFileMessage event,
+    Emitter<MessagingBlocState> emit,
+  ) async {
+    try {
+      if (state is MessagesLoaded) {
+        final currentState = state as MessagesLoaded;
+
+        // Set sending status to "sending"
+        emit(currentState.copyWith(sendingStatus: {'status': 'sending'}));
+
+        // Upload file with message content
+        final response = await _repository.sendFileMessage(
+          conversationId: event.conversationId,
+          receiverId: event.receiverId,
+          file: event.file,
+          content: event.content,
+          fileType: event.fileType,
+        );
+
+        // On success, refresh messages
+        if (response) {
+          emit(currentState.copyWith(sendingStatus: {'status': 'success'}));
+
+          add(LoadMessages(event.conversationId));
+        } else {
+          // On failure
+          emit(
+            currentState.copyWith(
+              sendingStatus: {
+                'status': 'error',
+                'error': 'Failed to send file',
+              },
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (state is MessagesLoaded) {
+        emit(
+          (state as MessagesLoaded).copyWith(
+            sendingStatus: {'status': 'error', 'error': e.toString()},
+          ),
+        );
       }
     }
   }
