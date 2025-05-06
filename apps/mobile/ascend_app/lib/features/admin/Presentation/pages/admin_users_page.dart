@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../widgets/reported_user_card.dart';
 import '../widgets/banned_user_card.dart';
 import '../../bloc/users/bloc/users_bloc.dart';
+import '../widgets/user_management_dialogs.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -64,14 +65,16 @@ class _UsersPageState extends State<UsersPage>
     });
   }
 
+  // Update the _handleDeleteUser method:
+
   void _handleDeleteUser(BuildContext context, String userId) {
     showDialog(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
             title: const Text('Delete User'),
-            content: const Text(
-              'Are you sure you want to delete this reported user?',
+            content: Text(
+              'Are you sure you want to delete user with ID: $userId?',
             ),
             actions: [
               TextButton(
@@ -81,9 +84,37 @@ class _UsersPageState extends State<UsersPage>
               TextButton(
                 onPressed: () {
                   Navigator.pop(dialogContext);
-                  context.read<UsersBloc>().add(
-                    DeleteUserEvent(userId: int.parse(userId)),
-                  );
+
+                  // Add logging to debug
+                  debugPrint('Attempting to delete user with ID: $userId');
+
+                  // Dispatch the delete event with the parsed user ID
+                  try {
+                    final parsedId = int.parse(userId);
+                    context.read<UsersBloc>().add(
+                      DeleteUserEvent(userId: parsedId),
+                    );
+
+                    // Show confirmation
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'User with ID $userId deletion requested',
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  } catch (e) {
+                    // Show error if parsing fails
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: Invalid user ID format - $e'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
                 },
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('Delete'),
@@ -308,7 +339,7 @@ class _UsersPageState extends State<UsersPage>
                       // Show success message and trigger refresh
                       String message =
                           state is UserBannedState
-                              ? 'User with ID ${(state as UserBannedState).userId} has been banned successfully!'
+                              ? 'User with ID ${state.userId} has been banned successfully!'
                               : 'User with ID ${(state as UserDeletedState).userId} has been deleted successfully!';
 
                       // After displaying success message, refresh the list
@@ -455,33 +486,45 @@ class _UsersPageState extends State<UsersPage>
           ),
         ],
       ),
+
       // Preserved floating action buttons
+      // Update your floating action buttons with proper functionality
+      // Add import for the new file
+
+      // In the Stack with FloatingActionButtons, update the callbacks:
       floatingActionButton: Stack(
         children: [
-          // Positive Action Button
-          Positioned(
-            bottom: 16,
-            right: 80, // Adjust spacing between buttons
-            child: FloatingActionButton(
-              onPressed: () {
-                // Negative action logic
-                debugPrint('Negative action triggered');
-              },
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.remove),
-            ),
-          ),
+          // Add User Button
           Positioned(
             bottom: 16,
             right: 16,
             child: FloatingActionButton(
               onPressed: () {
-                // Add user modal logic
+                // Call the static method from UserManagementDialogs
+                UserManagementDialogs.showAddUserModal(context);
               },
               child: const Icon(Icons.add),
+              tooltip: 'Add New User',
             ),
           ),
-          // Negative Action Button
+          // Delete User by ID Button
+          Positioned(
+            bottom: 16,
+            right: 80, // Adjust spacing between buttons
+            child: FloatingActionButton(
+              onPressed: () {
+                // Call the static method from UserManagementDialogs
+                // Pass the _handleDeleteUser method as a callback
+                UserManagementDialogs.showDeleteByIdModal(
+                  context,
+                  _handleDeleteUser,
+                );
+              },
+              backgroundColor: Colors.red,
+              tooltip: 'Delete User by ID',
+              child: const Icon(Icons.remove),
+            ),
+          ),
         ],
       ),
     );

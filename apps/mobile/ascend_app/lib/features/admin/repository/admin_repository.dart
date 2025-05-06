@@ -340,4 +340,18 @@ class AdminRepository {
       throw Exception('Failed to patch item at $endpoint: $e');
     }
   }
+
+  // Add this if it doesn't exist already:
+  Future<void> createUser(Map<String, String> userData) async {
+    try {
+      debugPrint('Creating user with data: $userData');
+      final reponse = await apiClient.post('/admin/create-user', userData,
+      );
+      debugPrint('User created successfully');
+      return reponse;
+    } catch (e) {
+      debugPrint('Error creating user: $e');
+      throw Exception('Failed to create user: $e');
+    }
+  }
 }
