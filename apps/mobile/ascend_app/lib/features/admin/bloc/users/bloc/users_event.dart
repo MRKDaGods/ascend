@@ -9,12 +9,10 @@ final class FetchReportedUsers extends UsersEvent {}
 final class RefreshReportedUsers extends UsersEvent {}
 
 /// Event to ban a specific user
-class BanUserEvent extends UsersEvent {
-  final int userId;
-  final String? expiresAt; // Optional expiration date for temporary bans
-  final String? reason; // Optional reason for the ban
+final class BanUser extends UsersEvent {
+  final String userId;
 
-  BanUserEvent({required this.userId, this.expiresAt, this.reason});
+  BanUser(this.userId);
 }
 
 /// Event to unban a specific user

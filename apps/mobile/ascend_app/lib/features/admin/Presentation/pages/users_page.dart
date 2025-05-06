@@ -81,60 +81,8 @@ class _UsersPageState extends State<UsersPage>
   }
 
   void _handleBanUser(BuildContext context, String userId) {
-    final TextEditingController reasonController = TextEditingController();
-    final TextEditingController expiresAtController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Ban User'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: reasonController,
-                  decoration: const InputDecoration(
-                    labelText: 'Reason (optional)',
-                  ),
-                ),
-                TextField(
-                  controller: expiresAtController,
-                  decoration: const InputDecoration(
-                    labelText:
-                        'Expires At (optional, e.g., 2025-04-30T23:02:28.000Z)',
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  context.read<UsersBloc>().add(
-                    BanUserEvent(
-                      userId: int.parse(userId),
-                      reason:
-                          reasonController.text.isNotEmpty
-                              ? reasonController.text
-                              : null,
-                      expiresAt:
-                          expiresAtController.text.isNotEmpty
-                              ? expiresAtController.text
-                              : null,
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Ban'),
-              ),
-            ],
-          ),
-    );
+    // Add logic to ban the user
+    debugPrint('Ban user with ID: $userId');
   }
 
   void _handleUnbanUser(BuildContext context, String userId) {
@@ -213,34 +161,11 @@ class _UsersPageState extends State<UsersPage>
                           );
                         },
                       );
-                    } else if (state is UserBannedState) {
-                      return Center(
-                        child: Text(
-                          'User with ID ${state.userId} has been banned successfully!',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    } else if (state is UserDeletedState) {
-                      return Center(
-                        child: Text(
-                          'User with ID ${state.userId} has been deleted successfully!',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
                     } else if (state is UsersError) {
                       return Center(
                         child: Text(
                           'Error: ${state.message}',
-                          style: const TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
-                          ),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       );
                     } else {
