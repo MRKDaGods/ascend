@@ -177,45 +177,47 @@ class _SearchJobsPageState extends State<SearchJobsPage> {
     final location =
         locationController.text.isNotEmpty ? locationController.text : '';
 
-    final url = Uri.parse(
-      'https://api.ascendx.tech/job?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=1',
-    );
-    print("URL: $url");
-    final response = await http.get(url);
-    print("response: ${response.body}");
-    if (response.statusCode == 200) {
-      if (response.body.isNotEmpty) {
-        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        if (jsonResponse.containsKey('data')) {
-          final List<dynamic> jobData = jsonResponse['data'];
+    List<Jobsattributes> allJobs = [];
+    int currentPage = 1;
+    bool keepFetching = true;
 
-          if (jobData.isNotEmpty) {
-            setState(() {
-              filteredJobs =
-                  jobData.map((data) => Jobsattributes.fromJson(data)).toList();
-              _updateIndustriesAndCompanies();
-              filteredJobs.shuffle();
-            });
+    while (keepFetching) {
+      final url = Uri.parse(
+        'https://api.ascendx.tech/job?keyword=$keyword&location=$location&industry=$industry&experience_level=$experienceLevels&company=$companies&salary_min_range=$salaryMin&salary_max_range=$salaryMax&page=$currentPage',
+      );
+      print("URL: $url");
+      final response = await http.get(url);
+      print("response: \\${response.body}");
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+          if (jsonResponse.containsKey('data')) {
+            final List<dynamic> jobData = jsonResponse['data'];
+            if (jobData.isNotEmpty) {
+              allJobs.addAll(
+                jobData.map((data) => Jobsattributes.fromJson(data)),
+              );
+              currentPage++;
+            } else {
+              keepFetching = false;
+            }
           } else {
-            setState(() {
-              filteredJobs = [];
-            });
+            keepFetching = false;
           }
         } else {
-          setState(() {
-            filteredJobs = [];
-          });
+          keepFetching = false;
         }
       } else {
-        setState(() {
-          filteredJobs = [];
-        });
+        keepFetching = false;
       }
-    } else {
-      filteredJobs = []; // Reset filtered jobs on error
     }
 
     setState(() {
+      filteredJobs = allJobs;
+      if (filteredJobs.isNotEmpty) {
+        _updateIndustriesAndCompanies();
+        filteredJobs.shuffle();
+      }
       isLoading = false; // Hide loading indicator
     });
   }
