@@ -1,7 +1,9 @@
 part of 'posts_bloc.dart';
 
 @immutable
-sealed class PostsState {}
+sealed class PostsState {
+  List<Object?> get props => [];
+}
 
 /// Initial state of the PostsBloc.
 final class PostsInitial extends PostsState {}
@@ -62,10 +64,7 @@ final class ReportUpdatedState extends PostsState {
   final String reportId;
   final Map<String, dynamic>? updatedData;
 
-  ReportUpdatedState({
-    required this.reportId,
-    this.updatedData,
-  });
+  ReportUpdatedState({required this.reportId, this.updatedData});
 }
 
 /// State when a specific report status is updated.
@@ -73,10 +72,7 @@ final class PostReportStatusUpdatedState extends PostsState {
   final String reportId;
   final String status;
 
-  PostReportStatusUpdatedState({
-    required this.reportId,
-    required this.status,
-  });
+  PostReportStatusUpdatedState({required this.reportId, required this.status});
 }
 
 /// State when an error occurs.
@@ -94,18 +90,24 @@ final class PostReportsVisibilityState extends PostsState {
   final String postId;
   final bool isVisible;
 
-  PostReportsVisibilityState({
-    required this.postId,
-    required this.isVisible,
-  });
+  PostReportsVisibilityState({required this.postId, required this.isVisible});
 }
 
 /// State to indicate loading more posts without overriding existing ones.
 class FetchingMorePostsState extends PostsState {
   final List<ReportedPost> currentPosts;
-  
+
   FetchingMorePostsState({required this.currentPosts});
-  
+
   @override
   List<Object?> get props => [currentPosts];
+}
+
+class PostStatusActionSuccessState extends PostsState {
+  final String message;
+
+  PostStatusActionSuccessState({required this.message});
+
+  @override
+  List<Object> get props => [message];
 }
