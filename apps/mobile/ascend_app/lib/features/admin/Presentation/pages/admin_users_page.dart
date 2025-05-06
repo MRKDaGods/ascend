@@ -16,20 +16,6 @@ class _UsersPageState extends State<UsersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final Map<String, bool> _expandedReports = {};
-  final List<Map<String, String>> _bannedUsers = [
-    {
-      'id': 'user3',
-      'name': 'Alice Johnson',
-      'email': 'alice.johnson@example.com',
-      'date': 'Banned: 2023-04-10',
-    },
-    {
-      'id': 'user4',
-      'name': 'Bob Brown',
-      'email': 'bob.brown@example.com',
-      'date': 'Banned: 2023-03-25',
-    },
-  ];
 
   @override
   void initState() {
@@ -71,10 +57,10 @@ class _UsersPageState extends State<UsersPage>
     super.dispose();
   }
 
-  // Existing methods preserved
-  void _toggleReportsVisibility(String userId) {
+  // Update the toggle method to use reportId
+  void _toggleReportsVisibility(String reportId) {
     setState(() {
-      _expandedReports[userId] = !(_expandedReports[userId] ?? false);
+      _expandedReports[reportId] = !(_expandedReports[reportId] ?? false);
     });
   }
 
@@ -111,6 +97,19 @@ class _UsersPageState extends State<UsersPage>
     final TextEditingController reasonController = TextEditingController();
     final TextEditingController expiresAtController = TextEditingController();
 
+    // Add date picker function
+    Future<void> _selectExpirationDate(BuildContext context) async {
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now().add(const Duration(days: 30)),
+        firstDate: DateTime.now(),
+        lastDate: DateTime.now().add(const Duration(days: 365)),
+      );
+      if (picked != null) {
+        expiresAtController.text = picked.toUtc().toIso8601String();
+      }
+    }
+
     showDialog(
       context: context,
       builder:
@@ -125,12 +124,26 @@ class _UsersPageState extends State<UsersPage>
                     labelText: 'Reason (optional)',
                   ),
                 ),
-                TextField(
-                  controller: expiresAtController,
-                  decoration: const InputDecoration(
-                    labelText:
-                        'Expires At (optional, e.g., 2025-04-30T23:02:28.000Z)',
-                  ),
+                const SizedBox(height: 16),
+                // Update text field to include date picker button
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: expiresAtController,
+                        readOnly:
+                            true, // Make read-only since we use the picker
+                        decoration: const InputDecoration(
+                          labelText: 'Ban Expiration (optional)',
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () => _selectExpirationDate(dialogContext),
+                      tooltip: 'Select expiration date',
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -142,6 +155,8 @@ class _UsersPageState extends State<UsersPage>
               TextButton(
                 onPressed: () {
                   Navigator.pop(dialogContext);
+
+                  // Add the ban event
                   context.read<UsersBloc>().add(
                     BanUserEvent(
                       userId: int.parse(userId),
@@ -153,6 +168,15 @@ class _UsersPageState extends State<UsersPage>
                           expiresAtController.text.isNotEmpty
                               ? expiresAtController.text
                               : null,
+                    ),
+                  );
+
+                  // Show success message with SnackBar
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('User with ID $userId banned successfully'),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -240,8 +264,7 @@ class _UsersPageState extends State<UsersPage>
                         itemBuilder: (context, index) {
                           final report = state.reports[index];
                           final reportReasons = [report.reason];
-                          // In your ListView.builder, update the ReportedUserCard instantiation:
-
+                          // Update ReportedUserCard to accept a unique reportId:
                           return ReportedUserCard(
                             name:
                                 '${report.reported.firstName} ${report.reported.lastName}',
@@ -251,13 +274,12 @@ class _UsersPageState extends State<UsersPage>
                             ).format(report.reported.joinedAt),
                             reports: reportReasons,
                             showReports:
-                                _expandedReports[report.reported.userId
-                                    .toString()] ??
-                                false,
+                                _expandedReports[report.id.toString()] ??
+                                false, // Use report.id instead of userId
                             onToggleReports:
                                 () => _toggleReportsVisibility(
-                                  report.reported.userId.toString(),
-                                ),
+                                  report.id.toString(),
+                                ), // Use report.id
                             userId: report.reported.userId.toString(),
                             handleDeleteUser:
                                 () => _handleDeleteUser(
