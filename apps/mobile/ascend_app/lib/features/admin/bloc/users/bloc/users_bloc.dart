@@ -29,5 +29,23 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
         emit(UsersError('Failed to delete user: $e'));
       }
     });
+
+    // Handle banUser event
+    on<BanUserEvent>((event, emit) async {
+      try {
+        await adminRepository.banUser(
+          userId: event.userId,
+          expiresAt: event.expiresAt,
+          reason: event.reason,
+        );
+        emit(UserBannedState(event.userId));
+      } catch (e) {
+        if (e.toString().contains('Token required')) {
+          emit(UsersError('Authentication failed. Please log in again.'));
+        } else {
+          emit(UsersError('Failed to ban user: $e'));
+        }
+      }
+    });
   }
 }
