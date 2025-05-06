@@ -45,16 +45,19 @@ class ProfileHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (name.isNotEmpty) _buildNameSection(),
+        const SizedBox(height: 12),
 
         if (bio.isNotEmpty) _buildBioSection(),
-        const SizedBox(height: 10),
+        const SizedBox(height: 16),
 
         if (latestEducation.isNotEmpty || location.isNotEmpty)
           _buildEducationLocationSection(),
+        const SizedBox(height: 12),
 
         if (links.isNotEmpty) _buildLinks(context),
 
         if (connections > 0) _buildConnectionsSection(),
+        const SizedBox(height: 8),
 
         if (mutualConnections.isNotEmpty && !isMyProfile)
           _buildMutualConnections(context),
@@ -67,12 +70,15 @@ class ProfileHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
               name,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            if (verified) const Icon(Icons.gpp_good_outlined, size: 20),
+            const SizedBox(width: 8),
+            if (verified)
+              const Icon(Icons.gpp_good_outlined, size: 20, color: Colors.blue),
             const SizedBox(width: 5),
             if (namePronunciation)
               const Icon(Icons.volume_up_outlined, size: 20),
@@ -85,7 +91,16 @@ class ProfileHeader extends StatelessWidget {
   }
 
   Widget _buildBioSection() {
-    return Column(children: [Text(bio, style: const TextStyle(fontSize: 16))]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          bio,
+          style: const TextStyle(fontSize: 16, height: 1.4),
+          textAlign: TextAlign.left,
+        ),
+      ],
+    );
   }
 
   // Education & Location Section
@@ -97,19 +112,56 @@ class ProfileHeader extends StatelessWidget {
         Wrap(
           spacing: 5, // Space between items
           runSpacing: 5, // Space between lines
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (showCurrentCompany && currentPosition.isNotEmpty)
-              Text(currentPosition, style: const TextStyle(fontSize: 14)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.work_outline, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    currentPosition,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             if (showCurrentCompany &&
                 currentPosition.isNotEmpty &&
                 showSchool &&
                 latestEducation.isNotEmpty)
               const Text("•", style: TextStyle(fontSize: 14)),
             if (showSchool && latestEducation.isNotEmpty)
-              Text(latestEducation, style: const TextStyle(fontSize: 14)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.school_outlined, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    latestEducation,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
-        Text(location),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.location_on_outlined, size: 16),
+            const SizedBox(width: 4),
+            Text(
+              location,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ],
+        ),
       ],
     );
   }
