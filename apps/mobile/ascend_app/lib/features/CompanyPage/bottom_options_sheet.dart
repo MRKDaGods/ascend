@@ -14,6 +14,8 @@ class ProfileOptionsSheet extends StatelessWidget {
     this.showImage,
     this.imageUrl,
     this.imageType,
+    this.isAdminView = false,
+    this.onToggleAdminView,
     super.key,
   });
 
@@ -22,11 +24,13 @@ class ProfileOptionsSheet extends StatelessWidget {
   final bool? isfollowing;
   final bool? isPending;
   final bool? isMyProfile;
+  final bool isAdminView;
   final void Function()? toggleConnect;
   final void Function()? toggleFollow;
   final void Function(BuildContext)? withdrawRequest;
   final void Function(BuildContext)? removeConnection;
   final void Function(BuildContext, String)? showImage;
+  final void Function()? onToggleAdminView;
   final String? imageType; // 'profile' or 'cover'
   final String? imageUrl;
   @override
@@ -111,6 +115,15 @@ class ProfileOptionsSheet extends StatelessWidget {
                           Icons.bookmark,
                           "Saved Items",
                           null,
+                        ),
+                        _buildSheetOption(
+                          context,
+                          Icons.analytics,
+                          isAdminView ? "View as Member" : "View as Admin",
+                          () {
+                            Navigator.pop(context);
+                            onToggleAdminView?.call();
+                          },
                         ),
                       ],
                       if (!isMyProfile!) ...[
