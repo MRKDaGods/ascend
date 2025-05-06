@@ -1340,6 +1340,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
           u.last_name,
           u.profile_picture_id,
           u.bio,
+          u.headline,
           ts_rank_cd(to_tsvector('english', concat(u.first_name, ' ', u.last_name)), 
                     plainto_tsquery('english', $1)) as rank
         FROM user_service.profiles u
