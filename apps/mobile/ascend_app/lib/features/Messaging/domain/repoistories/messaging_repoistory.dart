@@ -26,6 +26,8 @@ abstract class MessagingRepository {
     File? file,
   });
 
+  Future<void> markMessageAsSeen(String conversationId);
+
   // WebSockets related
 
   // connect to WebSocket
