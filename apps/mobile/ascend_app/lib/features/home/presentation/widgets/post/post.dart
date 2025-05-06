@@ -322,15 +322,16 @@ class _PostState extends State<Post> {
                       ReactionButton(
                         key: _reactionButtonKey,
                         manager: ReactionManager(
-                          currentReaction: post.currentReaction,
+                          // Use isLiked.reactionType instead of currentReaction
+                          currentReaction: post.isLiked.reactionType,
                           // Pass postId and context if manager needs to dispatch BLoC events directly
                           // postId: post.id,
                           // context: context,
                         ),
                         onTap: () {
-                          // Determine next state based on current reaction
+                          // Determine next state based on isLiked status
                           final nextReaction =
-                              post.currentReaction == null ? 'like' : null;
+                              post.isLiked.reactionType == null ? 'like' : null;
                           context.read<PostBloc>().add(
                             TogglePostReaction(post.id, nextReaction),
                           );

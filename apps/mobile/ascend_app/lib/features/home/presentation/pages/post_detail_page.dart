@@ -234,7 +234,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
               final userProfile =
                   profileState is UserProfileLoaded
                       ? profileState.profile
-                      : UserProfileModel.empty();
+                      : null;
+
+              if (userProfile == null) {
+                return Scaffold(
+                  appBar: AppBar(title: const Text('Loading...')),
+                  body: const Center(child: CircularProgressIndicator()),
+                );
+              }
 
               if (post.id.isEmpty) {
                 return Scaffold(
@@ -331,14 +338,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   ReactionButton(
                                     key: _reactionButtonKey,
                                     manager: ReactionManager(
-                                      currentReaction: post.currentReaction,
+                                      currentReaction: post.isLiked.reactionType, // Updated to use isLiked.reactionType
                                       postId: post.id, // Keep for Bloc updates
                                       context: context, // Keep for Bloc updates
                                     ),
                                     onTap: () {
                                       // Determine next state based on current reaction
                                       final nextReaction =
-                                          post.currentReaction == null
+                                          post.isLiked.reactionType == null
                                               ? 'like'
                                               : null;
                                       context.read<PostBloc>().add(
@@ -405,16 +412,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         ? userProfile.name
                                         : "You",
                                 currentUserAvatarUrl:
-                                    userProfile.avatarUrl.isNotEmpty
-                                        ? userProfile.avatarUrl
-                                        : 'assets/images/profile/EmptyUser.png',
+                                    userProfile.profilePictureUrl ??
+                                    'assets/images/profile/EmptyUser.png',
                                 comments: post.comments,
                                 commentController: _commentController,
                                 commentFocusNode: _commentFocusNode,
-                                currentUserId:
-                                    userProfile.id.isNotEmpty
-                                        ? userProfile.id
-                                        : 'default_user_id',
+                                currentUserId: userProfile.userId.toString(),
                                 onCommentsChanged: (updatedComments) {
                                   context.read<PostBloc>().add(
                                     UpdatePostComments(
@@ -444,9 +447,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                             parentComment: parentComment,
                                             replyingTo: replyingTo,
                                             currentUserId:
-                                                userProfile.id.isNotEmpty
-                                                    ? userProfile.id
-                                                    : 'default_user_id',
+                                                userProfile.userId.toString(),
                                             onAddReply: (text, parentId) {
                                               // parentId received from CommentDetailPage
                                               // Log the parentId received here
@@ -458,17 +459,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                                   post.id,
                                                   parentId, // Passing it to the BLoC event
                                                   text,
-                                                  userProfile.id.isNotEmpty
-                                                      ? userProfile.id
-                                                      : 'default_user_id',
+                                                  userProfile.userId.toString(),
                                                   userProfile.name.isNotEmpty
                                                       ? userProfile.name
                                                       : "You",
                                                   userProfile
-                                                          .avatarUrl
-                                                          .isNotEmpty
-                                                      ? userProfile.avatarUrl
-                                                      : 'assets/images/profile/EmptyUser.png',
+                                                          .profilePictureUrl ??
+                                                      'assets/images/profile/EmptyUser.png',
                                                 ),
                                               );
                                             },
@@ -491,18 +488,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 },
                                 postId: post.id,
                                 onAddComment: (text, parentId) {
-                                  final userId =
-                                      userProfile.id.isNotEmpty
-                                          ? userProfile.id
-                                          : 'default_user_id';
+                                  final userId = userProfile.userId.toString();
                                   final userName =
                                       userProfile.name.isNotEmpty
                                           ? userProfile.name
                                           : "You";
                                   final userAvatar =
-                                      userProfile.avatarUrl.isNotEmpty
-                                          ? userProfile.avatarUrl
-                                          : 'assets/images/profile/EmptyUser.png';
+                                      userProfile.profilePictureUrl ??
+                                      'assets/images/profile/EmptyUser.png';
 
                                   if (parentId == null) {
                                     context.read<PostBloc>().add(

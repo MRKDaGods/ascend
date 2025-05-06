@@ -15,7 +15,7 @@ class CompanyCard extends StatelessWidget {
   final bool isFromCompanyDetails; // Added flag
   final String? description;
   final String? domainName;
-
+  final bool isMyCompany;
   const CompanyCard({
     super.key,
     required this.companyName,
@@ -26,6 +26,7 @@ class CompanyCard extends StatelessWidget {
     this.isFromCompanyDetails = false, // Default value
     this.description,
     this.domainName,
+    this.isMyCompany = false,
   });
 
   @override
@@ -99,6 +100,7 @@ class CompanyCard extends StatelessWidget {
                           builder:
                               (context) => CompanyPage(
                                 companyId: companyId,
+                                isMyCompany: isMyCompany,
                               ),
                         ),
                       );
@@ -174,9 +176,9 @@ class CompanyCard extends StatelessWidget {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
                       };
-                      final String _baseUrl = 'https://api.ascendx.tech';
+                      final String baseUrl = 'https://api.ascendx.tech';
                       final endpoint = '/company/companies/$companyId';
-                      final url = Uri.parse('$_baseUrl$endpoint');
+                      final url = Uri.parse('$baseUrl$endpoint');
                       final response = await http.delete(url, headers: headers);
                       if (response.statusCode == 200) {
                         ScaffoldMessenger.of(context).showSnackBar(

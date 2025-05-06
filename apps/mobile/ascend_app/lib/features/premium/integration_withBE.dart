@@ -75,9 +75,7 @@ Future<List<Map<String, dynamic>>> fetchSubscriptionPlans() async {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final datar = jsonDecode(response.body);
       final data = datar['data'];
-      if (data is Map<String, dynamic> &&
-          data != null &&
-          data['subscription_plans'] is List) {
+      if (data is Map<String, dynamic> && data['subscription_plans'] is List) {
         return List<Map<String, dynamic>>.from(data['subscription_plans']);
       } else {
         throw Exception('Invalid response structure: ${response.body}');

@@ -433,9 +433,7 @@ class Profile {
         );
       }
     } else {
-       throw FormatException(
-        "Missing 'created_at' in Profile JSON",
-      );
+      throw FormatException("Missing 'created_at' in Profile JSON");
     }
 
     DateTime? updatedAtValue;
@@ -448,11 +446,8 @@ class Profile {
         );
       }
     } else {
-       throw FormatException(
-        "Missing 'updated_at' in Profile JSON",
-      );
+      throw FormatException("Missing 'updated_at' in Profile JSON");
     }
-
 
     return Profile(
       userId: userIdValue, // Use the validated value
@@ -573,26 +568,24 @@ class Profile {
     ContactInfo? contactInfo,
   }) {
     return Profile(
-
       // ignore: unnecessary_this
-
-      userId: userId ?? this.userId,
+      userId: userId,
       additionalName: additionalName ?? this.additionalName,
       resumeUrl: resumeUrl ?? this.resumeUrl,
-      resumeId: this.resumeId,
+      resumeId: resumeId,
       contactInfo: contactInfo ?? this.contactInfo,
       industry: industry ?? this.industry,
       location: location ?? this.location,
       showCurrentCompany: showCurrentCompany ?? this.showCurrentCompany,
-      coverPhotoId: this.coverPhotoId,
-      profilePictureId: this.profilePictureId,
-      privacy: this.privacy,
+      coverPhotoId: coverPhotoId,
+      profilePictureId: profilePictureId,
+      privacy: privacy,
       showSchool: showSchool ?? this.showSchool,
       website: website ?? this.website,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       headline: headline ?? this.headline,
-      namePronunciation: this.namePronunciation,
+      namePronunciation: namePronunciation,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       bio: bio ?? this.bio,
@@ -606,4 +599,14 @@ class Profile {
       courses: courses ?? this.courses,
     );
   }
+
+  Experience? getCurrentExperience() {
+    if (experience == null || experience!.isEmpty) return null;
+    return experience!.firstWhere(
+      (exp) => exp.endDate == null,
+      orElse: () => experience!.first,
+    );
+  }
+
+  String get name => '$firstName $lastName';
 }

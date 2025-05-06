@@ -28,7 +28,7 @@ class BlockedUser {
       first_name: first_name ?? this.first_name,
       last_name: last_name ?? this.last_name,
       profile_image_id: profile_image_id ?? this.profile_image_id,
-      blocked_at: blockedAt ?? this.blocked_at,
+      blocked_at: blockedAt ?? blocked_at,
     );
   }
 
