@@ -223,27 +223,6 @@ class AdminRepository {
     }
   }
 
-  /// Bans a user by their ID.
-  Future<void> banUser({
-    required int userId,
-    String? expiresAt, // Optional expiration date for temporary bans
-    String? reason, // Optional reason for the ban
-  }) async {
-    try {
-      final Map<String, dynamic> body = {
-        'user_id': userId,
-        if (expiresAt != null) 'expires_at': expiresAt,
-        if (reason != null) 'reason': reason,
-      };
-
-      await userApiClient.post('/ban-user', body);
-      debugPrint('Successfully banned user with ID: $userId');
-    } catch (e) {
-      debugPrint('Error banning user with ID $userId: $e');
-      throw Exception('Failed to ban user: $e');
-    }
-  }
-
   /// Generic method to fetch a list of items.
   Future<List<T>> _fetchList<T>({
     required String endpoint,

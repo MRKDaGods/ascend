@@ -61,64 +61,6 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
     );
   }
 
-  /// Handles the ban user action with a confirmation dialog.
-  void _handleBanUser(BuildContext context, String userId) {
-    final TextEditingController reasonController = TextEditingController();
-    final TextEditingController expiresAtController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder:
-          (dialogContext) => AlertDialog(
-            title: const Text('Ban User'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: reasonController,
-                  decoration: const InputDecoration(
-                    labelText: 'Reason (optional)',
-                  ),
-                ),
-                TextField(
-                  controller: expiresAtController,
-                  decoration: const InputDecoration(
-                    labelText:
-                        'Expires At (optional, e.g., 2025-04-30T23:02:28.000Z)',
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  context.read<UsersBloc>().add(
-                    BanUserEvent(
-                      userId: int.parse(userId),
-                      reason:
-                          reasonController.text.isNotEmpty
-                              ? reasonController.text
-                              : null,
-                      expiresAt:
-                          expiresAtController.text.isNotEmpty
-                              ? expiresAtController.text
-                              : null,
-                    ),
-                  );
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.orange),
-                child: const Text('Ban'),
-              ),
-            ],
-          ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -175,7 +117,7 @@ class _ReportedUserCardState extends State<ReportedUserCard> {
         ),
         const Spacer(),
         ElevatedButton.icon(
-          onPressed: () => _handleBanUser(context, widget.userId),
+          onPressed: widget.onBan,
           icon: const Icon(Icons.block, color: Colors.white),
           label: const Text('Ban', style: TextStyle(color: Colors.white)),
           style: ElevatedButton.styleFrom(
