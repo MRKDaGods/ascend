@@ -202,13 +202,24 @@ class AdminRepository {
   }
 
   /// Deletes a specific user by their ID.
+  /// Deletes a specific user by their ID.
   Future<void> deleteUser(int userId) async {
     try {
-      await userApiClient.deleteUser(userId);
+      await apiClient.delete('/users/$userId');
       debugPrint('Successfully deleted user with ID: $userId');
     } catch (e) {
       debugPrint('Error deleting user with ID $userId: $e');
-      throw Exception('Failed to delete user: $e');
+
+      // Check for JSON error response containing "User not found"
+      String errorStr = e.toString();
+      if (errorStr.contains('"error": "User not found"') ||
+          errorStr.contains('User not found')) {
+        throw Exception('User not found');
+      } else if (errorStr.contains('Cannot DELETE')) {
+        throw Exception('User not found on server');
+      } else {
+        throw Exception('Failed to delete user: $e');
+      }
     }
   }
 

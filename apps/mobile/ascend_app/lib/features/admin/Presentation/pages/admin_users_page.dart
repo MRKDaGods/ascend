@@ -85,31 +85,38 @@ class _UsersPageState extends State<UsersPage>
                 onPressed: () {
                   Navigator.pop(dialogContext);
 
-                  // Add logging to debug
-                  debugPrint('Attempting to delete user with ID: $userId');
-
-                  // Dispatch the delete event with the parsed user ID
                   try {
+                    // Parse the user ID
                     final parsedId = int.parse(userId);
+
+                    // Show processing message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Attempting to delete user with ID: $userId...',
+                        ),
+                        backgroundColor: Colors.blue,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+
+                    // Store current tab position to restore later
+                    final currentTab = _tabController.index;
+
+                    // Dispatch the delete event
                     context.read<UsersBloc>().add(
                       DeleteUserEvent(userId: parsedId),
                     );
 
-                    // Show confirmation
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'User with ID $userId deletion requested',
-                        ),
-                        backgroundColor: Colors.green,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
+                    // We don't need a separate BlocListener because the existing
+                    // BlocBuilder in the widget tree will handle state changes
                   } catch (e) {
                     // Show error if parsing fails
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Error: Invalid user ID format - $e'),
+                        content: Text(
+                          'Error: Invalid user ID format ($userId)',
+                        ),
                         backgroundColor: Colors.red,
                         duration: const Duration(seconds: 3),
                       ),
