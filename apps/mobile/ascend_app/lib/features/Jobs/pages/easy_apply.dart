@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter/foundation.dart';
@@ -10,9 +9,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart'; // Add this import for PDF rendering
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
 
 class EasyApplyPage extends StatefulWidget {
   final Jobsattributes job;
@@ -32,62 +28,6 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
   int _currentStep = 1;
   File? _selectedFile;
   Uint8List? _selectedFileBytes;
-
-  void applyForJob() {
-    // if (widget.job.applied) {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(SnackBar(content: Text("Already applied for this job!")));
-    // } else {
-    //   setState(() {
-    //     widget.job.applied = true;
-    //     widget.job.applicationStatus = "Pending";
-    //   });
-
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(content: Text("Application Submitted Successfully!")),
-    //   );
-
-    //   Navigator.pop(context);
-    // }
-  }
-  Future<void> _uploadDummyFile() async {
-    final String baseUrl = 'https://api.ascendx.tech';
-    final String endpoint = '/job/${widget.job.jobID}/applications';
-
-    try {
-      final token = await SecureStorageHelper.getAuthToken();
-      final url = Uri.parse('$baseUrl$endpoint');
-      final headers = {
-        if (token != null) 'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      };
-      final body = jsonEncode({
-        "email": email.toString(),
-        "phone": phone.toString(),
-        "resume": "${_selectedFile?.path}",
-      });
-      print('Request body: $body');
-      final request = http.post(url, headers: headers, body: body);
-      final response = await request;
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Applied for job successfully!')),
-        );
-        Navigator.pop(context);
-      } else {
-        print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        throw Exception('Failed to apply. Server response: ${response.body}');
-      }
-    } catch (e) {
-      print('Error: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
 
   Future<void> _pickFile() async {
     try {
@@ -121,76 +61,100 @@ class _EasyApplyPageState extends State<EasyApplyPage> {
     }
   }
 
-  Future<File> convertToPdfFile(File originalFile) async {
-    // Define the path for the new PDF file
-    final String newPath =
-        '${originalFile.parent.path}/converted_${path.basename(originalFile.path)}';
-
-    // Create a new file and write the binary content of the original file
-    final File newPdfFile = File(newPath);
-    await newPdfFile.writeAsBytes(await originalFile.readAsBytes());
-
-    print('New PDF File Path: $newPath');
-    return newPdfFile;
+  Future<http.Response> uploadFile(
+    String endpoint,
+    File file,
+    String context, {
+    Map<String, String>? body,
+  }) async {
+    final String baseUrl = 'https://api.ascendx.tech';
+    final url = Uri.parse('$baseUrl$endpoint');
+    final token = await SecureStorageHelper.getAuthToken();
+    final request = http.MultipartRequest('POST', url);
+    request.headers.addAll({
+      if (token != null) 'Authorization': 'Bearer $token',
+      'x-no-parse-body': '1',
+    });
+    final fileExtension = path.extension(file.path).toLowerCase();
+    MediaType? mediaType;
+    if (fileExtension == '.jpg' || fileExtension == '.jpeg') {
+      mediaType = MediaType('image', 'jpeg');
+    } else if (fileExtension == '.png') {
+      mediaType = MediaType('image', 'png');
+    } else if (fileExtension == '.pdf') {
+      mediaType = MediaType('application', 'pdf');
+    } else if (fileExtension == '.doc' || fileExtension == '.docx') {
+      mediaType = MediaType('application', 'msword');
+    } else if (fileExtension == ".mp4") {
+      mediaType = MediaType("video", "mp4");
+    } else if (fileExtension == ".mp3") {
+      mediaType = MediaType("audio", "mp3");
+    } else if (fileExtension == ".txt") {
+      mediaType = MediaType("text", "plain");
+    } else {
+      mediaType = MediaType('application', 'octet-stream');
+    }
+    if (body != null) {
+      body.forEach((key, value) {
+        request.fields[key] = value;
+      });
+    }
+    request.files.add(
+      http.MultipartFile(
+        'resume',
+        file.readAsBytes().asStream(),
+        file.lengthSync(),
+        filename: path.basename(file.path),
+        contentType: mediaType,
+      ),
+    );
+    request.fields['context'] = context;
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        print('Error: ${response.statusCode}, ${response.body}');
+        throw Exception(
+          'Error: [200b][200b][200b]${response.statusCode}, ${response.body}',
+        );
+      }
+      return response;
+    } catch (e) {
+      throw Exception('Error uploading file: $e');
+    }
   }
 
   Future<void> _uploadFile() async {
-    final String baseUrl = 'https://api.ascendx.tech';
     final String endpoint = '/job/${widget.job.jobID}/applications';
-
-    if (_selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a PDF file.')),
-      );
-      return;
-    }
-
-    try {
-      final token = await SecureStorageHelper.getAuthToken();
-      final uri = Uri.parse('$baseUrl$endpoint');
-
-      final request = http.MultipartRequest('POST', uri);
-
-      // ✅ HEADERS
-      request.headers.addAll({
-        'Accept': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-        // ⚠️ DO NOT manually set Content-Type for multipart
-      });
-
-      // ✅ FIELDS
-      request.fields['email'] = email;
-      request.fields['phone'] = phone;
-
-      // ✅ FILE - Ensure this is awaited
-      final file = await http.MultipartFile.fromPath(
-        'resume',
-        _selectedFile!.path,
-        contentType: MediaType('application', 'pdf'),
-      );
-
-      request.files.add(file);
-
-      // ✅ SEND request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Applied for job successfully!')),
-        );
-        Navigator.pop(context);
-      } else {
-        print('❌ Upload failed. Status: ${response.statusCode}');
-        print('❌ Response body: ${response.body}');
-        throw Exception('Upload failed. ${response.body}');
-      }
-    } catch (e) {
-      print('🔥 Error: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
+    uploadFile(
+          endpoint,
+          _selectedFile!,
+          'job_application',
+          body: {'email': email, 'phone': phone},
+        )
+        .then((response) {
+          print("Response: ${response.body}");
+          print("Status Code: ${response.statusCode}");
+          if (response.statusCode == 201) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Application submitted successfully!'),
+              ),
+            );
+            Navigator.pop(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error submitting application: ${response.body}'),
+              ),
+            );
+          }
+        })
+        .catchError((error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error uploading file: $error')),
+          );
+        });
   }
 
   @override

@@ -43,8 +43,8 @@ class CompanyCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: Colors.transparent, // Set background color to white
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(blurRadius: 6, offset: const Offset(0, 3))],
         ),
         child: Row(
           children: [

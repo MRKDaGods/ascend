@@ -106,287 +106,298 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 10,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        selectedFilterName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (widget.filterName.toLowerCase() == 'salary')
-                        TextButton(
-                          onPressed: () {
-                            setModalState(() {
-                              selectedOptions.clear();
-                              if (widget.filterName.toLowerCase() == 'salary') {
-                                selectedFilterName = "Salary";
-                                selectedSalaryRange = const RangeValues(
-                                  0,
-                                  100000,
-                                );
-                              }
-                              updateFilterName();
-                            });
-                            setState(() {
-                              if (widget.filterName.toLowerCase() == 'salary') {
-                                selectedFilterName = "Salary";
-                                selectedSalaryRange = const RangeValues(
-                                  0,
-                                  100000,
-                                );
-                                chipColor = null;
-                              }
-                            });
-                          },
-                          child: const Text('Reset'),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  if (widget.filterName.toLowerCase() == 'salary')
-                    Column(
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 10,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Select Salary Range',
-                          style: TextStyle(
-                            fontSize: 16,
+                        Text(
+                          selectedFilterName,
+                          style: const TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Min',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (value) {
-                                  setModalState(() {
-                                    final min = double.tryParse(value) ?? 0;
-                                    if (min < 0) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Minimum value cannot be negative.',
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    if (min > selectedSalaryRange.end) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Minimum value cannot be greater than the maximum value.',
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    selectedSalaryRange = RangeValues(
-                                      min,
-                                      selectedSalaryRange.end,
-                                    );
-                                    updateFilterName();
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Max',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (value) {
-                                  setModalState(() {
-                                    final max =
-                                        double.tryParse(value) ??
-                                        double.infinity;
-                                    if (max < 0) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Maximum value cannot be negative.',
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    if (max > 200000) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Maximum value cannot exceed 200,000.',
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    if (max < selectedSalaryRange.start) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Maximum value cannot be less than the minimum value.',
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    selectedSalaryRange = RangeValues(
-                                      selectedSalaryRange.start,
-                                      max,
-                                    );
-                                    updateFilterName();
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        RangeSlider(
-                          values: selectedSalaryRange,
-                          min: 0,
-                          max: 200000,
-                          divisions: 20,
-                          labels: RangeLabels(
-                            '\$${selectedSalaryRange.start.toInt()}',
-                            '\$${selectedSalaryRange.end.toInt()}',
-                          ),
-                          onChanged: (RangeValues values) {
-                            setModalState(() {
-                              if (values.start > values.end) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Start value cannot be greater than end value.',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
-                              selectedSalaryRange = values;
-                              updateFilterName();
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  if (widget.filterName.toLowerCase() == 'company')
-                    Column(
-                      children: [
-                        TextField(
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: Colors.grey,
-                            ),
-                            hintText: 'Search or add a company',
-                            filled: true,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          onChanged: (value) {
-                            setModalState(() {
-                              filteredOptions =
-                                  companySearchNames
-                                      .where(
-                                        (company) => company
-                                            .toLowerCase()
-                                            .contains(value.toLowerCase()),
-                                      )
-                                      .toList();
-                              if (!filteredOptions.contains(value) &&
-                                  value.isNotEmpty) {
-                                setState(() {
-                                  companySearchNames.add(value);
-                                  filteredOptions.add(value);
-                                });
-                              } else if (filteredOptions.contains(value) &&
-                                  value.isNotEmpty) {
-                                filteredOptions.remove(value);
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        if (filteredOptions.isNotEmpty)
-                          SizedBox(
-                            height: 200,
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: filteredOptions.length,
-                              itemBuilder: (context, index) {
-                                final suggestion = filteredOptions[index];
-                                return ListTile(
-                                  title: Text(suggestion),
-                                  onTap: () {
-                                    setModalState(() {
-                                      if (!widget.options.contains(
-                                        suggestion,
-                                      )) {
-                                        widget.options.add(suggestion);
-                                      }
-                                      if (!selectedOptions.contains(
-                                        suggestion,
-                                      )) {
-                                        selectedOptions.add(suggestion);
-                                        updateFilterName();
-                                      }
-                                    });
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        const Divider(color: Colors.grey),
-                        if (filteredOptions.isEmpty)
+                        if (widget.filterName.toLowerCase() == 'salary')
                           TextButton(
                             onPressed: () {
                               setModalState(() {
-                                if (!companySearchNames.contains(
-                                  selectedFilterName,
-                                )) {
-                                  companySearchNames.add(selectedFilterName);
-                                  filteredOptions = companySearchNames;
+                                selectedOptions.clear();
+                                if (widget.filterName.toLowerCase() ==
+                                    'salary') {
+                                  selectedFilterName = "Salary";
+                                  selectedSalaryRange = const RangeValues(
+                                    0,
+                                    100000,
+                                  );
+                                }
+                                updateFilterName();
+                              });
+                              setState(() {
+                                if (widget.filterName.toLowerCase() ==
+                                    'salary') {
+                                  selectedFilterName = "Salary";
+                                  selectedSalaryRange = const RangeValues(
+                                    0,
+                                    100000,
+                                  );
+                                  chipColor = null;
                                 }
                               });
                             },
-                            child: const Text('Add New Company'),
+                            child: const Text('Reset'),
                           ),
                       ],
                     ),
-                  const SizedBox(height: 10),
-                  Flexible(
-                    child: ListView.builder(
+                    const SizedBox(height: 10),
+                    if (widget.filterName.toLowerCase() == 'salary')
+                      Column(
+                        children: [
+                          const Text(
+                            'Select Salary Range',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Min',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  onChanged: (value) {
+                                    setModalState(() {
+                                      final min = double.tryParse(value) ?? 0;
+                                      if (min < 0) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Minimum value cannot be negative.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (min > selectedSalaryRange.end) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Minimum value cannot be greater than the maximum value.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      selectedSalaryRange = RangeValues(
+                                        min,
+                                        selectedSalaryRange.end,
+                                      );
+                                      updateFilterName();
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Max',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  onChanged: (value) {
+                                    setModalState(() {
+                                      final max =
+                                          double.tryParse(value) ??
+                                          double.infinity;
+                                      if (max < 0) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Maximum value cannot be negative.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (max > 200000) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Maximum value cannot exceed 200,000.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (max < selectedSalaryRange.start) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Maximum value cannot be less than the minimum value.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      selectedSalaryRange = RangeValues(
+                                        selectedSalaryRange.start,
+                                        max,
+                                      );
+                                      updateFilterName();
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          RangeSlider(
+                            values: selectedSalaryRange,
+                            min: 0,
+                            max: 200000,
+                            divisions: 20,
+                            labels: RangeLabels(
+                              '\$${selectedSalaryRange.start.toInt()}',
+                              '\$${selectedSalaryRange.end.toInt()}',
+                            ),
+                            onChanged: (RangeValues values) {
+                              setModalState(() {
+                                if (values.start > values.end) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Start value cannot be greater than end value.',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                selectedSalaryRange = values;
+                                updateFilterName();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    if (widget.filterName.toLowerCase() == 'company')
+                      Column(
+                        children: [
+                          TextField(
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.grey,
+                              ),
+                              hintText: 'Search or add a company',
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            onChanged: (value) {
+                              setModalState(() {
+                                filteredOptions =
+                                    companySearchNames
+                                        .where(
+                                          (company) => company
+                                              .toLowerCase()
+                                              .contains(value.toLowerCase()),
+                                        )
+                                        .toList();
+                                if (!filteredOptions.contains(value) &&
+                                    value.isNotEmpty) {
+                                  setState(() {
+                                    companySearchNames.add(value);
+                                    filteredOptions.add(value);
+                                  });
+                                } else if (filteredOptions.contains(value) &&
+                                    value.isNotEmpty) {
+                                  filteredOptions.remove(value);
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          if (filteredOptions.isNotEmpty)
+                            SizedBox(
+                              height: 200,
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: filteredOptions.length,
+                                itemBuilder: (context, index) {
+                                  final suggestion = filteredOptions[index];
+                                  return ListTile(
+                                    title: Text(suggestion),
+                                    onTap: () {
+                                      setModalState(() {
+                                        if (!widget.options.contains(
+                                          suggestion,
+                                        )) {
+                                          widget.options.add(suggestion);
+                                        }
+                                        if (!selectedOptions.contains(
+                                          suggestion,
+                                        )) {
+                                          selectedOptions.add(suggestion);
+                                          updateFilterName();
+                                        }
+                                      });
+                                      setState(() {
+                                        if (!selectedOptions.contains(
+                                          suggestion,
+                                        )) {
+                                          selectedOptions.add(suggestion);
+                                          updateFilterName();
+                                        }
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          const Divider(color: Colors.grey),
+                          if (filteredOptions.isEmpty)
+                            TextButton(
+                              onPressed: () {
+                                setModalState(() {
+                                  if (!companySearchNames.contains(
+                                    selectedFilterName,
+                                  )) {
+                                    companySearchNames.add(selectedFilterName);
+                                    filteredOptions = companySearchNames;
+                                  }
+                                });
+                              },
+                              child: const Text('Add New Company'),
+                            ),
+                        ],
+                      ),
+                    const SizedBox(height: 10),
+                    ListView.builder(
                       shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: widget.options.length,
                       itemBuilder: (context, index) {
                         String option = widget.options[index];
@@ -434,23 +445,23 @@ class _FilterOptionWidgetState extends State<FilterOptionWidget> {
                         );
                       },
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        if (selectedOptions.isNotEmpty) {
-                          chipColor =
-                              Colors.green; // Set the filter color to green
-                        } else {
-                          selectedFilterName = widget.filterName;
-                        }
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Show Results'),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          if (selectedOptions.isNotEmpty) {
+                            chipColor =
+                                Colors.green; // Set the filter color to green
+                          } else {
+                            selectedFilterName = widget.filterName;
+                          }
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Show Results'),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             );
           },
