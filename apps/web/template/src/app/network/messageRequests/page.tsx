@@ -10,6 +10,7 @@ import Navbar from "@/app/components/Navbar";
 import WhosHiringCard from "@/app/components/WhosHiringCard";
 import Footer from "@/app/components/Footer";
 import MessageRequests from "@/app/components/MessageRequests";
+import SidebarPreview from "@/app/components/SidebarPreview";
 
 const MessageRequestsPage: React.FC = () => {
   const theme = useTheme();
@@ -23,6 +24,8 @@ const MessageRequestsPage: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
+      
 
       <Container
         sx={{

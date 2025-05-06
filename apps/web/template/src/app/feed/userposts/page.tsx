@@ -1,5 +1,3 @@
-//Page: renders CONNECTIONPOST to display the post
-
 "use client";
 
 import React, { useEffect } from "react";
@@ -28,22 +26,35 @@ import { useProfileStore } from "@/app/stores/useProfileStore";
 
 import { api } from "@/api";
 
-import { useParams } from "next/navigation";
-import ConnectionPost from "@/app/components/ConnectionPost";
-
-const ViewPostPage = () => {
+const UserPostsPage: React.FC = () => {
   const theme = useTheme();
-  const { id } = useParams();
-  const selectedPost = usePostStore((state) => state.selectedPost);
-  const fetchPost = usePostStore((state) => state.fetchPostFromAPI);
+  const userPosts = usePostStore((state) => state.userPosts);
+  const fetchUserPostsFromAPI = usePostStore((state) => state.fetchUserPostsFromAPI);
+  const { userData, setUserData } = useProfileStore();
 
   useEffect(() => {
-    if (id) {
-      fetchPost(Number(id));
-    }
-  }, [id, fetchPost]);
+    const loadUserDataAndPosts = async () => {
+      try {
+        let profile = userData;
+        if (!profile) {
+          profile = await api.user.getLocalUserProfile();
+          setUserData(profile);
+        }
 
-  if (!selectedPost) return <div style={{ padding: 20 }}>Loading post...</div>;
+        const userId = profile?.user_id;
+
+        if (userId) {
+          await fetchUserPostsFromAPI(userId);
+        } else {
+          console.warn("❌ User ID not found in profile:", profile);
+        }
+      } catch (error) {
+        console.error("❌ Failed to load user posts:", error);
+      }
+    };
+
+    loadUserDataAndPosts();
+  }, []);
 
   return (
     <Box
@@ -54,6 +65,7 @@ const ViewPostPage = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{
@@ -81,7 +93,14 @@ const ViewPostPage = () => {
             alignSelf: "flex-start",
           }}
         >
-          <></>
+          {userData ? (
+            <>
+              <ProfileCard />
+              <ManageFeedCard />
+            </>
+          ) : (
+            <CircularProgress />
+          )}
         </Box>
 
         {/* Center Feed */}
@@ -96,8 +115,33 @@ const ViewPostPage = () => {
           }}
         >
           <Box sx={{ width: "100%", maxWidth: "600px" }}>
-            <ConnectionPost post={selectedPost} />
+            <CreatePost />
           </Box>
+
+          <Divider
+            sx={{
+              borderColor: theme.palette.divider,
+              borderWidth: "1px",
+              width: "100%",
+              maxWidth: "600px",
+            }}
+          />
+
+          {userPosts.length === 0 ? (
+            <Typography sx={{ mt: 2, color: theme.palette.text.secondary }}>
+              You haven't posted anything yet.
+            </Typography>
+          ) : (
+            userPosts.map((post) => (
+              <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
+                {post.isReported ? (
+                  <FeedbackAcknowledgement />
+                ) : (
+                  <UserPost post={post} />
+                )}
+              </Box>
+            ))
+          )}
         </Box>
 
         {/* Right Panel */}
@@ -112,7 +156,9 @@ const ViewPostPage = () => {
             top: { md: "80px" },
             alignSelf: "flex-start",
           }}
-        > 
+        >
+          <WhosHiringCard />
+          <TryPremCard />
           <Footer />
         </Box>
       </Container>
@@ -120,4 +166,4 @@ const ViewPostPage = () => {
   );
 };
 
-export default ViewPostPage;
+export default UserPostsPage;

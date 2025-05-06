@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import { Article, Home } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
 const ManageFeedCard = () => {
@@ -20,6 +21,8 @@ const ManageFeedCard = () => {
   const router = useRouter();
 
   const items = [
+    { text: "Home", icon: <Home />, route: "/feed" },
+    { text: "My Posts", icon: <Article />, route: "/feed/userposts" },
     { text: "Connections", icon: <PeopleAltIcon />, route: "/network" },
     { text: "Saved Items", icon: <BookmarkBorderIcon />, route: "/feed/saved-post" },
   ];

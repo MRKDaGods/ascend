@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { useMediaStore } from "./useMediaStore";
 import {
   fetchNewsFeed,
+  fetchUserPosts,
   fetchPost,
   deletePostById,
   editPost,
@@ -118,6 +119,10 @@ interface PostStoreState {
   setTaggedUsers: (tags: Tag[]) => void;
 
   fetchNewsFeedFromAPI: () => Promise<void>;
+
+  userPosts: PostType[];
+  fetchUserPostsFromAPI: (userId: number) => Promise<void>;
+
   fetchPostFromAPI: (id: number) => Promise<void>;
   reportPostFromAPI: (postId: number, reason: string, description: string) => Promise<void>;
 
@@ -207,6 +212,7 @@ export const usePostStore = create<PostStoreState>()(
   persist(
     (set, get) => ({
       posts: [],
+      userPosts: [],
       selectedPost: null,
       lastUserPostId: null,
       lastRepostId: null,
@@ -266,6 +272,36 @@ export const usePostStore = create<PostStoreState>()(
       setLastRepostId: (id) => set({ lastRepostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
+
+      fetchUserPostsFromAPI: async (userId: number) => {
+        const response = await fetchUserPosts(userId);
+        
+        const userPosts = (response.data ?? []).map((post) => ({
+          id: post.id,
+          username: `${post.user.first_name} ${post.user.last_name}`,
+          profilePic: post.user.profile_picture_url ?? "",
+          content: post.content,
+          followers: "• You", // Optional label to differentiate
+          timestamp: new Date(post.created_at).toLocaleString(),
+          likes: post.likes_count,
+          reposts: post.shares_count,
+          comments: post.comments_count,
+      
+          media: post.media?.map((m: any) => ({
+            url: m.url as string,
+            type: m.type === "image" || m.type === "video" ? m.type : "image",
+          })) || [],
+      
+          file: post.media?.find((m: any) => m.type === "document")?.url || undefined,
+          fileTitle: post.media?.find((m: any) => m.type === "document")?.title || undefined,
+      
+          commentsList: [],
+          isUserPost: true,
+          repostSourcePost: null,
+        }));
+      
+        set({ userPosts }); // Make sure userPosts is declared in the state type
+      },      
 
       fetchNewsFeedFromAPI: async () => {
         const response = await fetchNewsFeed();

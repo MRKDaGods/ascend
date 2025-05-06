@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
   Box,
@@ -211,6 +209,10 @@ const SearchResults: React.FC = () => {
                   boxShadow: 2,
                   borderRadius: 3,
                   backgroundColor: "background.default",
+                  cursor: "pointer", // Make card clickable
+                }}
+                onClick={() => {
+                  router.push(`/feed/${post.id}`); // Redirect to post page
                 }}
               >
                 <CardHeader
