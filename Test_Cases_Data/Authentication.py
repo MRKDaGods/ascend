@@ -24,6 +24,7 @@ class  AscendLoginTestCasesData:
     TEST_VALID_PASSWORD = "123456789A"
     TEST_INVALID_PASSWORD = "123456789"
     TEST_INVALID_EMAIL = "shehapelhadary@outlookcom"
+    TEST_PAYMENT_MAIL = "s@mail.com"
 
 class AscendSignupTestCasesData:
     TEST_FIRST_NAME = "Shehab"

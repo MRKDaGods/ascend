@@ -104,7 +104,7 @@ class UtilityFunctions:
         self.driver.press_keycode(AndroidKey.ENTER)
         time.sleep(3)
     
-    def ascend_login(self):
+    def ascend_login(self, a = 0):
         # try:
         #     self.ascend_login_page.click_allow_notifications()
         # except Exception as e:
@@ -115,11 +115,21 @@ class UtilityFunctions:
         except Exception as e:
             logger.info(f"user is not in landing page  {e}")
             pass
-        self.ascend_login_page.enter_email(TC1.TEST_ADMIN_EMAIL)
-        self.driver.hide_keyboard()
-        time.sleep(2)
-        self.ascend_login_page.enter_password(TC1.TEST_ADMIN_PASSWORD)
-        self.driver.hide_keyboard()
-        time.sleep(2)
-        self.ascend_login_page.click_continue()
-        time.sleep(5)
+        if a:
+            self.ascend_login_page.enter_email(TC1.TEST_PAYMENT_MAIL)
+            self.driver.hide_keyboard()
+            time.sleep(2)
+            self.ascend_login_page.enter_password(TC1.TEST_ADMIN_PASSWORD)
+            self.driver.hide_keyboard()
+            time.sleep(2)
+            self.ascend_login_page.click_continue()
+            time.sleep(5)
+        else:
+            self.ascend_login_page.enter_email(TC1.TEST_ADMIN_EMAIL)
+            self.driver.hide_keyboard()
+            time.sleep(2)
+            self.ascend_login_page.enter_password(TC1.TEST_ADMIN_PASSWORD)
+            self.driver.hide_keyboard()
+            time.sleep(2)
+            self.ascend_login_page.click_continue()
+            time.sleep(5)
