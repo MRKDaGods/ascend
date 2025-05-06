@@ -23,6 +23,7 @@ import {
   deleteConnectionRequest,
   getConnectionStatus,
   getFollowStatus,
+  getConnectionRels,
 } from '../controllers/connectionController';
 
 
@@ -65,5 +66,7 @@ router.get('/connections/mutual/:userId', authenticateToken, getMutualConnection
 
 // Connections of connections (first level mutual)
 router.get('/connections/network', authenticateToken, getConnectionsOfConnections);
+
+router.get("/connections/rels/:userId", authenticateToken, getConnectionRels);
 
 export default router;

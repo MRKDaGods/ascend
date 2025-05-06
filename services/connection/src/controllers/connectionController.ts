@@ -807,3 +807,26 @@ export const getFollowStatus = async (
     });
   }
 };
+
+export const getConnectionRels = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const { userId } = req.params;
+
+    const connectionRels = await connectionService.getConnectionRels(req.user.id, parseInt(userId));
+    res.json({ success: true, data: connectionRels });
+  } catch (error) {
+    console.error("Error in getConnectionRels:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get connection relationships",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};

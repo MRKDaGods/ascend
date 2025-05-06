@@ -165,6 +165,10 @@ export const callRPC = async <T>(
   return new Promise((resolve, reject) => {
     // Begin timeout
     const timeout = setTimeout(() => {
+      channel!.deleteQueue(replyQueue.queue).catch((err) => {
+        console.error("Error deleting temporary queue:", err);
+      });
+      
       reject(new Error(`RPC request timed out after ${timeoutMs}ms, queue: ${queue}`));
     }, timeoutMs);
 
@@ -177,6 +181,12 @@ export const callRPC = async <T>(
 
           // Parse and respond
           const response: any = JSON.parse(msg.content.toString());
+
+          // Delete the temporary queue
+          channel!.deleteQueue(replyQueue.queue).catch((err) => {
+            console.error("Error deleting temporary queue:", err);
+          });
+
           if (response && response.error) {
             reject(new Error(response.error));
           } else {

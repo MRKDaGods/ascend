@@ -9,6 +9,7 @@ import {
   UserPreferences,
   ConnectionStatus,
 } from "../models";
+import { getPresignedUrl } from "@shared/utils/files";
 
 class ConnectionService {
   // Search for users
@@ -117,7 +118,10 @@ class ConnectionService {
    * @param targetUserId - Target user ID
    * @returns Connection status (connected, pending, notConnected)
    */
-  async getConnectionStatus(userId: number, targetUserId: number): Promise<{ status: string, direction?: string }> {
+  async getConnectionStatus(
+    userId: number,
+    targetUserId: number
+  ): Promise<{ status: string; direction?: string }> {
     // Check if users are blocked
     const isBlocked = await db.query(
       `SELECT 1 FROM connection_service.blocked_users
@@ -127,7 +131,7 @@ class ConnectionService {
     );
 
     if (isBlocked.rows.length > 0) {
-      return { status: 'notConnected' };
+      return { status: "notConnected" };
     }
 
     // Check connection status
@@ -140,19 +144,19 @@ class ConnectionService {
 
     if (connection.rows.length > 0) {
       const { status, request_direction } = connection.rows[0];
-      if (status === 'accepted') {
-        return { status: 'connected' };
-      } else if (status === 'pending') {
-        return { 
-          status: 'pending', 
-          direction: request_direction 
+      if (status === "accepted") {
+        return { status: "connected" };
+      } else if (status === "pending") {
+        return {
+          status: "pending",
+          direction: request_direction,
         };
       } else {
-        return { status: 'notConnected' };
+        return { status: "notConnected" };
       }
     }
 
-    return { status: 'notConnected' };
+    return { status: "notConnected" };
   }
 
   /**
@@ -161,7 +165,10 @@ class ConnectionService {
    * @param followingId - Target user ID (potential being followed)
    * @returns Whether the follower follows the following user
    */
-  async getFollowStatus(followerId: number, followingId: number): Promise<{ isFollowing: boolean }> {
+  async getFollowStatus(
+    followerId: number,
+    followingId: number
+  ): Promise<{ isFollowing: boolean }> {
     const result = await db.query(
       `SELECT 1 FROM connection_service.follows
        WHERE follower_id = $1 AND following_id = $2`,
@@ -177,13 +184,26 @@ class ConnectionService {
    * @returns User's connection preferences
    */
   async getUserPreferences(userId: number): Promise<UserPreferences | null> {
-    const result = await db.query<UserPreferences>(
+    let result = await db.query<UserPreferences>(
       `
       SELECT * FROM connection_service.user_preferences
       WHERE user_id = $1
       `,
       [userId]
     );
+
+    if (result.rows.length === 0) {
+      // Insert if missing 3shn ana zh2t
+      result = await db.query(
+        `
+        INSERT INTO connection_service.user_preferences (user_id, allow_connection_requests, 
+          allow_messages_from, visible_to_public, visible_to_connections, visible_to_network, show_followers)
+        VALUES ($1, true, 'all', true, true, true, true)
+        RETURNING *
+      `,
+        [userId]
+      );
+    }
 
     return result.rows.length > 0 ? result.rows[0] : null;
   }
@@ -266,6 +286,17 @@ class ConnectionService {
   `,
       [userId, targetUserId]
     );
+
+    // Inject profile picture URL
+    for (const user of result.rows) {
+      if (user.profile_picture_id) {
+        user.profile_picture_url = await getPresignedUrl(
+          user.profile_picture_id
+        );
+      } else {
+        user.profile_picture_url = null;
+      }
+    }
 
     return {
       data: result.rows,
@@ -367,20 +398,9 @@ class ConnectionService {
     message?: string;
   }): Promise<Connection> {
     // Check if recipient allows connection requests (with lock)
-    const preferences = await db.query<{ allow_connection_requests: boolean }>(
-      `
-      SELECT allow_connection_requests 
-      FROM connection_service.user_preferences
-      WHERE user_id = $1
-      FOR UPDATE
-    `,
-      [params.recipientId]
-    );
+    const preferences = await this.getUserPreferences(params.recipientId);
 
-    if (
-      preferences.rows.length === 0 ||
-      !preferences.rows[0].allow_connection_requests
-    ) {
+    if (!preferences || !preferences.allow_connection_requests) {
       throw new Error("User does not accept connection requests");
     }
 
@@ -459,6 +479,28 @@ class ConnectionService {
       ? ConnectionStatus.ACCEPTED
       : ConnectionStatus.DECLINED;
 
+    // AMMAR
+    // If declined, delete the request
+    if (!params.accept) {
+      await db.query(
+        `
+        DELETE FROM connection_service.connections
+        WHERE user_id = $1 AND connection_id = $2
+      `,
+        [params.userId, connection.connection_id]
+      );
+
+      await db.query(
+        `
+        DELETE FROM connection_service.connections
+        WHERE user_id = $1 AND connection_id = $2
+      `,
+        [connection.connection_id, params.userId]
+      );
+
+      return { status: newStatus };
+    }
+
     // Update recipient's connection record
     await db.query(
       `
@@ -502,7 +544,7 @@ class ConnectionService {
     const offset = (page - 1) * limit;
     let query = `
       SELECT 
-        u.user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio,
+        u.user_id, u.first_name, u.last_name, u.profile_picture_id, u.bio, u.headline,
         c.created_at as connected_at
       FROM connection_service.connections c
       JOIN user_service.profiles u ON c.connection_id = u.user_id
@@ -525,6 +567,19 @@ class ConnectionService {
       `SELECT COUNT(*) FROM connection_service.connections WHERE user_id = $1 AND status = 'accepted'`,
       [userId]
     );
+
+    // Inject pfp url
+    for (const user of result.rows) {
+      if (user.profile_picture_id) {
+        user.profile_picture_url = await getPresignedUrl(
+          user.profile_picture_id
+        );
+      } else {
+        user.profile_picture_url = null;
+      }
+
+      //delete user.profile_picture_id;
+    }
 
     return {
       data: result.rows,
@@ -907,11 +962,7 @@ class ConnectionService {
    * @param limit - Results per page
    * @returns Paginated list of followers
    */
-  async getFollowers(
-    userId: number,
-    page: number = 1,
-    limit: number = 10
-  ) {
+  async getFollowers(userId: number, page: number = 1, limit: number = 10) {
     const offset = (page - 1) * limit;
 
     // Get followers
@@ -1067,6 +1118,38 @@ class ConnectionService {
         page,
         limit,
       },
+    };
+  }
+
+  async getConnectionRels(userId: number, targetUserId: number) {
+    // 1- Get how many connections the targer user has
+    // 2- If userid sent a connection request to target user, return req id
+
+    const result = await db.query(
+      `
+        SELECT 
+          COUNT(c.connection_id) AS connection_count
+        FROM user_service.profiles u
+        LEFT JOIN connection_service.connections c ON c.connection_id = u.user_id AND c.status = 'accepted'
+        WHERE u.user_id = $1
+        GROUP BY u.user_id
+      `,
+      [targetUserId]
+    );
+    const connectionCount = result.rows[0].connection_count || 0;
+
+    const connectionRequest = await db.query(
+      `
+        SELECT id FROM connection_service.connections
+        WHERE user_id = $1 AND connection_id = $2 AND status = 'pending'
+      `,
+      [userId, targetUserId]
+    );
+
+    const connectionRequestId = connectionRequest.rows.length > 0 ? connectionRequest.rows[0].id : null;
+    return {
+      connection_count: connectionCount,
+      connection_request_id: connectionRequestId,
     };
   }
 }

@@ -39,7 +39,13 @@ const startSharedService = async (
   // Setup express
   const app = express();
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({
+    verify: (req, res, buf) => {
+      if (req.url?.includes('/webhook')) {
+        (req as any).rawBody = buf.toString();
+      }
+    }
+  }));
 
   // Custom initialization
   if (options?.customInit) {

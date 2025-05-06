@@ -117,6 +117,19 @@ export const getProfile = async (
     profile.current_position = currentPositionResult.rows[0] || undefined;
   }
 
+  // Inject is admin
+  const isAdminResult = await db.query(
+    "SELECT role FROM auth_service.users WHERE id = $1",
+    [userId]
+  );
+
+  if (isAdminResult.rows.length > 0) {
+    const role = isAdminResult.rows[0].role;
+    profile.is_admin = role === "admin";
+  } else {
+    profile.is_admin = false;
+  }
+
   return profile;
 };
 
