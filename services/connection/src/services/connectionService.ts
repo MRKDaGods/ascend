@@ -117,7 +117,10 @@ class ConnectionService {
    * @param targetUserId - Target user ID
    * @returns Connection status (connected, pending, notConnected)
    */
-  async getConnectionStatus(userId: number, targetUserId: number): Promise<{ status: string, direction?: string }> {
+  async getConnectionStatus(
+    userId: number,
+    targetUserId: number
+  ): Promise<{ status: string; direction?: string }> {
     // Check if users are blocked
     const isBlocked = await db.query(
       `SELECT 1 FROM connection_service.blocked_users
@@ -127,7 +130,7 @@ class ConnectionService {
     );
 
     if (isBlocked.rows.length > 0) {
-      return { status: 'notConnected' };
+      return { status: "notConnected" };
     }
 
     // Check connection status
@@ -140,19 +143,19 @@ class ConnectionService {
 
     if (connection.rows.length > 0) {
       const { status, request_direction } = connection.rows[0];
-      if (status === 'accepted') {
-        return { status: 'connected' };
-      } else if (status === 'pending') {
-        return { 
-          status: 'pending', 
-          direction: request_direction 
+      if (status === "accepted") {
+        return { status: "connected" };
+      } else if (status === "pending") {
+        return {
+          status: "pending",
+          direction: request_direction,
         };
       } else {
-        return { status: 'notConnected' };
+        return { status: "notConnected" };
       }
     }
 
-    return { status: 'notConnected' };
+    return { status: "notConnected" };
   }
 
   /**
@@ -161,7 +164,10 @@ class ConnectionService {
    * @param followingId - Target user ID (potential being followed)
    * @returns Whether the follower follows the following user
    */
-  async getFollowStatus(followerId: number, followingId: number): Promise<{ isFollowing: boolean }> {
+  async getFollowStatus(
+    followerId: number,
+    followingId: number
+  ): Promise<{ isFollowing: boolean }> {
     const result = await db.query(
       `SELECT 1 FROM connection_service.follows
        WHERE follower_id = $1 AND following_id = $2`,
@@ -177,13 +183,26 @@ class ConnectionService {
    * @returns User's connection preferences
    */
   async getUserPreferences(userId: number): Promise<UserPreferences | null> {
-    const result = await db.query<UserPreferences>(
+    let result = await db.query<UserPreferences>(
       `
       SELECT * FROM connection_service.user_preferences
       WHERE user_id = $1
       `,
       [userId]
     );
+
+    if (result.rows.length === 0) {
+      // Insert if missing 3shn ana zh2t
+      result = await db.query(
+        `
+        INSERT INTO connection_service.user_preferences (user_id, allow_connection_requests, 
+          allow_messages_from, visible_to_public, visible_to_connections, visible_to_network, show_followers)
+        VALUES ($1, true, 'all', true, true, true, true)
+        RETURNING *
+      `,
+        [userId]
+      );
+    }
 
     return result.rows.length > 0 ? result.rows[0] : null;
   }
@@ -367,20 +386,9 @@ class ConnectionService {
     message?: string;
   }): Promise<Connection> {
     // Check if recipient allows connection requests (with lock)
-    const preferences = await db.query<{ allow_connection_requests: boolean }>(
-      `
-      SELECT allow_connection_requests 
-      FROM connection_service.user_preferences
-      WHERE user_id = $1
-      FOR UPDATE
-    `,
-      [params.recipientId]
-    );
+    const preferences = await this.getUserPreferences(params.recipientId);
 
-    if (
-      preferences.rows.length === 0 ||
-      !preferences.rows[0].allow_connection_requests
-    ) {
+    if (!preferences || !preferences.allow_connection_requests) {
       throw new Error("User does not accept connection requests");
     }
 
@@ -907,11 +915,7 @@ class ConnectionService {
    * @param limit - Results per page
    * @returns Paginated list of followers
    */
-  async getFollowers(
-    userId: number,
-    page: number = 1,
-    limit: number = 10
-  ) {
+  async getFollowers(userId: number, page: number = 1, limit: number = 10) {
     const offset = (page - 1) * limit;
 
     // Get followers
