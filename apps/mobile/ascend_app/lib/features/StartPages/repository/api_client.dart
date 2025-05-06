@@ -250,6 +250,14 @@ class ApiClient {
       mediaType = MediaType('application', 'pdf');
     } else if (fileExtension == '.doc' || fileExtension == '.docx') {
       mediaType = MediaType('application', 'msword');
+    } else if (fileExtension == ".mp4") {
+      mediaType = MediaType("video", "mp4");
+    } else if (fileExtension == ".mp3") {
+      mediaType = MediaType("audio", "mp3");
+    } else if (fileExtension == ".txt") {
+      mediaType = MediaType("text", "plain");
+    } else {
+      mediaType = MediaType('application', 'octet-stream');
     }
 
     if (body != null) {
