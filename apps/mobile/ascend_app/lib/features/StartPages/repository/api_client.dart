@@ -3,6 +3,9 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:logger/logger.dart';
+import 'dart:io';
+import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as path;
 
 class ApiClient {
   final String _baseUrl = 'https://api.ascendx.tech';
@@ -214,6 +217,65 @@ class ApiClient {
 
     _handleResponse(response);
     return response;
+  }
+
+  // Upload File with Multipart Request
+  Future<http.Response> uploadFile(
+    String endpoint,
+    File file,
+    String context,
+  ) async {
+    final url = Uri.parse('$_baseUrl$endpoint');
+    final token = await SecureStorageHelper.getAuthToken();
+
+    // Create multipart request
+    final request = http.MultipartRequest('POST', url);
+
+    // Set headers
+    request.headers.addAll({
+      if (token != null) 'Authorization': 'Bearer $token',
+      'x-no-parse-body': '1',
+    });
+
+    // Determine media type based on file extension
+    final fileExtension = path.extension(file.path).toLowerCase();
+    MediaType? mediaType;
+
+    if (fileExtension == '.jpg' || fileExtension == '.jpeg') {
+      mediaType = MediaType('image', 'jpeg');
+    } else if (fileExtension == '.png') {
+      mediaType = MediaType('image', 'png');
+    } else if (fileExtension == '.pdf') {
+      mediaType = MediaType('application', 'pdf');
+    } else if (fileExtension == '.doc' || fileExtension == '.docx') {
+      mediaType = MediaType('application', 'msword');
+    }
+
+    // Add file to request
+    request.files.add(
+      http.MultipartFile(
+        'file',
+        file.readAsBytes().asStream(),
+        file.lengthSync(),
+        filename: path.basename(file.path),
+        contentType: mediaType,
+      ),
+    );
+
+    // Add context field
+    request.fields['context'] = context;
+
+    // Send request
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      _handleResponse(response);
+      return response;
+    } catch (e) {
+      _logger.e('Error uploading file: $e');
+      throw Exception('Error uploading file: $e');
+    }
   }
 
   // Handle API response

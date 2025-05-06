@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
-import 'models/profile_section.dart';
-import 'expanded_section_page.dart';
-import 'edit_entry_page.dart';
-import 'profile_entry.dart';
-import 'custom_alert_dialog.dart';
+import '../UserPage/models/profile_section.dart';
 
 class SectionBuilder extends StatefulWidget {
   final ProfileSection section;
   final bool isMyProfile;
-  final bool isExpanded;
-  final bool inEditMode;
-  final void Function(ProfileSection)? onUpdateSection;
-  final void Function()? deleteResume; // Callback for deleting resume
-  final VoidCallback? onAddEntry; // New callback for adding entries
+  final Function(ProfileSection) onUpdateSection;
+  final VoidCallback onAddEntry;
+  final void Function(int)? onEditEntry;
+  final void Function(int)? onDeleteEntry;
+  final double titleSpacing;
+  final bool useCondensedView;
+  final int initialVisibleItems;
 
   const SectionBuilder({
     super.key,
     required this.section,
     required this.isMyProfile,
-    this.isExpanded = false,
-    this.inEditMode = false,
-    this.onUpdateSection,
-    this.onAddEntry, // Pass the callback
-    this.deleteResume,
+    required this.onUpdateSection,
+    required this.onAddEntry,
+    required this.onEditEntry,
+    required this.onDeleteEntry,
+    this.titleSpacing = 0,
+    this.useCondensedView = false,
+    this.initialVisibleItems = 2,
   });
 
   @override
@@ -30,254 +30,175 @@ class SectionBuilder extends StatefulWidget {
 }
 
 class _SectionBuilderState extends State<SectionBuilder> {
-  static const sectionNamesWithLimitTwo = [
-    "Education",
-    "Volunteering",
-    "Licenses & Certifications",
-    "Skills",
-    "Accomplishments",
-    "Organizations",
-  ];
-  ProfileEntryWidget? editedItem;
-  void saveEntry(ProfileEntryWidget newData) {
-    setState(() {
-      // Find the index of the edited item
-      final int index = widget.section.content.indexWhere(
-        (entry) => entry == editedItem,
-      );
-      if (index != -1) {
-        // Replace the old entry with the new data
-        widget.section.content[index] = newData;
-      }
-      widget.onUpdateSection?.call(widget.section);
-      editedItem = null; // Reset the edited item
-      // Notify the parent
-    });
-  }
-
-  void _showWarningDialogForRemovingResumee(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CustomAlertDialog(
-          title: "Do you want to delete this item?",
-          description: "This cannot be undone.",
-          confirmText: "Delete",
-          onConfirm: () {
-            Navigator.pop(context); // Close the dialog
-            print(widget.deleteResume?.toString());
-            if (widget.deleteResume != null) {
-              widget.deleteResume!(); // Safely call the deleteResume callback
-            }
-          },
-        );
-      },
-    );
-  }
-
-  void _editEntry(BuildContext context, ProfileEntryWidget entry) {
-    // Navigate to a new page to edit the entry
-    setState(() {
-      editedItem = entry;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) => EditEntryPage(entry: entry, saveEntry: saveEntry),
-        ),
-      );
-      debugPrint(entry.title);
-    });
-  }
+  bool _showAll = false;
 
   @override
   Widget build(BuildContext context) {
-    final int contentCount = widget.section.content.length;
-    int limit = 5;
-    if (sectionNamesWithLimitTwo.contains(widget.section.title)) {
-      limit = 2;
-    }
-    final bool hasMoreThanLimit = contentCount > limit;
-    final List<Widget> displayedContent =
-        hasMoreThanLimit && !widget.isExpanded
-            ? widget.section.content.sublist(0, limit)
-            : widget.section.content;
+    // Determine how many items to show
+    final int itemsToShow =
+        widget.useCondensedView && !_showAll
+            ? widget.initialVisibleItems.clamp(0, widget.section.content.length)
+            : widget.section.content.length;
+
+    bool showExpandButton =
+        widget.useCondensedView &&
+        widget.section.content.length > widget.initialVisibleItems;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Full-width Black Divider
-        if (!widget.isExpanded)
-          Container(
-            height: 6,
-            width: double.infinity,
-            color: const Color.fromARGB(255, 180, 180, 180),
-          ),
-
-        // Section Content with Padding
+        _buildSectionHeader(context),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: widget.isExpanded ? 0 : 20),
+          // Decreased padding between title and content (top padding is smaller)
+          padding: const EdgeInsets.fromLTRB(16.0, 2.0, 16.0, 0.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // Section Title
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (!widget.isExpanded)
-                    Column(
-                      children: [
-                        const SizedBox(height: 10),
-                        Text(
-                          widget.section.title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  // Icons for Editing and Adding Items
-                  if (widget.isMyProfile &&
-                      widget.section.title != "Analytics" &&
-                      !widget.isExpanded)
-                    Row(
-                      children: [
-                        if (widget.section.title != "About")
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: widget.onAddEntry, // Call the callback
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => ExpandedSectionPage(
-                                      section: widget.section,
-                                      isMyProfile: widget.isMyProfile,
-                                      deleteResume: widget.deleteResume,
-                                    ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-              if (widget.isMyProfile && widget.section.title == "Analytics")
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: const [
-                    Icon(Icons.remove_red_eye),
-                    SizedBox(width: 5),
-                    Text("Private to you"),
-                  ],
-                ),
-              const SizedBox(height: 5),
-              if (widget.section.title == "Featured" &&
-                  widget.section.contentWidgets.isNotEmpty &&
-                  !widget.isExpanded)
-                widget.section.contentWidgets[0]
-              else if (widget.section.title == "Featured" && widget.isExpanded)
-                Column(
-                  children: [
-                    widget.section.contentWidgets[0],
-                    const SizedBox(height: 5),
+              // Show content widgets if available (for custom widgets like PDF viewers)
+              if (widget.section.contentWidgets.isNotEmpty)
+                ...widget.section.contentWidgets,
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+              // Show regular content entries
+              if (widget.section.content.isNotEmpty)
+                ListView.separated(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: itemsToShow,
+                  // Increased spacing between items by adjusting the divider height
+                  separatorBuilder:
+                      (context, index) => const Divider(height: 16),
+                  itemBuilder: (context, index) {
+                    final entry = widget.section.content[index];
+                    return Stack(
                       children: [
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.edit_outlined),
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 10,
+                        Padding(
+                          // More padding between items (especially at the bottom)
+                          padding: const EdgeInsets.only(
+                            bottom: 12.0,
+                            right: 40,
+                          ),
+                          child: entry,
+                        ),
+                        // Only show edit/delete buttons if it's NOT the About section
+                        if (widget.isMyProfile &&
+                            widget.section.title != "About")
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 16),
+                                  onPressed: () => widget.onEditEntry!(index),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, size: 16),
+                                  onPressed: () => widget.onDeleteEntry!(index),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ],
                             ),
                           ),
-                          label: Text("Edit"),
-                        ),
-                        const SizedBox(width: 10),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.delete_outline),
-                          onPressed:
-                              () =>
-                                  _showWarningDialogForRemovingResumee(context),
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 10,
-                            ),
-                          ),
-                          label: Text("Delete"),
-                        ),
+                        // Removed the edit button for About section content
                       ],
-                    ),
-                  ],
-                ),
-
-              // Section Content with Dividers
-              for (var item in displayedContent) ...[
-                if (item != displayedContent.first || !widget.isExpanded)
-                  const SizedBox(height: 5),
-                Row(
-                  children: [
-                    Expanded(child: item),
-                    if (widget.inEditMode &&
-                        widget.section.title != "Analytics")
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () {
-                          _editEntry(context, item as ProfileEntryWidget);
-                          editedItem = item;
-                        },
-                      ),
-                  ],
-                ),
-                if (item != displayedContent.last)
-                  const Divider(), // Grey divider between items
-              ],
-
-              // "Show All" Button if more content exists
-              if ((hasMoreThanLimit || widget.section.title == "Analytics") &&
-                  !widget.isExpanded)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ExpandedSectionPage(
-                              section: widget.section,
-                              isMyProfile: widget.isMyProfile,
-                            ),
-                      ),
                     );
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+
+              // Show "Show all" button if needed
+              if (showExpandButton)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showAll = !_showAll;
+                      });
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(50, 30),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Show all ${widget.section.title != "Analytics" ? contentCount : ""} ${widget.section.title.toLowerCase()}',
+                          _showAll
+                              ? "Show less"
+                              : "Show all ${widget.section.content.length} ${widget.section.title.toLowerCase()} →",
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
                         ),
-                        const Icon(Icons.arrow_forward),
                       ],
                     ),
                   ),
                 ),
-
-              const SizedBox(height: 12), // Keep spacing consistent
             ],
           ),
         ),
+        const SizedBox(height: 4),
       ],
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context) {
+    return Container(
+      // Reduced bottom padding to decrease space between title and content
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            widget.section.title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          if (widget.isMyProfile)
+            Row(
+              children: [
+                // Edit button for the About section - now shown only in the header
+                if (widget.section.title == "About")
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      // Navigate to edit the About section (Bio)
+                      if (widget.onEditEntry != null) {
+                        widget.onEditEntry!(0);
+                      }
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 20,
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: widget.onAddEntry,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 20,
+                  ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }
