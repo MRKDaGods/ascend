@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ascend_app/features/Messaging/presentation/bloc/bloc/messaging_bloc_bloc.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 
 class MessageInput extends StatefulWidget {
   final TextEditingController messageController;
@@ -13,6 +17,7 @@ class MessageInput extends StatefulWidget {
   final Function() onEmojiPressed;
   final Function(bool) onTypingStatusChanged;
   final String conversationId;
+  final Function(File, String)? onFileSelected;
 
   const MessageInput({
     super.key,
@@ -24,6 +29,7 @@ class MessageInput extends StatefulWidget {
     required this.onEmojiPressed,
     required this.onTypingStatusChanged,
     required this.conversationId,
+    this.onFileSelected,
   });
 
   @override
@@ -35,16 +41,18 @@ class _MessageInputState extends State<MessageInput>
   bool _showAttachments = false;
   bool _isTyping = false;
   Timer? _typingTimer;
+  File? _selectedFile;
+  String _selectedFileType = '';
 
-  // Animation controllers
   late AnimationController _attachmentController;
   late Animation<double> _attachmentAnimation;
+
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
 
-    // Setup animations
     _attachmentController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
@@ -54,7 +62,6 @@ class _MessageInputState extends State<MessageInput>
       curve: Curves.easeOut,
     );
 
-    // Setup typing detection
     widget.messageController.addListener(_onTypingChanged);
   }
 
@@ -66,11 +73,9 @@ class _MessageInputState extends State<MessageInput>
         _isTyping = isCurrentlyTyping;
       });
 
-      // Notify parent about typing status change
       widget.onTypingStatusChanged(isCurrentlyTyping);
     }
 
-    //dispatch typing event and reset timer
     if (isCurrentlyTyping) {
       context.read<MessagingBloc>().add(
         SendTypingNotification(widget.conversationId),
@@ -90,9 +95,18 @@ class _MessageInputState extends State<MessageInput>
 
   void _sendMessage() {
     final messageText = widget.messageController.text.trim();
-    if (messageText.isEmpty) return;
 
-    widget.onSendMessage(messageText);
+    if (_selectedFile != null) {
+      if (widget.onFileSelected != null) {
+        widget.onFileSelected!(_selectedFile!, _selectedFileType);
+      }
+      _clearSelectedFile();
+    } else if (messageText.isNotEmpty) {
+      widget.onSendMessage(messageText);
+    } else {
+      return;
+    }
+
     widget.messageController.clear();
   }
 
@@ -108,6 +122,85 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
+  Future<void> _pickDocument() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedFile = File(result.files.single.path!);
+        _selectedFileType = 'document';
+      });
+      _toggleAttachments();
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (image != null) {
+      setState(() {
+        _selectedFile = File(image.path);
+        _selectedFileType = 'image';
+      });
+      _toggleAttachments();
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    final XFile? photo = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+
+    if (photo != null) {
+      setState(() {
+        _selectedFile = File(photo.path);
+        _selectedFileType = 'image';
+      });
+      _toggleAttachments();
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+
+    if (video != null) {
+      setState(() {
+        _selectedFile = File(video.path);
+        _selectedFileType = 'video';
+      });
+      _toggleAttachments();
+    }
+  }
+
+  Future<void> _pickGif() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['gif'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedFile = File(result.files.single.path!);
+        _selectedFileType = 'gif';
+      });
+      _toggleAttachments();
+    }
+  }
+
+  void _clearSelectedFile() {
+    setState(() {
+      _selectedFile = null;
+      _selectedFileType = '';
+    });
+  }
+
   @override
   void dispose() {
     widget.messageController.removeListener(_onTypingChanged);
@@ -120,21 +213,20 @@ class _MessageInputState extends State<MessageInput>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Attachment selection
         if (_showAttachments)
           SizeTransition(
             sizeFactor: _attachmentAnimation,
             child: _buildAttachmentsSection(),
           ),
 
-        // Message input field
+        if (_selectedFile != null) _buildSelectedFilePreview(),
+
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                // ignore: deprecated_member_use
                 color: Colors.black.withOpacity(0.05),
                 blurRadius: 3,
                 offset: Offset(0, -1),
@@ -144,7 +236,6 @@ class _MessageInputState extends State<MessageInput>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Attachment button
               IconButton(
                 icon: Icon(
                   _showAttachments ? Icons.close : Icons.attach_file,
@@ -155,8 +246,6 @@ class _MessageInputState extends State<MessageInput>
                   widget.onAttachmentPressed();
                 },
               ),
-
-              // Text input field
               Expanded(
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -167,7 +256,6 @@ class _MessageInputState extends State<MessageInput>
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Text field
                       Expanded(
                         child: TextField(
                           controller: widget.messageController,
@@ -176,7 +264,10 @@ class _MessageInputState extends State<MessageInput>
                           minLines: 1,
                           textCapitalization: TextCapitalization.sentences,
                           decoration: InputDecoration(
-                            hintText: 'Message',
+                            hintText:
+                                _selectedFile != null
+                                    ? 'Add a caption...'
+                                    : 'Message',
                             hintStyle: TextStyle(color: Colors.grey[500]),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -186,8 +277,6 @@ class _MessageInputState extends State<MessageInput>
                           ),
                         ),
                       ),
-
-                      // Send/Voice button
                       Container(
                         margin: const EdgeInsets.only(bottom: 4),
                         decoration: BoxDecoration(
@@ -196,14 +285,16 @@ class _MessageInputState extends State<MessageInput>
                         ),
                         child: IconButton(
                           icon: Icon(
-                            widget.messageController.text.isNotEmpty
+                            widget.messageController.text.isNotEmpty ||
+                                    _selectedFile != null
                                 ? Icons.send
                                 : Icons.mic,
                             color: Colors.white,
                             size: 22,
                           ),
                           onPressed:
-                              widget.messageController.text.isNotEmpty
+                              widget.messageController.text.isNotEmpty ||
+                                      _selectedFile != null
                                   ? _sendMessage
                                   : () {
                                     // Handle voice recording
@@ -221,6 +312,83 @@ class _MessageInputState extends State<MessageInput>
     );
   }
 
+  Widget _buildSelectedFilePreview() {
+    return Container(
+      padding: EdgeInsets.all(8),
+      color: Colors.grey[100],
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.grey[300],
+            ),
+            child:
+                _selectedFileType == 'image' || _selectedFileType == 'gif'
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(_selectedFile!, fit: BoxFit.cover),
+                    )
+                    : Center(
+                      child: Icon(
+                        _getFileIcon(_selectedFile!.path),
+                        size: 30,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  path.basename(_selectedFile!.path),
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  '${(_selectedFile!.lengthSync() / 1024).toStringAsFixed(1)} KB',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.grey[700]),
+            onPressed: _clearSelectedFile,
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getFileIcon(String filePath) {
+    final extension = path.extension(filePath).toLowerCase();
+
+    switch (extension) {
+      case '.pdf':
+        return Icons.picture_as_pdf;
+      case '.doc':
+      case '.docx':
+        return Icons.article;
+      case '.xls':
+      case '.xlsx':
+        return Icons.table_chart;
+      case '.mp4':
+      case '.mov':
+      case '.avi':
+        return Icons.videocam;
+      case '.gif':
+        return Icons.gif;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
   Widget _buildAttachmentsSection() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -234,31 +402,31 @@ class _MessageInputState extends State<MessageInput>
             icon: Icons.insert_drive_file,
             label: 'Send a document',
             color: Colors.grey,
-            onTap: () => widget.onAttachmentPressed(),
+            onTap: _pickDocument,
           ),
           _buildAttachmentOption(
             icon: Icons.camera_alt,
-            label: 'Take a photo or video',
+            label: 'Take a photo',
             color: Colors.green,
-            onTap: () => widget.onCameraPressed(),
+            onTap: _takePhoto,
           ),
           _buildAttachmentOption(
             icon: Icons.image,
+            label: 'Photo & Video',
+            color: Colors.purple,
+            onTap: _pickImage,
+          ),
+          _buildAttachmentOption(
+            icon: Icons.videocam,
             label: 'Video',
             color: Colors.red,
-            onTap: () {},
+            onTap: _pickVideo,
           ),
           _buildAttachmentOption(
             icon: Icons.gif,
             label: 'Send a GIF',
             color: Colors.orange,
-            onTap: () {},
-          ),
-          _buildAttachmentOption(
-            icon: Icons.alternate_email,
-            label: 'Mention a person',
-            color: Colors.purple,
-            onTap: () {},
+            onTap: _pickGif,
           ),
         ],
       ),
@@ -284,7 +452,6 @@ class _MessageInputState extends State<MessageInput>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                // ignore: deprecated_member_use
                 color: color.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),

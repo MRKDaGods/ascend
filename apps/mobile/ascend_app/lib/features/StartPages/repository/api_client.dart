@@ -223,8 +223,9 @@ class ApiClient {
   Future<http.Response> uploadFile(
     String endpoint,
     File file,
-    String context,
-  ) async {
+    String context, {
+    Map<String, String>? body,
+  }) async {
     final url = Uri.parse('$_baseUrl$endpoint');
     final token = await SecureStorageHelper.getAuthToken();
 
@@ -249,6 +250,12 @@ class ApiClient {
       mediaType = MediaType('application', 'pdf');
     } else if (fileExtension == '.doc' || fileExtension == '.docx') {
       mediaType = MediaType('application', 'msword');
+    }
+
+    if (body != null) {
+      body.forEach((key, value) {
+        request.fields[key] = value;
+      });
     }
 
     // Add file to request
