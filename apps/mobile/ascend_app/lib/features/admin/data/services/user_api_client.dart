@@ -64,11 +64,26 @@ class UserApiClient {
 
   Future<void> post(String endpoint, Map<String, dynamic> body) async {
     try {
+      final token = await SecureStorageHelper.getAuthToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('Authentication token is missing.');
+      }
+
+      final url = baseUrl + endpoint;
+      debugPrint('POST request to: $url');
+      debugPrint('Request body: ${jsonEncode(body)}');
+
       final response = await http.post(
-        Uri.parse(baseUrl + endpoint),
+        Uri.parse(url),
         body: jsonEncode(body),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
       );
+
+      debugPrint('Response status code: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       if (response.statusCode != 200) {
         throw Exception('Failed to post to $endpoint: ${response.body}');

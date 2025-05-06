@@ -1,7 +1,7 @@
 import 'package:ascend_app/features/admin/Presentation/pages/analytics_page.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/jobs_page.dart';
 import 'package:ascend_app/features/admin/Presentation/pages/posts_page.dart';
-import 'package:ascend_app/features/admin/Presentation/pages/users_page.dart';
+import 'package:ascend_app/features/admin/Presentation/pages/admin_users_page.dart';
 import 'package:ascend_app/features/admin/bloc/analytics/bloc/analytics_bloc.dart';
 import 'package:ascend_app/features/admin/bloc/jobs/bloc/jobs_bloc.dart';
 import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_bloc.dart';

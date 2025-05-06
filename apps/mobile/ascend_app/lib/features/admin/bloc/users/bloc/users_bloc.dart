@@ -1,3 +1,4 @@
+import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ascend_app/features/admin/repository/admin_repository.dart';
 import 'package:ascend_app/features/admin/data/models/users_model.dart';
@@ -31,20 +32,29 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
     });
 
     // Handle banUser event
+    // First, add the import
+    // Then update the BanUserEvent handler
     on<BanUserEvent>((event, emit) async {
       try {
+        // Get the authentication token from SecureStorageHelper
+        final String? authToken = await SecureStorageHelper.getAuthToken();
+
+        if (authToken == null) {
+          throw Exception('No authentication token available');
+        }
+
+        // Pass the token to your repository method
         await adminRepository.banUser(
           userId: event.userId,
-          expiresAt: event.expiresAt,
           reason: event.reason,
+          expiresAt: event.expiresAt,
         );
-        emit(UserBannedState(event.userId));
+
+        // Refresh the user list after banning
+        final reports = await adminRepository.getReportedUsers();
+        emit(UsersLoaded(reports));
       } catch (e) {
-        if (e.toString().contains('Token required')) {
-          emit(UsersError('Authentication failed. Please log in again.'));
-        } else {
-          emit(UsersError('Failed to ban user: $e'));
-        }
+        emit(UsersError('Error banning user with ID ${event.userId}: $e'));
       }
     });
   }
