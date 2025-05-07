@@ -9,10 +9,12 @@ import 'package:ascend_app/features/StartPages/Presentation/Pages/join_ascend.da
 import 'package:ascend_app/features/StartPages/Presentation/Widget/input_widgets.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
 import 'package:ascend_app/shared/navigation/main_navigation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/continue_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -49,9 +51,7 @@ class _SignInPageState extends State<SignInPage> {
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthSuccess) {
-              // --- ADD THIS CHECK ---
               if (!state.signUpMode) {
-                // Only navigate if it was a sign-in, not a sign-up
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -59,11 +59,8 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 );
               }
-              // --- END ADDED CHECK ---
             } else if (state is AuthFailure) {
-              // Show an error message if login fails
               if (state.error.contains("confirmed")) {
-                // Display Resend confirmation email popup yes no
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -81,7 +78,6 @@ class _SignInPageState extends State<SignInPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Resend confirmation email
                             sl.apiClient
                                 .post(
                                   "/auth/resend-confirm",
@@ -203,7 +199,54 @@ class _SignInPageState extends State<SignInPage> {
                         ),
                         SizedBox(height: screenHeight * 0.03),
                         buildOutlinedButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            try {
+                              // Initialize Google Sign In for mobile
+                              final GoogleSignIn googleSignIn = GoogleSignIn();
+                              final GoogleSignInAccount? googleUser =
+                                  await googleSignIn.signIn();
+
+                              if (googleUser != null) {
+                                // Obtain auth details from request
+                                final GoogleSignInAuthentication googleAuth =
+                                    await googleUser.authentication;
+
+                                // Create new credential for Firebase
+                                final credential =
+                                    GoogleAuthProvider.credential(
+                                      accessToken: googleAuth.accessToken,
+                                      idToken: googleAuth.idToken,
+                                    );
+
+                                // Sign in with Firebase using the credential
+                                final UserCredential userCredential =
+                                    await FirebaseAuth.instance
+                                        .signInWithCredential(credential);
+
+                                final User? user = userCredential.user;
+
+                                if (user != null) {
+                                  final idToken = await user.getIdToken();
+
+                                  context.read<AuthBloc>().add(
+                                    GoogleSignInRequested(
+                                      user: user,
+                                      tokenId: idToken,
+                                    ),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              debugPrint('Google Sign-In error: $e');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to sign in with Google: ${e.toString()}',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                           iconPath: 'assets/google.png',
                           label: 'Sign in with Google',
                         ),
@@ -296,7 +339,6 @@ class _SignInPageState extends State<SignInPage> {
                         SizedBox(height: screenHeight * 0.01),
                         buildOutlinedButton(
                           onPressed: () async {
-                            // Save the "Remember Me" flag
                             await SecureStorageHelper.setRememberMe(
                               _rememberMe,
                             );
@@ -304,7 +346,6 @@ class _SignInPageState extends State<SignInPage> {
                             final email = _emailController.text.trim();
                             final password = _passwordController.text.trim();
 
-                            // Validate email and password inputs
                             if (!InputValidators.isValidEmailOrPhone(email)) {
                               setState(() {
                                 _emailError = 'Invalid email or phone number';
@@ -319,13 +360,11 @@ class _SignInPageState extends State<SignInPage> {
                               return;
                             }
 
-                            // Clear previous errors
                             setState(() {
                               _emailError = '';
                               _passwordError = '';
                             });
 
-                            // Dispatch SignInRequested event to AuthBloc
                             context.read<AuthBloc>().add(
                               SignInRequested(email: email, password: password),
                             );

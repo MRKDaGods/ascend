@@ -35,6 +35,50 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<AuthTokenUpdated>(_onAuthTokenUpdated);
 
+    on<GoogleSignInRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        // Convert user object to a JSON-serializable map
+        final userJson = {
+          'displayName': event.user?.displayName,
+          'email': event.user?.email,
+          'photoURL': event.user?.photoURL,
+          'uid': event.user?.uid,
+          'isEmailVerified': event.user?.emailVerified,
+        };
+
+        final res = await sl.apiClient.post(
+          "/auth/social-login",
+          data: {"userData": userJson, "token": event.tokenId},
+        );
+
+        if (res.statusCode != 200) {
+          throw Exception(
+            "Google SignIn failed with status code: ${res.statusCode}",
+          );
+        }
+
+        final response = jsonDecode(res.body);
+
+        // Always update the auth token in secure storage
+        await SecureStorageHelper.setAuthToken(response['token']);
+
+        // Validate the token
+        if (response['token'] == null || response['token'].isEmpty) {
+          throw Exception("Authentication token not found.");
+        }
+
+        final savedToken = await SecureStorageHelper.getAuthToken();
+        _logger.i('Token after saving: $savedToken');
+        _logger.i('SignIn successful: ${response['token']}'); // Log success
+
+        emit(AuthSuccess(token: response['token'], signUpMode: false));
+      } catch (error) {
+        _logger.e('Google SignIn failed: $error');
+        emit(AuthFailure(error: error.toString()));
+      }
+    });
+
     FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
       _logger.i('[XAUTH] Firebase token refreshed: $token');
 
