@@ -167,9 +167,7 @@ class _CreateCompanyState extends State<CreateCompany> {
       final String baseUrl = 'https://api.ascendx.tech';
       final String endpoint =
           widget.isEditMode
-
               ? '/company/companies/${widget.companyId}' // Edit endpoint
-
               : '/company/companies'; // Create endpoint
 
       try {
@@ -188,14 +186,12 @@ class _CreateCompanyState extends State<CreateCompany> {
                   headers: headers,
 
                   body: jsonEncode(cleanedData),
-
                 )
                 : await http.post(
                   url,
                   headers: headers,
 
                   body: jsonEncode(cleanedData),
-
                 );
 
         if (response.statusCode == 200 || response.statusCode == 201) {
@@ -243,22 +239,26 @@ class _CreateCompanyState extends State<CreateCompany> {
                 validator:
                     (value) => value!.isEmpty ? 'Enter company name' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
                 validator:
                     (value) => value!.isEmpty ? 'Enter description' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _industryController,
                 decoration: const InputDecoration(labelText: 'Industry'),
                 validator: (value) => value!.isEmpty ? 'Enter industry' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _locationController,
                 decoration: const InputDecoration(labelText: 'Location'),
                 validator: (value) => value!.isEmpty ? 'Enter location' : null,
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _domainController,
                 decoration: const InputDecoration(labelText: 'Domain Name'),
