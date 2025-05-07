@@ -1071,4 +1071,76 @@ class PostRepository {
   void dispose() {
     _client.close();
   }
+
+  /// Adds tags for a post or comment
+  Future<bool> tagUsers({
+    required List<String> userIds, 
+    String? postId, 
+    String? commentId
+  }) async {
+    // Use the correct baseUrl and endpoint for tagging
+    final url = Uri.parse('$baseUrl/post/tags');
+    debugPrint('🏷️ [PostRepository] Tagging users at $url');
+    debugPrint('🏷️ [PostRepository] Tagged users: $userIds for ${postId != null ? "post $postId" : "comment $commentId"}');
+
+    try {
+      // Get the auth token
+      final authToken = await SecureStorageHelper.getAuthToken();
+      if (authToken == null) {
+        debugPrint('❌ [PostRepository] Auth token is null. Cannot tag users.');
+        throw Exception('Authentication token not found.');
+      }
+      debugPrint('🔑 [PostRepository] Using auth token for tagging users.');
+
+      // Define the request body with the tagging data
+      final Map<String, dynamic> requestBody = {
+        'user_ids': userIds, // List of user IDs to tag
+      };
+      
+      // Add either postId or commentId based on what's being tagged
+      if (postId != null) {
+        requestBody['post_id'] = postId;
+      } else if (commentId != null) {
+        requestBody['comment_id'] = commentId;
+      } else {
+        throw Exception('Either postId or commentId must be provided for tagging.');
+      }
+
+      debugPrint('🏷️ [PostRepository] Tag request body: ${jsonEncode(requestBody)}');
+
+      final response = await _client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      // Check if the request was successful
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('✅ [PostRepository] Users tagged successfully (Status: ${response.statusCode})');
+        
+        try {
+          final responseBody = jsonDecode(response.body);
+          if (responseBody['success'] == true) {
+            debugPrint('✅ [PostRepository] API confirmed tagging success: ${responseBody['data']}');
+            return true;
+          } else {
+            debugPrint('⚠️ [PostRepository] API indicated failure despite status ${response.statusCode}. Body: ${response.body}');
+            return false;
+          }
+        } catch (e) {
+          debugPrint('⚠️ [PostRepository] Failed to parse success response: $e');
+          return true; // Assuming success based on status code
+        }
+      } else {
+        debugPrint('❌ [PostRepository] Failed to tag users. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to tag users. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ [PostRepository] Error tagging users: $e');
+      throw Exception('Failed to tag users: $e');
+    }
+  }
 }

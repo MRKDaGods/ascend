@@ -8,6 +8,7 @@ import 'package:ascend_app/features/home/presentation/widgets/create_post/commen
 import 'package:ascend_app/features/home/presentation/widgets/create_post/visibility_options_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/schedule_post_bottom_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/post_type_selection_grid.dart';
+import 'package:ascend_app/features/home/presentation/widgets/search/user_search_service.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
@@ -23,6 +24,7 @@ import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dar
 import 'package:path/path.dart' as path; // Import path package
 import 'package:mime/mime.dart'; // Import mime package
 import 'package:http_parser/http_parser.dart'; // Import for MediaType
+
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -50,6 +52,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
   bool _showTaggingOverlay = false;
   int _tagStartIndex = -1;
 
+  // Add the user search service
+  final UserSearchService _userSearchService = UserSearchService();
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +69,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     _removeOverlay(); // Ensure overlay is removed on dispose
     _textController.dispose();
     _focusNode.dispose(); // Dispose focus node
+    _userSearchService.dispose(); // Add this line to clean up resources
     super.dispose();
   }
 
@@ -428,39 +434,37 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   // --- Tagging Methods ---
 
-  Future<void> _fetchUserSuggestions(String query) async {
-    // Store the tag start index at the time of fetch request
-    final int fetchTagStartIndex = _tagStartIndex;
-
+  void _fetchUserSuggestions(String query) async {
+    debugPrint('[Tagging] Fetching suggestions for query: "$query"');
     try {
-      final users = await MockUserData.searchUsers(query);
-
+      // Use our new API-based service instead of MockUserData
+      final users = await _userSearchService.searchUsers(query);
+      
       if (mounted) {
-        // Check if the widget is still mounted
-        // Check if the tag context is still valid (cursor hasn't moved away)
-        if (_tagStartIndex == fetchTagStartIndex) {
-          setState(() {
-            _suggestedUsers = users;
-          });
-          // Now explicitly call show/hide based on results
+        setState(() {
+          _suggestedUsers = users;
           if (_suggestedUsers.isNotEmpty) {
-            _showUserSuggestions();
+            debugPrint('[Tagging] Found ${_suggestedUsers.length} user suggestions');
           } else {
-            _hideUserSuggestions();
+            debugPrint('[Tagging] No user suggestions found for "$query"');
           }
-        } else {
-          // If _tagStartIndex changed while fetching, the context is stale, do nothing or hide.
-          _hideUserSuggestions();
-        }
+        });
+      }
+      
+      // This is the missing call - show the overlay after updating suggestions
+      if (mounted && _suggestedUsers.isNotEmpty) {
+        _showUserSuggestions();
+      } else {
+        _hideUserSuggestions();
       }
     } catch (e) {
-      debugPrint("Error fetching user suggestions: $e");
+      debugPrint('[Tagging] Error fetching user suggestions: $e');
       if (mounted) {
         setState(() {
           _suggestedUsers = [];
         });
-        _hideUserSuggestions();
       }
+      _hideUserSuggestions();
     }
   }
 

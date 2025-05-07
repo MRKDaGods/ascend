@@ -1,7 +1,9 @@
+import 'package:ascend_app/features/home/presentation/widgets/search/user_search_service.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
 import 'package:ascend_app/features/profile/models/user_profile_model.dart';
 import 'package:ascend_app/features/home/presentation/widgets/comment/user_tagging_overlay.dart';
+
 
 class CommentForm extends StatefulWidget {
   final TextEditingController controller;
@@ -37,6 +39,8 @@ class _CommentFormState extends State<CommentForm> {
   List<UserProfileModel> _suggestedUsers = [];
   bool _showTaggingOverlay = false;
   int _tagStartIndex = -1;
+
+  final UserSearchService _userSearchService = UserSearchService();
 
   final List<UserProfileModel> _mockUsers = [
     UserProfileModel(
@@ -95,6 +99,7 @@ class _CommentFormState extends State<CommentForm> {
     widget.controller.removeListener(_handleTextChanged);
     widget.focusNode?.removeListener(_handleFocusChange);
     _removeOverlay();
+    _userSearchService.dispose();
     super.dispose();
   }
 
@@ -139,22 +144,36 @@ class _CommentFormState extends State<CommentForm> {
     }
   }
 
-  void _fetchUserSuggestions(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _suggestedUsers = _mockUsers.take(5).toList();
-      } else {
-        _suggestedUsers =
-            _mockUsers
-                .where(
-                  (user) =>
-                      user.name.toLowerCase().contains(query.toLowerCase()),
-                )
-                .toList();
+  void _fetchUserSuggestions(String query) async {
+    debugPrint('[CommentForm] Fetching suggestions for query: "$query"');
+    try {
+      final users = await _userSearchService.searchUsers(query);
+
+      if (mounted) {
+        setState(() {
+          _suggestedUsers = users;
+          if (_suggestedUsers.isNotEmpty) {
+            debugPrint('[CommentForm] Found ${_suggestedUsers.length} user suggestions');
+          } else {
+            debugPrint('[CommentForm] No user suggestions found for "$query"');
+          }
+        });
       }
-    });
-    if (_showTaggingOverlay) {
-      _overlayEntry?.markNeedsBuild();
+
+      // Replace _updateTaggingOverlay() with proper overlay handling
+      if (mounted && _suggestedUsers.isNotEmpty) {
+        _showUserSuggestions();
+      } else {
+        _hideUserSuggestions();
+      }
+    } catch (e) {
+      debugPrint('[CommentForm] Error fetching user suggestions: $e');
+      if (mounted) {
+        setState(() {
+          _suggestedUsers = [];
+        });
+      }
+      _hideUserSuggestions();
     }
   }
 
