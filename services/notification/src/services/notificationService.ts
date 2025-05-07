@@ -46,12 +46,12 @@ export const createNotification = async (
     const msg = {
       token: fcmToken.fcm_token,
       notification: {
-        title: "Ascend",
+        title: message,
       },
       data: {
         title: "Ascend",
         body: message,
-        link_url: payload.link_url || null,
+        link_url: payload.link_url || "",
       },
     };
 
