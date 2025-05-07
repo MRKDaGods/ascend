@@ -56,6 +56,8 @@ dependencies:
   chewie: ^1.7.0
   bloc: ^9.0.0
   meta: ^1.16.0
+  firebase_auth: ^5.5.3
+  google_sign_in: ^6.3.0
 
 
 dev_dependencies:

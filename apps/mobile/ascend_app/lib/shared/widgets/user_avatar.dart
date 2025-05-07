@@ -9,7 +9,7 @@ class UserAvatar extends StatelessWidget {
     super.key,
     this.imageUrl,
     this.radius = 16.0,
-    this.defaultAsset = 'assets/logo.jpg',
+    this.defaultAsset = 'assets/EmptyUser.png',
   });
 
   @override

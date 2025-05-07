@@ -58,7 +58,7 @@ class AppDrawer extends StatelessWidget {
                                                 )
                                                 as ImageProvider
                                             : const AssetImage(
-                                              'assets/logo.jpg',
+                                              'assets/EmptyUser.png',
                                             ),
                                   ),
                                   const SizedBox(height: 10),
