@@ -1,12 +1,15 @@
 import 'package:ascend_app/features/admin/data/models/jobs_model.dart';
+import 'package:ascend_app/features/admin/data/models/users_model.dart';
 import 'package:flutter/material.dart';
 import '../data/services/admin_api_client.dart';
 import '../data/models/posts_model.dart';
+import 'package:ascend_app/features/admin/data/services/user_api_client.dart';
 
 class AdminRepository {
   final AdminApiClient apiClient;
+  final UserApiClient userApiClient;
 
-  AdminRepository({required this.apiClient});
+  AdminRepository({required this.apiClient, required this.userApiClient});
 
   /// Fetches analytics data from the backend for the specified duration.
   Future<Map<String, int>> fetchAnalytics(String duration) async {
@@ -198,6 +201,86 @@ class AdminRepository {
     );
   }
 
+  /// Deletes a specific user by their ID.
+  /// Deletes a specific user by their ID.
+  Future<void> deleteUser(int userId) async {
+    try {
+      await apiClient.delete('/users/$userId');
+      debugPrint('Successfully deleted user with ID: $userId');
+    } catch (e) {
+      debugPrint('Error deleting user with ID $userId: $e');
+
+      // Check for JSON error response containing "User not found"
+      String errorStr = e.toString();
+      if (errorStr.contains('"error": "User not found"') ||
+          errorStr.contains('User not found')) {
+        throw Exception('User not found');
+      } else if (errorStr.contains('Cannot DELETE')) {
+        throw Exception('User not found on server');
+      } else {
+        throw Exception('Failed to delete user: $e');
+      }
+    }
+  }
+
+  /// Fetches a list of reported users.
+  Future<List<UserReport>> getReportedUsers() async {
+    try {
+      final response = await userApiClient.getList('/admin-get-user-reports');
+      return response.map((json) => UserReport.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching reported users: $e');
+      throw Exception('Failed to fetch reported users');
+    }
+  }
+
+  /// Fetches a list of banned users.
+  Future<List<BannedUser>> getBannedUsers() async {
+    try {
+      final response = await userApiClient.getList('/banned');
+      return response.map((json) => BannedUser.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching banned users: $e');
+      throw Exception('Failed to fetch banned users');
+    }
+  }
+
+  /// Bans a user by their ID.
+  Future<void> banUser({
+    required int userId,
+    String? expiresAt,
+    String? reason,
+  }) async {
+    try {
+      final Map<String, dynamic> body = {
+        'user_id': userId,
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+        if (expiresAt != null && expiresAt.isNotEmpty) 'expires_at': expiresAt,
+      };
+
+      debugPrint('Sending ban user request with body: $body');
+      await userApiClient.post('/ban-user', body);
+      debugPrint('Successfully banned user with ID: $userId');
+    } catch (e) {
+      debugPrint('Error banning user with ID $userId: $e');
+      throw Exception('Failed to ban user: $e');
+    }
+  }
+
+  /// Unbans a user by their ID.
+  Future<void> unbanUser({required int userId}) async {
+    try {
+      final Map<String, dynamic> body = {'user_id': userId};
+
+      debugPrint('Sending unban user request with body: $body');
+      await userApiClient.post('/unban-user', body);
+      debugPrint('Successfully unbanned user with ID: $userId');
+    } catch (e) {
+      debugPrint('Error unbanning user with ID $userId: $e');
+      throw Exception('Failed to unban user: $e');
+    }
+  }
+
   /// Generic method to fetch a list of items.
   Future<List<T>> _fetchList<T>({
     required String endpoint,
@@ -266,6 +349,25 @@ class AdminRepository {
     } catch (e) {
       debugPrint('Error patching item at $endpoint: $e');
       throw Exception('Failed to patch item at $endpoint: $e');
+    }
+  }
+
+  // Add this if it doesn't exist already:
+  Future<Map<String, dynamic>> createUser(Map<String, String> userData) async {
+    try {
+      // Using the correct endpoint from your API documentation
+      final response = await userApiClient.post('/admin-create-user', userData);
+      debugPrint('User created successfully: $response');
+      return response;
+    } catch (e) {
+      debugPrint('Error creating user: $e');
+
+      // Check for specific error messages and rethrow with more user-friendly messages
+      if (e.toString().contains('Email address already in use')) {
+        throw Exception('This email address is already registered');
+      }
+
+      throw Exception('Failed to create user: $e');
     }
   }
 }

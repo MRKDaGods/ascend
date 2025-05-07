@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 class ApplicationDetails extends StatefulWidget {
   final String name;
   final String email;
+  final String phone; // Added phone number
   final String resumeUrl;
   final int applicationId;
   final String status;
@@ -14,16 +15,17 @@ class ApplicationDetails extends StatefulWidget {
     super.key,
     required this.name,
     required this.email,
+    required this.phone, // Added phone number
     required this.resumeUrl,
     required this.applicationId,
     required this.status,
   });
 
   @override
-  _ApplicationDetailsState createState() => _ApplicationDetailsState();
+  ApplicationDetailsState createState() => ApplicationDetailsState();
 }
 
-class _ApplicationDetailsState extends State<ApplicationDetails> {
+class ApplicationDetailsState extends State<ApplicationDetails> {
   String? _selectedStatus;
 
   @override
@@ -61,12 +63,11 @@ class _ApplicationDetailsState extends State<ApplicationDetails> {
   // }
 
   Future<void> _downloadResume(BuildContext context, String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open the resume.')),
-      );
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      _showSnackBar('Could not open the resume.');
     }
   }
 
@@ -86,16 +87,24 @@ class _ApplicationDetailsState extends State<ApplicationDetails> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Application status updated to $status.')),
-        );
+        if (mounted) {
+          _showSnackBar('Application status updated to $status.');
+        }
       } else {
         throw Exception('Failed to update application status');
       }
     } catch (e) {
+      if (mounted) {
+        _showSnackBar('Error updating status: $e');
+      }
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error updating status: $e')));
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -115,6 +124,11 @@ class _ApplicationDetailsState extends State<ApplicationDetails> {
             const SizedBox(height: 8),
             Text(
               'Email: ${widget.email}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Phone: ${widget.phone}', // Show phone number
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),

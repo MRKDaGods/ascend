@@ -43,15 +43,8 @@ class CompanyCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.transparent, // Set background color to white
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
         child: Row(
           children: [
@@ -127,15 +120,9 @@ class CompanyCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    industry,
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
+                  Text(industry, style: const TextStyle(fontSize: 14)),
                   const SizedBox(height: 4),
-                  Text(
-                    location,
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
+                  Text(location, style: const TextStyle(fontSize: 14)),
                 ],
               ),
             ),
