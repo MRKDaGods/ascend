@@ -4,7 +4,6 @@ import { generateToken, verifyToken } from "@shared/utils/jwt";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { checkProxyEmailExists, sendEmail } from "../services/emailService";
-import { verifyGoogleToken } from "../services/googleAuthService";
 import {
   createUser,
   deleteUser,
@@ -420,22 +419,23 @@ export const updateEmail = async (req: AuthenticatedRequest, res: Response) => {
  * @returns 500 status with error message on server error
  */
 export const socialLogin = async (req: Request, res: Response) => {
-  const { token } = req.body;
+  const { token, userData } = req.body;
 
   console.log(`[SOCIAL] Received token: ${token}`);
+  console.log(`[SOCIAL] Received user data:`, userData);
 
   try {
-    const payload = await verifyGoogleToken(token);
-    console.log(`[SOCIAL] Decoded payload: ${JSON.stringify(payload)}`);
-    if (!payload) {
-      return res.status(401).json({ error: "Invalid Google token" });
+    // For Firebase Auth, we can extract user info directly from the decoded token sent by the client
+    if (!userData || !userData.email) {
+      return res.status(401).json({ error: "Invalid authentication data" });
     }
 
-    const firstName = payload.given_name;
-    const lastName = payload.family_name;
-    const email = payload.email;
-    if (!firstName || !lastName || !email) {
-      return res.status(400).json({ error: "Missing required fields" });
+    const firstName = userData.given_name || userData.displayName?.split(' ')[0] || 'User';
+    const lastName = userData.family_name || userData.displayName?.split(' ').slice(1).join(' ') || '';
+    const email = userData.email;
+
+    if (!email) {
+      return res.status(400).json({ error: "Missing required email field" });
     }
 
     // Create an already verified user if they don't exist
@@ -448,7 +448,7 @@ export const socialLogin = async (req: Request, res: Response) => {
     console.log(`[SOCIAL] User found: ${JSON.stringify(user)}`);
 
     const jwtToken = generateToken({ id: user.id });
-    res.json({ token: jwtToken, userId: user.id });
+    res.json({ token: jwtToken, user_id: user.id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
