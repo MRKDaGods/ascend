@@ -1,9 +1,15 @@
 var admin = require("firebase-admin");
 
-var serviceAccount = require("ascend-46a60-firebase-adminsdk-fbsvc-5f4948f52d.json");
+const getServiceAccount = () => {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    return JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, 'base64').toString());
+  } else {
+    throw new Error('Firebase credentials not provided in environment variables');
+  }
+};
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(getServiceAccount())
 });
 
 export const getMessaging = () => admin.messaging;
