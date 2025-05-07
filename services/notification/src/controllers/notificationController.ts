@@ -114,9 +114,15 @@ export const sendNotification = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { user_id, type, message, payload } = req.body;
+    const { user_id, type, message, payload, title } = req.body;
     const payloadObj = payload ? JSON.parse(payload) : {};
-    await createNotification(parseInt(user_id), type as NotificationType, message, payloadObj);
+    await createNotification(
+      parseInt(user_id),
+      type as NotificationType,
+      message,
+      payloadObj,
+      title
+    );
 
     res.json({ message: "Sent!" });
   } catch (error) {

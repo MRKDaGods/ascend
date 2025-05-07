@@ -23,7 +23,8 @@ export const createNotification = async (
   userId: number,
   type: NotificationType,
   message: string,
-  payload: Record<string, any> = {}
+  payload: Record<string, any> = {},
+  title: string = "Ascend"
 ): Promise<void> => {
   await db.query(
     `INSERT INTO notification_service.notifications (user_id, type, message, payload) 
@@ -46,11 +47,11 @@ export const createNotification = async (
     const msg = {
       token: fcmToken.fcm_token,
       notification: {
-        title: message,
+        title: title,
         body: message,
       },
       data: {
-        title: "Ascend",
+        title: title,
         body: message,
         link_url: payload.link_url || "",
       },
