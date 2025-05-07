@@ -15,7 +15,7 @@ class CompanyCard extends StatelessWidget {
   final bool isFromCompanyDetails; // Added flag
   final String? description;
   final String? domainName;
-
+  final bool isMyCompany;
   const CompanyCard({
     super.key,
     required this.companyName,
@@ -26,6 +26,7 @@ class CompanyCard extends StatelessWidget {
     this.isFromCompanyDetails = false, // Default value
     this.description,
     this.domainName,
+    this.isMyCompany = false,
   });
 
   @override
@@ -91,22 +92,8 @@ class CompanyCard extends StatelessWidget {
                         MaterialPageRoute(
                           builder:
                               (context) => CompanyPage(
-                                name: companyName,
-                                profileImageUrl: logoUrl ?? '',
-                                coverImageUrl: '',
-                                location: location,
-                                industry: industry,
-                                connections: 0,
-                                verified: false,
-                                bio: description ?? '',
-                                sections: [],
-                                isconnect: false,
-                                isfollow: false,
-                                isPending: false,
-                                mutualConnections: [],
-                                webSiteExists: false,
-                                links: [],
-                                badges: [],
+                                companyId: companyId,
+                                isMyCompany: isMyCompany,
                               ),
                         ),
                       );
