@@ -145,7 +145,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CompanyPage(companyId: 20),
+                builder: (context) => CompanyPage(companyId: 24),
               ),
             );
           },
@@ -224,7 +224,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CompanyPage(companyId: 20),
+                        builder: (context) => CompanyPage(companyId: 24),
                       ),
                     );
                   },
