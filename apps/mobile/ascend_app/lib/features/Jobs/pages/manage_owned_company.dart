@@ -51,6 +51,8 @@ class _ManageOwnedCompanyState extends State<ManageOwnedCompany> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Manage Owned Companies')),
+      backgroundColor:
+          Colors.transparent, // Make Scaffold background transparent
       body: Stack(
         children: [
           isLoading
@@ -59,6 +61,7 @@ class _ManageOwnedCompanyState extends State<ManageOwnedCompany> {
               ? const Center(child: Text('No companies found.'))
               : ListView.builder(
                 itemCount: companies.length,
+                padding: EdgeInsets.zero, // Remove default padding
                 itemBuilder: (context, index) {
                   final company = companies[index];
                   return CompanyCard(

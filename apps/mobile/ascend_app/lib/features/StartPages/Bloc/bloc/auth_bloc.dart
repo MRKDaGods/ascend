@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ascend_app/core/di/dependency_injection.dart';
 import 'package:ascend_app/features/StartPages/repository/api_client.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
@@ -33,6 +34,68 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<VerifyCodeSubmitted>(_onVerifyCodeSubmitted);
 
     on<AuthTokenUpdated>(_onAuthTokenUpdated);
+
+    on<GoogleSignInRequested>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        // Convert user object to a JSON-serializable map
+        final userJson = {
+          'displayName': event.user?.displayName,
+          'email': event.user?.email,
+          'photoURL': event.user?.photoURL,
+          'uid': event.user?.uid,
+          'isEmailVerified': event.user?.emailVerified,
+        };
+
+        final res = await sl.apiClient.post(
+          "/auth/social-login",
+          data: {"userData": userJson, "token": event.tokenId},
+        );
+
+        if (res.statusCode != 200) {
+          throw Exception(
+            "Google SignIn failed with status code: ${res.statusCode}",
+          );
+        }
+
+        final response = jsonDecode(res.body);
+
+        // Always update the auth token in secure storage
+        await SecureStorageHelper.setAuthToken(response['token']);
+
+        // Validate the token
+        if (response['token'] == null || response['token'].isEmpty) {
+          throw Exception("Authentication token not found.");
+        }
+
+        final savedToken = await SecureStorageHelper.getAuthToken();
+        _logger.i('Token after saving: $savedToken');
+        _logger.i('SignIn successful: ${response['token']}'); // Log success
+
+        emit(AuthSuccess(token: response['token'], signUpMode: false));
+      } catch (error) {
+        _logger.e('Google SignIn failed: $error');
+        emit(AuthFailure(error: error.toString()));
+      }
+    });
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+      _logger.i('[XAUTH] Firebase token refreshed: $token');
+
+      if (state is AuthSuccess) {
+        _logger.i("[XAUTH] Sending token to server");
+
+        try {
+          final res = await apiClient.post(
+            "/auth/fcm-token",
+            data: {"fcm_token": token},
+          );
+          _logger.i("[XAUTH] Token sent successfully: ${res.body}");
+        } catch (e) {
+          _logger.e("[XAUTH] Error sending token: $e");
+        }
+      }
+    });
   }
   // Handle Sign-In
   Future<void> _onSignInRequested(
@@ -73,6 +136,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       _logger.i('Auth token updated successfully: ${event.token}');
       emit(AuthSuccess(token: event.token, signUpMode: false));
+
+      // Get fcm
+      try {
+        final token = await FirebaseMessaging.instance.getToken();
+        _logger.i('[XAUTH] Firebase token: $token');
+        if (token != null) {
+          await sl.apiClient.post(
+            "/auth/fcm-token",
+            data: {"fcm_token": token},
+          );
+        } else {
+          _logger.e('Firebase token is null');
+        }
+      } catch (e) {
+        _logger.e('Error getting Firebase token: $e');
+      }
     } catch (error) {
       emit(AuthFailure(error: error.toString()));
     }

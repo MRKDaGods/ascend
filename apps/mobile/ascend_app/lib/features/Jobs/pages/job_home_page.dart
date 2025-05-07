@@ -1,7 +1,6 @@
 import 'package:ascend_app/features/Jobs/pages/manage_owned_company.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
-import 'package:ascend_app/features/profile/models/user_profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/job_picks_section.dart';
@@ -117,21 +116,12 @@ class _JobHomePageState extends State<JobHomePage> {
     });
   }
 
-  void _randomizeJobs() {
-    setState(() {
-      jobsList.shuffle();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UserProfileBloc, UserProfileState>(
       builder: (context, state) {
         // Extract profile from state or use empty profile if not loaded
-        final profile =
-            state is UserProfileLoaded
-                ? state.profile
-                : UserProfileModel.empty();
+
         return Scaffold(
           body:
               isLoading
@@ -192,7 +182,7 @@ class _JobHomePageState extends State<JobHomePage> {
                                   .where((job) => job.isBookmarked)
                                   .toList(),
                         ),
-                        if ( /*profile.isPremium*/ false) // TODOX: prem
+                        if (true) // TODOX: prem
                           PremiumSection(isDarkMode: widget.isDarkMode),
                         const SizedBox(height: 10),
                         ExploreScreen(

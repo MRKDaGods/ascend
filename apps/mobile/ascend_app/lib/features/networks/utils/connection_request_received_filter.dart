@@ -14,8 +14,9 @@ Widget buildReceived(
   Widget buildUserCard(UserPendingModel invitation) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -23,8 +24,8 @@ Widget buildReceived(
               CircleAvatar(
                 radius: 24,
                 backgroundImage:
-                    invitation.profile_image_id != null
-                        ? NetworkImage(invitation.profile_image_id!)
+                    invitation.profile_picture_url != null
+                        ? NetworkImage(invitation.profile_picture_url!)
                         : AssetImage('assets/EmptyUser.png') as ImageProvider,
               ),
               const SizedBox(width: 12), // Spacing between avatar and text

@@ -41,14 +41,14 @@ class _CompanyDetailsState extends State<CompanyDetails> {
           isLoading = false;
         });
       } else {
-        print("Response: ${response.body}");
+        debugPrint("Response: ${response.body}");
         throw Exception('Failed to load jobs');
       }
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      print("Error: $e");
+      debugPrint("Error: $e");
       ScaffoldMessenger.of(
         // ignore: use_build_context_synchronously
         context,

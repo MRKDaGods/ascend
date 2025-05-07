@@ -53,8 +53,8 @@ class UserCard extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundImage:
-                    user.profile_image_id != null
-                        ? NetworkImage(user.profile_image_id!)
+                    user.profile_image_url != null
+                        ? NetworkImage(user.profile_image_url!)
                         : const AssetImage('assets/EmptyUser.png')
                             as ImageProvider,
               ),

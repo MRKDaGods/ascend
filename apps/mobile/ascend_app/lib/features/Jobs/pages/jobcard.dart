@@ -292,7 +292,7 @@ Widget jobCard({
                       final response = await http.delete(url, headers: headers);
                       print("Response status: ${response.statusCode}");
                       print("Response body: ${response.body}");
-                      if (response.statusCode == 200) {
+                      if (response.statusCode == 204) {
                         // Handle successful deletion
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
