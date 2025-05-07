@@ -14,6 +14,6 @@ router.get("/", authenticateToken, getUserNotifications);
 router.patch("/:id", authenticateToken, markAsRead);
 router.post("/:id", authenticateToken, markAsUnread);
 router.delete("/:id", authenticateToken, deleteNotification);
-router.post("/crx", authenticateToken, sendNotification);
+router.post("/crx/send", authenticateToken, sendNotification);
 
 export default router;
