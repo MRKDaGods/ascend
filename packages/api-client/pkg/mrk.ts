@@ -228,6 +228,10 @@ class AuthService {
     localStorage.removeItem("auth_token");
     return this.client.logout();
   }
+
+  setAuthToken(token: string): void {
+    this.client.set_auth_token(token);
+  }
 }
 
 class UserService {
