@@ -2,7 +2,6 @@ import 'package:ascend_app/features/admin/bloc/posts/bloc/posts_event.dart';
 import 'package:ascend_app/features/admin/data/models/posts_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 import 'package:ascend_app/features/admin/data/services/admin_api_client.dart';
 import 'dart:async';
 part 'posts_state.dart';
@@ -309,13 +308,15 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
         debugPrint(
           'Updating report ${event.reportId} status to ${event.status}',
         );
+
+        // The API call will now handle "OK" responses properly
         final response = await apiClient.patch(
           '/posts/reports/${event.reportId}',
           {'status': event.status},
         );
 
-        // Debug print the response
-        // debugPrint('Status update response: $response');
+        // Debug print the response - this could be a map with "success": true
+        debugPrint('Status update response: $response');
 
         // Emit success state
         emit(
@@ -325,9 +326,11 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
           ),
         );
 
+        // Rest of your code remains the same...
         // Update the report status in our local cache
-        // Find which post this report belongs to
         String? updatedPostId;
+        bool reportUpdated = false;
+
         for (var entry in _postReports.entries) {
           final postId = entry.key;
           final reports = entry.value;
@@ -341,19 +344,22 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
                 status: event.status,
                 updatedAt: DateTime.now(),
               );
+              reportUpdated = true;
               break;
             }
           }
           if (updatedPostId != null) break;
         }
 
-        // Update the reports in the posts list if needed
-        if (updatedPostId != null) {
+        // If we found and updated the post, also update it in the _posts list
+        if (updatedPostId != null && reportUpdated) {
           for (int i = 0; i < _posts.length; i++) {
             if (_posts[i].id == updatedPostId) {
-              // Fix: Don't try to do anything with the return value of add()
-              // Just call it directly
-              add(FetchPostReports(postId: updatedPostId));
+              // Get the updated reports for this post
+              final updatedReports = _postReports[updatedPostId] ?? [];
+
+              // Update the post with the new reports
+              _posts[i] = _posts[i].copyWith(reports: updatedReports);
               break;
             }
           }
@@ -369,9 +375,42 @@ class PostsBloc extends Bloc<PostsEvent, PostsState> {
             postReports: _postReports,
           ),
         );
+
+        // Display a success message state
+        emit(
+          PostStatusActionSuccessState(
+            message: "Report status updated successfully to ${event.status}",
+          ),
+        );
+
+        // Re-emit the posts state again to maintain UI consistency
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: _hasReachedMax,
+            postReports: _postReports,
+          ),
+        );
       } catch (e) {
         debugPrint('Error updating report status: $e');
-        emit(PostsErrorState(errorMessage: e.toString()));
+        emit(
+          PostsErrorState(
+            errorMessage: "Failed to update status: ${e.toString()}",
+          ),
+        );
+
+        // Re-emit the previous state to keep UI consistent
+        emit(
+          ReportedPostsFetchedState(
+            reportedPosts: _posts,
+            currentPage: currentPage,
+            totalPages: _totalPages,
+            hasReachedMax: _hasReachedMax,
+            postReports: _postReports,
+          ),
+        );
       }
     });
   }
