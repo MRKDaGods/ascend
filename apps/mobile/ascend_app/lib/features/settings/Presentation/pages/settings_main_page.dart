@@ -1,5 +1,8 @@
+import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
+import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/settings/presentation/widgets/settings_list_item.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsMainPage extends StatefulWidget {
   const SettingsMainPage({super.key});
@@ -49,60 +52,100 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
       {'title': 'Version: 4.1.1038', 'route': null},
     ];
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(''), // Empty title
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings), // Settings icon
-              onPressed: () {
-                debugPrint(
-                  'Settings icon tapped',
-                ); // Action for the settings icon
-              },
+    return BlocBuilder<UserProfileBloc, UserProfileState>(
+      builder: (context, state) {
+        final profile = state is UserProfileLoaded ? state.profile : null;
+        if (profile == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return SafeArea(
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text(''), // Empty title
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings), // Settings icon
+                  onPressed: () {
+                    debugPrint(
+                      'Settings icon tapped',
+                    ); // Action for the settings icon
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Image and "Settings" Text
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20, // Profile image size
-                    backgroundImage: NetworkImage(
-                      '', // Replace with user's profile image URL
-                    ),
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Profile Image and "Settings" Text
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20, // Profile image size
+                        backgroundImage:
+                            profile.profilePictureUrl != null
+                                ? NetworkImage(profile.profilePictureUrl!)
+                                : const AssetImage('assets/logo.jpg')
+                                    as ImageProvider,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ), // Spacing between image and text
+                      const Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontSize: 36, // Larger font size
+                          fontWeight: FontWeight.bold, // Bold text
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10), // Spacing between image and text
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 36, // Larger font size
-                      fontWeight: FontWeight.bold, // Bold text
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Settings List
-            Expanded(
-              child: ListView(
-                children: [
-                  // Main Settings Items
-                  ...settingsItems.map((item) {
-                    return Column(
-                      children: [
-                        SettingsListItem(
+                ),
+                // Settings List
+                Expanded(
+                  child: ListView(
+                    children: [
+                      // Main Settings Items
+                      ...settingsItems.map((item) {
+                        return Column(
+                          children: [
+                            SettingsListItem(
+                              title: item['title'] as String,
+                              leading: item['icon'] as IconData?,
+                              titleStyle: const TextStyle(
+                                fontSize: 22, // Larger font size
+                                fontWeight: FontWeight.bold, // Bold text
+                              ),
+                              onTap:
+                                  item['route'] != null
+                                      ? () => Navigator.pushNamed(
+                                        context,
+                                        item['route'] as String,
+                                      )
+                                      : null,
+                            ),
+                            const SizedBox(height: 8), // Spacing between items
+                            if (item['title'] == 'Blocked Users')
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
+                                child: const Divider(
+                                  thickness: 1.5, // Divider thickness
+                                ),
+                              ),
+                          ],
+                        );
+                      }),
+                      // Other Settings Items
+                      ...otherSettingsItems.map((item) {
+                        return SettingsListItem(
                           title: item['title'] as String,
                           leading: item['icon'] as IconData?,
                           titleStyle: const TextStyle(
-                            fontSize: 22, // Larger font size
-                            fontWeight: FontWeight.bold, // Bold text
+                            fontSize: 17, // Slightly smaller font size
+                            fontWeight: FontWeight.normal, // Normal weight
                           ),
                           onTap:
                               item['route'] != null
@@ -111,44 +154,16 @@ class _SettingsMainPageState extends State<SettingsMainPage> {
                                     item['route'] as String,
                                   )
                                   : null,
-                        ),
-                        const SizedBox(height: 8), // Spacing between items
-                        if (item['title'] == 'Blocked Users')
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                            ),
-                            child: const Divider(
-                              thickness: 1.5, // Divider thickness
-                            ),
-                          ),
-                      ],
-                    );
-                  }),
-                  // Other Settings Items
-                  ...otherSettingsItems.map((item) {
-                    return SettingsListItem(
-                      title: item['title'] as String,
-                      leading: item['icon'] as IconData?,
-                      titleStyle: const TextStyle(
-                        fontSize: 17, // Slightly smaller font size
-                        fontWeight: FontWeight.normal, // Normal weight
-                      ),
-                      onTap:
-                          item['route'] != null
-                              ? () => Navigator.pushNamed(
-                                context,
-                                item['route'] as String,
-                              )
-                              : null,
-                    );
-                  }),
-                ],
-              ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

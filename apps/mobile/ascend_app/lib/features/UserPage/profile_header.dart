@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:ascend_app/core/constants/api_endpoints.dart';
 import 'package:ascend_app/core/di/dependency_injection.dart';
 import 'package:ascend_app/features/UserPage/contact_info_section.dart';
 import 'package:ascend_app/shared/models/profile.dart';
@@ -617,9 +618,11 @@ class _ProfileHeaderState extends State<ProfileHeader> {
           future: _checkConnectionStatus(widget.userId!),
           builder: (context, snapshot) {
             bool isFollowing = false;
+            bool isConnected = false;
 
             if (snapshot.hasData) {
               isFollowing = snapshot.data!['is_following'] as bool? ?? false;
+              isConnected = snapshot.data!['status'] == 'connected';
             }
 
             return Padding(
@@ -665,11 +668,22 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.remove_circle_outline),
-                    title: const Text('Remove connection'),
+                    leading:
+                        isConnected
+                            ? Icon(Icons.remove_circle_outline)
+                            : Icon(Icons.send),
+                    title:
+                        isConnected
+                            ? const Text('Remove connection')
+                            : Text('Send Message Request'),
                     onTap: () {
-                      Navigator.pop(context);
-                      _showDisconnectConfirmation(context);
+                      if (isConnected) {
+                        Navigator.pop(context);
+                        _showDisconnectConfirmation(context);
+                      } else {
+                        Navigator.pop(context);
+                        _sendMessageRequest(context, widget.userId!);
+                      }
                     },
                   ),
                   const Divider(),
@@ -1244,6 +1258,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
   // Follow a user
   Future<void> _followUser(BuildContext context, String userId) async {
     try {
+      int newUserId = int.parse(userId);
       final apiClient = ApiClient();
       final response = await apiClient.post('/connection/follow/$userId');
 
@@ -1609,5 +1624,183 @@ class _ProfileHeaderState extends State<ProfileHeader> {
         );
       },
     );
+  }
+
+  // Method to handle sending message requests
+  Future<void> _sendMessageRequest(BuildContext context, String userId) async {
+    // Display a dialog for the user to enter their message
+    final TextEditingController messageController = TextEditingController();
+
+    final String? messageText = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        // First check if we already have a pending message request
+        return FutureBuilder<bool>(
+          future: _checkExistingMessageRequest(userId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const AlertDialog(
+                content: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            // If there's an existing request
+            if (snapshot.data == true) {
+              return AlertDialog(
+                title: const Text('Message Request Exists'),
+                content: Text(
+                  'You have already sent a message request to ${widget.name}. Please wait for them to respond.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            }
+
+            // If no existing request, show the form
+            return AlertDialog(
+              title: const Text('Send Message Request'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Send a message request to ${widget.name}'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type your message...',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (messageController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please enter a message')),
+                      );
+                      return; // Add this to prevent proceeding with empty text
+                    }
+                    // Return the message text to the calling function
+                    Navigator.pop(context, messageController.text.trim());
+                  },
+                  child: const Text('Send'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    // If user canceled or didn't enter a message, return
+    if (messageText == null || messageText.isEmpty) {
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: Get.context!,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text("Sending message request..."),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      // Send the message request to the API
+      final apiClient = ApiClient();
+      final response = await apiClient.post(
+        ApiEndpoints.sendMessageRequest,
+        data: {'userId': userId, 'message': messageText},
+      );
+
+      // Close the loading dialog
+      Navigator.of(Get.context!).pop();
+
+      // Check the response
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+
+        if (data['success'] == true) {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(content: Text('Message request sent successfully')),
+          );
+        } else {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(
+            SnackBar(
+              content: Text(
+                data['message'] ?? 'Failed to send message request',
+              ),
+            ),
+          );
+        }
+      } else {
+        // Handle error response
+        ScaffoldMessenger.of(Get.context!).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error sending message request: ${response.statusCode}',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close the loading dialog if it's still showing
+      if (Navigator.of(Get.context!).canPop()) {
+        Navigator.of(Get.context!).pop();
+      }
+
+      // Show error message
+      ScaffoldMessenger.of(
+        Get.context!,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<bool> _checkExistingMessageRequest(String userId) async {
+    try {
+      final apiClient = ApiClient();
+      final response = await apiClient.get('/connection/message-requests');
+
+      if (response.statusCode == 200) {
+        final data = Map<String, dynamic>.from(jsonDecode(response.body));
+        if (data["success"] == true) {
+          final messageRequests = data["data"];
+          for (var request in messageRequests) {
+            debugPrint('Request: $request');
+            if (request['user_id'] == int.parse(userId)) {
+              return true; // Message request already exists
+            }
+          }
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking message request status: $e');
+      return false;
+    }
   }
 }

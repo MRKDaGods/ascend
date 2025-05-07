@@ -10,6 +10,7 @@ import 'package:ascend_app/features/networks/bloc/bloc/follow/bloc/follow_bloc.d
 import 'package:ascend_app/features/networks/pages/connections.dart';
 import 'package:ascend_app/features/networks/pages/followings.dart';
 import 'package:ascend_app/features/networks/model/connected_user.dart';
+import 'package:ascend_app/features/networks/pages/messaging_requests.dart';
 
 class ManageMyNetwork extends StatelessWidget {
   final List<ConnectedUser> connections;
@@ -31,7 +32,7 @@ class ManageMyNetwork extends StatelessWidget {
         ),
       ),
       body: ListView.separated(
-        itemCount: 6, // Number of ListTiles
+        itemCount: 7, // Number of ListTiles
         itemBuilder: (context, index) {
           Widget tileContent;
           if (index == 0) {
@@ -147,6 +148,25 @@ class ManageMyNetwork extends StatelessWidget {
               title: Text('Newsletters', style: TextStyle(fontSize: 18)),
               trailing: Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {},
+            );
+          } else if (index == 6) {
+            tileContent = ListTile(
+              leading: Icon(Icons.message, color: Colors.red[700], size: 28),
+              title: Text('Messaging Requests', style: TextStyle(fontSize: 18)),
+              trailing: Icon(Icons.chevron_right, color: Colors.grey),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (_) => BlocProvider.value(
+                          value: BlocProvider.of<MessagingRequestsBloc>(
+                            context,
+                          ),
+                          child: MessagingRequestsPage(),
+                        ),
+                  ),
+                );
+              },
             );
           } else {
             return SizedBox.shrink(); // Return an empty widget for other indices
