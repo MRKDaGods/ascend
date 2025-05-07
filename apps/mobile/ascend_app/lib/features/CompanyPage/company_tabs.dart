@@ -3,10 +3,27 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
+import 'post2.dart';
 
 class CompanyTabs extends StatefulWidget {
   final String companyName; // Company name to fetch jobs for
-  const CompanyTabs({super.key, required this.companyName});
+  final String bio; // Company description
+  final String industry; // Industry type
+  final String location; // Headquarters location
+  final DateTime createdAt; // Creator ID
+  final int companyId; // Company ID
+  final String? companyImageUrl; // Optional company image URL
+
+  const CompanyTabs({
+    super.key,
+    required this.companyName,
+    required this.bio,
+    required this.industry,
+    required this.location,
+    required this.createdAt,
+    required this.companyId,
+    this.companyImageUrl,
+  });
 
   @override
   State<CompanyTabs> createState() => _CompanyTabsState();
@@ -21,7 +38,8 @@ class _CompanyTabsState extends State<CompanyTabs>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this); // 5 tabs
+    print(widget.companyName);
+    _tabController = TabController(length: 4, vsync: this); // 5 tabs
     fetchCompanyJobs();
   }
 
@@ -29,7 +47,7 @@ class _CompanyTabsState extends State<CompanyTabs>
     setState(() {
       isLoading = true;
     });
-
+    print("Fetching jobs for company: ${widget.companyName}");
     final url = Uri.parse(
       'https://api.ascendx.tech/job?company=${widget.companyName}',
     );
@@ -89,7 +107,6 @@ class _CompanyTabsState extends State<CompanyTabs>
               fontWeight: FontWeight.bold,
             ), // Inactive tab text style
             tabs: [
-              Tab(text: "Home"),
               Tab(text: "About"),
               Tab(text: "Posts"),
               Tab(text: "Jobs"),
@@ -104,7 +121,6 @@ class _CompanyTabsState extends State<CompanyTabs>
           child: TabBarView(
             controller: _tabController,
             children: [
-              _buildHomeTab(),
               _buildAboutTab(),
               _buildPostsTab(),
               _buildJobsTab(),
@@ -116,16 +132,68 @@ class _CompanyTabsState extends State<CompanyTabs>
     );
   }
 
-  Widget _buildHomeTab() {
-    return Center(child: Text("Home Section"));
-  }
-
   Widget _buildAboutTab() {
-    return Center(child: Text("About Section"));
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Overview",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            widget.bio, // Use the passed company description for the overview
+            style: TextStyle(fontSize: 14),
+          ),
+          SizedBox(height: 16),
+
+          Text(
+            "Industry",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(widget.industry, style: TextStyle(fontSize: 14)),
+          SizedBox(height: 16),
+          Text(
+            "Company Size",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text("11 - 50 employees", style: TextStyle(fontSize: 14)),
+          SizedBox(height: 16),
+          Text(
+            "Headquarters",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(widget.location, style: TextStyle(fontSize: 14)),
+          SizedBox(height: 16),
+          Text(
+            "Created At",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(
+            widget.createdAt.year.toString(), // Display the creation date
+            style: TextStyle(fontSize: 14),
+          ),
+          SizedBox(height: 16),
+        ],
+      ),
+    );
   }
 
   Widget _buildPostsTab() {
-    return Center(child: Text("Posts Section"));
+    return Announcement(
+      companyId: widget.companyId,
+      companyName: widget.companyName,
+      companyImageUrl:
+          widget.companyImageUrl != null
+              ? widget.companyImageUrl!
+              : "https://example.com/default_image.png", // Default image URL
+    );
   }
 
   Widget _buildJobsTab() {

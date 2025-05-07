@@ -73,6 +73,7 @@ class _ManageOwnedCompanyState extends State<ManageOwnedCompany> {
                     isFromCompanyDetails: true,
                     description: company['description'],
                     domainName: company['company_domain_name'],
+                    isMyCompany: true,
                   );
                 },
               ),
