@@ -275,6 +275,52 @@ class _CommentFormState extends State<CommentForm> {
     _hideUserSuggestions();
   }
 
+  void onSubmit(String text) async {
+    if (text.trim().isEmpty) return;
+    
+    // Extract tagged user IDs
+    List<String> taggedUserIds = [];
+    for (final user in _suggestedUsers) {
+      // Check if user's name appears after @ in the text
+      if (text.contains('@${user.name}')) {
+        taggedUserIds.add(user.id);
+      }
+    }
+    
+    // Call the existing onSubmit callback
+    widget.onSubmit(text);
+    
+    // If there are tagged users, wait a moment for comment creation to complete
+    // then fetch the created comment ID and call the tagging API
+    if (taggedUserIds.isNotEmpty) {
+      debugPrint('[CommentForm] Found tagged users: $taggedUserIds');
+      
+      // Since we don't have direct access to the comment ID right after creation,
+      // we'd need to modify the workflow to get the comment ID back from the onSubmit call
+      // Here's a simplified approach assuming we add a comment ID callback
+      
+      // Option 1: Add a callback for newly created comment and tag users there
+      // widget.onCommentCreated = (String commentId) {
+      //   final postRepository = PostRepository();
+      //   try {
+      //     postRepository.tagUsers(userIds: taggedUserIds, commentId: commentId);
+      //   } catch (e) {
+      //     debugPrint('[CommentForm] Error tagging users: $e');
+      //   } finally {
+      //     postRepository.dispose();
+      //   }
+      // };
+      
+      // Option 2: If you can modify the PostBloc to handle this internally
+      // Include taggedUserIds in the AddComment event
+      
+      // Clear suggestions after submitting
+      setState(() {
+        _suggestedUsers = [];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return CompositedTransformTarget(

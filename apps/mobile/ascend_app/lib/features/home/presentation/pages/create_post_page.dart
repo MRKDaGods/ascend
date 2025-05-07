@@ -9,6 +9,7 @@ import 'package:ascend_app/features/home/presentation/widgets/create_post/visibi
 import 'package:ascend_app/features/home/presentation/widgets/create_post/schedule_post_bottom_sheet.dart';
 import 'package:ascend_app/features/home/presentation/widgets/create_post/post_type_selection_grid.dart';
 import 'package:ascend_app/features/home/presentation/widgets/search/user_search_service.dart';
+import 'package:ascend_app/features/home/repositories/post_repository.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_bloc.dart';
 import 'package:ascend_app/features/profile/bloc/user_profile_state.dart';
 import 'package:ascend_app/shared/widgets/user_avatar.dart';
@@ -24,6 +25,7 @@ import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dar
 import 'package:path/path.dart' as path; // Import path package
 import 'package:mime/mime.dart'; // Import mime package
 import 'package:http_parser/http_parser.dart'; // Import for MediaType
+
 
 
 class CreatePostPage extends StatefulWidget {
@@ -262,6 +264,46 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
             final newPost = PostModel.fromJson(postJson);
 
+            // Extract mentioned users from the post content to get tagged users
+            List<String> extractTaggedUserIds() {
+              List<String> taggedUserIds = [];
+              final text = _textController.text;
+              
+              // Find all user suggestions that were displayed and possibly selected
+              for (final user in _suggestedUsers) {
+                // Check if the user's name appears after an @ symbol in the text
+                if (text.contains('@${user.name}')) {
+                  taggedUserIds.add(user.id);
+                }
+              }
+              
+              debugPrint('[CreatePost] Extracted tagged user IDs: $taggedUserIds');
+              return taggedUserIds;
+            }
+
+            // Add this: Extract tagged users and call the API
+            final taggedUserIds = extractTaggedUserIds();
+            if (taggedUserIds.isNotEmpty) {
+              debugPrint('[CreatePost] Calling tagging API for post ${newPost.id}');
+              
+              // Get post repository instance from current context or create one
+              final postRepository = PostRepository();
+              
+              try {
+                // Call the tagging API
+                await postRepository.tagUsers(
+                  userIds: taggedUserIds,
+                  postId: newPost.id,
+                );
+                debugPrint('[CreatePost] Successfully tagged users in post');
+              } catch (e) {
+                debugPrint('[CreatePost] Error tagging users: $e');
+                // Don't block the completion of post creation on tagging failure
+              } finally {
+                postRepository.dispose();
+              }
+            }
+            
             // Dispatch the AddNewPost event to the PostBloc
             context.read<PostBloc>().add(AddNewPost(newPost));
             debugPrint(
