@@ -307,6 +307,7 @@ class _CompanyPageState extends State<CompanyPage> {
                             location: location,
                             createdAt: createdAt,
                             companyId: widget.companyId,
+                            companyImageUrl: profileImageUrl,
                           ),
                         ),
                       ],

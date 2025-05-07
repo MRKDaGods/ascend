@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
-import 'package:ascend_app/features/home/presentation/widgets/post/post2.dart';
+import 'post2.dart';
 
 class CompanyTabs extends StatefulWidget {
   final String companyName; // Company name to fetch jobs for
@@ -12,6 +12,7 @@ class CompanyTabs extends StatefulWidget {
   final String location; // Headquarters location
   final DateTime createdAt; // Creator ID
   final int companyId; // Company ID
+  final String? companyImageUrl; // Optional company image URL
 
   const CompanyTabs({
     super.key,
@@ -21,6 +22,7 @@ class CompanyTabs extends StatefulWidget {
     required this.location,
     required this.createdAt,
     required this.companyId,
+    this.companyImageUrl,
   });
 
   @override
@@ -187,6 +189,10 @@ class _CompanyTabsState extends State<CompanyTabs>
     return Announcement(
       companyId: widget.companyId,
       companyName: widget.companyName,
+      companyImageUrl:
+          widget.companyImageUrl != null
+              ? widget.companyImageUrl!
+              : "https://example.com/default_image.png", // Default image URL
     );
   }
 
