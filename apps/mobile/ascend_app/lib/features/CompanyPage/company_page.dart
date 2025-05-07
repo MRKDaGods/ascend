@@ -306,6 +306,7 @@ class _CompanyPageState extends State<CompanyPage> {
                             industry: industry,
                             location: location,
                             createdAt: createdAt,
+                            companyId: widget.companyId,
                           ),
                         ),
                       ],

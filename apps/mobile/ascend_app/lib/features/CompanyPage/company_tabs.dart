@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
 import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
+import 'package:ascend_app/features/home/presentation/widgets/post/post2.dart';
 
 class CompanyTabs extends StatefulWidget {
   final String companyName; // Company name to fetch jobs for
@@ -10,6 +11,7 @@ class CompanyTabs extends StatefulWidget {
   final String industry; // Industry type
   final String location; // Headquarters location
   final DateTime createdAt; // Creator ID
+  final int companyId; // Company ID
 
   const CompanyTabs({
     super.key,
@@ -18,6 +20,7 @@ class CompanyTabs extends StatefulWidget {
     required this.industry,
     required this.location,
     required this.createdAt,
+    required this.companyId,
   });
 
   @override
@@ -34,7 +37,7 @@ class _CompanyTabsState extends State<CompanyTabs>
   void initState() {
     super.initState();
     print(widget.companyName);
-    _tabController = TabController(length: 5, vsync: this); // 5 tabs
+    _tabController = TabController(length: 4, vsync: this); // 5 tabs
     fetchCompanyJobs();
   }
 
@@ -181,7 +184,10 @@ class _CompanyTabsState extends State<CompanyTabs>
   }
 
   Widget _buildPostsTab() {
-    return Center(child: Text("Posts Section"));
+    return Announcement(
+      companyId: widget.companyId,
+      companyName: widget.companyName,
+    );
   }
 
   Widget _buildJobsTab() {
