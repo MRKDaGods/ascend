@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_bloc.dart';
 import 'package:ascend_app/features/StartPages/Bloc/bloc/auth_state.dart';
 import 'package:ascend_app/features/notifications/presentation/bloc/notification_event.dart';
@@ -27,6 +29,8 @@ import 'features/networks/bloc/bloc/user_search/bloc/user_search_bloc.dart';
 void main() async {
   // Ensure Flutter binding is initialized FIRST
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Set up error handling early
   AppInitializer.setupErrorHandling((error, stack) {
