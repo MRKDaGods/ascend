@@ -126,7 +126,6 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         // Update new posts with fetched reactions
         final newPostsWithReactions = <PostModel>[];
         for (int i = 0; i < newRawPosts.length; i++) {
-          // Update to use isLiked property instead of currentReaction
           final reactionType = reactions[i];
           newPostsWithReactions.add(
             newRawPosts[i].copyWith(
