@@ -10,6 +10,8 @@ import {
   ConnectionStatus,
 } from "../models";
 import { getPresignedUrl } from "@shared/utils/files";
+import { sendNotificationMf } from "@shared/utils/notifs";
+import { NotificationType } from "@shared/models";
 
 class ConnectionService {
   // Search for users
@@ -451,6 +453,23 @@ class ConnectionService {
       [params.senderId, params.recipientId, params.message]
     );
 
+    // Send notification to recipient
+    try {
+      await sendNotificationMf(
+        params.recipientId,
+        NotificationType.CONNECTION,
+        `New connection request from ${params.senderId}`,
+        {
+          senderId: params.senderId,
+          message: params.message,
+          requestId: result.rows[0].id,
+        },
+        "Connection Request"
+      );
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+
     return result.rows[0];
   }
 
@@ -520,6 +539,24 @@ class ConnectionService {
     `,
       [newStatus, connection.connection_id, params.userId]
     );
+
+    // Send notification to sender
+    try {
+      await sendNotificationMf(
+        connection.connection_id,
+        NotificationType.CONNECTION,
+        `Your connection request has been ${
+          params.accept ? "accepted" : "declined"
+        }`,
+        {
+          requestId: params.requestId,
+          status: newStatus,
+        },
+        "Connection Request Response"
+      );
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
 
     return { status: newStatus };
   }
@@ -626,6 +663,22 @@ class ConnectionService {
     `,
       [params.followerId, params.followingId]
     );
+
+    // Send notification to the followed user
+    try {
+      await sendNotificationMf(
+        params.followingId,
+        NotificationType.FOLLOW,
+        `New follower: ${params.followerId}`,
+        {
+          followerId: params.followerId,
+          followingId: params.followingId,
+        },
+        "New Follower"
+      );
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
   }
 
   async unfollowUser(params: { followerId: number; followingId: number }) {
@@ -1146,7 +1199,8 @@ class ConnectionService {
       [userId, targetUserId]
     );
 
-    const connectionRequestId = connectionRequest.rows.length > 0 ? connectionRequest.rows[0].id : null;
+    const connectionRequestId =
+      connectionRequest.rows.length > 0 ? connectionRequest.rows[0].id : null;
     return {
       connection_count: connectionCount,
       connection_request_id: connectionRequestId,

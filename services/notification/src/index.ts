@@ -1,8 +1,10 @@
 import { consumeEvents, Events, getQueueName } from "@shared/rabbitMQ";
 import startSharedService from "@shared/sharedService";
-import { handleUserCreated } from "./consumers/notificationConsumer";
+import {
+  handleSendNotification,
+  handleUserCreated,
+} from "./consumers/notificationConsumer";
 import notificationRoutes from "./routes/notificationRoutes";
-import { sendWelcomeNotification } from "./services/notificationService";
 
 startSharedService("Notification", notificationRoutes, {
   registerConsumers: [
@@ -12,6 +14,13 @@ startSharedService("Notification", notificationRoutes, {
         getQueueName(Events.USER_CREATED),
         Events.USER_CREATED,
         handleUserCreated
+      );
+
+      // Register the send notification consumer
+      await consumeEvents(
+        getQueueName(Events.NOTIFICATION_SEND),
+        Events.NOTIFICATION_SEND,
+        handleSendNotification
       );
     },
   ],

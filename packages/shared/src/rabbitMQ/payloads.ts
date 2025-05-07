@@ -1,8 +1,7 @@
 import { Company } from "@shared/models/company";
 import { Follows } from "@shared/models/follows";
-import { FileMetadata, Profile, Post } from "@shared/models";
+import { FileMetadata, Profile, Post, NotificationType } from "@shared/models";
 import { Usage } from "@shared/models/usage";
-
 
 // =======================AUTH-EVENTS=======================
 
@@ -161,79 +160,76 @@ export namespace FileMetadataRequestPayload {
 export interface CompanyAnnouncementCreatedPayload {
   announcement_id: number;
   company_id: number;
-  image_ids : Array<string>;
-  video_id? : string
+  image_ids: Array<string>;
+  video_id?: string;
   created_at: Date;
   posted_by: number;
-  content : string;
-};
+  content: string;
+}
 
 export interface CompanyAnnouncementUpdatedPayload {
   announcement_id: number;
   company_id: number;
-  new_image_ids : Array<string>;
-  new_video_id? : string;
+  new_image_ids: Array<string>;
+  new_video_id?: string;
   updated_at: Date;
   posted_by: number;
-  new_content? : string;
-};
-
+  new_content?: string;
+}
 
 export namespace GetCompanyProfile {
-  export interface Request{
-    company_id : number
+  export interface Request {
+    company_id: number;
   }
 
-  export interface Response{
-    company : Company|null
+  export interface Response {
+    company: Company | null;
   }
-};
+}
 
 export namespace GetCompanyFollowers {
-  export interface Request{
-    company_id : number
+  export interface Request {
+    company_id: number;
   }
 
-  export interface Response{
-    company_followers : Array<Follows>
+  export interface Response {
+    company_followers: Array<Follows>;
   }
 }
 
 export namespace GetUserUsageMessaging {
-  export interface Request{
-    user_id : number;
-    update_usage? : boolean;
+  export interface Request {
+    user_id: number;
+    update_usage?: boolean;
   }
 
-  export interface Response{
-    messages_per_day : number;
-    messages_per_day_limit : number;
+  export interface Response {
+    messages_per_day: number;
+    messages_per_day_limit: number;
   }
 }
-
 
 export namespace GetUserUsageConnections {
-  export interface Request{
-    user_id : number;
-    update_usage? : boolean;
+  export interface Request {
+    user_id: number;
+    update_usage?: boolean;
   }
 
-  export interface Response{
-    connections : number;
-    connections_limit : number;
+  export interface Response {
+    connections: number;
+    connections_limit: number;
   }
 }
 
-
 export namespace GetUserUsageJobApplications {
-  export interface Request{
-    user_id : number;
-    update_usage? : boolean;
+  export interface Request {
+    user_id: number;
+    update_usage?: boolean;
   }
 
-  export interface Response{
-    job_applications_per_month : number;
-    job_applications_limit : number;
+  export interface Response {
+    job_applications_per_month: number;
+    job_applications_limit: number;
   }
 }
 /**
@@ -263,4 +259,16 @@ export interface SendEmailPayload {
   to: string;
   subject: string;
   content: string;
+}
+
+// =======================NOTIFICATION-EVENTS=======================
+/**
+ * Represents the payload for a send notification request event
+ */
+export interface SendNotificationPayload {
+  user_id: number;
+  type: NotificationType;
+  message: string;
+  payload?: Record<string, any>;
+  title?: string;
 }

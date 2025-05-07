@@ -29,6 +29,9 @@ export enum Events {
   GET_USER_USAGE_JOB_APPLICATIONS = "user_usage_job_applications",
   // ========================EMAIL-EVENTS=======================
   EMAIL_SEND = "send_email", // Email send event
+
+  // ========================NOTIFICATION-EVENTS=======================
+  NOTIFICATION_SEND = "send_notification", // Notification send event
 }
 
 /**

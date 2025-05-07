@@ -9,6 +9,7 @@ import {
   FeedItemType,
   UserTag,
   SavedPost,
+  NotificationType,
 } from "@shared/models";
 interface TagUserParams {
   userId: number;
@@ -20,6 +21,8 @@ interface TagPosition {
   endIndex: number;
 }
 import { getPresignedUrl } from "@shared/utils/files";
+import { sendNotificationMf } from "@shared/utils/notifs";
+import { getUserFullName } from "@shared/utils/userProfile";
 
 export class PostService {
   // Post CRUD operations
@@ -40,6 +43,33 @@ export class PostService {
     if (!createdPost) {
       throw new Error("Post not found after creation");
     }
+
+    // Notify connections
+    try {
+      const connections = await db.query(
+        `SELECT connection_id FROM connection_service.connections
+         WHERE user_id = $1 AND status = 'accepted'`,
+        [userId]
+      );
+
+      for (const connection of connections.rows) {
+        const connectionId = connection.connection_id;
+        if (connectionId !== userId) {
+          const fullName = await getUserFullName(userId);
+
+          await sendNotificationMf(
+            connectionId,
+            NotificationType.CONNECTION,
+            `${fullName} created a new post`,
+            { post_id: post.id },
+            "ONE OF YOUR CONNECTIONS POSTED"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error sending notification for new post:", error);
+    }
+
     return createdPost;
   }
 
@@ -81,9 +111,11 @@ export class PostService {
       }
     }
 
-    // Process user profile picture 
+    // Process user profile picture
     if (post.user && post.user.profile_picture_id) {
-      post.user.profile_picture_url = await this.getFileUrl(post.user.profile_picture_id);
+      post.user.profile_picture_url = await this.getFileUrl(
+        post.user.profile_picture_id
+      );
     }
 
     return post;
@@ -256,10 +288,29 @@ export class PostService {
     if (!comment) {
       throw new Error("Comment not found");
     }
+
+    // Send notification for new comment
+    try {
+      const post = await this.getPostById(postId);
+      if (post) {
+        const postOwnerId = post.user_id;
+        if (postOwnerId !== userId) {
+          const fullName = await getUserFullName(userId);
+          await sendNotificationMf(
+            postOwnerId,
+            NotificationType.COMMENT,
+            `${fullName} commented on your post`,
+            { post_id: postId, comment_id: comment.id }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error sending notification for new comment:", error);
+    }
+
     return comment;
   }
 
- 
   async getCommentById(commentId: number): Promise<Comment | null> {
     const result = await db.query(
       `SELECT c.*,
@@ -274,17 +325,17 @@ export class PostService {
        WHERE c.id = $1`,
       [commentId]
     );
-  
+
     if (result.rows.length === 0) return null;
-  
+
     const comment = result.rows[0];
-    
+
     // Add reaction counts to the comment object
     const engagementResult = await db.query(
       `SELECT * FROM post_service.comment_engagement WHERE comment_id = $1`,
       [commentId]
     );
-    
+
     if (engagementResult.rows.length > 0) {
       const engagement = engagementResult.rows[0];
       comment.reactions = {
@@ -295,34 +346,33 @@ export class PostService {
         funny_count: engagement.funny_count,
         curious_count: engagement.curious_count,
         insightful_count: engagement.insightful_count,
-        total_reactions_count: engagement.total_reactions_count
+        total_reactions_count: engagement.total_reactions_count,
       };
     } else {
       comment.reactions = {
         like_count: 0,
         love_count: 0,
-        support_count: 0, 
+        support_count: 0,
         celebrate_count: 0,
         funny_count: 0,
         curious_count: 0,
         insightful_count: 0,
-        total_reactions_count: 0
+        total_reactions_count: 0,
       };
     }
-    
+
     // Get replies
     comment.replies = await this.getCommentReplies(commentId);
-    
+
     // Process user profile picture
     if (comment.user && comment.user.profile_picture_id) {
       comment.user.profile_picture_url = await this.getFileUrl(
         comment.user.profile_picture_id
       );
     }
-    
+
     return comment;
   }
-
 
   async getPostComments(
     postId: number,
@@ -349,16 +399,22 @@ export class PostService {
     const comments = result.rows;
     for (const comment of comments) {
       comment.replies = await this.getCommentReplies(comment.id);
-      
+
       // Add user reaction info if userId is provided
       if (userId) {
-        const userReaction = await this.getUserCommentReaction(comment.id, userId);
+        const userReaction = await this.getUserCommentReaction(
+          comment.id,
+          userId
+        );
         comment.userReaction = userReaction;
 
         // Also add user reaction info to replies
         if (comment.replies && comment.replies.length > 0) {
           for (const reply of comment.replies) {
-            const replyUserReaction = await this.getUserCommentReaction(reply.id, userId);
+            const replyUserReaction = await this.getUserCommentReaction(
+              reply.id,
+              userId
+            );
             reply.userReaction = replyUserReaction;
           }
         }
@@ -504,7 +560,7 @@ export class PostService {
       item.likes_count = await this.getPostLikesCount(item.id);
       item.comments_count = await this.getPostCommentsCount(item.id);
       item.shares_count = await this.getPostSharesCount(item.id);
-      
+
       // Add user-specific engagement attributes with reaction type
       const userReaction = await this.isPostLikedByUser(item.id, userId);
       item.isLiked = userReaction; // Include the reaction object with reacted status and type
@@ -535,7 +591,10 @@ export class PostService {
     }
 
     // Sort posts by creation date (newest first)
-    feed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    feed.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
 
     return feed;
   }
@@ -546,12 +605,12 @@ export class PostService {
       "SELECT total_reactions_count FROM post_service.post_engagement WHERE post_id = $1",
       [postId]
     );
-    
+
     // Check if there's an engagement record, return 0 if not
     if (result.rows.length === 0) {
       return 0;
     }
-    
+
     return parseInt(result.rows[0].total_reactions_count, 10);
   }
   private async getPostSharesCount(postId: number): Promise<number> {
@@ -796,7 +855,7 @@ export class PostService {
       post.likes_count = await this.getPostLikesCount(post.id);
       post.comments_count = await this.getPostCommentsCount(post.id);
       post.shares_count = await this.getPostSharesCount(post.id);
-      
+
       // Process user profile picture
       if (post.user && post.user.profile_picture_id) {
         post.user.profile_picture_url = await this.getFileUrl(
@@ -827,42 +886,45 @@ export class PostService {
   }
 
   // Check if post is liked/reacted by user
-  async isPostLikedByUser(postId: number, userId: number): Promise<{reacted: boolean; reactionType: string | null}> {
+  async isPostLikedByUser(
+    postId: number,
+    userId: number
+  ): Promise<{ reacted: boolean; reactionType: string | null }> {
     const result = await db.query(
       "SELECT reaction_type FROM post_service.reactions WHERE post_id = $1 AND user_id = $2",
       [postId, userId]
     );
-    
+
     if (result.rows.length === 0) {
       return { reacted: false, reactionType: null };
     }
-    
+
     return { reacted: true, reactionType: result.rows[0].reaction_type };
   }
 
-// Check if post is saved by user
-async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
-  // Use a more explicit check that actually fetches the row
-  const result = await db.query(
-    "SELECT id FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2 LIMIT 1",
-    [postId, userId]
-  );
-  
-  // Check if any rows were actually returned
-  return result.rows.length > 0;
-}
+  // Check if post is saved by user
+  async isPostSavedByUser(postId: number, userId: number): Promise<boolean> {
+    // Use a more explicit check that actually fetches the row
+    const result = await db.query(
+      "SELECT id FROM post_service.saved_posts WHERE post_id = $1 AND user_id = $2 LIMIT 1",
+      [postId, userId]
+    );
 
-// Check if post is shared by user
-async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
-  // Use a more explicit check that actually fetches the row
-  const result = await db.query(
-    "SELECT id FROM post_service.shares WHERE post_id = $1 AND user_id = $2 LIMIT 1",
-    [postId, userId]
-  );
-  
-  // Check if any rows were actually returned
-  return result.rows.length > 0;
-}
+    // Check if any rows were actually returned
+    return result.rows.length > 0;
+  }
+
+  // Check if post is shared by user
+  async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
+    // Use a more explicit check that actually fetches the row
+    const result = await db.query(
+      "SELECT id FROM post_service.shares WHERE post_id = $1 AND user_id = $2 LIMIT 1",
+      [postId, userId]
+    );
+
+    // Check if any rows were actually returned
+    return result.rows.length > 0;
+  }
 
   async updatePrivacy(
     postId: number,
@@ -906,8 +968,8 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
    * @returns Object indicating whether the comment was reacted to and the reaction type
    */
   async reactToComment(
-    userId: number, 
-    commentId: number, 
+    userId: number,
+    commentId: number,
     reactionType: string
   ): Promise<{ reacted: boolean; type: string }> {
     try {
@@ -916,25 +978,27 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       if (!comment) {
         throw new Error("Comment not found");
       }
-  
+
       // Check if user already reacted to this comment
       const existingReaction = await db.query(
         "SELECT reaction_type FROM post_service.comment_reactions WHERE user_id = $1 AND comment_id = $2",
         [userId, commentId]
       );
-      
+
       const hasExistingReaction = existingReaction.rows.length > 0;
-      const currentReactionType = hasExistingReaction ? existingReaction.rows[0].reaction_type : null;
-      
+      const currentReactionType = hasExistingReaction
+        ? existingReaction.rows[0].reaction_type
+        : null;
+
       // If same reaction type exists, remove it (toggle off)
       if (hasExistingReaction && currentReactionType === reactionType) {
         await db.query(
           "DELETE FROM post_service.comment_reactions WHERE user_id = $1 AND comment_id = $2",
           [userId, commentId]
         );
-        
+
         return { reacted: false, type: reactionType };
-      } 
+      }
       // If different reaction or no reaction exists, add/update the reaction
       else {
         if (hasExistingReaction) {
@@ -953,7 +1017,25 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
             [userId, commentId, reactionType]
           );
         }
-        
+
+        // Send notification to the comment owner
+        try {
+          const notification = await sendNotificationMf(
+            comment.user_id,
+            NotificationType.LIKE,
+            `User ${userId} reacted to your comment`,
+            {
+              commentId,
+              postId: comment.post_id,
+              reactionType,
+            },
+            "MENTION"
+          );
+          console.log("Notification sent:", notification);
+        } catch (error) {
+          console.error("Error sending notification:", error);
+        }
+
         return { reacted: true, type: reactionType };
       }
     } catch (error) {
@@ -964,7 +1046,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       throw new Error("Failed to react to comment");
     }
   }
-  
+
   /**
    * Get all users who reacted to a comment with their reaction types
    * @param commentId Comment ID
@@ -985,7 +1067,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       if (!comment) {
         throw new Error("Comment not found");
       }
-  
+
       // Build query based on whether a reaction type filter is provided
       let query = `
         SELECT 
@@ -1003,21 +1085,23 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
         JOIN user_service.profiles u ON r.user_id = u.user_id
         WHERE r.comment_id = $1
       `;
-      
+
       const queryParams: any[] = [commentId];
-      
+
       if (reactionType) {
         query += ` AND r.reaction_type = $2`;
         queryParams.push(reactionType);
       }
-      
+
       // Add ordering and pagination
       query += ` ORDER BY r.created_at DESC
-                 LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+                 LIMIT $${queryParams.length + 1} OFFSET $${
+        queryParams.length + 2
+      }`;
       queryParams.push(limit, offset);
-      
+
       const result = await db.query(query, queryParams);
-      
+
       // Process results to include profile pictures
       const reactions = await Promise.all(
         result.rows.map(async (reaction) => {
@@ -1029,7 +1113,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
           return reaction;
         })
       );
-      
+
       return reactions;
     } catch (error) {
       console.error("Error getting comment reactions:", error);
@@ -1039,19 +1123,21 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       throw new Error("Failed to get comment reactions");
     }
   }
-  
+
   /**
    * Get reaction counts for a specific comment
    * @param commentId Comment ID
    * @returns Object containing counts for each reaction type
    */
-  async getCommentReactionCounts(commentId: number): Promise<Record<string, number>> {
+  async getCommentReactionCounts(
+    commentId: number
+  ): Promise<Record<string, number>> {
     try {
       const result = await db.query(
         `SELECT * FROM post_service.comment_engagement WHERE comment_id = $1`,
         [commentId]
       );
-      
+
       if (result.rows.length === 0) {
         return {
           like_count: 0,
@@ -1062,17 +1148,17 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
           curious_count: 0,
           insightful_count: 0,
           total_reactions_count: 0,
-          replies_count: 0
+          replies_count: 0,
         };
       }
-      
+
       return result.rows[0];
     } catch (error) {
       console.error("Error getting comment reaction counts:", error);
       throw new Error("Failed to get comment reaction counts");
     }
   }
-  
+
   /**
    * Check if user has reacted to a comment and get the reaction type
    * @param commentId Comment ID
@@ -1080,7 +1166,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
    * @returns Object containing whether user reacted and the reaction type
    */
   async getUserCommentReaction(
-    commentId: number, 
+    commentId: number,
     userId: number
   ): Promise<{ hasReacted: boolean; reactionType: string | null }> {
     try {
@@ -1089,19 +1175,18 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
          WHERE user_id = $1 AND comment_id = $2`,
         [userId, commentId]
       );
-      
+
       if (result.rows.length === 0) {
         return { hasReacted: false, reactionType: null };
       }
-      
+
       return { hasReacted: true, reactionType: result.rows[0].reaction_type };
     } catch (error) {
       console.error("Error getting user reaction to comment:", error);
       throw new Error("Failed to get user reaction to comment");
     }
   }
-  
- 
+
   // Tag users in post or comment
   async tagUsers(params: {
     contentType: "post" | "comment";
@@ -1158,6 +1243,33 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
 
     // THIS WILL NEED TO BE HANDLED BY AMMAR (you can add trigger in database itself or handle it in the service)
     // Send notifications to tagged users
+    for (const tag of tags) {
+      const taggedUserId = tag.rows[0].tagged_user_id;
+      const taggerUserId = tag.rows[0].tagger_user_id;
+      const contentId = params.contentId;
+      const contentType = params.contentType;
+
+      const taggerName = await getUserFullName(taggerUserId);
+
+      try {
+        sendNotificationMf(
+          taggedUserId,
+          NotificationType.MENTION,
+          `${taggerName} tagged you in a ${contentType}`,
+          {
+            contentId,
+            contentType,
+            taggerUserId,
+          },
+          "NEW MENTION"
+        );
+      } catch (error) {
+        console.error("Error sending notification:", error);
+      }
+
+      // Send notification logic here (e.g., using a notification service)
+      // await notificationService.sendTagNotification(taggedUserId, taggerUserId, contentId, contentType);
+    }
 
     return tags.map((t) => t.rows[0]);
   }
@@ -1307,7 +1419,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
     );
     return (result.rowCount ?? 0) > 0 ? undefined : 0;
   }
-    async ultimateSearch(
+  async ultimateSearch(
     query: string,
     limit: number = 5,
     offset: number = 0
@@ -1315,7 +1427,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
     if (!query || typeof query !== "string") {
       throw new Error("Search query is required");
     }
-  
+
     // Clean and prepare search terms
     const searchTerms = query
       .toLowerCase()
@@ -1323,15 +1435,15 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       .trim()
       .split(/\s+/)
       .filter((term) => term.length >= 2);
-  
+
     if (searchTerms.length === 0) {
       throw new Error("Search query must contain valid terms");
     }
-  
+
     try {
       // 1. Search for posts
       const posts = await this.searchPosts(query, limit, offset);
-  
+
       // 2. Search for users (requires calling user service)
       const usersResult = await db.query(
         `SELECT 
@@ -1346,13 +1458,17 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
         FROM user_service.profiles u
         WHERE to_tsvector('english', concat(u.first_name, ' ', u.last_name)) @@ 
              plainto_tsquery('english', $1)
-          OR u.first_name ILIKE ANY(array[${searchTerms.map((_, i) => `$${i + 3}`).join(", ")}])
-          OR u.last_name ILIKE ANY(array[${searchTerms.map((_, i) => `$${i + 3}`).join(", ")}])
+          OR u.first_name ILIKE ANY(array[${searchTerms
+            .map((_, i) => `$${i + 3}`)
+            .join(", ")}])
+          OR u.last_name ILIKE ANY(array[${searchTerms
+            .map((_, i) => `$${i + 3}`)
+            .join(", ")}])
         ORDER BY rank DESC
         LIMIT $2`,
         [query, limit, ...searchTerms.map((term) => `%${term}%`)]
       );
-  
+
       // Process user profile pictures
       const users = await Promise.all(
         usersResult.rows.map(async (user) => ({
@@ -1362,7 +1478,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
             : null,
         }))
       );
-  
+
       return {
         users,
         posts,
@@ -1372,9 +1488,9 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       throw new Error("Failed to perform ultimate search");
     }
   }
-    async reactToPost(
-    userId: number, 
-    postId: number, 
+  async reactToPost(
+    userId: number,
+    postId: number,
     reactionType: string
   ): Promise<{ reacted: boolean; type: string }> {
     try {
@@ -1383,33 +1499,38 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       if (!post) {
         throw new Error("Post not found");
       }
-  
+
       // Check if user already reacted to this post
       const existingReaction = await db.query(
         "SELECT reaction_type FROM post_service.reactions WHERE user_id = $1 AND post_id = $2",
         [userId, postId]
       );
-      
+
       const hasExistingReaction = existingReaction.rows.length > 0;
-      const currentReactionType = hasExistingReaction ? existingReaction.rows[0].reaction_type : null;
-      
+      const currentReactionType = hasExistingReaction
+        ? existingReaction.rows[0].reaction_type
+        : null;
+
       // If same reaction type exists, remove it (toggle off)
       if (hasExistingReaction && currentReactionType === reactionType) {
         await db.query(
           "DELETE FROM post_service.reactions WHERE user_id = $1 AND post_id = $2",
           [userId, postId]
         );
-        
+
         try {
           // Try to update engagement counts, but don't fail the whole operation if this fails
           // This helps tests pass when they mock only the main operation
           await this.updateReactionCounts(postId);
         } catch (countError) {
-          console.error("Error updating reaction counts, but continuing:", countError);
+          console.error(
+            "Error updating reaction counts, but continuing:",
+            countError
+          );
         }
-        
+
         return { reacted: false, type: reactionType };
-      } 
+      }
       // If different reaction or no reaction exists, add/update the reaction
       else {
         if (hasExistingReaction) {
@@ -1428,14 +1549,28 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
             [userId, postId, reactionType]
           );
         }
-        
+
         try {
           // Try to update engagement counts, but don't fail the whole operation if this fails
           await this.updateReactionCounts(postId);
         } catch (countError) {
-          console.error("Error updating reaction counts, but continuing:", countError);
+          console.error(
+            "Error updating reaction counts, but continuing:",
+            countError
+          );
         }
-        
+
+        // Send notifications to the post owner (if applicable)
+        await sendNotificationMf(
+          post.user_id,
+          NotificationType.LIKE,
+          `User ${userId} reacted to your post`,
+          {
+            postId,
+          },
+          "NEW REACTION"
+        );
+
         return { reacted: true, type: reactionType };
       }
     } catch (error) {
@@ -1446,7 +1581,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       throw new Error("Failed to react to post");
     }
   }
-  
+
   // Helper method to update reaction counts in post_engagement table
   private async updateReactionCounts(postId: number): Promise<void> {
     try {
@@ -1465,9 +1600,9 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
         WHERE post_id = $1`,
         [postId]
       );
-  
+
       const counts = reactionCounts.rows[0];
-      
+
       // Update the post_engagement table
       await db.query(
         `INSERT INTO post_service.post_engagement
@@ -1509,7 +1644,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       throw new Error("Failed to update reaction counts");
     }
   }
-    async getPostReactions(
+  async getPostReactions(
     postId: number,
     reactionType?: string,
     limit: number = 20,
@@ -1521,7 +1656,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
       if (!post) {
         throw new Error("Post not found");
       }
-  
+
       // Build query based on whether a reaction type filter is provided
       let query = `
         SELECT 
@@ -1539,21 +1674,23 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
         JOIN user_service.profiles u ON r.user_id = u.user_id
         WHERE r.post_id = $1
       `;
-      
+
       const queryParams: any[] = [postId];
-      
+
       if (reactionType) {
         query += ` AND r.reaction_type = $2`;
         queryParams.push(reactionType);
       }
-      
+
       // Add ordering and pagination
       query += ` ORDER BY r.created_at DESC
-                 LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+                 LIMIT $${queryParams.length + 1} OFFSET $${
+        queryParams.length + 2
+      }`;
       queryParams.push(limit, offset);
-      
+
       const result = await db.query(query, queryParams);
-      
+
       // Process results to include profile pictures
       const reactions = await Promise.all(
         result.rows.map(async (reaction) => {
@@ -1565,7 +1702,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
           return reaction;
         })
       );
-      
+
       return reactions;
     } catch (error) {
       console.error("Error getting post reactions:", error);
@@ -1585,7 +1722,7 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
     userId: number,
     limit: number = 20,
     offset: number = 0,
-    order: 'desc' | 'asc' = 'desc'
+    order: "desc" | "asc" = "desc"
   ): Promise<Post[]> {
     try {
       const result = await db.query(
@@ -1599,29 +1736,29 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
          FROM post_service.posts p
          JOIN user_service.profiles u ON p.user_id = u.user_id
          WHERE p.user_id = $1
-         ORDER BY p.created_at ${order === 'desc' ? 'DESC' : 'ASC'}
+         ORDER BY p.created_at ${order === "desc" ? "DESC" : "ASC"}
          LIMIT $2 OFFSET $3`,
         [userId, limit, offset]
       );
-  
+
       const posts = result.rows;
-  
+
       // Enhance posts with additional data
       for (const post of posts) {
         post.media = await this.getPostMedia(post.id);
-        
+
         // Get engagement metrics
         post.likes_count = await this.getPostLikesCount(post.id);
         post.comments_count = await this.getPostCommentsCount(post.id);
         post.shares_count = await this.getPostSharesCount(post.id);
-  
+
         // Process user profile picture
         if (post.user && post.user.profile_picture_id) {
           post.user.profile_picture_url = await this.getFileUrl(
             post.user.profile_picture_id
           );
         }
-        
+
         // Process media URLs too
         if (post.media && post.media.length > 0) {
           for (const media of post.media) {
@@ -1637,14 +1774,14 @@ async isPostSharedByUser(postId: number, userId: number): Promise<boolean> {
           }
         }
       }
-  
+
       return posts;
     } catch (error) {
       console.error("Error getting user posts:", error);
       throw new Error("Failed to get user posts");
     }
   }
-  
+
   // Helper method to get the total count of a user's posts
   async getUserPostsCount(userId: number): Promise<number> {
     try {
