@@ -447,7 +447,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<Profile> _fetchProfileData(int? profileId) async {
     final endpoint =
+
         profileId == null ? "/user/profile/" : "/user/profile/$profileId";
+
     final data = await ServiceLocator().apiClient.get(endpoint);
     final json = jsonDecode(data.body);
     return Profile.fromJson(json);

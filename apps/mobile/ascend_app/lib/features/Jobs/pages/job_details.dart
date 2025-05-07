@@ -145,25 +145,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (context) => CompanyPage(
-                      name: widget.job.company,
-                      profileImageUrl: widget.job.companyPhoto ?? '',
-                      coverImageUrl: '',
-                      location: widget.job.location,
-                      industry: widget.job.industry ?? 'Unknown Industry',
-                      connections: 0,
-                      verified: false,
-                      bio: '',
-                      sections: [],
-                      isconnect: false,
-                      isfollow: false,
-                      isPending: false,
-                      mutualConnections: [],
-                      webSiteExists: false,
-                      links: [],
-                      badges: [],
-                    ),
+                builder: (context) => CompanyPage(companyId: 24),
               ),
             );
           },
@@ -242,26 +224,7 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (context) => CompanyPage(
-                              name: widget.job.company,
-                              profileImageUrl: widget.job.companyPhoto ?? '',
-                              coverImageUrl: '',
-                              location: widget.job.location,
-                              industry:
-                                  widget.job.industry ?? 'Unknown Industry',
-                              connections: 0,
-                              verified: false,
-                              bio: '',
-                              sections: [],
-                              isconnect: false,
-                              isfollow: false,
-                              isPending: false,
-                              mutualConnections: [],
-                              webSiteExists: false,
-                              links: [],
-                              badges: [],
-                            ),
+                        builder: (context) => CompanyPage(companyId: 24),
                       ),
                     );
                   },

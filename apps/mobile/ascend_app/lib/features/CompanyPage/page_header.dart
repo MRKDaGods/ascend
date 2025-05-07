@@ -11,7 +11,6 @@ class ProfileHeader extends StatelessWidget {
     required this.followers,
     required this.employeesCount,
     required this.isconnect,
-    required this.isPending,
     this.mutualConnections = const [],
     this.links = const [],
     this.badges = const [],
@@ -26,7 +25,6 @@ class ProfileHeader extends StatelessWidget {
   final int followers;
   final int employeesCount;
   final bool isconnect;
-  final bool isPending;
   final List<String> mutualConnections;
   final List<Map<String, String>> links;
   final List<String> badges; // New - Stores profile badges

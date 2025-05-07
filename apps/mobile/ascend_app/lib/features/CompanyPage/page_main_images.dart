@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'full_screen_image.dart';
-import 'bottom_options_sheet.dart';
 
 class ProfileMainImages extends StatelessWidget {
   const ProfileMainImages({
     super.key,
-    this.profilePic = 'https://picsum.photos/150/150',
-    this.coverPic = 'https://picsum.photos/1500/500',
+    this.profilePic = 'assets/company_placeholder.png',
+    this.coverPic = 'assets/company_placeholder.png',
     this.isMyProfile = false,
     this.profileImageProvider,
     this.coverImageProvider,
@@ -20,39 +18,6 @@ class ProfileMainImages extends StatelessWidget {
   //   'assets/company_placeholder.png',
   // ); // Add this for testing
 
-  void _showFullScreenImage(BuildContext context, String imageUrl) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) =>
-                FullScreenImage(imageUrl: imageUrl, isMyProfile: isMyProfile),
-      ),
-    );
-  }
-
-  void _showOptionsSheet(
-    BuildContext context,
-    String imageUrl,
-    bool isProfilePic,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-      ),
-      isScrollControlled: true, // Allows the sheet to expand properly
-      builder: (BuildContext context) {
-        return ProfileOptionsSheet(
-          isImageSheet: true,
-          showImage: _showFullScreenImage, // Go full screen
-          imageUrl: imageUrl,
-          imageType: isProfilePic ? 'profile' : 'cover',
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -60,26 +25,13 @@ class ProfileMainImages extends StatelessWidget {
       alignment: Alignment.bottomLeft,
       children: [
         GestureDetector(
-          onTap: () {
-            if (isMyProfile) {
-              _showOptionsSheet(
-                context,
-                coverPic,
-                false,
-              ); // Show options for cover pic
-            } else {
-              _showFullScreenImage(
-                context,
-                coverPic,
-              ); // Go full screen directly
-            }
-          },
+          onTap: () {},
           child: Container(
-            height: 120,
+            height: 100,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: coverImageProvider ?? NetworkImage(coverPic),
-                fit: BoxFit.cover,
+                fit: BoxFit.cover,  
               ),
             ),
           ),
@@ -88,20 +40,7 @@ class ProfileMainImages extends StatelessWidget {
           left: 20,
           bottom: -40,
           child: GestureDetector(
-            onTap: () {
-              if (isMyProfile) {
-                _showOptionsSheet(
-                  context,
-                  profilePic,
-                  true,
-                ); // Show options for profile pic
-              } else {
-                _showFullScreenImage(
-                  context,
-                  profilePic,
-                ); // Go full screen directly
-              }
-            },
+            onTap: () {},
             child: Container(
               width: 80, // Width of the square
               height: 80, // Height of the square
