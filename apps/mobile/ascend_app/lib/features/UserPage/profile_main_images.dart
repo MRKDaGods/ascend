@@ -35,6 +35,8 @@ class ProfileMainImages extends StatelessWidget {
     String imageUrl,
     bool? isProfilePic,
   ) {
+    isProfilePic ??= imageUrl == profilePic;
+
     Navigator.push(
       context,
       MaterialPageRoute(
