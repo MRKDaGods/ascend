@@ -12,4 +12,4 @@ admin.initializeApp({
   credential: admin.credential.cert(getServiceAccount())
 });
 
-export const getMessaging = () => admin.messaging;
+export const getMessaging = () => admin.messaging();
