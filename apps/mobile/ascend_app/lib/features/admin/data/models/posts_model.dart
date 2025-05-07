@@ -40,7 +40,8 @@ class PostReport {
       id: id ?? this.id,
       reporterId: reporterId ?? this.reporterId,
       reporterFullName: reporterFullName ?? this.reporterFullName,
-      reporterProfilePicture: reporterProfilePicture ?? this.reporterProfilePicture,
+      reporterProfilePicture:
+          reporterProfilePicture ?? this.reporterProfilePicture,
       reason: reason ?? this.reason,
       description: description ?? this.description,
       status: status ?? this.status,
@@ -52,16 +53,22 @@ class PostReport {
 
   factory PostReport.fromJson(Map<String, dynamic> json) {
     return PostReport(
-      id: json['id'],
-      reporterId: json['reporter_id'],
-      reporterFullName: json['reporter_full_name'],
-      reporterProfilePicture: json['reporter_profile_picture'],
-      reason: json['reason'],
-      description: json['description'],
-      status: json['status'],
+      id: json['id'] ?? 0,
+      reporterId: json['reporter_id'] ?? 0,
+      reporterFullName: json['reporter_full_name'] ?? '',
+      reporterProfilePicture: json['reporter_profile_picture'] ?? '',
+      reason: json['reason'] ?? '',
+      description: json['description'] ?? '',
+      status: json['status'] ?? 'pending',
       adminComment: json['admin_comment'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : DateTime.now(),
     );
   }
 }
@@ -71,7 +78,8 @@ class ReportedPost {
   final String authorFullName;
   final String profilePictureUrl;
   final String content;
-  final List<String> mediaUrls;
+  final List<Map<String, String>>
+  media; // Change to store media with type information
   final String privacy;
   final int likesCount;
   final int commentsCount;
@@ -84,7 +92,7 @@ class ReportedPost {
     required this.authorFullName,
     required this.profilePictureUrl,
     required this.content,
-    required this.mediaUrls,
+    required this.media,
     required this.privacy,
     required this.likesCount,
     required this.commentsCount,
@@ -93,13 +101,16 @@ class ReportedPost {
     this.reports = const [],
   });
 
+  // Get just the URLs for backward compatibility
+  List<String> get mediaUrls => media.map((m) => m['url'] ?? '').toList();
+
   // Add this copyWith method to enable updating properties
   ReportedPost copyWith({
     String? id,
     String? authorFullName,
     String? profilePictureUrl,
     String? content,
-    List<String>? mediaUrls,
+    List<Map<String, String>>? media,
     String? privacy,
     int? likesCount,
     int? commentsCount,
@@ -112,7 +123,7 @@ class ReportedPost {
       authorFullName: authorFullName ?? this.authorFullName,
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       content: content ?? this.content,
-      mediaUrls: mediaUrls ?? this.mediaUrls,
+      media: media ?? this.media,
       privacy: privacy ?? this.privacy,
       likesCount: likesCount ?? this.likesCount,
       commentsCount: commentsCount ?? this.commentsCount,
@@ -123,33 +134,70 @@ class ReportedPost {
   }
 
   factory ReportedPost.fromJson(Map<String, dynamic> json) {
+    // Handle potentially null fields safely
     final user = json['user'] ?? {};
-    final media = json['media'] as List? ?? [];
+    final mediaList = json['media'] as List? ?? [];
 
     return ReportedPost(
-      id: json['id'].toString(), // Ensure ID is a string
-      content: json['content'],
-      createdAt: DateTime.parse(json['created_at']),
-      privacy: json['privacy'],
-      likesCount: json['likes_count'],
-      commentsCount: json['comments_count'],
-      sharesCount: json['shares_count'],
-      mediaUrls: media.map((m) => m['url'].toString()).toList(),
-      authorFullName: '${user['first_name']} ${user['last_name']}',
-      reports:
-          (json['reports'] as List? ?? [])
-              .map((reportJson) => PostReport.fromJson(reportJson))
-              .toList(),
-      profilePictureUrl: _parseProfilePic(user['profile_picture_url']) ?? '',
+      id: json['id']?.toString() ?? '', // Ensure ID is a string and handle null
+      content: json['content'] ?? '',
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
+      privacy: json['privacy'] ?? 'private',
+      likesCount: json['likes_count'] ?? 0,
+      commentsCount: json['comments_count'] ?? 0,
+      sharesCount: json['shares_count'] ?? 0,
+      media: _parseMedia(mediaList),
+      authorFullName: _formatFullName(user),
+      reports: _parseReports(json),
+      profilePictureUrl: _parseProfilePic(user),
     );
   }
 
-  static String? _parseProfilePic(dynamic value) {
-    // If the value is a String, it's a valid URL
-    if (value is String) {
-      return value;
+  static String _formatFullName(Map<String, dynamic> user) {
+    final firstName = user['first_name'] ?? '';
+    final lastName = user['last_name'] ?? '';
+    return '$firstName $lastName'.trim();
+  }
+
+  // New method to parse media with type information
+  static List<Map<String, String>> _parseMedia(List mediaList) {
+    return mediaList.map((m) {
+      if (m is Map) {
+        return {
+          'url': m['url']?.toString() ?? '',
+          'type': m['type']?.toString() ?? 'image',
+          'title': m['title']?.toString() ?? '',
+          'description': m['description']?.toString() ?? '',
+        };
+      }
+      return {'url': '', 'type': 'image', 'title': '', 'description': ''};
+    }).toList();
+  }
+
+  static List<PostReport> _parseReports(Map<String, dynamic> json) {
+    if (json.containsKey('reports') && json['reports'] is List) {
+      return (json['reports'] as List)
+          .map((reportJson) => PostReport.fromJson(reportJson))
+          .toList();
     }
-    // If the value is an int or any other type, return null to use fallback
-    return null;
+    return [];
+  }
+
+  static String _parseProfilePic(Map<String, dynamic> user) {
+    // Handle the changes in profile picture structure
+    if (user.containsKey('profile_picture_id') &&
+        user['profile_picture_id'] != null) {
+      return 'https://api.ascendx.tech/files/view?token=${user['profile_picture_id']}';
+    }
+
+    if (user.containsKey('profile_picture_url') &&
+        user['profile_picture_url'] != null) {
+      return user['profile_picture_url'];
+    }
+
+    return '';
   }
 }

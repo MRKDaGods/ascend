@@ -42,7 +42,6 @@ class PostHeader extends StatelessWidget {
       onTap: () {
         final bloc = context.read<UserProfileBloc>();
         if (bloc.profile == null) {
-          debugPrint("Profile null? possible????");
           return;
         }
 

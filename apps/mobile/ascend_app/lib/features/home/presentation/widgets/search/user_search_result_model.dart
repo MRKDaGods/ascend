@@ -7,6 +7,7 @@ class UserSearchResult {
   final String lastName;
   final String? profilePictureUrl;
   final String? bio;
+  final String? headline;
   // Add other relevant fields like headline, connection degree if available
 
   const UserSearchResult({
@@ -15,6 +16,7 @@ class UserSearchResult {
     required this.lastName,
     this.profilePictureUrl,
     this.bio,
+    this.headline,
   });
 
   factory UserSearchResult.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class UserSearchResult {
       lastName: json['last_name'] as String,
       profilePictureUrl: json['profile_picture_url'] as String?,
       bio: json['bio'] as String?,
+      headline: json['headline'] as String?,
     );
   }
 

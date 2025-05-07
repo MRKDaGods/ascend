@@ -1,3 +1,4 @@
+import 'package:ascend_app/shared/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:ascend_app/features/Jobs/pages/job_home_page.dart';
 import 'package:ascend_app/shared/widgets/custom_sliver_appbar.dart';
@@ -49,6 +50,7 @@ class _JobAppState extends State<JobApp> {
     return MaterialApp(
       theme: isDarkTheme ? AppTheme.dark : AppTheme.light,
       home: Scaffold(
+        drawer: AppDrawer(),
         //backgroundColor: isDarkTheme ? Colors.black : Colors.white,
         body: DefaultTabController(
           length: 2,

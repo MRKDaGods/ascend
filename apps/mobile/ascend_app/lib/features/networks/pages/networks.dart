@@ -16,11 +16,7 @@ class Networks extends StatelessWidget {
             const CustomSliverAppBar(floating: false, showTabBar: true),
             SliverFillRemaining(
               hasScrollBody: true,
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: TabBarView(children: [Grow(), CatchUp()]),
-              ),
+              child: TabBarView(children: [Grow(), CatchUp()]),
             ),
           ],
         ),

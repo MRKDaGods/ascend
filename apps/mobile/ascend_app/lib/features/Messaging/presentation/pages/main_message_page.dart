@@ -151,6 +151,7 @@ class _MainMessagingPageState extends State<MainMessagingPage> {
       child: TextField(
         controller: searchController,
         focusNode: searchFocusNode,
+        textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
           hintText: 'Search messages',
           contentPadding: EdgeInsets.symmetric(horizontal: 16),

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 abstract class AuthEvent extends Equatable {
   @override
@@ -73,4 +74,14 @@ class AuthTokenUpdated extends AuthEvent {
 
   @override
   List<Object?> get props => [token];
+}
+
+class GoogleSignInRequested extends AuthEvent {
+  final User? user;
+  final String? tokenId;
+
+  GoogleSignInRequested({this.user, this.tokenId});
+
+  @override
+  List<Object?> get props => [user, tokenId];
 }

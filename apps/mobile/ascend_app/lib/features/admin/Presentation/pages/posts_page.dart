@@ -122,12 +122,6 @@ class _PostsPageState extends State<PostsPage> {
     });
   }
 
-  void _handleUpdateReportStatus(String reportId, String status) {
-    context.read<PostsBloc>().add(
-      UpdatePostReportStatus(reportId: reportId, status: status),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
