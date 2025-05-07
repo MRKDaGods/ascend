@@ -342,6 +342,8 @@ services:
 
       # RabbitMQ
       - RABBITMQ_URL=${RABBITMQ_URL}
+
+      - FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
     ports:
       - "3004:3004"
     depends_on:
