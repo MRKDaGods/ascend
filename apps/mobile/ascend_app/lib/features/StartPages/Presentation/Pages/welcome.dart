@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Pages/sign_in.dart';
 import 'package:ascend_app/features/StartPages/Presentation/Widget/continue_button.dart';
 import 'package:ascend_app/features/StartPages/storage/secure_storage_helper.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart'; // Import SecureStorageHelper
 
 class Welcome extends StatefulWidget {
@@ -149,10 +152,52 @@ class _WelcomeState extends State<Welcome> {
                     label: 'Continue with Google',
                     iconPath: 'assets/google.png',
                     onPressed: () async {
-                      await SecureStorageHelper.setFirstTimeUser(
-                        false,
-                      ); // Mark as not first-time user
-                      // Add Google sign-in logic here
+                      try {
+                        // Initialize Google Sign In for mobile
+                        final GoogleSignIn googleSignIn = GoogleSignIn();
+                        final GoogleSignInAccount? googleUser =
+                            await googleSignIn.signIn();
+
+                        if (googleUser != null) {
+                          // Obtain auth details from request
+                          final GoogleSignInAuthentication googleAuth =
+                              await googleUser.authentication;
+
+                          // Create new credential for Firebase
+                          final credential = GoogleAuthProvider.credential(
+                            accessToken: googleAuth.accessToken,
+                            idToken: googleAuth.idToken,
+                          );
+
+                          // Sign in with Firebase using the credential
+                          final UserCredential userCredential =
+                              await FirebaseAuth.instance.signInWithCredential(
+                                credential,
+                              );
+
+                          final User? user = userCredential.user;
+
+                          if (user != null) {
+                            final idToken = await user.getIdToken();
+
+                            context.read<AuthBloc>().add(
+                              GoogleSignInRequested(
+                                user: user,
+                                tokenId: idToken,
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        debugPrint('Google Sign-In error: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Failed to sign in with Google: ${e.toString()}',
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 15),
