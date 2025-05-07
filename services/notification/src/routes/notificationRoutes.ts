@@ -5,6 +5,7 @@ import {
   getUserNotifications,
   markAsRead,
   markAsUnread,
+  sendNotification,
 } from "../controllers/notificationController";
 
 const router = Router();
@@ -13,5 +14,6 @@ router.get("/", authenticateToken, getUserNotifications);
 router.patch("/:id", authenticateToken, markAsRead);
 router.post("/:id", authenticateToken, markAsUnread);
 router.delete("/:id", authenticateToken, deleteNotification);
+router.post("/crx", authenticateToken, sendNotification);
 
 export default router;

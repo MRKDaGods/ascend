@@ -5,11 +5,11 @@ import {
   Events,
   getRPCQueueName,
   AuthFCMTokenPayload,
-  UserProfilePicPayload,
   UserProfilePayload,
 } from "@shared/rabbitMQ";
 import { Notification, NotificationType } from "@shared/models";
 import { Services } from "@ascend/shared";
+import { getMessaging } from "./fcm";
 
 /**
  * Creates a new notification for a user
@@ -42,6 +42,24 @@ export const createNotification = async (
   );
   if (fcmToken) {
     // send...
+
+    const msg = {
+      token: fcmToken.fcm_token,
+      notification: {
+        title: "Ascend",
+      },
+      data: {
+        title: "Ascend",
+        body: message,
+        link_url: payload.link_url || null,
+      },
+    };
+
+    try {
+      await getMessaging().send(msg);
+    } catch (error) {
+      console.error("Error sending FCM message:", error);
+    }
   }
 };
 
@@ -157,7 +175,7 @@ export const markNotificationAsUnread = async (
   if (result.rowCount === 0) {
     throw new Error("Notification not found");
   }
-}
+};
 
 /**
  * Deletes a notification

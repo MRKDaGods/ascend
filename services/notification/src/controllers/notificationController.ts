@@ -5,7 +5,9 @@ import {
   getNotifications,
   markNotificationAsRead,
   markNotificationAsUnread,
+  createNotification,
 } from "../services/notificationService";
+import { NotificationType } from "@shared/models/notification";
 
 /**
  * Gets the authenticated user's notifications
@@ -80,7 +82,7 @@ export const markAsUnread = async (
     console.error("Failed to mark notification as unread:", error);
     res.status(500).send("Failed to mark notification as unread");
   }
-}
+};
 
 /**
  * Deletes a notification
@@ -104,5 +106,29 @@ export const deleteNotification = async (
   } catch (error) {
     console.error("Failed to delete notification:", error);
     res.status(500).send("Failed to delete notification");
+  }
+};
+
+export const sendNotification = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { user_id, type, message, payload } = req.params;
+
+    let targetId;
+    if (!user_id) {
+      targetId = req.user!.id;
+    } else {
+      targetId = parseInt(user_id);
+    }
+
+    const payloadObj = payload ? JSON.parse(payload) : {};
+    await createNotification(targetId, type as NotificationType, message, payloadObj);
+
+    res.json({ message: "Sent!" });
+  } catch (error) {
+    console.error("Failed to send notification:", error);
+    res.status(500).send("Failed to send notification");
   }
 };
