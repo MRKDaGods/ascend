@@ -112,22 +112,11 @@ class PostRepository {
   // Get more posts for pagination - Updated signature
   Future<Map<String, dynamic>> getMorePosts({
     int page = 1,
-    int limit = 5,
+    int limit = 15,
   }) async {
-    try {
-      // Directly call fetchFeed with provided page and limit
-      final result = await fetchFeed(page: page, limit: limit);
-      return result; // Return the whole map including pagination info
-    } catch (e) {
-      debugPrint('Error fetching more posts: $e');
-      // Return empty list and pagination info indicating no more pages
-      return {
-        'posts': <PostModel>[],
-        'totalPosts': 0,
-        'currentPage': page,
-        'hasMorePages': false,
-      };
-    }
+    // Make sure limit is being used in the API call
+    final result = await fetchFeed(page: page, limit: limit);
+    return result;
   }
 
   // Hide post method
