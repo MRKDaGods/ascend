@@ -26,6 +26,7 @@ export const handleSendNotification = async (
     payload.type,
     payload.message,
     payload.payload,
-    payload.title
+    payload.title,
+    payload.dont_save
   );
 };

@@ -6,7 +6,8 @@ export const sendNotificationMf = async (
   type: NotificationType,
   message: string,
   payload: Record<string, any> | null = null,
-  title: string | null = null
+  title: string | null = null,
+  dontSave: boolean = false
 ): Promise<void> => {
   try {
     await publishEvent(Events.NOTIFICATION_SEND, {
@@ -15,6 +16,7 @@ export const sendNotificationMf = async (
       message,
       payload,
       title,
+      dont_save: dontSave
     });
   } catch (error) {
     console.error("Error sending notification:", error);

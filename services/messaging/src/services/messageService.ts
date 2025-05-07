@@ -15,6 +15,9 @@ import {
   getRPCQueueName,
 } from "@shared/rabbitMQ";
 
+import {sendNotificationMf} from "@shared/utils/notifs";
+import { NotificationType } from "@shared/models";
+
 /**
  * Interface for paginated responses
  * @interface PaginatedResponse
@@ -341,6 +344,28 @@ export const sendMessage = async (
         `UPDATE payment_service.usage SET messages_per_day = messages_per_day + 1, last_date = NOW() WHERE user_id = $1`,
         [senderId]
       );
+    }
+
+    // Send notif
+    try {
+      await sendNotificationMf(
+        receiverId,
+        NotificationType.MENTION,
+        messageContent || "[MEDIA]",
+        {
+          conversationId: conversationId,
+          messageId: parseInt(messageInsertResult.rows[0].message_id),
+          content: messageContent,
+          fileUrl: fileUrl,
+          fileType: fileType,
+          sentAt: messageInsertResult.rows[0].sent_at,
+        },
+        await getUserFullName(senderId),
+        true
+      );
+    }
+    catch (error) {
+      console.error("Error sending notification:", error);
     }
 
     return {

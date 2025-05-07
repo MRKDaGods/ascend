@@ -24,13 +24,16 @@ export const createNotification = async (
   type: NotificationType,
   message: string,
   payload: Record<string, any> = {},
-  title: string = "Ascend"
+  title: string = "Ascend",
+  dontSave: boolean = false
 ): Promise<void> => {
-  await db.query(
-    `INSERT INTO notification_service.notifications (user_id, type, message, payload) 
+  if (!dontSave) {
+    await db.query(
+      `INSERT INTO notification_service.notifications (user_id, type, message, payload) 
      VALUES ($1, $2, $3, $4)`,
-    [userId, type, message, JSON.stringify(payload)]
-  );
+      [userId, type, message, JSON.stringify(payload)]
+    );
+  }
 
   // Get FCM token if available
   const fcmRpcQueue = getRPCQueueName(Services.AUTH, Events.AUTH_FCM_TOKEN_RPC);

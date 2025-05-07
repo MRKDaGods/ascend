@@ -271,4 +271,5 @@ export interface SendNotificationPayload {
   message: string;
   payload?: Record<string, any>;
   title?: string;
+  dont_save?: boolean;
 }
