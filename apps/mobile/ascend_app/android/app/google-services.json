@@ -1,26 +1,43 @@
 {
   "project_info": {
-    "project_number": "653003737386",
-    "project_id": "asscend-68618",
-    "storage_bucket": "asscend-68618.firebasestorage.app"
+    "project_number": "478636127188",
+    "project_id": "ascend-46a60",
+    "storage_bucket": "ascend-46a60.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:653003737386:android:4cd6f838ebc6772ef77653",
+        "mobilesdk_app_id": "1:478636127188:android:75003a418912cdd6ea9c41",
         "android_client_info": {
           "package_name": "com.example.ascend_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "478636127188-rmpt3u1frnuth6fr7oqbjrgslgdmdk0a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyB93DvlzJOhua-VwNTn6LgR0ApuGS_1i2w"
+          "current_key": "AIzaSyArsr7tRxtY9uVI549FKrmVClujhIsjix8"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "478636127188-rmpt3u1frnuth6fr7oqbjrgslgdmdk0a.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "478636127188-gmej68dk65rrns9uavs1185j6bj0iaik.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ascendApp"
+              }
+            }
+          ]
         }
       }
     }

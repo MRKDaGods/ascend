@@ -300,7 +300,9 @@ class ApiClient {
       return;
     } else {
       _logger.i('Request failed: ${response.statusCode}, ${response.body}');
-      throw Exception('Error: ${response.statusCode}, ${response.body}');
+      throw Exception(
+        'Error: ${response.statusCode}, ${response.body} req=${response.request}',
+      );
     }
   }
 }
