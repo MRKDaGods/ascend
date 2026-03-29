@@ -1,514 +1,295 @@
+# Ascend platform - production compose for all microservices.
+
+# Shared config
+
+x-common-env: &common-env
+  DB_USER: ${DB_USER}
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_NAME: ${DB_NAME}
+  DB_PORT: "5432"
+  JWT_SECRET: ${JWT_SECRET}
+  RABBITMQ_URL: ${RABBITMQ_URL}
+
+x-depends-infra: &depends-infra
+  postgres:
+    condition: service_healthy
+  rabbitmq:
+    condition: service_healthy
+
+# Infrastructure
+
 services:
+
   postgres:
     image: postgres:14
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - ascend-network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - ascend-network
-    depends_on:
-      - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management
     hostname: rabbitmq
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-      - RABBITMQ_DEFAULT_VHOST=ascend_vhost
-    ports:
-      - "5672:5672"
-      - "15672:15672" # Management UI
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ascend_vhost
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - ascend-network
     healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
+    restart: unless-stopped
 
   minio:
     image: minio/minio
-    hostname: minio
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - minio_data:/data
-    networks:
-      - ascend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # Gateway
 
   gateway:
     build:
       context: .
       dockerfile: services/gateway/Dockerfile
     environment:
-      # Service
-      - SERVICE_NAME=gateway
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=8080
+      SERVICE_NAME: gateway
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: "8080"
     ports:
       - "8080:8080"
     depends_on:
-      - auth
-      - user
-      - file
-      - post
-      - connection
-      - admin
-      - notification
-    networks:
-      - ascend-network
+      auth:
+        condition: service_started
+      user:
+        condition: service_started
+      file:
+        condition: service_started
+      post:
+        condition: service_started
+      connection:
+        condition: service_started
+      admin:
+        condition: service_started
+      notification:
+        condition: service_started
+    restart: unless-stopped
 
-  email:
-    hostname: email
-    build:
-      context: .
-      dockerfile: services/email/Dockerfile
-    environment:
-      # Service
-      - SERVICE_NAME=email
-      - ASCEND_ADMIN_FIRST_NAME=${ASCEND_ADMIN_FIRST_NAME}
-      - ASCEND_ADMIN_LAST_NAME=${ASCEND_ADMIN_LAST_NAME}
-      - ASCEND_ADMIN_EMAIL=${ASCEND_ADMIN_EMAIL}
-      - ASCEND_ADMIN_PASSWORD=${ASCEND_ADMIN_PASSWORD}
-
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3069
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3069:3069"
-    depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - ascend-network
-  
-  auth:
-    hostname: auth
-    build:
-      context: .
-      dockerfile: services/auth/Dockerfile
-    environment:
-      # Service
-      - SERVICE_NAME=auth
-      - ASCEND_ADMIN_FIRST_NAME=${ASCEND_ADMIN_FIRST_NAME}
-      - ASCEND_ADMIN_LAST_NAME=${ASCEND_ADMIN_LAST_NAME}
-      - ASCEND_ADMIN_EMAIL=${ASCEND_ADMIN_EMAIL}
-      - ASCEND_ADMIN_PASSWORD=${ASCEND_ADMIN_PASSWORD}
-
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3001
-
-      # Google OAuth
-      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
-      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
-      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3001:3001"
-    depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - ascend-network
-
-  company:
-    hostname: company
-    build:
-      context: .
-      dockerfile: services/company/Dockerfile
-    environment:
-      - SERVICE_NAME=company
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3009
-
-      # Google OAuth
-      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
-      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
-      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3009:3009"
-    depends_on:
-      - postgres
-      - rabbitmq
-      - file
-      - user
-    networks:
-      - ascend-network
-
-
-  payment:
-    hostname: payment
-    build:
-      context: .
-      dockerfile: services/payment/Dockerfile
-    environment:
-      - SERVICE_NAME=payment
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # STRIPE
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_WEBHOOK_SECRET_KEY=${STRIPE_WEBHOOK_SECRET_KEY}
-
-      # Service port
-      - PORT=3014
-
-      # Google OAuth
-      - GOOGLE_CLIENT_ID_WEB=${GOOGLE_CLIENT_ID_WEB}
-      - GOOGLE_CLIENT_ID_IOS=${GOOGLE_CLIENT_ID_IOS}
-      - GOOGLE_CLIENT_ID_ANDROID=${GOOGLE_CLIENT_ID_ANDROID}
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
- 
-      # Service
-      - SESSION_TOKEN_EXPIRY_MS=${SESSION_TOKEN_EXPIRY_MS}
-      - SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS=${SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS}
-
-      - PAYMENT_BASE_URL=${PAYMENT_BASE_URL}
-      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
-    ports:
-      - "3014:3014"
-    depends_on:
-      - postgres
-      - rabbitmq
-      - user
-    networks:
-      - ascend-network
-
-
-  user:
-    hostname: user
-    build:
-      context: .
-      dockerfile: services/user/Dockerfile
-    environment:
-      # Service
-      - SERVICE_NAME=user
-
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3002
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3002:3002"
-    depends_on:
-      - postgres
-      - rabbitmq
-      - file
-    networks:
-      - ascend-network
-
-  file:
-    hostname: file
-    build:
-      context: .
-      dockerfile: services/file/Dockerfile
-    environment:
-      # Service
-      - SERVICE_NAME=file
-
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Minio
-      - MINIO_ENDPOINT=minio
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET=ascend-files
-      - MINIO_PORT=9000
-
-      # Service port
-      - PORT=3003
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-
-      # Gateway
-      - GATEWAY_ENDPOINT=${GATEWAY_ENDPOINT}
-    ports:
-      - "3003:3003"
-    depends_on:
-      - postgres
-      - minio
-    networks:
-      - ascend-network
-
-  notification:
-    hostname: notification
-    build:
-      context: .
-      dockerfile: services/notification/Dockerfile
-    environment:
-      # Service
-      - SERVICE_NAME=notification
-
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3004
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-
-      - FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
-    ports:
-      - "3004:3004"
-    depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - ascend-network
-
-  job:
-    hostname: job
-    build:
-      context: .
-      dockerfile: services/job/Dockerfile
-    environment:
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3008
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3008:3008"
-    depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - ascend-network
-
-  post:
-    hostname: post
-    build:
-      context: .
-      dockerfile: services/post/Dockerfile
-    environment:
-    # Service
-      - SERVICE_NAME=post
-
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3005
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3005:3005"
-    depends_on:
-      - postgres
-      - rabbitmq
-      - file
-    networks:
-      - ascend-network
-
-  connection:
-    hostname: connection
-    build:
-      context: .
-      dockerfile: services/connection/Dockerfile
-    environment:
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3006
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3006:3006"
-    depends_on:
-      - postgres
-      - rabbitmq
-      - file
-    networks:
-      - ascend-network
+  # Services
 
   admin:
-    hostname: admin
     build:
       context: .
       dockerfile: services/admin/Dockerfile
     environment:
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3007
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3007:3007"
+      <<: *common-env
+      SERVICE_NAME: admin
+      PORT: "3007"
     depends_on:
-      - postgres
-      - rabbitmq
-      - file
-    networks:
-      - ascend-network
+      <<: *depends-infra
+      file:
+        condition: service_started
+    restart: unless-stopped
+
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: auth
+      PORT: "3001"
+      ASCEND_ADMIN_FIRST_NAME: ${ASCEND_ADMIN_FIRST_NAME}
+      ASCEND_ADMIN_LAST_NAME: ${ASCEND_ADMIN_LAST_NAME}
+      ASCEND_ADMIN_EMAIL: ${ASCEND_ADMIN_EMAIL}
+      ASCEND_ADMIN_PASSWORD: ${ASCEND_ADMIN_PASSWORD}
+      GOOGLE_CLIENT_ID_WEB: ${GOOGLE_CLIENT_ID_WEB}
+      GOOGLE_CLIENT_ID_IOS: ${GOOGLE_CLIENT_ID_IOS:-}
+      GOOGLE_CLIENT_ID_ANDROID: ${GOOGLE_CLIENT_ID_ANDROID:-}
+    depends_on: *depends-infra
+    restart: unless-stopped
+
+  company:
+    build:
+      context: .
+      dockerfile: services/company/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: company
+      PORT: "3009"
+    depends_on:
+      <<: *depends-infra
+      file:
+        condition: service_started
+      user:
+        condition: service_started
+    restart: unless-stopped
+
+  connection:
+    build:
+      context: .
+      dockerfile: services/connection/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: connection
+      PORT: "3006"
+    depends_on:
+      <<: *depends-infra
+      file:
+        condition: service_started
+    restart: unless-stopped
+
+  email:
+    build:
+      context: .
+      dockerfile: services/email/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: email
+      PORT: "3069"
+      ASCEND_ADMIN_FIRST_NAME: ${ASCEND_ADMIN_FIRST_NAME}
+      ASCEND_ADMIN_LAST_NAME: ${ASCEND_ADMIN_LAST_NAME}
+      ASCEND_ADMIN_EMAIL: ${ASCEND_ADMIN_EMAIL}
+      ASCEND_ADMIN_PASSWORD: ${ASCEND_ADMIN_PASSWORD}
+    depends_on: *depends-infra
+    restart: unless-stopped
+
+  file:
+    build:
+      context: .
+      dockerfile: services/file/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: file
+      PORT: "3003"
+      MINIO_ENDPOINT: minio
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ascend-files
+      MINIO_PORT: "9000"
+      GATEWAY_ENDPOINT: ${GATEWAY_ENDPOINT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  job:
+    build:
+      context: .
+      dockerfile: services/job/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: job
+      PORT: "3008"
+    depends_on: *depends-infra
+    restart: unless-stopped
 
   messaging:
-    hostname: messaging
     build:
       context: .
       dockerfile: services/messaging/Dockerfile
     environment:
-      # Service
-      - SERVICE_NAME=messaging
+      <<: *common-env
+      SERVICE_NAME: messaging
+      PORT: "3010"
+    depends_on: *depends-infra
+    restart: unless-stopped
 
-      # Postgres
-      - DB_USER=${DB_USER}
-      - DB_NAME=${DB_NAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=5432
+  notification:
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: notification
+      PORT: "3004"
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+    depends_on: *depends-infra
+    restart: unless-stopped
 
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=3010
-
-      # RabbitMQ
-      - RABBITMQ_URL=${RABBITMQ_URL}
-    ports:
-      - "3010:3010"
-      - "3011:3011"
+  payment:
+    build:
+      context: .
+      dockerfile: services/payment/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: payment
+      PORT: "3014"
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET_KEY: ${STRIPE_WEBHOOK_SECRET_KEY}
+      SESSION_TOKEN_EXPIRY_MS: ${SESSION_TOKEN_EXPIRY_MS:-3600000}
+      SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS: ${SESSION_TOKEN_EXPIRY_CHECK_INTERVAL_MS:-60000}
+      PAYMENT_BASE_URL: ${PAYMENT_BASE_URL:-http://localhost:3014}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:3000}
     depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - ascend-network
+      <<: *depends-infra
+      user:
+        condition: service_started
+    restart: unless-stopped
+
+  post:
+    build:
+      context: .
+      dockerfile: services/post/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: post
+      PORT: "3005"
+    depends_on:
+      <<: *depends-infra
+      file:
+        condition: service_started
+    restart: unless-stopped
+
+  user:
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
+    environment:
+      <<: *common-env
+      SERVICE_NAME: user
+      PORT: "3002"
+    depends_on:
+      <<: *depends-infra
+      file:
+        condition: service_started
+    restart: unless-stopped
+
+# Volumes
 
 volumes:
   postgres_data:
-  pgadmin_data:
   rabbitmq_data:
   minio_data:
 
+# Networks
 
 networks:
-  ascend-network:
+  default:
+    name: ascend-network
     driver: bridge

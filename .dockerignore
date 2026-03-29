@@ -1,9 +1,54 @@
-node_modules
-dist
-apps
-scripts
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/
 
-.git
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Version control
+.git/
 .gitignore
 .gitattributes
-.github/*
+.github/
+
+# IDE & editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Documentation
+*.md
+LICENSE
+
+# Docker (prevent recursive context inclusion)
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Frontend & mobile apps (not needed for backend Docker builds)
+apps/
+
+# Scripts
+scripts/
+
+# Tests & coverage
+tests/
+coverage/
+*.lcov
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

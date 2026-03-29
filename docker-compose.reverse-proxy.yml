@@ -1,17 +1,16 @@
+# Standalone reverse proxy for forwarding traffic to the gateway.
+# Usage: docker compose -f docker-compose.reverse-proxy.yml up
+
 services:
-   gateway-reverse-proxy:
+  gateway-reverse-proxy:
     build:
       context: .
       dockerfile: services/gateway-reverse-proxy/Dockerfile
     environment:
-      # Service
-      - SERVICE_NAME=gateway-reverse-proxy
-      - PROXY_TARGET=${REVERSE_PROXY_TARGET}
-
-      # JWT
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Service port
-      - PORT=23469
+      SERVICE_NAME: gateway-reverse-proxy
+      JWT_SECRET: ${JWT_SECRET}
+      PROXY_TARGET: ${REVERSE_PROXY_TARGET:-http://localhost:8080}
+      PORT: "23469"
     ports:
       - "23469:23469"
+    restart: unless-stopped

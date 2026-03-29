@@ -1,91 +1,151 @@
+# Development overrides - exposes ports, adds pgAdmin, enables hot-reload.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
 services:
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ascend.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  rabbitmq:
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
   gateway:
     volumes:
       - ./services/gateway:/app/services/gateway
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-  auth:
-    volumes:
-      - ./services/auth:/app/services/auth
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-
-  user:
-    volumes:
-      - ./services/user:/app/services/user
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-  company:
-    volumes:
-      - ./services/company:/app/services/company
     command: ["npm", "run", "dev"]
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
 
-  payment:
-    volumes:
-      - ./services/payment:/app/services/payment
-    command: ["npm", "run", "dev"]
-    environment:
-      - NODE_ENV=development
-
-  file:
-    volumes:
-      - ./services/file:/app/services/file
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-  notification:
-    volumes:
-      - ./services/notification:/app/services/notification
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-  job:
-    volumes:
-      - ./services/job:/app/services/job
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-  messaging:
-    volumes:
-      - ./services/messaging:/app/services/messaging
-    command: [ "npm", "run", "dev" ]
-    environment:
-      - NODE_ENV=development
-
-  post:
-    volumes:
-      - ./services/post:/app/services/post
-    command: ["npm", "run", "dev"]
-    environment:
-      - NODE_ENV=development
-
-  connection:
-    volumes:
-      - ./services/connection:/app/services/connection
-    command: ["npm", "run", "dev"]
-    environment:
-      - NODE_ENV=development
   admin:
+    ports:
+      - "3007:3007"
     volumes:
       - ./services/admin:/app/services/admin
     command: ["npm", "run", "dev"]
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
+
+  auth:
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./services/auth:/app/services/auth
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  company:
+    ports:
+      - "3009:3009"
+    volumes:
+      - ./services/company:/app/services/company
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  connection:
+    ports:
+      - "3006:3006"
+    volumes:
+      - ./services/connection:/app/services/connection
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
 
   email:
+    ports:
+      - "3069:3069"
     volumes:
       - ./services/email:/app/services/email
     command: ["npm", "run", "dev"]
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
+
+  file:
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./services/file:/app/services/file
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  job:
+    ports:
+      - "3008:3008"
+    volumes:
+      - ./services/job:/app/services/job
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  messaging:
+    ports:
+      - "3010:3010"
+      - "3011:3011"
+    volumes:
+      - ./services/messaging:/app/services/messaging
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  notification:
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./services/notification:/app/services/notification
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  payment:
+    ports:
+      - "3014:3014"
+    volumes:
+      - ./services/payment:/app/services/payment
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  post:
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./services/post:/app/services/post
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+  user:
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./services/user:/app/services/user
+    command: ["npm", "run", "dev"]
+    environment:
+      NODE_ENV: development
+
+volumes:
+  pgadmin_data:
