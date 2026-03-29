@@ -77,7 +77,7 @@ const CreatePostDialog: React.FC = () => {
   };  
   
   const userData = useProfileStore((state) => state.userData) as Profile | null;
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; //❌ Fallback
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.jpg"; //❌ Fallback
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   useEffect(() => {

@@ -97,7 +97,7 @@ const NotificationCard: React.FC = () => {
 
   const getProfilePicture = (n: Notification) => {
     const p = n.payload as NotificationPayload;
-    return p?.profile?.profile_picture_url || p?.profile_picture_url || "/default-avatar.png";
+    return p?.profile?.profile_picture_url || p?.profile_picture_url || "/default-avatar.jpg";
   };
 
   const getSenderName = (n: Notification) => {

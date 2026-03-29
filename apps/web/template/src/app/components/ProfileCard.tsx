@@ -20,7 +20,7 @@ const ProfileCard: React.FC = () => {
   const isLoading = !userData;
   const error = null;
 
-  const profileImg = userData?.profile_picture_url || "/default-avatar.png";
+  const profileImg = userData?.profile_picture_url || "/default-avatar.jpg";
   const coverImg = userData?.cover_photo_url || "/default-cover.png";
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "";
   const isOpenToWork = true;

@@ -29,7 +29,7 @@ export const useUserStore = create<UserStoreState>((set) => ({
     id: 1,
     name: "Default User",
     email: "user@example.com",
-    avatar: "/default-avatar.png",
+    avatar: "/default-avatar.jpg",
   },
   connections: [],
   sendDialogOpen: false,

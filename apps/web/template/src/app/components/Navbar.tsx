@@ -91,7 +91,7 @@ const Navbar: React.FC = () => {
   const userData = useProfileStore((state) => state.userData) as Profile | null;
 
   // Safely derive profile picture and full name
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; // Fallback to default avatar
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.jpg"; // Fallback to default avatar
   const fullName = userData
     ? `${userData.first_name} ${userData.last_name}`
     : "User"; // Fallback to "User"
