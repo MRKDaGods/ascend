@@ -1,0 +1,31 @@
+import { Router } from "express";
+import { createAnnounementPost, createCompanyProfile, deleteAnnouncementPost, deleteCompanyProfile, findCompaniesPagesFollowedByUser, followCompany, getAnnouncement, getCompaniesCreatedByUser, getCompanyAnalytics, getCompanyAnnouncements, getCompanyFollowers, getCompanyProfile, searchForCompany, unfollowCompany, updateAnnounementPost, updateCompany} from "../controllers/companyController";
+import authenticateToken from "@shared/middleware/authMiddleware";
+import { announcementIdValidation, companyIdValidation, createAnnouncementValidation, createCompanyValidation,  limitAndPageValidation, updateAnnouncementValidation, updateCompanyValidation } from "../validations/companyValidation";
+const companyRoutes = Router();
+
+
+companyRoutes.post("/companies", authenticateToken, createCompanyValidation, createCompanyProfile);
+companyRoutes.patch("/companies/:companyId", authenticateToken, companyIdValidation, updateCompanyValidation, updateCompany);
+companyRoutes.get("/companies/:companyId", authenticateToken, companyIdValidation, getCompanyProfile);
+companyRoutes.get("/companies", authenticateToken, getCompaniesCreatedByUser);
+companyRoutes.delete("/companies/:companyId", authenticateToken, companyIdValidation, deleteCompanyProfile);
+
+companyRoutes.post("/companies/:companyId/announcements", authenticateToken, companyIdValidation, createAnnouncementValidation, createAnnounementPost);
+companyRoutes.get("/companies/:companyId/announcements", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyAnnouncements);
+companyRoutes.delete("/companies/:companyId/announcements/:announcementId", authenticateToken, companyIdValidation, announcementIdValidation, deleteAnnouncementPost);
+companyRoutes.patch("/companies/:companyId/announcements/:announcementId", authenticateToken, companyIdValidation, announcementIdValidation, updateAnnouncementValidation, updateAnnounementPost);
+companyRoutes.get("/companies/announcements/:announcementId", authenticateToken, announcementIdValidation, getAnnouncement);
+
+companyRoutes.get("/companies/:companyId/followers", authenticateToken, companyIdValidation, limitAndPageValidation, getCompanyFollowers);
+
+companyRoutes.post("/companies/:companyId/follow", authenticateToken, companyIdValidation, followCompany);
+companyRoutes.delete("/companies/:companyId/unfollow", authenticateToken, companyIdValidation, unfollowCompany);
+
+companyRoutes.get("/companies/user/followed", authenticateToken, limitAndPageValidation, findCompaniesPagesFollowedByUser);
+
+companyRoutes.get("/companies/data/search", authenticateToken, limitAndPageValidation, searchForCompany);
+
+companyRoutes.get("/companies/:companyId/analytics", authenticateToken, companyIdValidation, getCompanyAnalytics);
+
+export default companyRoutes;
