@@ -70,8 +70,8 @@ venv/
 # Mobile: legacy scaffold
 apps/mobile/dummy_cross
 
-# Compiled WASM output
-packages/api-client/pkg/
+# Rust build intermediates (pkg/ itself is tracked since Vercel can't build WASM)
+packages/api-client/target/
 
 # Caches & misc
 .cache/
