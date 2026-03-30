@@ -6,12 +6,12 @@ import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import router from "next/router";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB7wSycMX1wWoRcmq1X8gkxGx9Dtvy2CdY",
-  authDomain: "ascend-46a60.firebaseapp.com",
-  projectId: "ascend-46a60",
-  storageBucket: "ascend-46a60.firebasestorage.app",
-  messagingSenderId: "478636127188",
-  appId: "1:478636127188:web:fa28b5c744a3e1d5ea9c41",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);

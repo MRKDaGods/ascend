@@ -3,6 +3,10 @@
 *.log
 *.pyc
 *.swp
+
+# Firebase config (contains API keys, use *.example as template)
+lib/firebase_options.dart
+android/app/google-services.json
 .DS_Store
 .atom/
 .buildlog/
