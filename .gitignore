@@ -65,6 +65,8 @@ venv/
 
 # Mobile (React Native / Expo)
 apps/mobile/dummy_cross
+**/flutter/ephemeral/
+**/Flutter/ephemeral/
 *.apk
 *.aab
 *.ipa
