@@ -1,0 +1,253 @@
+import 'package:flutter/material.dart';
+import 'package:ascend_app/features/home/managers/reaction_manager.dart';
+import 'package:ascend_app/features/home/presentation/widgets/reaction/reaction_button.dart';
+import 'package:ascend_app/features/home/presentation/utils/sheet_helpers.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+class CommentBox extends StatelessWidget {
+  final String authorName;
+  final String? authorOccupation;
+  final String timePosted;
+  final String text;
+  final String? avatarImage; // Can be URL or asset path
+
+  // Replace generic onMenuTap with specific handlers
+  final Function(String) onMenuOptionSelected;
+
+  final VoidCallback? onReplyTap;
+  final VoidCallback? onReactionTap;
+  final VoidCallback? onReactionLongPress;
+  final String? reaction;
+  final int likeCount;
+
+  // Optional: Allow child widgets to be passed in instead of text
+  final Widget? child;
+
+  const CommentBox({
+    super.key,
+    required this.authorName,
+    this.authorOccupation,
+    required this.timePosted,
+    required this.text,
+    this.avatarImage,
+    required this.onMenuOptionSelected,
+    this.onReplyTap,
+    this.onReactionTap,
+    this.onReactionLongPress,
+    this.reaction,
+    this.likeCount = 0,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final reactionIcon =
+        ReactionManager.reactionIcons[reaction] ?? Icons.thumb_up_alt_outlined;
+    final reactionColor =
+        ReactionManager.reactionColors[reaction] ?? Colors.grey;
+    final bool isLiked = reaction != null;
+
+    // Determine if avatarImage is a network URL or a local asset path
+    final bool isNetworkImage = avatarImage?.startsWith('http') ?? false;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Avatar
+        CircleAvatar(
+          radius: 20,
+          // Use Network image if URL, otherwise use Asset image
+          backgroundImage:
+              isNetworkImage
+                  ? CachedNetworkImageProvider(
+                    avatarImage!,
+                  ) // Use CachedNetworkImageProvider
+                  : AssetImage(
+                        avatarImage ?? 'assets/images/profile/EmptyUser.png',
+                      )
+                      as ImageProvider, // Fallback asset
+          onBackgroundImageError:
+              isNetworkImage
+                  ? (_, __) {
+                    // Add error handling for network images
+                    debugPrint('Error loading network image: $avatarImage');
+                  }
+                  : null,
+          child:
+              !isNetworkImage &&
+                      avatarImage ==
+                          null // Show icon only if it's truly fallback asset
+                  ? const Icon(Icons.person, size: 20)
+                  : null,
+        ),
+
+        const SizedBox(width: 8),
+
+        // Comment content and actions
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gray comment box
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Author info row with time and menu all on the same line
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Author name (left side)
+                        Expanded(
+                          child: Text(
+                            authorName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+
+                        // Right side with time and menu dots on the same line
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Time posted
+                            Text(
+                              timePosted,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+
+                            // Menu dots - aligned with time and name
+                            InkWell(
+                              onTap: () => _showOptionsSheet(context),
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 4.0),
+                                child: Icon(
+                                  Icons.more_horiz,
+                                  color: Colors.grey[600],
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    // Author occupation if available - below the name
+                    if (authorOccupation != null &&
+                        authorOccupation!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          authorOccupation!,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 8),
+
+                    // Comment text or custom child widget
+                    child ?? Text(text),
+                  ],
+                ),
+              ),
+
+              // Interaction buttons (like and reply)
+              Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Row(
+                  children: [
+                    // Replace PostReactionButton with ReactionButton
+                    if (onReactionTap != null)
+                      Row(
+                        children: [
+                          ReactionButton(
+                            // Create a manager with the current state
+                            manager: ReactionManager(currentReaction: reaction),
+                            // Connect callbacks
+                            onTap: onReactionTap,
+                            onLongPressStart: onReactionLongPress ?? () {},
+                            onLongPressEnd: () {}, // Add empty handler
+                          ),
+                          // Display like count
+                          if (likeCount > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4.0),
+                              child: Text(
+                                likeCount.toString(),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+
+                    const SizedBox(width: 16),
+
+                    // Always show Reply button if onReplyTap is provided
+                    if (onReplyTap != null)
+                      GestureDetector(
+                        onTap: onReplyTap,
+                        child: Text(
+                          'Reply',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Use SheetHelpers, but connect to our callback system
+  void _showOptionsSheet(BuildContext context) {
+    SheetHelpers.showPostOptionsSheet(
+      context: context,
+      ownerName: authorName,
+      showSave: false, // Comments typically aren't saved like posts
+      showUnsave: false, // Add this - Comments typically aren't saved
+      showNotInterested: false, // Assuming not applicable to comments
+      showUnfollow: false, // Assuming not applicable directly to comments
+      showMessage: true, // Enable message option
+      reportText: 'Report comment', // Customize report text
+      onSave: () {}, // Add empty required callback
+      onUnsave: () {}, // Add empty required callback
+      onShare: () {
+        Navigator.pop(context);
+        onMenuOptionSelected('share'); // Use existing callback system
+      },
+      onMessage: () {
+        Navigator.pop(context);
+        onMenuOptionSelected('message'); // Use existing callback system
+      },
+      onReport: () {
+        Navigator.pop(context);
+        onMenuOptionSelected('report'); // Use existing callback system
+      },
+      // Add other required callbacks from SheetHelpers with empty functions if not used
+      // e.g., onNotInterested: () {}, onUnfollow: () {},
+    );
+  }
+}

@@ -1,0 +1,232 @@
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:ascend_app/features/Jobs/models/jobsattributes.dart';
+import 'package:ascend_app/features/Jobs/pages/jobcard.dart';
+import 'post2.dart';
+
+class CompanyTabs extends StatefulWidget {
+  final String companyName; // Company name to fetch jobs for
+  final String bio; // Company description
+  final String industry; // Industry type
+  final String location; // Headquarters location
+  final DateTime createdAt; // Creator ID
+  final int companyId; // Company ID
+  final String? companyImageUrl; // Optional company image URL
+
+  const CompanyTabs({
+    super.key,
+    required this.companyName,
+    required this.bio,
+    required this.industry,
+    required this.location,
+    required this.createdAt,
+    required this.companyId,
+    this.companyImageUrl,
+  });
+
+  @override
+  State<CompanyTabs> createState() => _CompanyTabsState();
+}
+
+class _CompanyTabsState extends State<CompanyTabs>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  List<Jobsattributes> companyJobs = [];
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print(widget.companyName);
+    _tabController = TabController(length: 4, vsync: this); // 5 tabs
+    fetchCompanyJobs();
+  }
+
+  Future<void> fetchCompanyJobs() async {
+    setState(() {
+      isLoading = true;
+    });
+    print("Fetching jobs for company: ${widget.companyName}");
+    final url = Uri.parse(
+      'https://api.ascendx.tech/job?company=${widget.companyName}',
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        if (jsonResponse.containsKey('data')) {
+          final List<dynamic> jobData = jsonResponse['data'];
+          setState(() {
+            companyJobs =
+                jobData.map((data) => Jobsattributes.fromJson(data)).toList();
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching company jobs: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // TabBar Section
+        Container(
+          alignment: Alignment.centerLeft, // Align TabBar to the
+          padding: EdgeInsets.all(0),
+          margin: EdgeInsets.all(0),
+          width: double.infinity,
+          child: TabBar(
+            padding: EdgeInsets.zero,
+            controller: _tabController,
+            isScrollable:
+                true, // Allow tabs to scroll if they exceed screen width
+            indicatorColor: Colors.green[800], // Underline color
+            indicatorWeight: 2.0, // Thickness of the underline
+            labelColor: Colors.green[800], // Active tab text color
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ), // Active tab text style
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ), // Inactive tab text style
+            tabs: [
+              Tab(text: "About"),
+              Tab(text: "Posts"),
+              Tab(text: "Jobs"),
+              Tab(text: "People"),
+            ],
+          ),
+        ),
+
+        // TabBarView Section
+        Flexible(
+          fit: FlexFit.tight,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildAboutTab(),
+              _buildPostsTab(),
+              _buildJobsTab(),
+              _buildPeopleTab(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAboutTab() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Overview",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            widget.bio, // Use the passed company description for the overview
+            style: TextStyle(fontSize: 14),
+          ),
+          SizedBox(height: 16),
+
+          Text(
+            "Industry",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(widget.industry, style: TextStyle(fontSize: 14)),
+          SizedBox(height: 16),
+          Text(
+            "Company Size",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text("11 - 50 employees", style: TextStyle(fontSize: 14)),
+          SizedBox(height: 16),
+          Text(
+            "Headquarters",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(widget.location, style: TextStyle(fontSize: 14)),
+          SizedBox(height: 16),
+          Text(
+            "Created At",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(
+            widget.createdAt.year.toString(), // Display the creation date
+            style: TextStyle(fontSize: 14),
+          ),
+          SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostsTab() {
+    return Announcement(
+      companyId: widget.companyId,
+      companyName: widget.companyName,
+      companyImageUrl:
+          widget.companyImageUrl != null
+              ? widget.companyImageUrl!
+              : "https://example.com/default_image.png", // Default image URL
+    );
+  }
+
+  Widget _buildJobsTab() {
+    if (isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (companyJobs.isEmpty) {
+      return Center(child: Text("No jobs available for this company."));
+    }
+
+    return ListView.builder(
+      itemCount: companyJobs.length,
+      itemBuilder: (context, index) {
+        final job = companyJobs[index];
+        return jobCard(
+          context: context,
+          job: job,
+          isDarkMode: false,
+          onRemove: (removedJob) {
+            setState(() {
+              companyJobs.remove(removedJob);
+            });
+          },
+          onTap: () {
+            // Handle job card tap
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPeopleTab() {
+    return Center(child: Text("People Section"));
+  }
+}

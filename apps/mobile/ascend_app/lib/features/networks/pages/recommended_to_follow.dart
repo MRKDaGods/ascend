@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+import 'package:ascend_app/features/networks/widgets/people_to_follow.dart';
+import 'package:ascend_app/features/networks/model/user_suggested_to_follow.dart';
+
+class RecommendedToFollow extends StatefulWidget {
+  final String message;
+  final List<UserSuggestedtoFollow> users;
+  final Function(String) onSentMessageRequest;
+  final Function(String) onFollow;
+  final Function(String) onUnfollow;
+  final bool showAll;
+
+  const RecommendedToFollow({
+    super.key,
+    required this.message,
+    required this.users,
+    required this.onSentMessageRequest,
+    required this.onFollow,
+    required this.onUnfollow,
+    required this.showAll,
+  });
+
+  @override
+  State<RecommendedToFollow> createState() => _RecommendedToFollowState();
+}
+
+class _RecommendedToFollowState extends State<RecommendedToFollow> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController(); // Initialize the ScrollController
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+        .dispose(); // Dispose of the ScrollController to prevent memory leaks
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Center(child: Text('Recommended to Follow'))),
+      body: SingleChildScrollView(
+        controller:
+            _scrollController, // Assign the ScrollController to the ListView
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'People to follow based on your activity',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 5),
+              PeopleToFollow(
+                users: widget.users,
+                onFollow: (userId) {
+                  widget.onFollow(userId);
+                },
+                onUnfollow: (userId) {
+                  widget.onUnfollow(userId);
+                },
+                onSentMessageRequest: (userId) {
+                  widget.onSentMessageRequest(userId);
+                },
+                showAll: widget.showAll,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

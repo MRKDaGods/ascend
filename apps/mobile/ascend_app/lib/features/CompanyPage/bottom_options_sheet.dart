@@ -1,0 +1,124 @@
+import 'package:flutter/material.dart';
+
+class ProfileOptionsSheet extends StatelessWidget {
+  const ProfileOptionsSheet({
+    this.isMyProfile = false,
+    this.isConnect,
+    this.isfollowing,
+    this.isPending,
+    this.withdrawRequest,
+    this.toggleFollow,
+    this.removeConnection,
+    this.isImageSheet = false,
+    this.showImage,
+    this.imageUrl,
+    this.imageType,
+    this.isAdminView = false,
+    this.onToggleAdminView,
+    super.key,
+  });
+
+  final bool? isConnect;
+  final bool? isImageSheet;
+  final bool? isfollowing;
+  final bool? isPending;
+  final bool? isMyProfile;
+  final bool isAdminView;
+  final void Function()? toggleFollow;
+  final void Function(BuildContext)? withdrawRequest;
+  final void Function(BuildContext)? removeConnection;
+  final void Function(BuildContext, String)? showImage;
+  final void Function()? onToggleAdminView;
+  final String? imageType; // 'profile' or 'cover'
+  final String? imageUrl;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min, // Ensures it wraps content properly
+      children: [
+        // Custom Drag Handle
+        Stack(
+          children: [
+            SizedBox(
+              width: double.infinity, // Full width background
+              height: 35, // Slightly taller to match reference
+              // Slightly darker background
+            ),
+            Center(
+              child: Container(
+                width: 54, // Proper width as in the reference image
+                height: 7, // Slightly thicker
+                decoration: BoxDecoration(
+                  color: Colors.grey[400], // Drag handle color
+                  // Drag handle color
+                  borderRadius: BorderRadius.circular(3), // Rounded edges
+                ),
+                margin: const EdgeInsets.symmetric(
+                  vertical: 10,
+                ), // Adds proper spacing
+              ),
+            ),
+          ],
+        ),
+
+        // Main content with padding
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+          child: Wrap(
+            children: [
+              _buildSheetOption(context, Icons.share, "Share via...", null),
+              _buildSheetOption(context, Icons.send, "Send in a message", null),
+
+              if (isMyProfile!) ...[
+                _buildSheetOption(
+                  context,
+                  Icons.analytics,
+                  isAdminView ? "View as Member" : "View as Admin",
+                  () {
+                    Navigator.pop(context);
+                    onToggleAdminView?.call();
+                  },
+                ),
+              ],
+              if (!isMyProfile!) ...[
+                _buildSheetOption(context, Icons.flag, "Report or block", null),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSheetOption(
+    BuildContext context,
+    IconData icon,
+    String text,
+    dynamic onTap, {
+    String? imageUrl,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(text),
+      onTap: () {
+        Navigator.pop(context);
+        if (onTap != null) {
+          if (onTap is Function(BuildContext)) {
+            onTap(context);
+          } else if (onTap is Function(BuildContext, String)) {
+            onTap(context, imageUrl!);
+          } else if (onTap is Function(BuildContext, IconData)) {
+            onTap(context, icon);
+          } else {
+            onTap();
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("This feature is not available yet")),
+          );
+        }
+        //Navigator.pop(context); // Always close the sheet after selection
+      },
+    );
+  }
+}
