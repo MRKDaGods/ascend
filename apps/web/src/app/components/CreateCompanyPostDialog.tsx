@@ -122,7 +122,7 @@ const CreateCompanyPostDialog: React.FC = () => {
         <DialogTitle sx={{ pb: 0 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src={"man.jpg"}>
+              <Avatar src={"/default-avatar.jpg"}>
               </Avatar>
               <Box>
                 <Typography fontWeight={600}>Company User Name</Typography>

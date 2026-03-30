@@ -12,7 +12,7 @@ const CompanyRepostPreview = ({ post }: CompanyRepostPreviewProps) => {
     <Card variant="outlined" sx={{ mt: 2, p: 1 }}>
       <CardContent>
         <Box display="flex" alignItems="center" gap={1}>
-          <Avatar src={"/man.jpg"} sx={{ width: 32, height: 32 }} />
+          <Avatar src={"/default-avatar.jpg"} sx={{ width: 32, height: 32 }} />
         </Box>
 
         <Typography mt={1}>{post.content}</Typography>

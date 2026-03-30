@@ -480,7 +480,7 @@ export const usePostStore = create<PostStoreState>()(
           const mapped: PostType = {
             id: backendGeneratedPostId,
             username: "You",
-            profilePic: "/man.jpg",
+            profilePic: "/default-avatar.jpg",
             content: shared.comment,
             followers: "• 1st",
             timestamp: new Date(shared.created_at).toLocaleString(),

@@ -47,7 +47,7 @@ const CreateCompanyPost: React.FC = () => {
           sx={{ width: "100%", px: 1 }}
         >
           <Avatar
-            src={"man.jpg"} //dummyprofile pic
+            src={"/default-avatar.jpg"} //dummyprofile pic
             sx={{ width: isMobile ? 40 : 48, height: isMobile ? 40 : 48 }}
           >
           </Avatar>
