@@ -1,6 +1,12 @@
-# Ascend
+<p align="center">
+  <img src="docs/logo.png" alt="Ascend" height="60">
+</p>
 
-Full-stack LinkedIn clone: feed, messaging, jobs, connections, notifications, payments. 14 Node.js/TypeScript microservices, Next.js web app, Flutter mobile client, and a cross-platform Rust API client.
+<p align="center">Full-stack LinkedIn clone: feed, messaging, jobs, connections, notifications, payments.<br>14 Node.js/TypeScript microservices, Next.js web app, Flutter mobile client, and a cross-platform Rust API client.</p>
+
+## Demo
+
+[Video demos](https://drive.google.com/drive/folders/1vEfGCfwK6KJzNLfpZg3mCTFyX-7c4hP2)
 
 ## Architecture
 
@@ -104,29 +110,30 @@ All services share a single PostgreSQL database using a **schema-per-service** p
 ```
 ascend/
   apps/
-    web/                  # Next.js web app
-    mobile/               # Flutter mobile app
+    web/                             # Next.js web app
+    mobile/                          # Flutter mobile app
   services/
-    gateway/              # API gateway (reverse proxy)
-    auth/                 # Authentication, OAuth
-    user/                 # Profiles, resume, settings
-    post/                 # Feed, comments, reactions
-    messaging/            # Chat (HTTP + WebSocket)
-    connection/           # Connections, follows, blocking
-    notification/         # Push and in-app notifications
-    job/                  # Job posts, applications
-    company/              # Company pages, announcements
-    payment/              # Stripe subscriptions, usage limits
-    file/                 # File uploads (MinIO)
-    email/                # Email delivery
-    admin/                # Admin dashboard, moderation
-    gateway-reverse-proxy/# External traffic forwarding
+    gateway/                         # API gateway (reverse proxy)
+    auth/                            # Authentication, OAuth
+    user/                            # Profiles, resume, settings
+    post/                            # Feed, comments, reactions
+    messaging/                       # Chat (HTTP + WebSocket)
+    connection/                      # Connections, follows, blocking
+    notification/                    # Push and in-app notifications
+    job/                             # Job posts, applications
+    company/                         # Company pages, announcements
+    payment/                         # Stripe subscriptions, usage limits
+    file/                            # File uploads (MinIO)
+    email/                           # Email delivery
+    admin/                           # Admin dashboard, moderation
+    gateway-reverse-proxy/           # External traffic forwarding
   packages/
-    shared/               # Backend SDK (DB pool, auth middleware, RabbitMQ, models)
-    api-client/           # Rust client (compiles to WASM for web, native FFI for mobile)
-  scripts/                # Deploy, backup, restore scripts
-  docker-compose.yml      # Production
-  docker-compose.dev.yml  # Dev (hot reload, pgAdmin, exposed ports)
+    shared/                          # Backend SDK (DB pool, auth middleware, RabbitMQ, models)
+    api-client/                      # Rust client (compiles to WASM for web, native FFI for mobile)
+  scripts/                           # Deploy, backup, restore scripts
+  docker-compose.yml                 # Production
+  docker-compose.dev.yml             # Dev (hot reload, pgAdmin, exposed ports)
+  docker-compose.reverse-proxy.yml   # Reverse proxy to gateway
 ```
 
 ## Quick Start
@@ -228,6 +235,10 @@ Built by students at Cairo University, Faculty of Engineering.
 |------|--------|------|
 | Shehab Elhadary | [@shehab400](https://github.com/shehab400) | Selenium E2E tests |
 | Hamza Ahmed | [@Hamzaahmeed](https://github.com/Hamzaahmeed) | Cypress E2E tests |
+
+## Bonus
+
+![Ascend Web App](docs/screenshot.png)
 
 ## License
 
