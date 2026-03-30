@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      "@ascend/api-client": path.resolve(__dirname, "../../../packages/api-client/pkg")
+      "@ascend/api-client": path.resolve(__dirname, "../../packages/api-client/pkg")
     };
     return config;
   },
