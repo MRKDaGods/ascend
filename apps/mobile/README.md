@@ -1,1 +1,3 @@
-# Mobile app (Flutter)
+# ascend_app
+
+A new Flutter project.
