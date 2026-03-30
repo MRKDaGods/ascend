@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web Frontend
 
-## Getting Started
+Next.js 15 web app with React 19, Material UI 6, and Zustand for state management. Connects to the backend via Axios and Socket.IO for real-time messaging.
 
-First, run the development server:
+## Setup
+
+**Prerequisites:** Node.js 18+
 
 ```bash
+cd apps/web
+npm install
+cp .env.example .env.local
+# Fill in Firebase client keys in .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The dev server runs at `http://localhost:3000` using Turbopack.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The backend must be running for API calls to work. See the [quick start guide](../../README.md#quick-start).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+See `.env.example` for the required Firebase client config:
 
-To learn more about Next.js, take a look at the following resources:
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/app/
+  layout.tsx          # Root layout
+  page.tsx            # Landing page
+  theme.ts            # MUI theme config
+  globals.css         # Global styles
+  providers/          # React context providers
+  components/         # Shared React components
+  stores/             # Zustand stores
+  hooks/              # Custom React hooks
+  types/              # TypeScript interfaces
+  utils/              # Helper functions
+  feed/               # Feed page
+  profile/            # Profile page
+  jobs/               # Job listings
+  chat/               # Messaging UI
+  network/            # Connections page
+  premium/            # Subscription page
+  admin/              # Admin dashboard
+  Company/            # Company pages
+  Settings/           # User settings
+  notif/              # Notifications
+  authen/             # Auth pages
+  email/              # Email verification
+```
 
-## Deploy on Vercel
+## Key Patterns
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### State Management
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Zustand stores, one per feature. No Redux. Stores are in `src/app/stores/`:
+
+- `usePostStore` - Feed posts, comments, reactions
+- `useUserStore` / `useProfileStore` - User data and profile
+- `useJobStore` / `usepJobStore` - Job listings and applications
+- `useConnectionStore` - Network connections
+- `useNotificationStore` - Notifications
+- `chatStore` - Messaging state
+- `useSearchStore` - Search
+- `useThemeStore` - Theme preferences
+- `useCreateCompanyStore` / `useCompanyPostStore` - Company management
+
+### API Layer
+
+Axios-based HTTP client. API calls go through the backend gateway at port 8080. The app also integrates with the Rust WASM API client (`@ascend/api-client`) where available.
+
+### Real-time
+
+Socket.IO client connects to the messaging service (port 3011) for live chat, typing indicators, and read receipts.
+
+### UI
+
+Material UI 6 with Emotion for styling. Custom theme defined in `theme.ts`. Icons from `@mui/icons-material`, `lucide-react`, and `react-icons`.
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server (Turbopack) |
+| `npm run build` | Production build |
+| `npm start` | Start production server |
+| `npm test` | Run Jest tests |
+| `npm run lint` | Run ESLint |
