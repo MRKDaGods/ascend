@@ -12,7 +12,7 @@ const TryPremCard = () => {
   return (
     <Card
       id="try-premium-card-button" // ✅ ID added
-      onClick={() => router.push("/mypage")}
+      onClick={() => router.push("/prem")}
       sx={{
         p: 2,
         width: "100%",

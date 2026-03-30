@@ -38,19 +38,35 @@ const CompanyEmailModal: React.FC<Props> = ({ companyName, onClose, onVerify }) 
           Please enter your company email to verify you work at <strong>{companyName}</strong>.
         </Typography>
         <TextField
-          fullWidth
+          autoFocus
+          margin="dense"
+          id="email"
           label="Company Email"
+          type="email"
+          fullWidth
           variant="outlined"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          error={Boolean(error)}
+          error={!!error}
           helperText={error}
-          sx={{ mt: 2 }}
+          aria-label="Company Email"
+          data-testid="company-email-input"
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleVerify} variant="contained" color="primary">
+        <Button 
+          onClick={onClose} 
+          color="primary"
+          data-testid="company-email-cancel-button"
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleVerify} 
+          color="primary" 
+          variant="contained"
+          data-testid="company-email-verify-button"
+        >
           Verify
         </Button>
       </DialogActions>

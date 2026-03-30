@@ -3,23 +3,24 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Box, Container, CircularProgress, Divider } from "@mui/material";
+import { Box, Container, CircularProgress, Divider, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../components/Navbar";
 import CreatePost from "../components/CreatePost";
 import ConnectionPost from "../components/ConnectionPost";
+import FeedbackAcknowledgement from "../components/FeedbackAcknowledgement";
 import ProfileCard from "../components/ProfileCard";
 import WhosHiringCard from "../components/WhosHiringCard";
 import Footer from "../components/Footer";
-import CompanyCard from "../components/CompanyCard";
 import TryPremCard from "../components/TryPremCard";
 import ManageFeedCard from "../components/ManageFeedCard";
+import SidebarPreview from "../components/SidebarPreview";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useProfileStore } from "../stores/useProfileStore";
 
-import {api} from "@/api/";
+import { api } from "@/api/";
 
 const Feed: React.FC = () => {
   const theme = useTheme();
@@ -31,7 +32,7 @@ const Feed: React.FC = () => {
 
   useEffect(() => {
     fetchNewsFeed();
-  
+
     if (!userData) {
       api.user.getLocalUserProfile().then(setUserData).catch(console.error);
     }
@@ -46,6 +47,7 @@ const Feed: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{
@@ -76,9 +78,8 @@ const Feed: React.FC = () => {
           {userData ? (
             <>
               <ProfileCard />
-              <TryPremCard />
-              <CompanyCard />
-              </>
+              <ManageFeedCard />
+            </>
           ) : (
             <CircularProgress />
           )}
@@ -99,13 +100,30 @@ const Feed: React.FC = () => {
             <CreatePost />
           </Box>
 
-          <Divider sx={{ borderColor: theme.palette.divider, borderWidth: "1px", width: "100%", maxWidth: "600px" }} />
+          <Divider
+            sx={{
+              borderColor: theme.palette.divider,
+              borderWidth: "1px",
+              width: "100%",
+              maxWidth: "600px",
+            }}
+          />
 
-          {visiblePosts.map((post) => (
-            <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
-              <ConnectionPost post={post} />
-            </Box>
-          ))}
+          {visiblePosts.length === 0 ? (
+            <Typography sx={{ mt: 2, color: "text.secondary" }}>
+              Connect with Ascend users to display their posts here!
+            </Typography>
+          ) : (
+            visiblePosts.map((post) => (
+              <Box key={post.id} sx={{ width: "100%", maxWidth: "600px" }}>
+                {post.isReported ? (
+                  <FeedbackAcknowledgement />
+                ) : (
+                  <ConnectionPost post={post} />
+                )}
+              </Box>
+            ))
+          )}
         </Box>
 
         {/* Right Panel */}
@@ -122,7 +140,7 @@ const Feed: React.FC = () => {
           }}
         >
           <WhosHiringCard />
-          <ManageFeedCard />
+          <TryPremCard />
           <Footer />
         </Box>
       </Container>

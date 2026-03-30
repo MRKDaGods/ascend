@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
 interface JobState {
   title: string;
   companyName: string;
+  companyId: number | null; // Make sure this is a single field for company ID
   location: string;
   description: string;
   workplaceType: string;
@@ -17,6 +17,7 @@ interface JobState {
   postedJob: Record<string, any> | null;
   setTitle: (title: string) => void;
   setCompanyName: (companyName: string) => void;
+  setCompanyId: (companyId: number | null) => void; // Adjust setter to handle only number
   setLocation: (location: string) => void;
   setDescription: (description: string) => void;
   setWorkplaceType: (type: string) => void;
@@ -35,6 +36,7 @@ export const usepJobStore = create<JobState>()(
     (set) => ({
       title: "",
       companyName: "",
+      companyId: null, // Default value is null
       location: "",
       description: "",
       workplaceType: "On-site",
@@ -48,6 +50,7 @@ export const usepJobStore = create<JobState>()(
       postedJob: null,
       setTitle: (title) => set({ title }),
       setCompanyName: (companyName) => set({ companyName }),
+      setCompanyId: (companyId) => set({ companyId }),  
       setLocation: (location) => set({ location }),
       setDescription: (description) => set({ description }),
       setWorkplaceType: (type) => set({ workplaceType: type }),

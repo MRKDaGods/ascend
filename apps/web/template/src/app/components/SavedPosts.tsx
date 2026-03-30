@@ -1,8 +1,6 @@
-// Component file: appears after the user clicks repost 
-
 "use client";
 
-import React, {useEffect} from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -14,39 +12,47 @@ import {
   useTheme,
   Stack,
 } from "@mui/material";
-import { MoreHoriz } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { usePostStore } from "../stores/usePostStore";
+
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, index) =>
+    urlRegex.test(part) ? (
+      <a
+        key={index}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "#0a66c2" }}
+      >
+        {part}
+      </a>
+    ) : (
+      <React.Fragment key={index}>{part}</React.Fragment>
+    )
+  );
+};
 
 const SavedPosts: React.FC = () => {
   const theme = useTheme();
   const router = useRouter();
   const { posts, savedPosts, fetchSavedPostsAPI } = usePostStore();
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuPostId, setMenuPostId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchSavedPostsAPI();
+  }, []);
+
   const saved = posts.filter((post) => savedPosts.includes(post.id));
-
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [menuPostId, setMenuPostId] = React.useState<number | null>(null);
-
-    useEffect(() => {
-      fetchSavedPostsAPI();
-    }, []);
-
-  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>, postId: number) => {
-    setAnchorEl(event.currentTarget);
-    setMenuPostId(postId);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setMenuPostId(null);
-  };
 
   return (
     <Box
       sx={{
-        mt: 4,
-        maxWidth: 700,
+        width: "100%",
         mx: "auto",
         px: 2,
         color: theme.palette.text.primary,
@@ -56,42 +62,33 @@ const SavedPosts: React.FC = () => {
         Saved Posts
       </Typography>
 
-      {/* Filter Buttons */}
-      <Stack direction="row" spacing={1} mb={2}>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{
-            borderRadius: 20,
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
-            },
-          }}
-        >
+      {/* <Stack direction="row" spacing={1} mb={2}>
+        <Button variant="contained" size="small" sx={{
+          borderRadius: 20,
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          "&:hover": { backgroundColor: theme.palette.primary.dark },
+        }}>
           All
         </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          sx={{
-            borderRadius: 20,
-            color: theme.palette.text.primary,
-            borderColor: theme.palette.divider,
-            "&:hover": {
-              backgroundColor: theme.palette.action.hover,
-            },
-          }}
-        >
+        <Button variant="outlined" size="small" sx={{
+          borderRadius: 20,
+          color: theme.palette.text.primary,
+          borderColor: theme.palette.divider,
+          "&:hover": { backgroundColor: theme.palette.action.hover },
+        }}>
           Articles
         </Button>
-      </Stack>
+      </Stack> */}
 
       {saved.map((post) => {
-        const isLink = post.content?.includes("http://") || post.content?.includes("https://");
         const isLong = post.content.length > 200;
-        const previewText = isLong ? post.content.slice(0, 200) + "..." : post.content;
+        const previewText = isLong
+          ? post.content.slice(0, 200) + "..."
+          : post.content;
+        const media = post.media?.find(
+          (m) => m.type === "image" || m.type === "video"
+        );
 
         return (
           <Box
@@ -108,7 +105,6 @@ const SavedPosts: React.FC = () => {
                 boxShadow: 2,
               }}
             >
-              {/* Header */}
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Box sx={{ display: "flex", gap: 1 }}>
                   <Avatar src={post.profilePic} />
@@ -119,34 +115,16 @@ const SavedPosts: React.FC = () => {
                     </Typography>
                   </Box>
                 </Box>
-                <IconButton onClick={(e) => handleMenuOpen(e, post.id)}>
-                  <MoreHoriz sx={{ color: theme.palette.text.secondary }} />
-                </IconButton>
               </Box>
 
-              {/* Content */}
+              {/* Content and Preview */}
               <Box mt={2}>
-                {isLink ? (
-                  <>
-                    <Typography>{previewText}</Typography>
-                    <Box
-                      mt={1}
-                      p={2}
-                      sx={{
-                        backgroundColor: theme.palette.action.hover,
-                        borderRadius: 2,
-                        display: "block",
-                      }}
-                    >
-                      <Typography fontWeight="bold">{post.content}</Typography>
-                    </Box>
-                  </>
-                ) : post.image ? (
+                {media ? (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                     <CardMedia
-                      component="img"
-                      image={post.image}
-                      alt="Post image"
+                      component={media.type === "video" ? "video" : "img"}
+                      src={media.url}
+                      controls={media.type === "video"}
                       sx={{
                         width: 90,
                         height: 90,
@@ -154,10 +132,10 @@ const SavedPosts: React.FC = () => {
                         objectFit: "cover",
                       }}
                     />
-                    <Typography>{previewText}</Typography>
+                    <Typography>{renderTextWithLinks(previewText)}</Typography>
                   </Box>
                 ) : (
-                  <Typography>{previewText}</Typography>
+                  <Typography>{renderTextWithLinks(previewText)}</Typography>
                 )}
               </Box>
             </Card>
@@ -169,7 +147,7 @@ const SavedPosts: React.FC = () => {
         <Typography color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
           No saved posts yet.
         </Typography>
-      )} 
+      )}
     </Box>
   );
 };

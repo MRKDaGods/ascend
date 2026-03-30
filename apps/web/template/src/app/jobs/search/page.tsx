@@ -1,5 +1,6 @@
 'use client';
 
+import API from '@/api/api';
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -14,8 +15,16 @@ import {
   Container,
   Fade,
   Paper,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  useTheme,
 } from '@mui/material';
-import Navbar from '../../components/Navbar';
+import ReportIcon from '@mui/icons-material/Report';
+import MergeJobsNavbar from '@/app/components/MergeJobsNavbar';
 
 interface Job {
   job_id: number;
@@ -35,6 +44,7 @@ interface Job {
 }
 
 const SearchResultsPage = () => {
+  const theme = useTheme();
   const searchParams = useSearchParams();
   const router = useRouter();
   const job = searchParams.get('keyword') || '';
@@ -43,10 +53,14 @@ const SearchResultsPage = () => {
   const [results, setResults] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [jobToReport, setJobToReport] = useState<Job | null>(null);
+  const [reportReason, setReportReason] = useState('');
+
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch(`https://api.ascendx.tech/job/search`);
+        const response = await fetch(`https://api.ascendx.tech/job`);
         if (!response.ok) throw new Error('Failed to fetch results');
         const data = await response.json();
         const safeJobs = Array.isArray(data.data) ? data.data : [];
@@ -77,22 +91,70 @@ const SearchResultsPage = () => {
       type: job.type || 'Full-time',
       id: job.job_id.toString(),
     });
-    router.push(`/apply?${params.toString()}`);
+    router.push(`/jobs/apply?${params.toString()}`);
+  };
+
+  const openReportDialog = (job: Job) => {
+    setJobToReport(job);
+    setReportDialogOpen(true);
+  };
+
+  const closeReportDialog = () => {
+    setReportDialogOpen(false);
+    setReportReason('');
+    setJobToReport(null);
+  };
+
+  const handleReport = async (id: number) => {
+    if (!reportReason.trim()) {
+      alert('Please provide a valid reason for reporting.');
+      return;
+    }
+
+    try {
+      const response = await API.post(`/job/${id}/report`, {
+        reason: reportReason,
+        job_id: id,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.data) {
+        alert(`Failed to submit the report`);
+        return;
+      }
+
+      setReportDialogOpen(false);
+      setReportReason('');
+      setJobToReport(null);
+      alert('Report submitted successfully.');
+    } catch (error) {
+      console.error('Report failed:', error);
+      alert('An error occurred while submitting the report. Please try again later.');
+    }
   };
 
   return (
     <>
-      <Navbar />
+      <MergeJobsNavbar />
       <Box
         sx={{
           pt: { xs: 10, sm: 12 },
           pb: 6,
           minHeight: '100vh',
-          backgroundColor: '#f9fafb',
+          bgcolor: theme.palette.background.default,
         }}
       >
         <Container maxWidth="md">
-          <Paper elevation={2} sx={{ p: 4, borderRadius: 4, mb: 4 }}>
+          <Paper elevation={2} sx={{
+            p: 4,
+            borderRadius: 4,
+            mb: 4,
+            bgcolor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+          }}>
             <Typography variant="h5" fontWeight="bold" gutterBottom color="primary.main">
               Search Results
             </Typography>
@@ -112,13 +174,14 @@ const SearchResultsPage = () => {
                 p: 4,
                 borderRadius: 4,
                 textAlign: 'center',
-                backgroundColor: '#ffffff',
+                bgcolor: theme.palette.background.paper,
+                color: theme.palette.text.secondary,
               }}
             >
               <Typography variant="h6" gutterBottom>
                 No results found
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2">
                 Try different keywords or locations to see more opportunities.
               </Typography>
             </Paper>
@@ -130,7 +193,7 @@ const SearchResultsPage = () => {
                     sx={{
                       borderRadius: 3,
                       boxShadow: 2,
-                      backgroundColor: 'white',
+                      bgcolor: theme.palette.background.paper,
                       p: 2,
                       transition: 'transform 0.2s ease',
                       '&:hover': {
@@ -145,7 +208,7 @@ const SearchResultsPage = () => {
                           alt={job.company_name}
                           sx={{ width: 56, height: 56 }}
                         />
-                        <Box>
+                        <Box sx={{ flexGrow: 1 }}>
                           <Typography variant="h6" fontWeight="bold" color="primary.main">
                             {job.title}
                           </Typography>
@@ -153,9 +216,12 @@ const SearchResultsPage = () => {
                             {job.company_name} — {job.location}
                           </Typography>
                         </Box>
+                        <IconButton onClick={() => openReportDialog(job)}>
+                          <ReportIcon fontSize="small" sx={{ color: theme.palette.error.main }} />
+                        </IconButton>
                       </Box>
 
-                      <Typography variant="body2" sx={{ mb: 2, color: '#444' }}>
+                      <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
                         {job.description.length > 100
                           ? job.description.slice(0, 100) + '...'
                           : job.description}
@@ -175,9 +241,9 @@ const SearchResultsPage = () => {
                           borderRadius: '999px',
                           textTransform: 'none',
                           fontWeight: 500,
-                          backgroundColor: '#0073b1',
+                          bgcolor: theme.palette.primary.main,
                           '&:hover': {
-                            backgroundColor: '#005f94',
+                            bgcolor: theme.palette.primary.dark,
                           },
                         }}
                       >
@@ -191,6 +257,33 @@ const SearchResultsPage = () => {
           )}
         </Container>
       </Box>
+
+      {/* Report Dialog */}
+      <Dialog open={reportDialogOpen} onClose={closeReportDialog}>
+        <DialogTitle>Report Job</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Reason for Report"
+            type="text"
+            fullWidth
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeReportDialog} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => jobToReport && handleReport(jobToReport.job_id)}
+            color="primary"
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

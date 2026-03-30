@@ -1,26 +1,37 @@
-
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { useMediaStore } from "./useMediaStore";
 import {
   fetchNewsFeed,
+  fetchUserPosts,
   fetchPost,
-  createPost,
   deletePostById,
   editPost,
   repost,
   createCommentAPI,
   fetchSavedPostsAPI,
-  toggleSavePostAPI
+  toggleSavePostAPI,
+  fetchCommentsForPost,
+  ultimateSearchAPI,
+  tagUsersOnContentAPI,
+  createPostNew,
+  reportPostAPI,
+  sendReactionAPI
 } from "@/api/posts";
 
+
 export type ReactionType =
-  | "Like"
-  | "Celebrate"
-  | "Support"
-  | "Love"
-  | "Idea"
-  | "Funny";
+  | "like"
+  | "love"
+  | "support"
+  | "celebrate"
+  | "funny"
+  | "curious"
+  | "insightful";
+
+type ReactionCounts = {
+  [key in ReactionType]?: number;
+};
 
 export interface Tag {
   id: number;
@@ -38,18 +49,26 @@ export type PostType = {
   likes: number;
   reposts: number;
   comments: number;
-  image?: string;
-  video?: string;
   commentsList: string[];
   isUserPost?: boolean;
-  reaction?: ReactionType;
   tags?: Tag[];
   commentTags?: { [commentIndex: number]: Tag[] };
   fileDescription?: string;
   file?: string | null;
   fileTitle?: string | null;
   isEdited?: boolean;
-};
+  type?: "media" | "document" | null;
+
+  media?: {
+    url: string;
+    type: "image" | "video";
+  }[];
+  isReported?: boolean;
+  reportReason?: string; 
+
+  reaction?: ReactionType;
+  reactionCounts?: ReactionCounts;
+}; 
 
 interface PostStoreState {
   posts: PostType[];
@@ -60,47 +79,59 @@ interface PostStoreState {
   postText: string;
   draftText: string;
   editingPost: PostType | null;
+
   userPostPopupOpen: boolean;
   copyPostPopupOpen: boolean;
   repostPopupOpen: boolean;
   savedPopupOpen: boolean;
   unsavedPopupOpen: boolean;
   draftSavedPopupOpen: boolean;
+
   discardPostDialogOpen: boolean;
   discardRepostDialogOpen: boolean;
   isLastPostDeleted: boolean;
   repostSourcePost: PostType | null;
-  postReactions: { [postId: number]: ReactionType };
   repostedPosts: number[];
   savedPosts: number[];
+  taggedUsers: Tag[]; 
 
   setOpen: (open: boolean) => void;
   setPostText: (text: string) => void;
   setDraftText: (text: string) => void;
   setEditingPost: (post: PostType | null) => void;
+
   setUserPostPopupOpen: (open: boolean) => void;
   setCopyPostPopupOpen: (val: boolean) => void;
   setRepostPopupOpen: (open: boolean) => void;
   setSavedPopupOpen: (open: boolean) => void;
   setUnsavedPopupOpen: (open: boolean) => void;
   setDraftSavedPopupOpen: (open: boolean) => void;
+
   openDiscardPostDialog: () => void;
   openDiscardRepostDialog: () => void;
   closeDiscardPostDialog: () => void;
   closeDiscardRepostDialog: () => void;
+
   setLastUserPostId: (id: number) => void;
   setLastRepostId: (id: number) => void;
   setLastPostDeleted: (deleted: boolean) => void;
   resetPost: () => void;
+  setTaggedUsers: (tags: Tag[]) => void;
 
   fetchNewsFeedFromAPI: () => Promise<void>;
+
+  userPosts: PostType[];
+  fetchUserPostsFromAPI: (userId: number) => Promise<void>;
+
   fetchPostFromAPI: (id: number) => Promise<void>;
-  createPostFromAPI: (
+  reportPostFromAPI: (postId: number, reason: string, description: string) => Promise<void>;
+
+  createPostNewFromAPI: (
     content: string,
-    media?: File,
+    mediaFiles?: File[],
     mediaType?: "image" | "video" | "file",
-    fileTitle?: string,
-    fileDescription?: string
+    title?: string,
+    description?: string
   ) => Promise<void>;  
   
   deletePostFromAPI: (postId: number) => Promise<void>;
@@ -108,25 +139,80 @@ interface PostStoreState {
   repostFromAPI: (postId: number, comment: string) => Promise<void>;
   fetchSavedPostsAPI: (page?: number, limit?: number) => Promise<void>;
   toggleSavePostAPI: (postId: number) => Promise<void>;
+  fetchCommentsForPostFromAPI: (postId: number, page?: number, limit?: number) => Promise<any>;
+  searchResults: {
+    users: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      profile_picture_url: string | null;
+      bio: string | null;
+    }[];
+    posts: PostType[];
+  } | null;
 
-  setReaction: (postId: number, reaction: ReactionType) => void;
-  clearReaction: (postId: number) => void;
-  commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<void>;
+  ultimateSearch: (query: string) => Promise<void>;
+
+  setSearchResults: (results: {
+    users: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      profile_picture_url: string | null;
+      bio: string | null;
+    }[];
+    posts: PostType[];
+  } | null) => void;  
+
+  tagUsersOnContent: (contentType: "post" | "comment", contentId: number, tags: { userId: number; startIndex: number; endIndex: number; }[]) => Promise<void>;
+  
+  commentOnPostFromAPI: (postId: number, content: string, parentCommentId?: number | null) => Promise<{ id: number }>;
 
   addTagToPost: (postId: number, tag: Tag) => void;
   removeTagFromPost: (postId: number, tagId: number) => void;
   addTagToComment: (postId: number, commentIndex: number, tag: Tag) => void;
   removeTagFromComment: (postId: number, commentIndex: number, tagId: number) => void;
+
   setRepostSourcePost: (post: PostType | null) => void;
 
   lastRepostType: "quick" | "with-thoughts" | null;
   setLastRepostType: (type: "quick" | "with-thoughts") => void;
-}
+
+  // Feedback Dialog
+  feedbackDialogPostId: number | null;
+  isFeedbackDialogOpen: boolean;
+  openFeedbackDialog: (postId: number) => void;
+  closeFeedbackDialog: () => void;
+
+  setPostAsAcknowledged: (postId: number) => void;
+  closeReportThisPostDialog: () => void;
+
+  reportDialogPostId: number | null;
+  isSubmitReportDialogOpen: boolean;
+  openSubmitReportDialog: (postId: number, reason: string) => void;
+  closeSubmitReportDialog: () => void;
+
+  // Report Dialog habiba
+  isReportDialogOpen: boolean;
+  reportThisPostDialogOpen: boolean; // Tracks the state of the "Report This Post" dialog
+
+  openReportDialog: (postId: number) => void;
+  closeReportDialog: () => void;
+  setReportDialogReason: (reason: string) => void;  // Sets the reason for reporting
+
+  selectedReportReason: string | null;
+
+  reactToPostAPI: (postId: number, reaction: ReactionType) => Promise<void>;
+  removeReactionFromPost: (postId: number) => void;
+  setReactionOnPost: (postId: number, reaction: ReactionType) => void;
+
+  }
 
 export const usePostStore = create<PostStoreState>()(
   persist(
     (set, get) => ({
       posts: [],
+      userPosts: [],
       selectedPost: null,
       lastUserPostId: null,
       lastRepostId: null,
@@ -134,16 +220,18 @@ export const usePostStore = create<PostStoreState>()(
       postText: "",
       draftText: "",
       editingPost: null,
+
       userPostPopupOpen: false,
       copyPostPopupOpen: false,
       repostPopupOpen: false,
       savedPopupOpen: false,
       unsavedPopupOpen: false,
       draftSavedPopupOpen: false,
+
       discardPostDialogOpen: false,
       discardRepostDialogOpen: false,
+
       isLastPostDeleted: false,
-      postReactions: {},
       repostedPosts: [],
       savedPosts: [],
 
@@ -156,31 +244,69 @@ export const usePostStore = create<PostStoreState>()(
       setEditingPost: (post) => {
         const { setMediaFiles, setMediaPreviews } = useMediaStore.getState();
         const previews: string[] = [];
-        if (post?.image) previews.push(post.image);
-        if (post?.video) previews.push(post.video);
-        setMediaFiles([]);
+      
+        if (post?.media && Array.isArray(post.media)) {
+          post.media.forEach((m) => {
+            previews.push(m.url);
+          });
+        }
+      
+        setMediaFiles([]); // You may adjust this if restoring original files is needed
         setMediaPreviews(previews);
         set({ editingPost: post, postText: post?.content ?? "", open: true });
       },
-
+      
       setUserPostPopupOpen: (open) => set({ userPostPopupOpen: open }),
       setCopyPostPopupOpen: (val) => set({ copyPostPopupOpen: val }),
       setRepostPopupOpen: (open) => set({ repostPopupOpen: open }),
       setSavedPopupOpen: (open) => set({ savedPopupOpen: open }),
       setUnsavedPopupOpen: (open) => set({ unsavedPopupOpen: open }),
       setDraftSavedPopupOpen: (open) => set({ draftSavedPopupOpen: open }),
+
       openDiscardPostDialog: () => set({ discardPostDialogOpen: true }),
       openDiscardRepostDialog: () => set({ discardRepostDialogOpen: true }),
       closeDiscardPostDialog: () => set({ discardPostDialogOpen: false }),
       closeDiscardRepostDialog: () => set({ discardRepostDialogOpen: false }),
+
       setLastUserPostId: (id) => set({ lastUserPostId: id }),
       setLastRepostId: (id) => set({ lastRepostId: id }),
       setLastPostDeleted: (deleted) => set({ isLastPostDeleted: deleted }),
       resetPost: () => set({ open: false, postText: "", editingPost: null }),
 
+      fetchUserPostsFromAPI: async (userId: number) => {
+        const response = await fetchUserPosts(userId);
+        
+        const userPosts = (response.data ?? []).map((post) => ({
+          id: post.id,
+          username: `${post.user.first_name} ${post.user.last_name}`,
+          profilePic: post.user.profile_picture_url ?? "",
+          content: post.content,
+          followers: "• You", // Optional label to differentiate
+          timestamp: new Date(post.created_at).toLocaleString(),
+          likes: post.likes_count,
+          reposts: post.shares_count,
+          comments: post.comments_count,
+      
+          media: post.media?.map((m: any) => ({
+            url: m.url as string,
+            type: m.type === "image" || m.type === "video" ? m.type : "image",
+          })) || [],
+      
+          file: post.media?.find((m: any) => m.type === "document")?.url || undefined,
+          fileTitle: post.media?.find((m: any) => m.type === "document")?.title || undefined,
+      
+          commentsList: [],
+          isUserPost: true,
+          repostSourcePost: null,
+        }));
+      
+        set({ userPosts }); // Make sure userPosts is declared in the state type
+      },      
+
       fetchNewsFeedFromAPI: async () => {
         const response = await fetchNewsFeed();
-        const posts = (response.data ?? []).reverse().map((post) => ({
+        
+        const posts = (response.data ?? []).map((post) => ({
           id: post.id,
           username: `${post.user.first_name} ${post.user.last_name}`,
           profilePic: post.user.profile_picture_url ?? "",
@@ -190,17 +316,22 @@ export const usePostStore = create<PostStoreState>()(
           likes: post.likes_count,
           reposts: post.shares_count,
           comments: post.comments_count,
-          image: post.media?.find((m) => m.type === "image")?.url || undefined,
-          video: post.media?.find((m) => m.type === "video")?.url || undefined,
-          file: post.media?.find((m) => m.type === "document")?.url || undefined,
-          fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
+      
+          media: post.media?.map((m: any) => ({
+            url: m.url as string,
+            type: m.type === "image" || m.type === "video" ? m.type : "image", // Ensure type matches union
+          })) || [],
+      
+          file: post.media?.find((m: any) => m.type === "document")?.url || undefined,
+          fileTitle: post.media?.find((m: any) => m.type === "document")?.title || undefined,
+      
           commentsList: [],
           isUserPost: false,
           repostSourcePost: null,
         }));
       
         set({ posts });
-      },
+      }, 
       
       fetchPostFromAPI: async (postId) => {
         try {
@@ -221,8 +352,10 @@ export const usePostStore = create<PostStoreState>()(
               likes: source.likes_count,
               reposts: source.shares_count,
               comments: source.comments_count,
-              image: source.media?.find((m) => m.type === "image")?.url || undefined,
-              video: source.media?.find((m) => m.type === "video")?.url || undefined,
+              media: post.media?.map((m: any) => ({
+                url: m.url,
+                type: m.type === "image" ? "image" : "video",
+              })) || [],              
               file: source.media?.find((m) => m.type === "document")?.url || undefined, // ✅ PDF file URL
               fileTitle: source.media?.find((m) => m.type === "document")?.title || undefined, // ✅ PDF Title
               commentsList: [],
@@ -242,8 +375,10 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url || undefined,
-            video: post.media?.find((m) => m.type === "video")?.url || undefined,
+            media: post.media?.map((m: any) => ({
+              url: m.url,
+              type: m.type === "image" ? "image" : "video",
+            })) || [],            
             file: post.media?.find((m) => m.type === "document")?.url || undefined,
             fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
             commentsList: [],
@@ -258,30 +393,46 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
 
-      createPostFromAPI: async (
-        content,
-        media,
-        mediaType,
-        fileTitle,
-        fileDescription
+      reportPostFromAPI: async (postId, reason, description) => {
+        try {
+          const response = await reportPostAPI(postId, reason as any, description);
+          console.log("✅ Post reported successfully:", response);
+      
+          set((s) => ({
+            posts: s.posts.map((p) =>
+              p.id === postId ? { ...p, isReported: true } : p
+            ),
+          }));
+        } catch (err: any) {
+          console.error("❌ Failed to report post:", err?.response?.data || err.message);
+          throw err;
+        }
+      },      
+
+      createPostNewFromAPI: async (
+        content: string,
+        mediaFiles?: File[],
+        mediaType?: "image" | "video" | "file",
+        title?: string,
+        description?: string
       ) => {
         try {
-          console.log("📦 Creating post with:", {
+          const hasMedia = mediaFiles && mediaFiles.length > 0;
+          const response = await createPostNew(
             content,
-            media,
-            mediaType,
-            fileTitle,
-            fileDescription,
-          });
+            hasMedia ? mediaFiles : undefined,
+            hasMedia ? mediaType : undefined,
+            hasMedia ? title : undefined,
+            hasMedia ? description : undefined
+          );
       
-          const response = await createPost(content, media, mediaType, fileTitle, fileDescription);
           const id = response.data?.data?.id;
       
           if (id) {
             set({ lastUserPostId: id, userPostPopupOpen: true, isLastPostDeleted: false });
           }
-        } catch (error) {
-          console.error("❌ Error in createPostFromAPI:", error);
+        } catch (error: any) {
+          console.error("❌ Failed to create post (new):", error?.response?.data || error.message);
           throw error;
         }
       },      
@@ -308,8 +459,10 @@ export const usePostStore = create<PostStoreState>()(
             likes: post.likes_count,
             reposts: post.shares_count,
             comments: post.comments_count,
-            image: post.media?.find((m) => m.type === "image")?.url,
-            video: post.media?.find((m) => m.type === "video")?.url,
+            media: post.media?.map((m: any) => ({
+              url: m.url,
+              type: m.type === "image" ? "image" : "video",
+            })) || [],            
             commentsList: [],
             isUserPost: true,
           },
@@ -321,18 +474,14 @@ export const usePostStore = create<PostStoreState>()(
         try {
           const res = await repost(postId, comment);
           const shared = res.data.data;
-      
           const backendGeneratedPostId = shared.post_id;
-      
-          // Find the original post (to attach in preview)
           const original = get().posts.find((p) => p.id === postId);
       
-          // Build the new repost structure
           const mapped: PostType = {
             id: backendGeneratedPostId,
             username: "You",
             profilePic: "/man.jpg",
-            content: shared.comment, // this may be empty string
+            content: shared.comment,
             followers: "• 1st",
             timestamp: new Date(shared.created_at).toLocaleString(),
             likes: 0,
@@ -342,15 +491,12 @@ export const usePostStore = create<PostStoreState>()(
             isUserPost: true,
             repostSourcePost: original || null,
           };
-      
-          // Determine type of repost
+
           const repostType = shared.comment?.trim() ? "with-thoughts" : "quick";
-      
-          // Update Zustand store
           set({
             posts: [...get().posts, mapped],
             lastRepostId: backendGeneratedPostId,
-            lastRepostType: repostType, // <-- 👈 track repost type
+            lastRepostType: repostType,
             repostPopupOpen: true,
             selectedPost: mapped,
           });
@@ -390,7 +536,7 @@ export const usePostStore = create<PostStoreState>()(
       
       toggleSavePostAPI: async (postId) => {
         try {
-          const saved = await toggleSavePostAPI(postId); // ⬅️ This now gives us true = saved, false = unsaved
+          const saved = await toggleSavePostAPI(postId);
       
           set((s) => ({
             savedPosts: saved
@@ -406,34 +552,70 @@ export const usePostStore = create<PostStoreState>()(
         }
       },      
       
-      setReaction: (postId, reaction) =>
-        set((s) => ({
-          postReactions: { ...s.postReactions, [postId]: reaction },
-          posts: s.posts.map((p) =>
-            p.id === postId && !s.postReactions[postId] ? { ...p, likes: p.likes + 1 } : p
-          ),
-        })),
-
-      clearReaction: (postId) =>
-        set((s) => {
-          const { [postId]: _, ...rest } = s.postReactions;
-          return {
-            postReactions: rest,
-            posts: s.posts.map((p) =>
-              p.id === postId ? { ...p, likes: p.likes - 1 } : p
-            ),
-          };
-        }),
-      
-      commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
+      fetchCommentsForPostFromAPI: async (postId, page = 1, limit = 10) => {
         try {
-          const response = await createCommentAPI(postId, content, parentCommentId);
-          console.log("✅ Comment created:", response.data);
-          // Optional: Append comment to selectedPost.commentsList or refetch post/comments
+          const response = await fetchCommentsForPost(postId, page, limit);
+          console.log("✅ Fetched comments:", response.data);
+          return response.data;
         } catch (error: any) {
-          console.error("❌ Failed to create comment:", error?.response?.data || error.message);
+          console.error("❌ Failed to fetch comments:", error?.response?.data || error.message);
+          throw error;
         }
-      },      
+      },
+
+      taggedUsers: [],
+      setTaggedUsers: (tags) => set({ taggedUsers: tags }),
+      tagUsersOnContent: async (contentType, contentId, tags) => {
+        try {
+          await tagUsersOnContentAPI(contentType, contentId, tags);
+          console.log(`✅ Tagged users successfully on ${contentType} ${contentId}`);
+        } catch (err: any) {
+          console.error("❌ Failed to tag users:", err?.response?.data || err.message);
+        }
+      },
+      
+        commentOnPostFromAPI: async (postId, content, parentCommentId = null) => {
+          try {
+            const response = await createCommentAPI(postId, content, parentCommentId);
+            console.log("✅ Comment created:", response.data);
+            return response.data;
+          } catch (error: any) {
+            console.error("❌ Failed to create comment:", error?.response?.data || error.message);
+            throw error;
+          }
+        },
+
+      searchResults: null,
+      setSearchResults: (results) => set({ searchResults: results }),
+
+      ultimateSearch: async (query: string) => {
+        try {
+          const res = await ultimateSearchAPI(query);
+          const users = res.data.users;
+          const posts = res.data.posts.map((post) => ({
+            id: post.id,
+            username: `${post.user.first_name} ${post.user.last_name}`,
+            profilePic: post.user.profile_picture_url ? post.user.profile_picture_url.toString() : "",
+            content: post.content,
+            followers: "• 1st",
+            timestamp: new Date(post.created_at).toLocaleString(),
+            likes: post.likes_count,
+            reposts: post.shares_count,
+            comments: post.comments_count,
+            image: post.media?.find((m) => m.type === "image")?.url || undefined,
+            video: post.media?.find((m) => m.type === "video")?.url || undefined,
+            file: post.media?.find((m) => m.type === "document")?.url || undefined,
+            fileTitle: post.media?.find((m) => m.type === "document")?.title || undefined,
+            commentsList: [],
+            isUserPost: false,
+          }));
+      
+          set({ searchResults: { users, posts } });
+        } catch (err: any) {
+          console.error("❌ Failed to perform ultimate search:", err?.response?.data || err.message);
+          set({ searchResults: null });
+        }
+      },   
 
       addTagToPost: (postId, tag) =>
         set((s) => ({
@@ -466,7 +648,102 @@ export const usePostStore = create<PostStoreState>()(
 
       repostSourcePost: null,
       setRepostSourcePost: (post) => set({ repostSourcePost: post }),
+
+      // =========================REPORTING======================== //report not repost
+
+      openReportDialog: (postId: number) => set({ isReportDialogOpen: true }),
+      closeReportDialog: () => set({ isReportDialogOpen: false }),
+
+      setReportDialogReason: (reason: string) => set({ selectedReportReason: reason }),
+      selectedReportReason: null,
+      isReportDialogOpen: false,
+      reportThisPostDialogOpen: false,
+
+      feedbackDialogPostId: null,
+      isFeedbackDialogOpen: false,
+      openFeedbackDialog: (postId) => set({ isFeedbackDialogOpen: true, feedbackDialogPostId: postId }),
+      closeFeedbackDialog: () => set({ isFeedbackDialogOpen: false, feedbackDialogPostId: null }),
+
+      setPostAsAcknowledged: (postId: number) => {
+        set((state) => ({
+          posts: state.posts.map((post) =>
+            post.id === postId
+              ? { ...post, isReported: true } // Mark the post as reported
+              : post
+          ),
+          isReportDialogOpen: false,
+          isSubmitReportDialogOpen: false,
+          reportThisPostDialogOpen: false,
+        }));
+      },
+
+      reactToPostAPI: async (postId, reaction) => {
+        try {
+          // 🟢 You’ll replace this with your actual API function
+          const response = await sendReactionAPI(postId, reaction); // implement this
+      
+          set((s) => ({
+            posts: s.posts.map((p) => {
+              if (p.id !== postId) return p;
+      
+              const currentReaction = p.reaction;
+              const updatedCounts = { ...(p.reactionCounts || {}) };
+      
+              // Remove old reaction
+              if (currentReaction) {
+                updatedCounts[currentReaction] = Math.max((updatedCounts[currentReaction] || 1) - 1, 0);
+              }
+      
+              // Set new reaction
+              updatedCounts[reaction] = (updatedCounts[reaction] || 0) + 1;
+      
+              return {
+                ...p,
+                reaction,
+                reactionCounts: updatedCounts,
+              };
+            }),
+          }));
+        } catch (err: any) {
+          console.error("❌ Failed to react to post:", err?.response?.data || err.message);
+        }
+      },
+      
+      removeReactionFromPost: (postId) => {
+        set((s) => ({
+          posts: s.posts.map((p) => {
+            if (p.id !== postId || !p.reaction) return p;
+            const updatedCounts = { ...(p.reactionCounts || {}) };
+            updatedCounts[p.reaction] = Math.max((updatedCounts[p.reaction] || 1) - 1, 0);
+            return { ...p, reaction: undefined, reactionCounts: updatedCounts };
+          }),
+        }));
+      },
+      
+      setReactionOnPost: (postId, reaction) => {
+        set((s) => ({
+          posts: s.posts.map((p) =>
+            p.id === postId ? { ...p, reaction } : p
+          ),
+        }));
+      },      
+      
+      closeReportThisPostDialog: () => set({ reportThisPostDialogOpen: false }),
+      
+      reportDialogPostId: null,
+      isSubmitReportDialogOpen: false,
+      openSubmitReportDialog: (postId: number, reason: string) => set({
+        isSubmitReportDialogOpen: true,
+        reportDialogPostId: postId,
+        selectedReportReason: reason,
+      }),
+      closeSubmitReportDialog: () => set({
+        isSubmitReportDialogOpen: false,
+        reportDialogPostId: null,
+        selectedReportReason: null,
+      }),      
     }),
+
     {
       name: "post-storage",
       storage: createJSONStorage(() => localStorage),

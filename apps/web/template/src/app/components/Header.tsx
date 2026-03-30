@@ -8,8 +8,9 @@ const Header = () => {
   const router = useRouter();
 
   return (
-    <AppBar position="static" color="inherit" elevation={0}>
+    <AppBar id="header-app-bar" position="static" color="inherit" elevation={0}>
       <Toolbar
+        id="header-toolbar"
         sx={{
           display: "flex",
           justifyContent: "space-between",
@@ -20,16 +21,19 @@ const Header = () => {
           py: { xs: 1, md: 0 },
         }}
       >
-          <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
-            <img
+        <Box id="header-logo-container" sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
+          <img
+            id="header-logo"
             src="/logoIcon.png"
             alt="Ascend"
             style={{ height: 36, borderRadius: 6 }}
           />
-          <Typography variant="h5" color="primary" fontWeight="bold">Ascend</Typography>
-          </Box>
+          <Typography id="header-title" variant="h5" color="primary" fontWeight="bold">
+            Ascend
+          </Typography>
+        </Box>
 
-        <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
+        <Box id="header-buttons-container" sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
           <Button
             id="join-now-button"
             onClick={() => router.push("/authen/signInWithEmail")}

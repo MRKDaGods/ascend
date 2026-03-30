@@ -5,9 +5,10 @@ import { Box, Container } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 import Navbar from "../../components/Navbar";
-import FollowList from "../../components/FollowList";
+import MyFollowers from "../../components/MyFollowers";
 import PremiumAdCard from "../../components/PremiumAdCard";
 import Footer from "../../components/Footer";
+import SidebarPreview from "../../components/SidebarPreview";
 
 const FollowingPage: React.FC = () => {
   const theme = useTheme();
@@ -21,6 +22,7 @@ const FollowingPage: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{
@@ -41,7 +43,8 @@ const FollowingPage: React.FC = () => {
             maxWidth: { xs: "100%", md: "640px" },
           }}
         >
-          <FollowList />
+          {/* <FollowersList /> */}
+          <MyFollowers />
         </Box>
 
         {/* Right Panel: Premium Ad */}

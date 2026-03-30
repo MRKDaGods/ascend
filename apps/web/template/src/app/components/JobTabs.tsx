@@ -2,13 +2,15 @@
 import React from 'react';
 import { Tabs, Tab, Box } from '@mui/material';
 import { useJobStore } from '@/app/stores/useJobStore';
+import { useTheme } from '@mui/material/styles';
 
-type TabValue = 'Saved' | 'In Progress' | 'Applied' | 'Archived' | 'Posted';
+type TabValue = 'Saved' | 'Applied' | 'Posted';
 
-const tabLabels: TabValue[] = ['Saved', 'In Progress', 'Applied', 'Archived', 'Posted'];
+const tabLabels: TabValue[] = ['Saved', 'Applied','Posted'];
 
 const JobTabs = () => {
   const { activeTab, setActiveTab } = useJobStore();
+  const theme = useTheme();
 
   const handleChange = (event: React.SyntheticEvent, newValue: TabValue) => {
     setActiveTab(newValue);
@@ -19,7 +21,7 @@ const JobTabs = () => {
       sx={{
         borderBottom: 1,
         borderColor: 'divider',
-        backgroundColor: '#fff',
+        backgroundColor: theme.palette.background.paper,
         boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
         borderRadius: 2,
         px: 2,

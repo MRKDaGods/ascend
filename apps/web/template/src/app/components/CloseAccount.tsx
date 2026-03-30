@@ -9,8 +9,9 @@ export default function CloseAccount({ username }: { username: string }) {
   const router = useRouter();
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+    <Box id="close-account-page" sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
       <Paper
+        id="close-account-container"
         elevation={3}
         sx={{
           maxWidth: "600px",
@@ -19,23 +20,20 @@ export default function CloseAccount({ username }: { username: string }) {
           borderRadius: "8px",
         }}
       >
-        {/* Back Button */}
         <BackButton />
-
-        {/* Close Account Content */}
-        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
+        <Typography id="close-account-title" variant="h6" fontWeight="bold" sx={{ fontSize: "1.2rem", mb: 1 }}>
           Close account
         </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography id="close-account-message" variant="body1" sx={{ mb: 2 }}>
           {username}, we’re sorry to see you go
         </Typography>
-        <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+        <Typography id="close-account-warning" variant="body2" color="textSecondary" sx={{ mb: 3 }}>
           Are you sure you want to close your account? You’ll lose your connections, messages, endorsements, and recommendations.
         </Typography>
 
-        {/* Continue Button (Smaller, Rounded, Aligned Left) */}
-        <Button
-          id="continue-button"
+        {/* Continue Button */}
+   <Button
+          id="close-account-continue-button"
           variant="contained"
           color="primary"
           sx={{

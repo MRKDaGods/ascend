@@ -1,25 +1,44 @@
-import React from 'react';
-import { Box, Divider, Typography, Link } from '@mui/material';
-import MyAppsSection from './MyAppsSection';
-import ExploreMoreSection from './ExploreMoreSection';
+import React from "react";
+import { Box, Divider, Typography, Link } from "@mui/material";
+import MyAppsSection from "./MyAppsSection";
+import ExploreMoreSection from "./ExploreMoreSection";
 import { useRouter } from "next/navigation";
 
-
 export default function BusinessMenu() {
-    const router = useRouter();
-  
+  const router = useRouter();
+
   return (
-    
-    <Box display="flex" flexDirection="column" width={700}>
-      <Box display="flex" p={3} flexGrow={1}>
+    <Box id="business-menu" display="flex" flexDirection="column" width={700}>
+      <Box id="business-menu-content" display="flex" p={3} flexGrow={1}>
         <MyAppsSection />
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider
+          id="vertical-divider"
+          orientation="vertical"
+          flexItem
+          sx={{ mx: 2 }}
+        />
         <ExploreMoreSection />
       </Box>
-      <Divider />
-      <Box p={2}>
-        <Link href="#" underline="hover" variant="subtitle1" onClick={() => router.push("/CreateCompanyPage")}>
+      <Divider id="horizontal-divider" />
+      <Box id="business-menu-links" p={2}>
+        <Link
+          id="create-company-page-link"
+          href="#"
+          underline="hover"
+          variant="subtitle1"
+          onClick={() => router.push("/companies/CreateCompanyPage")}
+        >
           Create a Company Page +
+        </Link>
+        <Link
+          id="explore-companies-link"
+          href="#"
+          underline="hover"
+          variant="subtitle1"
+          sx={{ ml: 12 }}
+          onClick={() => router.push("/companies/ExploreCompanies")}
+        >
+          Explore Companies
         </Link>
       </Box>
     </Box>

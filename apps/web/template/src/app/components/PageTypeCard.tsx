@@ -16,7 +16,7 @@ export default function PageTypeCard({ title, subtitle, image, href }: Props) {
 
   return (
     <Card
-      onClick={() => router.push(href)}
+      onClick={() => router.push("/companies/CreateCompanyPage/Company")}
       sx={{
         width: 250,
         textAlign: 'center',

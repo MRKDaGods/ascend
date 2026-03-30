@@ -14,13 +14,20 @@ import {
   Typography,
   Tooltip,
 } from "@mui/material";
-import { Close, Edit, Delete, Image, OndemandVideo, Article } from "@mui/icons-material";
+import {
+  Close,
+  Edit,
+  Delete,
+  Image,
+  OndemandVideo,
+  Article,
+} from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 
 import { usePostStore } from "../stores/usePostStore";
 import { useMediaStore } from "../stores/useMediaStore";
-import { useProfileStore } from "../stores/useProfileStore"; // ✅ import profile store
+import { useProfileStore } from "../stores/useProfileStore";
 
 import TagInput from "./TagInput";
 import DiscardPostDialog from "./DiscardPostDialog";
@@ -35,6 +42,7 @@ const CreatePostDialog: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
   const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const {
     open,
@@ -53,9 +61,11 @@ const CreatePostDialog: React.FC = () => {
     lastUserPostId,
     repostSourcePost,
     setRepostSourcePost,
-    createPostFromAPI,
     setRepostPopupOpen,
     repostFromAPI,
+    taggedUsers,
+    createPostNewFromAPI,
+    tagUsersOnContent,
   } = usePostStore();
 
   const {
@@ -70,15 +80,16 @@ const CreatePostDialog: React.FC = () => {
     clearDocumentPreview,
   } = useMediaStore();
 
-  type Profile = {
+  const userData = useProfileStore((state) => state.userData) as {
     profile_picture_url?: string;
     first_name: string;
     last_name: string;
-  };  
-  
-  const userData = useProfileStore((state) => state.userData) as Profile | null;
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.jpg"; //❌ Fallback
-  const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
+  } | null;
+
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png";
+  const fullName = userData
+    ? `${userData.first_name} ${userData.last_name}`
+    : "User";
 
   useEffect(() => {
     if (open && draftText) {
@@ -89,33 +100,70 @@ const CreatePostDialog: React.FC = () => {
   const handleSubmit = async () => {
     if (!postText.trim() && mediaFiles.length === 0 && !documentPreview) return;
 
-    const fileToSend = documentPreview ? documentFile : mediaFiles[0];
-    const typeToSend = documentPreview ? "file" : mediaType ?? undefined;
+    let postId: number | null = null;
 
-    if (repostSourcePost) {
-      await repostFromAPI(repostSourcePost.id, postText.trim());
-      setRepostPopupOpen(true);
-    } else {
-      await createPostFromAPI(
-        postText,
-        fileToSend,
-        typeToSend,
-        documentPreview?.title,
-        "Uploaded from CreatePostDialog"
-      );
+    try {
+      if (repostSourcePost) {
+        await repostFromAPI(repostSourcePost.id, postText.trim());
+        setRepostPopupOpen(true);
+      } else {
+        const isDocument = !!documentPreview && !!documentFile;
+
+        await createPostNewFromAPI(
+          postText.trim(),
+          isDocument ? [documentFile!] : mediaFiles,
+          isDocument ? "file" : mediaType ?? undefined, // ✅ FIXED
+          isDocument
+            ? documentPreview?.title || "Untitled Document"
+            : "Uploaded Media",
+          isDocument ? "PDF file" : `${mediaType || "media"} file`
+        );
+
+        postId = usePostStore.getState().lastUserPostId;
+      }
+
+      // Tagging
+      if (postId && taggedUsers.length > 0 && postText.includes("@")) {
+        const tags = taggedUsers
+          .map((tag) => {
+            const startIndex = postText.indexOf(`@${tag.name}`);
+            return startIndex !== -1
+              ? {
+                  userId: tag.id,
+                  startIndex,
+                  endIndex: startIndex + tag.name.length,
+                }
+              : null;
+          })
+          .filter((tag) => tag !== null) as {
+          userId: number;
+          startIndex: number;
+          endIndex: number;
+        }[];
+
+        if (tags.length > 0) {
+          await tagUsersOnContent("post", postId, tags);
+        }
+      }
+
+      // Cleanup
+      setDraftText("");
+      setPostText("");
+      resetPost();
+      clearAllMedia();
+      clearDocumentPreview();
+      setRepostSourcePost(null);
+    } catch (err) {
+      console.error("❌ Error during post creation:", err);
     }
-
-    setDraftText("");
-    setPostText("");
-    resetPost();
-    clearAllMedia();
-    clearDocumentPreview();
-    setRepostSourcePost(null);
   };
 
   const handleClose = () => {
     const hasUnsaved =
-      !!postText.trim() || mediaFiles.length > 0 || !!documentPreview || !!repostSourcePost;
+      !!postText.trim() ||
+      mediaFiles.length > 0 ||
+      !!documentPreview ||
+      !!repostSourcePost;
 
     if (hasUnsaved) {
       repostSourcePost ? openDiscardRepostDialog() : openDiscardPostDialog();
@@ -131,11 +179,13 @@ const CreatePostDialog: React.FC = () => {
     <>
       <Dialog open={open} fullWidth maxWidth="sm" onClose={handleClose}>
         <DialogTitle sx={{ pb: 0 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar src={profilePicture}>
-                {fullName.charAt(0)}
-              </Avatar>
+              <Avatar src={profilePicture}>{fullName.charAt(0)}</Avatar>
               <Box>
                 <Typography fontWeight={600}>{fullName}</Typography>
                 <Typography fontSize="0.8rem" color="text.secondary">
@@ -144,7 +194,7 @@ const CreatePostDialog: React.FC = () => {
               </Box>
             </Stack>
             <IconButton
-              id="close-create-post-dialog-button" // ✅ ID added
+              id="close-create-post-dialog-button"
               onClick={handleClose}
             >
               <Close />
@@ -154,43 +204,114 @@ const CreatePostDialog: React.FC = () => {
 
         <DialogContent sx={{ pt: 1 }}>
           <Box sx={{ mt: 2, minHeight: 100 }}>
-            <TagInput postId={lastUserPostId ?? -1} />
+            <TagInput
+              postId={lastUserPostId ?? -1}
+              placeholder="What do you want to talk about?"
+            />
           </Box>
 
-          {mediaPreviews[0] && !documentPreview && (
+          {mediaPreviews.length > 0 && !documentPreview && (
             <Box sx={{ position: "relative", mt: 2 }}>
-              {mediaType === "video" ? (
+              {mediaFiles[currentIndex]?.type.startsWith("video") ? (
                 <video
-                  src={mediaPreviews[0]}
+                  src={mediaPreviews[currentIndex]}
                   controls
                   style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
                 />
               ) : (
                 <img
-                  src={mediaPreviews[0]}
-                  alt="preview"
+                  src={mediaPreviews[currentIndex]}
+                  alt={`preview-${currentIndex}`}
                   style={{ width: "100%", borderRadius: 10, maxHeight: 800 }}
                 />
               )}
-              <Box sx={{ position: "absolute", top: 8, right: 8, display: "flex", gap: 1 }}>
+
+              {/* Left Arrow */}
+              {currentIndex > 0 && (
+                <Box
+                  onClick={() => setCurrentIndex((prev) => prev - 1)}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: 8,
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 1,
+                  }}
+                >
+                  {"<"}
+                </Box>
+              )}
+
+              {/* Right Arrow */}
+              {currentIndex < mediaPreviews.length - 1 && (
+                <Box
+                  onClick={() => setCurrentIndex((prev) => prev + 1)}
+                  sx={{
+                    position: "absolute",
+                    top: "50%",
+                    right: 8,
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    zIndex: 1,
+                  }}
+                >
+                  {">"}
+                </Box>
+              )}
+
+              {/* Edit/Delete Controls */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  display: "flex",
+                  gap: 1,
+                }}
+              >
                 <IconButton
-                  id="edit-media-preview-button" // ✅ ID added
+                  id="edit-media-preview-button"
                   sx={{ bgcolor: theme.palette.background.paper }}
-                  onClick={() => openEditor(mediaType ?? "image")}
+                  onClick={() =>
+                    openEditor(
+                      mediaFiles[currentIndex].type.startsWith("video")
+                        ? "video"
+                        : "image"
+                    )
+                  }
                 >
                   <Edit />
                 </IconButton>
                 <IconButton
-                  id="delete-media-preview-button" // ✅ ID added
+                  id="delete-media-preview-button"
                   sx={{ bgcolor: theme.palette.background.paper }}
-                  onClick={() => removeMediaFile(0)}
+                  onClick={() => {
+                    removeMediaFile(currentIndex);
+                    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : 0));
+                  }}
                 >
                   <Delete />
                 </IconButton>
               </Box>
             </Box>
           )}
-
           {documentPreview && (
             <DocumentPreview
               fileUrl={documentPreview.url}
@@ -210,7 +331,7 @@ const CreatePostDialog: React.FC = () => {
           <Stack direction="row" spacing={1}>
             <Tooltip title="Add a photo">
               <IconButton
-                id="add-photo-button" // ✅ ID added
+                id="add-photo-button"
                 onClick={() => openEditor("image")}
               >
                 <Image />
@@ -218,7 +339,7 @@ const CreatePostDialog: React.FC = () => {
             </Tooltip>
             <Tooltip title="Add a video">
               <IconButton
-                id="add-video-button" // ✅ ID added
+                id="add-video-button"
                 onClick={() => openEditor("video")}
               >
                 <OndemandVideo />
@@ -226,7 +347,7 @@ const CreatePostDialog: React.FC = () => {
             </Tooltip>
             <Tooltip title="Add a document">
               <IconButton
-                id="add-document-button" // ✅ ID added
+                id="add-document-button"
                 onClick={() => setDocDialogOpen(true)}
               >
                 <Article />
@@ -235,10 +356,10 @@ const CreatePostDialog: React.FC = () => {
           </Stack>
 
           <Button
-            id="submit-post-button" // ✅ ID added
+            id="submit-post-button"
             variant="contained"
             onClick={handleSubmit}
-            disabled={!postText.trim() && mediaFiles.length === 0 && !documentPreview}
+            disabled={!postText.trim()}
             sx={{ textTransform: "none", px: 4 }}
           >
             Post
@@ -246,7 +367,6 @@ const CreatePostDialog: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Popups */}
       <DiscardPostDialog
         open={discardPostDialogOpen}
         onClose={closeDiscardPostDialog}

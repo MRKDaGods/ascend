@@ -32,7 +32,7 @@ const CreatePost: React.FC = () => {
   };  
   
   const userData = useProfileStore((state) => state.userData) as Profile | null;
-  const profilePicture = userData?.profile_picture_url || "/default-avatar.jpg"; //❌ Fallback
+  const profilePicture = userData?.profile_picture_url || "/default-avatar.png"; //❌ Fallback
   const fullName = userData ? `${userData.first_name} ${userData.last_name}` : "User";
 
   return (
@@ -46,7 +46,6 @@ const CreatePost: React.FC = () => {
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           width: "100%",
-          maxWidth: "600px",
           backgroundColor: theme.palette.background.paper,
           display: "flex",
           flexDirection: "column",

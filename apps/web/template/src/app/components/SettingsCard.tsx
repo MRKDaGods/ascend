@@ -10,7 +10,6 @@ export default function SettingsCard() {
   return (
     <Card
       sx={{
-        maxWidth: 400,
         borderRadius: 2,
         boxShadow: 2,
         bgcolor: theme.palette.background.paper, // ✅ Theme-aware background
@@ -21,7 +20,7 @@ export default function SettingsCard() {
         <Typography variant="body1" fontWeight="bold" gutterBottom>
           Manage your notifications
         </Typography>
-        <Link href="#" variant="body2" color="primary" onClick={() => router.push("/authen/Settings")}>
+        <Link href="#" variant="body2" color="primary" onClick={() => router.push("/Settings")}>
           View settings
         </Link>
       </CardContent>

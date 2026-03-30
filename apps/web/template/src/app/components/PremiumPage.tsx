@@ -1,247 +1,421 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
   Card,
   CardContent,
-  Grid,
   Typography,
-  CircularProgress,
   Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
+  Grid,
 } from "@mui/material";
+import API from "@/api/api"; // Import your API instance
+import { useTheme } from "@mui/material/styles";
 
-type Subscription = {
-  subscription_id: string;
-  subscription_plan: string;
-  first_payment_data: string;
-  amount_paid: number;
+interface Feature {
+  id: string;
+  name: string;
+  description: string | null;
   currency: string;
-};
+  price: number;
+  price_id: string;
+}
 
-type Feature = {
+interface SubscriptionPlan {
   id: string;
   name: string;
   description: string;
   currency: string;
   price: number;
   price_id: string;
-};
+}
 
-export default function PremiumPage() {
-  const [loading, setLoading] = useState(true);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+interface PurchasedFeature {
+  feature_purchased: string;
+  payment_date: string;
+  amount_paid: number;
+  currency: string;
+  enabled: boolean;
+}
+
+interface PurchasedSubscription {
+  subscription_id: string;
+  subscription_plan: string;
+  first_payment_data: string;
+  amount_paid: number;
+  currency: string;
+}
+
+const PremiumPage = () => {
+  const theme = useTheme();
   const [features, setFeatures] = useState<Feature[]>([]);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionPlan[]>([]);
+  const [purchasedFeatures, setPurchasedFeatures] = useState<
+    PurchasedFeature[]
+  >([]);
+  const [purchasedSubscriptions, setPurchasedSubscriptions] = useState<
+    PurchasedSubscription[]
+  >([]);
+  const [loading, setLoading] = useState({
+    features: true,
+    subscriptions: true,
+    purchasedFeatures: true,
+    purchasedSubscriptions: true,
+  });
+  const [error, setError] = useState<string | null>(null);
 
-  // Dialog states
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
-  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
-  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  // The token is now handled by the API interceptor, no need to set it manually
 
   useEffect(() => {
-    setTimeout(() => {
-      setSubscriptions([
-        {
-          subscription_id: "sub_001",
-          subscription_plan: "Premium Plan",
-          first_payment_data: "2025-04-01",
-          amount_paid: 29.99,
-          currency: "USD",
-        },
-      ]);
+    // Fetch available features
+    API.get("/payment/payments/features")
+      .then((res) => {
+        setFeatures(res.data.data.features || []);
+        setLoading((prev) => ({ ...prev, features: false }));
+      })
+      .catch((err) => {
+        console.error("Error fetching features:", err);
+        setLoading((prev) => ({ ...prev, features: false }));
+      });
 
-      setFeatures([
-        {
-          id: "feat_01",
-          name: "Extra Job Applications",
-          description: "Get 20 extra job applications this month.",
-          currency: "USD",
-          price: 4.99,
-          price_id: "price_extra_jobs",
-        },
-        {
-          id: "feat_02",
-          name: "Profile Boost",
-          description: "Highlight your profile to recruiters.",
-          currency: "USD",
-          price: 9.99,
-          price_id: "price_boost",
-        },
-      ]);
+    // Fetch available subscriptions
+    API.get("/payment/payments/subscriptions")
+      .then((res) => {
+        setSubscriptions(res.data.data.subscription_plans || []);
+        setLoading((prev) => ({ ...prev, subscriptions: false }));
+      })
+      .catch((err) => {
+        console.error("Error fetching subscriptions:", err);
+        setLoading((prev) => ({ ...prev, subscriptions: false }));
+      });
 
-      setLoading(false);
-    }, 1000);
+    // Fetch purchased features
+    API.get("/payment/payments/features/purchased")
+      .then((res) => {
+        setPurchasedFeatures(res.data.data.features || []);
+        setLoading((prev) => ({ ...prev, purchasedFeatures: false }));
+      })
+      .catch((err) => {
+        console.error("Error fetching purchased features:", err);
+        setLoading((prev) => ({ ...prev, purchasedFeatures: false }));
+      });
+
+    // Fetch purchased subscriptions
+    API.get("/payment/payments/subscriptions/purchased")
+      .then((res) => {
+        setPurchasedSubscriptions(res.data.data.subscriptions || []);
+        setLoading((prev) => ({ ...prev, purchasedSubscriptions: false }));
+      })
+      .catch((err) => {
+        console.error("Error fetching purchased subscriptions:", err);
+        setLoading((prev) => ({ ...prev, purchasedSubscriptions: false }));
+      });
   }, []);
 
-  const handleCancelSubscription = (subscriptionId: string) => {
-    setSelectedSubId(subscriptionId);
-    setCancelDialogOpen(true);
+  const handleBuyFeature = (price_id: string) => {
+    setError(null);
+    API.post("/payment/payments/features", {
+      features: [{ price_id }],
+      relative_return_url: "feed",
+    })
+      .then((res) => {
+        if (res.data.error) {
+          setError(res.data.error);
+        } else {
+          window.location.href = res.data.data.url;
+        }
+      })
+      .catch((err) => {
+        console.error("Error buying feature:", err);
+        setError(err.response?.data?.error || "Failed to process payment");
+      });
   };
 
-  const handleBuyFeature = (feature: Feature) => {
-    setSelectedFeature(feature);
-    setFeatureDialogOpen(true);
+  const handleSubscribe = (subscription_price_id: string) => {
+    setError(null);
+    API.post("/payment/payments/subscriptions/process", {
+      subscription_price_id,
+      relative_return_url: "feed",
+    })
+      .then((res) => {
+        if (res.data.error) {
+          setError(res.data.error);
+        } else {
+          console.log(res.data.data.url); // Log the URL for debugging
+          window.location.href = res.data.data.url;
+        }
+      })
+      .catch((err) => {
+        console.error("Error subscribing:", err);
+        setError(err.response?.data?.error || "Failed to process subscription");
+      });
   };
 
-  const handleSubscribe = () => {
-    alert("Redirecting to subscribe...");
+  const cancelSubscription = (subscription_id: string) => {
+    setError(null);
+    API.delete(`/payment/payments/subscriptions/${subscription_id}`)
+      .then((res) => {
+        alert(res.data.message);
+        // Refresh purchased subscriptions
+        return API.get("/payment/payments/subscriptions/purchased");
+      })
+      .then((res) => {
+        setPurchasedSubscriptions(res.data.data.subscriptions || []);
+      })
+      .catch((err) => {
+        console.error("Error canceling subscription:", err);
+        setError(err.response?.data?.error || "Failed to cancel subscription");
+      });
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={6}>
-        <CircularProgress />
-      </Box>
-    );
+  // Display error message if any
+  if (error) {
+    // You could create a more sophisticated error handling UI component
+    console.error(error);
   }
 
   return (
-    <Box sx={{ maxWidth: "1000px", margin: "0 auto", padding: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Premium Membership
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-        Manage your subscription, purchase features, and upgrade your experience.
-      </Typography>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* Subscriptions Section */}
-      <Typography variant="h6" gutterBottom>
-        Your Subscriptions
-      </Typography>
-      <Grid container spacing={2}>
-        {subscriptions.length === 0 ? (
-          <Typography>No active subscriptions</Typography>
-        ) : (
-          subscriptions.map((sub) => (
-            <Grid item xs={12} md={6} key={sub.subscription_id}>
-              <Card variant="outlined">
-                <CardContent>
-                  <Typography variant="h6">{sub.subscription_plan}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Started on: {sub.first_payment_data}
-                  </Typography>
-                  <Typography variant="body2">
-                    {sub.amount_paid} {sub.currency}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    sx={{ mt: 2 }}
-                    onClick={() => handleCancelSubscription(sub.subscription_id)}
-                  >
-                    Cancel Subscription
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))
-        )}
-      </Grid>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* One-Time Features */}
-      <Typography variant="h6" gutterBottom>
-        One-Time Features
-      </Typography>
-      <Grid container spacing={2}>
-        {features.map((feat) => (
-          <Grid item xs={12} md={6} key={feat.id}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="subtitle1">{feat.name}</Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {feat.description}
-                </Typography>
-                <Typography fontWeight={600}>
-                  {feat.price} {feat.currency}
-                </Typography>
-                <Button
-                  variant="contained"
-                  sx={{ mt: 2 }}
-                  fullWidth
-                  onClick={() => handleBuyFeature(feat)}
-                >
-                  Buy Feature
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* Subscribe Section */}
-      <Typography variant="h6" gutterBottom>
-        Ready to Go Premium?
-      </Typography>
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        Unlock unlimited connections, messaging, and job applications.
-      </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        size="large"
-        onClick={handleSubscribe}
+    <Box sx={{ padding: "2rem", bgcolor: theme.palette.background.default,
+      color: theme.palette.text.primary, }}>
+      <Typography
+        variant="h4"
+        gutterBottom
+        align="center"
+        id="premium-page-title"
       >
-        Subscribe Now
-      </Button>
+        Premium Features & Subscriptions
+      </Typography>
 
-      {/* Cancel Subscription Dialog */}
-      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
-        <DialogTitle>Cancel Subscription</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to cancel your subscription? You'll lose access to Premium features immediately.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCancelDialogOpen(false)}>Go Back</Button>
-          <Button
-            color="error"
-            onClick={() => {
-              alert(`Cancelled: ${selectedSubId}`);
-              setCancelDialogOpen(false);
-            }}
-          >
-            Confirm Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {error && (
+        <Box
+          sx={{
+           
+            p: 2,
+            mb: 3,
+            borderRadius: 1,
+          }}
+        >
+          <Typography>{error}</Typography>
+        </Box>
+      )}
 
-      {/* Buy Feature Dialog */}
-      <Dialog open={featureDialogOpen} onClose={() => setFeatureDialogOpen(false)}>
-        <DialogTitle>Buy Feature</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {selectedFeature?.name} - {selectedFeature?.description}
-            <br />
-            Price: {selectedFeature?.price} {selectedFeature?.currency}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setFeatureDialogOpen(false)}>Go Back</Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              alert(`Purchased: ${selectedFeature?.id}`);
-              setFeatureDialogOpen(false);
-            }}
-          >
-            Confirm Purchase
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Grid container spacing={4}>
+        {/* Available Features Section */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ boxShadow: 3 }} id="available-features-section">
+            <CardContent>
+              <Typography variant="h6" id="available-features-title">
+                Available Features
+              </Typography>
+              <Divider sx={{ marginY: 2 }} />
+              {loading.features ? (
+                <Typography>Loading features...</Typography>
+              ) : features.length === 0 ? (
+                <Typography id="no-features-message">
+                  No features available
+                </Typography>
+              ) : (
+                features.map((f) => (
+                  <Box
+                    key={f.id}
+                    sx={{ marginBottom: 2 }}
+                    id={`feature-${f.id}`}
+                  >
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      id={`feature-name-${f.id}`}
+                    >
+                      {f.name}
+                    </Typography>
+                    <Typography variant="body2" id={`feature-price-${f.id}`}>
+                      {f.price} {f.currency}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleBuyFeature(f.price_id)}
+                      sx={{ marginTop: 1 }}
+                      id={`buy-feature-button-${f.id}`}
+                    >
+                      Buy Feature
+                    </Button>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Available Subscriptions Section */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ boxShadow: 3 }} id="available-subscriptions-section">
+            <CardContent>
+              <Typography variant="h6" id="available-subscriptions-title">
+                Available Subscriptions
+              </Typography>
+              <Divider sx={{ marginY: 2 }} />
+              {loading.subscriptions ? (
+                <Typography>Loading subscriptions...</Typography>
+              ) : subscriptions.length === 0 ? (
+                <Typography id="no-subscriptions-message">
+                  No subscriptions available
+                </Typography>
+              ) : (
+                subscriptions.map((s) => (
+                  <Box
+                    key={s.id}
+                    sx={{ marginBottom: 2 }}
+                    id={`subscription-${s.id}`}
+                  >
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      id={`subscription-name-${s.id}`}
+                    >
+                      {s.name}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`subscription-price-${s.id}`}
+                    >
+                      {s.price} {s.currency}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`subscription-description-${s.id}`}
+                    >
+                      {s.description}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleSubscribe(s.price_id)}
+                      sx={{ marginTop: 1 }}
+                      id={`subscribe-button-${s.id}`}
+                    >
+                      Subscribe
+                    </Button>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Purchased Features Section */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ boxShadow: 3 }} id="purchased-features-section">
+            <CardContent>
+              <Typography variant="h6" id="purchased-features-title">
+                Purchased Features
+              </Typography>
+              <Divider sx={{ marginY: 2 }} />
+              {loading.purchasedFeatures ? (
+                <Typography>Loading purchased features...</Typography>
+              ) : purchasedFeatures.length === 0 ? (
+                <Typography id="no-purchased-features-message">
+                  No features purchased
+                </Typography>
+              ) : (
+                purchasedFeatures.map((pf, index) => (
+                  <Box
+                    key={index}
+                    sx={{ marginBottom: 2 }}
+                    id={`purchased-feature-${index}`}
+                  >
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      id={`purchased-feature-name-${index}`}
+                    >
+                      {pf.feature_purchased}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`purchased-feature-price-${index}`}
+                    >
+                      {pf.amount_paid} {pf.currency}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`purchased-feature-enabled-${index}`}
+                    >
+                      Enabled: {pf.enabled ? "Yes" : "No"}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`purchased-feature-date-${index}`}
+                    >
+                      Purchased on: {new Date(pf.payment_date).toLocaleString()}
+                    </Typography>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Purchased Subscriptions Section */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ boxShadow: 3 }} id="purchased-subscriptions-section">
+            <CardContent>
+              <Typography variant="h6" id="purchased-subscriptions-title">
+                Purchased Subscriptions
+              </Typography>
+              <Divider sx={{ marginY: 2 }} />
+              {loading.purchasedSubscriptions ? (
+                <Typography>Loading purchased subscriptions...</Typography>
+              ) : purchasedSubscriptions.length === 0 ? (
+                <Typography id="no-purchased-subscriptions-message">
+                  No subscriptions purchased
+                </Typography>
+              ) : (
+                purchasedSubscriptions.map((ps, index) => (
+                  <Box
+                    key={index}
+                    sx={{ marginBottom: 2 }}
+                    id={`purchased-subscription-${index}`}
+                  >
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      id={`purchased-subscription-name-${index}`}
+                    >
+                      {ps.subscription_plan}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`purchased-subscription-price-${index}`}
+                    >
+                      {ps.amount_paid} {ps.currency}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      id={`purchased-subscription-date-${index}`}
+                    >
+                      First payment:{" "}
+                      {new Date(ps.first_payment_data).toLocaleString()}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => cancelSubscription(ps.subscription_id)}
+                      sx={{ marginTop: 1 }}
+                      id={`cancel-subscription-button-${index}`}
+                    >
+                      Cancel Subscription
+                    </Button>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
-}
+};
+
+export default PremiumPage;

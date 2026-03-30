@@ -1,5 +1,5 @@
 'use client';
-
+import API from '@/api/api';
 import {
   Dialog,
   DialogTitle,
@@ -33,19 +33,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
   const router = useRouter();
   const applyJob = useJobStore((state) => state.applyJob);
 
-  useEffect(() => {
-    if (open) {
-      fetch('http://localhost:5000/api/user')
-        .then((res) => res.json())
-        .then((data) => {
-          setUserData((prev) => ({
-            ...prev,
-            email: data.email || '',
-            fullPhone: '',
-          }));
-        });
-    }
-  }, [open]);
+
 
   useEffect(() => {
     return () => {
@@ -83,29 +71,36 @@ export default function ApplyModal({ job, open, onClose }: any) {
       formData.append('resume', resumeFile, resumeFile.name);
       formData.append('email', userData.email.trim());
       formData.append('phone', userData.fullPhone.trim());
-      console.log('************');
-      console.log('FormData:', userData.fullPhone.trim()); // Debugging line
-      const response = await fetch(`https://api.ascendx.tech/job/apply/${job.id}`, {
-        method: 'POST',
-        body: formData,
+      
+      const response = await API.post(`/job/${job.id}/applications`, formData, {
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiaWF0IjoxNzQ1NTQxNDI2LCJleHAiOjE3NDU1ODQ2MjZ9.CeDVIEjn9-hbKAdmITfZCzs6v0g3R-419BryMYp4GKw',
-        'x-no-parse-body': '1'
+          'Content-Type': 'multipart/form-data',
+          'x-no-parse-body': '1',
         },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`(${response.status}) ${errorText}`);
+      if (!response.data) {
+        throw new Error('Failed to submit application');
       }
 
-      const result = await response.json();
+      // Check for 403 error specifically
+      if (response.status === 403) {
+        throw new Error('You have exceeded the application limit for this job');
+      }
+
+      // Apply the job to local state
       applyJob({ ...job, status: 'Applied' });
-      alert(result.message);
-      router.push('/MyJobs');
+      
+      // Navigate to MyJobs
+      router.push('/jobs/MyJobs');
     } catch (error) {
-      console.error('Application error:', error);
-      alert(`Application failed: ${(error as Error).message}`);
+      // Improved error handling
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: { message?: string, error?: string }, status?: number } };
+        alert(apiError.response?.data?.message || apiError.response?.data?.error || 'Application failed. Please try again.');
+      } else {
+        alert((error as Error).message || 'Application failed. Please try again.');
+      }
     }
   };
 
@@ -131,6 +126,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           margin="normal"
           error={!isEmailValid}
           helperText={!isEmailValid ? 'Invalid email format.' : ''}
+          data-testid="apply-email-input"
         />
 
         <TextField
@@ -146,6 +142,7 @@ export default function ApplyModal({ job, open, onClose }: any) {
           margin="normal"
           error={!isPhoneValid}
           helperText={!isPhoneValid ? 'Use format +201234567890 (10–15 digits).' : ''}
+          data-testid="apply-phone-input"
         />
 
         <Box mt={4}>
@@ -173,18 +170,19 @@ export default function ApplyModal({ job, open, onClose }: any) {
               <Button
                 variant="outlined"
                 startIcon={<UploadCloud size={18} />}
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, borderRadius: '20px' }}
                 onClick={() => fileInputRef.current?.click()}
               >
                 Upload resume
               </Button>
               <input
-                ref={fileInputRef}
                 type="file"
                 accept=".pdf,.doc,.docx"
-                id="resumeInput"
-                style={{ display: 'none' }}
                 onChange={handleFileUpload}
+                style={{ display: 'none' }}
+                ref={fileInputRef}  // Add the ref here
+                id="resume-file"
+                data-testid="apply-resume-upload"
               />
             </Box>
           )}
@@ -192,9 +190,18 @@ export default function ApplyModal({ job, open, onClose }: any) {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} variant="outlined">Back</Button>
+        <Button 
+          variant="outlined" 
+          onClick={onClose}
+          data-testid="apply-back-button"
+          sx={{ borderRadius: '20px' }} // Make button rounded
+        >
+          Back
+        </Button>
         <Button
           variant="contained"
+          color="primary"
+          type="submit"
           disabled={
             !userData.email ||
             !userData.fullPhone ||
@@ -203,6 +210,11 @@ export default function ApplyModal({ job, open, onClose }: any) {
             !isPhoneValid
           }
           onClick={handleSubmit}
+          data-testid="apply-submit-button"
+          sx={{ 
+            borderRadius: '20px',  // Make button rounded 
+            border: '2px solid #4caf50', // Green border
+          }}
         >
           Submit application
         </Button>

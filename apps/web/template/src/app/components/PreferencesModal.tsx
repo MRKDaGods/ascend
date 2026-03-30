@@ -8,8 +8,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { usePreferencesModal } from "../stores/usePreferencesModal";
-import MainPreferencesPage from "../jobs/PreferencesViews/MainPreferencesPage";
-import OpenToWorkModal from "../jobs/PreferencesViews/OpenToWorkPage";
+import MainPreferencesPage from "../jobs/MainPreferences/page";
 //add more views here 
 
 export default function PreferencesModal() {
@@ -19,8 +18,7 @@ export default function PreferencesModal() {
     switch (currentView) {
       case "main":
         return <MainPreferencesPage />;
-      case "openToWork":
-        return <OpenToWorkModal open={isOpen} onClose={closeModal} onSave={() => { /* Add save logic here */ }} />;
+
       // Add more views here
       default:
         return <MainPreferencesPage />;

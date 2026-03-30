@@ -1,5 +1,6 @@
 "use client";
 
+import API from "@/api/api";
 import React, { useState } from "react";
 import {
   Box,
@@ -13,9 +14,9 @@ import {
   Button,
   Paper,
   Divider,
+  useTheme,
 } from "@mui/material";
-import { deepOrange, green } from "@mui/material/colors";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 const question1 = {
   question: "Which of these best describes your primary goal for using Premium?",
@@ -45,13 +46,14 @@ const jobGoalsOptions = [
 ];
 
 const PremiumSurvey = () => {
+  const theme = useTheme();
   const [step, setStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [subOptions, setSubOptions] = useState<string[]>([]);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
   const totalSteps = 2;
 
-  const progress = ((step + 1) / (totalSteps + 1)) * 100; // Adjust progress calculation
+  const progress = ((step + 1) / (totalSteps + 1)) * 100;
 
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
@@ -68,11 +70,18 @@ const PremiumSurvey = () => {
         setStep(1);
         setSelectedOption("");
       } else if (selectedOption === "Other") {
-        router.push("/premium"); // Navigate directly to the premium page
+        router.push("/prem/premium");
       }
     } else if (step === 1) {
-      // Navigate to the premium page after completing the survey
-      router.push("/premium");
+      API.post("/payment/payments/survey", {
+        question: "What do you hope to achieve with Premium?",
+        answers: subOptions,
+        user_choice: subOptions.findIndex((opt) => opt === selectedOption),
+      })
+        .then(() => {
+          router.push("/prem/premium");
+        })
+        .catch((e) => console.error(e));
     }
   };
 
@@ -84,21 +93,25 @@ const PremiumSurvey = () => {
   };
 
   const renderQuestion = () => {
-    if (step === 0) {
-      return question1;
-    } else {
-      return {
-        question: "What do you hope to achieve with Premium?",
-        options: subOptions,
-      };
-    }
+    return step === 0
+      ? question1
+      : {
+          question: "What do you hope to achieve with Premium?",
+          options: subOptions,
+        };
   };
 
   const currentQuestion = renderQuestion();
 
   return (
-    <Box sx={{ p: 4, backgroundColor: "#f3f2ef", minHeight: "100vh" }}>
-      {/* Top Info */}
+    <Box
+      sx={{
+        p: 4,
+        backgroundColor: theme.palette.background.default,
+        color: theme.palette.text.primary,
+        minHeight: "100vh",
+      }}
+    >
       <Box sx={{ maxWidth: 900, mx: "auto", mb: 4 }}>
         <Typography variant="h6" gutterBottom>
           The average career is 42 years. Drive sales and boost your success with Sales Navigator.
@@ -117,7 +130,7 @@ const PremiumSurvey = () => {
               height: 10,
               borderRadius: 5,
               "& .MuiLinearProgress-bar": {
-                backgroundColor: green[500],
+                backgroundColor: theme.palette.success.main,
               },
             }}
           />
@@ -127,7 +140,7 @@ const PremiumSurvey = () => {
               position: "absolute",
               top: -20,
               right: 0,
-              color: green[500],
+              color: theme.palette.success.main,
               fontWeight: "bold",
             }}
           >
@@ -136,35 +149,18 @@ const PremiumSurvey = () => {
         </Box>
       </Box>
 
-      {/* Testimonial */}
-      <Box
-        sx={{
-          maxWidth: 900,
-          mx: "auto",
-          mb: 4,
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Box sx={{ width: "60%" }}></Box>
-        <Paper sx={{ p: 2, width: 250, bgcolor: "#fafafa" }}>
-          <Typography variant="body2" gutterBottom>
-            "With Premium, I grew my followers to 14,000, landed two jobs, and made hundreds of connections."
-          </Typography>
-          <Typography variant="caption" display="block">
-            Vugar Rustamli
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Program Consultant
-          </Typography>
-        </Paper>
-      </Box>
-
-      {/* Main Survey Box */}
       <Box sx={{ maxWidth: 600, mx: "auto" }}>
-        <Paper elevation={1} sx={{ p: 3 }}>
+        <Paper
+          elevation={1}
+          sx={{
+            p: 3,
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+          }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-            <Avatar sx={{ bgcolor: deepOrange[500], mr: 2 }}>N</Avatar>
+            <Avatar sx={{ bgcolor: theme.palette.primary.main, mr: 2 }}>N</Avatar>
             <Box>
               <Typography variant="subtitle1" fontWeight={600}>
                 USER, {currentQuestion.question}
@@ -191,12 +187,17 @@ const PremiumSurvey = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          <Box textAlign="right" display="flex" justifyContent="space-between">
+          <Box display="flex" justifyContent="space-between">
             <Button
               variant="outlined"
               disabled={step === 0}
               onClick={handleBack}
-              sx={{ textTransform: "none", borderRadius: 20, px: 4 }}
+              sx={{
+                textTransform: "none",
+                borderRadius: 20,
+                px: 4,
+                borderColor: theme.palette.divider,
+              }}
             >
               Back
             </Button>
@@ -204,7 +205,11 @@ const PremiumSurvey = () => {
               variant="contained"
               disabled={!selectedOption}
               onClick={handleNext}
-              sx={{ textTransform: "none", borderRadius: 20, px: 4 }}
+              sx={{
+                textTransform: "none",
+                borderRadius: 20,
+                px: 4,
+              }}
             >
               Next
             </Button>

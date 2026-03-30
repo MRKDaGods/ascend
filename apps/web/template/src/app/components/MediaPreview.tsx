@@ -29,6 +29,8 @@ const MediaPreview: React.FC = () => {
   };
 
   const handleDuplicate = () => {
+    if (mediaFiles.length >= 10) return; // ✅ Stop if already 10 media
+  
     const fileToDuplicate = mediaFiles[selectedIndex];
     if (fileToDuplicate) {
       const duplicated = new File([fileToDuplicate], fileToDuplicate.name, {
@@ -36,7 +38,7 @@ const MediaPreview: React.FC = () => {
       });
       addMediaFile(duplicated);
     }
-  };
+  };  
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -47,11 +49,17 @@ const MediaPreview: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      Array.from(files).forEach((file) => {
-        addMediaFile(file);
-      });
+      const filesArray = Array.from(files);
+  
+      if (mediaFiles.length + filesArray.length > 10) {
+        const allowedFiles = filesArray.slice(0, 10 - mediaFiles.length);
+        allowedFiles.forEach((file) => addMediaFile(file));
+      } else {
+        filesArray.forEach((file) => addMediaFile(file));
+      }
     }
   };
+  
 
   if (mediaFiles.length === 0) return null;
 
@@ -59,21 +67,19 @@ const MediaPreview: React.FC = () => {
     <Box
       sx={{
         display: "flex",
-        flexDirection: "row",
-        height: "calc(100vh - 100px)",
-        p: 2,
-        overflow: "hidden", // ✅ Removes external scroller
+        width: '100%',
+        height: '100%',
+        gap: 2,
       }}
     >
-      {/* ✅ Left: Main Preview */}
+      {/* Main Preview */}
       <Box
         sx={{
-          width: 250,
-          height: 500,
-          flex: 1,
+          flex: '1 1 70%',
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          minWidth: 0,
         }}
       >
         {mediaFiles[selectedIndex]?.type.startsWith("video") ? (
@@ -81,10 +87,11 @@ const MediaPreview: React.FC = () => {
             src={mediaPreviews[selectedIndex]}
             controls
             style={{
-              maxHeight: "500px",
-              maxWidth: "500px",
+              width: '100%',
+              height: '100%',
+              maxHeight: '100%',
               borderRadius: 12,
-              objectFit: "cover",
+              objectFit: "contain",
             }}
           />
         ) : (
@@ -92,36 +99,41 @@ const MediaPreview: React.FC = () => {
             src={mediaPreviews[selectedIndex]}
             alt={`Main preview ${selectedIndex}`}
             style={{
-              maxHeight: "500px",
-              maxWidth: "500px",
+              width: '100%',
+              height: '100%',
+              maxHeight: '100%',
               borderRadius: 12,
-              objectFit: "cover",
+              objectFit: "contain",
             }}
           />
         )}
       </Box>
 
-      {/* ✅ Right: Thumbnails + Fixed Controls */}
+      {/* Right section with fixed height and scrollable thumbnails */}
       <Box
         sx={{
-          width: 250,
-          height: 500,
+          flex: '0 0 250px',
           display: "flex",
           flexDirection: "column",
-          px: 2,
+          height: '100%',
         }}
       >
-        {/* ✅ Scrollable Thumbnail Grid */}
+        {/* Scrollable thumbnails */}
         <Box
           sx={{
-            flexGrow: 1,
+            flex: 1,
             overflowY: "auto",
             display: "grid",
             gridTemplateColumns: "repeat(2, 1fr)",
-            justifyItems: "center",
-            alignItems: "start", // prevent row stretching
-            gap: 2, // consistent spacing between rows & columns
-            px: 1,
+            gap: 1,
+            p: 1,
+            '&::-webkit-scrollbar': {
+              width: '6px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              borderRadius: '3px',
+            },
           }}
         >
           {mediaPreviews.map((preview, index) => (
@@ -170,15 +182,24 @@ const MediaPreview: React.FC = () => {
           ))}
         </Box>
 
-        {/* ✅ Fixed Controls */}
-        <Stack direction="row" justifyContent="space-between" mt={2}>
-          <IconButton onClick={handleDuplicate}>
+        {/* Controls */}
+        <Stack 
+          direction="row" 
+          spacing={1} 
+          sx={{
+            justifyContent: "space-between",
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            pt: 1,
+          }}
+        >
+          <IconButton size="small" onClick={handleDuplicate}>
             <FileCopy />
           </IconButton>
-          <IconButton onClick={handleDelete}>
+          <IconButton size="small" onClick={handleDelete}>
             <Delete color="error" />
           </IconButton>
-          <IconButton onClick={handleAddClick}>
+          <IconButton size="small" onClick={handleAddClick}>
             <Add />
           </IconButton>
           <input
@@ -190,17 +211,6 @@ const MediaPreview: React.FC = () => {
             onChange={handleFileChange}
           />
         </Stack>
-      </Box>
-
-      {/* ✅ Next Button Fixed Bottom Right */}
-      <Box
-        sx={{
-          position: "absolute",
-          bottom: 16,
-          right: 24,
-        }}
-      >
-        <Button variant="contained">Next</Button>
       </Box>
     </Box>
   );

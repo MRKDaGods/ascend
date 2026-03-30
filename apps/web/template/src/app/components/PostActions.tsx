@@ -1,5 +1,3 @@
-// Component file: like, comment, repost and send
-
 "use client";
 
 import React from "react";
@@ -14,20 +12,13 @@ import RepostOptions from "./RepostOptions";
 
 interface Props {
   postId: number;
-  liked: boolean;
-  reposted: boolean;
-  onLike: () => void;
-  onRepost: () => void;
   onCommentClick: () => void;
 }
 
 const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
   const theme = useTheme();
+
   const {
-    postReactions,
-    repostedPosts,
-    setReaction,
-    clearReaction,
     posts,
     setCopyPostPopupOpen,
   } = usePostStore();
@@ -38,12 +29,11 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
     setSendDialogOpen,
   } = useUserStore();
 
-  const liked = postReactions[postId] !== undefined;
-  const reposted = repostedPosts.includes(postId);
   const post = posts.find((p) => p.id === postId);
   if (!post) return null;
 
   const authorName = post.username;
+
   const enrichedConnections = connections.map((conn) => ({
     id: conn.id,
     name: conn.name,
@@ -83,14 +73,12 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
             px: { xs: 0, sm: 2 },
           }}
         >
-          <Reactions
-            postId={postId}
-            liked={liked}
-            onLike={() => (liked ? clearReaction(postId) : setReaction(postId, "Like"))}
-          />
+          {/* 👍 Reactions */}
+          <Reactions postId={postId} />
 
+          {/* 💬 Comment */}
           <Button
-            id="comment-button" // ✅ ID added
+            id="comment-button"
             startIcon={<Comment />}
             onClick={onCommentClick}
             sx={{
@@ -103,10 +91,12 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
             Comment
           </Button>
 
+          {/* 🔁 Repost */}
           <RepostOptions post={post} />
 
+          {/* 📤 Send */}
           <Button
-            id="send-post-button" // ✅ ID added
+            id="send-post-button"
             startIcon={<Send />}
             onClick={() => setSendDialogOpen(true)}
             sx={{
@@ -120,6 +110,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           </Button>
         </Stack>
 
+        {/* 📩 Send Dialog */}
         <SendPostDialog
           open={sendDialogOpen}
           onClose={() => setSendDialogOpen(false)}
@@ -128,6 +119,7 @@ const PostActions: React.FC<Props> = ({ postId, onCommentClick }) => {
           postId={postId}
         />
 
+        {/* 📋 Copy Link Feedback */}
         <CopyPostPopup />
       </Box>
     </>

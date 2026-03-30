@@ -8,6 +8,7 @@ import Navbar from "../../components/Navbar";
 import ManageInvitationsCard from "../../components/ManageInvitationsCard";
 import PremiumAdCard from "../../components/PremiumAdCard";
 import Footer from "../../components/Footer";
+import SidebarPreview from "../../components/SidebarPreview";
 
 const InvitationManagerPage: React.FC = () => {
   const theme = useTheme();
@@ -21,6 +22,7 @@ const InvitationManagerPage: React.FC = () => {
       }}
     >
       <Navbar />
+      <SidebarPreview />
 
       <Container
         sx={{

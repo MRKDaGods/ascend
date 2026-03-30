@@ -3,6 +3,7 @@
 import React from "react";
 import { Button, Stack } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { loginWithGoogle } from "@/ext/auth";
 
 const AuthButtons = () => {
   const router = useRouter();
@@ -13,7 +14,7 @@ const AuthButtons = () => {
         id="sign-in-with-google-button"
         fullWidth
         variant="outlined"
-        onClick={() => router.push("/authen/continueAsMehrati")} // ✅ Added navigation
+        onClick={() => loginWithGoogle()} // ✅ Added navigation
         startIcon={<img src="/google.webp" alt="Google logo" width={24} height={24} />}
         sx={{
           borderRadius: "5em",
@@ -22,7 +23,7 @@ const AuthButtons = () => {
           textTransform: "none",
         }}
       >
-        Continue as Mehrati
+        Continue with Google
       </Button>
 
       <Button

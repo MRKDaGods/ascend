@@ -12,9 +12,6 @@ import {
 import PeopleIcon from "@mui/icons-material/People";
 import PersonIcon from "@mui/icons-material/Person";
 import GroupsIcon from "@mui/icons-material/Groups";
-import EventIcon from "@mui/icons-material/Event";
-import PagesIcon from "@mui/icons-material/Pages";
-import NewspaperIcon from "@mui/icons-material/Newspaper";
 import { useRouter } from "next/navigation";
 
 const ManageNetworkCard = () => {
@@ -24,10 +21,7 @@ const ManageNetworkCard = () => {
   const items = [
     { text: "Connections", icon: <PeopleIcon />, route: "/network/connections" },
     { text: "Following & followers", icon: <PersonIcon />, route: "/network/following" },
-    { text: "Groups", icon: <GroupsIcon />, route: "/network/connections" },
-    { text: "Events", icon: <EventIcon />, route: "/network/connections" },
-    { text: "Pages", icon: <PagesIcon />, route: "/network/connections" },
-    { text: "Newsletters", icon: <NewspaperIcon />, route: "/network/connections" },
+    { text: "Message Requests", icon: <GroupsIcon />, route: "/network/messageRequests" },
   ];
 
   return (
@@ -47,7 +41,13 @@ const ManageNetworkCard = () => {
         {items.map((item) => (
           <ListItem
             key={item.text}
-            sx={{ cursor: "pointer" }}
+            sx={{
+              cursor: "pointer",
+              borderRadius: 2,
+              "&:hover": {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }}
             onClick={() => router.push(item.route)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>

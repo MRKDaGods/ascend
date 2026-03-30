@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -18,34 +18,16 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import InsightsIcon from "@mui/icons-material/InsertChart";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 
-import { useProfileStore } from "../stores/useProfileStore";
 import { usePreferencesModal } from "../stores/usePreferencesModal";
 import PreferencesModal from "./PreferencesModal";
 
 const ListCard = () => {
   const router = useRouter();
-  const { userData, setUserData } = useProfileStore();
   const { openModal } = usePreferencesModal();
-
-  useEffect(() => {
-    if (!userData) {
-      const fetchUserData = async () => {
-        try {
-          const res = await fetch("http://localhost:5000/api/user");
-          const data = await res.json();
-          setUserData(data);
-        } catch (error) {
-          console.error("Failed to fetch user data", error);
-        }
-      };
-
-      fetchUserData();
-    }
-  }, [userData, setUserData]);
 
   return (
     <>
-      <Card sx={{ width: 300, borderRadius: 3, boxShadow: 1 }}>
+      <Card sx={{ width: "100%", borderRadius: 3, boxShadow: 1 }}>
         <CardContent>
           <List>
             <ListItem disablePadding>
@@ -58,7 +40,7 @@ const ListCard = () => {
             </ListItem>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push("/MyJobs")}>
+              <ListItemButton onClick={() => router.push("/jobs/MyJobs")}>
                 <ListItemIcon>
                   <BookmarkIcon sx={{ color: "black" }} />
                 </ListItemIcon>
@@ -78,7 +60,7 @@ const ListCard = () => {
             <Divider sx={{ my: 1 }} />
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => router.push("/PostJob")}>
+              <ListItemButton onClick={() => router.push("/jobs/PostJob")}>
                 <ListItemIcon>
                   <PostAddIcon sx={{ color: "#0A66C2" }} />
                 </ListItemIcon>
@@ -92,7 +74,6 @@ const ListCard = () => {
         </CardContent>
       </Card>
 
-      {/* Preferences Modal (centralized & reusable) */}
       <PreferencesModal />
     </>
   );

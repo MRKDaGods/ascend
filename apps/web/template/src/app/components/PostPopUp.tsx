@@ -27,7 +27,7 @@ const SaveJobPopup = () => {
 
   const handleViewSavedPosts = () => {
     setSavedJobPopupOpen(false);
-   router.push('/MyJobs'); 
+   router.push('/jobs/MyJobs'); 
   };
 
   return (
