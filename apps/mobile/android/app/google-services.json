@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:478636127188:android:75003a418912cdd6ea9c41",
         "android_client_info": {
-          "package_name": "com.example.ascend_app"
+          "package_name": "tech.ascendx.ascend"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "478636127188-r3703mm9kruo3uvc1c4rq6gmvv8ign6h.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.ascend_app",
+            "package_name": "tech.ascendx.ascend",
             "certificate_hash": "b0261cad5c824ab269c582e74a9b846c8a473672"
           }
         },
@@ -42,7 +42,7 @@
               "client_id": "478636127188-gmej68dk65rrns9uavs1185j6bj0iaik.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.ascendApp"
+                "bundle_id": "tech.ascendx.ascend"
               }
             }
           ]

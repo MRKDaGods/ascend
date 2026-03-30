@@ -64,6 +64,6 @@ class DefaultFirebaseOptions {
     projectId: 'ascend-46a60',
     storageBucket: 'ascend-46a60.firebasestorage.app',
     iosClientId: '478636127188-gmej68dk65rrns9uavs1185j6bj0iaik.apps.googleusercontent.com',
-    iosBundleId: 'com.example.ascendApp',
+    iosBundleId: 'tech.ascendx.ascend',
   );
 }

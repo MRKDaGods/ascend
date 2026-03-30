@@ -1,4 +1,4 @@
-package com.example.ascend_app
+package tech.ascendx.ascend
 
 import io.flutter.embedding.android.FlutterActivity
 
