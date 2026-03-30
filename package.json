@@ -11,12 +11,6 @@
     "start": "npm run start --workspaces"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
-    "@types/jest": "^29.5.14",
     "typescript": "^5.8.2"
-  },
-  "dependencies": {
-    "jest": "^29.7.0",
-    "react-toastify": "^11.0.5"
   }
 }
