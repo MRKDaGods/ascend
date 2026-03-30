@@ -108,10 +108,25 @@ screenshots/
 test_logs.log
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+# Flutter generated files
 apps/mobile/ascend_app/windows/flutter/generated_plugin_registrant.cc
-apps/mobile/ascend_app/windows/flutter/generated_plugin_registrant.cc
+apps/mobile/ascend_app/windows/flutter/generated_plugins.cmake
 apps/mobile/ascend_app/macos/Flutter/GeneratedPluginRegistrant.swift
 apps/mobile/ascend_app/linux/flutter/generated_plugins.cmake
 apps/mobile/ascend_app/linux/flutter/generated_plugin_registrant.cc
 apps/mobile/ascend_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-apps/mobile/ascend_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+apps/mobile/ascend_app/ios/Flutter/Generated.xcconfig
+apps/mobile/ascend_app/ios/Flutter/flutter_export_environment.sh
+apps/mobile/ascend_app/ios/Runner/GeneratedPluginRegistrant.h
+apps/mobile/ascend_app/ios/Runner/GeneratedPluginRegistrant.m
+apps/mobile/ascend_app/.metadata
+
+# Android CMake build cache
+**/.cxx/
+
+# Android local machine config
+apps/mobile/ascend_app/android/local.properties
+apps/mobile/ascend_app/android/gradle/wrapper/gradle-wrapper.jar
+
+# Compiled WASM output
+packages/api-client/pkg/
